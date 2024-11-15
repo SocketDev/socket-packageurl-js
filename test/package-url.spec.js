@@ -94,7 +94,7 @@ describe('PackageURL', function () {
         }
 
         it('should validate required params', function () {
-            const testValid = (paramName) => {
+            const testValid = paramName => {
                 const paramIndex = paramMap[paramName]
                 const args = createArgs(paramName, paramName)
                 const message = JSON.stringify(args[paramIndex])
@@ -106,7 +106,7 @@ describe('PackageURL', function () {
                 }
             }
 
-            const testInvalid = (paramName) => {
+            const testInvalid = paramName => {
                 const paramIndex = paramMap[paramName]
                 ;[
                     createArgs(paramName, 0),
@@ -117,7 +117,7 @@ describe('PackageURL', function () {
                     createArgs(paramName, null),
                     createArgs(paramName, undefined),
                     createArgs(paramName, '')
-                ].forEach((args) => {
+                ].forEach(args => {
                     const message = JSON.stringify(args[paramIndex])
                     try {
                         new PackageURL(...args)
@@ -128,21 +128,21 @@ describe('PackageURL', function () {
                 })
             }
 
-            ;['type', 'name'].forEach((paramName) => {
+            ;['type', 'name'].forEach(paramName => {
                 testValid(paramName)
                 testInvalid(paramName)
             })
         })
 
         it('should validate string params', function () {
-            const testValid = (paramName) => {
+            const testValid = paramName => {
                 const paramIndex = paramMap[paramName]
                 ;[
                     createArgs(paramName, paramName),
                     createArgs(paramName, null),
                     createArgs(paramName, undefined),
                     createArgs(paramName, '')
-                ].forEach((args) => {
+                ].forEach(args => {
                     const message = JSON.stringify(args[paramIndex])
                     try {
                         new PackageURL(...args)
@@ -153,7 +153,7 @@ describe('PackageURL', function () {
                 })
             }
 
-            const testInvalid = (paramName) => {
+            const testInvalid = paramName => {
                 const paramIndex = paramMap[paramName]
                 ;[
                     createArgs(paramName, 0),
@@ -161,7 +161,7 @@ describe('PackageURL', function () {
                     createArgs(paramName, 1),
                     createArgs(paramName, true),
                     createArgs(paramName, {})
-                ].forEach((args) => {
+                ].forEach(args => {
                     const message = JSON.stringify(args[paramIndex])
                     try {
                         new PackageURL(...args)
@@ -172,7 +172,7 @@ describe('PackageURL', function () {
                 })
             }
 
-            ;['namespace', 'version', 'subpath'].forEach((paramName) => {
+            ;['namespace', 'version', 'subpath'].forEach(paramName => {
                 testValid(paramName)
                 testInvalid(paramName)
             })
@@ -223,7 +223,7 @@ describe('PackageURL', function () {
 
     describe('toString()', function () {
         it('type is validated', function () {
-            ;['ty#pe', 'ty@pe', 'ty/pe', '1type'].forEach((type) => {
+            ;['ty#pe', 'ty@pe', 'ty/pe', '1type'].forEach(type => {
                 assert.throws(
                     () => new PackageURL(type, undefined, 'name'),
                     /contains an illegal character|cannot start with a number/

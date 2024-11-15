@@ -56,7 +56,7 @@ async function pFilterChunk(chunks, callbackFn, options) {
         } else {
             const chunk = chunks[i]
             const predicateResults = await Promise.all(
-                chunk.map((value) => {
+                chunk.map(value => {
                     if (signal?.aborted) {
                         return Promise.resolve()
                     }
@@ -96,7 +96,7 @@ void (async () => {
         ])
     ]
     const rawLegacyNames = allThePackageNames
-        .filter((n) => !validateNpmPackageName(n).validForNewPackages)
+        .filter(n => !validateNpmPackageName(n).validForNewPackages)
         .sort(alphanumericComparator)
     const seenNames = new Set()
     const invalidNames = new Set()
@@ -105,7 +105,7 @@ void (async () => {
         await pFilter(
             rawLegacyNames,
             3,
-            async (n) => {
+            async n => {
                 if (!seenNames.has(n)) {
                     seenNames.add(n)
                     spinner.text = `Checking package ${n}...`
@@ -126,7 +126,7 @@ void (async () => {
         [
             { json: builtinNames, path: npmBuiltinNamesJsonPath },
             { json: legacyNames, path: npmLegacyNamesJsonPath }
-        ].map((d) =>
+        ].map(d =>
             fs.writeFile(d.path, `${JSON.stringify(d.json, null, 2)}\n`, 'utf8')
         )
     )
