@@ -14,7 +14,7 @@ const {
 const { validateEmptyByType, validateRequiredByType } = require('./validate')
 const { PurlError } = require('./error')
 
-const PurlTypNormalizer = (purl) => purl
+const PurlTypNormalizer = purl => purl
 const PurlTypeValidator = (_purl, _throws) => true
 
 const getNpmBuiltinNames = (() => {
@@ -48,9 +48,9 @@ function getNpmId(purl) {
     return `${namespace?.length > 0 ? `${namespace}/` : ''}${name}`
 }
 
-const isNpmBuiltinName = (id) => getNpmBuiltinNames().includes(id.toLowerCase())
+const isNpmBuiltinName = id => getNpmBuiltinNames().includes(id.toLowerCase())
 
-const isNpmLegacyName = (id) => getNpmLegacyNames().includes(id)
+const isNpmLegacyName = id => getNpmLegacyNames().includes(id)
 
 module.exports = {
     // PURL types:
