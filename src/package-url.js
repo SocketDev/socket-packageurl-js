@@ -22,13 +22,12 @@ SOFTWARE.
 'use strict'
 
 const { decodePurlComponent } = require('./decode')
+const { PurlError } = require('./error')
 const { isObject, recursiveFreeze } = require('./objects')
-const { isBlank, isNonEmptyString, trimLeadingSlashes } = require('./strings')
-
 const { PurlComponent } = require('./purl-component')
 const { PurlQualifierNames } = require('./purl-qualifier-names')
 const { PurlType } = require('./purl-type')
-const { PurlError } = require('./error')
+const { isBlank, isNonEmptyString, trimLeadingSlashes } = require('./strings')
 
 class PackageURL {
     static Component = recursiveFreeze(PurlComponent)

@@ -8,9 +8,7 @@ const {
     encodeSubpath,
     encodeURIComponent
 } = require('./encode')
-
 const { createHelpersNamespaceObject } = require('./helpers')
-
 const {
     normalizeType,
     normalizeNamespace,
@@ -19,9 +17,7 @@ const {
     normalizeQualifiers,
     normalizeSubpath
 } = require('./normalize')
-
 const { localeCompare, isNonEmptyString } = require('./strings')
-
 const {
     validateType,
     validateNamespace,

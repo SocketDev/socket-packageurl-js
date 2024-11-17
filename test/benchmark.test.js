@@ -1,7 +1,9 @@
-const assert = require('assert')
+'use strict'
+
+const assert = require('node:assert/strict')
+const { describe, it } = require('node:test')
 
 const TEST_FILE = require('./data/test-suite-data.json')
-
 const { PackageURL } = require('../src/package-url')
 
 describe('PackageURL', () => {

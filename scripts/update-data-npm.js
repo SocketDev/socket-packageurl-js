@@ -1,22 +1,13 @@
 'use strict'
 
-const minNodeMajor = 23
-const nodeMajor = Number(process.version.slice(1, process.version.indexOf('.')))
-if (nodeMajor < minNodeMajor) {
-    console.error(
-        `✘ Node ${nodeMajor} is not supported. Requires >=${minNodeMajor}.`
-    )
-    process.exitCode = 1
-    return
-}
-
 const fs = require('node:fs/promises')
-const path = require('node:path')
 const Module = require('node:module')
+const path = require('node:path')
 
 const pacote = require('pacote')
 const validateNpmPackageName = require('validate-npm-package-name')
-const { default: yoctoSpinner } = require('yocto-spinner')
+
+const yoctoSpinner = require('@socketregistry/yocto-spinner')
 
 const rootPath = path.resolve(__dirname, '..')
 const dataPath = path.join(rootPath, 'data')
@@ -55,6 +46,7 @@ async function pFilterChunk(chunks, callbackFn, options) {
             filteredChunks[i] = []
         } else {
             const chunk = chunks[i]
+            // eslint-disable-next-line no-await-in-loop
             const predicateResults = await Promise.all(
                 chunk.map(value => {
                     if (signal?.aborted) {
@@ -66,6 +58,7 @@ async function pFilterChunk(chunks, callbackFn, options) {
                     let attempts = retries
                     return (async () => {
                         while (attempts-- >= 0) {
+                            // eslint-disable-next-line no-await-in-loop
                             if (await callbackFn(value, { signal })) {
                                 return true
                             }

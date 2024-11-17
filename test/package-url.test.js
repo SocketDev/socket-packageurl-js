@@ -1,3 +1,5 @@
+'use strict'
+
 /*!
 Copyright (c) the purl authors
 
@@ -20,10 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const assert = require('assert')
-const { describe, it } = require('mocha')
+const assert = require('node:assert/strict')
+const { describe, it } = require('node:test')
 
 const npmBuiltinNames = require('../data/npm/builtin-names.json')
+// eslint-disable-next-line import-x/order
 const npmLegacyNames = require('../data/npm/legacy-names.json')
 
 const TEST_FILE = [
@@ -38,9 +41,9 @@ function getNpmId(purl) {
     return `${namespace?.length > 0 ? `${namespace}/` : ''}${name}`
 }
 
-describe('PackageURL', function () {
-    describe('KnownQualifierNames', function () {
-        describe('check access', function () {
+describe('PackageURL', () => {
+    describe('KnownQualifierNames', () => {
+        describe('check access', () => {
             ;[
                 ['RepositoryUrl', 'repository_url'],
                 ['DownloadUrl', 'download_url'],
@@ -48,7 +51,7 @@ describe('PackageURL', function () {
                 ['FileName', 'file_name'],
                 ['Checksum', 'checksum']
             ].forEach(function ([name, expectedValue]) {
-                it(`maps: ${name} => ${expectedValue}`, function () {
+                it(`maps: ${name} => ${expectedValue}`, () => {
                     assert.strictEqual(
                         PackageURL.KnownQualifierNames[name],
                         expectedValue
@@ -57,20 +60,24 @@ describe('PackageURL', function () {
             })
         })
 
-        it('readonly: cannot be written', function () {
-            PackageURL.KnownQualifierNames = { foo: 'bar' }
+        it('readonly: cannot be written', () => {
+            assert.throws(() => {
+                PackageURL.KnownQualifierNames = { foo: 'bar' }
+            }, TypeError)
             assert.notDeepStrictEqual(PackageURL.KnownQualifierNames, {
                 foo: 'bar'
             })
         })
 
-        it('frozen: cannot be modified', function () {
-            PackageURL.KnownQualifierNames.foo = 'bar'
+        it('frozen: cannot be modified', () => {
+            assert.throws(() => {
+                PackageURL.KnownQualifierNames.foo = 'bar'
+            }, TypeError)
             assert.strictEqual(PackageURL.KnownQualifierNames.foo, undefined)
         })
     })
 
-    describe('constructor', function () {
+    describe('constructor', () => {
         const paramMap = {
             type: 0,
             namespace: 1,
@@ -93,7 +100,7 @@ describe('PackageURL', function () {
             return args
         }
 
-        it('should validate required params', function () {
+        it('should validate required params', () => {
             const testValid = paramName => {
                 const paramIndex = paramMap[paramName]
                 const args = createArgs(paramName, paramName)
@@ -134,7 +141,7 @@ describe('PackageURL', function () {
             })
         })
 
-        it('should validate string params', function () {
+        it('should validate string params', () => {
             const testValid = paramName => {
                 const paramIndex = paramMap[paramName]
                 ;[
@@ -221,8 +228,8 @@ describe('PackageURL', function () {
         })
     })
 
-    describe('toString()', function () {
-        it('type is validated', function () {
+    describe('toString()', () => {
+        it('type is validated', () => {
             ;['ty#pe', 'ty@pe', 'ty/pe', '1type'].forEach(type => {
                 assert.throws(
                     () => new PackageURL(type, undefined, 'name'),
@@ -231,7 +238,7 @@ describe('PackageURL', function () {
             })
         })
 
-        it('encode #', function () {
+        it('encode #', () => {
             /* The # is a delimiter between url and subpath. */
             const purl = new PackageURL(
                 'type',
@@ -247,7 +254,7 @@ describe('PackageURL', function () {
             )
         })
 
-        it('encode @', function () {
+        it('encode @', () => {
             /* The @ is a delimiter between package name and version. */
             const purl = new PackageURL(
                 'type',
@@ -263,7 +270,7 @@ describe('PackageURL', function () {
             )
         })
 
-        it('path components encode /', function () {
+        it('path components encode /', () => {
             /* only namespace is allowed to have multiple segments separated by `/`` */
             const purl = new PackageURL(
                 'type',
@@ -277,8 +284,8 @@ describe('PackageURL', function () {
         })
     })
 
-    describe('fromString()', function () {
-        it('with qualifiers.checksums', function () {
+    describe('fromString()', () => {
+        it('with qualifiers.checksums', () => {
             const purlString =
                 'pkg:npm/packageurl-js@0.0.7?checksums=sha512:b9c27369720d948829a98118e9a35fd09d9018711e30dc2df5f8ae85bb19b2ade4679351c4d96768451ee9e841e5f5a36114a9ef98f4fe5256a5f4ca981736a0'
             const purl = PackageURL.fromString(purlString)
@@ -294,7 +301,7 @@ describe('PackageURL', function () {
             })
         })
 
-        it('with qualifiers.vcs_url', function () {
+        it('with qualifiers.vcs_url', () => {
             const purlString =
                 'pkg:npm/packageurl-js@0.0.7?vcs_url=git%2Bhttps%3A%2F%2Fgithub.com%2Fpackage-url%2Fpackageurl-js.git'
             const purl = PackageURL.fromString(purlString)
@@ -309,7 +316,7 @@ describe('PackageURL', function () {
             })
         })
 
-        it('npm PURL with namespace starting with @', function () {
+        it('npm PURL with namespace starting with @', () => {
             const purlString = 'pkg:npm/@aws-crypto/crc32@3.0.0'
             const purl = PackageURL.fromString(purlString)
 
@@ -319,7 +326,7 @@ describe('PackageURL', function () {
             assert.strictEqual(purl.version, '3.0.0')
         })
 
-        it('namespace with multiple segments', function () {
+        it('namespace with multiple segments', () => {
             const purl = PackageURL.fromString(
                 'pkg:type/namespace1/namespace2/na%2Fme'
             )
@@ -328,7 +335,7 @@ describe('PackageURL', function () {
             assert.strictEqual(purl.name, 'na/me')
         })
 
-        it('encoded #', function () {
+        it('encoded #', () => {
             const purl = PackageURL.fromString(
                 'pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path'
             )
@@ -343,7 +350,7 @@ describe('PackageURL', function () {
             assert.strictEqual(purl.subpath, 'sub#path')
         })
 
-        it('encoded @', function () {
+        it('encoded @', () => {
             const purl = PackageURL.fromString(
                 'pkg:type/name%40space/na%40me@ver%40sion?foo=bar%40baz#sub%40path'
             )
@@ -383,11 +390,11 @@ describe('PackageURL', function () {
         })
     })
 
-    describe('test-suite-data', function () {
+    describe('test-suite-data', () => {
         TEST_FILE.forEach(function (obj) {
-            describe(obj.description, function () {
+            describe(obj.description, () => {
                 if (obj.is_invalid) {
-                    it(`should not be possible to create invalid ${obj.type} PackageURLs`, function () {
+                    it(`should not be possible to create invalid ${obj.type} PackageURLs`, () => {
                         assert.throws(
                             () =>
                                 new PackageURL(
@@ -401,14 +408,14 @@ describe('PackageURL', function () {
                             /is a required|Invalid purl/
                         )
                     })
-                    it(`should not be possible to parse invalid ${obj.type} PackageURLs`, function () {
+                    it(`should not be possible to parse invalid ${obj.type} PackageURLs`, () => {
                         assert.throws(
                             () => PackageURL.fromString(obj.purl),
                             /missing the required|Invalid purl/
                         )
                     })
                 } else {
-                    it(`should be able to create valid ${obj.type} PackageURLs`, function () {
+                    it(`should be able to create valid ${obj.type} PackageURLs`, () => {
                         const purl = new PackageURL(
                             obj.type,
                             obj.namespace,
@@ -438,7 +445,7 @@ describe('PackageURL', function () {
                             obj.subpath ?? undefined
                         )
                     })
-                    it(`should be able to convert valid ${obj.type} PackageURLs to a string`, function () {
+                    it(`should be able to convert valid ${obj.type} PackageURLs to a string`, () => {
                         const purl = new PackageURL(
                             obj.type,
                             obj.namespace,
@@ -449,7 +456,7 @@ describe('PackageURL', function () {
                         )
                         assert.strictEqual(purl.toString(), obj.canonical_purl)
                     })
-                    it(`should be able to parse valid ${obj.type} PackageURLs`, function () {
+                    it(`should be able to parse valid ${obj.type} PackageURLs`, () => {
                         const purl = PackageURL.fromString(obj.purl)
                         assert.strictEqual(purl.toString(), obj.canonical_purl)
                         assert.strictEqual(purl.type, obj.type)
@@ -478,8 +485,8 @@ describe('PackageURL', function () {
         })
     })
 
-    describe('npm', function () {
-        it("should allow legacy names to be mixed case, match a builtin, or contain ~'!()* characters", function () {
+    describe('npm', () => {
+        it("should allow legacy names to be mixed case, match a builtin, or contain ~'!()* characters", () => {
             for (const legacyName of npmLegacyNames) {
                 let purl
                 assert.doesNotThrow(() => {
@@ -498,13 +505,14 @@ describe('PackageURL', function () {
                 )
             }
         })
-        it('should not allow non-legacy builtin names', function () {
+        it('should not allow non-legacy builtin names', () => {
             for (const builtinName of npmBuiltinNames) {
                 if (!npmLegacyNames.includes(builtinName)) {
                     assert.throws(() => {
                         const parts = builtinName.split('/')
                         const namespace = parts.length > 1 ? parts[0] : ''
                         const name = parts.at(-1)
+
                         new PackageURL('npm', namespace, name)
                     }, `assert for ${builtinName}`)
                 }
@@ -512,8 +520,8 @@ describe('PackageURL', function () {
         })
     })
 
-    describe('pub', function () {
-        it('should normalize dashes to underscores', function () {
+    describe('pub', () => {
+        it('should normalize dashes to underscores', () => {
             const purlWithDashes = new PackageURL(
                 'pub',
                 '',
@@ -527,8 +535,8 @@ describe('PackageURL', function () {
         })
     })
 
-    describe('pypi', function () {
-        it('should handle pypi package-urls per the purl-spec', function () {
+    describe('pypi', () => {
+        it('should handle pypi package-urls per the purl-spec', () => {
             const purlMixedCasing = PackageURL.fromString(
                 'pkg:pypi/PYYaml@5.3.0'
             )
