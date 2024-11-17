@@ -3,6 +3,7 @@
 Thumbs.db
 /.env
 /.nvm
+/.tap
 /.vscode
 /npm-debug.log
 /yarn.lock

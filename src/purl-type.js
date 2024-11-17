@@ -1,8 +1,9 @@
 'use strict'
 
 const { encodeURIComponent } = require('./encode')
-const { isNullishOrEmptyString } = require('./lang')
+const { PurlError } = require('./error')
 const { createHelpersNamespaceObject } = require('./helpers')
+const { isNullishOrEmptyString } = require('./lang')
 const {
     isSemverString,
     lowerName,
@@ -12,7 +13,6 @@ const {
     replaceUnderscoresWithDashes
 } = require('./strings')
 const { validateEmptyByType, validateRequiredByType } = require('./validate')
-const { PurlError } = require('./error')
 
 const PurlTypNormalizer = purl => purl
 const PurlTypeValidator = (_purl, _throws) => true
@@ -356,7 +356,7 @@ module.exports = {
                         if (/[~'!()*]/.test(name)) {
                             if (throws) {
                                 throw new PurlError(
-                                    `npm "name" component can not contain special characters ("~\'!()*")`
+                                    `npm "name" component can not contain special characters ("~'!()*")`
                                 )
                             }
                             return false
