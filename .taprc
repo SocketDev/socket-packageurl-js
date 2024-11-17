@@ -1,0 +1,10 @@
+# vim: set filetype=yaml :
+allow-incomplete-coverage: true
+color: true
+coverage-report:
+  - none
+disable-coverage: true
+include:
+  - test/**/*.test.js
+passes: false
+reporter: base
