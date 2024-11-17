@@ -10,13 +10,13 @@ const { compare: localeCompare } = new Intl.Collator()
 // This regexp is valid as of 2024-08-01.
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
 const regexSemverNumberedGroups =
-    /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
 function isBlank(str) {
-    for (let i = 0, { length } = str; i < length; i += 1) {
-        const code = str.charCodeAt(i)
-        // prettier-ignore
-        if (
+  for (let i = 0, { length } = str; i < length; i += 1) {
+    const code = str.charCodeAt(i)
+    // prettier-ignore
+    if (
             !(
                 // Whitespace characters according to ECMAScript spec:
                 // https://tc39.es/ecma262/#sec-white-space
@@ -51,77 +51,77 @@ function isBlank(str) {
         ) {
             return false
         }
-    }
-    return true
+  }
+  return true
 }
 
 function isNonEmptyString(value) {
-    return typeof value === 'string' && value.length > 0
+  return typeof value === 'string' && value.length > 0
 }
 
 function isSemverString(value) {
-    return typeof value === 'string' && regexSemverNumberedGroups.test(value)
+  return typeof value === 'string' && regexSemverNumberedGroups.test(value)
 }
 
 function lowerName(purl) {
-    purl.name = purl.name.toLowerCase()
+  purl.name = purl.name.toLowerCase()
 }
 
 function lowerNamespace(purl) {
-    const { namespace } = purl
-    if (typeof namespace === 'string') {
-        purl.namespace = namespace.toLowerCase()
-    }
+  const { namespace } = purl
+  if (typeof namespace === 'string') {
+    purl.namespace = namespace.toLowerCase()
+  }
 }
 
 function lowerVersion(purl) {
-    const { version } = purl
-    if (typeof version === 'string') {
-        purl.version = version.toLowerCase()
-    }
+  const { version } = purl
+  if (typeof version === 'string') {
+    purl.version = version.toLowerCase()
+  }
 }
 
 function replaceDashesWithUnderscores(str) {
-    // Replace all "-" with "_"
-    let result = ''
-    let fromIndex = 0
-    let index = 0
-    while ((index = str.indexOf('-', fromIndex)) !== -1) {
-        result = result + str.slice(fromIndex, index) + '_'
-        fromIndex = index + 1
-    }
-    return fromIndex ? result + str.slice(fromIndex) : str
+  // Replace all "-" with "_"
+  let result = ''
+  let fromIndex = 0
+  let index = 0
+  while ((index = str.indexOf('-', fromIndex)) !== -1) {
+    result = result + str.slice(fromIndex, index) + '_'
+    fromIndex = index + 1
+  }
+  return fromIndex ? result + str.slice(fromIndex) : str
 }
 
 function replaceUnderscoresWithDashes(str) {
-    // Replace all "_" with "-"
-    let result = ''
-    let fromIndex = 0
-    let index = 0
-    while ((index = str.indexOf('_', fromIndex)) !== -1) {
-        result = result + str.slice(fromIndex, index) + '-'
-        fromIndex = index + 1
-    }
-    return fromIndex ? result + str.slice(fromIndex) : str
+  // Replace all "_" with "-"
+  let result = ''
+  let fromIndex = 0
+  let index = 0
+  while ((index = str.indexOf('_', fromIndex)) !== -1) {
+    result = result + str.slice(fromIndex, index) + '-'
+    fromIndex = index + 1
+  }
+  return fromIndex ? result + str.slice(fromIndex) : str
 }
 
 function trimLeadingSlashes(str) {
-    let start = 0
-    while (str.charCodeAt(start) === 47 /*'/'*/) {
-        start += 1
-    }
-    return start === 0 ? str : str.slice(start)
+  let start = 0
+  while (str.charCodeAt(start) === 47 /*'/'*/) {
+    start += 1
+  }
+  return start === 0 ? str : str.slice(start)
 }
 
 module.exports = {
-    isBlank,
-    isNonEmptyString,
-    isSemverString,
-    localeCompare,
-    lowerName,
-    lowerNamespace,
-    lowerVersion,
-    replaceDashesWithUnderscores,
-    replaceUnderscoresWithDashes,
-    trimLeadingSlashes
+  isBlank,
+  isNonEmptyString,
+  isSemverString,
+  localeCompare,
+  lowerName,
+  lowerNamespace,
+  lowerVersion,
+  replaceDashesWithUnderscores,
+  replaceUnderscoresWithDashes,
+  trimLeadingSlashes
 }

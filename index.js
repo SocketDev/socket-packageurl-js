@@ -22,15 +22,15 @@ SOFTWARE.
 'use strict'
 
 const {
-    PackageURL,
-    PurlComponent,
-    PurlQualifierNames,
-    PurlType
+  PackageURL,
+  PurlComponent,
+  PurlQualifierNames,
+  PurlType
 } = require('./src/package-url')
 
 module.exports = {
-    PackageURL,
-    PurlComponent,
-    PurlQualifierNames,
-    PurlType
+  PackageURL,
+  PurlComponent,
+  PurlQualifierNames,
+  PurlType
 }
