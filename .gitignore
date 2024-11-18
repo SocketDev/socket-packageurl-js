@@ -8,3 +8,4 @@ Thumbs.db
 /npm-debug.log
 /yarn.lock
 **/node_modules
+/*.tsbuildinfo
