@@ -1,152 +1,49 @@
-# packageurl-js
+# @socketregistry/packageurl-js
 
-### Installing
+[![Socket Badge](https://socket.dev/api/badge/npm/package/@socketregistry/packageurl-js)](https://socket.dev/npm/package/@socketregistry/packageurl-js)
+[![CI - @socketregistry/packageurl-js](https://github.com/SocketDev/packageurl-js/actions/workflows/test.yml/badge.svg)](https://github.com/SocketDev/packageurl-js/actions/workflows/test.yml)
+[![Follow @SocketSecurity](https://img.shields.io/twitter/follow/SocketSecurity?style=social)](https://twitter.com/SocketSecurity)
 
-To install `packageurl-js` in your project, simply run:
-```bash
-npm install packageurl-js
+> An enhanced and tested zero dependency drop-in replacement of
+> [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) complete with
+> TypeScript types.
+
+## Installation
+
+### Install as a package override
+
+[`socket`](https://socket.dev/npm/package/socket) CLI will automagically ✨
+populate
+[overrides](https://docs.npmjs.com/cli/v9/configuring-npm/package-json#overrides)
+and [resolutions](https://yarnpkg.com/configuration/manifest#resolutions) of
+your `package.json`.
+
+```sh
+npx socket optimize
 ```
 
-This command will download the `packageurl-js` npm package for use in your application.
+Prefer to do it yourself? Add `@socketregistry/packageurl-js` to your
+`package.json`.
 
-### Local Development
-
-Clone the `packageurl-js` repo and `cd` into the directory.
-
-Then run:
-```bash
-npm install
-```
-
-### Testing
-
-To run the test suite:
-```bash
-npm test
-```
-
-### Usage Examples
-
-#### Importing
-
-As an ES6 module
-```js
-import { PackageURL } from 'packageurl-js'
-```
-
-As a CommonJS module
-```js
-const { PackageURL } = require('packageurl-js')
-```
-
-#### Parsing
-
-```js
-const purlStr = 'pkg:maven/org.springframework.integration/spring-integration-jms@5.5.5'
-console.log(PackageURL.fromString(purlStr))
-console.log(new PackageURL(...PackageURL.parseString(purlStr)))
-```
-
-will both log
-
-```
-PackageURL {
-    type: 'maven',
-    name: 'spring-integration-jms',
-    namespace: 'org.springframework.integration',
-    version: '5.5.5',
-    qualifiers: undefined,
-    subpath: undefined
+```json
+{
+  "overrides": {
+    "packageurl-js": "npm:@socketregistry/packageurl-js@^1"
+  },
+  "resolutions": {
+    "packageurl-js": "npm:@socketregistry/packageurl-js@^1"
+  }
 }
 ```
 
-#### Constructing
+### Install as a plain dependency
 
-```js
-const pkg = new PackageURL(
-    'maven',
-    'org.springframework.integration',
-    'spring-integration-jms',
-    '5.5.5'
-)
-console.log(pkg.toString())
+Install with your favorite package manager.
+
+```sh
+npm install @socketregistry/packageurl-js
 ```
 
-=>
+## Requirements
 
-```
-pkg:maven/org.springframework.integration/spring-integration-jms@5.5.5
-```
-
-#### Error Handling
-
-```js
-try {
-    PackageURL.fromString('not-a-purl')
-} catch (e) {
-    console.error(e.message)
-}
-```
-
-=>
-
-```
-Invalid purl: missing required "pkg" scheme component
-```
-
-#### Helper Objects
-
-Helpers for encoding, normalizing, and validating purl components and types can
-be imported directly from the module or found on the PackageURL class as static
-properties.
-```js
-import {
-    PackageURL,
-    PurlComponent,
-    PurlType
-} from 'packageurl-js'
-
-PurlComponent === PackageURL.Component // => true
-PurlType === PackageURL.Type // => true
-```
-
-#### PurlComponent
-
-Contains the following properties each with their own `encode`, `normalize`,
-and `validate` methods, e.g. `PurlComponent.name.validate(nameStr)`:
-  - type
-  - namespace
-  - name
-  - version
-  - qualifiers
-  - qualifierKey
-  - qualifierValue
-  - subpath
-
-#### PurlType
-
-Contains the following properties each with their own `normalize`, and `validate`
-methods, e.g. `PurlType.npm.validate(purlObj)`:
-  - alpm
-  - apk
-  - bitbucket
-  - bitnami
-  - composer
-  - conan
-  - cran
-  - deb
-  - github
-  - gitlab
-  - golang
-  - hex
-  - huggingface
-  - luarocks
-  - maven
-  - mlflow
-  - npm
-  - oci
-  - pub
-  - pypi
-  - qpkg
-  - rpm
-  - swift
+Node >= `18.20.4`

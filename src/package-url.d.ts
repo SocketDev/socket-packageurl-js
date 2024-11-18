@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-declare module 'packageurl-js' {
+declare module '@socketregistry/packageurl-js' {
   export type PurlQualifiers = { [key: string]: string }
 
   export type PurlComponentEncoder = (comp: any) => string
@@ -186,10 +186,7 @@ declare module 'packageurl-js' {
     ]
   }
 
-  // @ts-ignore
-  export const PurlComponent = <PurlComponent>{}
-  // @ts-ignore
-  export const PurlQualifierNames = <PurlQualifierNames>{}
-  // @ts-ignore
-  export const PurlType = <PurlType>{}
+  export const PurlComponent: PurlComponent
+  export const PurlQualifierNames: PurlQualifierNames
+  export const PurlType: PurlType
 }
