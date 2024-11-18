@@ -1,28 +1,49 @@
 {
-  "name": "packageurl-js",
-  "version": "2.0.1",
-  "description": "JavaScript library to parse and build \"purl\" aka. package URLs. This is a microlibrary implementing the purl spec at https://github.com/package-url",
-  "keywords": [
-    "package",
-    "url"
-  ],
-  "homepage": "https://github.com/package-url/packageurl-js#readme",
-  "bugs": {
-    "url": "https://github.com/package-url/packageurl-js/issues"
-  },
+  "name": "@socketregistry/packageurl-js",
+  "version": "1.0.0",
   "license": "MIT",
-  "author": "the purl authors",
-  "main": "index.js",
+  "description": "Socket.dev optimized package override for packageurl-js",
+  "keywords": [
+    "Socket.dev",
+    "package-overrides"
+  ],
+  "homepage": "https://github.com/SocketDev/packageurl-js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/package-url/packageurl-js.git"
+    "url": "git+https://github.com/SocketDev/packageurl-js.git"
   },
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./src/constants": "./src/constants.js",
+    "./src/decode": "./src/decode.js",
+    "./src/encode": "./src/encode.js",
+    "./src/error": "./src/error.js",
+    "./src/helpers": "./src/helpers.js",
+    "./src/lang": "./src/lang.js",
+    "./src/normalize": "./src/normalize.js",
+    "./src/objects": "./src/objects.js",
+    "./src/package-url": {
+      "types": "./src/package-url.d.ts",
+      "default": "./src/package-url.js"
+    },
+    "./src/purl-component": "./src/purl-component.js",
+    "./src/purl-qualifier-names": "./src/purl-qualifier-names.js",
+    "./src/purl-type": "./src/purl-type.js",
+    "./src/strings": "./src/strings.js",
+    "./src/validate": "./src/validate.js",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
   "scripts": {
     "check": "run-p -c --aggregate-output check:*",
     "check:lint": "eslint --report-unused-disable-directives .",
+    "check:tsc": "tsc",
     "knip:dependencies": "knip --dependencies",
     "knip:exports": "knip --include exports,duplicates",
-    "lint": "oxlint -c=./.oxlintrc.json --ignore-path=./.prettierignore .",
+    "lint": "oxlint -c=./.oxlintrc.json --ignore-path=./.prettierignore --tsconfig=./tsconfig.json .",
     "lint:fix": "npm run lint -- --fix && npm run lint:fix:fast",
     "lint:fix:fast": "prettier --cache --log-level warn --write .",
     "prepare": "husky",
@@ -49,13 +70,20 @@
     "pacote": "^20.0.0",
     "prettier": "3.3.3",
     "tap": "^21.0.1",
+    "typescript": "5.6.3",
     "validate-npm-package-name": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18.20.4"
   },
   "files": [
     "*{.js,.ts}",
     "data/**/*.json",
-    "src/**/*{.js,.ts}",
-    "LICENSE",
-    "README.md"
-  ]
+    "src/**/*{.js,.ts}"
+  ],
+  "socket": {
+    "categories": [
+      "levelup"
+    ]
+  }
 }
