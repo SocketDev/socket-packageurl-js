@@ -10,7 +10,7 @@ const sortDestructureKeysPlugin = require('eslint-plugin-sort-destructure-keys')
 const unicornPlugin = require('eslint-plugin-unicorn')
 
 const constants = require('@socketsecurity/registry/lib/constants')
-const { GIT_IGNORE, PRETTIER_IGNORE } = constants
+const { GIT_IGNORE, LATEST, PRETTIER_IGNORE } = constants
 
 const rootPath = __dirname
 
@@ -25,8 +25,11 @@ module.exports = [
     ...importXPlugin.flatConfigs.recommended,
     languageOptions: {
       ...importXPlugin.flatConfigs.recommended.languageOptions,
-      ecmaVersion: 'latest',
+      ecmaVersion: LATEST,
       sourceType: 'script'
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: 'off'
     },
     rules: {
       ...importXPlugin.flatConfigs.recommended.rules,
@@ -58,17 +61,10 @@ module.exports = [
     }
   },
   {
-    files: ['scripts/**/*.js', 'test/**/*.cjs'],
-    ...nodePlugin.configs['flat/recommended-script']
-  },
-  {
-    files: ['scripts/**/*.js', 'test/**/*.cjs'],
-    plugins: {
-      'sort-destructure-keys': sortDestructureKeysPlugin,
-      unicorn: unicornPlugin
-    },
+    files: ['scripts/**/*.{c,}js', 'test/**/*.{c,}js'],
+    ...nodePlugin.configs['flat/recommended-script'],
     rules: {
-      ...js.configs.recommended.rules,
+      ...nodePlugin.configs['flat/recommended-script'].rules,
       'n/exports-style': ['error', 'module.exports'],
       // The n/no-unpublished-bin rule does does not support non-trivial glob
       // patterns used in package.json "files" fields. In those cases we simplify
@@ -84,7 +80,17 @@ module.exports = [
           version: constants.maintainedNodeVersions.previous
         }
       ],
-      'n/prefer-node-protocol': ['error'],
+      'n/prefer-node-protocol': ['error']
+    }
+  },
+  {
+    files: ['scripts/**/*.{c,}js', 'test/**/*.{c,}js'],
+    plugins: {
+      'sort-destructure-keys': sortDestructureKeysPlugin,
+      unicorn: unicornPlugin
+    },
+    rules: {
+      ...js.configs.recommended.rules,
       'no-await-in-loop': ['error'],
       'no-control-regex': ['error'],
       'no-empty': ['error', { allowEmptyCatch: true }],
