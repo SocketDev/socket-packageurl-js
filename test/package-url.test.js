@@ -101,11 +101,13 @@ describe('PackageURL', () => {
     }
 
     it('should validate required params', () => {
-      const testValid = paramName => {
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      function testValid(paramName) {
         const paramIndex = paramMap[paramName]
         const args = createArgs(paramName, paramName)
         const message = JSON.stringify(args[paramIndex])
         try {
+          // eslint-disable-next-line no-new
           new PackageURL(...args)
           assert.ok(true, message)
         } catch {
@@ -113,7 +115,8 @@ describe('PackageURL', () => {
         }
       }
 
-      const testInvalid = paramName => {
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      function testInvalid(paramName) {
         const paramIndex = paramMap[paramName]
         ;[
           createArgs(paramName, 0),
@@ -127,6 +130,7 @@ describe('PackageURL', () => {
         ].forEach(args => {
           const message = JSON.stringify(args[paramIndex])
           try {
+            // eslint-disable-next-line no-new
             new PackageURL(...args)
             assert.ok(false, message)
           } catch {
@@ -135,14 +139,15 @@ describe('PackageURL', () => {
         })
       }
 
-      ;['type', 'name'].forEach(paramName => {
+      for (const paramName of ['type', 'name']) {
         testValid(paramName)
         testInvalid(paramName)
-      })
+      }
     })
 
     it('should validate string params', () => {
-      const testValid = paramName => {
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      function testValid(paramName) {
         const paramIndex = paramMap[paramName]
         ;[
           createArgs(paramName, paramName),
@@ -152,6 +157,7 @@ describe('PackageURL', () => {
         ].forEach(args => {
           const message = JSON.stringify(args[paramIndex])
           try {
+            // eslint-disable-next-line no-new
             new PackageURL(...args)
             assert.ok(true, message)
           } catch {
@@ -160,7 +166,8 @@ describe('PackageURL', () => {
         })
       }
 
-      const testInvalid = paramName => {
+      // eslint-disable-next-line unicorn/consistent-function-scoping
+      function testInvalid(paramName) {
         const paramIndex = paramMap[paramName]
         ;[
           createArgs(paramName, 0),
@@ -171,6 +178,7 @@ describe('PackageURL', () => {
         ].forEach(args => {
           const message = JSON.stringify(args[paramIndex])
           try {
+            // eslint-disable-next-line no-new
             new PackageURL(...args)
             assert.ok(false, message)
           } catch {
@@ -179,10 +187,10 @@ describe('PackageURL', () => {
         })
       }
 
-      ;['namespace', 'version', 'subpath'].forEach(paramName => {
+      for (const paramName of ['namespace', 'version', 'subpath']) {
         testValid(paramName)
         testInvalid(paramName)
-      })
+      }
     })
 
     it('should not decode params', () => {
@@ -489,7 +497,7 @@ describe('PackageURL', () => {
             const parts = builtinName.split('/')
             const namespace = parts.length > 1 ? parts[0] : ''
             const name = parts.at(-1)
-
+            // eslint-disable-next-line no-new
             new PackageURL('npm', namespace, name)
           }, `assert for ${builtinName}`)
         }
