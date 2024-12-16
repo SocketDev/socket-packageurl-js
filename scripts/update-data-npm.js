@@ -8,6 +8,11 @@ const pacote = require('pacote')
 const validateNpmPackageName = require('validate-npm-package-name')
 
 const yoctoSpinner = require('@socketregistry/yocto-spinner')
+const constants = require('@socketsecurity/registry/lib/constants')
+const {
+  abortSignal
+} = constants
+const { pFilter } = require('@socketsecurity/registry/lib/promises')
 
 const rootPath = path.resolve(__dirname, '..')
 const dataPath = path.join(rootPath, 'data')
@@ -19,59 +24,6 @@ const { compare: alphanumericComparator } = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: 'base'
 })
-
-function arrayChunk(arr, size = 2) {
-  const { length } = arr
-  const chunkSize = Math.min(length, size)
-  const chunks = []
-  for (let i = 0; i < length; i += chunkSize) {
-    chunks.push(arr.slice(i, i + chunkSize))
-  }
-  return chunks
-}
-
-async function pFilter(array, concurrency, callbackFn, options) {
-  return (
-    await pFilterChunk(arrayChunk(array, concurrency), callbackFn, options)
-  ).flat()
-}
-
-async function pFilterChunk(chunks, callbackFn, options) {
-  const { retries = 0, signal } = { __proto__: null, ...options }
-  const { length } = chunks
-  const filteredChunks = Array(length)
-  for (let i = 0; i < length; i += 1) {
-    // Process each chunk, filtering based on the callback function.
-    if (signal?.aborted) {
-      filteredChunks[i] = []
-    } else {
-      const chunk = chunks[i]
-      // eslint-disable-next-line no-await-in-loop
-      const predicateResults = await Promise.all(
-        chunk.map(value => {
-          if (signal?.aborted) {
-            return Promise.resolve()
-          }
-          if (retries === 0) {
-            return callbackFn(value, { signal })
-          }
-          let attempts = retries
-          return (async () => {
-            while (attempts-- >= 0) {
-              // eslint-disable-next-line no-await-in-loop
-              if (await callbackFn(value, { signal })) {
-                return true
-              }
-            }
-            return false
-          })()
-        })
-      )
-      filteredChunks[i] = chunk.filter((_v, i) => predicateResults[i])
-    }
-  }
-  return filteredChunks
-}
 
 void (async () => {
   const spinner = yoctoSpinner().start()
@@ -112,7 +64,7 @@ void (async () => {
         }
         return false
       },
-      { retries: 3 }
+      { retries: 3, signal: abortSignal }
     )
   spinner.text = 'Writing json files...'
   await Promise.all(
@@ -125,6 +77,6 @@ void (async () => {
   )
   spinner.stop()
   if (invalidNames.size) {
-    console.log(`⚠️ Removed missing packages:`, [...invalidNames])
+    console.warn(`⚠️ Removed missing packages:`, [...invalidNames])
   }
 })()
