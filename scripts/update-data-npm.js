@@ -9,9 +9,7 @@ const validateNpmPackageName = require('validate-npm-package-name')
 
 const yoctoSpinner = require('@socketregistry/yocto-spinner')
 const constants = require('@socketsecurity/registry/lib/constants')
-const {
-  abortSignal
-} = constants
+const { abortSignal } = constants
 const { pFilter } = require('@socketsecurity/registry/lib/promises')
 
 const rootPath = path.resolve(__dirname, '..')
