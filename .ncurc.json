@@ -1,0 +1,5 @@
+{
+  "loglevel": "minimal",
+  "reject": ["all-the-package-names", "all-the-package-names-v1.3905.0"],
+  "upgrade": true
+}
