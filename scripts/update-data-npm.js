@@ -7,10 +7,11 @@ const path = require('node:path')
 const pacote = require('pacote')
 const validateNpmPackageName = require('validate-npm-package-name')
 
-const yoctoSpinner = require('@socketregistry/yocto-spinner')
 const constants = require('@socketsecurity/registry/lib/constants')
-const { abortSignal } = constants
 const { pFilter } = require('@socketsecurity/registry/lib/promises')
+const { Spinner } = require('@socketsecurity/registry/lib/spinner')
+
+const { abortSignal } = constants
 
 const rootPath = path.resolve(__dirname, '..')
 const dataPath = path.join(rootPath, 'data')
@@ -24,7 +25,7 @@ const { compare: alphanumericComparator } = new Intl.Collator(undefined, {
 })
 
 void (async () => {
-  const spinner = yoctoSpinner().start()
+  const spinner = new Spinner().start()
   const builtinNames = Module.builtinModules.toSorted(alphanumericComparator)
   const allThePackageNames = [
     ...new Set([
@@ -39,6 +40,9 @@ void (async () => {
     ])
   ]
   const rawLegacyNames = allThePackageNames
+    // Don't simply check validateNpmPackageName(n).validForOldPackages.
+    // Instead let registry.npmjs.org be our source of truth to whether a
+    // package exists or not.
     .filter(n => !validateNpmPackageName(n).validForNewPackages)
     .sort(alphanumericComparator)
   const seenNames = new Set()
