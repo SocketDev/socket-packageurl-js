@@ -9,6 +9,7 @@ const validateNpmPackageName = require('validate-npm-package-name')
 
 const constants = require('@socketsecurity/registry/lib/constants')
 const { pFilter } = require('@socketsecurity/registry/lib/promises')
+const { confirm } = require('@socketsecurity/registry/lib/prompts')
 const { Spinner } = require('@socketsecurity/registry/lib/spinner')
 
 const { abortSignal } = constants
@@ -25,6 +26,14 @@ const { compare: alphanumericComparator } = new Intl.Collator(undefined, {
 })
 
 void (async () => {
+  if (
+    !(await confirm({
+      message: 'Update npm package names data?',
+      default: false
+    }))
+  ) {
+    return
+  }
   const spinner = new Spinner().start()
   const builtinNames = Module.builtinModules.toSorted(alphanumericComparator)
   const allThePackageNames = [
