@@ -41,6 +41,8 @@
     "check": "run-p -c --aggregate-output check:*",
     "check:lint": "eslint --report-unused-disable-directives .",
     "check:tsc": "tsc",
+    "clean": "run-p --aggregate-output clean:*",
+    "clean:node_modules": "del-cli '**/node_modules'",
     "knip:dependencies": "knip --dependencies",
     "knip:exports": "knip --include exports,duplicates",
     "lint": "oxlint -c=./.oxlintrc.json --ignore-path=./.prettierignore --tsconfig=./tsconfig.json .",
