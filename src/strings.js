@@ -5,7 +5,14 @@
 // > When comparing large numbers of strings, such as in sorting large arrays,
 // > it is better to create an Intl.Collator object and use the function provided
 // > by its compare() method.
-const { compare: localeCompare } = new Intl.Collator()
+let _localeCompare
+function localeCompare(x, y) {
+  if (_localeCompare === undefined) {
+    // Lazily call new Intl.Collator() because in Node it can take 10-14ms.
+    _localeCompare = new Intl.Collator().compare
+  }
+  return _localeCompare(x, y)
+}
 
 // This regexp is valid as of 2024-08-01.
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
