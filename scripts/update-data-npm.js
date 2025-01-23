@@ -10,6 +10,7 @@ const validateNpmPackageName = require('validate-npm-package-name')
 const constants = require('@socketsecurity/registry/lib/constants')
 const { pFilter } = require('@socketsecurity/registry/lib/promises')
 const { confirm } = require('@socketsecurity/registry/lib/prompts')
+const { naturalCompare } = require('@socketsecurity/registry/lib/sorts')
 const { Spinner } = require('@socketsecurity/registry/lib/spinner')
 
 const { abortSignal } = constants
@@ -19,11 +20,6 @@ const dataPath = path.join(rootPath, 'data')
 const npmDataPath = path.join(dataPath, 'npm')
 const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')
 const npmLegacyNamesJsonPath = path.join(npmDataPath, 'legacy-names.json')
-
-const { compare: alphanumericComparator } = new Intl.Collator(undefined, {
-  numeric: true,
-  sensitivity: 'base'
-})
 
 void (async () => {
   if (
@@ -35,7 +31,7 @@ void (async () => {
     return
   }
   const spinner = new Spinner().start()
-  const builtinNames = Module.builtinModules.toSorted(alphanumericComparator)
+  const builtinNames = Module.builtinModules.toSorted(naturalCompare)
   const allThePackageNames = [
     ...new Set([
       // Load the 43.1MB names.json file of 'all-the-package-names@2.0.0'
@@ -53,7 +49,7 @@ void (async () => {
     // Instead let registry.npmjs.org be our source of truth to whether a
     // package exists or not.
     .filter(n => !validateNpmPackageName(n).validForNewPackages)
-    .sort(alphanumericComparator)
+    .sort(naturalCompare)
   const seenNames = new Set()
   const invalidNames = new Set()
   const legacyNames =
