@@ -370,23 +370,23 @@ module.exports = {
           const { name } = purl
           for (let i = 0, { length } = name; i < length; i += 1) {
             const code = name.charCodeAt(i)
-            // prettier-ignore
+            // biome-ignore format:
             if (
-                            !(
-                                (
-                                    (code >= 48 && code <= 57)  || // 0-9
-                                    (code >= 97 && code <= 122) || // a-z
-                                    code === 95 // _
-                                )
-                            )
-                        ) {
-                            if (throws) {
-                                throw new PurlError(
-                                    'pub "name" component may only contain [a-z0-9_] characters'
-                                )
-                            }
-                            return false
-                        }
+              !(
+                (
+                  (code >= 48 && code <= 57)  || // 0-9
+                  (code >= 97 && code <= 122) || // a-z
+                  code === 95 // _
+                )
+              )
+            ) {
+              if (throws) {
+                throw new PurlError(
+                  'pub "name" component may only contain [a-z0-9_] characters'
+                )
+              }
+              return false
+            }
           }
           return true
         },

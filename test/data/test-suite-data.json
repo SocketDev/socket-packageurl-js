@@ -79,7 +79,7 @@
     "namespace": "debian",
     "name": "curl",
     "version": "7.50.3-1",
-    "qualifiers": {"arch": "i386", "distro": "jessie"},
+    "qualifiers": { "arch": "i386", "distro": "jessie" },
     "subpath": null,
     "is_invalid": false
   },
@@ -91,7 +91,7 @@
     "namespace": "customer",
     "name": "dockerimage",
     "version": "sha256:244fd47e07d1004f0aed9c",
-    "qualifiers": {"repository_url": "gcr.io"},
+    "qualifiers": { "repository_url": "gcr.io" },
     "subpath": null,
     "is_invalid": false
   },
@@ -103,7 +103,7 @@
     "namespace": null,
     "name": "jruby-launcher",
     "version": "1.1.2",
-    "qualifiers": {"platform": "java"},
+    "qualifiers": { "platform": "java" },
     "subpath": null,
     "is_invalid": false
   },
@@ -115,7 +115,10 @@
     "namespace": "org.apache.xmlgraphics",
     "name": "batik-anim",
     "version": "1.9.1",
-    "qualifiers": {"classifier": "sources", "repository_url": "repo.spring.io/release"},
+    "qualifiers": {
+      "classifier": "sources",
+      "repository_url": "repo.spring.io/release"
+    },
     "subpath": null,
     "is_invalid": false
   },
@@ -127,7 +130,10 @@
     "namespace": "org.apache.xmlgraphics",
     "name": "batik-anim",
     "version": "1.9.1",
-    "qualifiers": {"extension": "pom", "repository_url": "repo.spring.io/release"},
+    "qualifiers": {
+      "extension": "pom",
+      "repository_url": "repo.spring.io/release"
+    },
     "subpath": null,
     "is_invalid": false
   },
@@ -139,7 +145,7 @@
     "namespace": "net.sf.jacob-project",
     "name": "jacob",
     "version": "1.14.3",
-    "qualifiers": {"classifier": "x86", "type": "dll"},
+    "qualifiers": { "classifier": "x86", "type": "dll" },
     "subpath": null,
     "is_invalid": false
   },
@@ -187,7 +193,7 @@
     "namespace": "fedora",
     "name": "curl",
     "version": "7.50.3-1.fc25",
-    "qualifiers": {"arch": "i386", "distro": "fedora-25"},
+    "qualifiers": { "arch": "i386", "distro": "fedora-25" },
     "subpath": null,
     "is_invalid": false
   },
@@ -283,7 +289,7 @@
     "namespace": "mygroup",
     "name": "myartifact",
     "version": "1.0.0 Final",
-    "qualifiers": {"mykey": "my value"},
+    "qualifiers": { "mykey": "my value" },
     "subpath": null,
     "is_invalid": false
   },
@@ -295,7 +301,7 @@
     "namespace": null,
     "name": "myartifact",
     "version": "1.0.0",
-    "qualifiers": {"in production": "true"},
+    "qualifiers": { "in production": "true" },
     "subpath": null,
     "is_invalid": true
   },
@@ -319,7 +325,7 @@
     "namespace": "bincrafters",
     "name": "cctz",
     "version": "2.3",
-    "qualifiers": {"channel": "stable"},
+    "qualifiers": { "channel": "stable" },
     "subpath": null,
     "is_invalid": false
   },
@@ -343,7 +349,7 @@
     "namespace": null,
     "name": "cctz",
     "version": "2.3",
-    "qualifiers": {"channel": "stable"},
+    "qualifiers": { "channel": "stable" },
     "subpath": null,
     "is_invalid": true
   },
@@ -355,7 +361,12 @@
     "namespace": null,
     "name": "absl-py",
     "version": "0.4.1",
-    "qualifiers": {"build": "py36h06a4308_0", "channel": "main", "subdir": "linux-64", "type": "tar.bz2"},
+    "qualifiers": {
+      "build": "py36h06a4308_0",
+      "channel": "main",
+      "subdir": "linux-64",
+      "type": "tar.bz2"
+    },
     "subpath": null,
     "is_invalid": false
   },
@@ -487,7 +498,7 @@
     "namespace": "microsoft",
     "name": "deberta-v3-base",
     "version": "559062ad13d311b87b2c455e67dcd5f1c8f65111",
-    "qualifiers": {"repository_url": "https://hub-ci.huggingface.co"},
+    "qualifiers": { "repository_url": "https://hub-ci.huggingface.co" },
     "subpath": null,
     "is_invalid": false
   },
@@ -511,7 +522,9 @@
     "namespace": null,
     "name": "creditfraud",
     "version": "3",
-    "qualifiers": {"repository_url": "https://adb-5245952564735461.0.azuredatabricks.net/api/2.0/mlflow"},
+    "qualifiers": {
+      "repository_url": "https://adb-5245952564735461.0.azuredatabricks.net/api/2.0/mlflow"
+    },
     "subpath": null,
     "is_invalid": false
   },
@@ -523,7 +536,9 @@
     "namespace": null,
     "name": "CreditFraud",
     "version": "3",
-    "qualifiers": {"repository_url": "https://westus2.api.azureml.ms/mlflow/v1.0/subscriptions/a50f2011-fab8-4164-af23-c62881ef8c95/resourceGroups/TestResourceGroup/providers/Microsoft.MachineLearningServices/workspaces/TestWorkspace"},
+    "qualifiers": {
+      "repository_url": "https://westus2.api.azureml.ms/mlflow/v1.0/subscriptions/a50f2011-fab8-4164-af23-c62881ef8c95/resourceGroups/TestResourceGroup/providers/Microsoft.MachineLearningServices/workspaces/TestWorkspace"
+    },
     "subpath": null,
     "is_invalid": false
   },
@@ -535,7 +550,11 @@
     "namespace": null,
     "name": "trafficsigns",
     "version": "10",
-    "qualifiers": {"model_uuid": "36233173b22f4c89b451f1228d700d49", "run_id": "410a3121-2709-4f88-98dd-dba0ef056b0a", "repository_url": "https://adb-5245952564735461.0.azuredatabricks.net/api/2.0/mlflow"},
+    "qualifiers": {
+      "model_uuid": "36233173b22f4c89b451f1228d700d49",
+      "run_id": "410a3121-2709-4f88-98dd-dba0ef056b0a",
+      "repository_url": "https://adb-5245952564735461.0.azuredatabricks.net/api/2.0/mlflow"
+    },
     "subpath": null,
     "is_invalid": false
   },
