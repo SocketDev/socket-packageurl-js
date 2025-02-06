@@ -2,7 +2,10 @@
 
 const path = require('node:path')
 
-const { includeIgnoreFile } = require('@eslint/compat')
+const {
+  convertIgnorePatternToMinimatch,
+  includeIgnoreFile
+} = require('@eslint/compat')
 const js = require('@eslint/js')
 const importXPlugin = require('eslint-plugin-import-x')
 const nodePlugin = require('eslint-plugin-n')
@@ -10,16 +13,21 @@ const sortDestructureKeysPlugin = require('eslint-plugin-sort-destructure-keys')
 const unicornPlugin = require('eslint-plugin-unicorn')
 
 const constants = require('@socketsecurity/registry/lib/constants')
-const { GIT_IGNORE, LATEST, PRETTIER_IGNORE } = constants
+const { BIOME_JSON, GIT_IGNORE, LATEST } = constants
 
 const rootPath = __dirname
 
-const gitignorePath = path.resolve(rootPath, GIT_IGNORE)
-const prettierignorePath = path.resolve(rootPath, PRETTIER_IGNORE)
+const biomeConfigPath = path.join(rootPath, BIOME_JSON)
+const gitignorePath = path.join(rootPath, GIT_IGNORE)
+
+const biomeConfig = require(biomeConfigPath)
 
 module.exports = [
   includeIgnoreFile(gitignorePath),
-  includeIgnoreFile(prettierignorePath),
+  {
+    name: 'Imported biome.json ignore patterns',
+    ignores: biomeConfig.files.ignore.map(convertIgnorePatternToMinimatch)
+  },
   {
     files: ['**/*.{c,}js'],
     ...importXPlugin.flatConfigs.recommended,

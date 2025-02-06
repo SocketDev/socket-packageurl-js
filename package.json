@@ -45,9 +45,9 @@
     "clean:node_modules": "del-cli '**/node_modules'",
     "knip:dependencies": "knip --dependencies",
     "knip:exports": "knip --include exports,duplicates",
-    "lint": "oxlint -c=./.oxlintrc.json --ignore-path=./.prettierignore --tsconfig=./tsconfig.json .",
+    "lint": "oxlint -c=./.oxlintrc.json --ignore-path=./.oxlintignore --tsconfig=./tsconfig.json .",
     "lint:fix": "npm run lint -- --fix && npm run lint:fix:fast",
-    "lint:fix:fast": "prettier --cache --log-level warn --write .",
+    "lint:fix:fast": "biome format --write",
     "lint-staged": "lint-staged",
     "precommit": "lint-staged",
     "prepare": "husky",
@@ -57,9 +57,10 @@
     "update:longtask:data:npm": "node --disable-warning=ExperimentalWarning ./scripts/update-data-npm.js"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@eslint/compat": "^1.2.6",
     "@eslint/js": "^9.19.0",
-    "@socketsecurity/registry": "^1.0.82",
+    "@socketsecurity/registry": "^1.0.83",
     "all-the-package-names": "2.0.0",
     "all-the-package-names-v1.3905.0": "npm:all-the-package-names@1.3905.0",
     "eslint": "^9.19.0",
@@ -71,9 +72,8 @@
     "knip": "^5.43.6",
     "lint-staged": "^15.4.3",
     "npm-run-all2": "^7.0.2",
-    "oxlint": "0.15.9",
+    "oxlint": "0.15.10",
     "pacote": "^21.0.0",
-    "prettier": "3.4.2",
     "tap": "^21.0.1",
     "typescript": "5.7.3",
     "validate-npm-package-name": "^6.0.0"
@@ -94,7 +94,7 @@
   "lint-staged": {
     "*.{cjs,js,json,md,mjs,ts}": [
       "npm run lint -- --fix",
-      "npm run lint:fix:fast"
+      "npm run lint:fix:fast -- --no-errors-on-unmatched --files-ignore-unknown=true --colors=off"
     ]
   }
 }

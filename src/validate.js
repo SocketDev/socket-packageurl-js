@@ -57,26 +57,26 @@ function validateQualifierKey(key, throws) {
   // '.', '-' and '_' (period, dash and underscore).
   for (let i = 0, { length } = key; i < length; i += 1) {
     const code = key.charCodeAt(i)
-    // prettier-ignore
+    // biome-ignore format:
     if (
-            !(
-                (
-                    (code >= 48 && code <= 57)  || // 0-9
-                    (code >= 65 && code <= 90)  || // A-Z
-                    (code >= 97 && code <= 122) || // a-z
-                    code === 46 || // .
-                    code === 45 || // -
-                    code === 95    // _
-                )
-            )
-        ) {
-            if (throws) {
-                throw new PurlError(
-                    `qualifier "${key}" contains an illegal character`
-                )
-            }
-            return false
-        }
+      !(
+        (
+          (code >= 48 && code <= 57)  || // 0-9
+          (code >= 65 && code <= 90)  || // A-Z
+          (code >= 97 && code <= 122) || // a-z
+          code === 46 || // .
+          code === 45 || // -
+          code === 95    // _
+        )
+      )
+    ) {
+      if (throws) {
+        throw new PurlError(
+          `qualifier "${key}" contains an illegal character`
+        )
+      }
+      return false
+    }
   }
   return true
 }
@@ -141,26 +141,26 @@ function validateType(type, throws) {
   // '.', '+' and '-' (period, plus, and dash)
   for (let i = 0, { length } = type; i < length; i += 1) {
     const code = type.charCodeAt(i)
-    // prettier-ignore
+    // biome-ignore format:
     if (
-            !(
-                (
-                    (code >= 48 && code <= 57)  || // 0-9
-                    (code >= 65 && code <= 90)  || // A-Z
-                    (code >= 97 && code <= 122) || // a-z
-                    code === 46 || // .
-                    code === 43 || // +
-                    code === 45    // -
-                )
-            )
-        ) {
-            if (throws) {
-                throw new PurlError(
-                    `type "${type}" contains an illegal character`
-                )
-            }
-            return false
-        }
+      !(
+        (
+          (code >= 48 && code <= 57)  || // 0-9
+          (code >= 65 && code <= 90)  || // A-Z
+          (code >= 97 && code <= 122) || // a-z
+          code === 46 || // .
+          code === 43 || // +
+          code === 45    // -
+        )
+      )
+    ) {
+      if (throws) {
+        throw new PurlError(
+          `type "${type}" contains an illegal character`
+        )
+      }
+      return false
+    }
   }
   return true
 }
