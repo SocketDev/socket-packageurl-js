@@ -31,7 +31,11 @@ void (async () => {
     return
   }
   const spinner = new Spinner().start()
-  const builtinNames = Module.builtinModules.toSorted(naturalCompare)
+  const builtinNames = Module.builtinModules
+    // Node 23 introduces 'node:sea', 'node:sqlite', 'node:test', and 'node:test/reporters'
+    // that have no unprefixed version so we skip them.
+    .filter(n => !n.startsWith('node:'))
+    .toSorted(naturalCompare)
   const allThePackageNames = [
     ...new Set([
       // Load the 43.1MB names.json file of 'all-the-package-names@2.0.0'
