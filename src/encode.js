@@ -10,6 +10,12 @@ const { isNonEmptyString } = require('./strings')
 
 const { encodeURIComponent } = globalThis
 
+function encodeName(name) {
+  return isNonEmptyString(name)
+    ? encodeURIComponent(name).replace(/%3A/g, ':')
+    : ''
+}
+
 function encodeNamespace(namespace) {
   return isNonEmptyString(namespace)
     ? encodeURIComponent(namespace).replace(/%3A/g, ':').replace(/%2F/g, '/')
@@ -61,6 +67,7 @@ function replacePlusSignWithPercentEncodedSpace(str) {
 }
 
 module.exports = {
+  encodeName,
   encodeNamespace,
   encodeVersion,
   encodeQualifiers,
