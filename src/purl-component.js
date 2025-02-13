@@ -1,6 +1,7 @@
 'use strict'
 
 const {
+  encodeName,
   encodeNamespace,
   encodeVersion,
   encodeQualifiers,
@@ -62,6 +63,7 @@ module.exports = {
   PurlComponent: createHelpersNamespaceObject(
     {
       encode: {
+        name: encodeName,
         namespace: encodeNamespace,
         version: encodeVersion,
         qualifiers: encodeQualifiers,
