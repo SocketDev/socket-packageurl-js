@@ -75,7 +75,7 @@ void (async () => {
         }
         return false
       },
-      { retries: 3, signal: abortSignal }
+      { retries: 4, signal: abortSignal }
     )
   spinner.text = 'Writing json files...'
   await Promise.all(
