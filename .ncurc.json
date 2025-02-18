@@ -1,5 +1,5 @@
 {
   "loglevel": "minimal",
-  "reject": ["all-the-package-names", "all-the-package-names-v1.3905.0"],
+  "reject": ["all-the-package-names", "all-the-package-names-v1.3905.0", "eslint-plugin-unicorn"],
   "upgrade": true
 }
