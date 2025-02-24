@@ -53,7 +53,7 @@
     "prepare": "husky && custompatch",
     "test": "tap",
     "update": "run-p --aggregate-output update:* && run-s update:longtask:**",
-    "update:deps": "npx npm-check-updates",
+    "update:deps": "npx --yes npm-check-updates",
     "update:longtask:data:npm": "node --disable-warning=ExperimentalWarning ./scripts/update-data-npm.js"
   },
   "devDependencies": {
