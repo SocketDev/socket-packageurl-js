@@ -8,10 +8,10 @@ const pacote = require('pacote')
 const validateNpmPackageName = require('validate-npm-package-name')
 
 const constants = require('@socketsecurity/registry/lib/constants')
+const { logger } = require('@socketsecurity/registry/lib/logger')
 const { pFilter } = require('@socketsecurity/registry/lib/promises')
 const { confirm } = require('@socketsecurity/registry/lib/prompts')
 const { naturalCompare } = require('@socketsecurity/registry/lib/sorts')
-const { Spinner } = require('@socketsecurity/registry/lib/spinner')
 
 const { abortSignal } = constants
 
@@ -30,7 +30,11 @@ void (async () => {
   ) {
     return
   }
-  const spinner = new Spinner().start()
+  // Lazily access constants.spinner.
+  const { spinner } = constants
+
+  spinner.start()
+
   const builtinNames = Module.builtinModules
     // Node 23 introduces 'node:sea', 'node:sqlite', 'node:test', and 'node:test/reporters'
     // that have no unprefixed version so we skip them.
@@ -64,7 +68,7 @@ void (async () => {
       async n => {
         if (!seenNames.has(n)) {
           seenNames.add(n)
-          spinner.text = `Checking package ${n}...`
+          spinner.setText(`Checking package ${n}...`)
         }
         try {
           await pacote.manifest(`${n}@latest`)
@@ -77,7 +81,7 @@ void (async () => {
       },
       { retries: 4, signal: abortSignal }
     )
-  spinner.text = 'Writing json files...'
+  spinner.setText('Writing json files...')
   await Promise.all(
     [
       { json: builtinNames, path: npmBuiltinNamesJsonPath },
@@ -88,6 +92,6 @@ void (async () => {
   )
   spinner.stop()
   if (invalidNames.size) {
-    console.warn(`⚠️ Removed missing packages:`, [...invalidNames])
+    logger.warn(`Removed missing packages:`, [...invalidNames])
   }
 })()
