@@ -40,9 +40,11 @@
   "scripts": {
     "check": "run-p -c --aggregate-output check:*",
     "check:lint": "eslint --report-unused-disable-directives .",
+    "check:lint:fix": "npm run check:lint -- --fix",
     "check:tsc": "tsc",
     "clean": "run-p --aggregate-output clean:*",
     "clean:node_modules": "del-cli '**/node_modules'",
+    "fix": "run-s lint:fix check:lint:fix",
     "knip:dependencies": "knip --dependencies",
     "knip:exports": "knip --include exports,duplicates",
     "lint": "oxlint -c=./.oxlintrc.json --ignore-path=./.oxlintignore --tsconfig=./tsconfig.json .",
