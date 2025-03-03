@@ -41,6 +41,11 @@ module.exports = [
     },
     rules: {
       ...importXPlugin.flatConfigs.recommended.rules,
+      'import-x/extensions': [
+        'error',
+        'never',
+        { js: 'ignorePackages', json: 'always', mjs: 'ignorePackages' }
+      ],
       'import-x/no-named-as-default-member': 'off',
       'import-x/no-unresolved': ['error', { commonjs: true }],
       'import-x/order': [
