@@ -82,9 +82,9 @@ module.exports = [
       // The n/no-unpublished-bin rule does does not support non-trivial glob
       // patterns used in package.json "files" fields. In those cases we simplify
       // the glob patterns used.
-      'n/no-unpublished-bin': ['error'],
-      'n/no-unsupported-features/es-builtins': ['error'],
-      'n/no-unsupported-features/es-syntax': ['error'],
+      'n/no-unpublished-bin': 'error',
+      'n/no-unsupported-features/es-builtins': 'error',
+      'n/no-unsupported-features/es-syntax': 'error',
       'n/no-unsupported-features/node-builtins': [
         'error',
         {
@@ -93,7 +93,7 @@ module.exports = [
           version: constants.maintainedNodeVersions.previous
         }
       ],
-      'n/prefer-node-protocol': ['error']
+      'n/prefer-node-protocol': 'error'
     }
   },
   {
@@ -104,19 +104,20 @@ module.exports = [
     },
     rules: {
       ...js.configs.recommended.rules,
-      'no-await-in-loop': ['error'],
-      'no-control-regex': ['error'],
+      'no-await-in-loop': 'error',
+      'no-control-regex': 'error',
       'no-empty': ['error', { allowEmptyCatch: true }],
-      'no-new': ['error'],
-      'no-proto': ['error'],
+      'no-new': 'error',
+      'no-proto': 'error',
+      'no-undef': 'error',
       'no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_|^this$', ignoreRestSiblings: true }
       ],
       'no-warning-comments': ['warn', { terms: ['fixme'] }],
-      'sort-destructure-keys/sort-destructure-keys': ['error'],
+      'sort-destructure-keys/sort-destructure-keys': 'error',
       'sort-imports': ['error', { ignoreDeclarationSort: true }],
-      'unicorn/consistent-function-scoping': ['error']
+      'unicorn/consistent-function-scoping': 'error'
     }
   }
 ]
