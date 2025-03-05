@@ -1,13 +1,14 @@
 'use strict'
 
-const fs = require('node:fs/promises')
 const Module = require('node:module')
 const path = require('node:path')
 
 const pacote = require('pacote')
+const semver = require('semver')
 const validateNpmPackageName = require('validate-npm-package-name')
 
 const constants = require('@socketsecurity/registry/lib/constants')
+const { writeJson } = require('@socketsecurity/registry/lib/fs')
 const { logger } = require('@socketsecurity/registry/lib/logger')
 const { pFilter } = require('@socketsecurity/registry/lib/promises')
 const { confirm } = require('@socketsecurity/registry/lib/prompts')
@@ -22,6 +23,34 @@ const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')
 const npmLegacyNamesJsonPath = path.join(npmDataPath, 'legacy-names.json')
 
 void (async () => {
+  // Lazily access constants.spinner.
+  const { spinner } = constants
+
+  spinner.start()
+
+  // Lazily access constants.maintainedNodeVersions.
+  const { next } = constants.maintainedNodeVersions
+  const nodeVersion = process.version.slice(1)
+  const isGteNext = semver.gte(nodeVersion, next)
+  if (
+    await confirm({
+      message: `Update builtin package names?${isGteNext ? '' : ` (Requires Node >=${next})`}`,
+      default: true
+    })
+  ) {
+    const nodeVersion = process.version.slice(1)
+    if (isGteNext) {
+      const builtinNames = Module.builtinModules
+        // Node 23 introduces 'node:sea', 'node:sqlite', 'node:test', and 'node:test/reporters'
+        // that have no unprefixed version so we skip them.
+        .filter(n => !n.startsWith('node:'))
+        .sort(naturalCompare)
+      await writeJson(npmBuiltinNamesJsonPath, builtinNames, { spaces: 2 })
+    } else {
+      spinner.warn(`Skipping... (Running ${nodeVersion})`)
+    }
+  }
+
   if (
     !(await confirm({
       message: 'Update npm package names data?',
@@ -30,16 +59,6 @@ void (async () => {
   ) {
     return
   }
-  // Lazily access constants.spinner.
-  const { spinner } = constants
-
-  spinner.start()
-
-  const builtinNames = Module.builtinModules
-    // Node 23 introduces 'node:sea', 'node:sqlite', 'node:test', and 'node:test/reporters'
-    // that have no unprefixed version so we skip them.
-    .filter(n => !n.startsWith('node:'))
-    .sort(naturalCompare)
   const allThePackageNames = [
     ...new Set([
       // Load the 43.1MB names.json file of 'all-the-package-names@2.0.0'
@@ -81,17 +100,9 @@ void (async () => {
       },
       { retries: 4, signal: abortSignal }
     )
-  spinner.setText('Writing json files...')
-  await Promise.all(
-    [
-      { json: builtinNames, path: npmBuiltinNamesJsonPath },
-      { json: legacyNames, path: npmLegacyNamesJsonPath }
-    ].map(d =>
-      fs.writeFile(d.path, `${JSON.stringify(d.json, null, 2)}\n`, 'utf8')
-    )
-  )
+  await writeJson(npmLegacyNamesJsonPath, legacyNames, { spaces: 2 })
   spinner.stop()
   if (invalidNames.size) {
-    logger.warn(`Removed missing packages:`, [...invalidNames])
+    logger.warn('Removed missing packages:', [...invalidNames])
   }
 })()
