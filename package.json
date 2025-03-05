@@ -17,6 +17,8 @@
       "types": "./index.d.ts",
       "default": "./index.js"
     },
+    "./data/npm/builtin-names.json": "./data/npm/builtin-names.json",
+    "./data/npm/legacy-names.json": "./data/npm/legacy-names.json",
     "./src/constants": "./src/constants.js",
     "./src/decode": "./src/decode.js",
     "./src/encode": "./src/encode.js",
