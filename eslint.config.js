@@ -44,7 +44,12 @@ module.exports = [
       'import-x/extensions': [
         'error',
         'never',
-        { js: 'ignorePackages', json: 'always', mjs: 'ignorePackages' }
+        {
+          cjs: 'ignorePackages',
+          js: 'ignorePackages',
+          json: 'always',
+          mjs: 'ignorePackages'
+        }
       ],
       'import-x/no-named-as-default-member': 'off',
       'import-x/no-unresolved': ['error', { commonjs: true }],
