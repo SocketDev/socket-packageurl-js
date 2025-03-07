@@ -119,7 +119,9 @@ module.exports = [
         'error',
         { argsIgnorePattern: '^_|^this$', ignoreRestSiblings: true }
       ],
+      'no-var': 'error',
       'no-warning-comments': ['warn', { terms: ['fixme'] }],
+      'prefer-const': 'error',
       'sort-destructure-keys/sort-destructure-keys': 'error',
       'sort-imports': ['error', { ignoreDeclarationSort: true }],
       'unicorn/consistent-function-scoping': 'error'
