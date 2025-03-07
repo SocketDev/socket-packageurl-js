@@ -8,13 +8,14 @@
   },
   "settings": {},
   "rules": {
-    "unicorn/no-empty-file": "off",
-    "unicorn/no-new-array": "off",
     "no-control-regex": "off",
     "no-extend-native": "off",
     "no-new": "off",
     "no-self-assign": "off",
     "no-undef": "off",
-    "no-unused-vars": "off"
+    "no-unused-vars": "off",
+    "no-var": "error",
+    "unicorn/no-empty-file": "off",
+    "unicorn/no-new-array": "off"
   }
 }
