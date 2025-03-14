@@ -88,7 +88,7 @@ class PackageURL {
   }
 
   toString() {
-    const { namespace, name, version, qualifiers, subpath, type } = this
+    const { name, namespace, qualifiers, subpath, type, version } = this
     let purlStr = `pkg:${PurlComponent.type.encode(type)}/`
     if (namespace) {
       purlStr = `${purlStr}${PurlComponent.namespace.encode(namespace)}/`
