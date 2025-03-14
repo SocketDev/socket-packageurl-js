@@ -1,6 +1,6 @@
 'use strict'
 
-const { encodeURIComponent } = require('./encode')
+const { encodeComponent } = require('./encode')
 const { PurlError } = require('./error')
 const { createHelpersNamespaceObject } = require('./helpers')
 const { isNullishOrEmptyString } = require('./lang')
@@ -279,7 +279,7 @@ module.exports = {
             }
             return false
           }
-          if (encodeURIComponent(name) !== name) {
+          if (encodeComponent(name) !== name) {
             if (throws) {
               throw new PurlError(
                 `npm "name" component can only contain URL-friendly characters`
@@ -303,8 +303,7 @@ module.exports = {
             }
             const namespaceWithoutAtSign = namespace.slice(1)
             if (
-              encodeURIComponent(namespaceWithoutAtSign) !==
-              namespaceWithoutAtSign
+              encodeComponent(namespaceWithoutAtSign) !== namespaceWithoutAtSign
             ) {
               if (throws) {
                 throw new PurlError(
