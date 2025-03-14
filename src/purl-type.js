@@ -205,7 +205,7 @@ module.exports = {
           return validateRequiredByType('cran', 'version', purl.version, throws)
         },
         // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#golang
-        golang(purl) {
+        golang(purl, throws) {
           // Still being lenient here since the standard changes aren't official.
           // Pending spec change: https://github.com/package-url/purl-spec/pull/196
           const { version } = purl
