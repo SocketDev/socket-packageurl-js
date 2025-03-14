@@ -2,11 +2,11 @@
 
 const { PurlError } = require('./error')
 
-const { decodeURIComponent } = globalThis
+const { decodeURIComponent: decodeComponent } = globalThis
 
-function decodePurlComponent(comp, encodedURIComponent) {
+function decodePurlComponent(comp, encodedComponent) {
   try {
-    return decodeURIComponent(encodedURIComponent)
+    return decodeComponent(encodedComponent)
   } catch {}
   throw new PurlError(`unable to decode "${comp}" component`)
 }

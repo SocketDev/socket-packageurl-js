@@ -8,17 +8,17 @@ const {
 const { isObject } = require('./objects')
 const { isNonEmptyString } = require('./strings')
 
-const { encodeURIComponent } = globalThis
+const { encodeURIComponent: encodeComponent } = globalThis
 
 function encodeName(name) {
   return isNonEmptyString(name)
-    ? encodeURIComponent(name).replace(/%3A/g, ':')
+    ? encodeComponent(name).replace(/%3A/g, ':')
     : ''
 }
 
 function encodeNamespace(namespace) {
   return isNonEmptyString(namespace)
-    ? encodeURIComponent(namespace).replace(/%3A/g, ':').replace(/%2F/g, '/')
+    ? encodeComponent(namespace).replace(/%3A/g, ':').replace(/%2F/g, '/')
     : ''
 }
 
@@ -51,13 +51,13 @@ function encodeQualifiers(qualifiers) {
 
 function encodeSubpath(subpath) {
   return isNonEmptyString(subpath)
-    ? encodeURIComponent(subpath).replace(/%2F/g, '/')
+    ? encodeComponent(subpath).replace(/%2F/g, '/')
     : ''
 }
 
 function encodeVersion(version) {
   return isNonEmptyString(version)
-    ? encodeURIComponent(version).replace(/%3A/g, ':').replace(/%2B/g, '+')
+    ? encodeComponent(version).replace(/%3A/g, ':').replace(/%2B/g, '+')
     : ''
 }
 
@@ -67,11 +67,11 @@ function replacePlusSignWithPercentEncodedSpace(str) {
 }
 
 module.exports = {
+  encodeComponent,
   encodeName,
   encodeNamespace,
   encodeVersion,
   encodeQualifiers,
   encodeQualifierParam,
-  encodeSubpath,
-  encodeURIComponent
+  encodeSubpath
 }

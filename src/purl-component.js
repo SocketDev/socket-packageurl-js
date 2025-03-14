@@ -1,36 +1,36 @@
 'use strict'
 
 const {
+  encodeComponent,
   encodeName,
   encodeNamespace,
-  encodeVersion,
-  encodeQualifiers,
   encodeQualifierParam,
+  encodeQualifiers,
   encodeSubpath,
-  encodeURIComponent
+  encodeVersion
 } = require('./encode')
 const { createHelpersNamespaceObject } = require('./helpers')
 const {
-  normalizeType,
-  normalizeNamespace,
   normalizeName,
-  normalizeVersion,
+  normalizeNamespace,
   normalizeQualifiers,
-  normalizeSubpath
+  normalizeSubpath,
+  normalizeType,
+  normalizeVersion
 } = require('./normalize')
-const { localeCompare, isNonEmptyString } = require('./strings')
+const { isNonEmptyString, localeCompare } = require('./strings')
 const {
-  validateType,
-  validateNamespace,
   validateName,
-  validateVersion,
-  validateQualifiers,
+  validateNamespace,
   validateQualifierKey,
-  validateSubpath
+  validateQualifiers,
+  validateSubpath,
+  validateType,
+  validateVersion
 } = require('./validate')
 
 const PurlComponentEncoder = comp =>
-  isNonEmptyString(comp) ? encodeURIComponent(comp) : ''
+  isNonEmptyString(comp) ? encodeComponent(comp) : ''
 
 const PurlComponentStringNormalizer = comp =>
   typeof comp === 'string' ? comp : undefined
