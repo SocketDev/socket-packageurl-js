@@ -11,6 +11,7 @@ const importXPlugin = require('eslint-plugin-import-x')
 const nodePlugin = require('eslint-plugin-n')
 const sortDestructureKeysPlugin = require('eslint-plugin-sort-destructure-keys')
 const unicornPlugin = require('eslint-plugin-unicorn')
+const globals = require('globals')
 
 const constants = require('@socketsecurity/registry/lib/constants')
 const { BIOME_JSON, GIT_IGNORE, LATEST } = constants
@@ -30,17 +31,36 @@ module.exports = [
   },
   {
     files: ['**/*.{c,}js'],
+    ...js.configs.recommended,
     ...importXPlugin.flatConfigs.recommended,
+    ...nodePlugin.configs['flat/recommended-script'],
     languageOptions: {
+      ...js.configs.recommended.languageOptions,
       ...importXPlugin.flatConfigs.recommended.languageOptions,
+      ...nodePlugin.configs['flat/recommended-script'].languageOptions,
       ecmaVersion: LATEST,
+      globals: Object.fromEntries(
+        Object.entries(globals.node).map(([k]) => [k, 'readonly'])
+      ),
       sourceType: 'script'
     },
     linterOptions: {
+      ...js.configs.recommended.linterOptions,
+      ...importXPlugin.flatConfigs.recommended.linterOptions,
+      ...nodePlugin.configs['flat/recommended-script'].linterOptions,
       reportUnusedDisableDirectives: 'off'
     },
+    plugins: {
+      ...js.configs.recommended.plugins,
+      ...importXPlugin.flatConfigs.recommended.plugins,
+      ...nodePlugin.configs['flat/recommended-script'].plugins,
+      'sort-destructure-keys': sortDestructureKeysPlugin,
+      unicorn: unicornPlugin
+    },
     rules: {
+      ...js.configs.recommended.rules,
       ...importXPlugin.flatConfigs.recommended.rules,
+      ...nodePlugin.configs['flat/recommended-script'].rules,
       'import-x/extensions': [
         'error',
         'never',
@@ -75,14 +95,7 @@ module.exports = [
             order: 'asc'
           }
         }
-      ]
-    }
-  },
-  {
-    files: ['scripts/**/*.{c,}js', 'test/**/*.{c,}js'],
-    ...nodePlugin.configs['flat/recommended-script'],
-    rules: {
-      ...nodePlugin.configs['flat/recommended-script'].rules,
+      ],
       'n/exports-style': ['error', 'module.exports'],
       // The n/no-unpublished-bin rule does does not support non-trivial glob
       // patterns used in package.json "files" fields. In those cases we simplify
@@ -98,17 +111,7 @@ module.exports = [
           version: constants.maintainedNodeVersions.previous
         }
       ],
-      'n/prefer-node-protocol': 'error'
-    }
-  },
-  {
-    files: ['scripts/**/*.{c,}js', 'test/**/*.{c,}js'],
-    plugins: {
-      'sort-destructure-keys': sortDestructureKeysPlugin,
-      unicorn: unicornPlugin
-    },
-    rules: {
-      ...js.configs.recommended.rules,
+      'n/prefer-node-protocol': 'error',
       'no-await-in-loop': 'error',
       'no-control-regex': 'error',
       'no-empty': ['error', { allowEmptyCatch: true }],
