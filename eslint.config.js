@@ -22,6 +22,9 @@ const biomeConfigPath = path.join(rootPath, BIOME_JSON)
 const gitignorePath = path.join(rootPath, GIT_IGNORE)
 
 const biomeConfig = require(biomeConfigPath)
+const nodeGlobalsConfig = Object.fromEntries(
+  Object.entries(globals.node).map(([k]) => [k, 'readonly'])
+)
 
 module.exports = [
   includeIgnoreFile(gitignorePath),
@@ -39,9 +42,13 @@ module.exports = [
       ...importXPlugin.flatConfigs.recommended.languageOptions,
       ...nodePlugin.configs['flat/recommended-script'].languageOptions,
       ecmaVersion: LATEST,
-      globals: Object.fromEntries(
-        Object.entries(globals.node).map(([k]) => [k, 'readonly'])
-      ),
+      globals: {
+        ...js.configs.recommended.languageOptions?.globals,
+        ...importXPlugin.flatConfigs.recommended.languageOptions?.globals,
+        ...nodePlugin.configs['flat/recommended-script'].languageOptions
+          ?.globals,
+        ...nodeGlobalsConfig
+      },
       sourceType: 'script'
     },
     linterOptions: {
@@ -120,7 +127,11 @@ module.exports = [
       'no-undef': 'error',
       'no-unused-vars': [
         'error',
-        { argsIgnorePattern: '^_|^this$', ignoreRestSiblings: true }
+        {
+          argsIgnorePattern: '^_|^this$',
+          ignoreRestSiblings: true,
+          varsIgnorePattern: '^_'
+        }
       ],
       'no-var': 'error',
       'no-warning-comments': ['warn', { terms: ['fixme'] }],

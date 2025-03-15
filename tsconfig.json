@@ -33,6 +33,5 @@
     "noUnusedParameters": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["**/*.ts"],
-  "exclude": []
+  "include": ["**/*.ts"]
 }
