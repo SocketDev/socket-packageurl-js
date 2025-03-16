@@ -14,12 +14,12 @@ const unicornPlugin = require('eslint-plugin-unicorn')
 const globals = require('globals')
 
 const constants = require('@socketsecurity/registry/lib/constants')
-const { BIOME_JSON, GIT_IGNORE, LATEST } = constants
+const { BIOME_JSON, GITIGNORE, LATEST } = constants
 
 const rootPath = __dirname
 
 const biomeConfigPath = path.join(rootPath, BIOME_JSON)
-const gitignorePath = path.join(rootPath, GIT_IGNORE)
+const gitignorePath = path.join(rootPath, GITIGNORE)
 
 const biomeConfig = require(biomeConfigPath)
 const nodeGlobalsConfig = Object.fromEntries(
