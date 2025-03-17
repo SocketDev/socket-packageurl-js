@@ -33,7 +33,6 @@ module.exports = [
     ignores: biomeConfig.files.ignore.map(convertIgnorePatternToMinimatch)
   },
   {
-    files: ['**/*.{c,}js'],
     ...js.configs.recommended,
     ...importXPlugin.flatConfigs.recommended,
     ...nodePlugin.configs['flat/recommended-script'],
