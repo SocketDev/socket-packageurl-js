@@ -19,4 +19,4 @@ jobs:
     with:
       no-lockfile: true
       ts-versions: '5.8'
-      ts-libs: 'esnext'
+      ts-libs: 'dom,esnext'
