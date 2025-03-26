@@ -8,6 +8,7 @@
   },
   "settings": {},
   "rules": {
+    "curly": "error",
     "no-control-regex": "off",
     "no-extend-native": "off",
     "no-new": "off",

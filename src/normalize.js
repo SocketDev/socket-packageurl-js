@@ -99,7 +99,9 @@ function subpathFilter(segment) {
   //   - must not be any of '.' or '..'
   //   - must not be empty
   const { length } = segment
-  if (length === 1 && segment.charCodeAt(0) === 46 /*'.'*/) return false
+  if (length === 1 && segment.charCodeAt(0) === 46 /*'.'*/) {
+    return false
+  }
   if (
     length === 2 &&
     segment.charCodeAt(0) === 46 &&
