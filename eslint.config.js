@@ -118,6 +118,7 @@ module.exports = [
         }
       ],
       'n/prefer-node-protocol': 'error',
+      curly: 'error',
       'no-await-in-loop': 'error',
       'no-control-regex': 'error',
       'no-empty': ['error', { allowEmptyCatch: true }],
