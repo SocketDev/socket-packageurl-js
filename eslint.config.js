@@ -118,6 +118,7 @@ module.exports = [
         }
       ],
       'n/prefer-node-protocol': 'error',
+      'unicorn/consistent-function-scoping': 'error',
       curly: 'error',
       'no-await-in-loop': 'error',
       'no-control-regex': 'error',
@@ -137,8 +138,7 @@ module.exports = [
       'no-warning-comments': ['warn', { terms: ['fixme'] }],
       'prefer-const': 'error',
       'sort-destructure-keys/sort-destructure-keys': 'error',
-      'sort-imports': ['error', { ignoreDeclarationSort: true }],
-      'unicorn/consistent-function-scoping': 'error'
+      'sort-imports': ['error', { ignoreDeclarationSort: true }]
     }
   }
 ]
