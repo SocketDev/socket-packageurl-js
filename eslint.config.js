@@ -114,7 +114,7 @@ module.exports = [
         {
           ignores: ['test', 'test.describe'],
           // Lazily access constants.maintainedNodeVersions.
-          version: constants.maintainedNodeVersions.previous
+          version: constants.maintainedNodeVersions.current
         }
       ],
       'n/prefer-node-protocol': 'error',
