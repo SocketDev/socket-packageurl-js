@@ -168,10 +168,14 @@ class PackageURL {
     }
 
     let rawVersion
-    let atSignIndex = pathname.lastIndexOf('@')
-    // Handle unencoded leading '@' characters. This is a small break from
-    // the specification to make parsing more forgiving so that users don't
-    // have to deal with it.
+    let atSignIndex =
+      rawType === 'npm'
+        ? // Deviate from the specification to handle a special npm purl type case for
+          // pnpm ids such as 'pkg:npm/next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)'.
+          pathname.indexOf('@', firstSlashIndex + 2)
+        : pathname.lastIndexOf('@')
+    // When a forward slash ('/') is directly preceding an '@' symbol,
+    // then the '@' symbol is NOT considered a version separator.
     if (
       atSignIndex !== -1 &&
       pathname.charCodeAt(atSignIndex - 1) === 47 /*'/'*/
