@@ -1,7 +1,7 @@
 # @socketregistry/packageurl-js
 
 [![Socket Badge](https://socket.dev/api/badge/npm/package/@socketregistry/packageurl-js)](https://socket.dev/npm/package/@socketregistry/packageurl-js)
-[![CI - @socketregistry/packageurl-js](https://github.com/SocketDev/packageurl-js/actions/workflows/test.yml/badge.svg)](https://github.com/SocketDev/packageurl-js/actions/workflows/test.yml)
+[![CI - @socketregistry/packageurl-js](https://github.com/SocketDev/socket-packageurl-js/actions/workflows/test.yml/badge.svg)](https://github.com/SocketDev/socket-packageurl-js/actions/workflows/test.yml)
 [![Follow @SocketSecurity](https://img.shields.io/twitter/follow/SocketSecurity?style=social)](https://twitter.com/SocketSecurity)
 
 > An enhanced and tested zero dependency drop-in replacement of

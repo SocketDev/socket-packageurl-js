@@ -7,10 +7,10 @@
     "Socket.dev",
     "package-overrides"
   ],
-  "homepage": "https://github.com/SocketDev/packageurl-js",
+  "homepage": "https://github.com/SocketDev/socket-packageurl-js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SocketDev/packageurl-js.git"
+    "url": "git+https://github.com/SocketDev/socket-packageurl-js.git"
   },
   "exports": {
     ".": {
