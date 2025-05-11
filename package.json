@@ -49,7 +49,7 @@
     "fix": "run-s lint:fix check:lint:fix",
     "knip:dependencies": "knip --dependencies",
     "knip:exports": "knip --include exports,duplicates",
-    "lint": "oxlint -c=./.oxlintrc.json --ignore-path=./.oxlintignore --tsconfig=./tsconfig.json .",
+    "lint": "oxlint -c=.oxlintrc.json --ignore-path=.oxlintignore --tsconfig=tsconfig.json .",
     "lint:fix": "npm run lint -- --fix && npm run lint:fix:fast",
     "lint:fix:fast": "biome format --write",
     "lint-staged": "lint-staged",
