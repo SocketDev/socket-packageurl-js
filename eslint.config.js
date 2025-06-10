@@ -30,7 +30,9 @@ module.exports = [
   includeIgnoreFile(gitignorePath),
   {
     name: 'Imported biome.json ignore patterns',
-    ignores: biomeConfig.files.ignore.map(convertIgnorePatternToMinimatch)
+    ignores: biomeConfig.files.includes
+      .filter(p => p.startsWith('!'))
+      .map(convertIgnorePatternToMinimatch)
   },
   {
     ...js.configs.recommended,
