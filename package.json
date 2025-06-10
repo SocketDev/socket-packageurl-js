@@ -79,7 +79,7 @@
     "knip": "5.60.2",
     "lint-staged": "16.1.0",
     "npm-run-all2": "8.0.4",
-    "oxlint": "0.18.0",
+    "oxlint": "1.0.0",
     "pacote": "21.0.0",
     "semver": "7.7.2",
     "tap": "21.1.0",
