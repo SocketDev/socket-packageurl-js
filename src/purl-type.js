@@ -369,14 +369,14 @@ module.exports = {
           const { name } = purl
           for (let i = 0, { length } = name; i < length; i += 1) {
             const code = name.charCodeAt(i)
-            // biome-ignore format:
+            // biome-ignore format: newlines
             if (
               !(
                 (
-                  (code >= 48 && code <= 57)  || // 0-9
+                  (code >= 48 && code <= 57) || // 0-9
                   (code >= 97 && code <= 122) || // a-z
-                  code === 95 // _
-                )
+                  code === 95
+                ) // _
               )
             ) {
               if (throws) {

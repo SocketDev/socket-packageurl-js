@@ -22,7 +22,7 @@ const regexSemverNumberedGroups =
 function isBlank(str) {
   for (let i = 0, { length } = str; i < length; i += 1) {
     const code = str.charCodeAt(i)
-    // biome-ignore format:
+    // biome-ignore format: newlines
     if (
       !(
         // Whitespace characters according to ECMAScript spec:
@@ -52,8 +52,8 @@ function isBlank(str) {
           code === 0x202f || // Narrow No-Break Space
           code === 0x205f || // Medium Mathematical Space
           code === 0x3000 || // Ideographic Space
-          code === 0xfeff    // Byte Order Mark
-        )
+          code === 0xfeff
+        ) // Byte Order Mark
       )
     ) {
       return false

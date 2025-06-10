@@ -1,14 +1,15 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "ignore": [
-      "**/.git",
-      "**/.github",
-      "**/.husky",
-      "**/.tap",
-      "**/.vscode",
-      "**/package.json",
-      "**/package-lock.json"
+    "includes": [
+      "**",
+      "!**/.git",
+      "!**/.github",
+      "!**/.husky",
+      "!**/.tap",
+      "!**/.vscode",
+      "!**/package.json",
+      "!**/package-lock.json"
     ]
   },
   "formatter": {
