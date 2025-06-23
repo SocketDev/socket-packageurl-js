@@ -32,7 +32,7 @@ module.exports = [
     name: 'Imported biome.json ignore patterns',
     ignores: biomeConfig.files.includes
       .filter(p => p.startsWith('!'))
-      .map(convertIgnorePatternToMinimatch)
+      .map(p => convertIgnorePatternToMinimatch(p.slice(1)))
   },
   {
     ...js.configs.recommended,
