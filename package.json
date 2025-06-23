@@ -61,10 +61,10 @@
     "update:longtask:data:npm": "node ./scripts/update-data-npm.js"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.0.4",
+    "@biomejs/biome": "2.0.5",
     "@eslint/compat": "1.3.0",
     "@eslint/js": "9.29.0",
-    "@socketsecurity/registry": "1.0.208",
+    "@socketsecurity/registry": "1.0.210",
     "all-the-package-names": "2.0.0",
     "all-the-package-names-v1.3905.0": "npm:all-the-package-names@1.3905.0",
     "custompatch": "1.1.7",
