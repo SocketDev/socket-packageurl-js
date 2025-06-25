@@ -57,6 +57,7 @@ void (async () => {
       default: false
     }))
   ) {
+    spinner.stop()
     return
   }
   const allThePackageNames = [
