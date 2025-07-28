@@ -214,9 +214,17 @@ class PackageURL {
     }
 
     let rawQualifiers
-    const { searchParams } = url
-    if (searchParams.size !== 0) {
-      searchParams.forEach(value => decodePurlComponent('qualifiers', value))
+    if (url.searchParams.size !== 0) {
+      const search = url.search.slice(1)
+      const searchParams = new URLSearchParams()
+      const entries = search.split('&')
+      for (let i = 0, { length } = entries; i < length; i += 1) {
+        const pairs = entries[i].split('=')
+        const value = decodePurlComponent('qualifiers', pairs.at(1) ?? '')
+        // Use URLSearchParams#append to preserve plus signs.
+        // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
+        searchParams.append(pairs[0], value)
+      }
       // Split the remainder once from right on '?'.
       rawQualifiers = searchParams
     }

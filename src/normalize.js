@@ -50,6 +50,7 @@ function normalizePath(pathname, callback) {
 
 function normalizeQualifiers(rawQualifiers) {
   let qualifiers
+  // Use for-of to work with entries iterators.
   for (const { 0: key, 1: value } of qualifiersToEntries(rawQualifiers)) {
     const strValue = typeof value === 'string' ? value : String(value)
     const trimmed = strValue.trim()
@@ -85,7 +86,8 @@ function normalizeVersion(rawVersion) {
 
 function qualifiersToEntries(rawQualifiers) {
   if (isObject(rawQualifiers)) {
-    return rawQualifiers instanceof URLSearchParams
+    // URLSearchParams instances have an "entries" method that returns an iterator.
+    return typeof rawQualifiers.entries === 'function'
       ? rawQualifiers.entries()
       : Object.entries(rawQualifiers)
   }

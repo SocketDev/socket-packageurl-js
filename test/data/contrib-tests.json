@@ -1,158 +1,206 @@
-[
-  {
-    "description": "debian can have debian versions as part of version with plus sign",
-    "purl": "pkg:deb/debian/libssl1.1@1.1.1n-0+deb10u3?arch=amd64&distro=debian-10",
-    "canonical_purl": "pkg:deb/debian/libssl1.1@1.1.1n-0+deb10u3?arch=amd64&distro=debian-10",
-    "type": "deb",
-    "namespace": "debian",
-    "name": "libssl1.1",
-    "version": "1.1.1n-0+deb10u3",
-    "qualifiers": { "arch": "amd64", "distro": "debian-10" },
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "valid go purl with namespace that has a forward slash",
-    "purl": "pkg:golang/github.com/etcd-io/etcd@v2.4.0",
-    "canonical_purl": "pkg:golang/github.com/etcd-io/etcd@v2.4.0",
-    "type": "golang",
-    "namespace": "github.com/etcd-io",
-    "name": "etcd",
-    "version": "v2.4.0",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "valid go purl with namespace that has more than one forward slash",
-    "purl": "pkg:golang/github.com/cncf/xds/go@v0.0.0-20210922020428-25de7278fc84",
-    "canonical_purl": "pkg:golang/github.com/cncf/xds/go@v0.0.0-20210922020428-25de7278fc84",
-    "type": "golang",
-    "namespace": "github.com/cncf/xds",
-    "name": "go",
-    "version": "v0.0.0-20210922020428-25de7278fc84",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "maven requires a namespace",
-    "purl": "pkg:maven/io@1.3.4",
-    "canonical_purl": "pkg:maven/io@1.3.4",
-    "type": "maven",
-    "namespace": null,
-    "name": null,
-    "version": null,
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": true
-  },
-  {
-    "description": "validates pub name (valid)",
-    "purl": "pkg:pub/flutter_downloader@1.0.0",
-    "canonical_purl": "pkg:pub/flutter_downloader@1.0.0",
-    "type": "pub",
-    "namespace": null,
-    "name": "flutter_downloader",
-    "version": "1.0.0",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "scheme is lowercased",
-    "purl": "PkG:type/foo/bar@1.0.0",
-    "canonical_purl": "pkg:type/foo/bar@1.0.0",
-    "type": "type",
-    "namespace": "foo",
-    "name": "bar",
-    "version": "1.0.0",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "namespace can contain special characters",
-    "purl": "pkg:type/%40namespace%40%3F%23/name@1.0.0",
-    "canonical_purl": "pkg:type/%40namespace%40%3F%23/name@1.0.0",
-    "type": "type",
-    "namespace": "@namespace@?#",
-    "name": "name",
-    "version": "1.0.0",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "name can contain special characters (with namespace)",
-    "purl": "pkg:type/foo/bar%40%3F%23@1.0.0",
-    "canonical_purl": "pkg:type/foo/bar%40%3F%23@1.0.0",
-    "type": "type",
-    "namespace": "foo",
-    "name": "bar@?#",
-    "version": "1.0.0",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "name can contain special characters (without namespace)",
-    "purl": "pkg:type/bar%40%3F%23@1.0.0",
-    "canonical_purl": "pkg:type/bar%40%3F%23@1.0.0",
-    "type": "type",
-    "namespace": null,
-    "name": "bar@?#",
-    "version": "1.0.0",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "version can contain special characters",
-    "purl": "pkg:type/foo/bar@1.0.0-%40%3F%23",
-    "canonical_purl": "pkg:type/foo/bar@1.0.0-%40%3F%23",
-    "type": "type",
-    "namespace": "foo",
-    "name": "bar",
-    "version": "1.0.0-@?#",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "leading and trailing slashes '/' are not significant and should be stripped in the canonical form",
-    "purl": "pkg:type//github.com///ll////xlog@v1.0.0",
-    "canonical_purl": "pkg:type/github.com/ll/xlog@v1.0.0",
-    "type": "type",
-    "namespace": "github.com/ll",
-    "name": "xlog",
-    "version": "v1.0.0",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "the colon ':' does not need to be encoded as '%3A'",
-    "purl": "pkg:type/fo:o/ba:r@v1.0.0",
-    "canonical_purl": "pkg:type/fo:o/ba:r@v1.0.0",
-    "type": "type",
-    "namespace": "fo:o",
-    "name": "ba:r",
-    "version": "v1.0.0",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  },
-  {
-    "description": "pnpm ids with parens in the version",
-    "purl": "pkg:npm/next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)",
-    "canonical_purl": "pkg:npm/next@14.2.10(react-dom%4018.3.1(react%4018.3.1))(react%4018.3.1)",
-    "type": "npm",
-    "namespace": null,
-    "name": "next",
-    "version": "14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)",
-    "qualifiers": null,
-    "subpath": null,
-    "is_invalid": false
-  }
-]
+{
+  "$schema": "https://packageurl.org/schemas/purl-test.schema-1.0.json",
+  "tests": [
+    {
+      "description": "debian versions with plus signs are percent-encoded",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:deb/debian/libssl1.1@1.1.1n-0+deb10u3?arch=amd64&distro=debian-10",
+      "expected_output": {
+        "type": "deb",
+        "namespace": "debian",
+        "name": "libssl1.1",
+        "version": "1.1.1n-0+deb10u3",
+        "qualifiers": { "arch": "amd64", "distro": "debian-10" },
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "valid go purl with namespace that has a forward slash",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:golang/github.com/etcd-io/etcd@v2.4.0",
+      "expected_output": {
+        "type": "golang",
+        "namespace": "github.com/etcd-io",
+        "name": "etcd",
+        "version": "v2.4.0",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "valid go purl with namespace that has more than one forward slash",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:golang/github.com/cncf/xds/go@v0.0.0-20210922020428-25de7278fc84",
+      "expected_output": {
+        "type": "golang",
+        "namespace": "github.com/cncf/xds",
+        "name": "go",
+        "version": "v0.0.0-20210922020428-25de7278fc84",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "maven requires a namespace",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:maven/io@1.3.4",
+      "expected_output": null,
+      "expected_failure": true,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "validates pub name (valid)",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:pub/flutter_downloader@1.0.0",
+      "expected_output": {
+        "type": "pub",
+        "namespace": null,
+        "name": "flutter_downloader",
+        "version": "1.0.0",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "scheme is lowercased",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "PkG:type/foo/bar@1.0.0",
+      "expected_output": {
+        "type": "type",
+        "namespace": "foo",
+        "name": "bar",
+        "version": "1.0.0",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "namespace can contain special characters",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:type/%40namespace%40%3F%23/name@1.0.0",
+      "expected_output": {
+        "type": "type",
+        "namespace": "@namespace@?#",
+        "name": "name",
+        "version": "1.0.0",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "name can contain special characters (with namespace)",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:type/foo/bar%40%3F%23@1.0.0",
+      "expected_output": {
+        "type": "type",
+        "namespace": "foo",
+        "name": "bar@?#",
+        "version": "1.0.0",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "name can contain special characters (without namespace)",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:type/bar%40%3F%23@1.0.0",
+      "expected_output": {
+        "type": "type",
+        "namespace": null,
+        "name": "bar@?#",
+        "version": "1.0.0",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "version can contain special characters",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:type/foo/bar@1.0.0-%40%3F%23",
+      "expected_output": {
+        "type": "type",
+        "namespace": "foo",
+        "name": "bar",
+        "version": "1.0.0-@?#",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "leading and trailing slashes '/' are not significant and should be stripped in the canonical form",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:type//github.com///ll////xlog@v1.0.0",
+      "expected_output": {
+        "type": "type",
+        "namespace": "github.com/ll",
+        "name": "xlog",
+        "version": "v1.0.0",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "the colon ':' does not need to be encoded as '%3A'",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:type/fo:o/ba:r@v1.0.0",
+      "expected_output": {
+        "type": "type",
+        "namespace": "fo:o",
+        "name": "ba:r",
+        "version": "v1.0.0",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    },
+    {
+      "description": "pnpm ids with parens in the version",
+      "test_group": "base",
+      "test_type": "parse",
+      "input": "pkg:npm/next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)",
+      "expected_output": {
+        "type": "npm",
+        "namespace": null,
+        "name": "next",
+        "version": "14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)",
+        "qualifiers": null,
+        "subpath": null
+      },
+      "expected_failure": false,
+      "expected_failure_reason": null
+    }
+  ]
+}

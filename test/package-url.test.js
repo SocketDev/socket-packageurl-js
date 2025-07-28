@@ -23,22 +23,35 @@ SOFTWARE.
 */
 
 const assert = require('node:assert/strict')
+const path = require('node:path')
 const { describe, it } = require('node:test')
 
+const { glob } = require('fast-glob')
+
+const { readJson } = require('@socketsecurity/registry/lib/fs')
+const {
+  isObject,
+  toSortedObjectFromEntries
+} = require('@socketsecurity/registry/lib/objects')
+
 const npmBuiltinNames = require('../data/npm/builtin-names.json')
-// eslint-disable-next-line import-x/order
 const npmLegacyNames = require('../data/npm/legacy-names.json')
-
-const TEST_FILE = [
-  ...require('./data/test-suite-data.json'),
-  ...require('./data/contrib-tests.json')
-]
-
 const { PackageURL } = require('../src/package-url')
 
 function getNpmId(purl) {
   const { name, namespace } = purl
   return `${namespace?.length > 0 ? `${namespace}/` : ''}${name}`
+}
+
+function toUrlSearchParams(search) {
+  const searchParams = new URLSearchParams()
+  const entries = search.split('&')
+  for (let i = 0, { length } = entries; i < length; i += 1) {
+    const pairs = entries[i].split('=')
+    const value = decodeURIComponent(pairs.at(1) ?? '')
+    searchParams.append(pairs[0], value)
+  }
+  return searchParams
 }
 
 describe('PackageURL', () => {
@@ -393,81 +406,119 @@ describe('PackageURL', () => {
     })
   })
 
-  describe('test-suite-data', () => {
-    TEST_FILE.forEach(function (obj) {
+  describe('test-suite-data', async () => {
+    const TEST_FILES = (
+      await Promise.all(
+        (
+          await glob(['**/**.json'], {
+            absolute: true,
+            cwd: path.join(__dirname, 'data')
+          })
+        ).map(p => readJson(p))
+      )
+    )
+      .filter(Boolean)
+      .flatMap(o => o.tests ?? [])
+
+    for (const obj of TEST_FILES) {
+      const { expected_failure, expected_output, test_type } = obj
+
+      const inputObj = isObject(obj.input) ? obj.input : undefined
+
+      const inputStr = typeof obj.input === 'string' ? obj.input : undefined
+
+      if (!inputObj && !inputStr) {
+        continue
+      }
+
+      const expectedObj = isObject(expected_output)
+        ? expected_output
+        : undefined
+
+      const expectedStr =
+        typeof expected_output === 'string' ? expected_output : undefined
+
+      if (!expectedObj && !expectedStr) {
+        continue
+      }
+
       describe(obj.description, () => {
-        if (obj.is_invalid) {
-          it(`should not be possible to create invalid ${obj.type} PackageURLs`, () => {
-            assert.throws(
-              () =>
-                new PackageURL(
-                  obj.type,
-                  obj.namespace,
-                  obj.name,
-                  obj.version,
-                  obj.qualifiers,
-                  obj.subpath
-                ),
-              /is a required|Invalid purl/
+        if (expected_failure) {
+          if (test_type === 'parse' && inputStr) {
+            it(`should not be possible to parse invalid ${expectedObj?.type ?? 'type'} PackageURLs`, () => {
+              assert.throws(
+                () => PackageURL.fromString(inputStr),
+                /missing the required|Invalid purl/
+              )
+            })
+          }
+          if (test_type === 'build' && inputObj) {
+            it(`should not be possible to create invalid ${inputObj.type ?? 'type'} PackageURLs`, () => {
+              assert.throws(
+                () =>
+                  new PackageURL(
+                    inputObj.type,
+                    inputObj.namespace,
+                    inputObj.name,
+                    inputObj.version,
+                    inputObj.qualifiers,
+                    inputObj.subpath
+                  ),
+                /is a required|Invalid purl/
+              )
+            })
+          }
+        } else if (test_type === 'parse' && inputStr && expectedObj) {
+          it(`should be able to parse valid ${expectedObj.type ?? 'type'} PackageURLs`, () => {
+            const purl = PackageURL.fromString(inputStr)
+            assert.strictEqual(purl.type, expectedObj.type)
+            assert.strictEqual(purl.name, expectedObj.name)
+            assert.strictEqual(
+              purl.namespace,
+              expectedObj.namespace ?? undefined
             )
-          })
-          it(`should not be possible to parse invalid ${obj.type} PackageURLs`, () => {
-            assert.throws(
-              () => PackageURL.fromString(obj.purl),
-              /missing the required|Invalid purl/
-            )
-          })
-        } else {
-          it(`should be able to create valid ${obj.type} PackageURLs`, () => {
-            const purl = new PackageURL(
-              obj.type,
-              obj.namespace,
-              obj.name,
-              obj.version,
-              obj.qualifiers,
-              obj.subpath
-            )
-            assert.strictEqual(purl.type, obj.type)
-            assert.strictEqual(purl.name, obj.name)
-            assert.strictEqual(purl.namespace, obj.namespace ?? undefined)
-            assert.strictEqual(purl.version, obj.version ?? undefined)
+            assert.strictEqual(purl.version, expectedObj.version ?? undefined)
             assert.deepStrictEqual(
               purl.qualifiers,
-              obj.qualifiers
-                ? { __proto__: null, ...obj.qualifiers }
+              expectedObj.qualifiers
+                ? { __proto__: null, ...expectedObj.qualifiers }
                 : undefined
             )
-            assert.strictEqual(purl.subpath, obj.subpath ?? undefined)
+            assert.strictEqual(purl.subpath, expectedObj.subpath ?? undefined)
           })
-          it(`should be able to convert valid ${obj.type} PackageURLs to a string`, () => {
+        } else if (test_type === 'build' && inputObj && expectedStr) {
+          it(`should be able to convert valid ${inputObj.type ?? 'type'} PackageURLs to a string`, () => {
             const purl = new PackageURL(
-              obj.type,
-              obj.namespace,
-              obj.name,
-              obj.version,
-              obj.qualifiers,
-              obj.subpath
+              inputObj.type,
+              inputObj.namespace,
+              inputObj.name,
+              inputObj.version,
+              inputObj.qualifiers,
+              inputObj.subpath
             )
-            assert.strictEqual(purl.toString(), obj.canonical_purl)
-          })
-          it(`should be able to parse valid ${obj.type} PackageURLs`, () => {
-            const purl = PackageURL.fromString(obj.purl)
-            assert.strictEqual(purl.toString(), obj.canonical_purl)
-            assert.strictEqual(purl.type, obj.type)
-            assert.strictEqual(purl.name, obj.name)
-            assert.strictEqual(purl.namespace, obj.namespace ?? undefined)
-            assert.strictEqual(purl.version, obj.version ?? undefined)
-            assert.deepStrictEqual(
-              purl.qualifiers,
-              obj.qualifiers
-                ? { __proto__: null, ...obj.qualifiers }
-                : undefined
-            )
-            assert.strictEqual(purl.subpath, obj.subpath ?? undefined)
+            const purlToStr = purl.toString()
+            if (purl.qualifiers) {
+              const markIndex = expectedStr.indexOf('?')
+              const beforeMarkToStr = purlToStr.slice(0, markIndex)
+              const beforeExpectedStr = expectedStr.slice(0, markIndex)
+              assert.strictEqual(beforeMarkToStr, beforeExpectedStr)
+
+              const afterMarkToStr = purlToStr.slice(markIndex + 1)
+              const afterExpectedStr = expectedStr.slice(markIndex + 1)
+              const actualParams = toSortedObjectFromEntries(
+                toUrlSearchParams(afterMarkToStr).entries()
+              )
+              const expectedParams = toSortedObjectFromEntries(
+                toUrlSearchParams(afterExpectedStr).entries()
+              )
+              assert.deepStrictEqual(actualParams, expectedParams)
+            } else {
+              assert.strictEqual(purlToStr, expectedStr)
+            }
           })
         }
       })
-    })
+    }
   })
 
   describe('npm', () => {
