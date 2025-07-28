@@ -57,7 +57,7 @@ function encodeSubpath(subpath) {
 
 function encodeVersion(version) {
   return isNonEmptyString(version)
-    ? encodeComponent(version).replace(/%3A/g, ':').replace(/%2B/g, '+')
+    ? encodeComponent(version).replace(/%3A/g, ':')
     : ''
 }
 

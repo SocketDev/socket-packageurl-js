@@ -136,7 +136,7 @@ function validateType(type, throws) {
     return false
   }
   // The package type is composed only of ASCII letters and numbers,
-  // '.', '+' and '-' (period, plus, and dash)
+  // '.' (period), and '-' (dash).
   for (let i = 0, { length } = type; i < length; i += 1) {
     const code = type.charCodeAt(i)
     // biome-ignore format: newlines
@@ -147,7 +147,6 @@ function validateType(type, throws) {
           (code >= 65 && code <= 90) || // A-Z
           (code >= 97 && code <= 122) || // a-z
           code === 46 || // .
-          code === 43 || // +
           code === 45
         ) // -
       )
