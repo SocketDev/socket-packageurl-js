@@ -84,7 +84,6 @@ void (async () => {
     // Chunk package names to process them in parallel 3 at a time.
     await pFilter(
       rawLegacyNames,
-      3,
       async n => {
         if (!seenNames.has(n)) {
           seenNames.add(n)
@@ -99,7 +98,7 @@ void (async () => {
         }
         return false
       },
-      { retries: 4, signal: abortSignal }
+      { concurrency: 3, retries: 4, signal: abortSignal }
     )
   await writeJson(npmLegacyNamesJsonPath, legacyNames, { spaces: 2 })
   spinner.stop()
