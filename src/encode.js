@@ -12,25 +12,31 @@ const { encodeURIComponent: encodeComponent } = globalThis
 
 function encodeName(name) {
   return isNonEmptyString(name)
-    ? encodeComponent(name).replace(/%3A/g, ':')
+    ? encodeComponent(name).replaceAll('%3A', ':')
     : ''
 }
 
 function encodeNamespace(namespace) {
   return isNonEmptyString(namespace)
-    ? encodeComponent(namespace).replace(/%3A/g, ':').replace(/%2F/g, '/')
+    ? encodeComponent(namespace).replaceAll('%3A', ':').replaceAll('%2F', '/')
     : ''
 }
 
 function encodeQualifierParam(param) {
   if (isNonEmptyString(param)) {
+    // Replace spaces with %20's so they don't get converted to plus signs.
+    const value = String(param).replaceAll(' ', '%20')
+    // Use URLSearchParams#set to preserve plus signs.
+    // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
+    REUSED_SEARCH_PARAMS.set(REUSED_SEARCH_PARAMS_KEY, value)
     // Param key and value are encoded with `percentEncodeSet` of
     // 'application/x-www-form-urlencoded' and `spaceAsPlus` of `true`.
     // https://url.spec.whatwg.org/#urlencoded-serializing
-    REUSED_SEARCH_PARAMS.set(REUSED_SEARCH_PARAMS_KEY, param)
-    return replacePlusSignWithPercentEncodedSpace(
-      REUSED_SEARCH_PARAMS.toString().slice(REUSED_SEARCH_PARAMS_OFFSET)
-    )
+    const search = REUSED_SEARCH_PARAMS.toString()
+    return search
+      .slice(REUSED_SEARCH_PARAMS_OFFSET)
+      .replaceAll('%2520', '%20')
+      .replaceAll('+', '%2B')
   }
   return ''
 }
@@ -42,28 +48,30 @@ function encodeQualifiers(qualifiers) {
     const searchParams = new URLSearchParams()
     for (let i = 0, { length } = qualifiersKeys; i < length; i += 1) {
       const key = qualifiersKeys[i]
-      searchParams.set(key, qualifiers[key])
+      // Replace spaces with %20's so they don't get converted to plus signs.
+      const value = String(qualifiers[key]).replaceAll(' ', '%20')
+      // Use URLSearchParams#set to preserve plus signs.
+      // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
+      searchParams.set(key, value)
     }
-    return replacePlusSignWithPercentEncodedSpace(searchParams.toString())
+    return searchParams
+      .toString()
+      .replaceAll('%2520', '%20')
+      .replaceAll('+', '%2B')
   }
   return ''
 }
 
 function encodeSubpath(subpath) {
   return isNonEmptyString(subpath)
-    ? encodeComponent(subpath).replace(/%2F/g, '/')
+    ? encodeComponent(subpath).replaceAll('%2F', '/')
     : ''
 }
 
 function encodeVersion(version) {
   return isNonEmptyString(version)
-    ? encodeComponent(version).replace(/%3A/g, ':').replace(/%2B/g, '+')
+    ? encodeComponent(version).replaceAll('%3A', ':')
     : ''
-}
-
-function replacePlusSignWithPercentEncodedSpace(str) {
-  // Convert plus signs to %20 for better portability.
-  return str.replace(/\+/g, '%20')
 }
 
 module.exports = {
