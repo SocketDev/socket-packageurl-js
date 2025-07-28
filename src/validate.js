@@ -36,10 +36,11 @@ function validateQualifiers(qualifiers, throws) {
     return false
   }
   const keysIterable =
-    // URL searchParams have an "keys" method that returns an iterator.
+    // URLSearchParams instances have a "keys" method that returns an iterator.
     typeof qualifiers.keys === 'function'
       ? qualifiers.keys()
       : Object.keys(qualifiers)
+  // Use for-of to work with URLSearchParams#keys iterators.
   for (const key of keysIterable) {
     if (!validateQualifierKey(key, throws)) {
       return false
@@ -136,7 +137,7 @@ function validateType(type, throws) {
     return false
   }
   // The package type is composed only of ASCII letters and numbers,
-  // '.', '+' and '-' (period, plus, and dash)
+  // '.' (period), and '-' (dash).
   for (let i = 0, { length } = type; i < length; i += 1) {
     const code = type.charCodeAt(i)
     // biome-ignore format: newlines
@@ -147,7 +148,6 @@ function validateType(type, throws) {
           (code >= 65 && code <= 90) || // A-Z
           (code >= 97 && code <= 122) || // a-z
           code === 46 || // .
-          code === 43 || // +
           code === 45
         ) // -
       )
