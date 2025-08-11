@@ -1,11 +1,11 @@
 .DS_Store
 ._.DS_Store
 Thumbs.db
+/.cache
 /.env
 /.nvm
 /.tap
 /.vscode
 /npm-debug.log
-/yarn.lock
 **/node_modules
 /*.tsbuildinfo
