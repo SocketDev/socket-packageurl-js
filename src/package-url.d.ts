@@ -190,11 +190,4 @@ declare namespace Purl {
   export const PurlQualifierNames: PurlQualifierNames
   export const PurlType: PurlType
 }
-
-declare module '@socketregistry/packageurl-js' {
-  export = Purl
-}
-
-declare module 'packageurl-js' {
-  export = Purl
-}
+export = Purl

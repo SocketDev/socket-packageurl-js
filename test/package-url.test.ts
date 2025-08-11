@@ -1,5 +1,3 @@
-'use strict'
-
 /*!
 Copyright (c) the purl authors
 
@@ -22,17 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-const assert = require('node:assert/strict')
-const path = require('node:path')
-const { describe, it } = require('node:test')
+import path from 'node:path'
 
-const { glob } = require('fast-glob')
+import { glob } from 'fast-glob'
+import { describe, expect, it } from 'vitest'
 
-const { readJson } = require('@socketsecurity/registry/lib/fs')
-const {
+import { readJson } from '@socketsecurity/registry/lib/fs'
+import {
   isObject,
   toSortedObjectFromEntries
-} = require('@socketsecurity/registry/lib/objects')
+} from '@socketsecurity/registry/lib/objects'
+
+import type { TestAPI } from 'vitest'
 
 const npmBuiltinNames = require('../data/npm/builtin-names.json')
 const npmLegacyNames = require('../data/npm/legacy-names.json')
@@ -65,28 +64,25 @@ describe('PackageURL', () => {
         ['Checksum', 'checksum']
       ].forEach(function ([name, expectedValue]) {
         it(`maps: ${name} => ${expectedValue}`, () => {
-          assert.strictEqual(
-            PackageURL.KnownQualifierNames[name],
-            expectedValue
-          )
+          expect(PackageURL.KnownQualifierNames[name]).toBe(expectedValue)
         })
       })
     })
 
     it('readonly: cannot be written', () => {
-      assert.throws(() => {
+      expect(() => {
         PackageURL.KnownQualifierNames = { foo: 'bar' }
-      }, TypeError)
-      assert.notDeepStrictEqual(PackageURL.KnownQualifierNames, {
+      }).toThrow(TypeError)
+      expect(PackageURL.KnownQualifierNames).not.toStrictEqual({
         foo: 'bar'
       })
     })
 
     it('frozen: cannot be modified', () => {
-      assert.throws(() => {
+      expect(() => {
         PackageURL.KnownQualifierNames.foo = 'bar'
-      }, TypeError)
-      assert.strictEqual(PackageURL.KnownQualifierNames.foo, undefined)
+      }).toThrow(TypeError)
+      expect(PackageURL.KnownQualifierNames.foo).toBe(undefined)
     })
   })
 
@@ -122,9 +118,9 @@ describe('PackageURL', () => {
         try {
           // eslint-disable-next-line no-new
           new PackageURL(...args)
-          assert.ok(true, message)
+          expect(true, message)
         } catch {
-          assert.ok(false, message)
+          expect(false, message)
         }
       }
 
@@ -145,9 +141,9 @@ describe('PackageURL', () => {
           try {
             // eslint-disable-next-line no-new
             new PackageURL(...args)
-            assert.ok(false, message)
+            expect(false, message)
           } catch {
-            assert.ok(true, message)
+            expect(true, message)
           }
         })
       }
@@ -172,9 +168,9 @@ describe('PackageURL', () => {
           try {
             // eslint-disable-next-line no-new
             new PackageURL(...args)
-            assert.ok(true, message)
+            expect(true, message)
           } catch {
-            assert.ok(false, message)
+            expect(false, message)
           }
         })
       }
@@ -193,9 +189,9 @@ describe('PackageURL', () => {
           try {
             // eslint-disable-next-line no-new
             new PackageURL(...args)
-            assert.ok(false, message)
+            expect(false, message)
           } catch {
-            assert.ok(true, message)
+            expect(true, message)
           }
         })
       }
@@ -207,35 +203,24 @@ describe('PackageURL', () => {
     })
 
     it('should not decode params', () => {
-      assert.strictEqual(
-        new PackageURL('type', '%21', 'name').toString(),
+      expect(new PackageURL('type', '%21', 'name').toString()).toBe(
         'pkg:type/%2521/name'
       )
-      assert.strictEqual(
-        new PackageURL('type', 'namespace', '%21').toString(),
+      expect(new PackageURL('type', 'namespace', '%21').toString()).toBe(
         'pkg:type/namespace/%2521'
       )
-      assert.strictEqual(
-        new PackageURL('type', 'namespace', 'name', '%21').toString(),
-        'pkg:type/namespace/name@%2521'
-      )
-      assert.strictEqual(
+      expect(
+        new PackageURL('type', 'namespace', 'name', '%21').toString()
+      ).toBe('pkg:type/namespace/name@%2521')
+      expect(
         new PackageURL('type', 'namespace', 'name', '1.0', {
           a: '%21'
-        }).toString(),
-        'pkg:type/namespace/name@1.0?a=%2521'
-      )
-      assert.strictEqual(
-        new PackageURL(
-          'type',
-          'namespace',
-          'name',
-          '1.0',
-          'a=%2521'
-        ).toString(),
-        'pkg:type/namespace/name@1.0?a=%2521'
-      )
-      assert.strictEqual(
+        }).toString()
+      ).toBe('pkg:type/namespace/name@1.0?a=%2521')
+      expect(
+        new PackageURL('type', 'namespace', 'name', '1.0', 'a=%2521').toString()
+      ).toBe('pkg:type/namespace/name@1.0?a=%2521')
+      expect(
         new PackageURL(
           'type',
           'namespace',
@@ -243,17 +228,15 @@ describe('PackageURL', () => {
           '1.0',
           null,
           '%21'
-        ).toString(),
-        'pkg:type/namespace/name@1.0#%2521'
-      )
+        ).toString()
+      ).toBe('pkg:type/namespace/name@1.0#%2521')
     })
   })
 
   describe('toString()', () => {
     it('type is validated', () => {
       ;['ty#pe', 'ty@pe', 'ty/pe', '1type'].forEach(type => {
-        assert.throws(
-          () => new PackageURL(type, undefined, 'name'),
+        expect(() => new PackageURL(type, undefined, 'name')).toThrow(
           /contains an illegal character|cannot start with a number/
         )
       })
@@ -269,8 +252,7 @@ describe('PackageURL', () => {
         { foo: 'bar#baz' },
         'sub#path'
       )
-      assert.strictEqual(
-        purl.toString(),
+      expect(purl.toString()).toBe(
         'pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path'
       )
     })
@@ -285,8 +267,7 @@ describe('PackageURL', () => {
         { foo: 'bar@baz' },
         'sub@path'
       )
-      assert.strictEqual(
-        purl.toString(),
+      expect(purl.toString()).toBe(
         'pkg:type/name%40space/na%40me@ver%40sion?foo=bar%40baz#sub%40path'
       )
     })
@@ -294,10 +275,7 @@ describe('PackageURL', () => {
     it('path components encode /', () => {
       /* only namespace is allowed to have multiple segments separated by `/`` */
       const purl = new PackageURL('type', 'namespace1/namespace2', 'na/me')
-      assert.strictEqual(
-        purl.toString(),
-        'pkg:type/namespace1/namespace2/na%2Fme'
-      )
+      expect(purl.toString()).toBe('pkg:type/namespace1/namespace2/na%2Fme')
     })
   })
 
@@ -307,11 +285,11 @@ describe('PackageURL', () => {
         'pkg:npm/packageurl-js@0.0.7?checksums=sha512:b9c27369720d948829a98118e9a35fd09d9018711e30dc2df5f8ae85bb19b2ade4679351c4d96768451ee9e841e5f5a36114a9ef98f4fe5256a5f4ca981736a0'
       const purl = PackageURL.fromString(purlString)
 
-      assert.strictEqual(purl.type, 'npm')
-      assert.strictEqual(purl.namespace, undefined)
-      assert.strictEqual(purl.name, 'packageurl-js')
-      assert.strictEqual(purl.version, '0.0.7')
-      assert.deepStrictEqual(purl.qualifiers, {
+      expect(purl.type).toBe('npm')
+      expect(purl.namespace).toBe(undefined)
+      expect(purl.name).toBe('packageurl-js')
+      expect(purl.version).toBe('0.0.7')
+      expect(purl.qualifiers).toStrictEqual({
         __proto__: null,
         checksums:
           'sha512:b9c27369720d948829a98118e9a35fd09d9018711e30dc2df5f8ae85bb19b2ade4679351c4d96768451ee9e841e5f5a36114a9ef98f4fe5256a5f4ca981736a0'
@@ -323,11 +301,11 @@ describe('PackageURL', () => {
         'pkg:npm/packageurl-js@0.0.7?vcs_url=git%2Bhttps%3A%2F%2Fgithub.com%2Fpackage-url%2Fpackageurl-js.git'
       const purl = PackageURL.fromString(purlString)
 
-      assert.strictEqual(purl.type, 'npm')
-      assert.strictEqual(purl.namespace, undefined)
-      assert.strictEqual(purl.name, 'packageurl-js')
-      assert.strictEqual(purl.version, '0.0.7')
-      assert.deepStrictEqual(purl.qualifiers, {
+      expect(purl.type).toBe('npm')
+      expect(purl.namespace).toBe(undefined)
+      expect(purl.name).toBe('packageurl-js')
+      expect(purl.version).toBe('0.0.7')
+      expect(purl.qualifiers).toStrictEqual({
         __proto__: null,
         vcs_url: 'git+https://github.com/package-url/packageurl-js.git'
       })
@@ -337,72 +315,67 @@ describe('PackageURL', () => {
       const purlString = 'pkg:npm/@aws-crypto/crc32@3.0.0'
       const purl = PackageURL.fromString(purlString)
 
-      assert.strictEqual(purl.type, 'npm')
-      assert.strictEqual(purl.namespace, '@aws-crypto')
-      assert.strictEqual(purl.name, 'crc32')
-      assert.strictEqual(purl.version, '3.0.0')
+      expect(purl.type).toBe('npm')
+      expect(purl.namespace).toBe('@aws-crypto')
+      expect(purl.name).toBe('crc32')
+      expect(purl.version).toBe('3.0.0')
     })
 
     it('namespace with multiple segments', () => {
       const purl = PackageURL.fromString(
         'pkg:type/namespace1/namespace2/na%2Fme'
       )
-      assert.strictEqual(purl.type, 'type')
-      assert.strictEqual(purl.namespace, 'namespace1/namespace2')
-      assert.strictEqual(purl.name, 'na/me')
+      expect(purl.type).toBe('type')
+      expect(purl.namespace).toBe('namespace1/namespace2')
+      expect(purl.name).toBe('na/me')
     })
 
     it('encoded #', () => {
       const purl = PackageURL.fromString(
         'pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path'
       )
-      assert.strictEqual(purl.type, 'type')
-      assert.strictEqual(purl.namespace, 'name#space')
-      assert.strictEqual(purl.name, 'na#me')
-      assert.strictEqual(purl.version, 'ver#sion')
-      assert.deepStrictEqual(purl.qualifiers, {
+      expect(purl.type).toBe('type')
+      expect(purl.namespace).toBe('name#space')
+      expect(purl.name).toBe('na#me')
+      expect(purl.version).toBe('ver#sion')
+      expect(purl.qualifiers).toStrictEqual({
         __proto__: null,
         foo: 'bar#baz'
       })
-      assert.strictEqual(purl.subpath, 'sub#path')
+      expect(purl.subpath).toBe('sub#path')
     })
 
     it('encoded @', () => {
       const purl = PackageURL.fromString(
         'pkg:type/name%40space/na%40me@ver%40sion?foo=bar%40baz#sub%40path'
       )
-      assert.strictEqual(purl.type, 'type')
-      assert.strictEqual(purl.namespace, 'name@space')
-      assert.strictEqual(purl.name, 'na@me')
-      assert.strictEqual(purl.version, 'ver@sion')
-      assert.deepStrictEqual(purl.qualifiers, {
+      expect(purl.type).toBe('type')
+      expect(purl.namespace).toBe('name@space')
+      expect(purl.name).toBe('na@me')
+      expect(purl.version).toBe('ver@sion')
+      expect(purl.qualifiers).toStrictEqual({
         __proto__: null,
         foo: 'bar@baz'
       })
-      assert.strictEqual(purl.subpath, 'sub@path')
+      expect(purl.subpath).toBe('sub@path')
     })
 
     it('should error on decode failures', () => {
-      assert.throws(
-        () => PackageURL.fromString('pkg:type/100%/name'),
+      expect(() => PackageURL.fromString('pkg:type/100%/name')).toThrow(
         /unable to decode "namespace" component/
       )
-      assert.throws(
-        () => PackageURL.fromString('pkg:type/namespace/100%'),
+      expect(() => PackageURL.fromString('pkg:type/namespace/100%')).toThrow(
         /unable to decode "name" component/
       )
-      assert.throws(
-        () => PackageURL.fromString('pkg:type/namespace/name@100%'),
-        /unable to decode "version" component/
-      )
-      assert.throws(
-        () => PackageURL.fromString('pkg:type/namespace/name@1.0?a=100%'),
-        /unable to decode "qualifiers" component/
-      )
-      assert.throws(
-        () => PackageURL.fromString('pkg:type/namespace/name@1.0#100%'),
-        /unable to decode "subpath" component/
-      )
+      expect(() =>
+        PackageURL.fromString('pkg:type/namespace/name@100%')
+      ).toThrow(/unable to decode "version" component/)
+      expect(() =>
+        PackageURL.fromString('pkg:type/namespace/name@1.0?a=100%')
+      ).toThrow(/unable to decode "qualifiers" component/)
+      expect(() =>
+        PackageURL.fromString('pkg:type/namespace/name@1.0#100%')
+      ).toThrow(/unable to decode "subpath" component/)
     })
   })
 
@@ -442,19 +415,18 @@ describe('PackageURL', () => {
         continue
       }
 
-      describe(obj.description, () => {
+      describe(obj.description, (context: TestAPI) => {
         if (expected_failure) {
           if (test_type === 'parse' && inputStr) {
             it(`should not be possible to parse invalid ${expectedObj?.type ?? 'type'} PackageURLs`, () => {
-              assert.throws(
-                () => PackageURL.fromString(inputStr),
+              expect(() => PackageURL.fromString(inputStr)).toThrow(
                 /missing the required|Invalid purl/
               )
             })
           }
           if (test_type === 'build' && inputObj) {
             it(`should not be possible to create invalid ${inputObj.type ?? 'type'} PackageURLs`, () => {
-              assert.throws(
+              expect(
                 () =>
                   new PackageURL(
                     inputObj.type,
@@ -463,28 +435,23 @@ describe('PackageURL', () => {
                     inputObj.version,
                     inputObj.qualifiers,
                     inputObj.subpath
-                  ),
-                /is a required|Invalid purl/
-              )
+                  )
+              ).toThrow(/is a required|Invalid purl/)
             })
           }
         } else if (test_type === 'parse' && inputStr && expectedObj) {
           it(`should be able to parse valid ${expectedObj.type ?? 'type'} PackageURLs`, () => {
             const purl = PackageURL.fromString(inputStr)
-            assert.strictEqual(purl.type, expectedObj.type)
-            assert.strictEqual(purl.name, expectedObj.name)
-            assert.strictEqual(
-              purl.namespace,
-              expectedObj.namespace ?? undefined
-            )
-            assert.strictEqual(purl.version, expectedObj.version ?? undefined)
-            assert.deepStrictEqual(
-              purl.qualifiers,
+            expect(purl.type).toBe(expectedObj.type)
+            expect(purl.name).toBe(expectedObj.name)
+            expect(purl.namespace).toBe(expectedObj.namespace ?? undefined)
+            expect(purl.version).toBe(expectedObj.version ?? undefined)
+            expect(purl.qualifiers).toStrictEqual(
               expectedObj.qualifiers
                 ? { __proto__: null, ...expectedObj.qualifiers }
                 : undefined
             )
-            assert.strictEqual(purl.subpath, expectedObj.subpath ?? undefined)
+            expect(purl.subpath).toBe(expectedObj.subpath ?? undefined)
           })
         } else if (test_type === 'build' && inputObj && expectedStr) {
           it(`should be able to convert valid ${inputObj.type ?? 'type'} PackageURLs to a string`, () => {
@@ -501,7 +468,7 @@ describe('PackageURL', () => {
               const markIndex = expectedStr.indexOf('?')
               const beforeMarkToStr = purlToStr.slice(0, markIndex)
               const beforeExpectedStr = expectedStr.slice(0, markIndex)
-              assert.strictEqual(beforeMarkToStr, beforeExpectedStr)
+              expect(beforeMarkToStr).toBe(beforeExpectedStr)
 
               const afterMarkToStr = purlToStr.slice(markIndex + 1)
               const afterExpectedStr = expectedStr.slice(markIndex + 1)
@@ -511,11 +478,13 @@ describe('PackageURL', () => {
               const expectedParams = toSortedObjectFromEntries(
                 toUrlSearchParams(afterExpectedStr).entries()
               )
-              assert.deepStrictEqual(actualParams, expectedParams)
+              expect(actualParams).toStrictEqual(expectedParams)
             } else {
-              assert.strictEqual(purlToStr, expectedStr)
+              expect(purlToStr).toBe(expectedStr)
             }
           })
+        } else {
+          context.skip('No test found')
         }
       })
     }
@@ -525,17 +494,17 @@ describe('PackageURL', () => {
     it("should allow legacy names to be mixed case, match a builtin, or contain ~'!()* characters", () => {
       for (const legacyName of npmLegacyNames) {
         let purl
-        assert.doesNotThrow(() => {
+        expect(() => {
           const parts = legacyName.split('/')
           const namespace = parts.length > 1 ? parts[0] : ''
           const name = parts.at(-1)
           purl = new PackageURL('npm', namespace, name)
-        })
+        }).not.toThrow()
         const id = purl ? getNpmId(purl) : ''
         const isBuiltin = npmBuiltinNames.includes(id)
         const isMixedCased = /[A-Z]/.test(id)
         const containsIllegalCharacters = /[~'!()*]/.test(id)
-        assert.ok(
+        expect(
           isBuiltin || isMixedCased || containsIllegalCharacters,
           `assert for ${legacyName}`
         )
@@ -544,13 +513,13 @@ describe('PackageURL', () => {
     it('should not allow non-legacy builtin names', () => {
       for (const builtinName of npmBuiltinNames) {
         if (!npmLegacyNames.includes(builtinName)) {
-          assert.throws(() => {
+          expect(() => {
             const parts = builtinName.split('/')
             const namespace = parts.length > 1 ? parts[0] : ''
             const name = parts.at(-1)
             // eslint-disable-next-line no-new
             new PackageURL('npm', namespace, name)
-          }, `assert for ${builtinName}`)
+          }, `assert for ${builtinName}`).toThrow()
         }
       }
     })
@@ -564,22 +533,18 @@ describe('PackageURL', () => {
         'flutter-downloader',
         '1.0.0'
       )
-      assert.strictEqual(
-        purlWithDashes.toString(),
-        'pkg:pub/flutter_downloader@1.0.0'
-      )
+      expect(purlWithDashes.toString()).toBe('pkg:pub/flutter_downloader@1.0.0')
     })
   })
 
   describe('pypi', () => {
     it('should handle pypi package-urls per the purl-spec', () => {
       const purlMixedCasing = PackageURL.fromString('pkg:pypi/PYYaml@5.3.0')
-      assert.strictEqual(purlMixedCasing.toString(), 'pkg:pypi/pyyaml@5.3.0')
+      expect(purlMixedCasing.toString()).toBe('pkg:pypi/pyyaml@5.3.0')
       const purlWithUnderscore = PackageURL.fromString(
         'pkg:pypi/typing_extensions_blah@1.0.0'
       )
-      assert.strictEqual(
-        purlWithUnderscore.toString(),
+      expect(purlWithUnderscore.toString()).toBe(
         'pkg:pypi/typing-extensions-blah@1.0.0'
       )
     })
