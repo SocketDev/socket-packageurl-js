@@ -42,9 +42,10 @@
   "scripts": {
     "check": "run-p -c --aggregate-output check:*",
     "check:lint": "eslint --report-unused-disable-directives .",
-    "check:lint:fix": "npm run check:lint -- --fix",
+    "check:lint:fix": "pnpm run check:lint -- --fix",
     "check:tsc": "tsc",
     "clean": "run-p --aggregate-output clean:*",
+    "clean:cache": "del-cli '**/.cache'",
     "clean:node_modules": "del-cli '**/node_modules'",
     "coverage": "run-s coverage:*",
     "coverage:test": "run-s test:prepare test:unit:coverage",
@@ -52,7 +53,7 @@
     "knip:dependencies": "knip --dependencies",
     "knip:exports": "knip --include exports,duplicates",
     "lint": "oxlint -c=.oxlintrc.json --ignore-path=.oxlintignore --tsconfig=tsconfig.json .",
-    "lint:fix": "npm run lint -- --fix && npm run lint:fix:fast",
+    "lint:fix": "pnpm run lint -- --fix && pnpm run lint:fix:fast",
     "lint:fix:fast": "biome format --write",
     "lint-staged": "lint-staged",
     "precommit": "lint-staged",
@@ -63,7 +64,7 @@
     "test:unit:coverage": "dotenvx -q run -f .env.test -- vitest run --coverage",
     "test-ci": "run-s build test:*",
     "update": "run-p --aggregate-output update:* && run-s update:longtask:**",
-    "update:deps": "npx --yes npm-check-updates",
+    "update:deps": "taze",
     "update:longtask:data:npm": "node ./scripts/update-data-npm.js"
   },
   "devDependencies": {
@@ -89,6 +90,7 @@
     "oxlint": "1.15.0",
     "pacote": "21.0.1",
     "semver": "7.7.2",
+    "taze": "19.6.0",
     "typescript": "5.9.2",
     "validate-npm-package-name": "6.0.2",
     "vitest": "3.2.4"
@@ -111,8 +113,8 @@
   },
   "lint-staged": {
     "*.{cjs,cts,js,json,md,mjs,mts,ts}": [
-      "npm run lint -- --fix",
-      "npm run lint:fix:fast -- --no-errors-on-unmatched --files-ignore-unknown=true --colors=off"
+      "pnpm run lint -- --fix",
+      "pnpm run lint:fix:fast -- --no-errors-on-unmatched --files-ignore-unknown=true --colors=off"
     ]
   }
 }
