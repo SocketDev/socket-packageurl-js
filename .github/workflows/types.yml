@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - uses: SocketDev/socket-packageurl-js/.github/actions/setup@9adbb36c918120919787c7030e262fc809f291c4
+      - uses: SocketDev/socket-packageurl-js/.github/actions/setup@ba6474a7c706597029974d7a546d2fbfa749d1e1
         with:
           node-version: '22'
 
