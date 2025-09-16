@@ -31,7 +31,7 @@ jobs:
       - run: npm install -g pnpm@latest
       - run: pnpm install
       - run: pnpm test
-      - run: pnpm publish --provenance --tag latest --access public
+      - run: pnpm publish --provenance --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           SOCKET_CLI_DEBUG: ${{ inputs.debug }}
