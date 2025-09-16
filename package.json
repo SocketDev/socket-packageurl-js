@@ -44,7 +44,7 @@
     "check:lint": "eslint --report-unused-disable-directives .",
     "check:lint:fix": "pnpm run check:lint -- --fix",
     "check:tsc": "tsc",
-    "clean": "run-p --aggregate-output clean:*",
+    "clean": "run-s -c clean:*",
     "clean:cache": "del-cli '**/.cache'",
     "clean:node_modules": "del-cli '**/node_modules'",
     "coverage": "run-s coverage:*",
