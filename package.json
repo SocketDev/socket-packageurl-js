@@ -95,8 +95,10 @@
     "validate-npm-package-name": "6.0.2",
     "vitest": "3.2.4"
   },
-  "overrides": {
-    "vite": "7.1.5"
+  "pnpm": {
+    "overrides": {
+      "vite": "7.1.5"
+    }
   },
   "engines": {
     "node": ">=18"
@@ -109,12 +111,6 @@
   "socket": {
     "categories": [
       "levelup"
-    ]
-  },
-  "lint-staged": {
-    "*.{cjs,cts,js,json,md,mjs,mts,ts}": [
-      "pnpm run lint -- --fix",
-      "pnpm run lint:fix:fast -- --no-errors-on-unmatched --files-ignore-unknown=true --colors=off"
     ]
   }
 }
