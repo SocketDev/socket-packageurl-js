@@ -142,5 +142,11 @@ module.exports = [
       'sort-destructure-keys/sort-destructure-keys': 'error',
       'sort-imports': ['error', { ignoreDeclarationSort: true }]
     }
+  },
+  {
+    files: ['**/*.mjs'],
+    languageOptions: {
+      sourceType: 'module'
+    }
   }
 ]
