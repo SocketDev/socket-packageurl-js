@@ -100,6 +100,15 @@
       "vite": "7.1.5"
     }
   },
+  "lint-staged": {
+    "*.{cjs,cts,js,mjs,mts,ts}": [
+      "pnpm run lint -- --fix",
+      "biome format --write"
+    ],
+    "*.{json,md}": [
+      "pnpm run lint -- --fix"
+    ]
+  },
   "engines": {
     "node": ">=18"
   },
