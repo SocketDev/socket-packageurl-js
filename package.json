@@ -113,6 +113,7 @@
     "node": ">=18"
   },
   "files": [
+    "CHANGELOG.md",
     "*{.js,.ts}",
     "data/**/*.json",
     "src/**/*{.js,.ts}"
