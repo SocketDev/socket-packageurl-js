@@ -75,7 +75,7 @@
     "@dotenvx/dotenvx": "1.49.0",
     "@eslint/compat": "1.3.2",
     "@eslint/js": "9.35.0",
-    "@socketsecurity/registry": "1.1.8",
+    "@socketsecurity/registry": "1.1.10",
     "all-the-package-names": "2.0.0",
     "all-the-package-names-v1.3905.0": "npm:all-the-package-names@1.3905.0",
     "del-cli": "6.0.0",
