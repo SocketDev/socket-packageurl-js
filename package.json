@@ -41,6 +41,7 @@
   "sideEffects": false,
   "scripts": {
     "check": "run-p -c --aggregate-output check:*",
+    "check-ci": "pnpm check:lint",
     "check:lint": "eslint --report-unused-disable-directives .",
     "check:lint:fix": "pnpm run check:lint -- --fix",
     "check:tsc": "tsc",
@@ -52,10 +53,12 @@
     "fix": "run-s lint:fix check:lint:fix",
     "knip:dependencies": "knip --dependencies",
     "knip:exports": "knip --include exports,duplicates",
-    "lint": "oxlint -c=.oxlintrc.json --ignore-path=.oxlintignore --tsconfig=tsconfig.json .",
-    "lint:fix": "pnpm run lint -- --fix && pnpm run lint:fix:fast",
-    "lint:fix:fast": "biome format --write",
-    "lint-staged": "lint-staged",
+    "lint": "dotenvx -q run -f .env.local -- oxlint -c=.oxlintrc.json --ignore-path=.oxlintignore --tsconfig=tsconfig.json .",
+    "lint:fix": "run-s -c lint:fix:*",
+    "lint:fix:oxlint": "dotenvx -q run -f .env.local -- oxlint -c=.oxlintrc.json --ignore-path=.oxlintignore --tsconfig=tsconfig.json --quiet --fix . | dev-null",
+    "lint:fix:biome": "dotenvx -q run -f .env.local -- biome format --log-level=none --fix . | dev-null",
+    "lint:fix:eslint": "dotenvx -q run -f .env.local -- eslint --report-unused-disable-directives --fix . | dev-null",
+    "lint-staged": "dotenvx -q run -f .env.local -- lint-staged",
     "precommit": "lint-staged",
     "prepare": "husky",
     "test": "run-s check test:*",
@@ -76,6 +79,7 @@
     "all-the-package-names": "2.0.0",
     "all-the-package-names-v1.3905.0": "npm:all-the-package-names@1.3905.0",
     "del-cli": "6.0.0",
+    "dev-null-cli": "2.0.0",
     "eslint": "9.35.0",
     "eslint-plugin-import-x": "4.16.1",
     "eslint-plugin-n": "17.21.3",
@@ -95,29 +99,27 @@
     "validate-npm-package-name": "6.0.2",
     "vitest": "3.2.4"
   },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=10.16.0"
+  },
+  "files": [
+    "*{.js,.ts}",
+    "data/**/*.json",
+    "src/**/*{.js,.ts}",
+    "CHANGELOG.md"
+  ],
+  "lint-staged": {
+    "*.{cjs,js,json,md,mjs,mts,ts}": [
+      "pnpm run lint:fix:oxlint",
+      "pnpm run lint:fix:biome -- --no-errors-on-unmatched --files-ignore-unknown=true --colors=off"
+    ]
+  },
   "pnpm": {
     "overrides": {
       "vite": "7.1.5"
     }
   },
-  "lint-staged": {
-    "*.{cjs,cts,js,mjs,mts,ts}": [
-      "pnpm run lint -- --fix",
-      "biome format --write"
-    ],
-    "*.{json,md}": [
-      "pnpm run lint -- --fix"
-    ]
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "files": [
-    "CHANGELOG.md",
-    "*{.js,.ts}",
-    "data/**/*.json",
-    "src/**/*{.js,.ts}"
-  ],
   "socket": {
     "categories": [
       "levelup"
