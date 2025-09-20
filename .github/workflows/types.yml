@@ -21,5 +21,3 @@ concurrency:
 jobs:
   types:
     uses: SocketDev/socket-registry/.github/workflows/types.yml@main
-    with:
-      node-version: '22'
