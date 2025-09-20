@@ -1,21 +1,22 @@
-name: ⚙️ Provenance
+name: Publish to registry
 
 on:
-  release:
-    types: [created]
-
-permissions:
-  contents: read
-  id-token: write
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Enable debug output'
+        required: false
+        default: '0'
+        type: string
+        options:
+          - '0'
+          - '1'
 
 jobs:
-  provenance:
+  publish:
     uses: SocketDev/socket-registry/.github/workflows/provenance.yml@main
     with:
-      node-version: '22'
+      debug: ${{ inputs.debug }}
       package-name: '@socketregistry/packageurl-js'
     secrets:
       npm_token: ${{ secrets.NPM_TOKEN }}
-    permissions:
-      contents: read
-      id-token: write
