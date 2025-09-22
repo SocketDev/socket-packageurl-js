@@ -35,6 +35,9 @@ module.exports = [
       .map(p => convertIgnorePatternToMinimatch(p.slice(1))),
   },
   {
+    ignores: ['coverage/**'],
+  },
+  {
     ...js.configs.recommended,
     ...importXPlugin.flatConfigs.recommended,
     ...nodePlugin.configs['flat/recommended-script'],
