@@ -59,8 +59,9 @@ You are a **Principal Software Engineer** responsible for:
 ### Package Management
 - **Package Manager**: This project uses pnpm
 - **Install dependencies**: `pnpm install`
-- **Add dependency**: `pnpm add <package>`
-- **Add dev dependency**: `pnpm add -D <package>` (use `--save-exact` for exact versions)
+- **Add dependency**: `pnpm add <package> --save-exact`
+- **Add dev dependency**: `pnpm add -D <package> --save-exact`
+- **🚨 MANDATORY**: Always add dependencies with exact versions using `--save-exact` flag to ensure reproducible builds
 - **Update dependencies**: `pnpm update`
 
 ## Important Project-Specific Rules
