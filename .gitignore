@@ -5,6 +5,7 @@ Thumbs.db
 /.nvm
 /.tap
 /.vscode
+/coverage
 /npm-debug.log
 **/.cache
 **/node_modules

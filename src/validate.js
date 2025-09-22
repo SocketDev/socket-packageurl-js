@@ -154,6 +154,7 @@ function validateType(type, throws) {
     ) {
       if (throws) {
         throw new PurlError(`type "${type}" contains an illegal character`)
+        /* c8 ignore next -- Unreachable code after throw */
       }
       return false
     }

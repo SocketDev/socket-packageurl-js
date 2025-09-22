@@ -43,13 +43,15 @@
     "check": "run-p -c --aggregate-output check:*",
     "check-ci": "pnpm check:lint",
     "check:lint": "eslint --report-unused-disable-directives .",
-    "check:lint:fix": "pnpm run check:lint -- --fix",
+    "check:lint:fix": "pnpm check:lint --fix",
     "check:tsc": "tsc",
     "clean": "run-s -c clean:*",
     "clean:cache": "del-cli '**/.cache'",
+    "clean:coverage": "del-cli 'coverage'",
     "clean:node_modules": "del-cli '**/node_modules'",
     "coverage": "run-s coverage:*",
-    "coverage:test": "run-s test:prepare test:unit:coverage",
+    "coverage:test": "pnpm test:unit:coverage",
+    "coverage:percent": "node scripts/get-coverage-percentage.js",
     "fix": "run-s lint:fix check:lint:fix",
     "knip:dependencies": "knip --dependencies",
     "knip:exports": "knip --include exports,duplicates",
@@ -63,8 +65,8 @@
     "prepare": "husky",
     "test": "run-s check test:*",
     "test:unit": "dotenvx -q run -f .env.test -- vitest --run",
-    "test:unit:update": "dotenvx -q run -f .env.test -- vitest --run --update",
     "test:unit:coverage": "dotenvx -q run -f .env.test -- vitest run --coverage",
+    "test:unit:update": "dotenvx -q run -f .env.test -- vitest --run --update",
     "test-ci": "pnpm test",
     "test-pre-commit": "dotenvx -q run -f .env.precommit -- pnpm test",
     "update": "run-p --aggregate-output update:* && run-s update:longtask:**",
@@ -78,6 +80,7 @@
     "@eslint/compat": "1.3.2",
     "@eslint/js": "9.35.0",
     "@socketsecurity/registry": "1.1.17",
+    "@vitest/coverage-v8": "3.2.4",
     "all-the-package-names": "2.0.0",
     "all-the-package-names-v1.3905.0": "npm:all-the-package-names@1.3905.0",
     "del-cli": "6.0.0",
@@ -99,7 +102,9 @@
     "taze": "19.6.0",
     "typescript": "5.9.2",
     "validate-npm-package-name": "6.0.2",
-    "vitest": "3.2.4"
+    "vitest": "3.2.4",
+    "yargs-parser": "21.1.1",
+    "yoctocolors-cjs": "2.1.3"
   },
   "engines": {
     "node": ">=18",
@@ -113,8 +118,8 @@
   ],
   "lint-staged": {
     "*.{cjs,js,json,md,mjs,mts,ts}": [
-      "pnpm run lint:fix:oxlint",
-      "pnpm run lint:fix:biome -- --no-errors-on-unmatched --files-ignore-unknown=true --colors=off"
+      "pnpm lint:fix:oxlint",
+      "pnpm lint:fix:biome -- --no-errors-on-unmatched --files-ignore-unknown=true --colors=off"
     ]
   },
   "pnpm": {
