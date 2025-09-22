@@ -10,3 +10,5 @@ Thumbs.db
 **/.cache
 **/node_modules
 /*.tsbuildinfo
+
+!/.vscode/extensions.json
