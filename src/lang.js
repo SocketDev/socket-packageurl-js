@@ -9,5 +9,5 @@ function isNullishOrEmptyString(value) {
 }
 
 module.exports = {
-  isNullishOrEmptyString
+  isNullishOrEmptyString,
 }

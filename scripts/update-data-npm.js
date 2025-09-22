@@ -35,7 +35,7 @@ void (async () => {
   if (
     await confirm({
       message: `Update builtin package names?${isGteNext ? '' : ` (Requires Node >=${next})`}`,
-      default: true
+      default: true,
     })
   ) {
     const nodeVersion = process.version.slice(1)
@@ -54,7 +54,7 @@ void (async () => {
   if (
     !(await confirm({
       message: 'Update npm package names data?',
-      default: false
+      default: false,
     }))
   ) {
     spinner.stop()
@@ -69,8 +69,8 @@ void (async () => {
       // Load the 24.7MB names.json from 'all-the-package-names@1.3905.0',
       // the last v1 release, because it has different names resolved by
       // npm's replicate.npmjs.com service.
-      ...require('all-the-package-names-v1.3905.0/names.json')
-    ])
+      ...require('all-the-package-names-v1.3905.0/names.json'),
+    ]),
   ]
   const rawLegacyNames = allThePackageNames
     // Don't simply check validateNpmPackageName(n).validForOldPackages.
@@ -98,7 +98,7 @@ void (async () => {
         }
         return false
       },
-      { concurrency: 3, retries: 4, signal: abortSignal }
+      { concurrency: 3, retries: 4, signal: abortSignal },
     )
   await writeJson(npmLegacyNamesJsonPath, legacyNames, { spaces: 2 })
   spinner.stop()

@@ -3,7 +3,7 @@
 const {
   REUSED_SEARCH_PARAMS,
   REUSED_SEARCH_PARAMS_KEY,
-  REUSED_SEARCH_PARAMS_OFFSET
+  REUSED_SEARCH_PARAMS_OFFSET,
 } = require('./constants')
 const { isObject } = require('./objects')
 const { isNonEmptyString } = require('./strings')
@@ -81,5 +81,5 @@ module.exports = {
   encodeVersion,
   encodeQualifiers,
   encodeQualifierParam,
-  encodeSubpath
+  encodeSubpath,
 }

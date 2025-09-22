@@ -25,12 +25,12 @@ const {
   PackageURL,
   PurlComponent,
   PurlQualifierNames,
-  PurlType
+  PurlType,
 } = require('./src/package-url')
 
 module.exports = {
   PackageURL,
   PurlComponent,
   PurlQualifierNames,
-  PurlType
+  PurlType,
 }

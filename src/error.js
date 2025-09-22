@@ -30,5 +30,5 @@ class PurlError extends Error {
 
 module.exports = {
   formatPurlErrorMessage,
-  PurlError
+  PurlError,
 }

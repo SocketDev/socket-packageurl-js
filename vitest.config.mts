@@ -15,15 +15,15 @@ export default defineConfig({
         'data/**',
         'dist/**',
         'scripts/**',
-        'test/**'
+        'test/**',
       ],
       all: true,
       thresholds: {
         lines: 100,
         functions: 100,
         branches: 100,
-        statements: 100
-      }
-    }
-  }
+        statements: 100,
+      },
+    },
+  },
 })
