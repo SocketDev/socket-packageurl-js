@@ -7,7 +7,7 @@ const {
   encodeQualifierParam,
   encodeQualifiers,
   encodeSubpath,
-  encodeVersion
+  encodeVersion,
 } = require('./encode')
 const { createHelpersNamespaceObject } = require('./helpers')
 const {
@@ -16,7 +16,7 @@ const {
   normalizeQualifiers,
   normalizeSubpath,
   normalizeType,
-  normalizeVersion
+  normalizeVersion,
 } = require('./normalize')
 const { isNonEmptyString, localeCompare } = require('./strings')
 const {
@@ -26,7 +26,7 @@ const {
   validateQualifiers,
   validateSubpath,
   validateType,
-  validateVersion
+  validateVersion,
 } = require('./validate')
 
 const componentSortOrderLookup = {
@@ -38,7 +38,7 @@ const componentSortOrderLookup = {
   qualifiers: 4,
   qualifierKey: 5,
   qualifierValue: 6,
-  subpath: 7
+  subpath: 7,
 }
 
 function componentSortOrder(comp) {
@@ -72,7 +72,7 @@ const PurlComponent = createHelpersNamespaceObject(
       qualifiers: encodeQualifiers,
       qualifierKey: encodeQualifierParam,
       qualifierValue: encodeQualifierParam,
-      subpath: encodeSubpath
+      subpath: encodeSubpath,
     },
     normalize: {
       type: normalizeType,
@@ -80,7 +80,7 @@ const PurlComponent = createHelpersNamespaceObject(
       name: normalizeName,
       version: normalizeVersion,
       qualifiers: normalizeQualifiers,
-      subpath: normalizeSubpath
+      subpath: normalizeSubpath,
     },
     validate: {
       type: validateType,
@@ -89,15 +89,15 @@ const PurlComponent = createHelpersNamespaceObject(
       version: validateVersion,
       qualifierKey: validateQualifierKey,
       qualifiers: validateQualifiers,
-      subpath: validateSubpath
-    }
+      subpath: validateSubpath,
+    },
   },
   {
     comparator: componentComparator,
     encode: PurlComponentEncoder,
     normalize: PurlComponentStringNormalizer,
-    validate: PurlComponentValidator
-  }
+    validate: PurlComponentValidator,
+  },
 )
 
 module.exports = {
@@ -106,5 +106,5 @@ module.exports = {
   PurlComponentStringNormalizer,
   PurlComponentValidator,
   componentComparator,
-  componentSortOrder
+  componentSortOrder,
 }

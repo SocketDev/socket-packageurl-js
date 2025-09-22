@@ -20,7 +20,7 @@ function recursiveFreeze(value_) {
   while (pos < queueLength) {
     if (pos === LOOP_SENTINEL) {
       throw new Error(
-        'Detected infinite loop in object crawl of recursiveFreeze'
+        'Detected infinite loop in object crawl of recursiveFreeze',
       )
     }
     const obj = queue[pos++]
@@ -55,5 +55,5 @@ function recursiveFreeze(value_) {
 
 module.exports = {
   isObject,
-  recursiveFreeze
+  recursiveFreeze,
 }

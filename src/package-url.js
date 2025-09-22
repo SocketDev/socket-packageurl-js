@@ -40,7 +40,7 @@ class PackageURL {
     rawName,
     rawVersion,
     rawQualifiers,
-    rawSubpath
+    rawSubpath,
   ) {
     const type = isNonEmptyString(rawType)
       ? PurlComponent.type.normalize(rawType)
@@ -145,7 +145,7 @@ class PackageURL {
             : new URL(purlStr)
       } catch (e) {
         throw new PurlError('failed to parse as URL', {
-          cause: e
+          cause: e,
         })
       }
     }
@@ -165,7 +165,7 @@ class PackageURL {
     const firstSlashIndex = pathname.indexOf('/')
     const rawType = decodePurlComponent(
       'type',
-      firstSlashIndex === -1 ? pathname : pathname.slice(0, firstSlashIndex)
+      firstSlashIndex === -1 ? pathname : pathname.slice(0, firstSlashIndex),
     )
     if (firstSlashIndex < 1) {
       return [rawType, undefined, undefined, undefined, undefined, undefined]
@@ -191,13 +191,13 @@ class PackageURL {
     }
     const beforeVersion = pathname.slice(
       rawType.length + 1,
-      atSignIndex === -1 ? pathname.length : atSignIndex
+      atSignIndex === -1 ? pathname.length : atSignIndex,
     )
     if (atSignIndex !== -1) {
       // Split the remainder once from right on '@'.
       rawVersion = decodePurlComponent(
         'version',
-        pathname.slice(atSignIndex + 1)
+        pathname.slice(atSignIndex + 1),
       )
     }
 
@@ -211,12 +211,12 @@ class PackageURL {
       // Split the remainder once from right on '/'.
       rawName = decodePurlComponent(
         'name',
-        beforeVersion.slice(lastSlashIndex + 1)
+        beforeVersion.slice(lastSlashIndex + 1),
       )
       // Split the remainder on '/'.
       rawNamespace = decodePurlComponent(
         'namespace',
-        beforeVersion.slice(0, lastSlashIndex)
+        beforeVersion.slice(0, lastSlashIndex),
       )
     }
 
@@ -250,7 +250,7 @@ class PackageURL {
       rawName,
       rawVersion,
       rawQualifiers,
-      rawSubpath
+      rawSubpath,
     ]
   }
 }
@@ -258,7 +258,7 @@ class PackageURL {
 for (const staticProp of ['Component', 'KnownQualifierNames', 'Type']) {
   Reflect.defineProperty(PackageURL, staticProp, {
     ...Reflect.getOwnPropertyDescriptor(PackageURL, staticProp),
-    writable: false
+    writable: false,
   })
 }
 
@@ -268,5 +268,5 @@ module.exports = {
   PackageURL,
   PurlComponent,
   PurlQualifierNames,
-  PurlType
+  PurlType,
 }

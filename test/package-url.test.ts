@@ -28,7 +28,7 @@ import { describe, expect, it } from 'vitest'
 import { readJson } from '@socketsecurity/registry/lib/fs'
 import {
   isObject,
-  toSortedObjectFromEntries
+  toSortedObjectFromEntries,
 } from '@socketsecurity/registry/lib/objects'
 
 import type { TestAPI } from 'vitest'
@@ -61,7 +61,7 @@ describe('PackageURL', () => {
         ['DownloadUrl', 'download_url'],
         ['VcsUrl', 'vcs_url'],
         ['FileName', 'file_name'],
-        ['Checksum', 'checksum']
+        ['Checksum', 'checksum'],
       ].forEach(function ([name, expectedValue]) {
         it(`maps: ${name} => ${expectedValue}`, () => {
           expect(PackageURL.KnownQualifierNames[name]).toBe(expectedValue)
@@ -74,7 +74,7 @@ describe('PackageURL', () => {
         PackageURL.KnownQualifierNames = { foo: 'bar' }
       }).toThrow(TypeError)
       expect(PackageURL.KnownQualifierNames).not.toStrictEqual({
-        foo: 'bar'
+        foo: 'bar',
       })
     })
 
@@ -93,7 +93,7 @@ describe('PackageURL', () => {
       name: 2,
       version: 3,
       qualifiers: 4,
-      subpath: 5
+      subpath: 5,
     }
 
     const createArgs = (paramName, value) => {
@@ -103,7 +103,7 @@ describe('PackageURL', () => {
         'name',
         'version',
         undefined,
-        'subpath'
+        'subpath',
       ]
       args[paramMap[paramName]] = value
       return args
@@ -136,7 +136,7 @@ describe('PackageURL', () => {
           createArgs(paramName, {}),
           createArgs(paramName, null),
           createArgs(paramName, undefined),
-          createArgs(paramName, '')
+          createArgs(paramName, ''),
         ].forEach(args => {
           const message = JSON.stringify(args[paramIndex])
           try {
@@ -164,7 +164,7 @@ describe('PackageURL', () => {
           createArgs(paramName, paramName),
           createArgs(paramName, null),
           createArgs(paramName, undefined),
-          createArgs(paramName, '')
+          createArgs(paramName, ''),
         ].forEach(args => {
           const message = JSON.stringify(args[paramIndex])
           try {
@@ -185,7 +185,7 @@ describe('PackageURL', () => {
           createArgs(paramName, false),
           createArgs(paramName, 1),
           createArgs(paramName, true),
-          createArgs(paramName, {})
+          createArgs(paramName, {}),
         ].forEach(args => {
           const message = JSON.stringify(args[paramIndex])
           try {
@@ -207,21 +207,27 @@ describe('PackageURL', () => {
     it('should not decode params', () => {
       // Tests that constructor params are treated as already-decoded (double encoding prevention)
       expect(new PackageURL('type', '%21', 'name').toString()).toBe(
-        'pkg:type/%2521/name'
+        'pkg:type/%2521/name',
       )
       expect(new PackageURL('type', 'namespace', '%21').toString()).toBe(
-        'pkg:type/namespace/%2521'
+        'pkg:type/namespace/%2521',
       )
       expect(
-        new PackageURL('type', 'namespace', 'name', '%21').toString()
+        new PackageURL('type', 'namespace', 'name', '%21').toString(),
       ).toBe('pkg:type/namespace/name@%2521')
       expect(
         new PackageURL('type', 'namespace', 'name', '1.0', {
-          a: '%21'
-        }).toString()
+          a: '%21',
+        }).toString(),
       ).toBe('pkg:type/namespace/name@1.0?a=%2521')
       expect(
-        new PackageURL('type', 'namespace', 'name', '1.0', 'a=%2521').toString()
+        new PackageURL(
+          'type',
+          'namespace',
+          'name',
+          '1.0',
+          'a=%2521',
+        ).toString(),
       ).toBe('pkg:type/namespace/name@1.0?a=%2521')
       expect(
         new PackageURL(
@@ -230,8 +236,8 @@ describe('PackageURL', () => {
           'name',
           '1.0',
           null,
-          '%21'
-        ).toString()
+          '%21',
+        ).toString(),
       ).toBe('pkg:type/namespace/name@1.0#%2521')
     })
   })
@@ -241,7 +247,7 @@ describe('PackageURL', () => {
       // Tests type validation rules (no special chars, can't start with number)
       ;['ty#pe', 'ty@pe', 'ty/pe', '1type'].forEach(type => {
         expect(() => new PackageURL(type, undefined, 'name')).toThrow(
-          /contains an illegal character|cannot start with a number/
+          /contains an illegal character|cannot start with a number/,
         )
       })
     })
@@ -254,10 +260,10 @@ describe('PackageURL', () => {
         'na#me',
         'ver#sion',
         { foo: 'bar#baz' },
-        'sub#path'
+        'sub#path',
       )
       expect(purl.toString()).toBe(
-        'pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path'
+        'pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path',
       )
     })
 
@@ -269,10 +275,10 @@ describe('PackageURL', () => {
         'na@me',
         'ver@sion',
         { foo: 'bar@baz' },
-        'sub@path'
+        'sub@path',
       )
       expect(purl.toString()).toBe(
-        'pkg:type/name%40space/na%40me@ver%40sion?foo=bar%40baz#sub%40path'
+        'pkg:type/name%40space/na%40me@ver%40sion?foo=bar%40baz#sub%40path',
       )
     })
 
@@ -296,7 +302,7 @@ describe('PackageURL', () => {
       expect(purl.qualifiers).toStrictEqual({
         __proto__: null,
         checksums:
-          'sha512:b9c27369720d948829a98118e9a35fd09d9018711e30dc2df5f8ae85bb19b2ade4679351c4d96768451ee9e841e5f5a36114a9ef98f4fe5256a5f4ca981736a0'
+          'sha512:b9c27369720d948829a98118e9a35fd09d9018711e30dc2df5f8ae85bb19b2ade4679351c4d96768451ee9e841e5f5a36114a9ef98f4fe5256a5f4ca981736a0',
       })
     })
 
@@ -311,7 +317,7 @@ describe('PackageURL', () => {
       expect(purl.version).toBe('0.0.7')
       expect(purl.qualifiers).toStrictEqual({
         __proto__: null,
-        vcs_url: 'git+https://github.com/package-url/packageurl-js.git'
+        vcs_url: 'git+https://github.com/package-url/packageurl-js.git',
       })
     })
 
@@ -327,7 +333,7 @@ describe('PackageURL', () => {
 
     it('namespace with multiple segments', () => {
       const purl = PackageURL.fromString(
-        'pkg:type/namespace1/namespace2/na%2Fme'
+        'pkg:type/namespace1/namespace2/na%2Fme',
       )
       expect(purl.type).toBe('type')
       expect(purl.namespace).toBe('namespace1/namespace2')
@@ -336,7 +342,7 @@ describe('PackageURL', () => {
 
     it('encoded #', () => {
       const purl = PackageURL.fromString(
-        'pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path'
+        'pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path',
       )
       expect(purl.type).toBe('type')
       expect(purl.namespace).toBe('name#space')
@@ -344,14 +350,14 @@ describe('PackageURL', () => {
       expect(purl.version).toBe('ver#sion')
       expect(purl.qualifiers).toStrictEqual({
         __proto__: null,
-        foo: 'bar#baz'
+        foo: 'bar#baz',
       })
       expect(purl.subpath).toBe('sub#path')
     })
 
     it('encoded @', () => {
       const purl = PackageURL.fromString(
-        'pkg:type/name%40space/na%40me@ver%40sion?foo=bar%40baz#sub%40path'
+        'pkg:type/name%40space/na%40me@ver%40sion?foo=bar%40baz#sub%40path',
       )
       expect(purl.type).toBe('type')
       expect(purl.namespace).toBe('name@space')
@@ -359,7 +365,7 @@ describe('PackageURL', () => {
       expect(purl.version).toBe('ver@sion')
       expect(purl.qualifiers).toStrictEqual({
         __proto__: null,
-        foo: 'bar@baz'
+        foo: 'bar@baz',
       })
       expect(purl.subpath).toBe('sub@path')
     })
@@ -367,19 +373,19 @@ describe('PackageURL', () => {
     it('should error on decode failures', () => {
       // Tests malformed percent-encoding detection (c8 ignore case in decode.js)
       expect(() => PackageURL.fromString('pkg:type/100%/name')).toThrow(
-        /unable to decode "namespace" component/
+        /unable to decode "namespace" component/,
       )
       expect(() => PackageURL.fromString('pkg:type/namespace/100%')).toThrow(
-        /unable to decode "name" component/
+        /unable to decode "name" component/,
       )
       expect(() =>
-        PackageURL.fromString('pkg:type/namespace/name@100%')
+        PackageURL.fromString('pkg:type/namespace/name@100%'),
       ).toThrow(/unable to decode "version" component/)
       expect(() =>
-        PackageURL.fromString('pkg:type/namespace/name@1.0?a=100%')
+        PackageURL.fromString('pkg:type/namespace/name@1.0?a=100%'),
       ).toThrow(/unable to decode "qualifiers" component/)
       expect(() =>
-        PackageURL.fromString('pkg:type/namespace/name@1.0#100%')
+        PackageURL.fromString('pkg:type/namespace/name@1.0#100%'),
       ).toThrow(/unable to decode "subpath" component/)
     })
   })
@@ -391,9 +397,9 @@ describe('PackageURL', () => {
         (
           await glob(['**/**.json'], {
             absolute: true,
-            cwd: path.join(__dirname, 'data')
+            cwd: path.join(__dirname, 'data'),
           })
-        ).map(p => readJson(p))
+        ).map(p => readJson(p)),
       )
     )
       .filter(Boolean)
@@ -427,7 +433,7 @@ describe('PackageURL', () => {
             // Tests expected parse failures from test suite
             it(`should not be possible to parse invalid ${expectedObj?.type ?? 'type'} PackageURLs`, () => {
               expect(() => PackageURL.fromString(inputStr)).toThrow(
-                /missing the required|Invalid purl/
+                /missing the required|Invalid purl/,
               )
             })
           }
@@ -442,8 +448,8 @@ describe('PackageURL', () => {
                     inputObj.name,
                     inputObj.version,
                     inputObj.qualifiers,
-                    inputObj.subpath
-                  )
+                    inputObj.subpath,
+                  ),
               ).toThrow(/is a required|Invalid purl/)
             })
           }
@@ -458,7 +464,7 @@ describe('PackageURL', () => {
             expect(purl.qualifiers).toStrictEqual(
               expectedObj.qualifiers
                 ? { __proto__: null, ...expectedObj.qualifiers }
-                : undefined
+                : undefined,
             )
             expect(purl.subpath).toBe(expectedObj.subpath ?? undefined)
           })
@@ -471,7 +477,7 @@ describe('PackageURL', () => {
               inputObj.name,
               inputObj.version,
               inputObj.qualifiers,
-              inputObj.subpath
+              inputObj.subpath,
             )
             const purlToStr = purl.toString()
             if (purl.qualifiers) {
@@ -483,10 +489,10 @@ describe('PackageURL', () => {
               const afterMarkToStr = purlToStr.slice(markIndex + 1)
               const afterExpectedStr = expectedStr.slice(markIndex + 1)
               const actualParams = toSortedObjectFromEntries(
-                toUrlSearchParams(afterMarkToStr).entries()
+                toUrlSearchParams(afterMarkToStr).entries(),
               )
               const expectedParams = toSortedObjectFromEntries(
-                toUrlSearchParams(afterExpectedStr).entries()
+                toUrlSearchParams(afterExpectedStr).entries(),
               )
               expect(actualParams).toStrictEqual(expectedParams)
             } else {
@@ -509,7 +515,7 @@ describe('PackageURL', () => {
             ) {
               normalizedExpected = expectedStr.replace(
                 '#NSData+zlib',
-                '#NSData%2Bzlib'
+                '#NSData%2Bzlib',
               )
             }
 
@@ -522,10 +528,10 @@ describe('PackageURL', () => {
               const afterMarkToStr = purlToStr.slice(markIndex + 1)
               const afterExpectedStr = normalizedExpected.slice(markIndex + 1)
               const actualParams = toSortedObjectFromEntries(
-                toUrlSearchParams(afterMarkToStr).entries()
+                toUrlSearchParams(afterMarkToStr).entries(),
               )
               const expectedParams = toSortedObjectFromEntries(
-                toUrlSearchParams(afterExpectedStr).entries()
+                toUrlSearchParams(afterExpectedStr).entries(),
               )
               expect(actualParams).toStrictEqual(expectedParams)
             } else {
@@ -535,7 +541,7 @@ describe('PackageURL', () => {
         } else {
           it(`should handle test case: ${test_type}`, () => {
             throw new Error(
-              `Unhandled test case: test_type=${test_type}, has inputStr=${!!inputStr}, has inputObj=${!!inputObj}, has expectedStr=${!!expectedStr}, has expectedObj=${!!expectedObj}, expected_failure=${expected_failure}`
+              `Unhandled test case: test_type=${test_type}, has inputStr=${!!inputStr}, has inputObj=${!!inputObj}, has expectedStr=${!!expectedStr}, has expectedObj=${!!expectedObj}, expected_failure=${expected_failure}`,
             )
           })
         }
@@ -560,7 +566,7 @@ describe('PackageURL', () => {
         const containsIllegalCharacters = /[~'!()*]/.test(id)
         expect(
           isBuiltin || isMixedCased || containsIllegalCharacters,
-          `assert for ${legacyName}`
+          `assert for ${legacyName}`,
         )
       }
     })
@@ -587,7 +593,7 @@ describe('PackageURL', () => {
         'pub',
         '',
         'flutter-downloader',
-        '1.0.0'
+        '1.0.0',
       )
       expect(purlWithDashes.toString()).toBe('pkg:pub/flutter_downloader@1.0.0')
     })
@@ -599,10 +605,10 @@ describe('PackageURL', () => {
       const purlMixedCasing = PackageURL.fromString('pkg:pypi/PYYaml@5.3.0')
       expect(purlMixedCasing.toString()).toBe('pkg:pypi/pyyaml@5.3.0')
       const purlWithUnderscore = PackageURL.fromString(
-        'pkg:pypi/typing_extensions_blah@1.0.0'
+        'pkg:pypi/typing_extensions_blah@1.0.0',
       )
       expect(purlWithUnderscore.toString()).toBe(
-        'pkg:pypi/typing-extensions-blah@1.0.0'
+        'pkg:pypi/typing-extensions-blah@1.0.0',
       )
     })
   })
@@ -619,48 +625,48 @@ describe('PackageURL', () => {
 
       it('should reject non-pkg schemes', () => {
         expect(() => PackageURL.fromString('http://type/name')).toThrow(
-          /missing required "pkg" scheme/
+          /missing required "pkg" scheme/,
         )
         expect(() => PackageURL.fromString('npm://type/name')).toThrow(
-          /missing required "pkg" scheme/
+          /missing required "pkg" scheme/,
         )
       })
 
       it('should reject URLs with authority components', () => {
         expect(() =>
-          PackageURL.fromString('pkg://user:pass@host:8080/type/name')
+          PackageURL.fromString('pkg://user:pass@host:8080/type/name'),
         ).toThrow(/cannot contain a "user:pass@host:port"/)
         expect(() =>
-          PackageURL.fromString('pkg://user@host/type/name')
+          PackageURL.fromString('pkg://user@host/type/name'),
         ).toThrow(/cannot contain a "user:pass@host:port"/)
       })
 
       it('should reject URLs with password auth component', () => {
         // Test password-only auth (empty username, non-empty password)
         expect(() =>
-          PackageURL.fromString('pkg://:password@type/name')
+          PackageURL.fromString('pkg://:password@type/name'),
         ).toThrow(/cannot contain a "user:pass@host:port"/)
       })
 
       it('should reject all combinations of username and password auth', () => {
         // Test username only (already covered but for completeness)
-        expect(() =>
-          PackageURL.fromString('pkg://user@type/name')
-        ).toThrow(/cannot contain a "user:pass@host:port"/)
+        expect(() => PackageURL.fromString('pkg://user@type/name')).toThrow(
+          /cannot contain a "user:pass@host:port"/,
+        )
 
         // Test password only (already covered but for completeness)
         expect(() =>
-          PackageURL.fromString('pkg://:password@type/name')
+          PackageURL.fromString('pkg://:password@type/name'),
         ).toThrow(/cannot contain a "user:pass@host:port"/)
 
         // Test both username and password (full auth credentials)
         expect(() =>
-          PackageURL.fromString('pkg://user:password@type/name')
+          PackageURL.fromString('pkg://user:password@type/name'),
         ).toThrow(/cannot contain a "user:pass@host:port"/)
 
         // Test with host component too (complete authority format)
         expect(() =>
-          PackageURL.fromString('pkg://user:pass@host:8080/type/name')
+          PackageURL.fromString('pkg://user:pass@host:8080/type/name'),
         ).toThrow(/cannot contain a "user:pass@host:port"/)
       })
 
@@ -669,14 +675,14 @@ describe('PackageURL', () => {
         // This triggers the catch block in the URL parsing code
         // Tests c8 ignore branch in package-url.js for URL parsing failures
         expect(() => PackageURL.fromString('pkg://[invalid')).toThrow(
-          /failed to parse as URL/
+          /failed to parse as URL/,
         )
       })
 
       it('should reject malformed URLs without colon after scheme', () => {
         // Tests edge case where scheme is present but missing colon separator
         expect(() => PackageURL.fromString('pkg')).toThrow(
-          /missing required "pkg" scheme/
+          /missing required "pkg" scheme/,
         )
       })
 
@@ -702,7 +708,7 @@ describe('PackageURL', () => {
           undefined,
           undefined,
           undefined,
-          undefined
+          undefined,
         ])
       })
 
@@ -715,7 +721,7 @@ describe('PackageURL', () => {
           undefined,
           undefined,
           undefined,
-          undefined
+          undefined,
         ])
       })
 
@@ -728,10 +734,10 @@ describe('PackageURL', () => {
 
       it('should reject invalid URL strings', () => {
         expect(() => PackageURL.fromString('not a url')).toThrow(
-          /missing required "pkg" scheme/
+          /missing required "pkg" scheme/,
         )
         expect(() => PackageURL.fromString('pkg:')).toThrow(
-          /"type" is a required component/
+          /"type" is a required component/,
         )
       })
 
@@ -755,7 +761,7 @@ describe('PackageURL', () => {
         const purl = new PackageURL('type', null, 'name', null, {
           z: 'last',
           a: 'first',
-          m: 'middle'
+          m: 'middle',
         })
         const str = purl.toString()
         const queryStart = str.indexOf('?')
@@ -825,7 +831,7 @@ describe('PackageURL', () => {
         const purl = PackageURL.fromString(purlStr)
         expect(purl.name).toBe('next')
         expect(purl.version).toBe(
-          '14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)'
+          '14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)',
         )
       })
 
@@ -847,7 +853,7 @@ describe('PackageURL', () => {
           'name',
           null,
           null,
-          '/path/to/file'
+          '/path/to/file',
         )
         const purl2 = new PackageURL(
           'type',
@@ -855,7 +861,7 @@ describe('PackageURL', () => {
           'name',
           null,
           null,
-          'path/to/file'
+          'path/to/file',
         )
         expect(purl1.subpath).toBe('path/to/file')
         expect(purl2.subpath).toBe('path/to/file')
@@ -869,7 +875,7 @@ describe('PackageURL', () => {
           'name',
           null,
           null,
-          'path?query=value'
+          'path?query=value',
         )
         expect(purl.subpath).toBe('path?query=value')
         expect(purl.toString()).toBe('pkg:type/name#path%3Fquery%3Dvalue')
@@ -883,7 +889,7 @@ describe('PackageURL', () => {
           'name',
           null,
           null,
-          'path//to///file'
+          'path//to///file',
         )
         expect(purl.subpath).toBe('path/to/file')
       })
@@ -911,7 +917,7 @@ describe('PackageURL', () => {
       it('should normalize qualifier keys to lowercase', () => {
         // Tests qualifier key normalization (always lowercase per spec)
         const purl = new PackageURL('type', null, 'name', null, {
-          KEY: 'value'
+          KEY: 'value',
         })
         expect(purl.qualifiers).toStrictEqual({ __proto__: null, key: 'value' })
       })
@@ -927,7 +933,7 @@ describe('PackageURL', () => {
         const qualifiers = {
           arch: 'x86_64',
           distro: 'ubuntu-20.04',
-          epoch: '1'
+          epoch: '1',
         }
         const purl = new PackageURL('type', null, 'name', null, qualifiers)
         const str = purl.toString()
@@ -1007,27 +1013,27 @@ describe('PackageURL', () => {
       it('should provide clear error message for missing type', () => {
         // Tests error message clarity (type validation)
         expect(() => new PackageURL('', null, 'name')).toThrow(
-          /"type" is a required component/
+          /"type" is a required component/,
         )
       })
 
       it('should provide clear error message for missing name', () => {
         // Tests error message clarity (name validation)
         expect(() => new PackageURL('type', null, '')).toThrow(
-          /"name" is a required component/
+          /"name" is a required component/,
         )
       })
 
       it('should provide clear error message for non-string input to fromString', () => {
         // Tests fromString parameter validation
         expect(() => PackageURL.fromString(123)).toThrow(
-          /purl string argument is required/
+          /purl string argument is required/,
         )
         expect(() => PackageURL.fromString(null)).toThrow(
-          /purl string argument is required/
+          /purl string argument is required/,
         )
         expect(() => PackageURL.fromString(undefined)).toThrow(
-          /purl string argument is required/
+          /purl string argument is required/,
         )
       })
     })
@@ -1103,7 +1109,7 @@ describe('PackageURL', () => {
         const purl1 = new PackageURL('type', null, 'name', null, {
           'key-with-spaces': 'value with spaces',
           'key-with-plus': 'value+plus',
-          'key-special': 'value with %20 encoded'
+          'key-special': 'value with %20 encoded',
         })
         const str1 = purl1.toString()
         expect(str1).toContain('key-with-spaces=value%20with%20spaces')
@@ -1114,7 +1120,7 @@ describe('PackageURL', () => {
       it('should handle recursive freeze with already frozen objects', () => {
         const frozen = Object.freeze({ a: 1 })
         const purl = new PackageURL('type', null, 'name', null, {
-          key: 'value'
+          key: 'value',
         })
         // Just test that it doesn't throw
         expect(purl.qualifiers).toHaveProperty('key', 'value')
@@ -1159,7 +1165,7 @@ describe('PackageURL', () => {
           'name',
           undefined,
           undefined,
-          undefined
+          undefined,
         )
         expect(purl.type).toBe('type')
         expect(purl.name).toBe('name')
@@ -1186,7 +1192,7 @@ describe('PackageURL', () => {
           'swift',
           'github.com/apple',
           'swift-numerics',
-          '1.0.0'
+          '1.0.0',
         )
         expect(purl.namespace).toBe('github.com/apple')
       })
@@ -1202,7 +1208,7 @@ describe('PackageURL', () => {
           'huggingface',
           'namespace',
           'model-name',
-          'v1.0'
+          'v1.0',
         )
         expect(purl.type).toBe('huggingface')
         expect(purl.namespace).toBe('namespace')
@@ -1211,7 +1217,7 @@ describe('PackageURL', () => {
       it('should handle mlflow model type', () => {
         const purl = new PackageURL('mlflow', null, 'model-name', '1.0', {
           repository_url: 'https://example.com',
-          model_uuid: '123-456'
+          model_uuid: '123-456',
         })
         expect(purl.type).toBe('mlflow')
         expect(purl.qualifiers.repository_url).toBe('https://example.com')
@@ -1219,7 +1225,7 @@ describe('PackageURL', () => {
 
       it('should handle qpkg type', () => {
         const purl = new PackageURL('qpkg', null, 'package', '1.0', {
-          arch: 'x86_64'
+          arch: 'x86_64',
         })
         expect(purl.type).toBe('qpkg')
         expect(purl.qualifiers.arch).toBe('x86_64')
@@ -1296,31 +1302,31 @@ describe('PackageURL', () => {
         const {
           validateRequired,
           validateRequiredByType,
-          validateStartsWithoutNumber
+          validateStartsWithoutNumber,
         } = require('../src/validate')
 
         // validateRequired
         expect(() => validateRequired('field', null, true)).toThrow(
-          '"field" is a required component'
+          '"field" is a required component',
         )
         expect(() => validateRequired('field', '', true)).toThrow(
-          '"field" is a required component'
+          '"field" is a required component',
         )
         expect(validateRequired('field', null, false)).toBe(false)
         expect(validateRequired('field', '', false)).toBe(false)
 
         // validateRequiredByType
         expect(() => validateRequiredByType('npm', 'name', null, true)).toThrow(
-          'npm requires a "name" component'
+          'npm requires a "name" component',
         )
         expect(() => validateRequiredByType('npm', 'name', '', true)).toThrow(
-          'npm requires a "name" component'
+          'npm requires a "name" component',
         )
         expect(validateRequiredByType('npm', 'name', null, false)).toBe(false)
 
         // validateStartsWithoutNumber
         expect(() =>
-          validateStartsWithoutNumber('field', '1test', true)
+          validateStartsWithoutNumber('field', '1test', true),
         ).toThrow('field "1test" cannot start with a number')
         expect(validateStartsWithoutNumber('field', '1test', false)).toBe(false)
       })
@@ -1343,7 +1349,7 @@ describe('PackageURL', () => {
       it('should validate mlflow namespace must be empty', () => {
         // mlflow requires empty namespace
         expect(
-          () => new PackageURL('mlflow', 'namespace', 'model', '1.0.0')
+          () => new PackageURL('mlflow', 'namespace', 'model', '1.0.0'),
         ).toThrow(/mlflow "namespace" component must be empty/)
 
         const validMlflow = new PackageURL('mlflow', '', 'model', '1.0.0')
@@ -1354,7 +1360,7 @@ describe('PackageURL', () => {
       it('should validate pub name restrictions', () => {
         // pub names can only contain [a-z0-9_]
         expect(
-          () => new PackageURL('pub', '', 'invalid!name', '1.0.0')
+          () => new PackageURL('pub', '', 'invalid!name', '1.0.0'),
         ).toThrow(/pub "name" component may only contain/)
 
         // Valid pub package
@@ -1369,7 +1375,7 @@ describe('PackageURL', () => {
 
         // Test line 153 - missing pkg scheme
         expect(() => PackageURL.fromString('http://example.com')).toThrow(
-          /missing required "pkg" scheme/
+          /missing required "pkg" scheme/,
         )
       })
 
@@ -1423,7 +1429,7 @@ describe('PackageURL', () => {
         const name = 'b'.repeat(115) // This makes namespace + name > 214 chars
 
         expect(() => new PackageURL('npm', namespace, name, '1.0.0')).toThrow(
-          /npm "namespace" and "name" components can not collectively be more than 214 characters/
+          /npm "namespace" and "name" components can not collectively be more than 214 characters/,
         )
       })
 
@@ -1438,7 +1444,7 @@ describe('PackageURL', () => {
       // Test npm name with special characters
       it('should reject npm names with special characters', () => {
         expect(
-          () => new PackageURL('npm', '', 'test*package', '1.0.0')
+          () => new PackageURL('npm', '', 'test*package', '1.0.0'),
         ).toThrow(/npm "name" component can not contain special characters/)
       })
 
@@ -1448,12 +1454,12 @@ describe('PackageURL', () => {
 
         // Test line 12 - return false without throwing
         expect(
-          validateEmptyByType('swift', 'namespace', 'not-empty', false)
+          validateEmptyByType('swift', 'namespace', 'not-empty', false),
         ).toBe(false)
 
         // Test with throws=true
         expect(() =>
-          validateEmptyByType('swift', 'namespace', 'not-empty', true)
+          validateEmptyByType('swift', 'namespace', 'not-empty', true),
         ).toThrow(/swift "namespace" component must be empty/)
       })
 
@@ -1463,7 +1469,7 @@ describe('PackageURL', () => {
 
         // Test lines 33-36 - qualifiers must be an object
         expect(() => validateQualifiers('string-value', true)).toThrow(
-          /"qualifiers" must be an object/
+          /"qualifiers" must be an object/,
         )
 
         expect(validateQualifiers('string-value', false)).toBe(false)
@@ -1478,7 +1484,7 @@ describe('PackageURL', () => {
 
         // Test lines 73-76 - illegal character in key
         expect(() => validateQualifierKey('key!invalid', true)).toThrow(
-          /qualifier "key!invalid" contains an illegal character/
+          /qualifier "key!invalid" contains an illegal character/,
         )
 
         expect(validateQualifierKey('key!invalid', false)).toBe(false)
@@ -1515,7 +1521,7 @@ describe('PackageURL', () => {
       it('should handle purl with only type', () => {
         // Name is required, so this should throw
         expect(() => PackageURL.fromString('pkg:generic')).toThrow(
-          /"name" is a required component/
+          /"name" is a required component/,
         )
       })
 
@@ -1530,11 +1536,11 @@ describe('PackageURL', () => {
       // Test purl-type.js lines 317-319 - forbidden npm names
       it('should reject forbidden npm names', () => {
         expect(
-          () => new PackageURL('npm', '', 'node_modules', '1.0.0')
+          () => new PackageURL('npm', '', 'node_modules', '1.0.0'),
         ).toThrow(/npm "name" component of "node_modules" is not allowed/)
 
         expect(() => new PackageURL('npm', '', 'favicon.ico', '1.0.0')).toThrow(
-          /npm "name" component of "favicon.ico" is not allowed/
+          /npm "name" component of "favicon.ico" is not allowed/,
         )
       })
 
@@ -1578,7 +1584,7 @@ describe('PackageURL', () => {
         searchParams.append('valid_key', 'value2')
 
         expect(
-          () => new PackageURL('npm', '', 'test', '1.0.0', searchParams)
+          () => new PackageURL('npm', '', 'test', '1.0.0', searchParams),
         ).toThrow(/qualifier "1invalid" cannot start with a number/)
       })
 
@@ -1695,7 +1701,7 @@ describe('PackageURL', () => {
       // Test PurlComponentStringNormalizer internal function (line 36)
       it('should test PurlComponentStringNormalizer with non-string values', () => {
         const {
-          PurlComponentStringNormalizer
+          PurlComponentStringNormalizer,
         } = require('../src/purl-component')
 
         // Test line 36 - returns undefined for non-string
@@ -1723,7 +1729,7 @@ describe('PackageURL', () => {
 
         // Test with throwing enabled
         expect(() => PurlType.npm.validate(comp1, true)).toThrow(
-          /npm "namespace" component can only contain URL-friendly characters/
+          /npm "namespace" component can only contain URL-friendly characters/,
         )
       })
 
@@ -1738,7 +1744,7 @@ describe('PackageURL', () => {
 
         // Test with throwing enabled for special characters
         expect(() => PurlType.npm.validate(comp, true)).toThrow(
-          /npm "name" component can not contain special characters/
+          /npm "name" component can not contain special characters/,
         )
       })
 
@@ -1751,43 +1757,43 @@ describe('PackageURL', () => {
           {
             name: 'package<>',
             expectedError:
-              /npm "name" component can only contain URL-friendly characters/
+              /npm "name" component can only contain URL-friendly characters/,
           },
           {
             name: 'package[brackets]',
             expectedError:
-              /npm "name" component can only contain URL-friendly characters/
+              /npm "name" component can only contain URL-friendly characters/,
           },
           {
             name: 'package{braces}',
             expectedError:
-              /npm "name" component can only contain URL-friendly characters/
+              /npm "name" component can only contain URL-friendly characters/,
           },
           {
             name: 'package|pipe',
             expectedError:
-              /npm "name" component can only contain URL-friendly characters/
+              /npm "name" component can only contain URL-friendly characters/,
           },
           {
             name: 'package\\backslash',
             expectedError:
-              /npm "name" component can only contain URL-friendly characters/
+              /npm "name" component can only contain URL-friendly characters/,
           },
           {
             name: 'package^caret',
             expectedError:
-              /npm "name" component can only contain URL-friendly characters/
+              /npm "name" component can only contain URL-friendly characters/,
           },
           {
             name: 'package space',
             expectedError:
-              /npm "name" component can only contain URL-friendly characters/
+              /npm "name" component can only contain URL-friendly characters/,
           },
           {
             name: 'パッケージ',
             expectedError:
-              /npm "name" component can only contain URL-friendly characters/
-          } // Non-ASCII characters
+              /npm "name" component can only contain URL-friendly characters/,
+          }, // Non-ASCII characters
         ]
 
         testCases.forEach(({ name, expectedError }) => {
@@ -1806,7 +1812,7 @@ describe('PackageURL', () => {
           'package-name',
           'package_name',
           'package.name',
-          'package123'
+          'package123',
         ]
         validNames.forEach(name => {
           const comp = { namespace: '', name }
@@ -1832,7 +1838,7 @@ describe('PackageURL', () => {
         // Test line 67 - encodeSubpath preserves slashes
         expect(encodeSubpath('path/to/file')).toBe('path/to/file')
         expect(encodeSubpath('path/to/file with spaces')).toBe(
-          'path/to/file%20with%20spaces'
+          'path/to/file%20with%20spaces',
         )
 
         // Test line 73 in encodeVersion
@@ -1860,13 +1866,13 @@ describe('PackageURL', () => {
 
         // Test lines 109-110 - golang normalizes double slashes
         expect(normalizeNamespace('github.com//owner//repo', 'golang')).toBe(
-          'github.com/owner/repo'
+          'github.com/owner/repo',
         )
         expect(
-          normalizeNamespace('example.com///path///to///repo', 'golang')
+          normalizeNamespace('example.com///path///to///repo', 'golang'),
         ).toBe('example.com/path/to/repo')
         expect(normalizeNamespace('github.com/owner/repo', 'golang')).toBe(
-          'github.com/owner/repo'
+          'github.com/owner/repo',
         )
       })
 
@@ -1874,7 +1880,7 @@ describe('PackageURL', () => {
       it('should test fromString with no colon in purl', () => {
         // Test line 125 - colonIndex === -1
         expect(() => PackageURL.fromString('noColonInString')).toThrow(
-          /missing required "pkg" scheme/
+          /missing required "pkg" scheme/,
         )
       })
 
@@ -1882,13 +1888,13 @@ describe('PackageURL', () => {
       it('should test fromString with wrong scheme', () => {
         // Test line 153 - protocol check
         expect(() =>
-          PackageURL.fromString('http://example.com/package')
+          PackageURL.fromString('http://example.com/package'),
         ).toThrow(/missing required "pkg" scheme/)
         expect(() =>
-          PackageURL.fromString('https://example.com/package')
+          PackageURL.fromString('https://example.com/package'),
         ).toThrow(/missing required "pkg" scheme/)
         expect(() =>
-          PackageURL.fromString('ftp://example.com/package')
+          PackageURL.fromString('ftp://example.com/package'),
         ).toThrow(/missing required "pkg" scheme/)
       })
 
@@ -1915,7 +1921,7 @@ describe('PackageURL', () => {
           value: { nested: 'value' },
           writable: true,
           enumerable: true,
-          configurable: false
+          configurable: false,
         })
 
         const frozen = recursiveFreeze(obj)
@@ -2041,7 +2047,7 @@ describe('PackageURL', () => {
         expect(result).toBe(false)
 
         expect(() => PurlType.npm.validate(comp, true)).toThrow(
-          /npm "namespace" component cannot contain leading or trailing spaces/
+          /npm "namespace" component cannot contain leading or trailing spaces/,
         )
       })
 
@@ -2052,13 +2058,13 @@ describe('PackageURL', () => {
         // Test a package name that's definitely not in the legacy list
         const comp = {
           namespace: '',
-          name: 'VERYNEWPACKAGE2025THATDOESNOTEXIST'
+          name: 'VERYNEWPACKAGE2025THATDOESNOTEXIST',
         }
         const result = PurlType.npm.validate(comp, false)
         expect(result).toBe(false)
 
         expect(() => PurlType.npm.validate(comp, true)).toThrow(
-          /npm "name" component can not contain capital letters/
+          /npm "name" component can not contain capital letters/,
         )
       })
 
@@ -2102,7 +2108,7 @@ describe('PackageURL', () => {
         const obj = {
           get computed() {
             return 'value'
-          }
+          },
         }
 
         const frozen = recursiveFreeze(obj)
@@ -2163,11 +2169,11 @@ describe('PackageURL', () => {
         const sym = Symbol('test')
         const obj = {
           [sym]: { nested: 'value' },
-          regular: { prop: 'test' }
+          regular: { prop: 'test' },
         }
         Object.defineProperty(obj, 'nonEnum', {
           value: { data: 'hidden' },
-          enumerable: false
+          enumerable: false,
         })
 
         const frozen = recursiveFreeze(obj)
@@ -2184,7 +2190,7 @@ describe('PackageURL', () => {
       it('should test fromString when URL parsing returns undefined protocol', () => {
         // This triggers line 153
         expect(() => PackageURL.fromString('invalid')).toThrow(
-          /missing required "pkg" scheme/
+          /missing required "pkg" scheme/,
         )
       })
 
@@ -2197,7 +2203,7 @@ describe('PackageURL', () => {
         expect(result).toBe(false)
 
         expect(() => PurlType.npm.validate(comp, true)).toThrow(
-          /npm "name" component cannot contain leading or trailing spaces/
+          /npm "name" component cannot contain leading or trailing spaces/,
         )
       })
 
@@ -2210,7 +2216,7 @@ describe('PackageURL', () => {
         expect(result).toBe(false)
 
         expect(() => PurlType.npm.validate(comp, true)).toThrow(
-          /npm "name" component cannot start with a period/
+          /npm "name" component cannot start with a period/,
         )
       })
 
@@ -2229,13 +2235,13 @@ describe('PackageURL', () => {
         const {
           validateStartsWithoutNumber,
           validateSubpath,
-          validateRequiredByType
+          validateRequiredByType,
         } = require('../src/validate')
 
         // Test line 121 - validateStartsWithoutNumber
         expect(validateStartsWithoutNumber('test', '0start', false)).toBe(false)
         expect(() =>
-          validateStartsWithoutNumber('test', '0start', true)
+          validateStartsWithoutNumber('test', '0start', true),
         ).toThrow(/test "0start" cannot start with a number/)
 
         // Test line 135 - validateSubpath empty check
@@ -2244,10 +2250,10 @@ describe('PackageURL', () => {
 
         // Test line 156 - validateRequiredByType
         expect(validateRequiredByType('swift', 'version', '', false)).toBe(
-          false
+          false,
         )
         expect(() =>
-          validateRequiredByType('swift', 'version', '', true)
+          validateRequiredByType('swift', 'version', '', true),
         ).toThrow(/swift requires a "version" component/)
       })
 
@@ -2260,13 +2266,13 @@ describe('PackageURL', () => {
         const comp = {
           namespace: 'github.com/owner/repo',
           name: 'test',
-          version: 'vInvalid'
+          version: 'vInvalid',
         }
         const result = PurlType.golang.validate(comp, false)
         expect(result).toBe(false)
 
         expect(() => PurlType.golang.validate(comp, true)).toThrow(
-          /golang "version" component starting with a "v" must be followed by a valid semver version/
+          /golang "version" component starting with a "v" must be followed by a valid semver version/,
         )
       })
 
@@ -2279,7 +2285,7 @@ describe('PackageURL', () => {
         expect(result).toBe(false)
 
         expect(() => PurlType.npm.validate(comp, true)).toThrow(
-          /npm "name" component cannot start with an underscore/
+          /npm "name" component cannot start with an underscore/,
         )
       })
 
@@ -2313,7 +2319,7 @@ describe('PackageURL', () => {
       // Test package-url.js line 153 - null URL protocol
       it('should test URL protocol null check', () => {
         expect(() => PackageURL.fromString('randomtext')).toThrow(
-          /missing required "pkg" scheme/
+          /missing required "pkg" scheme/,
         )
       })
 
@@ -2350,12 +2356,12 @@ describe('PackageURL', () => {
 
         // Test validateStartsWithoutNumber edge case (line 121)
         expect(
-          val.validateStartsWithoutNumber('qualifier', 'valid', false)
+          val.validateStartsWithoutNumber('qualifier', 'valid', false),
         ).toBe(true)
 
         // Test validateRequiredByType with non-empty value (line 156)
         expect(
-          val.validateRequiredByType('swift', 'version', '1.0.0', false)
+          val.validateRequiredByType('swift', 'version', '1.0.0', false),
         ).toBe(true)
       })
 
@@ -2364,7 +2370,7 @@ describe('PackageURL', () => {
       it('should test PackageURL parsing with only type component', () => {
         // This tests the early return when no slash after type
         expect(() => PackageURL.fromString('pkg:type')).toThrow(
-          /"name" is a required component/
+          /"name" is a required component/,
         )
       })
 
@@ -2386,7 +2392,7 @@ describe('PackageURL', () => {
         expect(result).toBe(false)
 
         expect(() => PurlType.conan.validate(comp, true)).toThrow(
-          /conan requires a "qualifiers" component when a namespace is present/
+          /conan requires a "qualifiers" component when a namespace is present/,
         )
       })
 
@@ -2466,13 +2472,13 @@ describe('PackageURL', () => {
         const comp = {
           namespace: '',
           name: 'test',
-          qualifiers: { channel: 'stable' }
+          qualifiers: { channel: 'stable' },
         }
         const result = PurlType.conan.validate(comp, false)
         expect(result).toBe(false)
 
         expect(() => PurlType.conan.validate(comp, true)).toThrow(
-          /conan requires a "namespace" component when a "channel" qualifier is present/
+          /conan requires a "namespace" component when a "channel" qualifier is present/,
         )
       })
 
@@ -2480,7 +2486,7 @@ describe('PackageURL', () => {
       it('should test PackageURL parsing special cases', () => {
         // Test parsing purl with empty path after type - should throw
         expect(() => PackageURL.fromString('pkg:generic/')).toThrow(
-          /"name" is a required component/
+          /"name" is a required component/,
         )
       })
 
@@ -2550,16 +2556,16 @@ describe('PackageURL', () => {
 
         // Character code 65 is 'A', 90 is 'Z'
         expect(formatPurlErrorMessage('A message')).toBe(
-          'Invalid purl: a message'
+          'Invalid purl: a message',
         )
         expect(formatPurlErrorMessage('Z message')).toBe(
-          'Invalid purl: z message'
+          'Invalid purl: z message',
         )
         expect(formatPurlErrorMessage('[ message')).toBe(
-          'Invalid purl: [ message'
+          'Invalid purl: [ message',
         ) // After Z
         expect(formatPurlErrorMessage('@ message')).toBe(
-          'Invalid purl: @ message'
+          'Invalid purl: @ message',
         ) // Before A
 
         // Test normalize.js line 7 - namespace filter
@@ -2612,7 +2618,7 @@ describe('PackageURL', () => {
           method: function () {
             return 'test'
           },
-          data: { nested: 'value' }
+          data: { nested: 'value' },
         }
         const frozen = recursiveFreeze(objWithFunc)
         expect(Object.isFrozen(frozen.method)).toBe(true)
@@ -2623,7 +2629,7 @@ describe('PackageURL', () => {
         const {
           validateStrings,
           validateStartsWithoutNumber,
-          validateType
+          validateType,
         } = require('../src/validate')
 
         // Test validateStrings with non-string input (line 121)
@@ -2637,22 +2643,32 @@ describe('PackageURL', () => {
         expect(validateType('9type', false)).toBe(false)
 
         // Test validateType with illegal character in throws mode (line 156)
-        expect(() => validateType('type$illegal', true)).toThrow('type "type$illegal" contains an illegal character')
+        expect(() => validateType('type$illegal', true)).toThrow(
+          'type "type$illegal" contains an illegal character',
+        )
       })
 
       it('should cover missing package-url.js branches', () => {
         // Test the case where colonIndex === -1 (no colon in the string)
-        expect(() => PackageURL.fromString('notapurl')).toThrow('missing required "pkg" scheme component')
+        expect(() => PackageURL.fromString('notapurl')).toThrow(
+          'missing required "pkg" scheme component',
+        )
 
         // Test the case where url is undefined because colonIndex is -1
-        expect(() => PackageURL.fromString('nocolonhere')).toThrow('missing required "pkg" scheme component')
+        expect(() => PackageURL.fromString('nocolonhere')).toThrow(
+          'missing required "pkg" scheme component',
+        )
 
         // Test URL parsing failure (line 145 branch) - malformed URL
-        expect(() => PackageURL.fromString('pkg::')).toThrow('type ":" contains an illegal character')
+        expect(() => PackageURL.fromString('pkg::')).toThrow(
+          'type ":" contains an illegal character',
+        )
 
         // Test the maybeUrlWithAuth branch where afterColon.length !== trimmedAfterColon.length
         // This happens when there are leading slashes after the colon
-        expect(() => PackageURL.fromString('pkg://username@npm/package')).toThrow('cannot contain a "user:pass@host:port"')
+        expect(() =>
+          PackageURL.fromString('pkg://username@npm/package'),
+        ).toThrow('cannot contain a "user:pass@host:port"')
 
         // Test @ preceded by / is not treated as version separator
         const purl1 = PackageURL.fromString('pkg:type/namespace/@name')
@@ -2660,7 +2676,9 @@ describe('PackageURL', () => {
         expect(purl1.version).toBeUndefined()
 
         // Test @ preceded by / in subpath is not treated as version separator
-        const purl2 = PackageURL.fromString('pkg:type/namespace/name#subpath/@file')
+        const purl2 = PackageURL.fromString(
+          'pkg:type/namespace/name#subpath/@file',
+        )
         expect(purl2.name).toBe('name')
         expect(purl2.version).toBeUndefined()
         expect(purl2.subpath).toBe('subpath/@file')
@@ -2695,30 +2713,40 @@ describe('PackageURL', () => {
 
         // Test npm name > 214 chars with throws (line 331)
         const longName = 'a'.repeat(215)
-        expect(() => new PackageURL('npm', null, longName)).toThrow('npm "namespace" and "name" components can not collectively be more than 214 characters')
+        expect(() => new PackageURL('npm', null, longName)).toThrow(
+          'npm "namespace" and "name" components can not collectively be more than 214 characters',
+        )
 
         // Test npm core module name with throws (line 355)
         // Use a builtin that's not a legacy name (legacy names skip the builtin check)
-        expect(() => new PackageURL('npm', null, 'worker_threads')).toThrow('npm "name" component can not be a core module name')
+        expect(() => new PackageURL('npm', null, 'worker_threads')).toThrow(
+          'npm "name" component can not be a core module name',
+        )
 
         // Test pub name with illegal character in throws mode (line 384)
         // Note: dashes are normalized to underscores, uppercase is normalized to lowercase
         // Use a special character that's not allowed like @
-        expect(() => new PackageURL('pub', null, 'name@with')).toThrow('pub "name" component may only contain [a-z0-9_] characters')
+        expect(() => new PackageURL('pub', null, 'name@with')).toThrow(
+          'pub "name" component may only contain [a-z0-9_] characters',
+        )
       })
 
       it('should test deep freeze with function type', () => {
         const { recursiveFreeze } = require('../src/objects')
 
         // Test freezing object with function as property
-        const func = function() { return 'test' }
+        const func = function () {
+          return 'test'
+        }
         func.prop = 'value'
 
         const obj = {
           fn: func,
           nested: {
-            anotherFn: function() { return 'another' }
-          }
+            anotherFn: function () {
+              return 'another'
+            },
+          },
         }
 
         const frozen = recursiveFreeze(obj)
@@ -2741,27 +2769,26 @@ describe('PackageURL', () => {
         expect(() => PackageURL.fromString('')).toThrow()
 
         // Test password-only authentication (no username)
-        expect(() => PackageURL.fromString('pkg://:pass@type/name')).toThrow('cannot contain a "user:pass@host:port"')
+        expect(() => PackageURL.fromString('pkg://:pass@type/name')).toThrow(
+          'cannot contain a "user:pass@host:port"',
+        )
       })
 
       it('should test deep freeze with array containing functions', () => {
         const { recursiveFreeze } = require('../src/objects')
 
         // Test freezing array with functions (line 33 branch for typeof item === 'function')
-        const func1 = function() { return 'test1' }
+        const func1 = function () {
+          return 'test1'
+        }
         func1.prop = 'value1'
 
-        const func2 = function() { return 'test2' }
+        const func2 = function () {
+          return 'test2'
+        }
         func2.nested = { data: 'nested' }
 
-        const arr = [
-          func1,
-          { method: func2 },
-          func2,
-          null,
-          'string',
-          42
-        ]
+        const arr = [func1, { method: func2 }, func2, null, 'string', 42]
 
         const frozen = recursiveFreeze(arr)
         expect(Object.isFrozen(frozen)).toBe(true)
@@ -2773,7 +2800,9 @@ describe('PackageURL', () => {
 
       it('should handle purl with type but no slash', () => {
         // Test package-url.js lines 167-168 - no slash after type
-        expect(() => PackageURL.fromString('pkg:type')).toThrow('"name" is a required component')
+        expect(() => PackageURL.fromString('pkg:type')).toThrow(
+          '"name" is a required component',
+        )
       })
 
       it('should handle @ preceded by slash in version detection', () => {
@@ -2821,7 +2850,9 @@ describe('PackageURL', () => {
         } as any
 
         try {
-          expect(() => PackageURL.fromString('pkg:type/name')).toThrow('failed to parse as URL')
+          expect(() => PackageURL.fromString('pkg:type/name')).toThrow(
+            'failed to parse as URL',
+          )
           // Make sure our mock was actually called
           expect(callCount).toBeGreaterThan(0)
         } finally {

@@ -121,5 +121,5 @@ module.exports = {
   normalizeQualifiers,
   normalizeSubpath,
   normalizeType,
-  normalizeVersion
+  normalizeVersion,
 }

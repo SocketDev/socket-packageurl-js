@@ -178,5 +178,5 @@ module.exports = {
   validateStrings,
   validateSubpath,
   validateType,
-  validateVersion
+  validateVersion,
 }

@@ -130,5 +130,5 @@ module.exports = {
   lowerVersion,
   replaceDashesWithUnderscores,
   replaceUnderscoresWithDashes,
-  trimLeadingSlashes
+  trimLeadingSlashes,
 }

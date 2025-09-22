@@ -4,7 +4,7 @@ function createHelpersNamespaceObject(helpers, options_ = {}) {
   const { comparator, ...defaults } = { __proto__: null, ...options_ }
   const helperNames = Object.keys(helpers).sort()
   const propNames = [
-    ...new Set(Object.values(helpers).flatMap(Object.keys))
+    ...new Set(Object.values(helpers).flatMap(Object.keys)),
   ].sort(comparator)
   const nsObject = Object.create(null)
   for (let i = 0, { length } = propNames; i < length; i += 1) {
@@ -23,5 +23,5 @@ function createHelpersNamespaceObject(helpers, options_ = {}) {
 }
 
 module.exports = {
-  createHelpersNamespaceObject
+  createHelpersNamespaceObject,
 }

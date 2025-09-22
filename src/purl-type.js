@@ -10,7 +10,7 @@ const {
   lowerNamespace,
   lowerVersion,
   replaceDashesWithUnderscores,
-  replaceUnderscoresWithDashes
+  replaceUnderscoresWithDashes,
 } = require('./strings')
 const { validateEmptyByType, validateRequiredByType } = require('./validate')
 
@@ -174,7 +174,7 @@ module.exports = {
         rpm(purl) {
           lowerNamespace(purl)
           return purl
-        }
+        },
       },
       validate: {
         // TODO: cocoapods name validation
@@ -186,7 +186,7 @@ module.exports = {
             if (purl.qualifiers?.channel) {
               if (throws) {
                 throw new PurlError(
-                  'conan requires a "namespace" component when a "channel" qualifier is present'
+                  'conan requires a "namespace" component when a "channel" qualifier is present',
                 )
               }
               return false
@@ -194,7 +194,7 @@ module.exports = {
           } else if (isNullishOrEmptyString(purl.qualifiers)) {
             if (throws) {
               throw new PurlError(
-                'conan requires a "qualifiers" component when a namespace is present'
+                'conan requires a "qualifiers" component when a namespace is present',
               )
             }
             return false
@@ -221,7 +221,7 @@ module.exports = {
           ) {
             if (throws) {
               throw new PurlError(
-                'golang "version" component starting with a "v" must be followed by a valid semver version'
+                'golang "version" component starting with a "v" must be followed by a valid semver version',
               )
             }
             return false
@@ -234,7 +234,7 @@ module.exports = {
             'maven',
             'namespace',
             purl.namespace,
-            throws
+            throws,
           )
         },
         // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
@@ -243,7 +243,7 @@ module.exports = {
             'mlflow',
             'namespace',
             purl.namespace,
-            throws
+            throws,
           )
         },
         // Validation based on
@@ -259,7 +259,7 @@ module.exports = {
           if (code0 === 46 /*'.'*/) {
             if (throws) {
               throw new PurlError(
-                `npm "${compName}" component cannot start with a period`
+                `npm "${compName}" component cannot start with a period`,
               )
             }
             return false
@@ -267,7 +267,7 @@ module.exports = {
           if (code0 === 95 /*'_'*/) {
             if (throws) {
               throw new PurlError(
-                `npm "${compName}" component cannot start with an underscore`
+                `npm "${compName}" component cannot start with an underscore`,
               )
             }
             return false
@@ -275,7 +275,7 @@ module.exports = {
           if (name.trim() !== name) {
             if (throws) {
               throw new PurlError(
-                'npm "name" component cannot contain leading or trailing spaces'
+                'npm "name" component cannot contain leading or trailing spaces',
               )
             }
             return false
@@ -283,7 +283,7 @@ module.exports = {
           if (encodeComponent(name) !== name) {
             if (throws) {
               throw new PurlError(
-                `npm "name" component can only contain URL-friendly characters`
+                `npm "name" component can only contain URL-friendly characters`,
               )
             }
             return false
@@ -292,14 +292,14 @@ module.exports = {
             if (namespace.trim() !== namespace) {
               if (throws) {
                 throw new PurlError(
-                  'npm "namespace" component cannot contain leading or trailing spaces'
+                  'npm "namespace" component cannot contain leading or trailing spaces',
                 )
               }
               return false
             }
             if (code0 !== 64 /*'@'*/) {
               throw new PurlError(
-                `npm "namespace" component must start with an "@" character`
+                `npm "namespace" component must start with an "@" character`,
               )
             }
             const namespaceWithoutAtSign = namespace.slice(1)
@@ -308,7 +308,7 @@ module.exports = {
             ) {
               if (throws) {
                 throw new PurlError(
-                  `npm "namespace" component can only contain URL-friendly characters`
+                  `npm "namespace" component can only contain URL-friendly characters`,
                 )
               }
               return false
@@ -318,7 +318,7 @@ module.exports = {
           if (loweredId === 'node_modules' || loweredId === 'favicon.ico') {
             if (throws) {
               throw new PurlError(
-                `npm "${compName}" component of "${loweredId}" is not allowed`
+                `npm "${compName}" component of "${loweredId}" is not allowed`,
               )
             }
             return false
@@ -332,7 +332,7 @@ module.exports = {
                 // V8 coverage can't see both throw and return false paths in same test
                 /* c8 ignore next 3 -- Throw path tested separately from return false path */
                 throw new PurlError(
-                  `npm "namespace" and "name" components can not collectively be more than 214 characters`
+                  `npm "namespace" and "name" components can not collectively be more than 214 characters`,
                 )
               }
               return false
@@ -340,7 +340,7 @@ module.exports = {
             if (loweredId !== id) {
               if (throws) {
                 throw new PurlError(
-                  `npm "name" component can not contain capital letters`
+                  `npm "name" component can not contain capital letters`,
                 )
               }
               return false
@@ -348,7 +348,7 @@ module.exports = {
             if (/[~'!()*]/.test(name)) {
               if (throws) {
                 throw new PurlError(
-                  `npm "name" component can not contain special characters ("~'!()*")`
+                  `npm "name" component can not contain special characters ("~'!()*")`,
                 )
               }
               return false
@@ -359,7 +359,7 @@ module.exports = {
                 // V8 coverage can't see both throw and return false paths in same test
                 /* c8 ignore next 3 -- Throw path tested separately from return false path */
                 throw new PurlError(
-                  'npm "name" component can not be a core module name'
+                  'npm "name" component can not be a core module name',
                 )
               }
               return false
@@ -406,16 +406,16 @@ module.exports = {
               'swift',
               'namespace',
               purl.namespace,
-              throws
+              throws,
             ) &&
             validateRequiredByType('swift', 'version', purl.version, throws)
           )
-        }
-      }
+        },
+      },
     },
     {
       normalize: PurlTypNormalizer,
-      validate: PurlTypeValidator
-    }
-  )
+      validate: PurlTypeValidator,
+    },
+  ),
 }

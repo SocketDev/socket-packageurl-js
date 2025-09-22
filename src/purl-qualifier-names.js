@@ -9,6 +9,6 @@ module.exports = {
     DownloadUrl: 'download_url',
     VcsUrl: 'vcs_url',
     FileName: 'file_name',
-    Checksum: 'checksum'
-  }
+    Checksum: 'checksum',
+  },
 }

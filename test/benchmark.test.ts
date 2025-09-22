@@ -15,9 +15,9 @@ describe('PackageURL', () => {
         (
           await glob(['**/**.json'], {
             absolute: true,
-            cwd: path.join(__dirname, 'data')
+            cwd: path.join(__dirname, 'data'),
           })
-        ).map(p => readJson(p))
+        ).map(p => readJson(p)),
       )
     )
       .filter(Boolean)
@@ -46,7 +46,7 @@ describe('PackageURL', () => {
           expected_output.name,
           expected_output.version,
           expected_output.qualifiers,
-          expected_output.subpath
+          expected_output.subpath,
         )
         PackageURL.fromString(purl.toString())
       }
@@ -55,7 +55,7 @@ describe('PackageURL', () => {
     console.log(
       `avg exec time of ${iterations} iterations (in ms): ${
         (end - start) / iterations
-      }`
+      }`,
     )
     expect(end - start > 0)
   })

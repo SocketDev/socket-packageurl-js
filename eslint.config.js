@@ -4,7 +4,7 @@ const path = require('node:path')
 
 const {
   convertIgnorePatternToMinimatch,
-  includeIgnoreFile
+  includeIgnoreFile,
 } = require('@eslint/compat')
 const js = require('@eslint/js')
 const importXPlugin = require('eslint-plugin-import-x')
@@ -23,7 +23,7 @@ const gitignorePath = path.join(rootPath, GITIGNORE)
 
 const biomeConfig = require(biomeConfigPath)
 const nodeGlobalsConfig = Object.fromEntries(
-  Object.entries(globals.node).map(([k]) => [k, 'readonly'])
+  Object.entries(globals.node).map(([k]) => [k, 'readonly']),
 )
 
 module.exports = [
@@ -32,7 +32,7 @@ module.exports = [
     name: 'Imported biome.json ignore patterns',
     ignores: biomeConfig.files.includes
       .filter(p => p.startsWith('!'))
-      .map(p => convertIgnorePatternToMinimatch(p.slice(1)))
+      .map(p => convertIgnorePatternToMinimatch(p.slice(1))),
   },
   {
     ...js.configs.recommended,
@@ -48,22 +48,22 @@ module.exports = [
         ...importXPlugin.flatConfigs.recommended.languageOptions?.globals,
         ...nodePlugin.configs['flat/recommended-script'].languageOptions
           ?.globals,
-        ...nodeGlobalsConfig
+        ...nodeGlobalsConfig,
       },
-      sourceType: 'script'
+      sourceType: 'script',
     },
     linterOptions: {
       ...js.configs.recommended.linterOptions,
       ...importXPlugin.flatConfigs.recommended.linterOptions,
       ...nodePlugin.configs['flat/recommended-script'].linterOptions,
-      reportUnusedDisableDirectives: 'off'
+      reportUnusedDisableDirectives: 'off',
     },
     plugins: {
       ...js.configs.recommended.plugins,
       ...importXPlugin.flatConfigs.recommended.plugins,
       ...nodePlugin.configs['flat/recommended-script'].plugins,
       'sort-destructure-keys': sortDestructureKeysPlugin,
-      unicorn: unicornPlugin
+      unicorn: unicornPlugin,
     },
     rules: {
       ...js.configs.recommended.rules,
@@ -76,8 +76,8 @@ module.exports = [
           cjs: 'ignorePackages',
           js: 'ignorePackages',
           json: 'always',
-          mjs: 'ignorePackages'
-        }
+          mjs: 'ignorePackages',
+        },
       ],
       'import-x/no-named-as-default-member': 'off',
       'import-x/no-unresolved': ['error', { commonjs: true }],
@@ -89,20 +89,20 @@ module.exports = [
             'external',
             'internal',
             ['parent', 'sibling', 'index'],
-            'type'
+            'type',
           ],
           pathGroups: [
             {
               pattern: '@socket{registry,security}/**',
-              group: 'internal'
-            }
+              group: 'internal',
+            },
           ],
           pathGroupsExcludedImportTypes: ['type'],
           'newlines-between': 'always',
           alphabetize: {
-            order: 'asc'
-          }
-        }
+            order: 'asc',
+          },
+        },
       ],
       'n/exports-style': ['error', 'module.exports'],
       // The n/no-unpublished-bin rule does does not support non-trivial glob
@@ -116,8 +116,8 @@ module.exports = [
         {
           ignores: ['test', 'test.describe'],
           // Lazily access constants.maintainedNodeVersions.
-          version: constants.maintainedNodeVersions.current
-        }
+          version: constants.maintainedNodeVersions.current,
+        },
       ],
       'n/prefer-node-protocol': 'error',
       'unicorn/consistent-function-scoping': 'error',
@@ -133,20 +133,20 @@ module.exports = [
         {
           argsIgnorePattern: '^_|^this$',
           ignoreRestSiblings: true,
-          varsIgnorePattern: '^_'
-        }
+          varsIgnorePattern: '^_',
+        },
       ],
       'no-var': 'error',
       'no-warning-comments': ['warn', { terms: ['fixme'] }],
       'prefer-const': 'error',
       'sort-destructure-keys/sort-destructure-keys': 'error',
-      'sort-imports': ['error', { ignoreDeclarationSort: true }]
-    }
+      'sort-imports': ['error', { ignoreDeclarationSort: true }],
+    },
   },
   {
     files: ['**/*.mjs'],
     languageOptions: {
-      sourceType: 'module'
-    }
-  }
+      sourceType: 'module',
+    },
+  },
 ]
