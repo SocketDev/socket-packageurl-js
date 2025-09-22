@@ -14,5 +14,5 @@ function decodePurlComponent(comp, encodedComponent) {
 }
 
 module.exports = {
-  decodePurlComponent
+  decodePurlComponent,
 }

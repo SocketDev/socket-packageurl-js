@@ -5,7 +5,7 @@ export default defineConfig({
   exclude: [
     'all-the-package-names',
     'all-the-package-names-v1.3905.0',
-    'eslint-plugin-unicorn'
+    'eslint-plugin-unicorn',
   ],
   // Interactive mode disabled for automation.
   interactive: false,
@@ -16,5 +16,5 @@ export default defineConfig({
   // Update mode: 'latest'.
   mode: 'latest',
   // Write to package.json automatically.
-  write: true
+  write: true,
 })

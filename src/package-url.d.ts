@@ -26,7 +26,7 @@ declare namespace Purl {
   export type PurlComponentEncoder = (comp: any) => string
 
   export type PurlComponentQualifiersNormalizer = (
-    comp: any
+    comp: any,
   ) => PurlQualifiers | undefined
 
   export type PurlComponentStringNormalizer = (comp: any) => string | undefined
@@ -158,7 +158,7 @@ declare namespace Purl {
       name: string,
       version?: string | undefined | null,
       qualifiers?: PurlQualifiers | string | undefined | null,
-      subpath?: string | undefined | null
+      subpath?: string | undefined | null,
     )
 
     /**
@@ -175,14 +175,14 @@ declare namespace Purl {
      * Parses a purl string into a PackageURL arguments array.
      */
     static parseString(
-      purlStr: string
+      purlStr: string,
     ): [
       type: string | undefined,
       namespace: string | undefined,
       name: string | undefined,
       version: string | undefined,
       qualifiers: PurlQualifiers | undefined,
-      subpath: string | undefined
+      subpath: string | undefined,
     ]
   }
 
