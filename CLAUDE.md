@@ -49,6 +49,23 @@ You are a **Principal Software Engineer** responsible for:
 - **Update snapshots**: `pnpm test:unit -u` or `pnpm testu`
 - **Coverage report**: `pnpm test:unit:coverage`
 
+### Cross-Platform Compatibility - CRITICAL: Windows and POSIX
+- **🚨 MANDATORY**: Tests and functionality MUST work on both POSIX (macOS/Linux) and Windows systems
+- **Path handling**: ALWAYS use `path.join()`, `path.resolve()`, `path.sep` for file paths
+  - ❌ WRONG: `'/usr/local/bin/npm'` (hard-coded POSIX path)
+  - ✅ CORRECT: `path.join(path.sep, 'usr', 'local', 'bin', 'npm')` (cross-platform)
+  - ❌ WRONG: `'/project/package-lock.json'` (hard-coded forward slashes)
+  - ✅ CORRECT: `path.join('project', 'package-lock.json')` (uses correct separator)
+- **Temp directories**: Use `os.tmpdir()` for temporary file paths in tests
+  - ❌ WRONG: `'/tmp/test-project'` (POSIX-specific)
+  - ✅ CORRECT: `path.join(os.tmpdir(), 'test-project')` (cross-platform)
+- **Path separators**: Never hard-code `/` or `\` in paths
+  - Use `path.sep` when you need the separator character
+  - Use `path.join()` to construct paths correctly
+- **File URLs**: Use `pathToFileURL()` and `fileURLToPath()` from `node:url` when working with file:// URLs
+- **Line endings**: Be aware of CRLF (Windows) vs LF (Unix) differences when processing text files
+- **Shell commands**: Consider platform differences in shell commands and utilities
+
 ### Git Commit Guidelines
 - **🚨 FORBIDDEN**: NEVER add Claude co-authorship or Claude signatures to commits
 - **🚨 FORBIDDEN**: Do NOT include "Generated with Claude Code" or similar AI attribution in commit messages
@@ -140,9 +157,19 @@ This is a JavaScript implementation of the Package URL (purl) specification for 
 ### 🏗️ Code Structure (CRITICAL PATTERNS)
 - **Error handling**: 🚨 REQUIRED - Use try-catch blocks and handle errors gracefully
 - **Array destructuring**: Use object notation `{ 0: key, 1: data }` instead of array destructuring `[key, data]`
-- **Comment periods**: 🚨 MANDATORY - ALL comments MUST end with periods. This includes single-line comments, multi-line comments, and inline comments. No exceptions.
-- **Comment placement**: Place comments on their own line, not to the right of code
-- **Comment formatting**: Use fewer hyphens/dashes and prefer commas, colons, or semicolons for better readability
+- **Comment formatting**: 🚨 MANDATORY - ALL comments MUST follow these rules:
+  - **Periods required**: Every comment MUST end with a period, except ESLint disable comments and URLs which are directives/references. This includes single-line, multi-line, inline, and c8 ignore comments.
+  - **Sentence structure**: Comments should be complete sentences with proper capitalization and grammar.
+  - **Placement**: Place comments on their own line above the code they describe, not trailing to the right of code.
+  - **Style**: Use fewer hyphens/dashes and prefer commas, colons, or semicolons for better readability.
+  - **Examples**:
+    - ✅ CORRECT: `// This function validates user input.`
+    - ✅ CORRECT: `/* This is a multi-line comment that explains the complex logic below. */`
+    - ✅ CORRECT: `// eslint-disable-next-line no-await-in-loop` (directive, no period)
+    - ✅ CORRECT: `// See https://example.com/docs` (URL reference, no period)
+    - ✅ CORRECT: `// c8 ignore start - Reason for ignoring.` (explanation has period)
+    - ❌ WRONG: `// this validates input` (no period, not capitalized)
+    - ❌ WRONG: `const x = 5 // some value` (trailing comment)
 - **Sorting**: 🚨 MANDATORY - Always sort lists, exports, and items alphabetically for consistency
 - **Await in loops**: When using `await` inside for-loops, add `// eslint-disable-next-line no-await-in-loop` when sequential processing is intentional
 - **If statement returns**: Never use single-line return if statements; always use proper block syntax with braces
