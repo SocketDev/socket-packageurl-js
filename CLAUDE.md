@@ -63,6 +63,7 @@ You are a **Principal Software Engineer** responsible for:
 - **Add dev dependency**: `pnpm add -D <package> --save-exact`
 - **🚨 MANDATORY**: Always add dependencies with exact versions using `--save-exact` flag to ensure reproducible builds
 - **Update dependencies**: `pnpm update`
+- **Dynamic imports**: Only use dynamic imports for test mocking (e.g., `vi.importActual` in Vitest). Avoid runtime dynamic imports in production code
 
 ## Important Project-Specific Rules
 
