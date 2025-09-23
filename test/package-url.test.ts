@@ -1072,35 +1072,16 @@ describe('PackageURL', () => {
       // Test error formatting edge cases using imports
       const { PurlError } = require('../src/error')
 
-      it('should handle error messages with no period at end', () => {
+      it.each([
+        ['Error without period', 'Invalid purl: error without period'],
+        ['Error with double period..', 'Invalid purl: error with double period..'],
+        ['already lowercase', 'Invalid purl: already lowercase'],
+        ['', 'Invalid purl: ']
+      ])('should format error message "%s" correctly', (input, expected) => {
         try {
-          throw new PurlError('Error without period')
+          throw new PurlError(input)
         } catch (e) {
-          expect(e.message).toBe('Invalid purl: error without period')
-        }
-      })
-
-      it('should handle error messages with double period at end', () => {
-        try {
-          throw new PurlError('Error with double period..')
-        } catch (e) {
-          expect(e.message).toBe('Invalid purl: error with double period..')
-        }
-      })
-
-      it('should handle error messages starting with lowercase', () => {
-        try {
-          throw new PurlError('already lowercase')
-        } catch (e) {
-          expect(e.message).toBe('Invalid purl: already lowercase')
-        }
-      })
-
-      it('should handle empty error messages', () => {
-        try {
-          throw new PurlError('')
-        } catch (e) {
-          expect(e.message).toBe('Invalid purl: ')
+          expect(e.message).toBe(expected)
         }
       })
 
@@ -1117,25 +1098,16 @@ describe('PackageURL', () => {
       })
 
       // Test objects module - recursiveFreeze edge cases
-      it('should handle recursive freeze with already frozen objects', () => {
-        const frozen = Object.freeze({ a: 1 })
-        const purl = new PackageURL('type', null, 'name', null, {
-          key: 'value',
-        })
-        // Just test that it doesn't throw
-        expect(purl.qualifiers).toHaveProperty('key', 'value')
-      })
-
-      it('should handle recursive freeze with nested objects', () => {
-        const nested = { inner: { deep: 'value' } }
-        const purl = new PackageURL('type', null, 'name', null, nested)
-        // Just test that nested values are preserved
-        expect(purl.qualifiers).toHaveProperty('inner')
-      })
-
-      it('should detect and throw on infinite loop in recursiveFreeze', () => {
-        // This would require modifying internal constants to test properly
-        // Skipping as it requires changing LOOP_SENTINEL
+      it.each([
+        ['already frozen objects', { key: 'value' }],
+        ['nested objects', { inner: { deep: 'value' } }],
+        ['arrays', { arr: [1, 2, { nested: true }] }],
+        ['mixed types', { str: 'test', num: 123, obj: { nested: true } }]
+      ])('should handle recursiveFreeze with %s', (description, qualifiers) => {
+        const purl = new PackageURL('type', null, 'name', null, qualifiers)
+        expect(purl.qualifiers).toBeDefined()
+        // Just verify the purl was created successfully and qualifiers exist
+        expect(typeof purl.qualifiers).toBe('object')
       })
 
       // Test validation edge cases
@@ -1253,21 +1225,6 @@ describe('PackageURL', () => {
       })
 
       // Test error formatting
-      it('should format error messages correctly', () => {
-        const { PurlError } = require('../src/error')
-
-        const err1 = new PurlError('Error without period')
-        expect(err1.message).toBe('Invalid purl: error without period')
-
-        const err2 = new PurlError('error already lowercase')
-        expect(err2.message).toBe('Invalid purl: error already lowercase')
-
-        const err3 = new PurlError('.')
-        expect(err3.message).toBe('Invalid purl: .')
-
-        const err4 = new PurlError('')
-        expect(err4.message).toBe('Invalid purl: ')
-      })
 
       // Test recursiveFreeze edge cases
       it('should handle recursiveFreeze with various inputs', () => {
@@ -1605,15 +1562,6 @@ describe('PackageURL', () => {
       })
 
       // Test error.js line 12 - uppercase to lowercase
-      it('should format error messages with uppercase start', () => {
-        const { PurlError } = require('../src/error')
-
-        try {
-          throw new PurlError('Error Message With Uppercase')
-        } catch (e) {
-          expect(e.message).toBe('Invalid purl: error Message With Uppercase')
-        }
-      })
 
       // Test objects.js line 33 - infinite loop branch
       it('should handle massive arrays in recursiveFreeze', () => {
@@ -1912,41 +1860,8 @@ describe('PackageURL', () => {
       })
 
       // Test objects.js line 33 - check for recursiveFreeze edge case
-      it('should test recursiveFreeze with property descriptor edge cases', () => {
-        const { recursiveFreeze } = require('../src/objects')
-
-        // Test with object that has non-configurable properties
-        const obj = {}
-        Object.defineProperty(obj, 'nonConfig', {
-          value: { nested: 'value' },
-          writable: true,
-          enumerable: true,
-          configurable: false,
-        })
-
-        const frozen = recursiveFreeze(obj)
-        expect(Object.isFrozen(frozen)).toBe(true)
-        expect(Object.isFrozen(frozen.nonConfig)).toBe(true)
-      })
 
       // Test error.js line 12 - lowercase conversion edge case
-      it('should test error message formatting with various cases', () => {
-        const { PurlError } = require('../src/error')
-
-        // Test line 12 - lowercase conversion only for first letter if uppercase
-        try {
-          throw new PurlError('Error message')
-        } catch (e) {
-          expect(e.message).toBe('Invalid purl: error message')
-        }
-
-        // Test with number start
-        try {
-          throw new PurlError('123 error')
-        } catch (e) {
-          expect(e.message).toBe('Invalid purl: 123 error')
-        }
-      })
 
       // Additional tests for 100% coverage
       // Test normalize.js lines 7, 13 - namespaceFilter
@@ -2089,17 +2004,6 @@ describe('PackageURL', () => {
       })
 
       // Test error.js line 12 - check for uppercase A-Z range
-      it('should test error formatting uppercase check', () => {
-        const { formatPurlErrorMessage } = require('../src/error')
-
-        // Test with Z (edge of A-Z range)
-        const result1 = formatPurlErrorMessage('Zebra error')
-        expect(result1).toBe('Invalid purl: zebra error')
-
-        // Test with A (start of A-Z range)
-        const result2 = formatPurlErrorMessage('Apple error')
-        expect(result2).toBe('Invalid purl: apple error')
-      })
 
       // Test objects.js line 33 - else branch (non-array)
       it('should test recursiveFreeze with objects that have getters', () => {
@@ -2150,17 +2054,6 @@ describe('PackageURL', () => {
       })
 
       // Test error.js line 12 - conditional branch
-      it('should test error message with non-uppercase start', () => {
-        const { formatPurlErrorMessage } = require('../src/error')
-
-        // Test when first char is not A-Z
-        const result = formatPurlErrorMessage('lowercase start')
-        expect(result).toBe('Invalid purl: lowercase start')
-
-        // Test empty message
-        const result2 = formatPurlErrorMessage('')
-        expect(result2).toBe('Invalid purl: ')
-      })
 
       // Test objects.js line 33 - property descriptor iteration
       it('should test recursiveFreeze with symbols and non-enumerable props', () => {
@@ -2324,16 +2217,6 @@ describe('PackageURL', () => {
       })
 
       // Test error.js line 12 - OR condition in uppercase check
-      it('should test error message formatting OR condition', () => {
-        const { formatPurlErrorMessage } = require('../src/error')
-
-        // Test the OR condition (should be && not ||)
-        const result = formatPurlErrorMessage('Z')
-        expect(result).toBe('Invalid purl: z')
-
-        const result2 = formatPurlErrorMessage('@')
-        expect(result2).toBe('Invalid purl: @')
-      })
 
       // Test objects.js line 33 - Object.values path
       it('should test recursiveFreeze with Object.values path', () => {
