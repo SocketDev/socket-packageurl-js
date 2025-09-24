@@ -24,8 +24,8 @@ importers:
         specifier: 9.35.0
         version: 9.35.0
       '@socketsecurity/registry':
-        specifier: 1.2.0
-        version: 1.2.0
+        specifier: 1.2.2
+        version: 1.2.2
       '@vitest/coverage-v8':
         specifier: 3.2.4
         version: 3.2.4(vitest@3.2.4(@types/node@24.5.0)(jiti@2.5.1)(yaml@2.8.1))
@@ -806,8 +806,8 @@ packages:
     resolution: {integrity: sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==}
     engines: {node: '>=18'}
 
-  '@socketsecurity/registry@1.2.0':
-    resolution: {integrity: sha512-Sp5RcpchYyqg55QLrOleWJpuOGHTWtWAByYiBCB7dG3tgL7Z1AEOrRJ6O/Mt3V5iVGPe9+3BKQwujbumD8IKxw==}
+  '@socketsecurity/registry@1.2.2':
+    resolution: {integrity: sha512-2SaktloQ7b3oowpqI2trZaKvfodAlWurL3CHGtOEgp4/20vWNxvX7HK022gRIZO+8Bm/NzxmG76H6hHeJlHACg==}
     engines: {node: '>=18'}
 
   '@tufjs/canonical-json@2.0.0':
@@ -3228,7 +3228,7 @@ snapshots:
 
   '@sindresorhus/merge-streams@2.3.0': {}
 
-  '@socketsecurity/registry@1.2.0': {}
+  '@socketsecurity/registry@1.2.2': {}
 
   '@tufjs/canonical-json@2.0.0': {}
 
