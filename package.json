@@ -30,9 +30,9 @@
   "sideEffects": false,
   "scripts": {
     "check": "run-p -c --aggregate-output check:*",
-    "check-ci": "pnpm check:lint",
+    "check-ci": "pnpm run check:lint",
     "check:lint": "eslint --report-unused-disable-directives .",
-    "check:lint:fix": "pnpm check:lint --fix",
+    "check:lint:fix": "pnpm run check:lint --fix",
     "build": "pnpm run clean:dist && pnpm run build:cjs",
     "build:cjs": "tsc",
     "check:tsc": "tsc --noEmit",
@@ -42,7 +42,7 @@
     "clean:coverage": "del-cli 'coverage'",
     "clean:node_modules": "del-cli '**/node_modules'",
     "coverage": "run-s coverage:*",
-    "coverage:test": "pnpm test:unit:coverage",
+    "coverage:test": "pnpm run test:unit:coverage",
     "coverage:percent": "node scripts/get-coverage-percentage.mjs",
     "coverage:type": "dotenvx -q run -f .env.local -- type-coverage --detail",
     "fix": "run-s lint:fix check:lint:fix",
@@ -57,7 +57,7 @@
     "precommit": "lint-staged",
     "prepare": "husky",
     "test": "run-s check test:*",
-    "pretest:unit": "pnpm build:cjs",
+    "pretest:unit": "pnpm run build",
     "test:unit": "dotenvx -q run -f .env.test -- vitest --run",
     "test:unit:coverage": "dotenvx -q run -f .env.test -- vitest run --coverage",
     "test:unit:update": "dotenvx -q run -f .env.test -- vitest --run --update",
@@ -115,8 +115,8 @@
   ],
   "lint-staged": {
     "*.{cjs,js,json,md,mjs,mts,ts}": [
-      "pnpm lint:fix:oxlint",
-      "pnpm lint:fix:biome -- --no-errors-on-unmatched --files-ignore-unknown=true --colors=off"
+      "pnpm run lint:fix:oxlint",
+      "pnpm run lint:fix:biome -- --no-errors-on-unmatched --files-ignore-unknown=true --colors=off"
     ]
   },
   "pnpm": {
