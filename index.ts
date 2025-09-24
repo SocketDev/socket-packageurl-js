@@ -20,8 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-export { PackageURL,
+export {
+  PackageURL,
   PurlComponent,
   PurlQualifierNames,
   PurlType,
- } from './src/package-url.js'
+} from './src/package-url.js'
