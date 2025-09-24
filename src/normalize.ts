@@ -1,5 +1,5 @@
-import { isObject   } from './objects.js'
-import { isBlank   } from './strings.js'
+import { isObject } from './objects.js'
+import { isBlank } from './strings.js'
 
 function normalizeName(rawName: any) {
   return typeof rawName === 'string' ? rawName.trim() : undefined
@@ -112,4 +112,12 @@ function subpathFilter(segment: any) {
   return !isBlank(segment)
 }
 
-export { normalizeName, normalizeNamespace, normalizePath, normalizeQualifiers, normalizeSubpath, normalizeType, normalizeVersion }
+export {
+  normalizeName,
+  normalizeNamespace,
+  normalizePath,
+  normalizeQualifiers,
+  normalizeSubpath,
+  normalizeType,
+  normalizeVersion,
+}

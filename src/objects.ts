@@ -1,4 +1,4 @@
-import { LOOP_SENTINEL   } from './constants.js'
+import { LOOP_SENTINEL } from './constants.js'
 
 function isObject(value: any) {
   return value !== null && typeof value === 'object'

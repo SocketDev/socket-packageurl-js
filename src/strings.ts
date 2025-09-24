@@ -118,4 +118,15 @@ function trimLeadingSlashes(str: any) {
   return start === 0 ? str : str.slice(start)
 }
 
-export { isBlank, isNonEmptyString, isSemverString, localeCompare, lowerName, lowerNamespace, lowerVersion, replaceDashesWithUnderscores, replaceUnderscoresWithDashes, trimLeadingSlashes }
+export {
+  isBlank,
+  isNonEmptyString,
+  isSemverString,
+  localeCompare,
+  lowerName,
+  lowerNamespace,
+  lowerVersion,
+  replaceDashesWithUnderscores,
+  replaceUnderscoresWithDashes,
+  trimLeadingSlashes,
+}

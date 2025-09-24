@@ -1,4 +1,4 @@
-import { PurlError   } from './error.js'
+import { PurlError } from './error.js'
 
 const { decodeURIComponent: decodeComponent } = globalThis
 

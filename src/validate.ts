@@ -1,6 +1,6 @@
-import { PurlError   } from './error.js'
-import { isNullishOrEmptyString   } from './lang.js'
-import { isNonEmptyString   } from './strings.js'
+import { PurlError } from './error.js'
+import { isNullishOrEmptyString } from './lang.js'
+import { isNonEmptyString } from './strings.js'
 
 function validateEmptyByType(type: any, name: any, value: any, throws: any) {
   if (!isNullishOrEmptyString(value)) {
@@ -164,4 +164,17 @@ function validateVersion(version: any, throws: any) {
   return validateStrings('version', version, throws)
 }
 
-export { validateEmptyByType, validateName, validateNamespace, validateQualifiers, validateQualifierKey, validateRequired, validateRequiredByType, validateStartsWithoutNumber, validateStrings, validateSubpath, validateType, validateVersion }
+export {
+  validateEmptyByType,
+  validateName,
+  validateNamespace,
+  validateQualifiers,
+  validateQualifierKey,
+  validateRequired,
+  validateRequiredByType,
+  validateStartsWithoutNumber,
+  validateStrings,
+  validateSubpath,
+  validateType,
+  validateVersion,
+}
