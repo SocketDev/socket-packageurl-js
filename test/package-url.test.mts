@@ -25,9 +25,7 @@ import path from 'node:path'
 import { glob } from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 
-// eslint-disable-next-line import-x/extensions
 import { readJson } from '@socketsecurity/registry/lib/fs'
-// eslint-disable-next-line import-x/extensions
 import {
   isObject,
   toSortedObjectFromEntries,
@@ -37,7 +35,6 @@ import npmBuiltinNames from '../data/npm/builtin-names.json'
 import npmLegacyNames from '../data/npm/legacy-names.json'
 import { PackageURL } from '../src/package-url.js'
 
-import type { TestAPI } from 'vitest'
 
 function getNpmId(purl: any) {
   const { name, namespace } = purl
@@ -54,6 +51,111 @@ function toUrlSearchParams(search: any) {
   }
   return searchParams
 }
+
+// Helper functions for parameter validation tests.
+function testInvalidParam(paramName: string, paramMap: Record<string, number>, createArgs: (_name: string, _value: any) => any[]) {
+  const paramIndex = paramMap[paramName]
+  ;[
+    createArgs(paramName, 0),
+    createArgs(paramName, false),
+    createArgs(paramName, 1),
+    createArgs(paramName, true),
+    createArgs(paramName, {}),
+    createArgs(paramName, null),
+    createArgs(paramName, undefined),
+    createArgs(paramName, ''),
+  ].forEach(args => {
+    const message = JSON.stringify(args[paramIndex])
+    try {
+      const _purl = new PackageURL(...args)
+      expect(false, message)
+    } catch {
+      expect(true, message)
+    }
+  })
+}
+
+function testInvalidStringParam(paramName: string, paramMap: Record<string, number>, createArgs: (_name: string, _value: any) => any[]) {
+  const paramIndex = paramMap[paramName]
+  ;[
+    createArgs(paramName, 0),
+    createArgs(paramName, false),
+    createArgs(paramName, 1),
+    createArgs(paramName, true),
+    createArgs(paramName, {}),
+  ].forEach(args => {
+    const message = JSON.stringify(args[paramIndex])
+    try {
+      const _purl = new PackageURL(...args)
+      expect(false, message)
+    } catch {
+      expect(true, message)
+    }
+  })
+}
+
+function testValidParam(paramName: string, paramMap: Record<string, number>, createArgs: (_name: string, _value: any) => any[]) {
+  const paramIndex = paramMap[paramName]
+  const args = createArgs(paramName, paramName)
+  const message = JSON.stringify(args[paramIndex])
+  try {
+    const _purl = new PackageURL(...args)
+    expect(true, message)
+  } catch {
+    expect(false, message)
+  }
+}
+
+function testValidStringParam(paramName: string, paramMap: Record<string, number>, createArgs: (_name: string, _value: any) => any[]) {
+  const paramIndex = paramMap[paramName]
+  ;[
+    createArgs(paramName, paramName),
+    createArgs(paramName, null),
+    createArgs(paramName, undefined),
+    createArgs(paramName, ''),
+  ].forEach(args => {
+    const message = JSON.stringify(args[paramIndex])
+    try {
+      const _purl = new PackageURL(...args)
+      expect(true, message)
+    } catch {
+      expect(false, message)
+    }
+  })
+}
+
+// Helper function for parameter testing.
+const testFunction = () => {}
+
+// Helper functions for freeze testing.
+function createTestFunction() {
+  return function () {}
+}
+
+function createTestFunctionWithReturn() {
+  return function () {
+    return 'test'
+  }
+}
+
+function createTestFunction1() {
+  return function () {
+    return 'test1'
+  }
+}
+
+function createTestFunction2() {
+  return function () {
+    return 'test2'
+  }
+}
+
+function createAnotherTestFunction() {
+  return function () {
+    return 'another'
+  }
+}
+
 
 describe('PackageURL', () => {
   describe('KnownQualifierNames', () => {
@@ -114,89 +216,18 @@ describe('PackageURL', () => {
     it('should validate required params', () => {
       // Tests that type and name are required (various invalid inputs)
 
-      function testValid(paramName) {
-        const paramIndex = paramMap[paramName]
-        const args = createArgs(paramName, paramName)
-        const message = JSON.stringify(args[paramIndex])
-        try {
-          new PackageURL(...args)
-          expect(true, message)
-        } catch {
-          expect(false, message)
-        }
-      }
-
-      function testInvalid(paramName) {
-        const paramIndex = paramMap[paramName]
-        ;[
-          createArgs(paramName, 0),
-          createArgs(paramName, false),
-          createArgs(paramName, 1),
-          createArgs(paramName, true),
-          createArgs(paramName, {}),
-          createArgs(paramName, null),
-          createArgs(paramName, undefined),
-          createArgs(paramName, ''),
-        ].forEach(args => {
-          const message = JSON.stringify(args[paramIndex])
-          try {
-            new PackageURL(...args)
-            expect(false, message)
-          } catch {
-            expect(true, message)
-          }
-        })
-      }
-
       for (const paramName of ['type', 'name']) {
-        testValid(paramName)
-        testInvalid(paramName)
+        testValidParam(paramName, paramMap, createArgs)
+        testInvalidParam(paramName, paramMap, createArgs)
       }
     })
 
     it('should validate string params', () => {
       // Tests that namespace, version, subpath only accept strings or null/undefined
 
-      function testValid(paramName) {
-        const paramIndex = paramMap[paramName]
-        ;[
-          createArgs(paramName, paramName),
-          createArgs(paramName, null),
-          createArgs(paramName, undefined),
-          createArgs(paramName, ''),
-        ].forEach(args => {
-          const message = JSON.stringify(args[paramIndex])
-          try {
-            new PackageURL(...args)
-            expect(true, message)
-          } catch {
-            expect(false, message)
-          }
-        })
-      }
-
-      function testInvalid(paramName) {
-        const paramIndex = paramMap[paramName]
-        ;[
-          createArgs(paramName, 0),
-          createArgs(paramName, false),
-          createArgs(paramName, 1),
-          createArgs(paramName, true),
-          createArgs(paramName, {}),
-        ].forEach(args => {
-          const message = JSON.stringify(args[paramIndex])
-          try {
-            new PackageURL(...args)
-            expect(false, message)
-          } catch {
-            expect(true, message)
-          }
-        })
-      }
-
       for (const paramName of ['namespace', 'version', 'subpath']) {
-        testValid(paramName)
-        testInvalid(paramName)
+        testValidStringParam(paramName, paramMap, createArgs)
+        testInvalidStringParam(paramName, paramMap, createArgs)
       }
     })
 
@@ -423,7 +454,7 @@ describe('PackageURL', () => {
         continue
       }
 
-      describe(obj.description, (context: TestAPI) => {
+      describe(obj.description, () => {
         if (expected_failure) {
           if (test_type === 'parse' && inputStr) {
             // Tests expected parse failures from test suite
@@ -575,6 +606,7 @@ describe('PackageURL', () => {
             const namespace = parts.length > 1 ? parts[0] : ''
             const name = parts.at(-1)
 
+             
             new PackageURL('npm', namespace, name)
           }, `assert for ${builtinName}`).toThrow()
         }
@@ -969,10 +1001,9 @@ describe('PackageURL', () => {
 
       it('should handle function as parameter (should reject)', () => {
         // Tests parameter type validation (functions rejected)
-        const fn = () => {}
-        expect(() => new PackageURL(fn, null, 'name')).toThrow()
-        expect(() => new PackageURL('type', fn, 'name')).toThrow()
-        expect(() => new PackageURL('type', null, fn)).toThrow()
+        expect(() => new PackageURL(testFunction, null, 'name')).toThrow()
+        expect(() => new PackageURL('type', testFunction, 'name')).toThrow()
+        expect(() => new PackageURL('type', null, testFunction)).toThrow()
       })
 
       it('should handle symbols as parameters (should reject)', () => {
@@ -1037,6 +1068,7 @@ describe('PackageURL', () => {
     describe('Prototype pollution prevention', () => {
       it('should handle __proto__ in qualifiers', () => {
         const purl = PackageURL.fromString('pkg:type/name?__proto__=polluted')
+         
         expect(purl.qualifiers?.__proto__).toBe('polluted')
         expect(Object.prototype.polluted).toBe(undefined)
       })
@@ -1113,6 +1145,7 @@ describe('PackageURL', () => {
       it('should handle validateRequiredByType with empty values', () => {
         // Test maven requiring namespace
         expect(() => {
+           
           new PackageURL('maven', '', 'name')
         }).toThrow(/maven requires a "namespace" component/)
       })
@@ -1124,6 +1157,7 @@ describe('PackageURL', () => {
 
         // Test a different invalid npm name pattern
         expect(() => {
+           
           new PackageURL('npm', null, '.invalid')
         }).toThrow()
       })
@@ -1239,7 +1273,7 @@ describe('PackageURL', () => {
         expect(recursiveFreeze('string')).toBe('string')
 
         // Function with properties
-        const fn = function () {}
+        const fn = createTestFunction()
         fn.prop = { nested: 'value' }
         const frozenFn = recursiveFreeze(fn)
         expect(Object.isFrozen(frozenFn)).toBe(true)
@@ -2622,17 +2656,13 @@ describe('PackageURL', () => {
         const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         // Test freezing object with function as property
-        const func = function () {
-          return 'test'
-        }
+        const func = createTestFunctionWithReturn()
         func.prop = 'value'
 
         const obj = {
           fn: func,
           nested: {
-            anotherFn: function () {
-              return 'another'
-            },
+            anotherFn: createAnotherTestFunction(),
           },
         }
 
@@ -2665,14 +2695,10 @@ describe('PackageURL', () => {
         const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         // Test freezing array with functions (line 33 branch for typeof item === 'function')
-        const func1 = function () {
-          return 'test1'
-        }
+        const func1 = createTestFunction1()
         func1.prop = 'value1'
 
-        const func2 = function () {
-          return 'test2'
-        }
+        const func2 = createTestFunction2()
         func2.nested = { data: 'nested' }
 
         const arr = [func1, { method: func2 }, func2, null, 'string', 42]
