@@ -1,20 +1,22 @@
-'use strict'
+import Module from 'node:module'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const Module = require('node:module')
-const path = require('node:path')
+import pacote from 'pacote'
+import semver from 'semver'
+import validateNpmPackageName from 'validate-npm-package-name'
 
-const pacote = require('pacote')
-const semver = require('semver')
-const validateNpmPackageName = require('validate-npm-package-name')
-
-const constants = require('@socketsecurity/registry/lib/constants')
-const { writeJson } = require('@socketsecurity/registry/lib/fs')
-const { logger } = require('@socketsecurity/registry/lib/logger')
-const { pFilter } = require('@socketsecurity/registry/lib/promises')
-const { confirm } = require('@socketsecurity/registry/lib/prompts')
-const { naturalCompare } = require('@socketsecurity/registry/lib/sorts')
+import constants from '@socketsecurity/registry/lib/constants'
+import { writeJson } from '@socketsecurity/registry/lib/fs'
+import { logger } from '@socketsecurity/registry/lib/logger'
+import { pFilter } from '@socketsecurity/registry/lib/promises'
+import { confirm } from '@socketsecurity/registry/lib/prompts'
+import { naturalCompare } from '@socketsecurity/registry/lib/sorts'
 
 const { abortSignal } = constants
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const rootPath = path.resolve(__dirname, '..')
 const dataPath = path.join(rootPath, 'data')
@@ -59,16 +61,23 @@ void (async () => {
     spinner.stop()
     return
   }
+  const allThePackageNamesData = await import('all-the-package-names/names.json', {
+    with: { type: 'json' }
+  })
+  const allThePackageNamesV1Data = await import('all-the-package-names-v1.3905.0/names.json', {
+    with: { type: 'json' }
+  })
+
   const allThePackageNames = [
     ...new Set([
       // Load the 43.1MB names.json file of 'all-the-package-names@2.0.0'
       // which keeps the json file smaller while still covering the changes from:
       // https://blog.npmjs.org/post/168978377570/new-package-moniker-rules.html
-      ...require('all-the-package-names/names.json'),
+      ...allThePackageNamesData.default,
       // Load the 24.7MB names.json from 'all-the-package-names@1.3905.0',
       // the last v1 release, because it has different names resolved by
       // npm's replicate.npmjs.com service.
-      ...require('all-the-package-names-v1.3905.0/names.json'),
+      ...allThePackageNamesV1Data.default,
     ]),
   ]
   const rawLegacyNames = allThePackageNames
