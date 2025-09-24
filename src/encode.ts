@@ -1,28 +1,25 @@
-'use strict'
-
-const {
-  REUSED_SEARCH_PARAMS,
+import { REUSED_SEARCH_PARAMS,
   REUSED_SEARCH_PARAMS_KEY,
   REUSED_SEARCH_PARAMS_OFFSET,
-} = require('./constants')
-const { isObject } = require('./objects')
-const { isNonEmptyString } = require('./strings')
+  } from './constants.js'
+import { isObject   } from './objects.js'
+import { isNonEmptyString   } from './strings.js'
 
 const { encodeURIComponent: encodeComponent } = globalThis
 
-function encodeName(name) {
+function encodeName(name: any) {
   return isNonEmptyString(name)
     ? encodeComponent(name).replaceAll('%3A', ':')
     : ''
 }
 
-function encodeNamespace(namespace) {
+function encodeNamespace(namespace: any) {
   return isNonEmptyString(namespace)
     ? encodeComponent(namespace).replaceAll('%3A', ':').replaceAll('%2F', '/')
     : ''
 }
 
-function encodeQualifierParam(param) {
+function encodeQualifierParam(param: any) {
   if (isNonEmptyString(param)) {
     // Replace spaces with %20's so they don't get converted to plus signs.
     const value = String(param).replaceAll(' ', '%20')
@@ -41,18 +38,18 @@ function encodeQualifierParam(param) {
   return ''
 }
 
-function encodeQualifiers(qualifiers) {
+function encodeQualifiers(qualifiers: any) {
   if (isObject(qualifiers)) {
     // Sort this list of qualifier strings lexicographically.
     const qualifiersKeys = Object.keys(qualifiers).sort()
     const searchParams = new URLSearchParams()
     for (let i = 0, { length } = qualifiersKeys; i < length; i += 1) {
-      const key = qualifiersKeys[i]
+      const key = qualifiersKeys[i]!
       // Replace spaces with %20's so they don't get converted to plus signs.
       const value = String(qualifiers[key]).replaceAll(' ', '%20')
       // Use URLSearchParams#set to preserve plus signs.
       // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
-      searchParams.set(key, value)
+      searchParams.set(key!, value)
     }
     return searchParams
       .toString()
@@ -62,24 +59,16 @@ function encodeQualifiers(qualifiers) {
   return ''
 }
 
-function encodeSubpath(subpath) {
+function encodeSubpath(subpath: any) {
   return isNonEmptyString(subpath)
     ? encodeComponent(subpath).replaceAll('%2F', '/')
     : ''
 }
 
-function encodeVersion(version) {
+function encodeVersion(version: any) {
   return isNonEmptyString(version)
     ? encodeComponent(version).replaceAll('%3A', ':')
     : ''
 }
 
-module.exports = {
-  encodeComponent,
-  encodeName,
-  encodeNamespace,
-  encodeVersion,
-  encodeQualifiers,
-  encodeQualifierParam,
-  encodeSubpath,
-}
+export { encodeComponent, encodeName, encodeNamespace, encodeVersion, encodeQualifiers, encodeQualifierParam, encodeSubpath }

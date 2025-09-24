@@ -1,6 +1,4 @@
-'use strict'
-
-function formatPurlErrorMessage(message = '') {
+function formatPurlErrorMessage(message = ''): string {
   const { length } = message
   let formatted = ''
   if (length) {
@@ -8,7 +6,7 @@ function formatPurlErrorMessage(message = '') {
     const code0 = message.charCodeAt(0)
     formatted =
       code0 >= 65 /*'A'*/ && code0 <= 90 /*'Z'*/
-        ? `${message[0].toLowerCase()}${message.slice(1)}`
+        ? `${message[0]!.toLowerCase()}${message.slice(1)}`
         : message
     // Remove period from end of message.
     if (
@@ -23,12 +21,9 @@ function formatPurlErrorMessage(message = '') {
 }
 
 class PurlError extends Error {
-  constructor(message) {
-    super(formatPurlErrorMessage(message))
+  constructor(message?: string | undefined, options?: ErrorOptions) {
+    super(formatPurlErrorMessage(message), options)
   }
 }
 
-module.exports = {
-  formatPurlErrorMessage,
-  PurlError,
-}
+export { formatPurlErrorMessage, PurlError }

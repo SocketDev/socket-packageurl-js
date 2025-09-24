@@ -1,4 +1,4 @@
 {
-  "entry": ["scripts/*.js", "src/*.{js,ts}", "test/*.test.ts", "*.js"],
+  "entry": ["scripts/*.js", "src/*.{js,mts}", "test/*.test.mts", "*.mts"],
   "project": ["scripts/**", "src/**", "test/**"]
 }

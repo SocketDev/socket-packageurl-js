@@ -19,28 +19,35 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-'use strict'
-
-const { decodePurlComponent } = require('./decode')
-const { PurlError } = require('./error')
-const { isObject, recursiveFreeze } = require('./objects')
-const { PurlComponent } = require('./purl-component')
-const { PurlQualifierNames } = require('./purl-qualifier-names')
-const { PurlType } = require('./purl-type')
-const { isBlank, isNonEmptyString, trimLeadingSlashes } = require('./strings')
+import { decodePurlComponent   } from './decode.js'
+import { PurlError   } from './error.js'
+import { isObject, recursiveFreeze   } from './objects.js'
+import { PurlComponent   } from './purl-component.js'
+import { PurlQualifierNames   } from './purl-qualifier-names.js'
+import { PurlType   } from './purl-type.js'
+import { isBlank, isNonEmptyString, trimLeadingSlashes   } from './strings.js'
 
 class PackageURL {
   static Component = recursiveFreeze(PurlComponent)
   static KnownQualifierNames = recursiveFreeze(PurlQualifierNames)
   static Type = recursiveFreeze(PurlType)
 
+  type?: string
+  name?: string
+  namespace?: string
+  version?: string
+  qualifiers?: any
+  subpath?: string;
+
+  [key: string]: any
+
   constructor(
-    rawType,
-    rawNamespace,
-    rawName,
-    rawVersion,
-    rawQualifiers,
-    rawSubpath,
+    rawType: any,
+    rawNamespace: any,
+    rawName: any,
+    rawVersion: any,
+    rawQualifiers: any,
+    rawSubpath: any,
   ) {
     const type = isNonEmptyString(rawType)
       ? PurlComponent.type.normalize(rawType)
@@ -106,11 +113,13 @@ class PackageURL {
     return purlStr
   }
 
-  static fromString(purlStr) {
-    return new PackageURL(...PackageURL.parseString(purlStr))
+  static fromString(purlStr: any) {
+    return new PackageURL(
+      ...(PackageURL.parseString(purlStr) as [any, any, any, any, any, any]),
+    )
   }
 
-  static parseString(purlStr) {
+  static parseString(purlStr: any) {
     // https://github.com/package-url/purl-spec/blob/master/PURL-SPECIFICATION.rst#how-to-parse-a-purl-string-in-its-components
     if (typeof purlStr !== 'string') {
       throw new Error('A purl string argument is required.')
@@ -157,7 +166,10 @@ class PackageURL {
     }
     // A purl must NOT contain a URL Authority i.e. there is no support for
     // username, password, host and port components.
-    if (maybeUrlWithAuth.username !== '' || maybeUrlWithAuth.password !== '') {
+    if (
+      maybeUrlWithAuth &&
+      (maybeUrlWithAuth.username !== '' || maybeUrlWithAuth.password !== '')
+    ) {
       throw new PurlError('cannot contain a "user:pass@host:port"')
     }
 
@@ -226,12 +238,12 @@ class PackageURL {
       const searchParams = new URLSearchParams()
       const entries = search.split('&')
       for (let i = 0, { length } = entries; i < length; i += 1) {
-        const pairs = entries[i].split('=')
+        const pairs = entries[i]!.split('=')
         const value = decodePurlComponent('qualifiers', pairs.at(1) ?? '')
         // Use URLSearchParams#append to preserve plus signs.
         // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
         /* c8 ignore next -- URLSearchParams.append has internal V8 branches we can't control */
-        searchParams.append(pairs[0], value)
+        searchParams.append(pairs[0]!, value)
       }
       // Split the remainder once from right on '?'.
       rawQualifiers = searchParams
@@ -264,9 +276,4 @@ for (const staticProp of ['Component', 'KnownQualifierNames', 'Type']) {
 
 Reflect.setPrototypeOf(PackageURL.prototype, null)
 
-module.exports = {
-  PackageURL,
-  PurlComponent,
-  PurlQualifierNames,
-  PurlType,
-}
+export { PackageURL, PurlComponent, PurlQualifierNames, PurlType }
