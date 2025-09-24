@@ -88,8 +88,8 @@ export default [
           js: 'ignorePackages',
           json: 'always',
           mjs: 'ignorePackages',
-          mts: 'never',
-          ts: 'never',
+          mts: 'ignorePackages',
+          ts: 'ignorePackages',
         },
       ],
       'import-x/no-named-as-default-member': 'off',
@@ -166,6 +166,33 @@ export default [
     },
   },
   {
+    files: ['**/*.ts', '**/*.mts'],
+    languageOptions: {
+      parser: typescriptParser,
+      sourceType: 'module',
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'n/no-unsupported-features/es-syntax': 'off',
+      'n/no-missing-import': 'off',
+      'n/no-missing-require': 'off',
+      'import-x/no-unresolved': 'off',
+      'import-x/extensions': [
+        'error',
+        'never',
+        {
+          js: 'always',
+          json: 'always',
+          ts: 'ignorePackages',
+          mts: 'ignorePackages',
+        },
+      ],
+    },
+  },
+  {
     files: ['test/**/*.test.mts'],
     languageOptions: {
       parser: typescriptParser,
@@ -192,31 +219,6 @@ export default [
       'unicorn/consistent-function-scoping': 'off',
       'no-proto': 'off',
       'no-new': 'off',
-    },
-  },
-  {
-    files: ['**/*.ts', '**/*.mts'],
-    languageOptions: {
-      parser: typescriptParser,
-      sourceType: 'module',
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-      },
-    },
-    rules: {
-      'n/no-unsupported-features/es-syntax': 'off',
-      'n/no-missing-import': 'off',
-      'n/no-missing-require': 'off',
-      'import-x/no-unresolved': 'off',
-      'import-x/extensions': [
-        'error',
-        'always',
-        {
-          ts: 'never',
-          mts: 'never',
-        },
-      ],
     },
   },
 ]

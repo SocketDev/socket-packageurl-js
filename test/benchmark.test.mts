@@ -3,9 +3,7 @@ import path from 'node:path'
 import { glob } from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 
-// eslint-disable-next-line import-x/extensions
 import { readJson } from '@socketsecurity/registry/lib/fs'
-// eslint-disable-next-line import-x/extensions
 import { isObject } from '@socketsecurity/registry/lib/objects'
 
 import { PackageURL } from '../src/package-url.js'
