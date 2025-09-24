@@ -1,42 +1,49 @@
-'use strict'
+import { createRequire } from 'node:module'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const path = require('node:path')
-
-const {
+import {
   convertIgnorePatternToMinimatch,
   includeIgnoreFile,
-} = require('@eslint/compat')
-const js = require('@eslint/js')
-const importXPlugin = require('eslint-plugin-import-x')
-const nodePlugin = require('eslint-plugin-n')
-const sortDestructureKeysPlugin = require('eslint-plugin-sort-destructure-keys')
-const unicornPlugin = require('eslint-plugin-unicorn')
-const globals = require('globals')
+} from '@eslint/compat'
+import js from '@eslint/js'
+import importXPlugin from 'eslint-plugin-import-x'
+import nodePlugin from 'eslint-plugin-n'
+import sortDestructureKeysPlugin from 'eslint-plugin-sort-destructure-keys'
+import unicornPlugin from 'eslint-plugin-unicorn'
+import globals from 'globals'
 
-const constants = require('@socketsecurity/registry/lib/constants')
-const { BIOME_JSON, GITIGNORE, LATEST } = constants
+import constants from '@socketsecurity/registry/lib/constants'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const require = createRequire(import.meta.url)
 
 const rootPath = __dirname
 
-const biomeConfigPath = path.join(rootPath, BIOME_JSON)
-const gitignorePath = path.join(rootPath, GITIGNORE)
-
-const biomeConfig = require(biomeConfigPath)
 const nodeGlobalsConfig = Object.fromEntries(
   Object.entries(globals.node).map(([k]) => [k, 'readonly']),
 )
 
-module.exports = [
+const biomeConfigPath = path.join(rootPath, 'biome.json')
+const biomeConfig = require(biomeConfigPath)
+const biomeIgnores = {
+  name: `Imported biome.json ignore patterns`,
+  ignores: biomeConfig.files.includes
+    .filter(p => p.startsWith('!'))
+    .map(p => convertIgnorePatternToMinimatch(p.slice(1))),
+}
+
+const gitignorePath = path.join(rootPath, '.gitignore')
+const gitIgnores = {
+  ...includeIgnoreFile(gitignorePath),
+  name: `Imported .gitignore ignore patterns`,
+}
+
+export default [
   includeIgnoreFile(gitignorePath),
-  {
-    name: 'Imported biome.json ignore patterns',
-    ignores: biomeConfig.files.includes
-      .filter(p => p.startsWith('!'))
-      .map(p => convertIgnorePatternToMinimatch(p.slice(1))),
-  },
-  {
-    ignores: ['coverage/**'],
-  },
+  biomeIgnores,
+  gitIgnores,
   {
     ...js.configs.recommended,
     ...importXPlugin.flatConfigs.recommended,
@@ -45,7 +52,7 @@ module.exports = [
       ...js.configs.recommended.languageOptions,
       ...importXPlugin.flatConfigs.recommended.languageOptions,
       ...nodePlugin.configs['flat/recommended-script'].languageOptions,
-      ecmaVersion: LATEST,
+      ecmaVersion: 'latest',
       globals: {
         ...js.configs.recommended.languageOptions?.globals,
         ...importXPlugin.flatConfigs.recommended.languageOptions?.globals,
