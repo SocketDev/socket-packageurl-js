@@ -20,9 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/* c8 ignore start - Re-export only file, no logic to test. */
 export {
   PackageURL,
   PurlComponent,
   PurlQualifierNames,
   PurlType,
 } from './src/package-url.js'
+/* c8 ignore stop */
