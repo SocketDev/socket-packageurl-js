@@ -23,8 +23,7 @@ const getNpmBuiltinNames = (() => {
       try {
         // Try to use Node.js builtinModules first.
         builtinNames = (module.constructor as any)?.builtinModules
-      } catch {
-      }
+      } catch {}
       /* c8 ignore stop */
       if (!builtinNames) {
         // Fallback to hardcoded list

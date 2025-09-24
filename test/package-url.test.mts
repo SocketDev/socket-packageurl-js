@@ -40,7 +40,7 @@ import {
   encodeQualifierParam,
   encodeQualifiers,
   encodeSubpath,
-  encodeVersion
+  encodeVersion,
 } from '../src/encode.js'
 import { PurlError, formatPurlErrorMessage } from '../src/error.js'
 import {
@@ -49,7 +49,7 @@ import {
   normalizeQualifiers,
   normalizeSubpath,
   normalizeType,
-  normalizeVersion
+  normalizeVersion,
 } from '../src/normalize.js'
 import { recursiveFreeze } from '../src/objects.js'
 import { PackageURL } from '../src/package-url.js'
@@ -59,7 +59,7 @@ import {
   PurlComponentStringNormalizer,
   PurlComponentValidator,
   componentComparator,
-  componentSortOrder
+  componentSortOrder,
 } from '../src/purl-component.js'
 import { PurlQualifierNames } from '../src/purl-qualifier-names.js'
 import { PurlType } from '../src/purl-type.js'
@@ -72,7 +72,7 @@ import {
   validateStartsWithoutNumber,
   validateStrings,
   validateSubpath,
-  validateType
+  validateType,
 } from '../src/validate.js'
 
 function getNpmId(purl: any) {
@@ -1309,7 +1309,6 @@ describe('PackageURL', () => {
 
       // Test recursiveFreeze edge cases
       it('should handle recursiveFreeze with various inputs', () => {
-
         // Already frozen object
         const frozen = Object.freeze({ a: 1 })
         expect(recursiveFreeze(frozen)).toBe(frozen)
@@ -1336,7 +1335,6 @@ describe('PackageURL', () => {
 
       // Test validation functions with throws parameter
       it('should handle validation errors with throws parameter', () => {
-
         // validateRequired
         expect(() => validateRequired('field', null, true)).toThrow(
           '"field" is a required component',
@@ -1365,7 +1363,6 @@ describe('PackageURL', () => {
 
       // Test index.js exports
       it('should export PackageURL correctly from index.js', () => {
-
         // The index.js exports PackageURL
         expect(PackageURL).toBeDefined()
 
@@ -1418,7 +1415,6 @@ describe('PackageURL', () => {
 
       // Test recursiveFreeze infinite loop detection
       it('should detect infinite loops in recursiveFreeze', () => {
-
         // Create a large array to trigger loop detection
         const obj = { arr: [] }
         // Add exactly LOOP_SENTINEL items to trigger the check
@@ -1432,7 +1428,6 @@ describe('PackageURL', () => {
 
       // Test purl-component functions
       it('should handle PurlComponent edge cases', () => {
-
         // Test PurlComponent exports
         expect(PurlComponent).toBeDefined()
         expect(PurlComponent.name).toBeDefined()
@@ -1475,8 +1470,6 @@ describe('PackageURL', () => {
 
       // Test validate.js uncovered lines
       it('should validate empty component edge cases', () => {
-        
-
         // Test line 12 - return false without throwing
         expect(
           validateEmptyByType('swift', 'namespace', 'not-empty', false),
@@ -2298,14 +2291,14 @@ describe('PackageURL', () => {
         expect(validateSubpath('valid/path', false)).toBe(true)
 
         // Test validateStartsWithoutNumber edge case (line 121)
-        expect(
-          validateStartsWithoutNumber('qualifier', 'valid', false),
-        ).toBe(true)
+        expect(validateStartsWithoutNumber('qualifier', 'valid', false)).toBe(
+          true,
+        )
 
         // Test validateRequiredByType with non-empty value (line 156)
-        expect(
-          validateRequiredByType('swift', 'version', '1.0.0', false),
-        ).toBe(true)
+        expect(validateRequiredByType('swift', 'version', '1.0.0', false)).toBe(
+          true,
+        )
       })
 
       // Final tests for 100% coverage
@@ -2795,36 +2788,57 @@ describe('PackageURL', () => {
     describe('Type-specific validation non-throwing mode', () => {
       it('should reject invalid npm package names without throwing errors', () => {
         // Test npm name starting with period (line 324-325 in purl-type.ts)
-        const result1 = PurlType.npm.validate({ name: '.hidden', namespace: '' }, false)
+        const result1 = PurlType.npm.validate(
+          { name: '.hidden', namespace: '' },
+          false,
+        )
         expect(result1).toBe(false)
 
         // Test npm name starting with underscore
-        const result2 = PurlType.npm.validate({ name: '_private', namespace: '' }, false)
+        const result2 = PurlType.npm.validate(
+          { name: '_private', namespace: '' },
+          false,
+        )
         expect(result2).toBe(false)
 
         // Test npm name that is a core module (line 424-425 in purl-type.ts)
         // Note: fs and path are legacy names, so they don't trigger the builtin check
         // Use a non-legacy builtin like worker_threads
-        const result3 = PurlType.npm.validate({ name: 'worker_threads', namespace: '' }, false)
+        const result3 = PurlType.npm.validate(
+          { name: 'worker_threads', namespace: '' },
+          false,
+        )
         expect(result3).toBe(false)
 
         // Test npm name that's too long (line 397-398 in purl-type.ts)
         const longName = 'a'.repeat(215)
-        const result4 = PurlType.npm.validate({ name: longName, namespace: '' }, false)
+        const result4 = PurlType.npm.validate(
+          { name: longName, namespace: '' },
+          false,
+        )
         expect(result4).toBe(false)
       })
 
       it('should reject invalid pub package names without throwing errors', () => {
         // Test pub name with invalid characters (line 456-457 in purl-type.ts)
-        const result = PurlType.pub.validate({ name: 'invalid-name', namespace: '' }, false)
+        const result = PurlType.pub.validate(
+          { name: 'invalid-name', namespace: '' },
+          false,
+        )
         expect(result).toBe(false)
 
         // Test with special characters
-        const result2 = PurlType.pub.validate({ name: 'invalid!name', namespace: '' }, false)
+        const result2 = PurlType.pub.validate(
+          { name: 'invalid!name', namespace: '' },
+          false,
+        )
         expect(result2).toBe(false)
 
         // Test with uppercase
-        const result3 = PurlType.pub.validate({ name: 'InvalidName', namespace: '' }, false)
+        const result3 = PurlType.pub.validate(
+          { name: 'InvalidName', namespace: '' },
+          false,
+        )
         expect(result3).toBe(false)
       })
 
