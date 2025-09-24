@@ -49,6 +49,13 @@ You are a **Principal Software Engineer** responsible for:
 - **Update snapshots**: `pnpm test:unit -u` or `pnpm testu`
 - **Coverage report**: `pnpm test:unit:coverage`
 
+#### Vitest Memory Optimization (CRITICAL)
+- **Pool configuration**: Use `pool: 'forks'` with `singleFork: true`, `maxForks: 1`, `isolate: true`
+- **Memory limits**: Set `NODE_OPTIONS="--max-old-space-size=4096 --max-semi-space-size=512"` in `.env.test`
+- **Timeout settings**: Use `testTimeout: 60000, hookTimeout: 60000` for stability
+- **Thread limits**: Use `singleThread: true, maxThreads: 1` to prevent RegExp compiler exhaustion
+- **Test cleanup**: 🚨 MANDATORY - Use `await trash([paths])` in test scripts/utilities only. For cleanup within `/src/` test files, use `fs.rm()` with proper error handling
+
 ### Cross-Platform Compatibility - CRITICAL: Windows and POSIX
 - **🚨 MANDATORY**: Tests and functionality MUST work on both POSIX (macOS/Linux) and Windows systems
 - **Path handling**: ALWAYS use `path.join()`, `path.resolve()`, `path.sep` for file paths
@@ -59,6 +66,9 @@ You are a **Principal Software Engineer** responsible for:
 - **Temp directories**: Use `os.tmpdir()` for temporary file paths in tests
   - ❌ WRONG: `'/tmp/test-project'` (POSIX-specific)
   - ✅ CORRECT: `path.join(os.tmpdir(), 'test-project')` (cross-platform)
+  - **Unique temp dirs**: Use `fs.mkdtemp()` or `fs.mkdtempSync()` for collision-free directories
+  - ✅ PREFERRED: `await fs.mkdtemp(path.join(os.tmpdir(), 'socket-test-'))` (async)
+  - ✅ ACCEPTABLE: `fs.mkdtempSync(path.join(os.tmpdir(), 'socket-test-'))` (sync)
 - **Path separators**: Never hard-code `/` or `\` in paths
   - Use `path.sep` when you need the separator character
   - Use `path.join()` to construct paths correctly
@@ -122,41 +132,48 @@ You are a **Principal Software Engineer** responsible for:
 
 ## Architecture
 
-This is a JavaScript implementation of the Package URL (purl) specification for parsing and constructing package URLs.
+This is a TypeScript implementation of the Package URL (purl) specification for parsing and constructing package URLs, compiled to CommonJS for deployment.
 
 ### Core Structure
-- **Main entry**: `src/index.js` - Main exports and API
+- **Main entry**: `src/package-url.ts` - Main exports and API (TypeScript)
 - **Parser**: Core parsing logic for purl strings
 - **Normalizer**: Normalization logic for different package types
 - **Validator**: Input validation and sanitization
 - **Types**: Type-specific handling for npm, pypi, maven, etc.
 - **Scripts**: `scripts/` - Build and utility scripts
 - **Tests**: `test/` - Comprehensive test suite
+- **Build output**: `dist/cjs/` - CommonJS TypeScript compilation output
 
 ### Key Features
 - Full purl specification compliance
-- High-performance parsing
+- High-performance parsing with TypeScript type safety
 - Type-specific normalization
 - Comprehensive validation
 - Extensive test coverage
+- CommonJS-only deployment for maximum compatibility
 
 ## 🔧 Code Style (MANDATORY)
 
 ### 📁 File Organization
-- **File extensions**: Use `.js` for JavaScript files, `.mjs` for ES modules
+- **File extensions**: Use `.ts` for TypeScript files, `.js` for JavaScript files, `.mjs` for ES modules
 - **Import order**: Node.js built-ins first, then third-party packages, then local imports
 - **Import grouping**: Group imports by source (Node.js, external packages, local modules)
-- **Type imports**: When using JSDoc, keep type imports organized
+- **Type imports**: 🚨 ALWAYS use separate `import type` statements for TypeScript types, NEVER mix runtime imports with type imports in the same statement
+  - ✅ CORRECT: `import { readPackageJson } from '@socketsecurity/registry/lib/packages'` followed by `import type { PackageJson } from '@socketsecurity/registry/lib/packages'`
+  - ❌ FORBIDDEN: `import { readPackageJson, type PackageJson } from '@socketsecurity/registry/lib/packages'`
 
 ### Naming Conventions
-- **Constants**: Use `UPPER_SNAKE_CASE` for constants
-- **Files**: Use kebab-case for filenames
+- **Constants**: Use `UPPER_SNAKE_CASE` for constants (e.g., `CMD_NAME`, `REPORT_LEVEL`)
+- **Files**: Use kebab-case for filenames (e.g., `package-url.ts`, `purl-type.ts`)
 - **Variables**: Use camelCase for variables and functions
 - **Classes**: Use PascalCase for classes
+- **Types/Interfaces**: Use PascalCase for TypeScript types and interfaces
 
 ### 🏗️ Code Structure (CRITICAL PATTERNS)
+- **Type definitions**: 🚨 ALWAYS use `import type` for better tree-shaking and TypeScript optimization
 - **Error handling**: 🚨 REQUIRED - Use try-catch blocks and handle errors gracefully
 - **Array destructuring**: Use object notation `{ 0: key, 1: data }` instead of array destructuring `[key, data]`
+- **Dynamic imports**: 🚨 FORBIDDEN - Never use dynamic imports (`await import()`). Always use static imports at the top of the file
 - **Comment formatting**: 🚨 MANDATORY - ALL comments MUST follow these rules:
   - **Periods required**: Every comment MUST end with a period, except ESLint disable comments and URLs which are directives/references. This includes single-line, multi-line, inline, and c8 ignore comments.
   - **Sentence structure**: Comments should be complete sentences with proper capitalization and grammar.
@@ -177,18 +194,30 @@ This is a JavaScript implementation of the Package URL (purl) specification for 
 - **Existence checks**: Perform simple existence checks first before complex operations
 - **Destructuring order**: Sort destructured properties alphabetically in const declarations
 - **Function ordering**: Place functions in alphabetical order, with private functions first, then exported functions
-- **Object mappings**: Use objects with `__proto__: null` for static mappings to prevent prototype pollution
-- **Array length checks**: Use `!array.length` instead of `array.length === 0`
+- **Object mappings**: Use objects with `__proto__: null` (not `undefined`) for static string-to-string mappings and lookup tables to prevent prototype pollution; use `Map` for dynamic collections that will be mutated
+- **Mapping constants**: Move static mapping objects outside functions as module-level constants with descriptive UPPER_SNAKE_CASE names
+- **Array length checks**: Use `!array.length` instead of `array.length === 0`. For `array.length > 0`, use `!!array.length` when function must return boolean, or `array.length` when used in conditional contexts
 - **Catch parameter naming**: Use `catch (e)` instead of `catch (error)` for consistency
-- **Number formatting**: 🚨 REQUIRED - Use underscore separators (e.g., `20_000`) for large numeric literals
+- **Number formatting**: 🚨 REQUIRED - Use underscore separators (e.g., `20_000`) for large numeric literals. 🚨 FORBIDDEN - Do NOT modify number values inside strings
+- **Node.js fs imports**: 🚨 MANDATORY pattern - `import { someSyncThing, promises as fs } from 'node:fs'`
+- **Process spawning**: 🚨 FORBIDDEN to use Node.js built-in `child_process.spawn` - MUST use `spawn` from `@socketsecurity/registry/lib/spawn`
 
 ### 🗑️ Safe File Operations (SECURITY CRITICAL)
-- **File deletion**: 🚨 ABSOLUTELY FORBIDDEN - NEVER use `rm -rf`. 🚨 MANDATORY - ALWAYS use `pnpm dlx trash-cli`
+- **Script usage only**: Use `trash` package ONLY in scripts, build files, and utilities - NOT in `/src/` files
+- **Import and use `trash` package**: `import { trash } from 'trash'` then `await trash(paths)` (scripts only)
+- **Source code deletion**: In `/src/` files, use `fs.rm()` with proper error handling when deletion is required
+- **Script deletion operations**: Use `await trash()` for scripts, build processes, and development utilities
+- **Array optimization**: `trash` accepts arrays - collect paths and pass as array
+- **Async requirement**: Always `await trash()` - it's an async operation
+- **NO rmSync**: 🚨 ABSOLUTELY FORBIDDEN - NEVER use `fs.rmSync()` or `rm -rf` commands
 - **Examples**:
   - ❌ CATASTROPHIC: `rm -rf directory` (permanent deletion - DATA LOSS RISK)
   - ❌ REPOSITORY DESTROYER: `rm -rf "$(pwd)"` (deletes entire repository)
-  - ✅ SAFE: `pnpm dlx trash-cli directory` (recoverable deletion)
-- **Why this matters**: trash-cli enables recovery from accidental deletions via system trash/recycle bin
+  - ❌ FORBIDDEN: `fs.rmSync(tmpDir, { recursive: true, force: true })` (dangerous)
+  - ✅ SCRIPTS: `await trash([tmpDir])` (recoverable deletion in build scripts)
+  - ✅ SOURCE CODE: `await fs.rm(tmpDir, { recursive: true, force: true })` (when needed in /src/)
+- **Why scripts use trash**: Enables recovery from accidental deletions during development and build processes
+- **Why source avoids trash**: Bundling complications and dependency management issues in production code
 
 ### 🔧 Formatting Rules
 - **Indentation**: 2 spaces (no tabs)
