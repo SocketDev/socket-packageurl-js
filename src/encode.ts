@@ -1,9 +1,10 @@
-import { REUSED_SEARCH_PARAMS,
+import {
+  REUSED_SEARCH_PARAMS,
   REUSED_SEARCH_PARAMS_KEY,
   REUSED_SEARCH_PARAMS_OFFSET,
-  } from './constants.js'
-import { isObject   } from './objects.js'
-import { isNonEmptyString   } from './strings.js'
+} from './constants.js'
+import { isObject } from './objects.js'
+import { isNonEmptyString } from './strings.js'
 
 const { encodeURIComponent: encodeComponent } = globalThis
 
@@ -71,4 +72,12 @@ function encodeVersion(version: any) {
     : ''
 }
 
-export { encodeComponent, encodeName, encodeNamespace, encodeVersion, encodeQualifiers, encodeQualifierParam, encodeSubpath }
+export {
+  encodeComponent,
+  encodeName,
+  encodeNamespace,
+  encodeVersion,
+  encodeQualifiers,
+  encodeQualifierParam,
+  encodeSubpath,
+}

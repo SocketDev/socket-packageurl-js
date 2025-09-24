@@ -35,7 +35,6 @@ import npmBuiltinNames from '../data/npm/builtin-names.json'
 import npmLegacyNames from '../data/npm/legacy-names.json'
 import { PackageURL } from '../src/package-url.js'
 
-
 function getNpmId(purl: any) {
   const { name, namespace } = purl
   return `${namespace?.length > 0 ? `${namespace}/` : ''}${name}`
@@ -53,7 +52,11 @@ function toUrlSearchParams(search: any) {
 }
 
 // Helper functions for parameter validation tests.
-function testInvalidParam(paramName: string, paramMap: Record<string, number>, createArgs: (_name: string, _value: any) => any[]) {
+function testInvalidParam(
+  paramName: string,
+  paramMap: Record<string, number>,
+  createArgs: (_name: string, _value: any) => any[],
+) {
   const paramIndex = paramMap[paramName]
   ;[
     createArgs(paramName, 0),
@@ -75,7 +78,11 @@ function testInvalidParam(paramName: string, paramMap: Record<string, number>, c
   })
 }
 
-function testInvalidStringParam(paramName: string, paramMap: Record<string, number>, createArgs: (_name: string, _value: any) => any[]) {
+function testInvalidStringParam(
+  paramName: string,
+  paramMap: Record<string, number>,
+  createArgs: (_name: string, _value: any) => any[],
+) {
   const paramIndex = paramMap[paramName]
   ;[
     createArgs(paramName, 0),
@@ -94,7 +101,11 @@ function testInvalidStringParam(paramName: string, paramMap: Record<string, numb
   })
 }
 
-function testValidParam(paramName: string, paramMap: Record<string, number>, createArgs: (_name: string, _value: any) => any[]) {
+function testValidParam(
+  paramName: string,
+  paramMap: Record<string, number>,
+  createArgs: (_name: string, _value: any) => any[],
+) {
   const paramIndex = paramMap[paramName]
   const args = createArgs(paramName, paramName)
   const message = JSON.stringify(args[paramIndex])
@@ -106,7 +117,11 @@ function testValidParam(paramName: string, paramMap: Record<string, number>, cre
   }
 }
 
-function testValidStringParam(paramName: string, paramMap: Record<string, number>, createArgs: (_name: string, _value: any) => any[]) {
+function testValidStringParam(
+  paramName: string,
+  paramMap: Record<string, number>,
+  createArgs: (_name: string, _value: any) => any[],
+) {
   const paramIndex = paramMap[paramName]
   ;[
     createArgs(paramName, paramName),
@@ -155,7 +170,6 @@ function createAnotherTestFunction() {
     return 'another'
   }
 }
-
 
 describe('PackageURL', () => {
   describe('KnownQualifierNames', () => {
@@ -606,7 +620,6 @@ describe('PackageURL', () => {
             const namespace = parts.length > 1 ? parts[0] : ''
             const name = parts.at(-1)
 
-             
             new PackageURL('npm', namespace, name)
           }, `assert for ${builtinName}`).toThrow()
         }
@@ -1068,7 +1081,7 @@ describe('PackageURL', () => {
     describe('Prototype pollution prevention', () => {
       it('should handle __proto__ in qualifiers', () => {
         const purl = PackageURL.fromString('pkg:type/name?__proto__=polluted')
-         
+
         expect(purl.qualifiers?.__proto__).toBe('polluted')
         expect(Object.prototype.polluted).toBe(undefined)
       })
@@ -1145,7 +1158,6 @@ describe('PackageURL', () => {
       it('should handle validateRequiredByType with empty values', () => {
         // Test maven requiring namespace
         expect(() => {
-           
           new PackageURL('maven', '', 'name')
         }).toThrow(/maven requires a "namespace" component/)
       })
@@ -1157,7 +1169,6 @@ describe('PackageURL', () => {
 
         // Test a different invalid npm name pattern
         expect(() => {
-           
           new PackageURL('npm', null, '.invalid')
         }).toThrow()
       })

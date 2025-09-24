@@ -1,28 +1,31 @@
-import { encodeComponent,
+import {
+  encodeComponent,
   encodeName,
   encodeNamespace,
   encodeQualifierParam,
   encodeQualifiers,
   encodeSubpath,
   encodeVersion,
-  } from './encode.js'
-import { createHelpersNamespaceObject   } from './helpers.js'
-import { normalizeName,
+} from './encode.js'
+import { createHelpersNamespaceObject } from './helpers.js'
+import {
+  normalizeName,
   normalizeNamespace,
   normalizeQualifiers,
   normalizeSubpath,
   normalizeType,
   normalizeVersion,
-  } from './normalize.js'
-import { isNonEmptyString, localeCompare   } from './strings.js'
-import { validateName,
+} from './normalize.js'
+import { isNonEmptyString, localeCompare } from './strings.js'
+import {
+  validateName,
   validateNamespace,
   validateQualifierKey,
   validateQualifiers,
   validateSubpath,
   validateType,
   validateVersion,
-  } from './validate.js'
+} from './validate.js'
 
 const componentSortOrderLookup = {
   __proto__: null,
@@ -95,4 +98,11 @@ const PurlComponent = createHelpersNamespaceObject(
   },
 )
 
-export { PurlComponent, PurlComponentEncoder, PurlComponentStringNormalizer, PurlComponentValidator, componentComparator, componentSortOrder }
+export {
+  PurlComponent,
+  PurlComponentEncoder,
+  PurlComponentStringNormalizer,
+  PurlComponentValidator,
+  componentComparator,
+  componentSortOrder,
+}

@@ -19,13 +19,13 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-import { decodePurlComponent   } from './decode.js'
-import { PurlError   } from './error.js'
-import { isObject, recursiveFreeze   } from './objects.js'
-import { PurlComponent   } from './purl-component.js'
-import { PurlQualifierNames   } from './purl-qualifier-names.js'
-import { PurlType   } from './purl-type.js'
-import { isBlank, isNonEmptyString, trimLeadingSlashes   } from './strings.js'
+import { decodePurlComponent } from './decode.js'
+import { PurlError } from './error.js'
+import { isObject, recursiveFreeze } from './objects.js'
+import { PurlComponent } from './purl-component.js'
+import { PurlQualifierNames } from './purl-qualifier-names.js'
+import { PurlType } from './purl-type.js'
+import { isBlank, isNonEmptyString, trimLeadingSlashes } from './strings.js'
 
 class PackageURL {
   static Component = recursiveFreeze(PurlComponent)

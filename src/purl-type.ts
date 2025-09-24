@@ -1,15 +1,16 @@
-import { encodeComponent   } from './encode.js'
-import { PurlError   } from './error.js'
-import { createHelpersNamespaceObject   } from './helpers.js'
-import { isNullishOrEmptyString   } from './lang.js'
-import { isSemverString,
+import { encodeComponent } from './encode.js'
+import { PurlError } from './error.js'
+import { createHelpersNamespaceObject } from './helpers.js'
+import { isNullishOrEmptyString } from './lang.js'
+import {
+  isSemverString,
   lowerName,
   lowerNamespace,
   lowerVersion,
   replaceDashesWithUnderscores,
   replaceUnderscoresWithDashes,
-  } from './strings.js'
-import { validateEmptyByType, validateRequiredByType   } from './validate.js'
+} from './strings.js'
+import { validateEmptyByType, validateRequiredByType } from './validate.js'
 
 const PurlTypNormalizer = (purl: any) => purl
 const PurlTypeValidator = (_purl: any, _throws: any) => true
@@ -75,21 +76,30 @@ const getNpmBuiltinNames = (() => {
 })()
 
 const getNpmLegacyNames = (() => {
-  // These are legacy npm package names that historically existed
-  // The full list is loaded dynamically, but these core builtin names
-  // are the most important ones for validation
-  const legacyBuiltinNames = [
-    'assert', 'buffer', 'crypto', 'events', 'fs', 'http', 'os', 'path', 'url', 'util'
-  ]
-
   let fullLegacyNames: string[] | undefined
 
   return (): string[] => {
     if (fullLegacyNames === undefined) {
-      // Fallback to hardcoded builtin names for simplicity
-      fullLegacyNames = legacyBuiltinNames
+      try {
+        // Try to load the full list from JSON file
+        fullLegacyNames = require('../data/npm/legacy-names.json')
+      } catch {
+        // Fallback to hardcoded builtin names for simplicity
+        fullLegacyNames = [
+          'assert',
+          'buffer',
+          'crypto',
+          'events',
+          'fs',
+          'http',
+          'os',
+          'path',
+          'url',
+          'util',
+        ]
+      }
     }
-    return fullLegacyNames
+    return fullLegacyNames!
   }
 })()
 
