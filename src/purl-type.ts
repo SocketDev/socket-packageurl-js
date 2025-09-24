@@ -19,10 +19,13 @@ const getNpmBuiltinNames = (() => {
   let builtinNames: any
   return () => {
     if (builtinNames === undefined) {
+      /* c8 ignore start - Error handling for module access. */
       try {
-        // Try to use Node.js builtinModules first
+        // Try to use Node.js builtinModules first.
         builtinNames = (module.constructor as any)?.builtinModules
-      } catch {}
+      } catch {
+      }
+      /* c8 ignore stop */
       if (!builtinNames) {
         // Fallback to hardcoded list
         builtinNames = [
@@ -80,11 +83,12 @@ const getNpmLegacyNames = (() => {
 
   return (): string[] => {
     if (fullLegacyNames === undefined) {
+      /* c8 ignore start - Fallback path only used if JSON file fails to load. */
       try {
-        // Try to load the full list from JSON file
+        // Try to load the full list from JSON file.
         fullLegacyNames = require('../data/npm/legacy-names.json')
       } catch {
-        // Fallback to hardcoded builtin names for simplicity
+        // Fallback to hardcoded builtin names for simplicity.
         fullLegacyNames = [
           'assert',
           'buffer',
@@ -98,6 +102,7 @@ const getNpmLegacyNames = (() => {
           'util',
         ]
       }
+      /* c8 ignore stop */
     }
     return fullLegacyNames!
   }

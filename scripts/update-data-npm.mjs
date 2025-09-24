@@ -2,6 +2,12 @@ import Module from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import allThePackageNamesData from 'all-the-package-names/names' with {
+  type: 'json',
+}
+import allThePackageNamesV1Data from 'all-the-package-names-v1.3905.0/names' with {
+  type: 'json',
+}
 import pacote from 'pacote'
 import semver from 'semver'
 import validateNpmPackageName from 'validate-npm-package-name'
@@ -61,13 +67,6 @@ void (async () => {
     spinner.stop()
     return
   }
-  const allThePackageNamesData = await import('all-the-package-names/names.json', {
-    with: { type: 'json' }
-  })
-  const allThePackageNamesV1Data = await import('all-the-package-names-v1.3905.0/names.json', {
-    with: { type: 'json' }
-  })
-
   const allThePackageNames = [
     ...new Set([
       // Load the 43.1MB names.json file of 'all-the-package-names@2.0.0'
