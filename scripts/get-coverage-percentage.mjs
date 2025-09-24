@@ -7,8 +7,8 @@ import colors from 'yoctocolors-cjs'
 import constants from '@socketsecurity/registry/lib/constants'
 import { logger } from '@socketsecurity/registry/lib/logger'
 
-import { getCodeCoverage } from './utils/get-code-coverage'
-import { getTypeCoverage } from './utils/get-type-coverage'
+import { getCodeCoverage } from './utils/get-code-coverage.mjs'
+import { getTypeCoverage } from './utils/get-type-coverage.mjs'
 
 const indent = '  '
 
