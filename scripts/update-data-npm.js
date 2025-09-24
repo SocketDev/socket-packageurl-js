@@ -38,7 +38,6 @@ void (async () => {
       default: true,
     })
   ) {
-    const nodeVersion = process.version.slice(1)
     if (isGteNext) {
       const builtinNames = Module.builtinModules
         // Node 23 introduces 'node:sea', 'node:sqlite', 'node:test', and 'node:test/reporters'
