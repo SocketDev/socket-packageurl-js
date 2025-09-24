@@ -1,12 +1,10 @@
-'use strict'
-
 // Intl.Collator is faster than String#localeCompare
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare:
 // > When comparing large numbers of strings, such as in sorting large arrays,
 // > it is better to create an Intl.Collator object and use the function provided
 // > by its compare() method.
-let _localeCompare
-function localeCompare(x, y) {
+let _localeCompare: any
+function localeCompare(x: any, y: any) {
   if (_localeCompare === undefined) {
     // Lazily call new Intl.Collator() because in Node it can take 10-14ms.
     _localeCompare = new Intl.Collator().compare
@@ -19,7 +17,7 @@ function localeCompare(x, y) {
 const regexSemverNumberedGroups =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
-function isBlank(str) {
+function isBlank(str: any) {
   for (let i = 0, { length } = str; i < length; i += 1) {
     const code = str.charCodeAt(i)
     // biome-ignore format: newlines
@@ -62,33 +60,33 @@ function isBlank(str) {
   return true
 }
 
-function isNonEmptyString(value) {
+function isNonEmptyString(value: any) {
   return typeof value === 'string' && value.length > 0
 }
 
-function isSemverString(value) {
+function isSemverString(value: any) {
   return typeof value === 'string' && regexSemverNumberedGroups.test(value)
 }
 
-function lowerName(purl) {
+function lowerName(purl: any) {
   purl.name = purl.name.toLowerCase()
 }
 
-function lowerNamespace(purl) {
+function lowerNamespace(purl: any) {
   const { namespace } = purl
   if (typeof namespace === 'string') {
     purl.namespace = namespace.toLowerCase()
   }
 }
 
-function lowerVersion(purl) {
+function lowerVersion(purl: any) {
   const { version } = purl
   if (typeof version === 'string') {
     purl.version = version.toLowerCase()
   }
 }
 
-function replaceDashesWithUnderscores(str) {
+function replaceDashesWithUnderscores(str: any) {
   // Replace all "-" with "_"
   let result = ''
   let fromIndex = 0
@@ -100,7 +98,7 @@ function replaceDashesWithUnderscores(str) {
   return fromIndex ? result + str.slice(fromIndex) : str
 }
 
-function replaceUnderscoresWithDashes(str) {
+function replaceUnderscoresWithDashes(str: any) {
   // Replace all "_" with "-"
   let result = ''
   let fromIndex = 0
@@ -112,7 +110,7 @@ function replaceUnderscoresWithDashes(str) {
   return fromIndex ? result + str.slice(fromIndex) : str
 }
 
-function trimLeadingSlashes(str) {
+function trimLeadingSlashes(str: any) {
   let start = 0
   while (str.charCodeAt(start) === 47 /*'/'*/) {
     start += 1
@@ -120,15 +118,4 @@ function trimLeadingSlashes(str) {
   return start === 0 ? str : str.slice(start)
 }
 
-module.exports = {
-  isBlank,
-  isNonEmptyString,
-  isSemverString,
-  localeCompare,
-  lowerName,
-  lowerNamespace,
-  lowerVersion,
-  replaceDashesWithUnderscores,
-  replaceUnderscoresWithDashes,
-  trimLeadingSlashes,
-}
+export { isBlank, isNonEmptyString, isSemverString, localeCompare, lowerName, lowerNamespace, lowerVersion, replaceDashesWithUnderscores, replaceUnderscoresWithDashes, trimLeadingSlashes }

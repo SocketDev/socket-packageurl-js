@@ -1,10 +1,8 @@
-'use strict'
+import { PurlError   } from './error.js'
+import { isNullishOrEmptyString   } from './lang.js'
+import { isNonEmptyString   } from './strings.js'
 
-const { PurlError } = require('./error')
-const { isNullishOrEmptyString } = require('./lang')
-const { isNonEmptyString } = require('./strings')
-
-function validateEmptyByType(type, name, value, throws) {
+function validateEmptyByType(type: any, name: any, value: any, throws: any) {
   if (!isNullishOrEmptyString(value)) {
     if (throws) {
       throw new PurlError(`${type} "${name}" component must be empty`)
@@ -14,18 +12,18 @@ function validateEmptyByType(type, name, value, throws) {
   return true
 }
 
-function validateName(name, throws) {
+function validateName(name: any, throws: any) {
   return (
     validateRequired('name', name, throws) &&
     validateStrings('name', name, throws)
   )
 }
 
-function validateNamespace(namespace, throws) {
+function validateNamespace(namespace: any, throws: any) {
   return validateStrings('namespace', namespace, throws)
 }
 
-function validateQualifiers(qualifiers, throws) {
+function validateQualifiers(qualifiers: any, throws: any) {
   if (qualifiers === null || qualifiers === undefined) {
     return true
   }
@@ -49,7 +47,7 @@ function validateQualifiers(qualifiers, throws) {
   return true
 }
 
-function validateQualifierKey(key, throws) {
+function validateQualifierKey(key: any, throws: any) {
   // A key cannot start with a number.
   if (!validateStartsWithoutNumber('qualifier', key, throws)) {
     return false
@@ -80,7 +78,7 @@ function validateQualifierKey(key, throws) {
   return true
 }
 
-function validateRequired(name, value, throws) {
+function validateRequired(name: any, value: any, throws: any) {
   if (isNullishOrEmptyString(value)) {
     if (throws) {
       throw new PurlError(`"${name}" is a required component`)
@@ -90,7 +88,7 @@ function validateRequired(name, value, throws) {
   return true
 }
 
-function validateRequiredByType(type, name, value, throws) {
+function validateRequiredByType(type: any, name: any, value: any, throws: any) {
   if (isNullishOrEmptyString(value)) {
     if (throws) {
       throw new PurlError(`${type} requires a "${name}" component`)
@@ -100,7 +98,7 @@ function validateRequiredByType(type, name, value, throws) {
   return true
 }
 
-function validateStartsWithoutNumber(name, value, throws) {
+function validateStartsWithoutNumber(name: any, value: any, throws: any) {
   if (isNonEmptyString(value)) {
     const code = value.charCodeAt(0)
     if (code >= 48 /*'0'*/ && code <= 57 /*'9'*/) {
@@ -113,7 +111,7 @@ function validateStartsWithoutNumber(name, value, throws) {
   return true
 }
 
-function validateStrings(name, value, throws) {
+function validateStrings(name: any, value: any, throws: any) {
   if (value === null || value === undefined || typeof value === 'string') {
     return true
   }
@@ -123,11 +121,11 @@ function validateStrings(name, value, throws) {
   return false
 }
 
-function validateSubpath(subpath, throws) {
+function validateSubpath(subpath: any, throws: any) {
   return validateStrings('subpath', subpath, throws)
 }
 
-function validateType(type, throws) {
+function validateType(type: any, throws: any) {
   // The type cannot be nullish, an empty string, or start with a number.
   if (
     !validateRequired('type', type, throws) ||
@@ -162,21 +160,8 @@ function validateType(type, throws) {
   return true
 }
 
-function validateVersion(version, throws) {
+function validateVersion(version: any, throws: any) {
   return validateStrings('version', version, throws)
 }
 
-module.exports = {
-  validateEmptyByType,
-  validateName,
-  validateNamespace,
-  validateQualifiers,
-  validateQualifierKey,
-  validateRequired,
-  validateRequiredByType,
-  validateStartsWithoutNumber,
-  validateStrings,
-  validateSubpath,
-  validateType,
-  validateVersion,
-}
+export { validateEmptyByType, validateName, validateNamespace, validateQualifiers, validateQualifierKey, validateRequired, validateRequiredByType, validateStartsWithoutNumber, validateStrings, validateSubpath, validateType, validateVersion }
