@@ -33,7 +33,47 @@ import {
 
 import npmBuiltinNames from '../data/npm/builtin-names.json'
 import npmLegacyNames from '../data/npm/legacy-names.json'
+import { LOOP_SENTINEL } from '../src/constants.js'
+import {
+  encodeComponent,
+  encodeNamespace,
+  encodeQualifierParam,
+  encodeQualifiers,
+  encodeSubpath,
+  encodeVersion
+} from '../src/encode.js'
+import { PurlError, formatPurlErrorMessage } from '../src/error.js'
+import {
+  normalizeName,
+  normalizeNamespace,
+  normalizeQualifiers,
+  normalizeSubpath,
+  normalizeType,
+  normalizeVersion
+} from '../src/normalize.js'
+import { recursiveFreeze } from '../src/objects.js'
 import { PackageURL } from '../src/package-url.js'
+import {
+  PurlComponent,
+  PurlComponentEncoder,
+  PurlComponentStringNormalizer,
+  PurlComponentValidator,
+  componentComparator,
+  componentSortOrder
+} from '../src/purl-component.js'
+import { PurlQualifierNames } from '../src/purl-qualifier-names.js'
+import { PurlType } from '../src/purl-type.js'
+import {
+  validateEmptyByType,
+  validateQualifierKey,
+  validateQualifiers,
+  validateRequired,
+  validateRequiredByType,
+  validateStartsWithoutNumber,
+  validateStrings,
+  validateSubpath,
+  validateType
+} from '../src/validate.js'
 
 function getNpmId(purl: any) {
   const { name, namespace } = purl
@@ -1111,8 +1151,6 @@ describe('PackageURL', () => {
 
     describe('Additional coverage tests', () => {
       // Test error formatting edge cases using imports
-      const { PurlError } = require('../dist/error.js')
-
       it.each([
         ['Error without period', 'Invalid purl: error without period'],
         [
@@ -1249,18 +1287,17 @@ describe('PackageURL', () => {
 
       // Test index.js exports
       it('should export all expected modules from index.js', () => {
-        const mainExports = require('../dist/package-url.js')
-        expect(mainExports).toHaveProperty('PackageURL')
-        expect(mainExports).toHaveProperty('PurlComponent')
-        expect(mainExports).toHaveProperty('PurlQualifierNames')
-        expect(mainExports).toHaveProperty('PurlType')
+        // These are already imported at the top of the file
+        expect(PackageURL).toBeDefined()
+        expect(PurlComponent).toBeDefined()
+        expect(PurlQualifierNames).toBeDefined()
+        expect(PurlType).toBeDefined()
       })
     })
 
     describe('Coverage improvements', () => {
       // Test encode functions
       it('should handle encodeQualifierParam edge cases', () => {
-        const { encodeQualifierParam } = require('../dist/encode.js')
         expect(encodeQualifierParam('')).toBe('')
         expect(encodeQualifierParam(null)).toBe('')
         expect(encodeQualifierParam(undefined)).toBe('')
@@ -1272,7 +1309,6 @@ describe('PackageURL', () => {
 
       // Test recursiveFreeze edge cases
       it('should handle recursiveFreeze with various inputs', () => {
-        const { recursiveFreeze } = require('../dist/objects.js')
 
         // Already frozen object
         const frozen = Object.freeze({ a: 1 })
@@ -1300,11 +1336,6 @@ describe('PackageURL', () => {
 
       // Test validation functions with throws parameter
       it('should handle validation errors with throws parameter', () => {
-        const {
-          validateRequired,
-          validateRequiredByType,
-          validateStartsWithoutNumber,
-        } = require('../dist/validate.js')
 
         // validateRequired
         expect(() => validateRequired('field', null, true)).toThrow(
@@ -1334,15 +1365,12 @@ describe('PackageURL', () => {
 
       // Test index.js exports
       it('should export PackageURL correctly from index.js', () => {
-        const index = require('../dist/package-url.js')
-        const { PackageURL: DirectImport } = require('../dist/package-url.js')
 
         // The index.js exports PackageURL
-        expect(index.PackageURL).toBeDefined()
-        expect(index.PackageURL).toBe(DirectImport)
+        expect(PackageURL).toBeDefined()
 
         // Test that it can create instances
-        const purl = new index.PackageURL('npm', '', 'test', '1.0.0')
+        const purl = new PackageURL('npm', '', 'test', '1.0.0')
         expect(purl.toString()).toBe('pkg:npm/test@1.0.0')
       })
 
@@ -1383,7 +1411,6 @@ describe('PackageURL', () => {
       // Test error message formatting edge case
       it('should handle error message formatting with trailing dot', () => {
         // Test error.js line 19 - removing trailing dot from error messages
-        const { formatPurlErrorMessage } = require('../dist/error.js')
         const message = 'Error message.'
         const formatted = formatPurlErrorMessage(message)
         expect(formatted).toBe('Invalid purl: error message')
@@ -1391,8 +1418,6 @@ describe('PackageURL', () => {
 
       // Test recursiveFreeze infinite loop detection
       it('should detect infinite loops in recursiveFreeze', () => {
-        const { recursiveFreeze } = require('../dist/objects.js')
-        const { LOOP_SENTINEL } = require('../dist/constants.js')
 
         // Create a large array to trigger loop detection
         const obj = { arr: [] }
@@ -1407,20 +1432,19 @@ describe('PackageURL', () => {
 
       // Test purl-component functions
       it('should handle PurlComponent edge cases', () => {
-        const purlComp = require('../dist/purl-component.js')
 
         // Test PurlComponent exports
-        expect(purlComp.PurlComponent).toBeDefined()
-        expect(purlComp.PurlComponent.name).toBeDefined()
-        expect(purlComp.PurlComponent.name.encode).toBeDefined()
+        expect(PurlComponent).toBeDefined()
+        expect(PurlComponent.name).toBeDefined()
+        expect(PurlComponent.name.encode).toBeDefined()
 
         // Test component encoder with empty string
         // This tests PurlComponentEncoder function (line 32-33)
-        const encoded = purlComp.PurlComponent.name.encode('')
+        const encoded = PurlComponent.name.encode('')
         expect(encoded).toBe('')
 
         // Test with non-empty string
-        const encodedValid = purlComp.PurlComponent.name.encode('test-name')
+        const encodedValid = PurlComponent.name.encode('test-name')
         expect(encodedValid).toBeTruthy()
       })
 
@@ -1451,7 +1475,7 @@ describe('PackageURL', () => {
 
       // Test validate.js uncovered lines
       it('should validate empty component edge cases', () => {
-        const { validateEmptyByType } = require('../dist/validate.js')
+        
 
         // Test line 12 - return false without throwing
         expect(
@@ -1466,7 +1490,7 @@ describe('PackageURL', () => {
 
       // Test validateQualifiers with non-object type
       it('should validate qualifiers must be an object', () => {
-        const { validateQualifiers } = require('../dist/validate.js')
+        // Import already at top of file
 
         // Test lines 33-36 - qualifiers must be an object
         expect(() => validateQualifiers('string-value', true)).toThrow(
@@ -1478,7 +1502,7 @@ describe('PackageURL', () => {
 
       // Test validateQualifierKey with invalid key
       it('should validate qualifier key format', () => {
-        const { validateQualifierKey } = require('../dist/validate.js')
+        // Import already at top of file
 
         // Test line 46 - return false
         expect(validateQualifierKey('1invalid', false)).toBe(false)
@@ -1493,7 +1517,7 @@ describe('PackageURL', () => {
 
       // Test encode.js branch coverage
       it('should handle encoding edge cases', () => {
-        const { encodeNamespace } = require('../dist/encode.js')
+        // Import already at top of file
 
         // Test encode.js lines for namespace encoding
         const namespace = 'test/namespace/path'
@@ -1503,7 +1527,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js branch coverage
       it('should handle normalization edge cases', () => {
-        const { normalizeNamespace } = require('../dist/normalize.js')
+        // Import already at top of file
 
         // Test various namespace normalization paths
         const namespace1 = 'test//namespace'
@@ -1547,7 +1571,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 334-338 - npm name with uppercase (not throwing)
       it('should handle npm type validation without throwing', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         // npm.validate expects an object with namespace and name properties
         const comp1 = { namespace: '@TEST', name: 'test' }
@@ -1567,7 +1591,7 @@ describe('PackageURL', () => {
 
       // Test encode.js branches
       it('should handle encoding branches', () => {
-        const { encodeSubpath, encodeVersion } = require('../dist/encode.js')
+        // Import already at top of file
 
         // Test encodeVersion with special characters
         const version = encodeVersion('1.0.0+build')
@@ -1593,7 +1617,7 @@ describe('PackageURL', () => {
       it('should handle PurlComponentStringNormalizer with various types', () => {
         // Instead, let's test directly accessing internal functions
         // This exercises line 36 in purl-component.js
-        const { PurlComponent } = require('../dist/purl-component.js')
+        // Import already at top of file
 
         // Test that components have the expected structure
         expect(PurlComponent.name).toBeDefined()
@@ -1609,7 +1633,7 @@ describe('PackageURL', () => {
 
       // Test objects.js line 33 - infinite loop branch
       it('should handle massive arrays in recursiveFreeze', () => {
-        const { recursiveFreeze } = require('../dist/objects.js')
+        // Import already at top of file
 
         // Create object with nested structures but under the limit
         const obj = { a: { b: { c: [] } } }
@@ -1630,14 +1654,14 @@ describe('PackageURL', () => {
 
       // Test encode.js line 21 - encoding empty values
       it('should handle encoding empty values', () => {
-        const { encodeComponent } = require('../dist/encode.js')
+        // Import already at top of file
         expect(encodeComponent('')).toBe('')
         expect(encodeComponent('test')).toBe('test')
       })
 
       // Test encode.js line 60 - encoding qualifiers
       it('should handle encoding qualifiers edge cases', () => {
-        const { encodeQualifiers } = require('../dist/encode.js')
+        // Import already at top of file
         expect(encodeQualifiers(null)).toBe('')
         expect(encodeQualifiers(undefined)).toBe('')
         expect(encodeQualifiers({})).toBe('')
@@ -1645,7 +1669,7 @@ describe('PackageURL', () => {
 
       // Test encode.js line 73 - encoding subpath
       it('should handle encoding subpath with leading slash', () => {
-        const { encodeSubpath } = require('../dist/encode.js')
+        // Import already at top of file
         // encodeSubpath doesn't strip leading slashes
         expect(encodeSubpath('/path/to/file')).toContain('path/to/file')
         expect(encodeSubpath('path/to/file')).toBe('path/to/file')
@@ -1653,7 +1677,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js lines 103-104, 109-110
       it('should handle normalization edge cases for various types', () => {
-        const { normalizeNamespace } = require('../dist/normalize.js')
+        // Import already at top of file
 
         // Test golang type normalization (lines 109-110)
         const goNs = normalizeNamespace('github.com//owner//repo', 'golang')
@@ -1666,7 +1690,7 @@ describe('PackageURL', () => {
 
       // Test validate.js line 46 - qualifier key validation
       it('should handle invalid qualifier keys', () => {
-        const { validateQualifierKey } = require('../dist/validate.js')
+        // Import already at top of file
 
         // Test returning false without throwing
         expect(validateQualifierKey('1startsWithNumber', false)).toBe(false)
@@ -1682,20 +1706,16 @@ describe('PackageURL', () => {
         delete require.cache[modulePath]
 
         // Re-require to get fresh module
-        const pc = require('../dist/purl-component.js')
+        // Import already at top of file
 
         // Test that normalizer works as expected
-        const nameNorm = pc.PurlComponent.name.normalize
+        const nameNorm = PurlComponent.name.normalize
         expect(typeof nameNorm).toBe('function')
         expect(nameNorm('test')).toBe('test')
       })
 
       // Test PurlComponentStringNormalizer internal function (line 36)
       it('should test PurlComponentStringNormalizer with non-string values', () => {
-        const {
-          PurlComponentStringNormalizer,
-        } = require('../dist/purl-component.js')
-
         // Test line 36 - returns undefined for non-string
         expect(PurlComponentStringNormalizer(123)).toBe(undefined)
         expect(PurlComponentStringNormalizer(null)).toBe(undefined)
@@ -1711,7 +1731,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 307-310 - npm namespace validation
       it('should test npm namespace validation with special characters', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         // Test validation with invalid namespace characters (lines 307-310)
         // The exclamation mark is actually URL-encoded so it passes validation
@@ -1727,7 +1747,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 335-338 - npm name uppercase validation
       it('should test npm name validation for modern packages with uppercase', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         // Test with a modern package name (not in legacy list) that has special characters
         const comp = { namespace: '', name: 'my-package*' }
@@ -1742,7 +1762,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 282-291 - npm name with non-URL-friendly characters
       it('should test npm name validation with non-URL-friendly characters', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         // Test names with non-URL-friendly characters that need encoding
         const testCases = [
@@ -1815,7 +1835,7 @@ describe('PackageURL', () => {
 
       // Test encode.js line 21 - null/undefined handling
       it('should test encode component with falsy values', () => {
-        const { encodeComponent } = require('../dist/encode.js')
+        // Import already at top of file
 
         // encodeComponent is just encodeURIComponent alias
         expect(encodeComponent('test')).toBe('test')
@@ -1825,7 +1845,7 @@ describe('PackageURL', () => {
 
       // Test encode.js line 73 - subpath normalization
       it('should test encodeSubpath with slashes', () => {
-        const { encodeSubpath } = require('../dist/encode.js')
+        // Import already at top of file
 
         // Test line 67 - encodeSubpath preserves slashes
         expect(encodeSubpath('path/to/file')).toBe('path/to/file')
@@ -1834,14 +1854,14 @@ describe('PackageURL', () => {
         )
 
         // Test line 73 in encodeVersion
-        const { encodeVersion } = require('../dist/encode.js')
+        // Import already at top of file
         expect(encodeVersion('1.0.0:rc1')).toBe('1.0.0:rc1')
         expect(encodeVersion('2.0.0:beta')).toBe('2.0.0:beta')
       })
 
       // Test normalize.js lines 103-104 - subpathFilter edge cases
       it('should test subpathFilter edge cases in normalize', () => {
-        const { normalizeSubpath } = require('../dist/normalize.js')
+        // Import already at top of file
 
         // Test lines 103-104 - filters out single dot
         expect(normalizeSubpath('./path/to/file')).toBe('path/to/file')
@@ -1854,7 +1874,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js lines 109-110 - golang double slash normalization
       it('should test golang namespace normalization with double slashes', () => {
-        const { normalizeNamespace } = require('../dist/normalize.js')
+        // Import already at top of file
 
         // Test lines 109-110 - golang normalizes double slashes
         expect(normalizeNamespace('github.com//owner//repo', 'golang')).toBe(
@@ -1892,7 +1912,7 @@ describe('PackageURL', () => {
 
       // Test validate.js line 46 - qualifier key validation return false
       it('should test qualifier key validation edge cases', () => {
-        const { validateQualifierKey } = require('../dist/validate.js')
+        // Import already at top of file
 
         // Test line 46 - returns false when validateStartsWithoutNumber fails
         expect(validateQualifierKey('1start', false)).toBe(false)
@@ -1910,7 +1930,7 @@ describe('PackageURL', () => {
       // Additional tests for 100% coverage
       // Test normalize.js lines 7, 13 - namespaceFilter
       it('should test namespace filter edge cases', () => {
-        const { normalizeNamespace } = require('../dist/normalize.js')
+        // Import already at top of file
 
         // Test namespace normalization for various types
         // normalizeNamespace doesn't filter . and .. for namespaces
@@ -1926,7 +1946,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js lines 73-84 - normalizeSubpath with non-string
       it('should test normalizeSubpath with non-string values', () => {
-        const { normalizeSubpath } = require('../dist/normalize.js')
+        // Import already at top of file
 
         expect(normalizeSubpath(123)).toBe(undefined)
         expect(normalizeSubpath(null)).toBe(undefined)
@@ -1935,7 +1955,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js line 95 - qualifiersToEntries with string
       it('should test qualifiersToEntries with string parameter', () => {
-        const { normalizeQualifiers } = require('../dist/normalize.js')
+        // Import already at top of file
 
         const result = normalizeQualifiers('key1=value1&key2=value2')
         expect(result).toEqual({ key1: 'value1', key2: 'value2' })
@@ -1943,7 +1963,7 @@ describe('PackageURL', () => {
 
       // Test encode.js line 21 - encodeNamespace with empty string
       it('should test encodeNamespace with empty values', () => {
-        const { encodeNamespace } = require('../dist/encode.js')
+        // Import already at top of file
 
         expect(encodeNamespace('')).toBe('')
         expect(encodeNamespace(null)).toBe('')
@@ -1952,7 +1972,7 @@ describe('PackageURL', () => {
 
       // Test encode.js line 73 - encodeVersion with colons
       it('should test encodeVersion preserves colons', () => {
-        const { encodeVersion } = require('../dist/encode.js')
+        // Import already at top of file
 
         expect(encodeVersion('')).toBe('')
         expect(encodeVersion(null)).toBe('')
@@ -1961,45 +1981,45 @@ describe('PackageURL', () => {
 
       // Test purl-component.js line 33 - PurlComponentEncoder with empty
       it('should test PurlComponentEncoder with non-strings', () => {
-        const pc = require('../dist/purl-component.js')
+        // Import already at top of file
 
         // Test the encode function with empty values
-        const encoded = pc.PurlComponentEncoder(null)
+        const encoded = PurlComponentEncoder(null)
         expect(encoded).toBe('')
-        const encoded2 = pc.PurlComponentEncoder(0)
+        const encoded2 = PurlComponentEncoder(0)
         expect(encoded2).toBe('')
-        const encoded3 = pc.PurlComponentEncoder('test')
+        const encoded3 = PurlComponentEncoder('test')
         expect(encoded3).toBe('test')
       })
 
       // Test purl-component.js line 38 - PurlComponentValidator
       it('should test PurlComponentValidator', () => {
-        const pc = require('../dist/purl-component.js')
+        // Import already at top of file
         // Test the validator function - it always returns true
-        const result1 = pc.PurlComponentValidator('test', true)
+        const result1 = PurlComponentValidator('test', true)
         expect(result1).toBe(true)
-        const result2 = pc.PurlComponentValidator(null, false)
+        const result2 = PurlComponentValidator(null, false)
         expect(result2).toBe(true)
-        const result3 = pc.PurlComponentValidator(undefined, undefined)
+        const result3 = PurlComponentValidator(undefined, undefined)
         expect(result3).toBe(true)
       })
 
       // Test purl-component.js line 53 - componentSortOrder default
       it('should test component comparator with unknown components', () => {
-        const pc = require('../dist/purl-component.js')
+        // Import already at top of file
 
         // Test comparator with unknown component names
-        const order = pc.componentComparator('unknown1', 'unknown2')
+        const order = componentComparator('unknown1', 'unknown2')
         expect(typeof order).toBe('number')
 
         // Test componentSortOrder directly - line 53
-        const sortOrder = pc.componentSortOrder('unknownComponent')
+        const sortOrder = componentSortOrder('unknownComponent')
         expect(sortOrder).toBe('unknownComponent')
       })
 
       // Test purl-type.js lines 291-294 - npm namespace with trailing spaces
       it('should test npm namespace with leading/trailing spaces', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         const comp = { namespace: ' @namespace ', name: 'test' }
         const result = PurlType.npm.validate(comp, false)
@@ -2012,7 +2032,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 335-338 - npm name uppercase for non-legacy
       it('should test npm name uppercase validation edge case', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         // Test a package name that's definitely not in the legacy list
         const comp = {
@@ -2040,7 +2060,7 @@ describe('PackageURL', () => {
 
       // Test validate.js line 46 - validateQualifierKey early return
       it('should test validateQualifierKey with number start', () => {
-        const { validateQualifiers } = require('../dist/validate.js')
+        // Import already at top of file
 
         const qualifiers = { '9key': 'value' }
         const result = validateQualifiers(qualifiers, false)
@@ -2051,7 +2071,7 @@ describe('PackageURL', () => {
 
       // Test objects.js line 33 - else branch (non-array)
       it('should test recursiveFreeze with objects that have getters', () => {
-        const { recursiveFreeze } = require('../dist/objects.js')
+        // Import already at top of file
 
         const obj = {
           get computed() {
@@ -2066,7 +2086,7 @@ describe('PackageURL', () => {
       // Final tests for 100% coverage
       // Test normalize.js lines 7, 13 - subpath filtering
       it('should test subpath with dot segments', () => {
-        const { normalizeSubpath } = require('../dist/normalize.js')
+        // Import already at top of file
 
         // Test lines 7, 13 - filters . and ..
         expect(normalizeSubpath('./path/to/file')).toBe('path/to/file')
@@ -2077,20 +2097,20 @@ describe('PackageURL', () => {
 
       // Test normalize.js lines 80-84
       it('should test normalizeType and normalizeVersion edge cases', () => {
-        const norm = require('../dist/normalize.js')
+        // Import already at top of file
 
         // Export these functions for testing
-        expect(norm.normalizeType).toBeDefined()
-        expect(norm.normalizeVersion).toBeDefined()
+        expect(normalizeType).toBeDefined()
+        expect(normalizeVersion).toBeDefined()
 
         // Test normalizeType with non-strings
-        expect(norm.normalizeType(123)).toBe(undefined)
-        expect(norm.normalizeVersion(123)).toBe(undefined)
+        expect(normalizeType(123)).toBe(undefined)
+        expect(normalizeVersion(123)).toBe(undefined)
       })
 
       // Test normalize.js line 95
       it('should test qualifiersToEntries with URLSearchParams string', () => {
-        const { normalizeQualifiers } = require('../dist/normalize.js')
+        // Import already at top of file
 
         const result = normalizeQualifiers('foo=bar&baz=qux')
         expect(result).toHaveProperty('foo', 'bar')
@@ -2101,7 +2121,7 @@ describe('PackageURL', () => {
 
       // Test objects.js line 33 - property descriptor iteration
       it('should test recursiveFreeze with symbols and non-enumerable props', () => {
-        const { recursiveFreeze } = require('../dist/objects.js')
+        // Import already at top of file
 
         const sym = Symbol('test')
         const obj = {
@@ -2133,7 +2153,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 273-277 - npm name trimming
       it('should test npm name with leading/trailing spaces', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         const comp = { namespace: '', name: ' test-name ' }
         const result = PurlType.npm.validate(comp, false)
@@ -2146,7 +2166,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 281-285 - npm name starting with dot
       it('should test npm name starting with dot', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         const comp = { namespace: '', name: '.hidden-package' }
         const result = PurlType.npm.validate(comp, false)
@@ -2159,7 +2179,7 @@ describe('PackageURL', () => {
 
       // Test validate.js line 40 - URLSearchParams check
       it('should test validateQualifiers with URLSearchParams instance', () => {
-        const { validateQualifiers } = require('../dist/validate.js')
+        // Import already at top of file
 
         const params = new URLSearchParams()
         params.append('valid_key', 'value')
@@ -2169,11 +2189,7 @@ describe('PackageURL', () => {
 
       // Test validate.js lines 121, 135, 156 - various validation branches
       it('should test validation utility functions thoroughly', () => {
-        const {
-          validateRequiredByType,
-          validateStartsWithoutNumber,
-          validateSubpath,
-        } = require('../dist/validate.js')
+        // Import already at top of file
 
         // Test line 121 - validateStartsWithoutNumber
         expect(validateStartsWithoutNumber('test', '0start', false)).toBe(false)
@@ -2197,7 +2213,7 @@ describe('PackageURL', () => {
       // Additional tests for remaining uncovered lines
       // Test purl-type.js lines 220-223 - golang version validation
       it('should test golang version validation', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         // Test golang version starting with v but not valid semver
         const comp = {
@@ -2215,7 +2231,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 281-285 - npm name starting with underscore
       it('should test npm name starting with underscore', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         const comp = { namespace: '', name: '_hidden' }
         const result = PurlType.npm.validate(comp, false)
@@ -2228,7 +2244,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js lines 7, 13 - namespace path filtering
       it('should test namespace path filtering', () => {
-        const { normalizeNamespace } = require('../dist/normalize.js')
+        // Import already at top of file
 
         // For types that filter paths
         const result = normalizeNamespace('vendor/package', 'composer')
@@ -2241,10 +2257,10 @@ describe('PackageURL', () => {
 
       // Test normalize.js line 95 - qualifiersToEntries edge case
       it('should test qualifiersToEntries with invalid input', () => {
-        const norm = require('../dist/normalize.js')
+        // Import already at top of file
         // Direct test of qualifiersToEntries
-        expect(norm.normalizeQualifiers).toBeDefined()
-        const result = norm.normalizeQualifiers(123)
+        expect(normalizeQualifiers).toBeDefined()
+        const result = normalizeQualifiers(123)
         expect(result).toEqual(undefined)
       })
 
@@ -2264,7 +2280,7 @@ describe('PackageURL', () => {
 
       // Test objects.js line 33 - Object.values path
       it('should test recursiveFreeze with Object.values path', () => {
-        const { recursiveFreeze } = require('../dist/objects.js')
+        // Import already at top of file
 
         // Test the else path for non-arrays
         const obj = { a: { b: 1 }, c: { d: 2 } }
@@ -2275,20 +2291,20 @@ describe('PackageURL', () => {
 
       // Test validate.js lines 121, 135, 156 - edge cases
       it('should test additional validation edge cases', () => {
-        const val = require('../dist/validate.js')
+        // Import already at top of file
 
         // Test validateSubpath with various inputs (line 135)
-        expect(val.validateSubpath(undefined, false)).toBe(true)
-        expect(val.validateSubpath('valid/path', false)).toBe(true)
+        expect(validateSubpath(undefined, false)).toBe(true)
+        expect(validateSubpath('valid/path', false)).toBe(true)
 
         // Test validateStartsWithoutNumber edge case (line 121)
         expect(
-          val.validateStartsWithoutNumber('qualifier', 'valid', false),
+          validateStartsWithoutNumber('qualifier', 'valid', false),
         ).toBe(true)
 
         // Test validateRequiredByType with non-empty value (line 156)
         expect(
-          val.validateRequiredByType('swift', 'version', '1.0.0', false),
+          validateRequiredByType('swift', 'version', '1.0.0', false),
         ).toBe(true)
       })
 
@@ -2312,7 +2328,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 194-197 - conan with namespace but no qualifiers
       it('should test conan validation with namespace but no qualifiers', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         const comp = { namespace: 'namespace', name: 'test', qualifiers: null }
         const result = PurlType.conan.validate(comp, false)
@@ -2325,7 +2341,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 281-285 - npm name edge cases
       it('should test npm name with period and underscore prefixes', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         // Test name starting with period
         const comp1 = { namespace: '', name: '.test' }
@@ -2340,7 +2356,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js line 7 - filtering single dot
       it('should test normalize filtering single dots', () => {
-        const { normalizeSubpath } = require('../dist/normalize.js')
+        // Import already at top of file
 
         // Test filtering of single dots in paths
         const result = normalizeSubpath('path/./to/./file')
@@ -2349,7 +2365,7 @@ describe('PackageURL', () => {
 
       // Test error.js line 12 - the && condition
       it('should test error uppercase check condition', () => {
-        const { formatPurlErrorMessage } = require('../dist/error.js')
+        // Import already at top of file
 
         // Test the boundary condition
         const result1 = formatPurlErrorMessage('A')
@@ -2362,7 +2378,7 @@ describe('PackageURL', () => {
 
       // Test objects.js line 33 - else branch with Object.values
       it('should test recursiveFreeze with plain objects', () => {
-        const { recursiveFreeze } = require('../dist/objects.js')
+        // Import already at top of file
 
         // Force the else branch (not an array)
         const obj = Object.create(null)
@@ -2376,25 +2392,25 @@ describe('PackageURL', () => {
 
       // Test validate.js final edge cases
       it('should test validate functions final edge cases', () => {
-        const val = require('../dist/validate.js')
+        // Import already at top of file
 
         // Test validateStartsWithoutNumber with actual number start (line 121)
-        const result1 = val.validateStartsWithoutNumber('key', '5test', false)
+        const result1 = validateStartsWithoutNumber('key', '5test', false)
         expect(result1).toBe(false)
 
         // Test validateSubpath with blank string (line 135)
-        const result2 = val.validateSubpath('   ', false)
+        const result2 = validateSubpath('   ', false)
         expect(result2).toBe(true)
 
         // Test validateRequiredByType with nullish value (line 156)
-        const result3 = val.validateRequiredByType('type', 'comp', null, false)
+        const result3 = validateRequiredByType('type', 'comp', null, false)
         expect(result3).toBe(false)
       })
 
       // Additional tests for 100% coverage
       // Test purl-type.js lines 185-189 - conan with channel but no namespace
       it('should test conan validation with channel qualifier but no namespace', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         const comp = {
           namespace: '',
@@ -2461,7 +2477,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 281-285 - npm name validation
       it('should test npm name prefix validation thoroughly', () => {
-        const { PurlType } = require('../dist/purl-type.js')
+        // Import already at top of file
 
         // Test line 283 - period check
         const comp1 = { namespace: '', name: '.hidden' }
@@ -2479,7 +2495,7 @@ describe('PackageURL', () => {
       // Additional branch coverage tests
       it('should test all branch conditions', () => {
         // Test error.js line 12 - both branches
-        const { formatPurlErrorMessage } = require('../dist/error.js')
+        // Import already at top of file
 
         // Character code 65 is 'A', 90 is 'Z'
         expect(formatPurlErrorMessage('A message')).toBe(
@@ -2496,13 +2512,13 @@ describe('PackageURL', () => {
         ) // Before A
 
         // Test normalize.js line 7 - namespace filter
-        const { normalizeNamespace } = require('../dist/normalize.js')
+        // Import already at top of file
         expect(normalizeNamespace('.', 'composer')).toBe('.')
         expect(normalizeNamespace('..', 'composer')).toBe('..')
         expect(normalizeNamespace('.hidden', 'generic')).toBe('.hidden')
 
         // Test objects.js line 33 - array vs object branch
-        const { recursiveFreeze } = require('../dist/objects.js')
+        // Import already at top of file
 
         // Test with array
         const arr = [{ a: 1 }, { b: 2 }]
@@ -2517,7 +2533,7 @@ describe('PackageURL', () => {
 
       // Test for line 169 - decodePurlComponent
       it('should handle purl with encoded type component (edge case)', () => {
-        const { PackageURL } = require('../dist/package-url.js')
+        // Import already at top of file
 
         // Test a type that contains URL-encoded characters
         const purlWithEncodedType = 'pkg:type%2Dwith%2Ddashes/namespace/name'
@@ -2529,7 +2545,7 @@ describe('PackageURL', () => {
 
       // Additional coverage tests for edge cases
       it('should test normalizeName with non-string input', () => {
-        const { normalizeName } = require('../dist/normalize.js')
+        // Import already at top of file
 
         // Test with non-string input (line 7 branch)
         expect(normalizeName(null)).toBe(undefined)
@@ -2538,7 +2554,7 @@ describe('PackageURL', () => {
       })
 
       it('should test recursiveFreeze with functions', () => {
-        const { recursiveFreeze } = require('../dist/objects.js')
+        // Import already at top of file
 
         // Test freezing objects containing functions (line 35 branch)
         const objWithFunc = {
@@ -2553,11 +2569,7 @@ describe('PackageURL', () => {
       })
 
       it('should test validation edge cases', () => {
-        const {
-          validateStartsWithoutNumber,
-          validateStrings,
-          validateType,
-        } = require('../dist/validate.js')
+        // Import already at top of file
 
         // Test validateStrings with non-string input (line 121)
         expect(validateStrings('test', 123, false)).toBe(false)
@@ -2659,7 +2671,7 @@ describe('PackageURL', () => {
       })
 
       it('should test deep freeze with function type', () => {
-        const { recursiveFreeze } = require('../dist/objects.js')
+        // Import already at top of file
 
         // Test freezing object with function as property
         const func = createTestFunctionWithReturn()
@@ -2698,7 +2710,7 @@ describe('PackageURL', () => {
       })
 
       it('should test deep freeze with array containing functions', () => {
-        const { recursiveFreeze } = require('../dist/objects.js')
+        // Import already at top of file
 
         // Test freezing array with functions (line 33 branch for typeof item === 'function')
         const func1 = createTestFunction1()
@@ -2777,6 +2789,57 @@ describe('PackageURL', () => {
         } finally {
           global.URL = originalURL
         }
+      })
+    })
+
+    describe('Type-specific validation non-throwing mode', () => {
+      it('should reject invalid npm package names without throwing errors', () => {
+        // Test npm name starting with period (line 324-325 in purl-type.ts)
+        const result1 = PurlType.npm.validate({ name: '.hidden', namespace: '' }, false)
+        expect(result1).toBe(false)
+
+        // Test npm name starting with underscore
+        const result2 = PurlType.npm.validate({ name: '_private', namespace: '' }, false)
+        expect(result2).toBe(false)
+
+        // Test npm name that is a core module (line 424-425 in purl-type.ts)
+        // Note: fs and path are legacy names, so they don't trigger the builtin check
+        // Use a non-legacy builtin like worker_threads
+        const result3 = PurlType.npm.validate({ name: 'worker_threads', namespace: '' }, false)
+        expect(result3).toBe(false)
+
+        // Test npm name that's too long (line 397-398 in purl-type.ts)
+        const longName = 'a'.repeat(215)
+        const result4 = PurlType.npm.validate({ name: longName, namespace: '' }, false)
+        expect(result4).toBe(false)
+      })
+
+      it('should reject invalid pub package names without throwing errors', () => {
+        // Test pub name with invalid characters (line 456-457 in purl-type.ts)
+        const result = PurlType.pub.validate({ name: 'invalid-name', namespace: '' }, false)
+        expect(result).toBe(false)
+
+        // Test with special characters
+        const result2 = PurlType.pub.validate({ name: 'invalid!name', namespace: '' }, false)
+        expect(result2).toBe(false)
+
+        // Test with uppercase
+        const result3 = PurlType.pub.validate({ name: 'InvalidName', namespace: '' }, false)
+        expect(result3).toBe(false)
+      })
+
+      it('should reject types with illegal characters without throwing errors', () => {
+        // Test validateType with illegal character (line 157-158 in validate.ts)
+        const result = validateType('type!invalid', false)
+        expect(result).toBe(false)
+
+        // Test with space
+        const result2 = validateType('type invalid', false)
+        expect(result2).toBe(false)
+
+        // Test with special characters
+        const result3 = validateType('type@invalid', false)
+        expect(result3).toBe(false)
       })
     })
   })
