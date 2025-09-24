@@ -8,7 +8,7 @@ import {
 } from '@eslint/compat'
 import js from '@eslint/js'
 import typescriptParser from '@typescript-eslint/parser'
-import importXPlugin from 'eslint-plugin-import-x'
+import { flatConfigs as importXFlatConfigs } from 'eslint-plugin-import-x'
 import nodePlugin from 'eslint-plugin-n'
 import sortDestructureKeysPlugin from 'eslint-plugin-sort-destructure-keys'
 import unicornPlugin from 'eslint-plugin-unicorn'
@@ -47,16 +47,16 @@ export default [
   gitIgnores,
   {
     ...js.configs.recommended,
-    ...importXPlugin.flatConfigs.recommended,
+    ...importXFlatConfigs.recommended,
     ...nodePlugin.configs['flat/recommended-script'],
     languageOptions: {
       ...js.configs.recommended.languageOptions,
-      ...importXPlugin.flatConfigs.recommended.languageOptions,
+      ...importXFlatConfigs.recommended.languageOptions,
       ...nodePlugin.configs['flat/recommended-script'].languageOptions,
       ecmaVersion: 'latest',
       globals: {
         ...js.configs.recommended.languageOptions?.globals,
-        ...importXPlugin.flatConfigs.recommended.languageOptions?.globals,
+        ...importXFlatConfigs.recommended.languageOptions?.globals,
         ...nodePlugin.configs['flat/recommended-script'].languageOptions
           ?.globals,
         ...nodeGlobalsConfig,
@@ -65,20 +65,20 @@ export default [
     },
     linterOptions: {
       ...js.configs.recommended.linterOptions,
-      ...importXPlugin.flatConfigs.recommended.linterOptions,
+      ...importXFlatConfigs.recommended.linterOptions,
       ...nodePlugin.configs['flat/recommended-script'].linterOptions,
       reportUnusedDisableDirectives: 'off',
     },
     plugins: {
       ...js.configs.recommended.plugins,
-      ...importXPlugin.flatConfigs.recommended.plugins,
+      ...importXFlatConfigs.recommended.plugins,
       ...nodePlugin.configs['flat/recommended-script'].plugins,
       'sort-destructure-keys': sortDestructureKeysPlugin,
       unicorn: unicornPlugin,
     },
     rules: {
       ...js.configs.recommended.rules,
-      ...importXPlugin.flatConfigs.recommended.rules,
+      ...importXFlatConfigs.recommended.rules,
       ...nodePlugin.configs['flat/recommended-script'].rules,
       'import-x/extensions': [
         'error',
