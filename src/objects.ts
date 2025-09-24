@@ -1,12 +1,10 @@
-'use strict'
+import { LOOP_SENTINEL   } from './constants.js'
 
-const { LOOP_SENTINEL } = require('./constants')
-
-function isObject(value) {
+function isObject(value: any) {
   return value !== null && typeof value === 'object'
 }
 
-function recursiveFreeze(value_) {
+function recursiveFreeze(value_: any) {
   if (
     value_ === null ||
     !(typeof value_ === 'object' || typeof value_ === 'function') ||
@@ -39,7 +37,7 @@ function recursiveFreeze(value_) {
     } else {
       const keys = Reflect.ownKeys(obj)
       for (let i = 0, { length } = keys; i < length; i += 1) {
-        const propValue = obj[keys[i]]
+        const propValue = obj[keys[i]!]
         if (
           propValue !== null &&
           (typeof propValue === 'object' || typeof propValue === 'function') &&
@@ -53,7 +51,4 @@ function recursiveFreeze(value_) {
   return value_
 }
 
-module.exports = {
-  isObject,
-  recursiveFreeze,
-}
+export { isObject, recursiveFreeze }

@@ -7,6 +7,7 @@ import {
   includeIgnoreFile,
 } from '@eslint/compat'
 import js from '@eslint/js'
+import typescriptParser from '@typescript-eslint/parser'
 import importXPlugin from 'eslint-plugin-import-x'
 import nodePlugin from 'eslint-plugin-n'
 import sortDestructureKeysPlugin from 'eslint-plugin-sort-destructure-keys'
@@ -87,6 +88,8 @@ export default [
           js: 'ignorePackages',
           json: 'always',
           mjs: 'ignorePackages',
+          mts: 'never',
+          ts: 'never',
         },
       ],
       'import-x/no-named-as-default-member': 'off',
@@ -154,9 +157,66 @@ export default [
     },
   },
   {
-    files: ['**/*.mjs'],
+    files: ['**/*.mjs', '**/*.mts'],
     languageOptions: {
       sourceType: 'module',
+    },
+    rules: {
+      'import-x/extensions': ['error', 'never', { mts: 'never' }],
+    },
+  },
+  {
+    files: ['test/**/*.test.mts'],
+    languageOptions: {
+      parser: typescriptParser,
+      sourceType: 'module',
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'n/no-unsupported-features/es-syntax': 'off',
+      'n/no-missing-import': 'off',
+      'n/no-missing-require': 'off',
+      'import-x/no-unresolved': 'off',
+      'import-x/extensions': 'off',
+      'no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_|^this$|^context$',
+          ignoreRestSiblings: true,
+          varsIgnorePattern: '^_',
+        },
+      ],
+      'unicorn/consistent-function-scoping': 'off',
+      'no-proto': 'off',
+      'no-new': 'off',
+    },
+  },
+  {
+    files: ['**/*.ts', '**/*.mts'],
+    languageOptions: {
+      parser: typescriptParser,
+      sourceType: 'module',
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'n/no-unsupported-features/es-syntax': 'off',
+      'n/no-missing-import': 'off',
+      'n/no-missing-require': 'off',
+      'import-x/no-unresolved': 'off',
+      'import-x/extensions': [
+        'error',
+        'always',
+        {
+          ts: 'never',
+          mts: 'never',
+        },
+      ],
     },
   },
 ]

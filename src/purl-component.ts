@@ -1,33 +1,28 @@
-'use strict'
-
-const {
-  encodeComponent,
+import { encodeComponent,
   encodeName,
   encodeNamespace,
   encodeQualifierParam,
   encodeQualifiers,
   encodeSubpath,
   encodeVersion,
-} = require('./encode')
-const { createHelpersNamespaceObject } = require('./helpers')
-const {
-  normalizeName,
+  } from './encode.js'
+import { createHelpersNamespaceObject   } from './helpers.js'
+import { normalizeName,
   normalizeNamespace,
   normalizeQualifiers,
   normalizeSubpath,
   normalizeType,
   normalizeVersion,
-} = require('./normalize')
-const { isNonEmptyString, localeCompare } = require('./strings')
-const {
-  validateName,
+  } from './normalize.js'
+import { isNonEmptyString, localeCompare   } from './strings.js'
+import { validateName,
   validateNamespace,
   validateQualifierKey,
   validateQualifiers,
   validateSubpath,
   validateType,
   validateVersion,
-} = require('./validate')
+  } from './validate.js'
 
 const componentSortOrderLookup = {
   __proto__: null,
@@ -41,23 +36,23 @@ const componentSortOrderLookup = {
   subpath: 7,
 }
 
-function componentSortOrder(comp) {
-  return componentSortOrderLookup[comp] ?? comp
+function componentSortOrder(comp: any) {
+  return (componentSortOrderLookup as any)[comp] ?? comp
 }
 
-function componentComparator(compA, compB) {
+function componentComparator(compA: any, compB: any) {
   return localeCompare(componentSortOrder(compA), componentSortOrder(compB))
 }
 
-function PurlComponentEncoder(comp) {
+function PurlComponentEncoder(comp: any) {
   return isNonEmptyString(comp) ? encodeComponent(comp) : ''
 }
 
-function PurlComponentStringNormalizer(comp) {
+function PurlComponentStringNormalizer(comp: any) {
   return typeof comp === 'string' ? comp : undefined
 }
 
-function PurlComponentValidator(_comp, _throws) {
+function PurlComponentValidator(_comp: any, _throws: any) {
   return true
 }
 
@@ -100,11 +95,4 @@ const PurlComponent = createHelpersNamespaceObject(
   },
 )
 
-module.exports = {
-  PurlComponent,
-  PurlComponentEncoder,
-  PurlComponentStringNormalizer,
-  PurlComponentValidator,
-  componentComparator,
-  componentSortOrder,
-}
+export { PurlComponent, PurlComponentEncoder, PurlComponentStringNormalizer, PurlComponentValidator, componentComparator, componentSortOrder }

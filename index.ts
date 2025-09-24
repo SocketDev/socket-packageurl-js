@@ -19,18 +19,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-'use strict'
 
-const {
-  PackageURL,
+export { PackageURL,
   PurlComponent,
   PurlQualifierNames,
   PurlType,
-} = require('./src/package-url')
-
-module.exports = {
-  PackageURL,
-  PurlComponent,
-  PurlQualifierNames,
-  PurlType,
-}
+ } from './src/package-url.js'

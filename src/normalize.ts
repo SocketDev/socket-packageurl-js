@@ -1,19 +1,17 @@
-'use strict'
+import { isObject   } from './objects.js'
+import { isBlank   } from './strings.js'
 
-const { isObject } = require('./objects')
-const { isBlank } = require('./strings')
-
-function normalizeName(rawName) {
+function normalizeName(rawName: any) {
   return typeof rawName === 'string' ? rawName.trim() : undefined
 }
 
-function normalizeNamespace(rawNamespace) {
+function normalizeNamespace(rawNamespace: any) {
   return typeof rawNamespace === 'string'
-    ? normalizePath(rawNamespace)
+    ? normalizePath(rawNamespace, undefined)
     : undefined
 }
 
-function normalizePath(pathname, callback) {
+function normalizePath(pathname: any, callback: any) {
   let collapsed = ''
   let start = 0
   // Leading and trailing slashes, i.e. '/', are not significant and should be
@@ -48,8 +46,8 @@ function normalizePath(pathname, callback) {
   return collapsed
 }
 
-function normalizeQualifiers(rawQualifiers) {
-  let qualifiers
+function normalizeQualifiers(rawQualifiers: any) {
+  let qualifiers: any
   // Use for-of to work with entries iterators.
   for (const { 0: key, 1: value } of qualifiersToEntries(rawQualifiers)) {
     const strValue = typeof value === 'string' ? value : String(value)
@@ -68,23 +66,23 @@ function normalizeQualifiers(rawQualifiers) {
   return qualifiers
 }
 
-function normalizeSubpath(rawSubpath) {
+function normalizeSubpath(rawSubpath: any) {
   return typeof rawSubpath === 'string'
     ? normalizePath(rawSubpath, subpathFilter)
     : undefined
 }
 
-function normalizeType(rawType) {
+function normalizeType(rawType: any) {
   // The type must NOT be percent-encoded.
   // The type is case insensitive. The canonical form is lowercase.
   return typeof rawType === 'string' ? rawType.trim().toLowerCase() : undefined
 }
 
-function normalizeVersion(rawVersion) {
+function normalizeVersion(rawVersion: any) {
   return typeof rawVersion === 'string' ? rawVersion.trim() : undefined
 }
 
-function qualifiersToEntries(rawQualifiers) {
+function qualifiersToEntries(rawQualifiers: any) {
   if (isObject(rawQualifiers)) {
     // URLSearchParams instances have an "entries" method that returns an iterator.
     return typeof rawQualifiers.entries === 'function'
@@ -96,7 +94,7 @@ function qualifiersToEntries(rawQualifiers) {
     : Object.entries({})
 }
 
-function subpathFilter(segment) {
+function subpathFilter(segment: any) {
   // When percent-decoded, a segment
   //   - must not be any of '.' or '..'
   //   - must not be empty
@@ -114,12 +112,4 @@ function subpathFilter(segment) {
   return !isBlank(segment)
 }
 
-module.exports = {
-  normalizeName,
-  normalizeNamespace,
-  normalizePath,
-  normalizeQualifiers,
-  normalizeSubpath,
-  normalizeType,
-  normalizeVersion,
-}
+export { normalizeName, normalizeNamespace, normalizePath, normalizeQualifiers, normalizeSubpath, normalizeType, normalizeVersion }

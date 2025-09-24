@@ -1,10 +1,8 @@
-'use strict'
-
-const { PurlError } = require('./error')
+import { PurlError   } from './error.js'
 
 const { decodeURIComponent: decodeComponent } = globalThis
 
-function decodePurlComponent(comp, encodedComponent) {
+function decodePurlComponent(comp: string, encodedComponent: string): string {
   try {
     return decodeComponent(encodedComponent)
   } catch {
@@ -13,6 +11,4 @@ function decodePurlComponent(comp, encodedComponent) {
   throw new PurlError(`unable to decode "${comp}" component`)
 }
 
-module.exports = {
-  decodePurlComponent,
-}
+export { decodePurlComponent }

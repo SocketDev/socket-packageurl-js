@@ -1,10 +1,11 @@
+// eslint-disable-next-line import-x/extensions
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   test: {
     globals: false,
     environment: 'node',
-    include: ['test/**/*.test.{js,ts,mjs,cjs}'],
+    include: ['test/**/*.test.{js,ts,mjs,mts,cjs}'],
     reporters: ['default'],
     // Improve memory usage by running tests sequentially in CI.
     pool: 'forks',

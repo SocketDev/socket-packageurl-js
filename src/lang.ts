@@ -1,6 +1,4 @@
-'use strict'
-
-function isNullishOrEmptyString(value) {
+function isNullishOrEmptyString(value: any): boolean {
   return (
     value === null ||
     value === undefined ||
@@ -8,6 +6,4 @@ function isNullishOrEmptyString(value) {
   )
 }
 
-module.exports = {
-  isNullishOrEmptyString,
-}
+export { isNullishOrEmptyString }

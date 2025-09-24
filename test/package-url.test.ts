@@ -25,24 +25,26 @@ import path from 'node:path'
 import { glob } from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 
+// eslint-disable-next-line import-x/extensions
 import { readJson } from '@socketsecurity/registry/lib/fs'
+// eslint-disable-next-line import-x/extensions
 import {
   isObject,
   toSortedObjectFromEntries,
 } from '@socketsecurity/registry/lib/objects'
 
+import npmBuiltinNames from '../data/npm/builtin-names.json'
+import npmLegacyNames from '../data/npm/legacy-names.json'
+import { PackageURL } from '../src/package-url.js'
+
 import type { TestAPI } from 'vitest'
 
-const npmBuiltinNames = require('../data/npm/builtin-names.json')
-const npmLegacyNames = require('../data/npm/legacy-names.json')
-const { PackageURL } = require('../src/package-url')
-
-function getNpmId(purl) {
+function getNpmId(purl: any) {
   const { name, namespace } = purl
   return `${namespace?.length > 0 ? `${namespace}/` : ''}${name}`
 }
 
-function toUrlSearchParams(search) {
+function toUrlSearchParams(search: any) {
   const searchParams = new URLSearchParams()
   const entries = search.split('&')
   for (let i = 0, { length } = entries; i < length; i += 1) {
@@ -111,13 +113,12 @@ describe('PackageURL', () => {
 
     it('should validate required params', () => {
       // Tests that type and name are required (various invalid inputs)
-      // eslint-disable-next-line unicorn/consistent-function-scoping
+
       function testValid(paramName) {
         const paramIndex = paramMap[paramName]
         const args = createArgs(paramName, paramName)
         const message = JSON.stringify(args[paramIndex])
         try {
-          // eslint-disable-next-line no-new
           new PackageURL(...args)
           expect(true, message)
         } catch {
@@ -125,7 +126,6 @@ describe('PackageURL', () => {
         }
       }
 
-      // eslint-disable-next-line unicorn/consistent-function-scoping
       function testInvalid(paramName) {
         const paramIndex = paramMap[paramName]
         ;[
@@ -140,7 +140,6 @@ describe('PackageURL', () => {
         ].forEach(args => {
           const message = JSON.stringify(args[paramIndex])
           try {
-            // eslint-disable-next-line no-new
             new PackageURL(...args)
             expect(false, message)
           } catch {
@@ -157,7 +156,7 @@ describe('PackageURL', () => {
 
     it('should validate string params', () => {
       // Tests that namespace, version, subpath only accept strings or null/undefined
-      // eslint-disable-next-line unicorn/consistent-function-scoping
+
       function testValid(paramName) {
         const paramIndex = paramMap[paramName]
         ;[
@@ -168,7 +167,6 @@ describe('PackageURL', () => {
         ].forEach(args => {
           const message = JSON.stringify(args[paramIndex])
           try {
-            // eslint-disable-next-line no-new
             new PackageURL(...args)
             expect(true, message)
           } catch {
@@ -177,7 +175,6 @@ describe('PackageURL', () => {
         })
       }
 
-      // eslint-disable-next-line unicorn/consistent-function-scoping
       function testInvalid(paramName) {
         const paramIndex = paramMap[paramName]
         ;[
@@ -189,7 +186,6 @@ describe('PackageURL', () => {
         ].forEach(args => {
           const message = JSON.stringify(args[paramIndex])
           try {
-            // eslint-disable-next-line no-new
             new PackageURL(...args)
             expect(false, message)
           } catch {
@@ -578,7 +574,7 @@ describe('PackageURL', () => {
             const parts = builtinName.split('/')
             const namespace = parts.length > 1 ? parts[0] : ''
             const name = parts.at(-1)
-            // eslint-disable-next-line no-new
+
             new PackageURL('npm', namespace, name)
           }, `assert for ${builtinName}`).toThrow()
         }
@@ -1070,13 +1066,16 @@ describe('PackageURL', () => {
 
     describe('Additional coverage tests', () => {
       // Test error formatting edge cases using imports
-      const { PurlError } = require('../src/error')
+      const { PurlError } = require('../dist/cjs/error.js')
 
       it.each([
         ['Error without period', 'Invalid purl: error without period'],
-        ['Error with double period..', 'Invalid purl: error with double period..'],
+        [
+          'Error with double period..',
+          'Invalid purl: error with double period..',
+        ],
         ['already lowercase', 'Invalid purl: already lowercase'],
-        ['', 'Invalid purl: ']
+        ['', 'Invalid purl: '],
       ])('should format error message "%s" correctly', (input, expected) => {
         try {
           throw new PurlError(input)
@@ -1102,7 +1101,7 @@ describe('PackageURL', () => {
         ['already frozen objects', { key: 'value' }],
         ['nested objects', { inner: { deep: 'value' } }],
         ['arrays', { arr: [1, 2, { nested: true }] }],
-        ['mixed types', { str: 'test', num: 123, obj: { nested: true } }]
+        ['mixed types', { str: 'test', num: 123, obj: { nested: true } }],
       ])('should handle recursiveFreeze with %s', (description, qualifiers) => {
         const purl = new PackageURL('type', null, 'name', null, qualifiers)
         expect(purl.qualifiers).toBeDefined()
@@ -1205,7 +1204,7 @@ describe('PackageURL', () => {
 
       // Test index.js exports
       it('should export all expected modules from index.js', () => {
-        const mainExports = require('../index.js')
+        const mainExports = require('../dist/cjs/package-url.js')
         expect(mainExports).toHaveProperty('PackageURL')
         expect(mainExports).toHaveProperty('PurlComponent')
         expect(mainExports).toHaveProperty('PurlQualifierNames')
@@ -1216,7 +1215,7 @@ describe('PackageURL', () => {
     describe('Coverage improvements', () => {
       // Test encode functions
       it('should handle encodeQualifierParam edge cases', () => {
-        const { encodeQualifierParam } = require('../src/encode')
+        const { encodeQualifierParam } = require('../dist/cjs/encode.js')
         expect(encodeQualifierParam('')).toBe('')
         expect(encodeQualifierParam(null)).toBe('')
         expect(encodeQualifierParam(undefined)).toBe('')
@@ -1228,7 +1227,7 @@ describe('PackageURL', () => {
 
       // Test recursiveFreeze edge cases
       it('should handle recursiveFreeze with various inputs', () => {
-        const { recursiveFreeze } = require('../src/objects')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         // Already frozen object
         const frozen = Object.freeze({ a: 1 })
@@ -1260,7 +1259,7 @@ describe('PackageURL', () => {
           validateRequired,
           validateRequiredByType,
           validateStartsWithoutNumber,
-        } = require('../src/validate')
+        } = require('../dist/cjs/validate.js')
 
         // validateRequired
         expect(() => validateRequired('field', null, true)).toThrow(
@@ -1290,8 +1289,10 @@ describe('PackageURL', () => {
 
       // Test index.js exports
       it('should export PackageURL correctly from index.js', () => {
-        const index = require('../index.js')
-        const { PackageURL: DirectImport } = require('../src/package-url')
+        const index = require('../dist/cjs/package-url.js')
+        const {
+          PackageURL: DirectImport,
+        } = require('../dist/cjs/package-url.js')
 
         // The index.js exports PackageURL
         expect(index.PackageURL).toBeDefined()
@@ -1339,7 +1340,7 @@ describe('PackageURL', () => {
       // Test error message formatting edge case
       it('should handle error message formatting with trailing dot', () => {
         // Test error.js line 19 - removing trailing dot from error messages
-        const { formatPurlErrorMessage } = require('../src/error')
+        const { formatPurlErrorMessage } = require('../dist/cjs/error.js')
         const message = 'Error message.'
         const formatted = formatPurlErrorMessage(message)
         expect(formatted).toBe('Invalid purl: error message')
@@ -1347,8 +1348,8 @@ describe('PackageURL', () => {
 
       // Test recursiveFreeze infinite loop detection
       it('should detect infinite loops in recursiveFreeze', () => {
-        const { recursiveFreeze } = require('../src/objects')
-        const { LOOP_SENTINEL } = require('../src/constants')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
+        const { LOOP_SENTINEL } = require('../dist/cjs/constants.js')
 
         // Create a large array to trigger loop detection
         const obj = { arr: [] }
@@ -1363,7 +1364,7 @@ describe('PackageURL', () => {
 
       // Test purl-component functions
       it('should handle PurlComponent edge cases', () => {
-        const purlComp = require('../src/purl-component')
+        const purlComp = require('../dist/cjs/purl-component.js')
 
         // Test PurlComponent exports
         expect(purlComp.PurlComponent).toBeDefined()
@@ -1407,7 +1408,7 @@ describe('PackageURL', () => {
 
       // Test validate.js uncovered lines
       it('should validate empty component edge cases', () => {
-        const { validateEmptyByType } = require('../src/validate')
+        const { validateEmptyByType } = require('../dist/cjs/validate.js')
 
         // Test line 12 - return false without throwing
         expect(
@@ -1422,7 +1423,7 @@ describe('PackageURL', () => {
 
       // Test validateQualifiers with non-object type
       it('should validate qualifiers must be an object', () => {
-        const { validateQualifiers } = require('../src/validate')
+        const { validateQualifiers } = require('../dist/cjs/validate.js')
 
         // Test lines 33-36 - qualifiers must be an object
         expect(() => validateQualifiers('string-value', true)).toThrow(
@@ -1434,7 +1435,7 @@ describe('PackageURL', () => {
 
       // Test validateQualifierKey with invalid key
       it('should validate qualifier key format', () => {
-        const { validateQualifierKey } = require('../src/validate')
+        const { validateQualifierKey } = require('../dist/cjs/validate.js')
 
         // Test line 46 - return false
         expect(validateQualifierKey('1invalid', false)).toBe(false)
@@ -1449,7 +1450,7 @@ describe('PackageURL', () => {
 
       // Test encode.js branch coverage
       it('should handle encoding edge cases', () => {
-        const { encodeNamespace } = require('../src/encode')
+        const { encodeNamespace } = require('../dist/cjs/encode.js')
 
         // Test encode.js lines for namespace encoding
         const namespace = 'test/namespace/path'
@@ -1459,7 +1460,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js branch coverage
       it('should handle normalization edge cases', () => {
-        const { normalizeNamespace } = require('../src/normalize')
+        const { normalizeNamespace } = require('../dist/cjs/normalize.js')
 
         // Test various namespace normalization paths
         const namespace1 = 'test//namespace'
@@ -1503,7 +1504,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 334-338 - npm name with uppercase (not throwing)
       it('should handle npm type validation without throwing', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         // npm.validate expects an object with namespace and name properties
         const comp1 = { namespace: '@TEST', name: 'test' }
@@ -1523,7 +1524,10 @@ describe('PackageURL', () => {
 
       // Test encode.js branches
       it('should handle encoding branches', () => {
-        const { encodeVersion, encodeSubpath } = require('../src/encode')
+        const {
+          encodeSubpath,
+          encodeVersion,
+        } = require('../dist/cjs/encode.js')
 
         // Test encodeVersion with special characters
         const version = encodeVersion('1.0.0+build')
@@ -1549,7 +1553,7 @@ describe('PackageURL', () => {
       it('should handle PurlComponentStringNormalizer with various types', () => {
         // Instead, let's test directly accessing internal functions
         // This exercises line 36 in purl-component.js
-        const { PurlComponent } = require('../src/purl-component')
+        const { PurlComponent } = require('../dist/cjs/purl-component.js')
 
         // Test that components have the expected structure
         expect(PurlComponent.name).toBeDefined()
@@ -1565,7 +1569,7 @@ describe('PackageURL', () => {
 
       // Test objects.js line 33 - infinite loop branch
       it('should handle massive arrays in recursiveFreeze', () => {
-        const { recursiveFreeze } = require('../src/objects')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         // Create object with nested structures but under the limit
         const obj = { a: { b: { c: [] } } }
@@ -1586,14 +1590,14 @@ describe('PackageURL', () => {
 
       // Test encode.js line 21 - encoding empty values
       it('should handle encoding empty values', () => {
-        const { encodeComponent } = require('../src/encode')
+        const { encodeComponent } = require('../dist/cjs/encode.js')
         expect(encodeComponent('')).toBe('')
         expect(encodeComponent('test')).toBe('test')
       })
 
       // Test encode.js line 60 - encoding qualifiers
       it('should handle encoding qualifiers edge cases', () => {
-        const { encodeQualifiers } = require('../src/encode')
+        const { encodeQualifiers } = require('../dist/cjs/encode.js')
         expect(encodeQualifiers(null)).toBe('')
         expect(encodeQualifiers(undefined)).toBe('')
         expect(encodeQualifiers({})).toBe('')
@@ -1601,7 +1605,7 @@ describe('PackageURL', () => {
 
       // Test encode.js line 73 - encoding subpath
       it('should handle encoding subpath with leading slash', () => {
-        const { encodeSubpath } = require('../src/encode')
+        const { encodeSubpath } = require('../dist/cjs/encode.js')
         // encodeSubpath doesn't strip leading slashes
         expect(encodeSubpath('/path/to/file')).toContain('path/to/file')
         expect(encodeSubpath('path/to/file')).toBe('path/to/file')
@@ -1609,7 +1613,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js lines 103-104, 109-110
       it('should handle normalization edge cases for various types', () => {
-        const { normalizeNamespace } = require('../src/normalize')
+        const { normalizeNamespace } = require('../dist/cjs/normalize.js')
 
         // Test golang type normalization (lines 109-110)
         const goNs = normalizeNamespace('github.com//owner//repo', 'golang')
@@ -1622,7 +1626,7 @@ describe('PackageURL', () => {
 
       // Test validate.js line 46 - qualifier key validation
       it('should handle invalid qualifier keys', () => {
-        const { validateQualifierKey } = require('../src/validate')
+        const { validateQualifierKey } = require('../dist/cjs/validate.js')
 
         // Test returning false without throwing
         expect(validateQualifierKey('1startsWithNumber', false)).toBe(false)
@@ -1634,11 +1638,11 @@ describe('PackageURL', () => {
       // Test purl-component.js line 36
       it('should test PurlComponentStringNormalizer directly', () => {
         // Access internal functions through require cache manipulation
-        const modulePath = require.resolve('../src/purl-component')
+        const modulePath = require.resolve('../src/purl-component.ts')
         delete require.cache[modulePath]
 
         // Re-require to get fresh module
-        const pc = require('../src/purl-component')
+        const pc = require('../dist/cjs/purl-component.js')
 
         // Test that normalizer works as expected
         const nameNorm = pc.PurlComponent.name.normalize
@@ -1650,7 +1654,7 @@ describe('PackageURL', () => {
       it('should test PurlComponentStringNormalizer with non-string values', () => {
         const {
           PurlComponentStringNormalizer,
-        } = require('../src/purl-component')
+        } = require('../dist/cjs/purl-component.js')
 
         // Test line 36 - returns undefined for non-string
         expect(PurlComponentStringNormalizer(123)).toBe(undefined)
@@ -1667,7 +1671,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 307-310 - npm namespace validation
       it('should test npm namespace validation with special characters', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         // Test validation with invalid namespace characters (lines 307-310)
         // The exclamation mark is actually URL-encoded so it passes validation
@@ -1683,7 +1687,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 335-338 - npm name uppercase validation
       it('should test npm name validation for modern packages with uppercase', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         // Test with a modern package name (not in legacy list) that has special characters
         const comp = { namespace: '', name: 'my-package*' }
@@ -1698,7 +1702,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 282-291 - npm name with non-URL-friendly characters
       it('should test npm name validation with non-URL-friendly characters', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         // Test names with non-URL-friendly characters that need encoding
         const testCases = [
@@ -1744,7 +1748,7 @@ describe('PackageURL', () => {
           }, // Non-ASCII characters
         ]
 
-        testCases.forEach(({ name, expectedError }) => {
+        testCases.forEach(({ expectedError, name }) => {
           const comp = { namespace: '', name }
 
           // Test with throwing disabled - should return false
@@ -1771,7 +1775,7 @@ describe('PackageURL', () => {
 
       // Test encode.js line 21 - null/undefined handling
       it('should test encode component with falsy values', () => {
-        const { encodeComponent } = require('../src/encode')
+        const { encodeComponent } = require('../dist/cjs/encode.js')
 
         // encodeComponent is just encodeURIComponent alias
         expect(encodeComponent('test')).toBe('test')
@@ -1781,7 +1785,7 @@ describe('PackageURL', () => {
 
       // Test encode.js line 73 - subpath normalization
       it('should test encodeSubpath with slashes', () => {
-        const { encodeSubpath } = require('../src/encode')
+        const { encodeSubpath } = require('../dist/cjs/encode.js')
 
         // Test line 67 - encodeSubpath preserves slashes
         expect(encodeSubpath('path/to/file')).toBe('path/to/file')
@@ -1790,14 +1794,14 @@ describe('PackageURL', () => {
         )
 
         // Test line 73 in encodeVersion
-        const { encodeVersion } = require('../src/encode')
+        const { encodeVersion } = require('../dist/cjs/encode.js')
         expect(encodeVersion('1.0.0:rc1')).toBe('1.0.0:rc1')
         expect(encodeVersion('2.0.0:beta')).toBe('2.0.0:beta')
       })
 
       // Test normalize.js lines 103-104 - subpathFilter edge cases
       it('should test subpathFilter edge cases in normalize', () => {
-        const { normalizeSubpath } = require('../src/normalize')
+        const { normalizeSubpath } = require('../dist/cjs/normalize.js')
 
         // Test lines 103-104 - filters out single dot
         expect(normalizeSubpath('./path/to/file')).toBe('path/to/file')
@@ -1810,7 +1814,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js lines 109-110 - golang double slash normalization
       it('should test golang namespace normalization with double slashes', () => {
-        const { normalizeNamespace } = require('../src/normalize')
+        const { normalizeNamespace } = require('../dist/cjs/normalize.js')
 
         // Test lines 109-110 - golang normalizes double slashes
         expect(normalizeNamespace('github.com//owner//repo', 'golang')).toBe(
@@ -1848,7 +1852,7 @@ describe('PackageURL', () => {
 
       // Test validate.js line 46 - qualifier key validation return false
       it('should test qualifier key validation edge cases', () => {
-        const { validateQualifierKey } = require('../src/validate')
+        const { validateQualifierKey } = require('../dist/cjs/validate.js')
 
         // Test line 46 - returns false when validateStartsWithoutNumber fails
         expect(validateQualifierKey('1start', false)).toBe(false)
@@ -1866,7 +1870,7 @@ describe('PackageURL', () => {
       // Additional tests for 100% coverage
       // Test normalize.js lines 7, 13 - namespaceFilter
       it('should test namespace filter edge cases', () => {
-        const { normalizeNamespace } = require('../src/normalize')
+        const { normalizeNamespace } = require('../dist/cjs/normalize.js')
 
         // Test namespace normalization for various types
         // normalizeNamespace doesn't filter . and .. for namespaces
@@ -1882,7 +1886,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js lines 73-84 - normalizeSubpath with non-string
       it('should test normalizeSubpath with non-string values', () => {
-        const { normalizeSubpath } = require('../src/normalize')
+        const { normalizeSubpath } = require('../dist/cjs/normalize.js')
 
         expect(normalizeSubpath(123)).toBe(undefined)
         expect(normalizeSubpath(null)).toBe(undefined)
@@ -1891,7 +1895,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js line 95 - qualifiersToEntries with string
       it('should test qualifiersToEntries with string parameter', () => {
-        const { normalizeQualifiers } = require('../src/normalize')
+        const { normalizeQualifiers } = require('../dist/cjs/normalize.js')
 
         const result = normalizeQualifiers('key1=value1&key2=value2')
         expect(result).toEqual({ key1: 'value1', key2: 'value2' })
@@ -1899,7 +1903,7 @@ describe('PackageURL', () => {
 
       // Test encode.js line 21 - encodeNamespace with empty string
       it('should test encodeNamespace with empty values', () => {
-        const { encodeNamespace } = require('../src/encode')
+        const { encodeNamespace } = require('../dist/cjs/encode.js')
 
         expect(encodeNamespace('')).toBe('')
         expect(encodeNamespace(null)).toBe('')
@@ -1908,7 +1912,7 @@ describe('PackageURL', () => {
 
       // Test encode.js line 73 - encodeVersion with colons
       it('should test encodeVersion preserves colons', () => {
-        const { encodeVersion } = require('../src/encode')
+        const { encodeVersion } = require('../dist/cjs/encode.js')
 
         expect(encodeVersion('')).toBe('')
         expect(encodeVersion(null)).toBe('')
@@ -1917,7 +1921,7 @@ describe('PackageURL', () => {
 
       // Test purl-component.js line 33 - PurlComponentEncoder with empty
       it('should test PurlComponentEncoder with non-strings', () => {
-        const pc = require('../src/purl-component')
+        const pc = require('../dist/cjs/purl-component.js')
 
         // Test the encode function with empty values
         const encoded = pc.PurlComponentEncoder(null)
@@ -1930,7 +1934,7 @@ describe('PackageURL', () => {
 
       // Test purl-component.js line 38 - PurlComponentValidator
       it('should test PurlComponentValidator', () => {
-        const pc = require('../src/purl-component')
+        const pc = require('../dist/cjs/purl-component.js')
         // Test the validator function - it always returns true
         const result1 = pc.PurlComponentValidator('test', true)
         expect(result1).toBe(true)
@@ -1942,7 +1946,7 @@ describe('PackageURL', () => {
 
       // Test purl-component.js line 53 - componentSortOrder default
       it('should test component comparator with unknown components', () => {
-        const pc = require('../src/purl-component')
+        const pc = require('../dist/cjs/purl-component.js')
 
         // Test comparator with unknown component names
         const order = pc.componentComparator('unknown1', 'unknown2')
@@ -1955,7 +1959,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 291-294 - npm namespace with trailing spaces
       it('should test npm namespace with leading/trailing spaces', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         const comp = { namespace: ' @namespace ', name: 'test' }
         const result = PurlType.npm.validate(comp, false)
@@ -1968,7 +1972,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 335-338 - npm name uppercase for non-legacy
       it('should test npm name uppercase validation edge case', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         // Test a package name that's definitely not in the legacy list
         const comp = {
@@ -1996,7 +2000,7 @@ describe('PackageURL', () => {
 
       // Test validate.js line 46 - validateQualifierKey early return
       it('should test validateQualifierKey with number start', () => {
-        const { validateQualifiers } = require('../src/validate')
+        const { validateQualifiers } = require('../dist/cjs/validate.js')
 
         const qualifiers = { '9key': 'value' }
         const result = validateQualifiers(qualifiers, false)
@@ -2007,7 +2011,7 @@ describe('PackageURL', () => {
 
       // Test objects.js line 33 - else branch (non-array)
       it('should test recursiveFreeze with objects that have getters', () => {
-        const { recursiveFreeze } = require('../src/objects')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         const obj = {
           get computed() {
@@ -2022,7 +2026,7 @@ describe('PackageURL', () => {
       // Final tests for 100% coverage
       // Test normalize.js lines 7, 13 - subpath filtering
       it('should test subpath with dot segments', () => {
-        const { normalizeSubpath } = require('../src/normalize')
+        const { normalizeSubpath } = require('../dist/cjs/normalize.js')
 
         // Test lines 7, 13 - filters . and ..
         expect(normalizeSubpath('./path/to/file')).toBe('path/to/file')
@@ -2033,7 +2037,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js lines 80-84
       it('should test normalizeType and normalizeVersion edge cases', () => {
-        const norm = require('../src/normalize')
+        const norm = require('../dist/cjs/normalize.js')
 
         // Export these functions for testing
         expect(norm.normalizeType).toBeDefined()
@@ -2046,7 +2050,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js line 95
       it('should test qualifiersToEntries with URLSearchParams string', () => {
-        const { normalizeQualifiers } = require('../src/normalize')
+        const { normalizeQualifiers } = require('../dist/cjs/normalize.js')
 
         const result = normalizeQualifiers('foo=bar&baz=qux')
         expect(result).toHaveProperty('foo', 'bar')
@@ -2057,7 +2061,7 @@ describe('PackageURL', () => {
 
       // Test objects.js line 33 - property descriptor iteration
       it('should test recursiveFreeze with symbols and non-enumerable props', () => {
-        const { recursiveFreeze } = require('../src/objects')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         const sym = Symbol('test')
         const obj = {
@@ -2089,7 +2093,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 273-277 - npm name trimming
       it('should test npm name with leading/trailing spaces', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         const comp = { namespace: '', name: ' test-name ' }
         const result = PurlType.npm.validate(comp, false)
@@ -2102,7 +2106,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 281-285 - npm name starting with dot
       it('should test npm name starting with dot', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         const comp = { namespace: '', name: '.hidden-package' }
         const result = PurlType.npm.validate(comp, false)
@@ -2115,7 +2119,7 @@ describe('PackageURL', () => {
 
       // Test validate.js line 40 - URLSearchParams check
       it('should test validateQualifiers with URLSearchParams instance', () => {
-        const { validateQualifiers } = require('../src/validate')
+        const { validateQualifiers } = require('../dist/cjs/validate.js')
 
         const params = new URLSearchParams()
         params.append('valid_key', 'value')
@@ -2126,10 +2130,10 @@ describe('PackageURL', () => {
       // Test validate.js lines 121, 135, 156 - various validation branches
       it('should test validation utility functions thoroughly', () => {
         const {
+          validateRequiredByType,
           validateStartsWithoutNumber,
           validateSubpath,
-          validateRequiredByType,
-        } = require('../src/validate')
+        } = require('../dist/cjs/validate.js')
 
         // Test line 121 - validateStartsWithoutNumber
         expect(validateStartsWithoutNumber('test', '0start', false)).toBe(false)
@@ -2153,7 +2157,7 @@ describe('PackageURL', () => {
       // Additional tests for remaining uncovered lines
       // Test purl-type.js lines 220-223 - golang version validation
       it('should test golang version validation', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         // Test golang version starting with v but not valid semver
         const comp = {
@@ -2171,7 +2175,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 281-285 - npm name starting with underscore
       it('should test npm name starting with underscore', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         const comp = { namespace: '', name: '_hidden' }
         const result = PurlType.npm.validate(comp, false)
@@ -2184,7 +2188,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js lines 7, 13 - namespace path filtering
       it('should test namespace path filtering', () => {
-        const { normalizeNamespace } = require('../src/normalize')
+        const { normalizeNamespace } = require('../dist/cjs/normalize.js')
 
         // For types that filter paths
         const result = normalizeNamespace('vendor/package', 'composer')
@@ -2197,7 +2201,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js line 95 - qualifiersToEntries edge case
       it('should test qualifiersToEntries with invalid input', () => {
-        const norm = require('../src/normalize')
+        const norm = require('../dist/cjs/normalize.js')
         // Direct test of qualifiersToEntries
         expect(norm.normalizeQualifiers).toBeDefined()
         const result = norm.normalizeQualifiers(123)
@@ -2220,7 +2224,7 @@ describe('PackageURL', () => {
 
       // Test objects.js line 33 - Object.values path
       it('should test recursiveFreeze with Object.values path', () => {
-        const { recursiveFreeze } = require('../src/objects')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         // Test the else path for non-arrays
         const obj = { a: { b: 1 }, c: { d: 2 } }
@@ -2231,7 +2235,7 @@ describe('PackageURL', () => {
 
       // Test validate.js lines 121, 135, 156 - edge cases
       it('should test additional validation edge cases', () => {
-        const val = require('../src/validate')
+        const val = require('../dist/cjs/validate.js')
 
         // Test validateSubpath with various inputs (line 135)
         expect(val.validateSubpath(undefined, false)).toBe(true)
@@ -2268,7 +2272,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 194-197 - conan with namespace but no qualifiers
       it('should test conan validation with namespace but no qualifiers', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         const comp = { namespace: 'namespace', name: 'test', qualifiers: null }
         const result = PurlType.conan.validate(comp, false)
@@ -2281,7 +2285,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 281-285 - npm name edge cases
       it('should test npm name with period and underscore prefixes', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         // Test name starting with period
         const comp1 = { namespace: '', name: '.test' }
@@ -2296,7 +2300,7 @@ describe('PackageURL', () => {
 
       // Test normalize.js line 7 - filtering single dot
       it('should test normalize filtering single dots', () => {
-        const { normalizeSubpath } = require('../src/normalize')
+        const { normalizeSubpath } = require('../dist/cjs/normalize.js')
 
         // Test filtering of single dots in paths
         const result = normalizeSubpath('path/./to/./file')
@@ -2305,7 +2309,7 @@ describe('PackageURL', () => {
 
       // Test error.js line 12 - the && condition
       it('should test error uppercase check condition', () => {
-        const { formatPurlErrorMessage } = require('../src/error')
+        const { formatPurlErrorMessage } = require('../dist/cjs/error.js')
 
         // Test the boundary condition
         const result1 = formatPurlErrorMessage('A')
@@ -2318,7 +2322,7 @@ describe('PackageURL', () => {
 
       // Test objects.js line 33 - else branch with Object.values
       it('should test recursiveFreeze with plain objects', () => {
-        const { recursiveFreeze } = require('../src/objects')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         // Force the else branch (not an array)
         const obj = Object.create(null)
@@ -2332,7 +2336,7 @@ describe('PackageURL', () => {
 
       // Test validate.js final edge cases
       it('should test validate functions final edge cases', () => {
-        const val = require('../src/validate')
+        const val = require('../dist/cjs/validate.js')
 
         // Test validateStartsWithoutNumber with actual number start (line 121)
         const result1 = val.validateStartsWithoutNumber('key', '5test', false)
@@ -2350,7 +2354,7 @@ describe('PackageURL', () => {
       // Additional tests for 100% coverage
       // Test purl-type.js lines 185-189 - conan with channel but no namespace
       it('should test conan validation with channel qualifier but no namespace', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         const comp = {
           namespace: '',
@@ -2417,7 +2421,7 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 281-285 - npm name validation
       it('should test npm name prefix validation thoroughly', () => {
-        const { PurlType } = require('../src/purl-type')
+        const { PurlType } = require('../dist/cjs/purl-type.js')
 
         // Test line 283 - period check
         const comp1 = { namespace: '', name: '.hidden' }
@@ -2435,7 +2439,7 @@ describe('PackageURL', () => {
       // Additional branch coverage tests
       it('should test all branch conditions', () => {
         // Test error.js line 12 - both branches
-        const { formatPurlErrorMessage } = require('../src/error')
+        const { formatPurlErrorMessage } = require('../dist/cjs/error.js')
 
         // Character code 65 is 'A', 90 is 'Z'
         expect(formatPurlErrorMessage('A message')).toBe(
@@ -2452,13 +2456,13 @@ describe('PackageURL', () => {
         ) // Before A
 
         // Test normalize.js line 7 - namespace filter
-        const { normalizeNamespace } = require('../src/normalize')
+        const { normalizeNamespace } = require('../dist/cjs/normalize.js')
         expect(normalizeNamespace('.', 'composer')).toBe('.')
         expect(normalizeNamespace('..', 'composer')).toBe('..')
         expect(normalizeNamespace('.hidden', 'generic')).toBe('.hidden')
 
         // Test objects.js line 33 - array vs object branch
-        const { recursiveFreeze } = require('../src/objects')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         // Test with array
         const arr = [{ a: 1 }, { b: 2 }]
@@ -2473,7 +2477,7 @@ describe('PackageURL', () => {
 
       // Test for line 169 - decodePurlComponent
       it('should handle purl with encoded type component (edge case)', () => {
-        const { PackageURL } = require('../src/package-url')
+        const { PackageURL } = require('../dist/cjs/package-url.js')
 
         // Test a type that contains URL-encoded characters
         const purlWithEncodedType = 'pkg:type%2Dwith%2Ddashes/namespace/name'
@@ -2485,7 +2489,7 @@ describe('PackageURL', () => {
 
       // Additional coverage tests for edge cases
       it('should test normalizeName with non-string input', () => {
-        const { normalizeName } = require('../src/normalize')
+        const { normalizeName } = require('../dist/cjs/normalize.js')
 
         // Test with non-string input (line 7 branch)
         expect(normalizeName(null)).toBe(undefined)
@@ -2494,7 +2498,7 @@ describe('PackageURL', () => {
       })
 
       it('should test recursiveFreeze with functions', () => {
-        const { recursiveFreeze } = require('../src/objects')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         // Test freezing objects containing functions (line 35 branch)
         const objWithFunc = {
@@ -2510,10 +2514,10 @@ describe('PackageURL', () => {
 
       it('should test validation edge cases', () => {
         const {
-          validateStrings,
           validateStartsWithoutNumber,
+          validateStrings,
           validateType,
-        } = require('../src/validate')
+        } = require('../dist/cjs/validate.js')
 
         // Test validateStrings with non-string input (line 121)
         expect(validateStrings('test', 123, false)).toBe(false)
@@ -2615,7 +2619,7 @@ describe('PackageURL', () => {
       })
 
       it('should test deep freeze with function type', () => {
-        const { recursiveFreeze } = require('../src/objects')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         // Test freezing object with function as property
         const func = function () {
@@ -2658,7 +2662,7 @@ describe('PackageURL', () => {
       })
 
       it('should test deep freeze with array containing functions', () => {
-        const { recursiveFreeze } = require('../src/objects')
+        const { recursiveFreeze } = require('../dist/cjs/objects.js')
 
         // Test freezing array with functions (line 33 branch for typeof item === 'function')
         const func1 = function () {
@@ -2725,7 +2729,7 @@ describe('PackageURL', () => {
 
         // Mock URL to throw error
         global.URL = class MockURL {
-          constructor(url: string) {
+          constructor(_url: string) {
             callCount++
             // Always throw to trigger the catch block
             throw new Error('Mocked URL error')
