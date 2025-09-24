@@ -142,7 +142,7 @@ This is a TypeScript implementation of the Package URL (purl) specification for 
 - **Types**: Type-specific handling for npm, pypi, maven, etc.
 - **Scripts**: `scripts/` - Build and utility scripts
 - **Tests**: `test/` - Comprehensive test suite
-- **Build output**: `dist/cjs/` - CommonJS TypeScript compilation output
+- **Build output**: `dist/` - CommonJS TypeScript compilation output
 
 ### Key Features
 - Full purl specification compliance
