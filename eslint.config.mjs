@@ -161,9 +161,6 @@ export default [
     languageOptions: {
       sourceType: 'module',
     },
-    rules: {
-      'import-x/extensions': ['error', 'never', { mts: 'never' }],
-    },
   },
   {
     files: ['**/*.ts', '**/*.mts'],
