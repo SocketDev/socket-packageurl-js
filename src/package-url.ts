@@ -43,6 +43,12 @@ import type {
 import type { Result } from './result.js'
 import type { DownloadUrl, RepositoryUrl } from './url-converter.js'
 
+// Pattern to match URLs with schemes other than "pkg".
+const OTHER_SCHEME_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//
+
+// Pattern to match purl-like strings with type/name format.
+const PURL_LIKE_PATTERN = /^[a-zA-Z0-9+.-]+\//
+
 class PackageURL {
   static Component = recursiveFreeze(PurlComponent)
   static KnownQualifierNames = recursiveFreeze(PurlQualifierNames)
@@ -285,6 +291,18 @@ class PackageURL {
     }
     if (isBlank(purlStr)) {
       return [undefined, undefined, undefined, undefined, undefined, undefined]
+    }
+
+    // If the string doesn't start with "pkg:" but looks like a purl format, prepend "pkg:" and try parsing.
+    if (!purlStr.startsWith('pkg:')) {
+      // Only auto-prepend "pkg:" if the string looks like a purl (contains a type/name pattern)
+      // and doesn't look like a URL with a different scheme
+      const hasOtherScheme = OTHER_SCHEME_PATTERN.test(purlStr)
+      const looksLikePurl = PURL_LIKE_PATTERN.test(purlStr)
+
+      if (!hasOtherScheme && looksLikePurl) {
+        return PackageURL.parseString(`pkg:${purlStr}`)
+      }
     }
 
     // Split the remainder once from left on ':'.

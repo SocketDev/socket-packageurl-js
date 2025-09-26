@@ -471,6 +471,122 @@ describe('PackageURL', () => {
     })
   })
 
+  describe('fromString() without pkg: prefix', () => {
+    it('should parse basic purl without pkg: prefix', () => {
+      const purl = PackageURL.fromString('npm/lodash@4.17.21')
+      expect(purl.type).toBe('npm')
+      expect(purl.namespace).toBe(undefined)
+      expect(purl.name).toBe('lodash')
+      expect(purl.version).toBe('4.17.21')
+      expect(purl.toString()).toBe('pkg:npm/lodash@4.17.21')
+    })
+
+    it('should parse purl with namespace without pkg: prefix', () => {
+      const purl = PackageURL.fromString('npm/@aws-crypto/crc32@3.0.0')
+      expect(purl.type).toBe('npm')
+      expect(purl.namespace).toBe('@aws-crypto')
+      expect(purl.name).toBe('crc32')
+      expect(purl.version).toBe('3.0.0')
+      expect(purl.toString()).toBe('pkg:npm/%40aws-crypto/crc32@3.0.0')
+    })
+
+    it('should parse purl with qualifiers without pkg: prefix', () => {
+      const purl = PackageURL.fromString('npm/express@4.18.2?arch=x64&os=linux')
+      expect(purl.type).toBe('npm')
+      expect(purl.name).toBe('express')
+      expect(purl.version).toBe('4.18.2')
+      expect(purl.qualifiers).toStrictEqual({
+        __proto__: null,
+        arch: 'x64',
+        os: 'linux',
+      })
+      expect(purl.toString()).toBe('pkg:npm/express@4.18.2?arch=x64&os=linux')
+    })
+
+    it('should parse purl with subpath without pkg: prefix', () => {
+      const purl = PackageURL.fromString('npm/lodash@4.17.21#lib/index.js')
+      expect(purl.type).toBe('npm')
+      expect(purl.name).toBe('lodash')
+      expect(purl.version).toBe('4.17.21')
+      expect(purl.subpath).toBe('lib/index.js')
+      expect(purl.toString()).toBe('pkg:npm/lodash@4.17.21#lib/index.js')
+    })
+
+    it('should parse complex purl without pkg: prefix', () => {
+      const purl = PackageURL.fromString('maven/com.fasterxml.jackson.core/jackson-databind@2.13.0?classifier=sources#META-INF/MANIFEST.MF')
+      expect(purl.type).toBe('maven')
+      expect(purl.namespace).toBe('com.fasterxml.jackson.core')
+      expect(purl.name).toBe('jackson-databind')
+      expect(purl.version).toBe('2.13.0')
+      expect(purl.qualifiers).toStrictEqual({
+        __proto__: null,
+        classifier: 'sources',
+      })
+      expect(purl.subpath).toBe('META-INF/MANIFEST.MF')
+      expect(purl.toString()).toBe('pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0?classifier=sources#META-INF/MANIFEST.MF')
+    })
+
+    it('should parse various package types without pkg: prefix', () => {
+      const testCases = [
+        'pypi/django@4.1.0',
+        'gem/rails@7.0.0',
+        'cargo/serde@1.0.0',
+        'nuget/Newtonsoft.Json@13.0.1',
+        'composer/symfony/console@6.0.0',
+        'golang/github.com/gin-gonic/gin@v1.9.0',
+      ]
+
+      for (const testCase of testCases) {
+        const purl = PackageURL.fromString(testCase)
+        const withPkgPrefix = PackageURL.fromString(`pkg:${testCase}`)
+
+        expect(purl.toString()).toBe(withPkgPrefix.toString())
+        expect(purl.type).toBe(withPkgPrefix.type)
+        expect(purl.namespace).toBe(withPkgPrefix.namespace)
+        expect(purl.name).toBe(withPkgPrefix.name)
+        expect(purl.version).toBe(withPkgPrefix.version)
+      }
+    })
+
+    it('should handle encoded components without pkg: prefix', () => {
+      const purl = PackageURL.fromString('type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path')
+      expect(purl.type).toBe('type')
+      expect(purl.namespace).toBe('name#space')
+      expect(purl.name).toBe('na#me')
+      expect(purl.version).toBe('ver#sion')
+      expect(purl.qualifiers).toStrictEqual({
+        __proto__: null,
+        foo: 'bar#baz',
+      })
+      expect(purl.subpath).toBe('sub#path')
+      expect(purl.toString()).toBe('pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path')
+    })
+
+    it('should handle edge cases without pkg: prefix', () => {
+      // Type only (doesn't look like purl pattern, so should fail with missing pkg scheme)
+      expect(() => PackageURL.fromString('type')).toThrow(/missing required "pkg" scheme/)
+
+      // Empty string (should still fail)
+      expect(() => PackageURL.fromString('')).toThrow()
+
+      // Type with name only
+      const purl1 = PackageURL.fromString('npm/lodash')
+      expect(purl1.type).toBe('npm')
+      expect(purl1.name).toBe('lodash')
+      expect(purl1.version).toBe(undefined)
+    })
+
+    it('should preserve original behavior for strings already starting with pkg:', () => {
+      const purl1 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+      const purl2 = PackageURL.fromString('npm/lodash@4.17.21')
+
+      expect(purl1.toString()).toBe(purl2.toString())
+      expect(purl1.type).toBe(purl2.type)
+      expect(purl1.name).toBe(purl2.name)
+      expect(purl1.version).toBe(purl2.version)
+    })
+  })
+
   describe('test-suite-data', async () => {
     // Tests from the official purl-spec test suite (data/*.json files)
     const TEST_FILES = (
