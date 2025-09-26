@@ -32,7 +32,7 @@ pnpm install @socketregistry/packageurl-js
 ## Usage
 
 ```javascript
-import { PackageURL, PackageURLBuilder } from '@socketregistry/packageurl-js'
+import { PackageURL, PackageURLBuilder, UrlConverter } from '@socketregistry/packageurl-js'
 
 // Parse from string
 const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
@@ -40,44 +40,41 @@ console.log(purl.name)      // 'lodash'
 
 // Create from components
 const newPurl = new PackageURL('npm', null, 'express', '4.18.2')
+// -> 'pkg:npm/express@4.18.2'
 
-// Builder pattern
-const builtPurl = PackageURLBuilder
+// Builder pattern - ecosystem-specific builders
+const npmPurl = PackageURLBuilder
   .npm()
   .name('lodash')
   .version('4.17.21')
   .build()
-```
+// -> 'pkg:npm/lodash@4.17.21'
 
-### Builders & URL Conversion
+const pythonPurl = PackageURLBuilder
+  .pypi()
+  .name('requests')
+  .version('2.28.1')
+  .build()
+// -> 'pkg:pypi/requests@2.28.1'
 
-```javascript
-// Ecosystem-specific builders
-PackageURLBuilder.npm()       // npm
-PackageURLBuilder.pypi()      // Python
-PackageURLBuilder.maven()     // Java/Maven
-PackageURLBuilder.cargo()     // Rust
-PackageURLBuilder.gem()       // Ruby
-
-// URL conversion
-import { UrlConverter } from '@socketregistry/packageurl-js'
-const repoUrl = UrlConverter.toRepositoryUrl(purl)
-const downloadUrl = UrlConverter.toDownloadUrl(purl)
-```
-
-### Advanced
-
-```javascript
-// Namespaces and qualifiers
-const purl = PackageURLBuilder
+const javaPurl = PackageURLBuilder
   .maven()
   .namespace('org.springframework')
   .name('spring-core')
+  .version('5.3.21')
   .qualifier('classifier', 'sources')
   .build()
+// -> 'pkg:maven/org.springframework/spring-core@5.3.21?classifier=sources'
 
-// Subpaths
-new PackageURL('npm', '@babel', 'runtime', '7.18.6', null, 'helpers/typeof.js')
+// Subpaths for packages like npm/@babel/runtime
+const subpathPurl = new PackageURL('npm', '@babel', 'runtime', '7.18.6', null, 'helpers/typeof.js')
+// -> 'pkg:npm/%40babel/runtime@7.18.6#helpers/typeof.js'
+
+// URL conversion
+const repoUrl = UrlConverter.toRepositoryUrl(purl)
+// -> 'https://github.com/lodash/lodash'
+const downloadUrl = UrlConverter.toDownloadUrl(purl)
+// -> 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz'
 ```
 
 ## Development
