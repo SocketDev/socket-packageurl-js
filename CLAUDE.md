@@ -59,6 +59,14 @@ You are a **Principal Software Engineer** responsible for:
 #### Test Organization Best Practices
 - **Modular test files**: Split large test files by functionality for better maintainability
 - **Descriptive naming**: Use clear, descriptive test file names that reflect what's being tested
+- **Test directory structure**: 🚨 MANDATORY - Standardize test directory organization across all Socket projects:
+  ```
+  test/
+  ├── unit/                   # Unit tests
+  ├── integration/           # Integration tests (if applicable)
+  ├── fixtures/              # Test fixtures and data files
+  └── utils/                 # Test utilities and helpers
+  ```
 - **Test utilities organization**: 🚨 MANDATORY - Organize test utilities in `test/utils/` directory
   - **Directory structure**: Create `test/utils/` subdirectory for reusable test utilities
   - **File naming**: Use descriptive names like `test-utils.mts`, `mock-helpers.mts`, `setup-helpers.mts`
@@ -67,6 +75,10 @@ You are a **Principal Software Engineer** responsible for:
   - **Examples**:
     - ✅ CORRECT: `import { setupTestEnvironment } from './utils/test-utils.mts'`
     - ❌ OLD PATTERN: `import { setupTestEnvironment } from './test-utils.mts'`
+- **Test fixtures**: Store reusable test data, mock responses, and sample files in `test/fixtures/` directory
+  - **Organization**: Group fixtures by test category or functionality
+  - **File formats**: Support JSON, text, binary files as needed for comprehensive testing
+  - **Naming**: Use descriptive names that clearly indicate the fixture's purpose
 - **Proper mocking**: Clean up mocks properly to prevent test interference
 - **Error scenarios**: Test both success and error paths for comprehensive coverage
 - **Edge cases**: Include tests for unusual but valid inputs and error conditions
@@ -110,6 +122,10 @@ You are a **Principal Software Engineer** responsible for:
 - **Script execution**: Always use `pnpm run <script>` for package.json scripts to distinguish from built-in pnpm commands
   - ✅ CORRECT: `pnpm run build`, `pnpm run test`, `pnpm run check`
   - ❌ AVOID: `pnpm build`, `pnpm test` (unclear if built-in or script)
+- **README installation examples**: 🚨 MANDATORY - All package installation examples in README.md files MUST use `pnpm install` instead of `npm install`
+  - ✅ CORRECT: `pnpm install @socketregistry/packageurl-js`
+  - ❌ WRONG: `npm install @socketregistry/packageurl-js`
+  - **Rationale**: Maintain consistency with project's chosen package manager across all documentation
 - **Dynamic imports**: Only use dynamic imports for test mocking (e.g., `vi.importActual` in Vitest). Avoid runtime dynamic imports in production code
 
 ## Important Project-Specific Rules
