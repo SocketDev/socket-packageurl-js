@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Shared constants used across the PURL library.
+ * Includes loop sentinels and reusable URL search parameter utilities.
+ */
+
 const LOOP_SENTINEL = 1_000_000
 
 const REUSED_SEARCH_PARAMS = new URLSearchParams()

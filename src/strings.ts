@@ -1,10 +1,15 @@
+/**
+ * @fileoverview String utility functions for PURL processing.
+ * Includes whitespace detection, semver validation, locale comparison, and character replacement.
+ */
+
 // Intl.Collator is faster than String#localeCompare
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare:
 // > When comparing large numbers of strings, such as in sorting large arrays,
 // > it is better to create an Intl.Collator object and use the function provided
 // > by its compare() method.
-let _localeCompare: any
-function localeCompare(x: any, y: any) {
+let _localeCompare: Intl.Collator['compare'] | undefined
+function localeCompare(x: string, y: string): number {
   if (_localeCompare === undefined) {
     // Lazily call new Intl.Collator() because in Node it can take 10-14ms.
     _localeCompare = new Intl.Collator().compare
@@ -17,7 +22,7 @@ function localeCompare(x: any, y: any) {
 const regexSemverNumberedGroups =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
-function isBlank(str: any) {
+function isBlank(str: string): boolean {
   for (let i = 0, { length } = str; i < length; i += 1) {
     const code = str.charCodeAt(i)
     // biome-ignore format: newlines
@@ -60,33 +65,33 @@ function isBlank(str: any) {
   return true
 }
 
-function isNonEmptyString(value: any) {
+function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0
 }
 
-function isSemverString(value: any) {
+function isSemverString(value: unknown): value is string {
   return typeof value === 'string' && regexSemverNumberedGroups.test(value)
 }
 
-function lowerName(purl: any) {
+function lowerName(purl: { name: string }): void {
   purl.name = purl.name.toLowerCase()
 }
 
-function lowerNamespace(purl: any) {
+function lowerNamespace(purl: { namespace?: string }): void {
   const { namespace } = purl
   if (typeof namespace === 'string') {
     purl.namespace = namespace.toLowerCase()
   }
 }
 
-function lowerVersion(purl: any) {
+function lowerVersion(purl: { version?: string }): void {
   const { version } = purl
   if (typeof version === 'string') {
     purl.version = version.toLowerCase()
   }
 }
 
-function replaceDashesWithUnderscores(str: any) {
+function replaceDashesWithUnderscores(str: string): string {
   // Replace all "-" with "_"
   let result = ''
   let fromIndex = 0
@@ -98,7 +103,7 @@ function replaceDashesWithUnderscores(str: any) {
   return fromIndex ? result + str.slice(fromIndex) : str
 }
 
-function replaceUnderscoresWithDashes(str: any) {
+function replaceUnderscoresWithDashes(str: string): string {
   // Replace all "_" with "-"
   let result = ''
   let fromIndex = 0
@@ -110,7 +115,7 @@ function replaceUnderscoresWithDashes(str: any) {
   return fromIndex ? result + str.slice(fromIndex) : str
 }
 
-function trimLeadingSlashes(str: any) {
+function trimLeadingSlashes(str: string): string {
   let start = 0
   while (str.charCodeAt(start) === 47 /*'/'*/) {
     start += 1
