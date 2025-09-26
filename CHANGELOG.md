@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.1](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.1) - 2025-09-26
+
+### Changed
+- Removed pnpm engine requirement from package.json
+
 ## [1.1.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.0) - 2025-09-26
 
 ### Added
