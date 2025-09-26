@@ -20,11 +20,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @fileoverview Main entry point for the socket-packageurl-js library.
+ * Provides exports for PackageURL, PurlComponent, PurlQualifierNames, and PurlType.
+ */
+
 /* c8 ignore start - Re-export only file, no logic to test. */
 export {
+  Err,
+  Ok,
   PackageURL,
+  PackageURLBuilder,
   PurlComponent,
   PurlQualifierNames,
   PurlType,
+  ResultUtils,
+  UrlConverter,
+  err,
+  ok,
 } from './src/package-url.js'
+export type { DownloadUrl, RepositoryUrl, Result } from './src/package-url.js'
 /* c8 ignore stop */
