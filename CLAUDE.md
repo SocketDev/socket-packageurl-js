@@ -56,6 +56,21 @@ You are a **Principal Software Engineer** responsible for:
 - **Thread limits**: Use `singleThread: true, maxThreads: 1` to prevent RegExp compiler exhaustion
 - **Test cleanup**: 🚨 MANDATORY - Use `await trash([paths])` in test scripts/utilities only. For cleanup within `/src/` test files, use `fs.rm()` with proper error handling
 
+#### Test Organization Best Practices
+- **Modular test files**: Split large test files by functionality for better maintainability
+- **Descriptive naming**: Use clear, descriptive test file names that reflect what's being tested
+- **Test utilities organization**: 🚨 MANDATORY - Organize test utilities in `test/utils/` directory
+  - **Directory structure**: Create `test/utils/` subdirectory for reusable test utilities
+  - **File naming**: Use descriptive names like `test-utils.mts`, `mock-helpers.mts`, `setup-helpers.mts`
+  - **Import paths**: Update all test file imports to reference `./utils/` path
+  - **Cross-project consistency**: Apply this pattern across all Socket projects for standardization
+  - **Examples**:
+    - ✅ CORRECT: `import { setupTestEnvironment } from './utils/test-utils.mts'`
+    - ❌ OLD PATTERN: `import { setupTestEnvironment } from './test-utils.mts'`
+- **Proper mocking**: Clean up mocks properly to prevent test interference
+- **Error scenarios**: Test both success and error paths for comprehensive coverage
+- **Edge cases**: Include tests for unusual but valid inputs and error conditions
+
 ### Cross-Platform Compatibility - CRITICAL: Windows and POSIX
 - **🚨 MANDATORY**: Tests and functionality MUST work on both POSIX (macOS/Linux) and Windows systems
 - **Path handling**: ALWAYS use `path.join()`, `path.resolve()`, `path.sep` for file paths
@@ -73,6 +88,8 @@ You are a **Principal Software Engineer** responsible for:
   - Use `path.sep` when you need the separator character
   - Use `path.join()` to construct paths correctly
 - **File URLs**: Use `pathToFileURL()` and `fileURLToPath()` from `node:url` when working with file:// URLs
+  - ❌ WRONG: `path.dirname(new URL(import.meta.url).pathname)` (Windows path doubling)
+  - ✅ CORRECT: `path.dirname(fileURLToPath(import.meta.url))` (cross-platform)
 - **Line endings**: Be aware of CRLF (Windows) vs LF (Unix) differences when processing text files
 - **Shell commands**: Consider platform differences in shell commands and utilities
 
@@ -90,6 +107,9 @@ You are a **Principal Software Engineer** responsible for:
 - **Add dev dependency**: `pnpm add -D <package> --save-exact`
 - **🚨 MANDATORY**: Always add dependencies with exact versions using `--save-exact` flag to ensure reproducible builds
 - **Update dependencies**: `pnpm update`
+- **Script execution**: Always use `pnpm run <script>` for package.json scripts to distinguish from built-in pnpm commands
+  - ✅ CORRECT: `pnpm run build`, `pnpm run test`, `pnpm run check`
+  - ❌ AVOID: `pnpm build`, `pnpm test` (unclear if built-in or script)
 - **Dynamic imports**: Only use dynamic imports for test mocking (e.g., `vi.importActual` in Vitest). Avoid runtime dynamic imports in production code
 
 ## Important Project-Specific Rules
@@ -130,6 +150,22 @@ You are a **Principal Software Engineer** responsible for:
 - Handle edge cases gracefully
 - Never throw on valid purls
 
+## Changelog Management
+
+When updating the changelog (`CHANGELOG.md`):
+- Version headers should be formatted as markdown links to GitHub releases
+- Use the format: `## [version](https://github.com/SocketDev/socket-packageurl-js/releases/tag/vversion) - date`
+- Example: `## [1.0.2](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.0.2) - 2025-01-15`
+- This allows users to click version numbers to view the corresponding GitHub release
+
+### Keep a Changelog Compliance
+Follow the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format:
+- Use standard sections: Added, Changed, Fixed, Removed (Security if applicable)
+- Maintain chronological order with latest version first
+- Include release dates in YYYY-MM-DD format
+- Make entries human-readable, not machine diffs
+- Focus on notable changes that impact users
+
 ## Architecture
 
 This is a TypeScript implementation of the Package URL (purl) specification for parsing and constructing package URLs, compiled to CommonJS for deployment.
@@ -156,8 +192,20 @@ This is a TypeScript implementation of the Package URL (purl) specification for 
 
 ### 📁 File Organization
 - **File extensions**: Use `.ts` for TypeScript files, `.js` for JavaScript files, `.mjs` for ES modules
+- **Module headers**: 🚨 MANDATORY - All JavaScript/TypeScript modules MUST have `@fileoverview` headers
+  - **Format**: Use `/** @fileoverview Brief description of module purpose. */` at the top of each file
+  - **Placement**: Must be the very first content in the file, before imports or other code
+  - **Content**: Provide a concise, clear description of what the module does and its primary purpose
+  - **Examples**:
+    - ✅ CORRECT: `/** @fileoverview Package URL parsing and validation utilities for various ecosystems. */`
+    - ✅ CORRECT: `/** @fileoverview Type definitions and interfaces for Package URL specification. */`
+    - ❌ FORBIDDEN: Missing @fileoverview header entirely
+    - ❌ FORBIDDEN: Placing @fileoverview after imports or other code
 - **Import order**: Node.js built-ins first, then third-party packages, then local imports
 - **Import grouping**: Group imports by source (Node.js, external packages, local modules)
+- **Node.js module imports**: 🚨 MANDATORY - Always use `node:` prefix for Node.js built-in modules
+  - ✅ CORRECT: `import { readFile } from 'node:fs'`, `import path from 'node:path'`
+  - ❌ FORBIDDEN: `import { readFile } from 'fs'`, `import path from 'path'`
 - **Type imports**: 🚨 ALWAYS use separate `import type` statements for TypeScript types, NEVER mix runtime imports with type imports in the same statement
   - ✅ CORRECT: `import { readPackageJson } from '@socketsecurity/registry/lib/packages'` followed by `import type { PackageJson } from '@socketsecurity/registry/lib/packages'`
   - ❌ FORBIDDEN: `import { readPackageJson, type PackageJson } from '@socketsecurity/registry/lib/packages'`
@@ -172,6 +220,7 @@ This is a TypeScript implementation of the Package URL (purl) specification for 
 ### 🏗️ Code Structure (CRITICAL PATTERNS)
 - **Type definitions**: 🚨 ALWAYS use `import type` for better tree-shaking and TypeScript optimization
 - **Error handling**: 🚨 REQUIRED - Use try-catch blocks and handle errors gracefully
+- **TypeScript `any` types**: 🚨 FORBIDDEN - Use `any` as absolute last resort only. Prefer `unknown`, specific types, or type assertions. `any` disables type checking and should be avoided
 - **Array destructuring**: Use object notation `{ 0: key, 1: data }` instead of array destructuring `[key, data]`
 - **Dynamic imports**: 🚨 FORBIDDEN - Never use dynamic imports (`await import()`). Always use static imports at the top of the file
 - **Comment formatting**: 🚨 MANDATORY - ALL comments MUST follow these rules:
@@ -187,8 +236,10 @@ This is a TypeScript implementation of the Package URL (purl) specification for 
     - ✅ CORRECT: `// c8 ignore start - Reason for ignoring.` (explanation has period)
     - ❌ WRONG: `// this validates input` (no period, not capitalized)
     - ❌ WRONG: `const x = 5 // some value` (trailing comment)
+  - **JSDoc comments**: 🚨 SIMPLIFIED - Only use @throws for error documentation. Avoid @param and @returns tags - function signatures and good function names should be self-documenting.
 - **Sorting**: 🚨 MANDATORY - Always sort lists, exports, and items alphabetically for consistency
 - **Await in loops**: When using `await` inside for-loops, add `// eslint-disable-next-line no-await-in-loop` when sequential processing is intentional
+- **For...of loop type annotations**: 🚨 FORBIDDEN - Never use type annotations in for...of loop variable declarations. TypeScript cannot parse `for await (const chunk: Buffer of stream)` - use `for await (const chunk of stream)` instead and let TypeScript infer the type
 - **If statement returns**: Never use single-line return if statements; always use proper block syntax with braces
 - **List formatting**: Use `-` for bullet points in text output, not `•` or other Unicode characters
 - **Existence checks**: Perform simple existence checks first before complex operations
@@ -227,6 +278,49 @@ This is a TypeScript implementation of the Package URL (purl) specification for 
 - **Linting**: Uses ESLint, Oxlint, and Biome
 - **Line length**: Target 80 character line width where practical
 
+### 🏗️ Function Options Pattern (MANDATORY)
+- **🚨 REQUIRED**: ALL functions accepting options MUST follow this exact pattern:
+  ```typescript
+  function foo(a: SomeA, b: SomeB, options?: SomeOptions | undefined): FooResult {
+    const opts = { __proto__: null, ...options } as SomeOptions
+    // OR for destructuring with defaults:
+    const { someOption = 'someDefaultValue' } = { __proto__: null, ...options } as SomeOptions
+    // ... rest of function
+  }
+  ```
+- **Key requirements**:
+  - Options parameter MUST be optional with `?` and explicitly typed as `| undefined`
+  - MUST use `{ __proto__: null, ...options }` pattern to prevent prototype pollution
+  - MUST use `as SomeOptions` type assertion after spreading
+  - Use destructuring form when you need defaults for individual options
+  - Use direct assignment form when passing entire options object to other functions
+- **Examples**:
+  - ✅ CORRECT: `const opts = { __proto__: null, ...options } as SomeOptions`
+  - ✅ CORRECT: `const { timeout = 5000, retries = 3 } = { __proto__: null, ...options } as SomeOptions`
+  - ❌ FORBIDDEN: `const opts = { ...options }` (vulnerable to prototype pollution)
+  - ❌ FORBIDDEN: `const opts = options || {}` (doesn't handle null prototype)
+  - ❌ FORBIDDEN: `const opts = Object.assign({}, options)` (inconsistent pattern)
+
+### 🔧 TypeScript Index Signature Patterns (CRITICAL)
+- **Bracket notation access**: 🚨 MANDATORY - When accessing properties from objects with index signatures (created with `Object.create(null)`), use bracket notation to avoid TypeScript errors
+- **Optional chaining**: Use optional chaining (`?.`) with bracket notation when the object might be undefined
+- **Type assertions**: Use type assertions to help TypeScript understand the types of functions accessed through bracket notation
+- **DRY type definitions**: Create reusable type definitions for repeated patterns to improve maintainability
+- **Examples**:
+  - ✅ CORRECT: `PurlComponent['type']?.['normalize']` (bracket notation with optional chaining)
+  - ✅ CORRECT: `(PurlComponent['type']?.['normalize'] as ComponentNormalizer)?.(value)` (with type assertion)
+  - ❌ WRONG: `PurlComponent.type.normalize` (dot notation fails with index signatures)
+  - ❌ WRONG: `PurlComponent.type?.normalize` (mixed notation)
+- **Reusable type patterns**:
+  - `ComponentEncoder = (_value: unknown) => string` for encode functions
+  - `ComponentNormalizer = (_value: string) => string | undefined` for normalize functions
+  - `ComponentValidator = (_value: unknown, _throws: boolean) => boolean` for validate functions
+  - `QualifiersValue = string | number | boolean | null | undefined` for individual qualifier values
+  - `QualifiersObject = Record<string, QualifiersValue>` for qualifier objects
+- **ExactOptionalPropertyTypes handling**: When using TypeScript's `exactOptionalPropertyTypes`, conditionally assign optional properties only when they have values:
+  - ✅ CORRECT: `if (value !== undefined) { this.optionalProp = value as string }`
+  - ❌ WRONG: `this.optionalProp = value ?? undefined` (fails with exactOptionalPropertyTypes)
+
 ### Test Coverage
 - All `c8 ignore` comments MUST include a reason why the code is being ignored
 - All c8 ignore comments MUST end with periods for consistency
@@ -263,6 +357,31 @@ This is a TypeScript implementation of the Package URL (purl) specification for 
 - All patterns MUST follow established codebase conventions
 - Error handling MUST be robust and user-friendly
 - Performance considerations MUST be evaluated for any changes
+
+## 📋 Recurring Patterns & Instructions
+
+These are patterns and instructions that should be consistently applied across all Socket projects:
+
+### 🏗️ Mandatory Code Patterns
+1. **Options Parameter Pattern**: Use `{ __proto__: null, ...options } as SomeOptions` for all functions accepting options
+2. **Reflect.apply Pattern**: Use `const { apply: ReflectApply } = Reflect` and `ReflectApply(fn, thisArg, [])` instead of `.call()` for method invocation
+3. **Object Mappings**: Use `{ __proto__: null, ...mapping }` for static string-to-string mappings to prevent prototype pollution
+4. **Import Separation**: ALWAYS separate type imports (`import type`) from runtime imports
+5. **Node.js Imports**: ALWAYS use `node:` prefix for Node.js built-in modules
+
+### 🧪 Test Patterns & Cleanup
+1. **Remove Duplicate Tests**: Eliminate tests that verify the same functionality across multiple files
+2. **Centralize Test Data**: Use shared test fixtures instead of hardcoded values repeated across projects
+3. **Focus Test Scope**: Each project should test its specific functionality, not dependencies' core features
+
+### 🔄 Cross-Project Consistency
+These patterns should be enforced across all Socket repositories:
+- `socket-cli`
+- `socket-packageurl-js`
+- `socket-registry`
+- `socket-sdk-js`
+
+When working in any Socket repository, check CLAUDE.md files in other Socket projects for consistency and apply these patterns universally.
 
 ## Notes
 
