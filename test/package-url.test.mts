@@ -1254,7 +1254,7 @@ describe('PackageURL', () => {
       it('should handle hackage type validation', () => {
         const purl = new PackageURL('hackage', null, 'package-name', '1.0.0')
         expect(purl.type).toBe('hackage')
-        expect(purl.namespace).toBe(undefined)
+        expect(purl.namespace).toBe(null)
       })
 
       it('should handle huggingface model type', () => {

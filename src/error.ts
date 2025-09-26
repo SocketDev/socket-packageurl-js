@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Custom PurlError class for Package URL parsing and validation errors.
+ * Provides consistent error message formatting for PURL-related exceptions.
+ */
+
 function formatPurlErrorMessage(message = ''): string {
   const { length } = message
   let formatted = ''

@@ -1,3 +1,7 @@
+/**
+ * @fileoverview PURL component handlers providing encoding, normalization, and validation functionality.
+ * Handles all Package URL components including type, namespace, name, version, qualifiers, and subpath.
+ */
 import {
   encodeComponent,
   encodeName,
@@ -27,6 +31,15 @@ import {
   validateVersion,
 } from './validate.js'
 
+/**
+ * Type definitions for component handlers.
+ */
+export type ComponentEncoder = (_value: unknown) => string
+export type ComponentNormalizer = (_value: string) => string | undefined
+export type ComponentValidator = (_value: unknown, _throws: boolean) => boolean
+export type QualifiersValue = string | number | boolean | null | undefined
+export type QualifiersObject = Record<string, QualifiersValue>
+
 const componentSortOrderLookup = {
   __proto__: null,
   type: 0,
@@ -39,23 +52,29 @@ const componentSortOrderLookup = {
   subpath: 7,
 }
 
-function componentSortOrder(comp: any) {
-  return (componentSortOrderLookup as any)[comp] ?? comp
+function componentSortOrder(comp: string): string | number {
+  return (
+    (componentSortOrderLookup as unknown as Record<string, number>)[comp] ??
+    comp
+  )
 }
 
-function componentComparator(compA: any, compB: any) {
-  return localeCompare(componentSortOrder(compA), componentSortOrder(compB))
+function componentComparator(compA: string, compB: string): number {
+  return localeCompare(
+    String(componentSortOrder(compA)),
+    String(componentSortOrder(compB)),
+  )
 }
 
-function PurlComponentEncoder(comp: any) {
+function PurlComponentEncoder(comp: unknown): string {
   return isNonEmptyString(comp) ? encodeComponent(comp) : ''
 }
 
-function PurlComponentStringNormalizer(comp: any) {
+function PurlComponentStringNormalizer(comp: unknown): string | undefined {
   return typeof comp === 'string' ? comp : undefined
 }
 
-function PurlComponentValidator(_comp: any, _throws: any) {
+function PurlComponentValidator(_comp: unknown, _throws: boolean): boolean {
   return true
 }
 

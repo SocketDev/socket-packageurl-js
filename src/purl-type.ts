@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Package URL type-specific normalization and validation rules for different package ecosystems.
+ * Implements PURL-TYPES specification rules for npm, pypi, maven, golang, and other package managers.
+ */
 import { encodeComponent } from './encode.js'
 import { PurlError } from './error.js'
 import { createHelpersNamespaceObject } from './helpers.js'
@@ -12,17 +16,27 @@ import {
 } from './strings.js'
 import { validateEmptyByType, validateRequiredByType } from './validate.js'
 
-const PurlTypNormalizer = (purl: any) => purl
-const PurlTypeValidator = (_purl: any, _throws: any) => true
+interface PurlObject {
+  type?: string
+  namespace?: string
+  name: string
+  version?: string
+  qualifiers?: Record<string, string>
+  subpath?: string
+}
+
+const PurlTypNormalizer = (purl: PurlObject): PurlObject => purl
+const PurlTypeValidator = (_purl: PurlObject, _throws: boolean): boolean => true
 
 const getNpmBuiltinNames = (() => {
-  let builtinNames: any
+  let builtinNames: string[] | undefined
   return () => {
     if (builtinNames === undefined) {
       /* c8 ignore start - Error handling for module access. */
       try {
         // Try to use Node.js builtinModules first.
-        builtinNames = (module.constructor as any)?.builtinModules
+        builtinNames = (module.constructor as { builtinModules?: string[] })
+          ?.builtinModules
       } catch {}
       /* c8 ignore stop */
       if (!builtinNames) {
@@ -107,15 +121,16 @@ const getNpmLegacyNames = (() => {
   }
 })()
 
-function getNpmId(purl: any) {
+function getNpmId(purl: PurlObject): string {
   const { name, namespace } = purl
-  return `${namespace?.length > 0 ? `${namespace}/` : ''}${name}`
+  return `${namespace && namespace.length > 0 ? `${namespace}/` : ''}${name}`
 }
 
-const isNpmBuiltinName = (id: any) =>
+const isNpmBuiltinName = (id: string): boolean =>
   getNpmBuiltinNames().includes(id.toLowerCase())
 
-const isNpmLegacyName = (id: any) => getNpmLegacyNames().includes(id)
+const isNpmLegacyName = (id: string): boolean =>
+  getNpmLegacyNames().includes(id)
 
 // PURL types:
 // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
@@ -123,48 +138,48 @@ const PurlType = createHelpersNamespaceObject(
   {
     normalize: {
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#alpm
-      alpm(purl: any) {
+      alpm(purl: PurlObject) {
         lowerNamespace(purl)
         lowerName(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#apk
-      apk(purl: any) {
+      apk(purl: PurlObject) {
         lowerNamespace(purl)
         lowerName(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#bitbucket
-      bitbucket(purl: any) {
+      bitbucket(purl: PurlObject) {
         lowerNamespace(purl)
         lowerName(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#bitnami
-      bitnami(purl: any) {
+      bitnami(purl: PurlObject) {
         lowerName(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#composer
-      composer(purl: any) {
+      composer(purl: PurlObject) {
         lowerNamespace(purl)
         lowerName(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#deb
-      deb(purl: any) {
+      deb(purl: PurlObject) {
         lowerNamespace(purl)
         lowerName(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#other-candidate-types-to-define
-      gitlab(purl: any) {
+      gitlab(purl: PurlObject) {
         lowerNamespace(purl)
         lowerName(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#github
-      github(purl: any) {
+      github(purl: PurlObject) {
         lowerNamespace(purl)
         lowerName(purl)
         return purl
@@ -178,25 +193,25 @@ const PurlType = createHelpersNamespaceObject(
       //     return purl
       // },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#hex
-      hex(purl: any) {
+      hex(purl: PurlObject) {
         lowerNamespace(purl)
         lowerName(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#huggingface
-      huggingface(purl: any) {
+      huggingface(purl: PurlObject) {
         lowerVersion(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
-      mlflow(purl: any) {
-        if (purl.qualifiers?.repository_url?.includes('databricks')) {
+      mlflow(purl: PurlObject) {
+        if (purl.qualifiers?.['repository_url']?.includes('databricks')) {
           lowerName(purl)
         }
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#npm
-      npm(purl: any) {
+      npm(purl: PurlObject) {
         lowerNamespace(purl)
         // Ignore lowercasing legacy names because they could be mixed case.
         // https://github.com/npm/validate-npm-package-name/tree/v6.0.0?tab=readme-ov-file#legacy-names
@@ -206,35 +221,35 @@ const PurlType = createHelpersNamespaceObject(
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#luarocks
-      luarocks(purl: any) {
+      luarocks(purl: PurlObject) {
         lowerVersion(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
-      oci(purl: any) {
+      oci(purl: PurlObject) {
         lowerName(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pub
-      pub(purl: any) {
+      pub(purl: PurlObject) {
         lowerName(purl)
         purl.name = replaceDashesWithUnderscores(purl.name)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pypi
-      pypi(purl: any) {
+      pypi(purl: PurlObject) {
         lowerNamespace(purl)
         lowerName(purl)
         purl.name = replaceUnderscoresWithDashes(purl.name)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#qpkg
-      qpkg(purl: any) {
+      qpkg(purl: PurlObject) {
         lowerNamespace(purl)
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#rpm
-      rpm(purl: any) {
+      rpm(purl: PurlObject) {
         lowerNamespace(purl)
         return purl
       },
@@ -244,9 +259,9 @@ const PurlType = createHelpersNamespaceObject(
       // TODO: cpan namespace validation
       // TODO: swid qualifier validation
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#conan
-      conan(purl: any, throws: any) {
+      conan(purl: PurlObject, throws: boolean) {
         if (isNullishOrEmptyString(purl.namespace)) {
-          if (purl.qualifiers?.channel) {
+          if (purl.qualifiers?.['channel']) {
             if (throws) {
               throw new PurlError(
                 'conan requires a "namespace" component when a "channel" qualifier is present',
@@ -265,11 +280,11 @@ const PurlType = createHelpersNamespaceObject(
         return true
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#cran
-      cran(purl: any, throws: any) {
+      cran(purl: PurlObject, throws: boolean) {
         return validateRequiredByType('cran', 'version', purl.version, throws)
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#golang
-      golang(purl: any, throws: any) {
+      golang(purl: PurlObject, throws: boolean) {
         // Still being lenient here since the standard changes aren't official.
         // Pending spec change: https://github.com/package-url/purl-spec/pull/196
         const { version } = purl
@@ -279,8 +294,8 @@ const PurlType = createHelpersNamespaceObject(
         // https://go.dev/doc/modules/version-numbers#pseudo-version-number
         if (
           length &&
-          version.charCodeAt(0) === 118 /*'v'*/ &&
-          !isSemverString(version.slice(1))
+          version!.charCodeAt(0) === 118 /*'v'*/ &&
+          !isSemverString(version!.slice(1))
         ) {
           if (throws) {
             throw new PurlError(
@@ -292,7 +307,7 @@ const PurlType = createHelpersNamespaceObject(
         return true
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#maven
-      maven(purl: any, throws: any) {
+      maven(purl: PurlObject, throws: boolean) {
         return validateRequiredByType(
           'maven',
           'namespace',
@@ -301,7 +316,7 @@ const PurlType = createHelpersNamespaceObject(
         )
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
-      mlflow(purl: any, throws: any) {
+      mlflow(purl: PurlObject, throws: boolean) {
         return validateEmptyByType(
           'mlflow',
           'namespace',
@@ -313,9 +328,9 @@ const PurlType = createHelpersNamespaceObject(
       // https://github.com/npm/validate-npm-package-name/tree/v6.0.0
       // ISC License
       // Copyright (c) 2015, npm, Inc
-      npm(purl: any, throws: any) {
+      npm(purl: PurlObject, throws: boolean) {
         const { name, namespace } = purl
-        const hasNs = namespace?.length > 0
+        const hasNs = namespace && namespace.length > 0
         const id = getNpmId(purl)
         const code0 = id.charCodeAt(0)
         const compName = hasNs ? 'namespace' : 'name'
@@ -352,7 +367,7 @@ const PurlType = createHelpersNamespaceObject(
           return false
         }
         if (hasNs) {
-          if (namespace.trim() !== namespace) {
+          if (namespace!.trim() !== namespace) {
             if (throws) {
               throw new PurlError(
                 'npm "namespace" component cannot contain leading or trailing spaces',
@@ -365,7 +380,7 @@ const PurlType = createHelpersNamespaceObject(
               `npm "namespace" component must start with an "@" character`,
             )
           }
-          const namespaceWithoutAtSign = namespace.slice(1)
+          const namespaceWithoutAtSign = namespace!.slice(1)
           if (
             encodeComponent(namespaceWithoutAtSign) !== namespaceWithoutAtSign
           ) {
@@ -431,11 +446,11 @@ const PurlType = createHelpersNamespaceObject(
         return true
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
-      oci(purl: any, throws: any) {
+      oci(purl: PurlObject, throws: boolean) {
         return validateEmptyByType('oci', 'namespace', purl.namespace, throws)
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pub
-      pub(purl: any, throws: any) {
+      pub(purl: PurlObject, throws: boolean) {
         const { name } = purl
         for (let i = 0, { length } = name; i < length; i += 1) {
           const code = name.charCodeAt(i)
@@ -463,7 +478,7 @@ const PurlType = createHelpersNamespaceObject(
         return true
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#swift
-      swift(purl: any, throws: any) {
+      swift(purl: PurlObject, throws: boolean) {
         return (
           validateRequiredByType(
             'swift',

@@ -1,8 +1,21 @@
+/**
+ * @fileoverview Validation functions for PURL components.
+ * Ensures compliance with Package URL specification requirements and constraints.
+ */
 import { PurlError } from './error.js'
 import { isNullishOrEmptyString } from './lang.js'
 import { isNonEmptyString } from './strings.js'
 
-function validateEmptyByType(type: any, name: any, value: any, throws: any) {
+import type { QualifiersObject } from './purl-component.js'
+
+const { apply: ReflectApply } = Reflect
+
+function validateEmptyByType(
+  type: string,
+  name: string,
+  value: unknown,
+  throws: boolean,
+): boolean {
   if (!isNullishOrEmptyString(value)) {
     if (throws) {
       throw new PurlError(`${type} "${name}" component must be empty`)
@@ -12,18 +25,18 @@ function validateEmptyByType(type: any, name: any, value: any, throws: any) {
   return true
 }
 
-function validateName(name: any, throws: any) {
+function validateName(name: unknown, throws: boolean): boolean {
   return (
     validateRequired('name', name, throws) &&
     validateStrings('name', name, throws)
   )
 }
 
-function validateNamespace(namespace: any, throws: any) {
+function validateNamespace(namespace: unknown, throws: boolean): boolean {
   return validateStrings('namespace', namespace, throws)
 }
 
-function validateQualifiers(qualifiers: any, throws: any) {
+function validateQualifiers(qualifiers: unknown, throws: boolean): boolean {
   if (qualifiers === null || qualifiers === undefined) {
     return true
   }
@@ -33,11 +46,13 @@ function validateQualifiers(qualifiers: any, throws: any) {
     }
     return false
   }
-  const keysIterable =
+  const qualifiersObj = qualifiers as QualifiersObject | URLSearchParams
+  const keysProperty = (qualifiersObj as QualifiersObject)['keys']
+  const keysIterable: Iterable<string> =
     // URLSearchParams instances have a "keys" method that returns an iterator.
-    typeof qualifiers.keys === 'function'
-      ? qualifiers.keys()
-      : Object.keys(qualifiers)
+    typeof keysProperty === 'function'
+      ? (ReflectApply(keysProperty, qualifiersObj, []) as Iterable<string>)
+      : (Object.keys(qualifiers as QualifiersObject) as Iterable<string>)
   // Use for-of to work with URLSearchParams#keys iterators.
   for (const key of keysIterable) {
     if (!validateQualifierKey(key, throws)) {
@@ -47,15 +62,15 @@ function validateQualifiers(qualifiers: any, throws: any) {
   return true
 }
 
-function validateQualifierKey(key: any, throws: any) {
+function validateQualifierKey(key: string, throws: boolean): boolean {
   // A key cannot start with a number.
   if (!validateStartsWithoutNumber('qualifier', key, throws)) {
     return false
   }
   // The key must be composed only of ASCII letters and numbers,
   // '.', '-' and '_' (period, dash and underscore).
-  for (let i = 0, { length } = key; i < length; i += 1) {
-    const code = key.charCodeAt(i)
+  for (let i = 0, { length } = key as string; i < length; i += 1) {
+    const code = (key as string).charCodeAt(i)
     // biome-ignore format: newlines
     if (
       !(
@@ -78,7 +93,11 @@ function validateQualifierKey(key: any, throws: any) {
   return true
 }
 
-function validateRequired(name: any, value: any, throws: any) {
+function validateRequired(
+  name: string,
+  value: unknown,
+  throws: boolean,
+): boolean {
   if (isNullishOrEmptyString(value)) {
     if (throws) {
       throw new PurlError(`"${name}" is a required component`)
@@ -88,7 +107,12 @@ function validateRequired(name: any, value: any, throws: any) {
   return true
 }
 
-function validateRequiredByType(type: any, name: any, value: any, throws: any) {
+function validateRequiredByType(
+  type: string,
+  name: string,
+  value: unknown,
+  throws: boolean,
+): boolean {
   if (isNullishOrEmptyString(value)) {
     if (throws) {
       throw new PurlError(`${type} requires a "${name}" component`)
@@ -98,7 +122,11 @@ function validateRequiredByType(type: any, name: any, value: any, throws: any) {
   return true
 }
 
-function validateStartsWithoutNumber(name: any, value: any, throws: any) {
+function validateStartsWithoutNumber(
+  name: string,
+  value: string,
+  throws: boolean,
+): boolean {
   if (isNonEmptyString(value)) {
     const code = value.charCodeAt(0)
     if (code >= 48 /*'0'*/ && code <= 57 /*'9'*/) {
@@ -111,7 +139,11 @@ function validateStartsWithoutNumber(name: any, value: any, throws: any) {
   return true
 }
 
-function validateStrings(name: any, value: any, throws: any) {
+function validateStrings(
+  name: string,
+  value: unknown,
+  throws: boolean,
+): boolean {
   if (value === null || value === undefined || typeof value === 'string') {
     return true
   }
@@ -121,23 +153,23 @@ function validateStrings(name: any, value: any, throws: any) {
   return false
 }
 
-function validateSubpath(subpath: any, throws: any) {
+function validateSubpath(subpath: unknown, throws: boolean): boolean {
   return validateStrings('subpath', subpath, throws)
 }
 
-function validateType(type: any, throws: any) {
+function validateType(type: unknown, throws: boolean): boolean {
   // The type cannot be nullish, an empty string, or start with a number.
   if (
     !validateRequired('type', type, throws) ||
     !validateStrings('type', type, throws) ||
-    !validateStartsWithoutNumber('type', type, throws)
+    !validateStartsWithoutNumber('type', type as string, throws)
   ) {
     return false
   }
   // The package type is composed only of ASCII letters and numbers,
   // '.' (period), and '-' (dash).
-  for (let i = 0, { length } = type; i < length; i += 1) {
-    const code = type.charCodeAt(i)
+  for (let i = 0, { length } = type as string; i < length; i += 1) {
+    const code = (type as string).charCodeAt(i)
     // biome-ignore format: newlines
     if (
       !(
@@ -160,7 +192,7 @@ function validateType(type: any, throws: any) {
   return true
 }
 
-function validateVersion(version: any, throws: any) {
+function validateVersion(version: unknown, throws: boolean): boolean {
   return validateStrings('version', version, throws)
 }
 
