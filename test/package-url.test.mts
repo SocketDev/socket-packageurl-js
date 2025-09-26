@@ -513,7 +513,9 @@ describe('PackageURL', () => {
     })
 
     it('should parse complex purl without pkg: prefix', () => {
-      const purl = PackageURL.fromString('maven/com.fasterxml.jackson.core/jackson-databind@2.13.0?classifier=sources#META-INF/MANIFEST.MF')
+      const purl = PackageURL.fromString(
+        'maven/com.fasterxml.jackson.core/jackson-databind@2.13.0?classifier=sources#META-INF/MANIFEST.MF',
+      )
       expect(purl.type).toBe('maven')
       expect(purl.namespace).toBe('com.fasterxml.jackson.core')
       expect(purl.name).toBe('jackson-databind')
@@ -523,7 +525,9 @@ describe('PackageURL', () => {
         classifier: 'sources',
       })
       expect(purl.subpath).toBe('META-INF/MANIFEST.MF')
-      expect(purl.toString()).toBe('pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0?classifier=sources#META-INF/MANIFEST.MF')
+      expect(purl.toString()).toBe(
+        'pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.0?classifier=sources#META-INF/MANIFEST.MF',
+      )
     })
 
     it('should parse various package types without pkg: prefix', () => {
@@ -549,7 +553,9 @@ describe('PackageURL', () => {
     })
 
     it('should handle encoded components without pkg: prefix', () => {
-      const purl = PackageURL.fromString('type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path')
+      const purl = PackageURL.fromString(
+        'type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path',
+      )
       expect(purl.type).toBe('type')
       expect(purl.namespace).toBe('name#space')
       expect(purl.name).toBe('na#me')
@@ -559,12 +565,16 @@ describe('PackageURL', () => {
         foo: 'bar#baz',
       })
       expect(purl.subpath).toBe('sub#path')
-      expect(purl.toString()).toBe('pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path')
+      expect(purl.toString()).toBe(
+        'pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path',
+      )
     })
 
     it('should handle edge cases without pkg: prefix', () => {
       // Type only (doesn't look like purl pattern, so should fail with missing pkg scheme)
-      expect(() => PackageURL.fromString('type')).toThrow(/missing required "pkg" scheme/)
+      expect(() => PackageURL.fromString('type')).toThrow(
+        /missing required "pkg" scheme/,
+      )
 
       // Empty string (should still fail)
       expect(() => PackageURL.fromString('')).toThrow()
