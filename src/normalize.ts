@@ -1,17 +1,26 @@
+/**
+ * @fileoverview Normalization functions for PURL components.
+ * Handles path normalization, qualifier processing, and canonical form conversion.
+ */
 import { isObject } from './objects.js'
 import { isBlank } from './strings.js'
 
-function normalizeName(rawName: any) {
+import type { QualifiersObject } from './purl-component.js'
+
+function normalizeName(rawName: unknown): string | undefined {
   return typeof rawName === 'string' ? rawName.trim() : undefined
 }
 
-function normalizeNamespace(rawNamespace: any) {
+function normalizeNamespace(rawNamespace: unknown): string | undefined {
   return typeof rawNamespace === 'string'
     ? normalizePath(rawNamespace, undefined)
     : undefined
 }
 
-function normalizePath(pathname: any, callback: any) {
+function normalizePath(
+  pathname: string,
+  callback?: (_segment: string) => boolean,
+): string {
   let collapsed = ''
   let start = 0
   // Leading and trailing slashes, i.e. '/', are not significant and should be
@@ -46,8 +55,10 @@ function normalizePath(pathname: any, callback: any) {
   return collapsed
 }
 
-function normalizeQualifiers(rawQualifiers: any) {
-  let qualifiers: any
+function normalizeQualifiers(
+  rawQualifiers: unknown,
+): Record<string, string> | undefined {
+  let qualifiers: Record<string, string> | undefined
   // Use for-of to work with entries iterators.
   for (const { 0: key, 1: value } of qualifiersToEntries(rawQualifiers)) {
     const strValue = typeof value === 'string' ? value : String(value)
@@ -58,7 +69,7 @@ function normalizeQualifiers(rawQualifiers: any) {
       continue
     }
     if (qualifiers === undefined) {
-      qualifiers = { __proto__: null }
+      qualifiers = Object.create(null) as Record<string, string>
     }
     // A key is case insensitive. The canonical form is lowercase.
     qualifiers[key.toLowerCase()] = trimmed
@@ -66,35 +77,45 @@ function normalizeQualifiers(rawQualifiers: any) {
   return qualifiers
 }
 
-function normalizeSubpath(rawSubpath: any) {
+function normalizeSubpath(rawSubpath: unknown): string | undefined {
   return typeof rawSubpath === 'string'
     ? normalizePath(rawSubpath, subpathFilter)
     : undefined
 }
 
-function normalizeType(rawType: any) {
+function normalizeType(rawType: unknown): string | undefined {
   // The type must NOT be percent-encoded.
   // The type is case insensitive. The canonical form is lowercase.
   return typeof rawType === 'string' ? rawType.trim().toLowerCase() : undefined
 }
 
-function normalizeVersion(rawVersion: any) {
+function normalizeVersion(rawVersion: unknown): string | undefined {
   return typeof rawVersion === 'string' ? rawVersion.trim() : undefined
 }
 
-function qualifiersToEntries(rawQualifiers: any) {
+const { apply: ReflectApply } = Reflect
+
+function qualifiersToEntries(
+  rawQualifiers: unknown,
+): Iterable<[string, string]> {
   if (isObject(rawQualifiers)) {
     // URLSearchParams instances have an "entries" method that returns an iterator.
-    return typeof rawQualifiers.entries === 'function'
-      ? rawQualifiers.entries()
-      : Object.entries(rawQualifiers)
+    const rawQualifiersObj = rawQualifiers as QualifiersObject | URLSearchParams
+    const entriesProperty = (rawQualifiersObj as QualifiersObject)['entries']
+    return typeof entriesProperty === 'function'
+      ? (ReflectApply(entriesProperty, rawQualifiersObj, []) as Iterable<
+          [string, string]
+        >)
+      : (Object.entries(rawQualifiers as Record<string, string>) as Iterable<
+          [string, string]
+        >)
   }
   return typeof rawQualifiers === 'string'
     ? new URLSearchParams(rawQualifiers).entries()
     : Object.entries({})
 }
 
-function subpathFilter(segment: any) {
+function subpathFilter(segment: string): boolean {
   // When percent-decoded, a segment
   //   - must not be any of '.' or '..'
   //   - must not be empty

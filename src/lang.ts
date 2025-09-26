@@ -1,4 +1,9 @@
-function isNullishOrEmptyString(value: any): boolean {
+/**
+ * @fileoverview Language utility functions for checking null, undefined, and empty string values.
+ * Provides type checking predicates for common value validation scenarios.
+ */
+
+function isNullishOrEmptyString(value: unknown): boolean {
   return (
     value === null ||
     value === undefined ||

@@ -19,13 +19,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
+
+/**
+ * @fileoverview Package URL parsing and construction utilities.
+ */
 import { decodePurlComponent } from './decode.js'
 import { PurlError } from './error.js'
 import { isObject, recursiveFreeze } from './objects.js'
+import { PackageURLBuilder } from './package-url-builder.js'
 import { PurlComponent } from './purl-component.js'
 import { PurlQualifierNames } from './purl-qualifier-names.js'
 import { PurlType } from './purl-type.js'
+import { Err, Ok, ResultUtils, err, ok } from './result.js'
 import { isBlank, isNonEmptyString, trimLeadingSlashes } from './strings.js'
+import { UrlConverter } from './url-converter.js'
+
+import type {
+  ComponentEncoder,
+  ComponentNormalizer,
+  ComponentValidator,
+  QualifiersObject,
+} from './purl-component.js'
+import type { Result } from './result.js'
+import type { DownloadUrl, RepositoryUrl } from './url-converter.js'
 
 class PackageURL {
   static Component = recursiveFreeze(PurlComponent)
@@ -36,90 +52,233 @@ class PackageURL {
   name?: string
   namespace?: string
   version?: string
-  qualifiers?: any
+  qualifiers?: QualifiersObject
   subpath?: string;
 
   [key: string]: any
 
   constructor(
-    rawType: any,
-    rawNamespace: any,
-    rawName: any,
-    rawVersion: any,
-    rawQualifiers: any,
-    rawSubpath: any,
+    rawType: unknown,
+    rawNamespace: unknown,
+    rawName: unknown,
+    rawVersion: unknown,
+    rawQualifiers: unknown,
+    rawSubpath: unknown,
   ) {
     const type = isNonEmptyString(rawType)
-      ? PurlComponent.type.normalize(rawType)
+      ? (PurlComponent['type']?.['normalize'] as ComponentNormalizer)?.(rawType)
       : rawType
-    PurlComponent.type.validate(type, true)
+    ;(PurlComponent['type']?.['validate'] as ComponentValidator)?.(type, true)
 
     const namespace = isNonEmptyString(rawNamespace)
-      ? PurlComponent.namespace.normalize(rawNamespace)
+      ? (PurlComponent['namespace']?.['normalize'] as ComponentNormalizer)?.(
+          rawNamespace,
+        )
       : rawNamespace
-    PurlComponent.namespace.validate(namespace, true)
+    ;(PurlComponent['namespace']?.['validate'] as ComponentValidator)?.(
+      namespace,
+      true,
+    )
 
     const name = isNonEmptyString(rawName)
-      ? PurlComponent.name.normalize(rawName)
+      ? (PurlComponent['name']?.['normalize'] as ComponentNormalizer)?.(rawName)
       : rawName
-    PurlComponent.name.validate(name, true)
+    ;(PurlComponent['name']?.['validate'] as ComponentValidator)?.(name, true)
 
     const version = isNonEmptyString(rawVersion)
-      ? PurlComponent.version.normalize(rawVersion)
+      ? (PurlComponent['version']?.['normalize'] as ComponentNormalizer)?.(
+          rawVersion,
+        )
       : rawVersion
-    PurlComponent.version.validate(version, true)
+    ;(PurlComponent['version']?.['validate'] as ComponentValidator)?.(
+      version,
+      true,
+    )
 
     const qualifiers =
       typeof rawQualifiers === 'string' || isObject(rawQualifiers)
-        ? PurlComponent.qualifiers.normalize(rawQualifiers)
+        ? (
+            PurlComponent['qualifiers']?.['normalize'] as (
+              _value: string | QualifiersObject,
+            ) => Record<string, string> | undefined
+          )?.(rawQualifiers as string | QualifiersObject)
         : rawQualifiers
-    PurlComponent.qualifiers.validate(qualifiers, true)
+    ;(PurlComponent['qualifiers']?.['validate'] as ComponentValidator)?.(
+      qualifiers,
+      true,
+    )
 
     const subpath = isNonEmptyString(rawSubpath)
-      ? PurlComponent.subpath.normalize(rawSubpath)
+      ? (PurlComponent['subpath']?.['normalize'] as ComponentNormalizer)?.(
+          rawSubpath,
+        )
       : rawSubpath
-    PurlComponent.subpath.validate(subpath, true)
+    ;(PurlComponent['subpath']?.['validate'] as ComponentValidator)?.(
+      subpath,
+      true,
+    )
 
-    this.type = type
-    this.name = name
-    this.namespace = namespace ?? undefined
-    this.version = version ?? undefined
-    this.qualifiers = qualifiers ?? undefined
-    this.subpath = subpath ?? undefined
+    this.type = type as string
+    this.name = name as string
+    if (namespace !== undefined) {
+      this.namespace = namespace as string
+    }
+    if (version !== undefined) {
+      this.version = version as string
+    }
+    this.qualifiers = (qualifiers as QualifiersObject) ?? undefined
+    if (subpath !== undefined) {
+      this.subpath = subpath as string
+    }
 
-    const typeHelpers = PurlType[type]
+    const typeHelpers = PurlType[type as string]
     if (typeHelpers) {
-      typeHelpers.normalize(this)
-      typeHelpers.validate(this, true)
+      ;(typeHelpers?.['normalize'] as (_purl: PackageURL) => void)?.(this)
+      ;(
+        typeHelpers?.['validate'] as (
+          _purl: PackageURL,
+          _throws: boolean,
+        ) => boolean
+      )?.(this, true)
     }
   }
 
   toString() {
-    const { name, namespace, qualifiers, subpath, type, version } = this
-    let purlStr = `pkg:${PurlComponent.type.encode(type)}/`
+    const {
+      name,
+      namespace,
+      qualifiers,
+      subpath,
+      type,
+      version,
+    }: {
+      name?: string
+      namespace?: string
+      qualifiers?: QualifiersObject
+      subpath?: string
+      type?: string
+      version?: string
+    } = this
+    /* c8 ignore next - Type encoder uses default PurlComponentEncoder, never returns null/undefined. */ let purlStr = `pkg:${(PurlComponent['type']?.['encode'] as ComponentEncoder)?.(type) ?? ''}/`
     if (namespace) {
-      purlStr = `${purlStr}${PurlComponent.namespace.encode(namespace)}/`
+      /* c8 ignore next - Namespace encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent['namespace']?.['encode'] as ComponentEncoder)?.(namespace) ?? ''}/`
     }
-    purlStr = `${purlStr}${PurlComponent.name.encode(name)}`
+    /* c8 ignore next - Name encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent['name']?.['encode'] as ComponentEncoder)?.(name) ?? ''}`
     if (version) {
-      purlStr = `${purlStr}@${PurlComponent.version.encode(version)}`
+      /* c8 ignore next - Version encoder always returns string, never null/undefined. */ purlStr = `${purlStr}@${(PurlComponent['version']?.['encode'] as ComponentEncoder)?.(version) ?? ''}`
     }
     if (qualifiers) {
-      purlStr = `${purlStr}?${PurlComponent.qualifiers.encode(qualifiers)}`
+      /* c8 ignore next - Qualifiers encoder always returns string, never null/undefined. */ purlStr = `${purlStr}?${(PurlComponent['qualifiers']?.['encode'] as ComponentEncoder)?.(qualifiers) ?? ''}`
     }
     if (subpath) {
-      purlStr = `${purlStr}#${PurlComponent.subpath.encode(subpath)}`
+      /* c8 ignore next - Subpath encoder always returns string, never null/undefined. */ purlStr = `${purlStr}#${(PurlComponent['subpath']?.['encode'] as ComponentEncoder)?.(subpath) ?? ''}`
     }
     return purlStr
   }
 
-  static fromString(purlStr: any) {
+  /**
+   * Convert PackageURL to a plain object representation.
+   */
+  toObject(): Record<string, any> {
+    const result: Record<string, any> = {}
+    if (this.type !== undefined) {
+      result['type'] = this.type
+    }
+    if (this.namespace !== undefined) {
+      result['namespace'] = this.namespace
+    }
+    if (this.name !== undefined) {
+      result['name'] = this.name
+    }
+    if (this.version !== undefined) {
+      result['version'] = this.version
+    }
+    if (this.qualifiers !== undefined) {
+      result['qualifiers'] = this.qualifiers
+    }
+    if (this.subpath !== undefined) {
+      result['subpath'] = this.subpath
+    }
+    return result
+  }
+
+  /**
+   * Convert PackageURL to JSON string representation.
+   */
+  toJSONString(): string {
+    return JSON.stringify(this.toObject())
+  }
+
+  /**
+   * Convert PackageURL to object for JSON.stringify compatibility.
+   */
+  toJSON(): Record<string, any> {
+    return this.toObject()
+  }
+
+  static fromString(purlStr: unknown): PackageURL {
     return new PackageURL(
-      ...(PackageURL.parseString(purlStr) as [any, any, any, any, any, any]),
+      ...(PackageURL.parseString(purlStr) as [
+        unknown,
+        unknown,
+        unknown,
+        unknown,
+        unknown,
+        unknown,
+      ]),
     )
   }
 
-  static parseString(purlStr: any) {
+  /**
+   * Create PackageURL from a plain object.
+   */
+  static fromObject(obj: unknown): PackageURL {
+    if (!isObject(obj)) {
+      throw new Error('Object argument is required.')
+    }
+    const typedObj = obj as Record<string, unknown>
+    return new PackageURL(
+      typedObj['type'],
+      typedObj['namespace'],
+      typedObj['name'],
+      typedObj['version'],
+      typedObj['qualifiers'],
+      typedObj['subpath'],
+    )
+  }
+
+  /**
+   * Create PackageURL from JSON string.
+   */
+  static fromJSON(json: unknown): PackageURL {
+    if (typeof json !== 'string') {
+      throw new Error('JSON string argument is required.')
+    }
+    try {
+      return PackageURL.fromObject(JSON.parse(json))
+    } catch (e) {
+      throw new Error('Invalid JSON string.', { cause: e })
+    }
+  }
+
+  // Result-based static methods
+  static tryFromString(purlStr: unknown): Result<PackageURL, Error> {
+    return ResultUtils.from(() => PackageURL.fromString(purlStr))
+  }
+
+  static tryFromObject(obj: unknown): Result<PackageURL, Error> {
+    return ResultUtils.from(() => PackageURL.fromObject(obj))
+  }
+
+  static tryFromJSON(json: unknown): Result<PackageURL, Error> {
+    return ResultUtils.from(() => PackageURL.fromJSON(json))
+  }
+
+  static tryParseString(purlStr: unknown): Result<any[], Error> {
+    return ResultUtils.from(() => PackageURL.parseString(purlStr))
+  }
+
+  static parseString(purlStr: unknown): unknown[] {
     // https://github.com/package-url/purl-spec/blob/master/PURL-SPECIFICATION.rst#how-to-parse-a-purl-string-in-its-components
     if (typeof purlStr !== 'string') {
       throw new Error('A purl string argument is required.')
@@ -135,8 +294,8 @@ class PackageURL {
     //   - Split the purl string once from right on '#'
     //   - Split the remainder once from right on '?'
     //   - Split the remainder once from left on ':'
-    let url
-    let maybeUrlWithAuth
+    let url: URL | undefined
+    let maybeUrlWithAuth: URL | undefined
     if (colonIndex !== -1) {
       try {
         // Since a purl never contains a URL Authority, its scheme
@@ -183,7 +342,7 @@ class PackageURL {
       return [rawType, undefined, undefined, undefined, undefined, undefined]
     }
 
-    let rawVersion
+    let rawVersion: string | undefined
     // Both branches of this ternary are tested, but V8 reports phantom branch combinations
     /* c8 ignore start -- npm vs non-npm path logic both tested but V8 sees extra branches */
     let atSignIndex =
@@ -213,8 +372,8 @@ class PackageURL {
       )
     }
 
-    let rawNamespace
-    let rawName
+    let rawNamespace: string | undefined
+    let rawName: string
     const lastSlashIndex = beforeVersion.lastIndexOf('/')
     if (lastSlashIndex === -1) {
       // Split the remainder once from right on '/'.
@@ -232,7 +391,7 @@ class PackageURL {
       )
     }
 
-    let rawQualifiers
+    let rawQualifiers: URLSearchParams | undefined
     if (url.searchParams.size !== 0) {
       const search = url.search.slice(1)
       const searchParams = new URLSearchParams()
@@ -249,7 +408,7 @@ class PackageURL {
       rawQualifiers = searchParams
     }
 
-    let rawSubpath
+    let rawSubpath: string | undefined
     const { hash } = url
     if (hash.length !== 0) {
       // Split the purl string once from right on '#'.
@@ -276,4 +435,17 @@ for (const staticProp of ['Component', 'KnownQualifierNames', 'Type']) {
 
 Reflect.setPrototypeOf(PackageURL.prototype, null)
 
-export { PackageURL, PurlComponent, PurlQualifierNames, PurlType }
+export {
+  Err,
+  Ok,
+  PackageURL,
+  PackageURLBuilder,
+  PurlComponent,
+  PurlQualifierNames,
+  PurlType,
+  ResultUtils,
+  UrlConverter,
+  err,
+  ok,
+}
+export type { DownloadUrl, RepositoryUrl, Result }
