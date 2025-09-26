@@ -2,10 +2,10 @@ import Module from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import allThePackageNamesData from 'all-the-package-names/names' with {
+import allThePackageNamesData from 'all-the-package-names/names.json' with {
   type: 'json',
 }
-import allThePackageNamesV1Data from 'all-the-package-names-v1.3905.0/names' with {
+import allThePackageNamesV1Data from 'all-the-package-names-v1.3905.0/names.json' with {
   type: 'json',
 }
 import pacote from 'pacote'
