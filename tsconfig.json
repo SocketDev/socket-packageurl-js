@@ -6,7 +6,12 @@
     "outDir": "dist",
     "rootDir": "src",
     "verbatimModuleSyntax": false,
-    "noEmit": false
+    "noEmit": false,
+    "noEmitOnError": false,
+    "sourceMap": false,
+    "declarationMap": false,
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "coverage", "test"]
 }

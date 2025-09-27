@@ -12,12 +12,12 @@
     "type": "git",
     "url": "git+https://github.com/SocketDev/socket-packageurl-js.git"
   },
-  "main": "./dist/package-url.js",
-  "types": "./dist/package-url.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/package-url.d.ts",
-      "default": "./dist/package-url.js"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "./data/npm/builtin-names.json": "./data/npm/builtin-names.json",
     "./data/npm/legacy-names.json": "./data/npm/legacy-names.json",
