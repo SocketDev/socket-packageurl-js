@@ -38,6 +38,10 @@ export {
   UrlConverter,
   err,
   ok,
-} from './src/package-url.js'
-export type { DownloadUrl, RepositoryUrl, Result } from './src/package-url.js'
+} from './package-url.js'
+export type {
+  DownloadUrl,
+  RepositoryUrl,
+  Result,
+} from './package-url.js'
 /* c8 ignore stop */
