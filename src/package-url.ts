@@ -308,7 +308,7 @@ class PackageURL {
     // Split the remainder once from left on ':'.
     const colonIndex = purlStr.indexOf(':')
     // Use WHATWG URL to split up the purl string.
-    /* c8 ignore next 3 -- Comment lines don't need coverage */
+    /* c8 ignore next 3 -- Comment lines don't need coverage. */
     //   - Split the purl string once from right on '#'
     //   - Split the remainder once from right on '?'
     //   - Split the remainder once from left on ':'
@@ -324,7 +324,7 @@ class PackageURL {
         const afterColon = purlStr.slice(colonIndex + 1)
         const trimmedAfterColon = trimLeadingSlashes(afterColon)
         url = new URL(`${beforeColon}:${trimmedAfterColon}`)
-        /* c8 ignore next 4 -- V8 coverage sees multiple branch paths in ternary that can't all be tested */
+        /* c8 ignore next 4 -- V8 coverage sees multiple branch paths in ternary that can't all be tested. */
         maybeUrlWithAuth =
           afterColon.length === trimmedAfterColon.length
             ? url
@@ -336,10 +336,10 @@ class PackageURL {
       }
     }
     // The scheme is a constant with the value "pkg".
-    /* c8 ignore next -- Tested: colonIndex === -1 (url undefined) case, but V8 can't see both branches */
+    /* c8 ignore next -- Tested: colonIndex === -1 (url undefined) case, but V8 can't see both branches. */
     if (url?.protocol !== 'pkg:') {
       throw new PurlError('missing required "pkg" scheme component')
-      /* c8 ignore next -- Unreachable code after throw */
+      /* c8 ignore next -- Unreachable code after throw. */
     }
     // A purl must NOT contain a URL Authority i.e. there is no support for
     // username, password, host and port components.
@@ -362,7 +362,7 @@ class PackageURL {
 
     let rawVersion: string | undefined
     // Both branches of this ternary are tested, but V8 reports phantom branch combinations
-    /* c8 ignore start -- npm vs non-npm path logic both tested but V8 sees extra branches */
+    /* c8 ignore start -- npm vs non-npm path logic both tested but V8 sees extra branches. */
     let atSignIndex =
       rawType === 'npm'
         ? // Deviate from the specification to handle a special npm purl type case for
@@ -419,7 +419,7 @@ class PackageURL {
         const value = decodePurlComponent('qualifiers', pairs.at(1) ?? '')
         // Use URLSearchParams#append to preserve plus signs.
         // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
-        /* c8 ignore next -- URLSearchParams.append has internal V8 branches we can't control */
+        /* c8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */
         searchParams.append(pairs[0]!, value)
       }
       // Split the remainder once from right on '?'.

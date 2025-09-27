@@ -408,7 +408,7 @@ const PurlType = createHelpersNamespaceObject(
             if (throws) {
               // Tested: validation returns false in non-throw mode
               // V8 coverage can't see both throw and return false paths in same test
-              /* c8 ignore next 3 -- Throw path tested separately from return false path */
+              /* c8 ignore next 3 -- Throw path tested separately from return false path. */
               throw new PurlError(
                 `npm "namespace" and "name" components can not collectively be more than 214 characters`,
               )
@@ -435,7 +435,7 @@ const PurlType = createHelpersNamespaceObject(
             if (throws) {
               // Tested: validation returns false in non-throw mode
               // V8 coverage can't see both throw and return false paths in same test
-              /* c8 ignore next 3 -- Throw path tested separately from return false path */
+              /* c8 ignore next 3 -- Throw path tested separately from return false path. */
               throw new PurlError(
                 'npm "name" component can not be a core module name',
               )
@@ -467,7 +467,7 @@ const PurlType = createHelpersNamespaceObject(
               if (throws) {
                 // Tested: validation returns false in non-throw mode
                 // V8 coverage can't see both throw and return false paths in same test
-                /* c8 ignore next 3 -- Throw path tested separately from return false path */
+                /* c8 ignore next 3 -- Throw path tested separately from return false path. */
                 throw new PurlError(
                   'pub "name" component may only contain [a-z0-9_] characters'
                 )

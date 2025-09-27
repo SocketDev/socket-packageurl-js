@@ -184,7 +184,7 @@ function validateType(type: unknown, throws: boolean): boolean {
     ) {
       if (throws) {
         throw new PurlError(`type "${type}" contains an illegal character`)
-        /* c8 ignore next -- Unreachable code after throw */
+        /* c8 ignore next -- Unreachable code after throw. */
       }
       return false
     }
