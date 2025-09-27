@@ -124,11 +124,14 @@ You are a **Principal Software Engineer** responsible for:
 - **Shell commands**: Consider platform differences in shell commands and utilities
 
 ### Git Commit Guidelines
-- **🚨 FORBIDDEN**: NEVER add Claude co-authorship or Claude signatures to commits
-- **🚨 FORBIDDEN**: Do NOT include "Generated with Claude Code" or similar AI attribution in commit messages
-- **Commit messages**: Should be written as if by a human developer, focusing on the what and why of changes
-- **Professional commits**: Write clear, concise commit messages that describe the actual changes made
-- **Pithy messages**: Keep commit messages concise and to the point - avoid lengthy explanations
+- **DO NOT commit automatically** - let the user review changes first
+- Use `--no-verify` flag only when explicitly requested
+- **Commit message style**: Use conventional format without prefixes (feat:, fix:, chore:, etc.)
+- **Message guidelines**: Keep commit messages short, pithy, and targeted - avoid lengthy explanations
+- **Small commits**: Make small, focused commits that address a single concern
+- **❌ FORBIDDEN**: Do NOT add Claude Code attribution footer to commit messages
+  - ❌ WRONG: Including "🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>"
+  - ✅ CORRECT: Clean commit messages without attribution footers
 - **Commit without tests**: `git commit --no-verify` (skips pre-commit hooks including tests)
 
 ### Package Management
@@ -452,3 +455,82 @@ When working in any Socket repository, check CLAUDE.md files in other Socket pro
 - Maintain strict purl specification compliance
 - Always run lint and typecheck before committing
 - Test coverage should remain high
+
+## 📦 Dependency Alignment Standards (CRITICAL)
+
+### 🚨 MANDATORY Dependency Versions
+All Socket projects MUST maintain alignment on these core dependencies. Use `taze` to manage version updates when needed:
+
+#### Core Build Tools & TypeScript
+- **@typescript/native-preview** (tsgo - NEVER use standard tsc)
+- **@types/node** (latest LTS types)
+- **typescript-eslint** (unified package - do NOT use separate @typescript-eslint/* packages)
+
+#### Essential DevDependencies
+- **@biomejs/biome**
+- **@dotenvx/dotenvx**
+- **@eslint/compat**
+- **@eslint/js**
+- **@vitest/coverage-v8**
+- **eslint**
+- **eslint-plugin-import-x**
+- **eslint-plugin-n**
+- **eslint-plugin-sort-destructure-keys**
+- **eslint-plugin-unicorn**
+- **globals**
+- **husky**
+- **knip**
+- **lint-staged**
+- **npm-run-all2**
+- **oxlint**
+- **taze**
+- **trash**
+- **type-coverage**
+- **vitest**
+- **yargs-parser**
+- **yoctocolors-cjs**
+
+### 🔧 TypeScript Compiler Standardization
+- **🚨 MANDATORY**: ALL Socket projects MUST use `tsgo` instead of `tsc`
+- **Package**: `@typescript/native-preview`
+- **Scripts**: Replace `tsc` with `tsgo` in all package.json scripts
+- **Benefits**: Enhanced performance, better memory management, faster compilation
+
+#### Script Examples:
+```json
+{
+  "build": "tsgo",
+  "check:tsc": "tsgo --noEmit",
+  "build:types": "tsgo --project tsconfig.dts.json"
+}
+```
+
+### 🛠️ ESLint Configuration Standardization
+- **🚨 FORBIDDEN**: Do NOT use separate `@typescript-eslint/eslint-plugin` and `@typescript-eslint/parser` packages
+- **✅ REQUIRED**: Use unified `typescript-eslint` package only
+- **Migration**: Remove separate packages, add unified package
+
+#### Migration Commands:
+```bash
+pnpm remove @typescript-eslint/eslint-plugin @typescript-eslint/parser
+pnpm add -D typescript-eslint --save-exact
+```
+
+### 📋 Dependency Update Requirements
+When updating dependencies across Socket projects:
+
+1. **Use taze first**: Run `pnpm run taze` to check and update dependencies systematically
+2. **Version Consistency**: All projects MUST use identical versions for shared dependencies
+3. **Exact Versions**: Always use `--save-exact` flag to prevent version drift
+4. **Batch Updates**: Update all Socket projects simultaneously to maintain alignment
+5. **Testing**: Run full test suites after dependency updates to ensure compatibility
+6. **Documentation**: Update CLAUDE.md files when standard versions change
+
+### 🔄 Cross-Project Consistency
+These standards apply across all Socket repositories:
+- `socket-cli`
+- `socket-packageurl-js`
+- `socket-registry`
+- `socket-sdk-js`
+
+When working in any Socket repository, check CLAUDE.md files in other Socket projects for consistency and apply these patterns universally.
