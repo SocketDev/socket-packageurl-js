@@ -46,6 +46,10 @@ export default [
   biomeIgnores,
   gitIgnores,
   {
+    name: 'Ignore dist directory',
+    ignores: ['**/dist/**'],
+  },
+  {
     ...js.configs.recommended,
     ...importXFlatConfigs.recommended,
     ...nodePlugin.configs['flat/recommended-script'],
