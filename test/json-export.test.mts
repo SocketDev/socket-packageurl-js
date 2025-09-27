@@ -29,8 +29,8 @@ import { PackageURL } from '../src/package-url.js'
 
 describe('PackageURL JSON/dict export', () => {
   describe('toObject', () => {
-    it('should convert simple PackageURL to object', () => {
-      const purl = new PackageURL(
+    it('should convert PackageURL to object', () => {
+      const simplePurl = new PackageURL(
         'npm',
         undefined,
         'lodash',
@@ -38,16 +38,14 @@ describe('PackageURL JSON/dict export', () => {
         undefined,
         undefined,
       )
-      const obj = purl.toObject()
+      const simpleObj = simplePurl.toObject()
 
-      expect(obj).toEqual({
+      expect(simpleObj).toEqual({
         type: 'npm',
         name: 'lodash',
       })
-    })
 
-    it('should convert complete PackageURL to object', () => {
-      const purl = new PackageURL(
+      const completePurl = new PackageURL(
         'npm',
         '@types',
         'node',
@@ -55,9 +53,9 @@ describe('PackageURL JSON/dict export', () => {
         { arch: 'x64', os: 'linux' },
         'lib/fs.d.ts',
       )
-      const obj = purl.toObject()
+      const completeObj = completePurl.toObject()
 
-      expect(obj).toEqual({
+      expect(completeObj).toEqual({
         type: 'npm',
         namespace: '@types',
         name: 'node',
@@ -104,7 +102,7 @@ describe('PackageURL JSON/dict export', () => {
 
   describe('toJSONString', () => {
     it('should convert PackageURL to JSON string', () => {
-      const purl = new PackageURL(
+      const simplePurl = new PackageURL(
         'npm',
         undefined,
         'lodash',
@@ -112,13 +110,12 @@ describe('PackageURL JSON/dict export', () => {
         undefined,
         undefined,
       )
-      const json = purl.toJSONString()
+      const simpleJson = simplePurl.toJSONString()
+      expect(simpleJson).toBe(
+        '{"type":"npm","name":"lodash","version":"4.17.21"}',
+      )
 
-      expect(json).toBe('{"type":"npm","name":"lodash","version":"4.17.21"}')
-    })
-
-    it('should convert complete PackageURL to JSON string', () => {
-      const purl = new PackageURL(
+      const completePurl = new PackageURL(
         'npm',
         '@types',
         'node',
@@ -126,8 +123,8 @@ describe('PackageURL JSON/dict export', () => {
         { arch: 'x64' },
         'lib/fs.d.ts',
       )
-      const json = purl.toJSONString()
-      const parsed = JSON.parse(json)
+      const completeJson = completePurl.toJSONString()
+      const parsed = JSON.parse(completeJson)
 
       expect(parsed).toEqual({
         type: 'npm',
@@ -170,7 +167,7 @@ describe('PackageURL JSON/dict export', () => {
   })
 
   describe('toJSON', () => {
-    it('should return object for JSON.stringify', () => {
+    it('should return object for JSON.stringify and be consistent with toObject', () => {
       const purl = new PackageURL(
         'npm',
         undefined,
@@ -179,17 +176,15 @@ describe('PackageURL JSON/dict export', () => {
         undefined,
         undefined,
       )
-      const result = purl.toJSON()
+      const jsonResult = purl.toJSON()
 
-      expect(result).toEqual({
+      expect(jsonResult).toEqual({
         type: 'npm',
         name: 'lodash',
         version: '4.17.21',
       })
-    })
 
-    it('should be consistent with toObject', () => {
-      const purl = new PackageURL(
+      const complexPurl = new PackageURL(
         'npm',
         '@types',
         'node',
@@ -197,28 +192,26 @@ describe('PackageURL JSON/dict export', () => {
         { arch: 'x64' },
         'lib/fs.d.ts',
       )
-      const jsonResult = purl.toJSON()
-      const objResult = purl.toObject()
+      const complexJsonResult = complexPurl.toJSON()
+      const objResult = complexPurl.toObject()
 
-      expect(jsonResult).toEqual(objResult)
+      expect(complexJsonResult).toEqual(objResult)
     })
   })
 
   describe('fromObject', () => {
-    it('should create PackageURL from simple object', () => {
-      const obj = { type: 'npm', name: 'lodash' }
-      const purl = PackageURL.fromObject(obj)
+    it('should create PackageURL from object', () => {
+      const simpleObj = { type: 'npm', name: 'lodash' }
+      const simplePurl = PackageURL.fromObject(simpleObj)
 
-      expect(purl.type).toBe('npm')
-      expect(purl.name).toBe('lodash')
-      expect(purl.namespace).toBeUndefined()
-      expect(purl.version).toBeUndefined()
-      expect(purl.qualifiers).toBeUndefined()
-      expect(purl.subpath).toBeUndefined()
-    })
+      expect(simplePurl.type).toBe('npm')
+      expect(simplePurl.name).toBe('lodash')
+      expect(simplePurl.namespace).toBeUndefined()
+      expect(simplePurl.version).toBeUndefined()
+      expect(simplePurl.qualifiers).toBeUndefined()
+      expect(simplePurl.subpath).toBeUndefined()
 
-    it('should create PackageURL from complete object', () => {
-      const obj = {
+      const completeObj = {
         type: 'npm',
         namespace: '@types',
         name: 'node',
@@ -226,29 +219,28 @@ describe('PackageURL JSON/dict export', () => {
         qualifiers: { arch: 'x64', os: 'linux' },
         subpath: 'lib/fs.d.ts',
       }
-      const purl = PackageURL.fromObject(obj)
+      const completePurl = PackageURL.fromObject(completeObj)
 
-      expect(purl.type).toBe('npm')
-      expect(purl.namespace).toBe('@types')
-      expect(purl.name).toBe('node')
-      expect(purl.version).toBe('16.11.7')
-      expect(purl.qualifiers).toEqual({ arch: 'x64', os: 'linux' })
-      expect(purl.subpath).toBe('lib/fs.d.ts')
+      expect(completePurl.type).toBe('npm')
+      expect(completePurl.namespace).toBe('@types')
+      expect(completePurl.name).toBe('node')
+      expect(completePurl.version).toBe('16.11.7')
+      expect(completePurl.qualifiers).toEqual({ arch: 'x64', os: 'linux' })
+      expect(completePurl.subpath).toBe('lib/fs.d.ts')
+
+      const partialObj = { type: 'npm', name: 'lodash', version: '4.17.21' }
+      const partialPurl = PackageURL.fromObject(partialObj)
+
+      expect(partialPurl.type).toBe('npm')
+      expect(partialPurl.name).toBe('lodash')
+      expect(partialPurl.version).toBe('4.17.21')
+      expect(partialPurl.namespace).toBeUndefined()
+      expect(partialPurl.qualifiers).toBeUndefined()
+      expect(partialPurl.subpath).toBeUndefined()
     })
 
-    it('should handle missing optional fields', () => {
-      const obj = { type: 'npm', name: 'lodash', version: '4.17.21' }
-      const purl = PackageURL.fromObject(obj)
-
-      expect(purl.type).toBe('npm')
-      expect(purl.name).toBe('lodash')
-      expect(purl.version).toBe('4.17.21')
-      expect(purl.namespace).toBeUndefined()
-      expect(purl.qualifiers).toBeUndefined()
-      expect(purl.subpath).toBeUndefined()
-    })
-
-    it('should throw error for non-object input', () => {
+    it('should validate input and throw appropriate errors', () => {
+      // Test non-object inputs
       expect(() => PackageURL.fromObject('not an object')).toThrow(
         'Object argument is required.',
       )
@@ -261,31 +253,25 @@ describe('PackageURL JSON/dict export', () => {
       expect(() => PackageURL.fromObject(123)).toThrow(
         'Object argument is required.',
       )
-    })
 
-    it('should validate the created PackageURL', () => {
-      const obj = { type: 'npm', name: '', version: '1.0.0' }
-      expect(() => PackageURL.fromObject(obj)).toThrow()
-    })
-
-    it('should handle empty object', () => {
-      const obj = {}
-      expect(() => PackageURL.fromObject(obj)).toThrow()
+      // Test validation errors
+      expect(() =>
+        PackageURL.fromObject({ type: 'npm', name: '', version: '1.0.0' }),
+      ).toThrow()
+      expect(() => PackageURL.fromObject({})).toThrow()
     })
   })
 
   describe('fromJSON', () => {
     it('should create PackageURL from JSON string', () => {
-      const json = '{"type":"npm","name":"lodash","version":"4.17.21"}'
-      const purl = PackageURL.fromJSON(json)
+      const simpleJson = '{"type":"npm","name":"lodash","version":"4.17.21"}'
+      const simplePurl = PackageURL.fromJSON(simpleJson)
 
-      expect(purl.type).toBe('npm')
-      expect(purl.name).toBe('lodash')
-      expect(purl.version).toBe('4.17.21')
-    })
+      expect(simplePurl.type).toBe('npm')
+      expect(simplePurl.name).toBe('lodash')
+      expect(simplePurl.version).toBe('4.17.21')
 
-    it('should create PackageURL from complete JSON', () => {
-      const json = JSON.stringify({
+      const completeJson = JSON.stringify({
         type: 'npm',
         namespace: '@types',
         name: 'node',
@@ -293,17 +279,18 @@ describe('PackageURL JSON/dict export', () => {
         qualifiers: { arch: 'x64', os: 'linux' },
         subpath: 'lib/fs.d.ts',
       })
-      const purl = PackageURL.fromJSON(json)
+      const completePurl = PackageURL.fromJSON(completeJson)
 
-      expect(purl.type).toBe('npm')
-      expect(purl.namespace).toBe('@types')
-      expect(purl.name).toBe('node')
-      expect(purl.version).toBe('16.11.7')
-      expect(purl.qualifiers).toEqual({ arch: 'x64', os: 'linux' })
-      expect(purl.subpath).toBe('lib/fs.d.ts')
+      expect(completePurl.type).toBe('npm')
+      expect(completePurl.namespace).toBe('@types')
+      expect(completePurl.name).toBe('node')
+      expect(completePurl.version).toBe('16.11.7')
+      expect(completePurl.qualifiers).toEqual({ arch: 'x64', os: 'linux' })
+      expect(completePurl.subpath).toBe('lib/fs.d.ts')
     })
 
-    it('should throw error for non-string input', () => {
+    it('should validate input and throw appropriate errors', () => {
+      // Test non-string inputs
       expect(() => PackageURL.fromJSON(123)).toThrow(
         'JSON string argument is required.',
       )
@@ -316,9 +303,8 @@ describe('PackageURL JSON/dict export', () => {
       expect(() => PackageURL.fromJSON({})).toThrow(
         'JSON string argument is required.',
       )
-    })
 
-    it('should throw error for invalid JSON', () => {
+      // Test invalid JSON
       expect(() => PackageURL.fromJSON('invalid json')).toThrow(
         'Invalid JSON string.',
       )
@@ -326,11 +312,11 @@ describe('PackageURL JSON/dict export', () => {
         'Invalid JSON string.',
       )
       expect(() => PackageURL.fromJSON('')).toThrow('Invalid JSON string.')
-    })
 
-    it('should validate the created PackageURL', () => {
-      const json = '{"type":"npm","name":"","version":"1.0.0"}'
-      expect(() => PackageURL.fromJSON(json)).toThrow()
+      // Test validation of created PackageURL
+      expect(() =>
+        PackageURL.fromJSON('{"type":"npm","name":"","version":"1.0.0"}'),
+      ).toThrow()
     })
   })
 
@@ -435,7 +421,7 @@ describe('PackageURL JSON/dict export', () => {
   })
 
   describe('JSON.stringify integration', () => {
-    it('should work with native JSON.stringify', () => {
+    it('should work with native JSON.stringify for single objects and arrays', () => {
       const purl = new PackageURL(
         'npm',
         undefined,
@@ -452,18 +438,9 @@ describe('PackageURL JSON/dict export', () => {
         name: 'lodash',
         version: '4.17.21',
       })
-    })
 
-    it('should work in arrays with JSON.stringify', () => {
       const purls = [
-        new PackageURL(
-          'npm',
-          undefined,
-          'lodash',
-          '4.17.21',
-          undefined,
-          undefined,
-        ),
+        purl,
         new PackageURL(
           'pypi',
           undefined,
@@ -473,16 +450,16 @@ describe('PackageURL JSON/dict export', () => {
           undefined,
         ),
       ]
-      const json = JSON.stringify(purls)
-      const parsed = JSON.parse(json)
+      const arrayJson = JSON.stringify(purls)
+      const arrayParsed = JSON.parse(arrayJson)
 
-      expect(parsed).toHaveLength(2)
-      expect(parsed[0]).toEqual({
+      expect(arrayParsed).toHaveLength(2)
+      expect(arrayParsed[0]).toEqual({
         type: 'npm',
         name: 'lodash',
         version: '4.17.21',
       })
-      expect(parsed[1]).toEqual({
+      expect(arrayParsed[1]).toEqual({
         type: 'pypi',
         name: 'requests',
         version: '2.28.1',
