@@ -7,12 +7,12 @@ import {
   includeIgnoreFile,
 } from '@eslint/compat'
 import js from '@eslint/js'
-import typescriptParser from '@typescript-eslint/parser'
 import { flatConfigs as importXFlatConfigs } from 'eslint-plugin-import-x'
 import nodePlugin from 'eslint-plugin-n'
 import sortDestructureKeysPlugin from 'eslint-plugin-sort-destructure-keys'
 import unicornPlugin from 'eslint-plugin-unicorn'
 import globals from 'globals'
+import { parser as typescriptParser } from 'typescript-eslint'
 
 import constants from '@socketsecurity/registry/lib/constants'
 
