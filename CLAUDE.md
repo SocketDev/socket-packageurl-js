@@ -240,16 +240,19 @@ This is a TypeScript implementation of the Package URL (purl) specification for 
 - **Array destructuring**: Use object notation `{ 0: key, 1: data }` instead of array destructuring `[key, data]`
 - **Dynamic imports**: 🚨 FORBIDDEN - Never use dynamic imports (`await import()`). Always use static imports at the top of the file
 - **Comment formatting**: 🚨 MANDATORY - ALL comments MUST follow these rules:
+  - **Single-line preference**: Prefer single-line comments (`//`) over multiline comments (`/* */`) unless for method headers, module headers, or copyright notices. Use single-line comments for property descriptions, inline explanations, and general code comments.
   - **Periods required**: Every comment MUST end with a period, except ESLint disable comments and URLs which are directives/references. This includes single-line, multi-line, inline, and c8 ignore comments.
   - **Sentence structure**: Comments should be complete sentences with proper capitalization and grammar.
   - **Placement**: Place comments on their own line above the code they describe, not trailing to the right of code.
   - **Style**: Use fewer hyphens/dashes and prefer commas, colons, or semicolons for better readability.
   - **Examples**:
-    - ✅ CORRECT: `// This function validates user input.`
-    - ✅ CORRECT: `/* This is a multi-line comment that explains the complex logic below. */`
+    - ✅ CORRECT: `// This function validates user input.` (single-line preferred)
+    - ✅ CORRECT: `// Custom GitHub host (default: github.com).` (property description)
+    - ✅ CORRECT: `/* This is a method header JSDoc comment. */` (method/module headers only)
     - ✅ CORRECT: `// eslint-disable-next-line no-await-in-loop` (directive, no period)
     - ✅ CORRECT: `// See https://example.com/docs` (URL reference, no period)
     - ✅ CORRECT: `// c8 ignore start - Reason for ignoring.` (explanation has period)
+    - ❌ WRONG: `/** Custom GitHub host (default: github.com). */` (multiline for simple property)
     - ❌ WRONG: `// this validates input` (no period, not capitalized)
     - ❌ WRONG: `const x = 5 // some value` (trailing comment)
   - **JSDoc comments**: 🚨 SIMPLIFIED - Only use @throws for error documentation. Avoid @param and @returns tags - function signatures and good function names should be self-documenting.
@@ -268,6 +271,28 @@ This is a TypeScript implementation of the Package URL (purl) specification for 
 - **Number formatting**: 🚨 REQUIRED - Use underscore separators (e.g., `20_000`) for large numeric literals. 🚨 FORBIDDEN - Do NOT modify number values inside strings
 - **Node.js fs imports**: 🚨 MANDATORY pattern - `import { someSyncThing, promises as fs } from 'node:fs'`
 - **Process spawning**: 🚨 FORBIDDEN to use Node.js built-in `child_process.spawn` - MUST use `spawn` from `@socketsecurity/registry/lib/spawn`
+- **JSDoc function documentation**: 🚨 MANDATORY - Function JSDoc comments MUST follow this exact pattern:
+  - **Format**: Description only, with optional `@throws` - NO `@param` or `@returns` tags
+  - **Order**: Description paragraph, then `@throws` tag (if needed)
+  - **Closure**: End with `*/` immediately after the last JSDoc tag
+  - **Examples**:
+    - ✅ CORRECT:
+      ```javascript
+      /**
+       * Check if a string contains a trusted domain using proper URL parsing.
+       */
+      ```
+    - ✅ CORRECT (with throws):
+      ```javascript
+      /**
+       * Parse a configuration file and validate its contents.
+       * @throws {Error} When file cannot be read or parsed.
+       */
+      ```
+    - ❌ FORBIDDEN: Adding `@param` or `@returns` tags
+    - ❌ FORBIDDEN: Adding extra tags like `@author`, `@since`, `@example`, etc.
+    - ❌ FORBIDDEN: Adding empty lines between JSDoc tags
+    - ❌ FORBIDDEN: Adding extra content after the last JSDoc tag
 
 ### 🗑️ Safe File Operations (SECURITY CRITICAL)
 - **Script usage only**: Use `trash` package ONLY in scripts, build files, and utilities - NOT in `/src/` files
