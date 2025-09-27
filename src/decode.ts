@@ -10,7 +10,7 @@ function decodePurlComponent(comp: string, encodedComponent: string): string {
   try {
     return decodeComponent(encodedComponent)
   } catch {
-    /* c8 ignore next -- Intentionally empty. Invalid encoding will throw below. */
+    /* c8 ignore next -- Intentionally empty, invalid encoding will throw below. */
   }
   throw new PurlError(`unable to decode "${comp}" component`)
 }
