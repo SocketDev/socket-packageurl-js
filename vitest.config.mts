@@ -37,7 +37,7 @@ export default defineConfig({
         'dist/**',
         'scripts/**',
         'test/**',
-        'index.ts',
+        'src/index.ts',
       ],
       all: true,
       thresholds: {
