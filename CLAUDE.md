@@ -129,6 +129,9 @@ You are a **Principal Software Engineer** responsible for:
 - **Commit message style**: Use conventional format without prefixes (feat:, fix:, chore:, etc.)
 - **Message guidelines**: Keep commit messages short, pithy, and targeted - avoid lengthy explanations
 - **Small commits**: Make small, focused commits that address a single concern
+- **Version bump commits**: 🚨 MANDATORY - Version bump commits MUST use the format: `Bump to v<version-number>`
+  - ✅ CORRECT: `Bump to v1.2.3`
+  - ❌ WRONG: `chore: bump version`, `Update version to 1.2.3`, `1.2.3`
 - **❌ FORBIDDEN**: Do NOT add Claude Code attribution footer to commit messages
   - ❌ WRONG: Including "🤖 Generated with [Claude Code](https://claude.ai/code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>"
   - ✅ CORRECT: Clean commit messages without attribution footers
