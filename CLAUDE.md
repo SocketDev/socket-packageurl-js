@@ -70,7 +70,7 @@ You are a **Principal Software Engineer** responsible for:
 #### Vitest Memory Optimization (CRITICAL)
 - **Pool configuration**: Use `pool: 'forks'` with `singleFork: true`, `maxForks: 1`, `isolate: true`
 - **Memory limits**: Set `NODE_OPTIONS="--max-old-space-size=4096 --max-semi-space-size=512"` in `.env.test`
-- **Timeout settings**: Use `testTimeout: 60000, hookTimeout: 60000` for stability
+- **Timeout settings**: Use `testTimeout: 60_000, hookTimeout: 60_000` for stability
 - **Thread limits**: Use `singleThread: true, maxThreads: 1` to prevent RegExp compiler exhaustion
 - **Test cleanup**: 🚨 MANDATORY - Use `await trash([paths])` in test scripts/utilities only. For cleanup within `/src/` test files, use `fs.rm()` with proper error handling
 
@@ -367,7 +367,7 @@ This is a TypeScript implementation of the Package URL (purl) specification for 
   - Use direct assignment form when passing entire options object to other functions
 - **Examples**:
   - ✅ CORRECT: `const opts = { __proto__: null, ...options } as SomeOptions`
-  - ✅ CORRECT: `const { timeout = 5000, retries = 3 } = { __proto__: null, ...options } as SomeOptions`
+  - ✅ CORRECT: `const { retries = 3, timeout = 5_000 } = { __proto__: null, ...options } as SomeOptions`
   - ❌ FORBIDDEN: `const opts = { ...options }` (vulnerable to prototype pollution)
   - ❌ FORBIDDEN: `const opts = options || {}` (doesn't handle null prototype)
   - ❌ FORBIDDEN: `const opts = Object.assign({}, options)` (inconsistent pattern)
