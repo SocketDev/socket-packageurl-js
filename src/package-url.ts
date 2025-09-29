@@ -22,6 +22,11 @@ SOFTWARE.
 
 /**
  * @fileoverview Package URL parsing and construction utilities.
+ *
+ * Note on instanceof checks:
+ * When this module is compiled to CommonJS and imported from ESM contexts,
+ * instanceof checks may fail due to module system interoperability issues.
+ * See package-url-builder.ts for detailed explanation and workarounds.
  */
 import { decodePurlComponent } from './decode.js'
 import { PurlError } from './error.js'
