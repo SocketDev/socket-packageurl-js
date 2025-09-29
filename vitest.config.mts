@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const isCoverage = process.argv.includes('--coverage')
 
 export default defineConfig({
   test: {
@@ -59,16 +60,22 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: [
-      // Map dist imports to src for proper coverage tracking.
-      {
-        find: /^\.\.\/dist\/(.*)\.js$/,
-        replacement: path.resolve(__dirname, 'src/$1.ts'),
-      },
-      {
-        find: /^\.\/dist\/(.*)\.js$/,
-        replacement: path.resolve(__dirname, 'src/$1.ts'),
-      },
-    ],
+    // Map dist imports to src when running coverage, use dist otherwise.
+    alias: isCoverage
+      ? [
+          {
+            // Match: ../dist/some-module.js
+            find: /^\.\.\/dist\/(.*)\.js$/,
+            // Replace: src/some-module.ts
+            replacement: path.resolve(__dirname, 'src/$1.ts'),
+          },
+          {
+            // Match: ./dist/some-module.js
+            find: /^\.\/dist\/(.*)\.js$/,
+            // Replace: src/some-module.ts
+            replacement: path.resolve(__dirname, 'src/$1.ts'),
+          },
+        ]
+      : [],
   },
 })
