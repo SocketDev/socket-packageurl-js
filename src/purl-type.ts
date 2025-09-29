@@ -423,9 +423,11 @@ const PurlType = createHelpersNamespaceObject(
             }
             return false
           }
-          if (/[~'!()*]/.test(name)) {if (throws) {
+          if (/[~'!()*]/.test(name)) {
+            if (throws) {
               throw new PurlError(
-                `npm "name" component can not contain special characters ("~'!()*")`,)
+                `npm "name" component can not contain special characters ("~'!()*")`,
+              )
             }
             return false
           }

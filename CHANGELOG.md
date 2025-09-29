@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.3](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.3) - 2025-09-29
+
+### Fixed
+- Fixed tsgo transpilation bug that produced incorrect `exports.encodeComponent = void 0;` output
+
 ## [1.1.2](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.2) - 2025-09-27
 
 ### Changed

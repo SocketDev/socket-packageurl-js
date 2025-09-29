@@ -771,7 +771,8 @@ describe('PackageURL', () => {
         const isBuiltin = npmBuiltinNames.includes(id)
         const isMixedCased = /[A-Z]/.test(id)
         const containsIllegalCharacters = /[~'!()*]/.test(id)
-        expect(isBuiltin || isMixedCased || containsIllegalCharacters,
+        expect(
+          isBuiltin || isMixedCased || containsIllegalCharacters,
           `assert for ${legacyName}`,
         )
       }
@@ -1924,7 +1925,7 @@ describe('PackageURL', () => {
             name: 'パッケージ',
             expectedError:
               /npm "name" component can only contain URL-friendly characters/,
-          // Non-ASCII characters
+            // Non-ASCII characters
           },
         ]
 
@@ -2628,11 +2629,11 @@ describe('PackageURL', () => {
         )
         expect(formatPurlErrorMessage('[ message')).toBe(
           'Invalid purl: [ message',
-        // After Z
+          // After Z
         )
         expect(formatPurlErrorMessage('@ message')).toBe(
           'Invalid purl: @ message',
-        // Before A
+          // Before A
         )
 
         // Test normalize.js line 7 - namespace filter
