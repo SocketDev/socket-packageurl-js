@@ -10,6 +10,10 @@ import {
 import { isObject } from './objects.js'
 import { isNonEmptyString } from './strings.js'
 
+// IMPORTANT: Do not use destructuring here (e.g., const { encodeURIComponent } = globalThis).
+// tsgo has a bug that incorrectly transpiles destructured exports, resulting in
+// `exports.encodeComponent = void 0;` which causes runtime errors.
+// See: https://github.com/SocketDev/socket-packageurl-js/issues/3
 const encodeComponent = globalThis.encodeURIComponent
 
 function encodeName(name: unknown): string {

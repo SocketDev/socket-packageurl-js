@@ -93,7 +93,11 @@ function normalizeVersion(rawVersion: unknown): string | undefined {
   return typeof rawVersion === 'string' ? rawVersion.trim() : undefined
 }
 
-const { apply: ReflectApply } = Reflect
+// IMPORTANT: Do not use destructuring here - use direct assignment instead.
+// tsgo has a bug that incorrectly transpiles destructured exports, resulting in
+// `exports.ReflectApply = void 0;` which causes runtime errors.
+// See: https://github.com/SocketDev/socket-packageurl-js/issues/3
+const ReflectApply = Reflect.apply
 
 function qualifiersToEntries(
   rawQualifiers: unknown,
