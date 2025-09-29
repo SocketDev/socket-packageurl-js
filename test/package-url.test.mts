@@ -33,7 +33,12 @@ import {
 
 import npmBuiltinNames from '../data/npm/builtin-names.json'
 import npmLegacyNames from '../data/npm/legacy-names.json'
-import { LOOP_SENTINEL } from '../src/constants.js'
+import { LOOP_SENTINEL } from '../dist/constants.js'
+import { PurlError, formatPurlErrorMessage } from '../dist/error.js'
+import { recursiveFreeze } from '../dist/objects.js'
+import { PackageURL } from '../dist/package-url.js'
+import { PurlQualifierNames } from '../dist/purl-qualifier-names.js'
+import { PurlType } from '../dist/purl-type.js'
 import {
   encodeComponent,
   encodeNamespace,
@@ -42,7 +47,6 @@ import {
   encodeSubpath,
   encodeVersion,
 } from '../src/encode.js'
-import { PurlError, formatPurlErrorMessage } from '../src/error.js'
 import {
   normalizeName,
   normalizeNamespace,
@@ -51,8 +55,6 @@ import {
   normalizeType,
   normalizeVersion,
 } from '../src/normalize.js'
-import { recursiveFreeze } from '../src/objects.js'
-import { PackageURL } from '../src/package-url.js'
 import {
   PurlComponent,
   PurlComponentEncoder,
@@ -61,8 +63,6 @@ import {
   componentComparator,
   componentSortOrder,
 } from '../src/purl-component.js'
-import { PurlQualifierNames } from '../src/purl-qualifier-names.js'
-import { PurlType } from '../src/purl-type.js'
 import {
   validateEmptyByType,
   validateQualifierKey,
@@ -1254,7 +1254,9 @@ describe('PackageURL', () => {
 
       it('should have proper prototype for PackageURL instances', () => {
         const purl = new PackageURL('type', null, 'name')
-        expect(Object.getPrototypeOf(Object.getPrototypeOf(purl))).toBe(null)
+        // Verify the instance is properly constructed with null prototype for security
+        expect(Object.getPrototypeOf(purl)).toBe(PackageURL.prototype)
+        expect(Object.getPrototypeOf(PackageURL.prototype)).toBe(null)
       })
     })
 

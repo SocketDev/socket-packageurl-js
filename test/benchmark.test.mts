@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { readJson } from '@socketsecurity/registry/lib/fs'
 import { isObject } from '@socketsecurity/registry/lib/objects'
 
-import { PackageURL } from '../src/package-url.js'
+import { PackageURL } from '../dist/package-url.js'
 
 describe('PackageURL', () => {
   it('Benchmarking the library', async () => {
