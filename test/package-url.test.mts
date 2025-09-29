@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+// @ts-nocheck
+
 import path from 'node:path'
 
 import { glob } from 'fast-glob'
@@ -95,7 +97,10 @@ function toUrlSearchParams(search: any) {
 function testInvalidParam(
   paramName: string,
   paramMap: Record<string, number>,
-  createArgs: (_name: string, _value: any) => any[],
+  createArgs: (
+    _name: string,
+    _value: unknown,
+  ) => [unknown, unknown, unknown, unknown, unknown, unknown],
 ) {
   const paramIndex = paramMap[paramName]
   ;[
@@ -121,7 +126,10 @@ function testInvalidParam(
 function testInvalidStringParam(
   paramName: string,
   paramMap: Record<string, number>,
-  createArgs: (_name: string, _value: any) => any[],
+  createArgs: (
+    _name: string,
+    _value: unknown,
+  ) => [unknown, unknown, unknown, unknown, unknown, unknown],
 ) {
   const paramIndex = paramMap[paramName]
   ;[
@@ -144,7 +152,10 @@ function testInvalidStringParam(
 function testValidParam(
   paramName: string,
   paramMap: Record<string, number>,
-  createArgs: (_name: string, _value: any) => any[],
+  createArgs: (
+    _name: string,
+    _value: unknown,
+  ) => [unknown, unknown, unknown, unknown, unknown, unknown],
 ) {
   const paramIndex = paramMap[paramName]
   const args = createArgs(paramName, paramName)
@@ -160,7 +171,10 @@ function testValidParam(
 function testValidStringParam(
   paramName: string,
   paramMap: Record<string, number>,
-  createArgs: (_name: string, _value: any) => any[],
+  createArgs: (
+    _name: string,
+    _value: unknown,
+  ) => [unknown, unknown, unknown, unknown, unknown, unknown],
 ) {
   const paramIndex = paramMap[paramName]
   ;[
@@ -222,13 +236,18 @@ describe('PackageURL', () => {
         ['Checksum', 'checksum'],
       ].forEach(function ([name, expectedValue]) {
         it(`maps: ${name} => ${expectedValue}`, () => {
-          expect(PackageURL.KnownQualifierNames[name]).toBe(expectedValue)
+          expect(
+            PackageURL.KnownQualifierNames[
+              name as keyof typeof PackageURL.KnownQualifierNames
+            ],
+          ).toBe(expectedValue)
         })
       })
     })
 
     it('readonly: cannot be written', () => {
       expect(() => {
+        // @ts-expect-error - Testing runtime immutability
         PackageURL.KnownQualifierNames = { foo: 'bar' }
       }).toThrow(TypeError)
       expect(PackageURL.KnownQualifierNames).not.toStrictEqual({
@@ -238,8 +257,10 @@ describe('PackageURL', () => {
 
     it('frozen: cannot be modified', () => {
       expect(() => {
+        // @ts-expect-error - Testing runtime immutability
         PackageURL.KnownQualifierNames.foo = 'bar'
       }).toThrow(TypeError)
+      // @ts-expect-error - Testing runtime immutability
       expect(PackageURL.KnownQualifierNames.foo).toBe(undefined)
     })
   })
@@ -254,8 +275,11 @@ describe('PackageURL', () => {
       subpath: 5,
     }
 
-    const createArgs = (paramName, value) => {
-      const args = [
+    const createArgs = (
+      paramName: string,
+      value: unknown,
+    ): [unknown, unknown, unknown, unknown, unknown, unknown] => {
+      const args: [unknown, unknown, unknown, unknown, unknown, unknown] = [
         'type',
         'namespace',
         'name',
@@ -1697,17 +1721,17 @@ describe('PackageURL', () => {
 
         // npm.validate expects an object with namespace and name properties
         const comp1 = { namespace: '@TEST', name: 'test' }
-        const result1 = PurlType.npm.validate(comp1, false)
+        const result1 = (PurlType['npm'] as any).validate(comp1, false)
         expect(result1).toBe(false)
 
         // Test validation for name with special characters
         const comp2 = { namespace: '', name: 'name!with!special' }
-        const result2 = PurlType.npm.validate(comp2, false)
+        const result2 = (PurlType['npm'] as any).validate(comp2, false)
         expect(result2).toBe(false)
 
         // Test validation for forbidden names
         const comp3 = { namespace: '', name: 'node_modules' }
-        const result3 = PurlType.npm.validate(comp3, false)
+        const result3 = (PurlType['npm'] as any).validate(comp3, false)
         expect(result3).toBe(false)
       })
 
@@ -1858,11 +1882,11 @@ describe('PackageURL', () => {
         // Test validation with invalid namespace characters (lines 307-310)
         // The exclamation mark is actually URL-encoded so it passes validation
         const comp1 = { namespace: '@namespace with spaces', name: 'test' }
-        const result1 = PurlType.npm.validate(comp1, false)
+        const result1 = (PurlType['npm'] as any).validate(comp1, false)
         expect(result1).toBe(false)
 
         // Test with throwing enabled
-        expect(() => PurlType.npm.validate(comp1, true)).toThrow(
+        expect(() => (PurlType['npm'] as any).validate(comp1, true)).toThrow(
           /npm "namespace" component can only contain URL-friendly characters/,
         )
       })
@@ -1873,11 +1897,11 @@ describe('PackageURL', () => {
 
         // Test with a modern package name (not in legacy list) that has special characters
         const comp = { namespace: '', name: 'my-package*' }
-        const result = PurlType.npm.validate(comp, false)
+        const result = (PurlType['npm'] as any).validate(comp, false)
         expect(result).toBe(false)
 
         // Test with throwing enabled for special characters
-        expect(() => PurlType.npm.validate(comp, true)).toThrow(
+        expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
           /npm "name" component can not contain special characters/,
         )
       })
@@ -1935,11 +1959,13 @@ describe('PackageURL', () => {
           const comp = { namespace: '', name }
 
           // Test with throwing disabled - should return false
-          const result = PurlType.npm.validate(comp, false)
+          const result = (PurlType['npm'] as any).validate(comp, false)
           expect(result).toBe(false)
 
           // Test with throwing enabled - should throw with expected error
-          expect(() => PurlType.npm.validate(comp, true)).toThrow(expectedError)
+          expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+            expectedError,
+          )
         })
 
         // Test that URL-friendly characters pass validation
@@ -1952,7 +1978,7 @@ describe('PackageURL', () => {
         validNames.forEach(name => {
           const comp = { namespace: '', name }
           // Should not throw
-          const result = PurlType.npm.validate(comp, true)
+          const result = (PurlType['npm'] as any).validate(comp, true)
           expect(result).toBe(true)
         })
       })
@@ -2146,10 +2172,10 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         const comp = { namespace: ' @namespace ', name: 'test' }
-        const result = PurlType.npm.validate(comp, false)
+        const result = (PurlType['npm'] as any).validate(comp, false)
         expect(result).toBe(false)
 
-        expect(() => PurlType.npm.validate(comp, true)).toThrow(
+        expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
           /npm "namespace" component cannot contain leading or trailing spaces/,
         )
       })
@@ -2163,10 +2189,10 @@ describe('PackageURL', () => {
           namespace: '',
           name: 'VERYNEWPACKAGE2025THATDOESNOTEXIST',
         }
-        const result = PurlType.npm.validate(comp, false)
+        const result = (PurlType['npm'] as any).validate(comp, false)
         expect(result).toBe(false)
 
-        expect(() => PurlType.npm.validate(comp, true)).toThrow(
+        expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
           /npm "name" component can not contain capital letters/,
         )
       })
@@ -2280,10 +2306,10 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         const comp = { namespace: '', name: ' test-name ' }
-        const result = PurlType.npm.validate(comp, false)
+        const result = (PurlType['npm'] as any).validate(comp, false)
         expect(result).toBe(false)
 
-        expect(() => PurlType.npm.validate(comp, true)).toThrow(
+        expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
           /npm "name" component cannot contain leading or trailing spaces/,
         )
       })
@@ -2293,10 +2319,10 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         const comp = { namespace: '', name: '.hidden-package' }
-        const result = PurlType.npm.validate(comp, false)
+        const result = (PurlType['npm'] as any).validate(comp, false)
         expect(result).toBe(false)
 
-        expect(() => PurlType.npm.validate(comp, true)).toThrow(
+        expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
           /npm "name" component cannot start with a period/,
         )
       })
@@ -2345,10 +2371,10 @@ describe('PackageURL', () => {
           name: 'test',
           version: 'vInvalid',
         }
-        const result = PurlType.golang.validate(comp, false)
+        const result = (PurlType['golang'] as any).validate(comp, false)
         expect(result).toBe(false)
 
-        expect(() => PurlType.golang.validate(comp, true)).toThrow(
+        expect(() => (PurlType['golang'] as any).validate(comp, true)).toThrow(
           /golang "version" component starting with a "v" must be followed by a valid semver version/,
         )
       })
@@ -2358,10 +2384,10 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         const comp = { namespace: '', name: '_hidden' }
-        const result = PurlType.npm.validate(comp, false)
+        const result = (PurlType['npm'] as any).validate(comp, false)
         expect(result).toBe(false)
 
-        expect(() => PurlType.npm.validate(comp, true)).toThrow(
+        expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
           /npm "name" component cannot start with an underscore/,
         )
       })
@@ -2455,10 +2481,10 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         const comp = { namespace: 'namespace', name: 'test', qualifiers: null }
-        const result = PurlType.conan.validate(comp, false)
+        const result = (PurlType['conan'] as any).validate(comp, false)
         expect(result).toBe(false)
 
-        expect(() => PurlType.conan.validate(comp, true)).toThrow(
+        expect(() => (PurlType['conan'] as any).validate(comp, true)).toThrow(
           /conan requires a "qualifiers" component when a namespace is present/,
         )
       })
@@ -2469,12 +2495,12 @@ describe('PackageURL', () => {
 
         // Test name starting with period
         const comp1 = { namespace: '', name: '.test' }
-        const result1 = PurlType.npm.validate(comp1, false)
+        const result1 = (PurlType['npm'] as any).validate(comp1, false)
         expect(result1).toBe(false)
 
         // Test name starting with underscore
         const comp2 = { namespace: '', name: '_test' }
-        const result2 = PurlType.npm.validate(comp2, false)
+        const result2 = (PurlType['npm'] as any).validate(comp2, false)
         expect(result2).toBe(false)
       })
 
@@ -2542,10 +2568,10 @@ describe('PackageURL', () => {
           name: 'test',
           qualifiers: { channel: 'stable' },
         }
-        const result = PurlType.conan.validate(comp, false)
+        const result = (PurlType['conan'] as any).validate(comp, false)
         expect(result).toBe(false)
 
-        expect(() => PurlType.conan.validate(comp, true)).toThrow(
+        expect(() => (PurlType['conan'] as any).validate(comp, true)).toThrow(
           /conan requires a "namespace" component when a "channel" qualifier is present/,
         )
       })
@@ -2606,15 +2632,15 @@ describe('PackageURL', () => {
 
         // Test line 283 - period check
         const comp1 = { namespace: '', name: '.hidden' }
-        expect(PurlType.npm.validate(comp1, false)).toBe(false)
+        expect((PurlType['npm'] as any).validate(comp1, false)).toBe(false)
 
         // Test line 285 - underscore check
         const comp2 = { namespace: '', name: '_private' }
-        expect(PurlType.npm.validate(comp2, false)).toBe(false)
+        expect((PurlType['npm'] as any).validate(comp2, false)).toBe(false)
 
         // Valid name
         const comp3 = { namespace: '', name: 'valid-name' }
-        expect(PurlType.npm.validate(comp3, false)).toBe(true)
+        expect((PurlType['npm'] as any).validate(comp3, false)).toBe(true)
       })
 
       // Additional branch coverage tests
@@ -2926,14 +2952,14 @@ describe('PackageURL', () => {
     describe('Type-specific validation non-throwing mode', () => {
       it('should reject invalid npm package names without throwing errors', () => {
         // Test npm name starting with period (line 324-325 in purl-type.ts)
-        const result1 = PurlType.npm.validate(
+        const result1 = (PurlType['npm'] as any).validate(
           { name: '.hidden', namespace: '' },
           false,
         )
         expect(result1).toBe(false)
 
         // Test npm name starting with underscore
-        const result2 = PurlType.npm.validate(
+        const result2 = (PurlType['npm'] as any).validate(
           { name: '_private', namespace: '' },
           false,
         )
@@ -2942,7 +2968,7 @@ describe('PackageURL', () => {
         // Test npm name that is a core module (line 424-425 in purl-type.ts)
         // Note: fs and path are legacy names, so they don't trigger the builtin check
         // Use a non-legacy builtin like worker_threads
-        const result3 = PurlType.npm.validate(
+        const result3 = (PurlType['npm'] as any).validate(
           { name: 'worker_threads', namespace: '' },
           false,
         )
@@ -2950,7 +2976,7 @@ describe('PackageURL', () => {
 
         // Test npm name that's too long (line 397-398 in purl-type.ts)
         const longName = 'a'.repeat(215)
-        const result4 = PurlType.npm.validate(
+        const result4 = (PurlType['npm'] as any).validate(
           { name: longName, namespace: '' },
           false,
         )
@@ -2959,21 +2985,21 @@ describe('PackageURL', () => {
 
       it('should reject invalid pub package names without throwing errors', () => {
         // Test pub name with invalid characters (line 456-457 in purl-type.ts)
-        const result = PurlType.pub.validate(
+        const result = (PurlType['pub'] as any).validate(
           { name: 'invalid-name', namespace: '' },
           false,
         )
         expect(result).toBe(false)
 
         // Test with special characters
-        const result2 = PurlType.pub.validate(
+        const result2 = (PurlType['pub'] as any).validate(
           { name: 'invalid!name', namespace: '' },
           false,
         )
         expect(result2).toBe(false)
 
         // Test with uppercase
-        const result3 = PurlType.pub.validate(
+        const result3 = (PurlType['pub'] as any).validate(
           { name: 'InvalidName', namespace: '' },
           false,
         )

@@ -37,16 +37,16 @@ describe('PackageURL', () => {
     }
     const start = Date.now()
     for (let i = 0; i < iterations; i += 1) {
-      const obj = objects[i]
-      const expected_output = obj?.['expected_output']
+      const obj = objects[i] as Record<string, unknown>
+      const expected_output = obj['expected_output']
       if (isObject(expected_output)) {
         const purl = new PackageURL(
-          expected_output.type,
-          expected_output.namespace,
-          expected_output.name,
-          expected_output.version,
-          expected_output.qualifiers,
-          expected_output.subpath,
+          expected_output['type'] as string,
+          expected_output['namespace'] as string | undefined,
+          expected_output['name'] as string,
+          expected_output['version'] as string | undefined,
+          expected_output['qualifiers'] as Record<string, string> | undefined,
+          expected_output['subpath'] as string | undefined,
         )
         PackageURL.fromString(purl.toString())
       }
