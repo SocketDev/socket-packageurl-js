@@ -25,8 +25,8 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../src/package-url.js'
-import { UrlConverter } from '../src/url-converter.js'
+import { PackageURL } from '../dist/package-url.js'
+import { UrlConverter } from '../dist/url-converter.js'
 
 describe('UrlConverter', () => {
   describe('toRepositoryUrl', () => {

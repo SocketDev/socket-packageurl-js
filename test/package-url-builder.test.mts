@@ -25,21 +25,28 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURLBuilder } from '../src/package-url-builder.js'
-import { PackageURL } from '../src/package-url.js'
+import { PackageURL, PackageURLBuilder } from '../dist/package-url.js'
 
 describe('PackageURLBuilder', () => {
   describe('basic construction', () => {
     it('should build a simple PackageURL', () => {
       const purl = PackageURLBuilder.create().type('npm').name('lodash').build()
 
-      expect(purl).toBeInstanceOf(PackageURL)
+      // Cannot use instanceof due to ESM/CJS interop: test imports ESM wrapper,
+      // but PackageURLBuilder uses CommonJS require(), creating different class references.
+      // Verify constructor name instead.
+      expect(purl.constructor.name).toBe('PackageURL')
       expect(purl.type).toBe('npm')
       expect(purl.name).toBe('lodash')
       expect(purl.namespace).toBeUndefined()
       expect(purl.version).toBeUndefined()
       expect(purl.qualifiers).toBeUndefined()
       expect(purl.subpath).toBeUndefined()
+      // Verify it has PackageURL methods
+      expect(typeof purl.toString).toBe('function')
+      expect(purl.toString()).toBe('pkg:npm/lodash')
+      expect(typeof purl.toJSON).toBe('function')
+      expect(typeof purl.toObject).toBe('function')
     })
 
     it('should build a complete PackageURL with all fields', () => {
