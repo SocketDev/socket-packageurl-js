@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.4](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.4) - 2025-09-29
+
+### Fixed
+- Fixed publishing workflow to ensure dist folder is built before npm publish
+- Changed prepublishOnly script to prevent accidental local publishing
+
 ## [1.1.3](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.3) - 2025-09-29
 
 ### Fixed
