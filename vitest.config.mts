@@ -1,4 +1,9 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import { defineConfig } from 'vitest/config'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   test: {
@@ -46,6 +51,24 @@ export default defineConfig({
         lines: 100,
         statements: 100,
       },
+      // Coverage should report on src files.
+      reportsDirectory: './coverage',
+      include: ['src/**/*.ts'],
+      // Enable source maps for proper coverage mapping.
+      sourcemap: true,
     },
+  },
+  resolve: {
+    alias: [
+      // Map dist imports to src for proper coverage tracking.
+      {
+        find: /^\.\.\/dist\/(.*)\.js$/,
+        replacement: path.resolve(__dirname, 'src/$1.ts'),
+      },
+      {
+        find: /^\.\/dist\/(.*)\.js$/,
+        replacement: path.resolve(__dirname, 'src/$1.ts'),
+      },
+    ],
   },
 })
