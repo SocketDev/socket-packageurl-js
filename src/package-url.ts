@@ -324,8 +324,7 @@ class PackageURL {
         const afterColon = purlStr.slice(colonIndex + 1)
         const trimmedAfterColon = trimLeadingSlashes(afterColon)
         url = new URL(`${beforeColon}:${trimmedAfterColon}`)
-        /* c8 ignore next 4 -- V8 coverage sees multiple branch paths in ternary that can't all be tested. */
-        maybeUrlWithAuth =
+        /* c8 ignore next 4 -- V8 coverage sees multiple branch paths in ternary that can't all be tested. */maybeUrlWithAuth =
           afterColon.length === trimmedAfterColon.length
             ? url
             : new URL(purlStr)
@@ -336,8 +335,7 @@ class PackageURL {
       }
     }
     // The scheme is a constant with the value "pkg".
-    /* c8 ignore next -- Tested: colonIndex === -1 (url undefined) case, but V8 can't see both branches. */
-    if (url?.protocol !== 'pkg:') {
+    /* c8 ignore next -- Tested: colonIndex === -1 (url undefined) case, but V8 can't see both branches. */if (url?.protocol !== 'pkg:') {
       throw new PurlError('missing required "pkg" scheme component')
       /* c8 ignore next -- Unreachable code after throw. */
     }
@@ -365,7 +363,8 @@ class PackageURL {
     /* c8 ignore start -- npm vs non-npm path logic both tested but V8 sees extra branches. */
     let atSignIndex =
       rawType === 'npm'
-        ? // Deviate from the specification to handle a special npm purl type case for
+        // Deviate from the specification to handle a special npm purl type case for
+        ?
           // pnpm ids such as 'pkg:npm/next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)'.
           pathname.indexOf('@', firstSlashIndex + 2)
         : pathname.lastIndexOf('@')
@@ -419,8 +418,7 @@ class PackageURL {
         const value = decodePurlComponent('qualifiers', pairs.at(1) ?? '')
         // Use URLSearchParams#append to preserve plus signs.
         // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
-        /* c8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */
-        searchParams.append(pairs[0]!, value)
+        /* c8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */searchParams.append(pairs[0]!, value)
       }
       // Split the remainder once from right on '?'.
       rawQualifiers = searchParams

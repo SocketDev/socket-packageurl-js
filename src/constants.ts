@@ -9,7 +9,8 @@ const REUSED_SEARCH_PARAMS = new URLSearchParams()
 
 const REUSED_SEARCH_PARAMS_KEY = '_'
 
-const REUSED_SEARCH_PARAMS_OFFSET = 2 // '_='.length
+// '_='.length
+const REUSED_SEARCH_PARAMS_OFFSET = 2
 
 export {
   LOOP_SENTINEL,
