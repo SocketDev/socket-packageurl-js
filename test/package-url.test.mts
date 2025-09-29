@@ -20,8 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// @ts-nocheck
-
 import path from 'node:path'
 
 import { glob } from 'fast-glob'
@@ -115,7 +113,7 @@ function testInvalidParam(
   ].forEach(args => {
     const message = JSON.stringify(args[paramIndex])
     try {
-      const _purl = new PackageURL(...args)
+      new PackageURL(...args)
       expect(false, message)
     } catch {
       expect(true, message)
@@ -141,7 +139,7 @@ function testInvalidStringParam(
   ].forEach(args => {
     const message = JSON.stringify(args[paramIndex])
     try {
-      const _purl = new PackageURL(...args)
+      new PackageURL(...args)
       expect(false, message)
     } catch {
       expect(true, message)
@@ -161,7 +159,7 @@ function testValidParam(
   const args = createArgs(paramName, paramName)
   const message = JSON.stringify(args[paramIndex])
   try {
-    const _purl = new PackageURL(...args)
+    new PackageURL(...args)
     expect(true, message)
   } catch {
     expect(false, message)
@@ -185,7 +183,7 @@ function testValidStringParam(
   ].forEach(args => {
     const message = JSON.stringify(args[paramIndex])
     try {
-      const _purl = new PackageURL(...args)
+      new PackageURL(...args)
       expect(true, message)
     } catch {
       expect(false, message)
@@ -197,23 +195,23 @@ function testValidStringParam(
 const testFunction = () => {}
 
 // Helper functions for freeze testing.
-function createTestFunction() {
+function createTestFunction(): any {
   return function () {}
 }
 
-function createTestFunctionWithReturn() {
+function createTestFunctionWithReturn(): any {
   return function () {
     return 'test'
   }
 }
 
-function createTestFunction1() {
+function createTestFunction1(): any {
   return function () {
     return 'test1'
   }
 }
 
-function createTestFunction2() {
+function createTestFunction2(): any {
   return function () {
     return 'test2'
   }
@@ -287,7 +285,7 @@ describe('PackageURL', () => {
         undefined,
         'subpath',
       ]
-      args[paramMap[paramName]] = value
+      args[paramMap[paramName as keyof typeof paramMap]] = value
       return args
     }
 
@@ -311,19 +309,47 @@ describe('PackageURL', () => {
 
     it('should not decode params', () => {
       // Tests that constructor params are treated as already-decoded (double encoding prevention)
-      expect(new PackageURL('type', '%21', 'name').toString()).toBe(
-        'pkg:type/%2521/name',
-      )
-      expect(new PackageURL('type', 'namespace', '%21').toString()).toBe(
-        'pkg:type/namespace/%2521',
-      )
       expect(
-        new PackageURL('type', 'namespace', 'name', '%21').toString(),
+        new PackageURL(
+          'type',
+          '%21',
+          'name',
+          undefined,
+          undefined,
+          undefined,
+        ).toString(),
+      ).toBe('pkg:type/%2521/name')
+      expect(
+        new PackageURL(
+          'type',
+          'namespace',
+          '%21',
+          undefined,
+          undefined,
+          undefined,
+        ).toString(),
+      ).toBe('pkg:type/namespace/%2521')
+      expect(
+        new PackageURL(
+          'type',
+          'namespace',
+          'name',
+          '%21',
+          undefined,
+          undefined,
+        ).toString(),
       ).toBe('pkg:type/namespace/name@%2521')
       expect(
-        new PackageURL('type', 'namespace', 'name', '1.0', {
-          a: '%21',
-        }).toString(),
+        new PackageURL(
+          'type',
+          'namespace',
+          'name',
+          '1.0',
+          {
+            a: '%21',
+          },
+          undefined,
+        ).toString(),
       ).toBe('pkg:type/namespace/name@1.0?a=%2521')
       expect(
         new PackageURL(
@@ -332,6 +358,7 @@ describe('PackageURL', () => {
           'name',
           '1.0',
           'a=%2521',
+          undefined,
         ).toString(),
       ).toBe('pkg:type/namespace/name@1.0?a=%2521')
       expect(
@@ -351,9 +378,17 @@ describe('PackageURL', () => {
     it('type is validated', () => {
       // Tests type validation rules (no special chars, can't start with number)
       ;['ty#pe', 'ty@pe', 'ty/pe', '1type'].forEach(type => {
-        expect(() => new PackageURL(type, undefined, 'name')).toThrow(
-          /contains an illegal character|cannot start with a number/,
-        )
+        expect(
+          () =>
+            new PackageURL(
+              type,
+              undefined,
+              'name',
+              undefined,
+              undefined,
+              undefined,
+            ),
+        ).toThrow(/contains an illegal character|cannot start with a number/)
       })
     })
 
@@ -389,7 +424,14 @@ describe('PackageURL', () => {
 
     it('path components encode /', () => {
       /* only namespace is allowed to have multiple segments separated by `/`` */
-      const purl = new PackageURL('type', 'namespace1/namespace2', 'na/me')
+      const purl = new PackageURL(
+        'type',
+        'namespace1/namespace2',
+        'na/me',
+        undefined,
+        undefined,
+        undefined,
+      )
       expect(purl.toString()).toBe('pkg:type/namespace1/namespace2/na%2Fme')
     })
   })
@@ -634,7 +676,7 @@ describe('PackageURL', () => {
       )
     )
       .filter(Boolean)
-      .flatMap(o => o.tests ?? [])
+      .flatMap((o: any) => o.tests ?? [])
 
     for (const obj of TEST_FILES) {
       const { expected_failure, expected_output, test_type } = obj
@@ -789,7 +831,14 @@ describe('PackageURL', () => {
           const parts = legacyName.split('/')
           const namespace = parts.length > 1 ? parts[0] : ''
           const name = parts.at(-1)
-          purl = new PackageURL('npm', namespace, name)
+          purl = new PackageURL(
+            'npm',
+            namespace,
+            name,
+            undefined,
+            undefined,
+            undefined,
+          )
         }).not.toThrow()
         const id = purl ? getNpmId(purl) : ''
         const isBuiltin = npmBuiltinNames.includes(id)
@@ -810,7 +859,14 @@ describe('PackageURL', () => {
             const namespace = parts.length > 1 ? parts[0] : ''
             const name = parts.at(-1)
 
-            new PackageURL('npm', namespace, name)
+            new PackageURL(
+              'npm',
+              namespace,
+              name,
+              undefined,
+              undefined,
+              undefined,
+            )
           }, `assert for ${builtinName}`).toThrow()
         }
       }
@@ -825,6 +881,8 @@ describe('PackageURL', () => {
         '',
         'flutter-downloader',
         '1.0.0',
+        undefined,
+        undefined,
       )
       expect(purlWithDashes.toString()).toBe('pkg:pub/flutter_downloader@1.0.0')
     })
@@ -974,14 +1032,28 @@ describe('PackageURL', () => {
 
       it('should handle types with uppercase letters (gets normalized)', () => {
         // Tests type normalization to lowercase (required by spec)
-        const purl = new PackageURL('Type', undefined, 'name')
+        const purl = new PackageURL(
+          'Type',
+          undefined,
+          'name',
+          undefined,
+          undefined,
+          undefined,
+        )
         expect(purl.type).toBe('type')
       })
 
       it('should handle very long component values', () => {
         // Tests no length limits on components (stress test)
         const longString = 'a'.repeat(1000)
-        const purl = new PackageURL('type', longString, longString, longString)
+        const purl = new PackageURL(
+          'type',
+          longString,
+          longString,
+          longString,
+          undefined,
+          undefined,
+        )
         expect(purl.namespace).toBe(longString)
         expect(purl.name).toBe(longString)
         expect(purl.version).toBe(longString)
@@ -989,11 +1061,18 @@ describe('PackageURL', () => {
 
       it('should preserve exact qualifier order in toString', () => {
         // Tests qualifier key sorting requirement (alphabetical order per spec)
-        const purl = new PackageURL('type', null, 'name', null, {
-          z: 'last',
-          a: 'first',
-          m: 'middle',
-        })
+        const purl = new PackageURL(
+          'type',
+          null,
+          'name',
+          null,
+          {
+            z: 'last',
+            a: 'first',
+            m: 'middle',
+          },
+          undefined,
+        )
         const str = purl.toString()
         const queryStart = str.indexOf('?')
         const queryPart = str.slice(queryStart + 1)
@@ -1005,7 +1084,14 @@ describe('PackageURL', () => {
       it('should handle names with special URL characters', () => {
         // Tests encoding/decoding of special characters (roundtrip test)
         const specialChars = "!$&'()*+,;="
-        const purl = new PackageURL('type', null, specialChars)
+        const purl = new PackageURL(
+          'type',
+          null,
+          specialChars,
+          undefined,
+          undefined,
+          undefined,
+        )
         const encoded = purl.toString()
         const decoded = PackageURL.fromString(encoded)
         expect(decoded.name).toBe(specialChars)
@@ -1019,14 +1105,28 @@ describe('PackageURL', () => {
 
       it('should handle percent signs in input', () => {
         // Tests double encoding prevention (% becomes %25)
-        const purl = new PackageURL('type', null, 'name%20')
+        const purl = new PackageURL(
+          'type',
+          null,
+          'name%20',
+          undefined,
+          undefined,
+          undefined,
+        )
         expect(purl.toString()).toBe('pkg:type/name%2520')
       })
 
       it('should handle Unicode characters', () => {
         // Tests UTF-8 encoding/decoding support (internationalization)
         const unicodeName = '测试包'
-        const purl = new PackageURL('type', null, unicodeName)
+        const purl = new PackageURL(
+          'type',
+          null,
+          unicodeName,
+          undefined,
+          undefined,
+          undefined,
+        )
         const encoded = purl.toString()
         const decoded = PackageURL.fromString(encoded)
         expect(decoded.name).toBe(unicodeName)
@@ -1147,9 +1247,16 @@ describe('PackageURL', () => {
 
       it('should normalize qualifier keys to lowercase', () => {
         // Tests qualifier key normalization (always lowercase per spec)
-        const purl = new PackageURL('type', null, 'name', null, {
-          KEY: 'value',
-        })
+        const purl = new PackageURL(
+          'type',
+          null,
+          'name',
+          null,
+          {
+            KEY: 'value',
+          },
+          undefined,
+        )
         expect(purl.qualifiers).toStrictEqual({ __proto__: null, key: 'value' })
       })
 
@@ -1166,7 +1273,14 @@ describe('PackageURL', () => {
           distro: 'ubuntu-20.04',
           epoch: '1',
         }
-        const purl = new PackageURL('type', null, 'name', null, qualifiers)
+        const purl = new PackageURL(
+          'type',
+          null,
+          'name',
+          null,
+          qualifiers,
+          undefined,
+        )
         const str = purl.toString()
         expect(str).toContain('arch=x86_64')
         expect(str).toContain('distro=ubuntu-20.04')
@@ -1177,20 +1291,41 @@ describe('PackageURL', () => {
     describe('Type-specific normalizations', () => {
       it('should handle golang type with uppercase module names', () => {
         // Tests golang-specific behavior (case-sensitive modules)
-        const purl = new PackageURL('golang', 'GitHub.com/User', 'Module')
+        const purl = new PackageURL(
+          'golang',
+          'GitHub.com/User',
+          'Module',
+          undefined,
+          undefined,
+          undefined,
+        )
         expect(purl.namespace).toBe('GitHub.com/User')
         expect(purl.name).toBe('Module')
       })
 
       it('should handle bitbucket namespace case sensitivity', () => {
         // Tests bitbucket-specific normalization (namespace to lowercase)
-        const purl = new PackageURL('bitbucket', 'UserName', 'repo')
+        const purl = new PackageURL(
+          'bitbucket',
+          'UserName',
+          'repo',
+          undefined,
+          undefined,
+          undefined,
+        )
         expect(purl.namespace).toBe('username')
       })
 
       it('should handle github namespace case sensitivity', () => {
         // Tests github-specific normalization (namespace to lowercase)
-        const purl = new PackageURL('github', 'UserName', 'repo')
+        const purl = new PackageURL(
+          'github',
+          'UserName',
+          'repo',
+          undefined,
+          undefined,
+          undefined,
+        )
         expect(purl.namespace).toBe('username')
       })
     })
@@ -1198,23 +1333,69 @@ describe('PackageURL', () => {
     describe('Constructor parameter types', () => {
       it('should handle array as qualifiers (gets converted to undefined)', () => {
         // Tests qualifiers type checking (arrays treated as undefined)
-        const purl = new PackageURL('type', null, 'name', null, [])
+        const purl = new PackageURL('type', null, 'name', null, [], undefined)
         expect(purl.qualifiers).toBe(undefined)
       })
 
       it('should handle function as parameter (should reject)', () => {
         // Tests parameter type validation (functions rejected)
-        expect(() => new PackageURL(testFunction, null, 'name')).toThrow()
-        expect(() => new PackageURL('type', testFunction, 'name')).toThrow()
-        expect(() => new PackageURL('type', null, testFunction)).toThrow()
+        expect(
+          () =>
+            new PackageURL(
+              testFunction,
+              null,
+              'name',
+              undefined,
+              undefined,
+              undefined,
+            ),
+        ).toThrow()
+        expect(
+          () =>
+            new PackageURL(
+              'type',
+              testFunction,
+              'name',
+              undefined,
+              undefined,
+              undefined,
+            ),
+        ).toThrow()
+        expect(
+          () =>
+            new PackageURL(
+              'type',
+              null,
+              testFunction,
+              undefined,
+              undefined,
+              undefined,
+            ),
+        ).toThrow()
       })
 
       it('should handle symbols as parameters (should reject)', () => {
         // Tests parameter type validation (symbols rejected)
         const sym = Symbol('test')
-        expect(() => new PackageURL(sym, null, 'name')).toThrow()
-        expect(() => new PackageURL('type', sym, 'name')).toThrow()
-        expect(() => new PackageURL('type', null, sym)).toThrow()
+        expect(
+          () =>
+            new PackageURL(sym, null, 'name', undefined, undefined, undefined),
+        ).toThrow()
+        expect(
+          () =>
+            new PackageURL(
+              'type',
+              sym,
+              'name',
+              undefined,
+              undefined,
+              undefined,
+            ),
+        ).toThrow()
+        expect(
+          () =>
+            new PackageURL('type', null, sym, undefined, undefined, undefined),
+        ).toThrow()
       })
     })
 
@@ -1242,16 +1423,18 @@ describe('PackageURL', () => {
     describe('Error messages', () => {
       it('should provide clear error message for missing type', () => {
         // Tests error message clarity (type validation)
-        expect(() => new PackageURL('', null, 'name')).toThrow(
-          /"type" is a required component/,
-        )
+        expect(
+          () =>
+            new PackageURL('', null, 'name', undefined, undefined, undefined),
+        ).toThrow(/"type" is a required component/)
       })
 
       it('should provide clear error message for missing name', () => {
         // Tests error message clarity (name validation)
-        expect(() => new PackageURL('type', null, '')).toThrow(
-          /"name" is a required component/,
-        )
+        expect(
+          () =>
+            new PackageURL('type', null, '', undefined, undefined, undefined),
+        ).toThrow(/"name" is a required component/)
       })
 
       it('should provide clear error message for non-string input to fromString', () => {
@@ -1273,11 +1456,18 @@ describe('PackageURL', () => {
         const purl = PackageURL.fromString('pkg:type/name?__proto__=polluted')
 
         expect(purl.qualifiers?.__proto__).toBe('polluted')
-        expect(Object.prototype.polluted).toBe(undefined)
+        expect((Object.prototype as any)['polluted']).toBe(undefined)
       })
 
       it('should have proper prototype for PackageURL instances', () => {
-        const purl = new PackageURL('type', null, 'name')
+        const purl = new PackageURL(
+          'type',
+          null,
+          'name',
+          undefined,
+          undefined,
+          undefined,
+        )
         // Verify the instance is properly constructed with null prototype for security
         expect(Object.getPrototypeOf(purl)).toBe(PackageURL.prototype)
         expect(Object.getPrototypeOf(PackageURL.prototype)).toBe(null)
@@ -1288,15 +1478,29 @@ describe('PackageURL', () => {
       it('should handle large numbers of qualifiers', () => {
         const qualifiers = {}
         for (let i = 0; i < 100; i++) {
-          qualifiers[`key${i}`] = `value${i}`
+          ;(qualifiers as any)[`key${i}`] = `value${i}`
         }
-        const purl = new PackageURL('type', null, 'name', null, qualifiers)
+        const purl = new PackageURL(
+          'type',
+          null,
+          'name',
+          null,
+          qualifiers,
+          undefined,
+        )
         expect(Object.keys(purl.qualifiers || {}).length).toBe(100)
       })
 
       it('should handle deeply nested namespace paths', () => {
         const deepNamespace = Array(50).fill('level').join('/')
-        const purl = new PackageURL('type', deepNamespace, 'name')
+        const purl = new PackageURL(
+          'type',
+          deepNamespace,
+          'name',
+          undefined,
+          undefined,
+          undefined,
+        )
         expect(purl.namespace).toBe(deepNamespace)
       })
     })
@@ -1315,17 +1519,24 @@ describe('PackageURL', () => {
         try {
           throw new PurlError(input)
         } catch (e) {
-          expect(e.message).toBe(expected)
+          expect((e as Error).message).toBe(expected)
         }
       })
 
       // Test encode module functions
       it('should handle encodeQualifierParam with various inputs', () => {
-        const purl1 = new PackageURL('type', null, 'name', null, {
-          'key-with-spaces': 'value with spaces',
-          'key-with-plus': 'value+plus',
-          'key-special': 'value with %20 encoded',
-        })
+        const purl1 = new PackageURL(
+          'type',
+          null,
+          'name',
+          null,
+          {
+            'key-with-spaces': 'value with spaces',
+            'key-with-plus': 'value+plus',
+            'key-special': 'value with %20 encoded',
+          },
+          undefined,
+        )
         const str1 = purl1.toString()
         expect(str1).toContain('key-with-spaces=value%20with%20spaces')
         expect(str1).toContain('key-with-plus=value%2Bplus')
@@ -1337,29 +1548,53 @@ describe('PackageURL', () => {
         ['nested objects', { inner: { deep: 'value' } }],
         ['arrays', { arr: [1, 2, { nested: true }] }],
         ['mixed types', { str: 'test', num: 123, obj: { nested: true } }],
-      ])('should handle recursiveFreeze with %s', (description, qualifiers) => {
-        const purl = new PackageURL('type', null, 'name', null, qualifiers)
-        expect(purl.qualifiers).toBeDefined()
-        // Just verify the purl was created successfully and qualifiers exist
-        expect(typeof purl.qualifiers).toBe('object')
-      })
+      ])(
+        'should handle recursiveFreeze with %s',
+        (_description, qualifiers) => {
+          const purl = new PackageURL(
+            'type',
+            null,
+            'name',
+            null,
+            qualifiers,
+            undefined,
+          )
+          expect(purl.qualifiers).toBeDefined()
+          // Just verify the purl was created successfully and qualifiers exist
+          expect(typeof purl.qualifiers).toBe('object')
+        },
+      )
 
       // Test validation edge cases
       it('should handle validateRequiredByType with empty values', () => {
         // Test maven requiring namespace
         expect(() => {
-          new PackageURL('maven', '', 'name')
+          new PackageURL('maven', '', 'name', undefined, undefined, undefined)
         }).toThrow(/maven requires a "namespace" component/)
       })
 
       it('should handle names starting with numbers for certain types', () => {
         // Some types allow names starting with numbers
-        const purl1 = new PackageURL('generic', null, '9name')
+        const purl1 = new PackageURL(
+          'generic',
+          null,
+          '9name',
+          undefined,
+          undefined,
+          undefined,
+        )
         expect(purl1.name).toBe('9name')
 
         // Test a different invalid npm name pattern
         expect(() => {
-          new PackageURL('npm', null, '.invalid')
+          new PackageURL(
+            'npm',
+            null,
+            '.invalid',
+            undefined,
+            undefined,
+            undefined,
+          )
         }).toThrow()
       })
 
@@ -1399,12 +1634,21 @@ describe('PackageURL', () => {
           'github.com/apple',
           'swift-numerics',
           '1.0.0',
+          undefined,
+          undefined,
         )
         expect(purl.namespace).toBe('github.com/apple')
       })
 
       it('should handle hackage type validation', () => {
-        const purl = new PackageURL('hackage', null, 'package-name', '1.0.0')
+        const purl = new PackageURL(
+          'hackage',
+          null,
+          'package-name',
+          '1.0.0',
+          undefined,
+          undefined,
+        )
         expect(purl.type).toBe('hackage')
         expect(purl.namespace).toBe(null)
       })
@@ -1415,26 +1659,42 @@ describe('PackageURL', () => {
           'namespace',
           'model-name',
           'v1.0',
+          undefined,
+          undefined,
         )
         expect(purl.type).toBe('huggingface')
         expect(purl.namespace).toBe('namespace')
       })
 
       it('should handle mlflow model type', () => {
-        const purl = new PackageURL('mlflow', null, 'model-name', '1.0', {
-          repository_url: 'https://example.com',
-          model_uuid: '123-456',
-        })
+        const purl = new PackageURL(
+          'mlflow',
+          null,
+          'model-name',
+          '1.0',
+          {
+            repository_url: 'https://example.com',
+            model_uuid: '123-456',
+          },
+          undefined,
+        )
         expect(purl.type).toBe('mlflow')
-        expect(purl.qualifiers.repository_url).toBe('https://example.com')
+        expect(purl.qualifiers!.repository_url).toBe('https://example.com')
       })
 
       it('should handle qpkg type', () => {
-        const purl = new PackageURL('qpkg', null, 'package', '1.0', {
-          arch: 'x86_64',
-        })
+        const purl = new PackageURL(
+          'qpkg',
+          null,
+          'package',
+          '1.0',
+          {
+            arch: 'x86_64',
+          },
+          undefined,
+        )
         expect(purl.type).toBe('qpkg')
-        expect(purl.qualifiers.arch).toBe('x86_64')
+        expect(purl.qualifiers!.arch).toBe('x86_64')
       })
 
       // Test index.js exports
@@ -1471,18 +1731,18 @@ describe('PackageURL', () => {
         expect(recursiveFreeze('string')).toBe('string')
 
         // Function with properties
-        const fn = createTestFunction()
-        fn.prop = { nested: 'value' }
+        const fn: any = createTestFunction()
+        ;(fn as any).prop = { nested: 'value' }
         const frozenFn = recursiveFreeze(fn)
         expect(Object.isFrozen(frozenFn)).toBe(true)
-        expect(Object.isFrozen(frozenFn.prop)).toBe(true)
+        expect(Object.isFrozen((frozenFn as any).prop)).toBe(true)
 
         // Arrays with nested objects
         const arr = [{ a: 1 }, [{ b: 2 }]]
         const frozenArr = recursiveFreeze(arr)
         expect(Object.isFrozen(frozenArr)).toBe(true)
         expect(Object.isFrozen(frozenArr[0])).toBe(true)
-        expect(Object.isFrozen(frozenArr[1][0])).toBe(true)
+        expect(Object.isFrozen((frozenArr[1] as any)[0])).toBe(true)
       })
 
       // Test validation functions with throws parameter
@@ -1519,7 +1779,14 @@ describe('PackageURL', () => {
         expect(PackageURL).toBeDefined()
 
         // Test that it can create instances
-        const purl = new PackageURL('npm', '', 'test', '1.0.0')
+        const purl = new PackageURL(
+          'npm',
+          '',
+          'test',
+          '1.0.0',
+          undefined,
+          undefined,
+        )
         expect(purl.toString()).toBe('pkg:npm/test@1.0.0')
       })
 
@@ -1527,10 +1794,25 @@ describe('PackageURL', () => {
       it('should validate mlflow namespace must be empty', () => {
         // mlflow requires empty namespace
         expect(
-          () => new PackageURL('mlflow', 'namespace', 'model', '1.0.0'),
+          () =>
+            new PackageURL(
+              'mlflow',
+              'namespace',
+              'model',
+              '1.0.0',
+              undefined,
+              undefined,
+            ),
         ).toThrow(/mlflow "namespace" component must be empty/)
 
-        const validMlflow = new PackageURL('mlflow', '', 'model', '1.0.0')
+        const validMlflow = new PackageURL(
+          'mlflow',
+          '',
+          'model',
+          '1.0.0',
+          undefined,
+          undefined,
+        )
         expect(validMlflow.toString()).toBe('pkg:mlflow/model@1.0.0')
       })
 
@@ -1538,11 +1820,26 @@ describe('PackageURL', () => {
       it('should validate pub name restrictions', () => {
         // pub names can only contain [a-z0-9_]
         expect(
-          () => new PackageURL('pub', '', 'invalid!name', '1.0.0'),
+          () =>
+            new PackageURL(
+              'pub',
+              '',
+              'invalid!name',
+              '1.0.0',
+              undefined,
+              undefined,
+            ),
         ).toThrow(/pub "name" component may only contain/)
 
         // Valid pub package
-        const validPub = new PackageURL('pub', '', 'valid_name_123', '1.0.0')
+        const validPub = new PackageURL(
+          'pub',
+          '',
+          'valid_name_123',
+          '1.0.0',
+          undefined,
+          undefined,
+        )
         expect(validPub.toString()).toBe('pkg:pub/valid_name_123@1.0.0')
       })
 
@@ -1571,7 +1868,7 @@ describe('PackageURL', () => {
         const obj = { arr: [] }
         // Add exactly LOOP_SENTINEL items to trigger the check
         for (let i = 0; i < LOOP_SENTINEL; i++) {
-          obj.arr.push({ value: i })
+          ;(obj.arr as any).push({ value: i })
         }
 
         // This should throw when hitting the sentinel
@@ -1587,11 +1884,11 @@ describe('PackageURL', () => {
 
         // Test component encoder with empty string
         // This tests PurlComponentEncoder function (line 32-33)
-        const encoded = PurlComponent.name.encode('')
+        const encoded = (PurlComponent.name.encode as any)('')
         expect(encoded).toBe('')
 
         // Test with non-empty string
-        const encodedValid = PurlComponent.name.encode('test-name')
+        const encodedValid = (PurlComponent.name.encode as any)('test-name')
         expect(encodedValid).toBeTruthy()
       })
 
@@ -1601,7 +1898,17 @@ describe('PackageURL', () => {
         // This makes namespace + name > 214 chars
         const name = 'b'.repeat(115)
 
-        expect(() => new PackageURL('npm', namespace, name, '1.0.0')).toThrow(
+        expect(
+          () =>
+            new PackageURL(
+              'npm',
+              namespace,
+              name,
+              '1.0.0',
+              undefined,
+              undefined,
+            ),
+        ).toThrow(
           /npm "namespace" and "name" components can not collectively be more than 214 characters/,
         )
       })
@@ -1609,7 +1916,14 @@ describe('PackageURL', () => {
       // Test npm name with capital letters
       it('should handle npm names with capital letters', () => {
         // NPM actually lowercases the name, not throws
-        const purl = new PackageURL('npm', '', 'TestPackage', '1.0.0')
+        const purl = new PackageURL(
+          'npm',
+          '',
+          'TestPackage',
+          '1.0.0',
+          undefined,
+          undefined,
+        )
         expect(purl.name).toBe('testpackage')
         expect(purl.toString()).toBe('pkg:npm/testpackage@1.0.0')
       })
@@ -1617,7 +1931,15 @@ describe('PackageURL', () => {
       // Test npm name with special characters
       it('should reject npm names with special characters', () => {
         expect(
-          () => new PackageURL('npm', '', 'test*package', '1.0.0'),
+          () =>
+            new PackageURL(
+              'npm',
+              '',
+              'test*package',
+              '1.0.0',
+              undefined,
+              undefined,
+            ),
         ).toThrow(/npm "name" component can not contain special characters/)
       })
 
@@ -1677,7 +1999,7 @@ describe('PackageURL', () => {
 
         // Test various namespace normalization paths
         const namespace1 = 'test//namespace'
-        const normalized1 = normalizeNamespace(namespace1, 'npm')
+        const normalized1 = normalizeNamespace(namespace1)
         expect(normalized1).toBe('test/namespace')
       })
 
@@ -1707,12 +2029,28 @@ describe('PackageURL', () => {
       // Test purl-type.js lines 317-319 - forbidden npm names
       it('should reject forbidden npm names', () => {
         expect(
-          () => new PackageURL('npm', '', 'node_modules', '1.0.0'),
+          () =>
+            new PackageURL(
+              'npm',
+              '',
+              'node_modules',
+              '1.0.0',
+              undefined,
+              undefined,
+            ),
         ).toThrow(/npm "name" component of "node_modules" is not allowed/)
 
-        expect(() => new PackageURL('npm', '', 'favicon.ico', '1.0.0')).toThrow(
-          /npm "name" component of "favicon.ico" is not allowed/,
-        )
+        expect(
+          () =>
+            new PackageURL(
+              'npm',
+              '',
+              'favicon.ico',
+              '1.0.0',
+              undefined,
+              undefined,
+            ),
+        ).toThrow(/npm "name" component of "favicon.ico" is not allowed/)
       })
 
       // Test purl-type.js lines 334-338 - npm name with uppercase (not throwing)
@@ -1755,7 +2093,8 @@ describe('PackageURL', () => {
         searchParams.append('valid_key', 'value2')
 
         expect(
-          () => new PackageURL('npm', '', 'test', '1.0.0', searchParams),
+          () =>
+            new PackageURL('npm', '', 'test', '1.0.0', searchParams, undefined),
         ).toThrow(/qualifier "1invalid" cannot start with a number/)
       })
 
@@ -1771,7 +2110,7 @@ describe('PackageURL', () => {
         expect(PurlComponent.name.validate).toBeDefined()
 
         // Test normalizing name with a number (tests line 36)
-        const result = PurlComponent.name.normalize('test123')
+        const result = (PurlComponent.name.normalize as any)('test123')
         expect(result).toBe('test123')
       })
 
@@ -1784,7 +2123,7 @@ describe('PackageURL', () => {
         // Create object with nested structures but under the limit
         const obj = { a: { b: { c: [] } } }
         for (let i = 0; i < 100; i++) {
-          obj.a.b.c.push({ value: i })
+          ;(obj.a.b.c as any).push({ value: i })
         }
 
         const frozen = recursiveFreeze(obj)
@@ -1826,11 +2165,11 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test golang type normalization (lines 109-110)
-        const goNs = normalizeNamespace('github.com//owner//repo', 'golang')
+        const goNs = normalizeNamespace('github.com//owner//repo')
         expect(goNs).toBe('github.com/owner/repo')
 
         // Test generic normalization
-        const genericNs = normalizeNamespace('test', 'generic')
+        const genericNs = normalizeNamespace('test')
         expect(genericNs).toBe('test')
       })
 
@@ -1855,7 +2194,7 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test that normalizer works as expected
-        const nameNorm = PurlComponent.name.normalize
+        const nameNorm = PurlComponent.name.normalize as any
         expect(typeof nameNorm).toBe('function')
         expect(nameNorm('test')).toBe('test')
       })
@@ -2027,13 +2366,13 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test lines 109-110 - golang normalizes double slashes
-        expect(normalizeNamespace('github.com//owner//repo', 'golang')).toBe(
+        expect(normalizeNamespace('github.com//owner//repo')).toBe(
           'github.com/owner/repo',
         )
-        expect(
-          normalizeNamespace('example.com///path///to///repo', 'golang'),
-        ).toBe('example.com/path/to/repo')
-        expect(normalizeNamespace('github.com/owner/repo', 'golang')).toBe(
+        expect(normalizeNamespace('example.com///path///to///repo')).toBe(
+          'example.com/path/to/repo',
+        )
+        expect(normalizeNamespace('github.com/owner/repo')).toBe(
           'github.com/owner/repo',
         )
       })
@@ -2084,13 +2423,13 @@ describe('PackageURL', () => {
 
         // Test namespace normalization for various types
         // normalizeNamespace doesn't filter . and .. for namespaces
-        const result1 = normalizeNamespace('./some/namespace', 'generic')
+        const result1 = normalizeNamespace('./some/namespace')
         expect(result1).toBe('./some/namespace')
 
-        const result2 = normalizeNamespace('../path', 'generic')
+        const result2 = normalizeNamespace('../path')
         expect(result2).toBe('../path')
 
-        const result3 = normalizeNamespace('', 'generic')
+        const result3 = normalizeNamespace('')
         expect(result3).toBe('')
       })
 
@@ -2150,7 +2489,7 @@ describe('PackageURL', () => {
         expect(result1).toBe(true)
         const result2 = PurlComponentValidator(null, false)
         expect(result2).toBe(true)
-        const result3 = PurlComponentValidator(undefined, undefined)
+        const result3 = PurlComponentValidator(undefined, false)
         expect(result3).toBe(true)
       })
 
@@ -2397,11 +2736,11 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // For types that filter paths
-        const result = normalizeNamespace('vendor/package', 'composer')
+        const result = normalizeNamespace('vendor/package')
         expect(result).toBe('vendor/package')
 
         // Test empty namespace
-        const result2 = normalizeNamespace(null, 'composer')
+        const result2 = normalizeNamespace(null)
         expect(result2).toBe(undefined)
       })
 
@@ -2618,7 +2957,14 @@ describe('PackageURL', () => {
 
       // Test purl-type.js lines 97-99 - gitlab normalizer
       it('should test gitlab purl type normalization', () => {
-        const purl = new PackageURL('gitlab', 'Namespace', 'Name', '1.0.0')
+        const purl = new PackageURL(
+          'gitlab',
+          'Namespace',
+          'Name',
+          '1.0.0',
+          undefined,
+          undefined,
+        )
         expect(purl.toString()).toBe('pkg:gitlab/namespace/name@1.0.0')
 
         const purl2 = PackageURL.fromString('pkg:gitlab/Group/Project@v1.0.0')
@@ -2666,9 +3012,9 @@ describe('PackageURL', () => {
 
         // Test normalize.js line 7 - namespace filter
         // Import already at top of file
-        expect(normalizeNamespace('.', 'composer')).toBe('.')
-        expect(normalizeNamespace('..', 'composer')).toBe('..')
-        expect(normalizeNamespace('.hidden', 'generic')).toBe('.hidden')
+        expect(normalizeNamespace('.')).toBe('.')
+        expect(normalizeNamespace('..')).toBe('..')
+        expect(normalizeNamespace('.hidden')).toBe('.hidden')
 
         // Test objects.js line 33 - array vs object branch
         // Import already at top of file
@@ -2805,30 +3151,56 @@ describe('PackageURL', () => {
 
         // Test npm name > 214 chars with throws (line 331)
         const longName = 'a'.repeat(215)
-        expect(() => new PackageURL('npm', null, longName)).toThrow(
+        expect(
+          () =>
+            new PackageURL(
+              'npm',
+              null,
+              longName,
+              undefined,
+              undefined,
+              undefined,
+            ),
+        ).toThrow(
           'npm "namespace" and "name" components can not collectively be more than 214 characters',
         )
 
         // Test npm core module name with throws (line 355)
         // Use a builtin that's not a legacy name (legacy names skip the builtin check)
-        expect(() => new PackageURL('npm', null, 'worker_threads')).toThrow(
-          'npm "name" component can not be a core module name',
-        )
+        expect(
+          () =>
+            new PackageURL(
+              'npm',
+              null,
+              'worker_threads',
+              undefined,
+              undefined,
+              undefined,
+            ),
+        ).toThrow('npm "name" component can not be a core module name')
 
         // Test pub name with illegal character in throws mode (line 384)
         // Note: dashes are normalized to underscores, uppercase is normalized to lowercase
         // Use a special character that's not allowed like @
-        expect(() => new PackageURL('pub', null, 'name@with')).toThrow(
-          'pub "name" component may only contain [a-z0-9_] characters',
-        )
+        expect(
+          () =>
+            new PackageURL(
+              'pub',
+              null,
+              'name@with',
+              undefined,
+              undefined,
+              undefined,
+            ),
+        ).toThrow('pub "name" component may only contain [a-z0-9_] characters')
       })
 
       it('should test deep freeze with function type', () => {
         // Import already at top of file
 
         // Test freezing object with function as property
-        const func = createTestFunctionWithReturn()
-        func.prop = 'value'
+        const func: any = createTestFunctionWithReturn()
+        ;(func as any).prop = 'value'
 
         const obj = {
           fn: func,
@@ -2844,12 +3216,39 @@ describe('PackageURL', () => {
 
       it('should test additional edge cases for maximum coverage', () => {
         // Test edge cases for npm validation
-        const purl1 = new PackageURL('npm', '@scope', 'package-name_123')
+        const purl1 = new PackageURL(
+          'npm',
+          '@scope',
+          'package-name_123',
+          undefined,
+          undefined,
+          undefined,
+        )
         expect(purl1.namespace).toBe('@scope')
 
         // Test edge cases for pub validation with special characters
-        expect(() => new PackageURL('pub', null, 'name!special')).toThrow()
-        expect(() => new PackageURL('pub', null, 'name#hash')).toThrow()
+        expect(
+          () =>
+            new PackageURL(
+              'pub',
+              null,
+              'name!special',
+              undefined,
+              undefined,
+              undefined,
+            ),
+        ).toThrow()
+        expect(
+          () =>
+            new PackageURL(
+              'pub',
+              null,
+              'name#hash',
+              undefined,
+              undefined,
+              undefined,
+            ),
+        ).toThrow()
 
         // Test URL parsing edge cases with different malformed URLs
         expect(() => PackageURL.fromString('::::')).toThrow()
@@ -2866,11 +3265,11 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test freezing array with functions (line 33 branch for typeof item === 'function')
-        const func1 = createTestFunction1()
-        func1.prop = 'value1'
+        const func1: any = createTestFunction1()
+        ;(func1 as any).prop = 'value1'
 
-        const func2 = createTestFunction2()
-        func2.nested = { data: 'nested' }
+        const func2: any = createTestFunction2()
+        ;(func2 as any).nested = { data: 'nested' }
 
         const arr = [func1, { method: func2 }, func2, null, 'string', 42]
 
@@ -2883,7 +3282,7 @@ describe('PackageURL', () => {
         // func2
         expect(Object.isFrozen(frozen[2])).toBe(true)
         // func2's nested object
-        expect(Object.isFrozen(frozen[2].nested)).toBe(true)
+        expect(Object.isFrozen((frozen[2] as any).nested)).toBe(true)
       })
 
       it('should handle purl with type but no slash', () => {

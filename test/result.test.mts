@@ -20,8 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-// @ts-nocheck
-
 /**
  * @fileoverview Unit tests for Result type and functional error handling.
  */
@@ -79,9 +77,7 @@ describe('Result types', () => {
       const chained = result.andThen(_x => err(new Error('failed')))
 
       expect(chained.isErr()).toBe(true)
-      if (chained.isErr()) {
-        expect(chained.error).toEqual(new Error('failed'))
-      }
+      expect((chained as Err<Error>).error).toEqual(new Error('failed'))
     })
 
     it('should pass through orElse', () => {
@@ -130,9 +126,7 @@ describe('Result types', () => {
       const mapped = result.map(x => x * 2)
 
       expect(mapped.isErr()).toBe(true)
-      if (mapped.isErr()) {
-        expect(mapped.error).toEqual(new Error('failure'))
-      }
+      expect((mapped as Err<Error>).error).toEqual(new Error('failure'))
     })
 
     it('should map error correctly', () => {
@@ -140,9 +134,7 @@ describe('Result types', () => {
       const mapped = result.mapErr(e => new Error('mapped: ' + e.message))
 
       expect(mapped.isErr()).toBe(true)
-      if (mapped.isErr()) {
-        expect(mapped.error.message).toBe('mapped: original')
-      }
+      expect((mapped as Err<Error>).error.message).toBe('mapped: original')
     })
 
     it('should pass through andThen', () => {
@@ -150,9 +142,7 @@ describe('Result types', () => {
       const chained = result.andThen(x => ok(x * 2))
 
       expect(chained.isErr()).toBe(true)
-      if (chained.isErr()) {
-        expect(chained.error).toEqual(new Error('failure'))
-      }
+      expect((chained as Err<Error>).error).toEqual(new Error('failure'))
     })
 
     it('should handle orElse', () => {
@@ -168,9 +158,7 @@ describe('Result types', () => {
       const fallback = result.orElse(() => err(new Error('fallback failed')))
 
       expect(fallback.isErr()).toBe(true)
-      if (fallback.isErr()) {
-        expect(fallback.error.message).toBe('fallback failed')
-      }
+      expect((fallback as Err<Error>).error.message).toBe('fallback failed')
     })
   })
 
@@ -182,9 +170,7 @@ describe('Result types', () => {
       const result = ResultUtils.from(throwingFn)
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error.message).toBe('boom')
-      }
+      expect((result as Err<Error>).error.message).toBe('boom')
     })
 
     it('should wrap non-throwing function', () => {
@@ -202,10 +188,8 @@ describe('Result types', () => {
       const result = ResultUtils.from(throwingFn)
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error).toBeInstanceOf(Error)
-        expect(result.error.message).toBe('string error')
-      }
+      expect((result as Err<Error>).error).toBeInstanceOf(Error)
+      expect((result as Err<Error>).error.message).toBe('string error')
     })
 
     it('should handle all successful results', () => {
@@ -221,9 +205,7 @@ describe('Result types', () => {
       const combined = ResultUtils.all(results)
 
       expect(combined.isErr()).toBe(true)
-      if (combined.isErr()) {
-        expect(combined.error.message).toBe('failed')
-      }
+      expect((combined as Err<Error>).error.message).toBe('failed')
     })
 
     it('should return first Ok with any', () => {
@@ -239,9 +221,7 @@ describe('Result types', () => {
       const result = ResultUtils.any(results)
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error.message).toBe('fail2')
-      }
+      expect((result as Err<Error>).error.message).toBe('fail2')
     })
   })
 })
@@ -262,20 +242,16 @@ describe('PackageURL Result methods', () => {
       const result = PackageURL.tryFromString('invalid-purl')
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error).toBeInstanceOf(Error)
-      }
+      expect((result as Err<Error>).error).toBeInstanceOf(Error)
     })
 
     it('should return Err for non-string input', () => {
       const result = PackageURL.tryFromString(123)
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error.message).toContain(
-          'purl string argument is required',
-        )
-      }
+      expect((result as Err<Error>).error.message).toContain(
+        'purl string argument is required',
+      )
     })
   })
 
@@ -296,18 +272,16 @@ describe('PackageURL Result methods', () => {
       const result = PackageURL.tryFromObject(obj)
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error).toBeInstanceOf(Error)
-      }
+      expect((result as Err<Error>).error).toBeInstanceOf(Error)
     })
 
     it('should return Err for non-object input', () => {
       const result = PackageURL.tryFromObject('not an object')
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error.message).toContain('Object argument is required')
-      }
+      expect((result as Err<Error>).error.message).toContain(
+        'Object argument is required',
+      )
     })
   })
 
@@ -327,20 +301,18 @@ describe('PackageURL Result methods', () => {
       const result = PackageURL.tryFromJSON('invalid json')
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error.message).toContain('Invalid JSON string')
-      }
+      expect((result as Err<Error>).error.message).toContain(
+        'Invalid JSON string',
+      )
     })
 
     it('should return Err for non-string input', () => {
       const result = PackageURL.tryFromJSON(123)
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error.message).toContain(
-          'JSON string argument is required',
-        )
-      }
+      expect((result as Err<Error>).error.message).toContain(
+        'JSON string argument is required',
+      )
     })
 
     it('should return Err for valid JSON with invalid purl data', () => {
@@ -348,9 +320,7 @@ describe('PackageURL Result methods', () => {
       const result = PackageURL.tryFromJSON(json)
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error).toBeInstanceOf(Error)
-      }
+      expect((result as Err<Error>).error).toBeInstanceOf(Error)
     })
   })
 
@@ -373,20 +343,16 @@ describe('PackageURL Result methods', () => {
       const result = PackageURL.tryParseString('invalid-purl')
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error).toBeInstanceOf(Error)
-      }
+      expect((result as Err<Error>).error).toBeInstanceOf(Error)
     })
 
     it('should return Err for non-string input', () => {
       const result = PackageURL.tryParseString(null)
 
       expect(result.isErr()).toBe(true)
-      if (result.isErr()) {
-        expect(result.error.message).toContain(
-          'purl string argument is required',
-        )
-      }
+      expect((result as Err<Error>).error.message).toContain(
+        'purl string argument is required',
+      )
     })
   })
 
@@ -405,21 +371,19 @@ describe('PackageURL Result methods', () => {
     it('should handle error propagation', () => {
       const result = PackageURL.tryFromString('invalid-purl')
         .map(purl => purl.name)
-        .andThen(name => ok(name.toUpperCase()))
+        .andThen(name => ok(name?.toUpperCase() ?? ''))
 
       expect(result.isErr()).toBe(true)
     })
 
     it('should provide fallbacks with orElse', () => {
-      const result = PackageURL.tryFromString('invalid-purl').orElse(() =>
+      const failedResult = PackageURL.tryFromString('invalid-purl')
+      const result = (failedResult as Err<Error>).orElse(() =>
         PackageURL.tryFromString('pkg:npm/fallback@1.0.0'),
       )
 
       expect(result.isOk()).toBe(true)
-      const name = result.unwrap().name
-      if (name !== undefined) {
-        expect(name).toBe('fallback')
-      }
+      expect(result.unwrap().name).toBe('fallback')
     })
 
     it('should work with unwrapOr for defaults', () => {
@@ -434,7 +398,7 @@ describe('PackageURL Result methods', () => {
           undefined,
           undefined,
         ),
-      )
+      ) as PackageURL
 
       expect(validPurl.name).toBe('lodash')
 
@@ -447,7 +411,7 @@ describe('PackageURL Result methods', () => {
           undefined,
           undefined,
         ),
-      )
+      ) as PackageURL
 
       expect(invalidPurl.name).toBe('default')
     })
