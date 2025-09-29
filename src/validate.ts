@@ -158,7 +158,8 @@ function validateStrings(
     return true
   }
   if (throws) {
-    throw new PurlError(`"'${name}" must be a string`)}
+    throw new PurlError(`"'${name}" must be a string`)
+  }
   return false
 }
 
