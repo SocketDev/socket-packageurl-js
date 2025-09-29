@@ -50,7 +50,7 @@ describe('Result types', () => {
 
     it('should map value correctly', () => {
       const result = ok(5)
-      const mapped = result.map(x => x * 2)
+      const mapped = result.map((x: number) => x * 2)
 
       expect(mapped.isOk()).toBe(true)
       expect(mapped.unwrap()).toBe(10)
@@ -58,7 +58,7 @@ describe('Result types', () => {
 
     it('should pass through mapErr', () => {
       const result = ok(5)
-      const mapped = result.mapErr(_e => new Error('new error'))
+      const mapped = result.mapErr((_e: Error) => new Error('new error'))
 
       expect(mapped.isOk()).toBe(true)
       expect(mapped.unwrap()).toBe(5)
@@ -66,7 +66,7 @@ describe('Result types', () => {
 
     it('should chain andThen operations', () => {
       const result = ok(5)
-      const chained = result.andThen(x => ok(x * 2))
+      const chained = result.andThen((x: number) => ok(x * 2))
 
       expect(chained.isOk()).toBe(true)
       expect(chained.unwrap()).toBe(10)
@@ -74,7 +74,7 @@ describe('Result types', () => {
 
     it('should handle andThen with error result', () => {
       const result = ok(5)
-      const chained = result.andThen(_x => err(new Error('failed')))
+      const chained = result.andThen((_x: number) => err(new Error('failed')))
 
       expect(chained.isErr()).toBe(true)
       expect((chained as Err<Error>).error).toEqual(new Error('failed'))
@@ -118,12 +118,12 @@ describe('Result types', () => {
       const result = err(new Error('failure'))
 
       expect(result.unwrapOr(42)).toBe(42)
-      expect(result.unwrapOrElse(_e => _e.message.length)).toBe(7)
+      expect(result.unwrapOrElse((_e: Error) => _e.message.length)).toBe(7)
     })
 
     it('should pass through map', () => {
       const result = err(new Error('failure'))
-      const mapped = result.map(x => x * 2)
+      const mapped = result.map((x: number) => x * 2)
 
       expect(mapped.isErr()).toBe(true)
       expect((mapped as Err<Error>).error).toEqual(new Error('failure'))
@@ -131,7 +131,9 @@ describe('Result types', () => {
 
     it('should map error correctly', () => {
       const result = err(new Error('original'))
-      const mapped = result.mapErr(e => new Error('mapped: ' + e.message))
+      const mapped = result.mapErr(
+        (e: Error) => new Error('mapped: ' + e.message),
+      )
 
       expect(mapped.isErr()).toBe(true)
       expect((mapped as Err<Error>).error.message).toBe('mapped: original')
@@ -139,7 +141,7 @@ describe('Result types', () => {
 
     it('should pass through andThen', () => {
       const result = err(new Error('failure'))
-      const chained = result.andThen(x => ok(x * 2))
+      const chained = result.andThen((x: number) => ok(x * 2))
 
       expect(chained.isErr()).toBe(true)
       expect((chained as Err<Error>).error).toEqual(new Error('failure'))
@@ -359,8 +361,8 @@ describe('PackageURL Result methods', () => {
   describe('functional composition', () => {
     it('should chain operations with map and andThen', () => {
       const result = PackageURL.tryFromString('pkg:npm/lodash@4.17.21')
-        .map(purl => ({ purl, isNpm: purl.type === 'npm' }))
-        .andThen(({ isNpm, purl }) =>
+        .map((purl: PackageURL) => ({ purl, isNpm: purl.type === 'npm' }))
+        .andThen(({ isNpm, purl }: { isNpm: boolean; purl: PackageURL }) =>
           isNpm ? ok(purl.name) : err(new Error('Not an npm package')),
         )
 
@@ -370,8 +372,8 @@ describe('PackageURL Result methods', () => {
 
     it('should handle error propagation', () => {
       const result = PackageURL.tryFromString('invalid-purl')
-        .map(purl => purl.name)
-        .andThen(name => ok(name?.toUpperCase() ?? ''))
+        .map((purl: PackageURL) => purl.name)
+        .andThen((name: string | undefined) => ok(name?.toUpperCase() ?? ''))
 
       expect(result.isErr()).toBe(true)
     })
