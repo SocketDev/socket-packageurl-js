@@ -245,7 +245,7 @@ describe('PackageURL', () => {
 
     it('readonly: cannot be written', () => {
       expect(() => {
-        // @ts-expect-error - Testing runtime immutability
+        // @ts-expect-error Testing runtime immutability.
         PackageURL.KnownQualifierNames = { foo: 'bar' }
       }).toThrow(TypeError)
       expect(PackageURL.KnownQualifierNames).not.toStrictEqual({
@@ -255,10 +255,10 @@ describe('PackageURL', () => {
 
     it('frozen: cannot be modified', () => {
       expect(() => {
-        // @ts-expect-error - Testing runtime immutability
+        // @ts-expect-error Testing runtime immutability.
         PackageURL.KnownQualifierNames.foo = 'bar'
       }).toThrow(TypeError)
-      // @ts-expect-error - Testing runtime immutability
+      // @ts-expect-error Testing runtime immutability.
       expect(PackageURL.KnownQualifierNames.foo).toBe(undefined)
     })
   })
