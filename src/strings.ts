@@ -31,32 +31,57 @@ function isBlank(str: string): boolean {
         // Whitespace characters according to ECMAScript spec:
         // https://tc39.es/ecma262/#sec-white-space
         (
-          code === 0x0020 || // Space
-          code === 0x0009 || // Tab
-          code === 0x000a || // Line Feed
-          code === 0x000b || // Vertical Tab
-          code === 0x000c || // Form Feed
-          code === 0x000d || // Carriage Return
-          code === 0x00a0 || // No-Break Space
-          code === 0x1680 || // Ogham Space Mark
-          code === 0x2000 || // En Quad
-          code === 0x2001 || // Em Quad
-          code === 0x2002 || // En Space
-          code === 0x2003 || // Em Space
-          code === 0x2004 || // Three-Per-Em Space
-          code === 0x2005 || // Four-Per-Em Space
-          code === 0x2006 || // Six-Per-Em Space
-          code === 0x2007 || // Figure Space
-          code === 0x2008 || // Punctuation Space
-          code === 0x2009 || // Thin Space
-          code === 0x200a || // Hair Space
-          code === 0x2028 || // Line Separator
-          code === 0x2029 || // Paragraph Separator
-          code === 0x202f || // Narrow No-Break Space
-          code === 0x205f || // Medium Mathematical Space
-          code === 0x3000 || // Ideographic Space
+          // Space
+          code === 0x0020 ||
+          // Tab
+          code === 0x0009 ||
+          // Line Feed
+          code === 0x000a ||
+          // Vertical Tab
+          code === 0x000b ||
+          // Form Feed
+          code === 0x000c ||
+          // Carriage Return
+          code === 0x000d ||
+          // No-Break Space
+          code === 0x00a0 ||
+          // Ogham Space Mark
+          code === 0x1680 ||
+          // En Quad
+          code === 0x2000 ||
+          // Em Quad
+          code === 0x2001 ||
+          // En Space
+          code === 0x2002 ||
+          // Em Space
+          code === 0x2003 ||
+          // Three-Per-Em Space
+          code === 0x2004 ||
+          // Four-Per-Em Space
+          code === 0x2005 ||
+          // Six-Per-Em Space
+          code === 0x2006 ||
+          // Figure Space
+          code === 0x2007 ||
+          // Punctuation Space
+          code === 0x2008 ||
+          // Thin Space
+          code === 0x2009 ||
+          // Hair Space
+          code === 0x200a ||
+          // Line Separator
+          code === 0x2028 ||
+          // Paragraph Separator
+          code === 0x2029 ||
+          // Narrow No-Break Space
+          code === 0x202f ||
+          // Medium Mathematical Space
+          code === 0x205f ||
+          // Ideographic Space
+          code === 0x3000 ||
           code === 0xfeff
-        ) // Byte Order Mark
+        // Byte Order Mark
+        )
       )
     ) {
       return false
