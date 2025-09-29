@@ -6,10 +6,13 @@
     "noEmit": true,
     "noPropertyAccessFromIndexSignature": false,
     "noUncheckedIndexedAccess": false,
+    "paths": {
+      "../dist/*": ["./src/*"]
+    },
+    "skipLibCheck": true,
     "types": ["vitest/globals", "node"],
-    "verbatimModuleSyntax": false,
-    "skipLibCheck": true
+    "verbatimModuleSyntax": false
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["test/**/*.mts"]
+  "include": ["**/*.ts", "**/*.mts"],
+  "exclude": ["**/node_modules/**/*"]
 }
