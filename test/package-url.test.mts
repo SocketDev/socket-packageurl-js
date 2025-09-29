@@ -771,8 +771,7 @@ describe('PackageURL', () => {
         const isBuiltin = npmBuiltinNames.includes(id)
         const isMixedCased = /[A-Z]/.test(id)
         const containsIllegalCharacters = /[~'!()*]/.test(id)
-        expect(
-          isBuiltin || isMixedCased || containsIllegalCharacters,
+        expect(isBuiltin || isMixedCased || containsIllegalCharacters,
           `assert for ${legacyName}`,
         )
       }
@@ -1572,7 +1571,8 @@ describe('PackageURL', () => {
       // Test npm type edge cases with long names
       it('should validate npm namespace+name length limit', () => {
         const namespace = '@' + 'a'.repeat(100)
-        const name = 'b'.repeat(115) // This makes namespace + name > 214 chars
+        // This makes namespace + name > 214 chars
+        const name = 'b'.repeat(115)
 
         expect(() => new PackageURL('npm', namespace, name, '1.0.0')).toThrow(
           /npm "namespace" and "name" components can not collectively be more than 214 characters/,
@@ -1924,7 +1924,8 @@ describe('PackageURL', () => {
             name: 'パッケージ',
             expectedError:
               /npm "name" component can only contain URL-friendly characters/,
-          }, // Non-ASCII characters
+          // Non-ASCII characters
+          },
         ]
 
         testCases.forEach(({ expectedError, name }) => {
@@ -1947,7 +1948,8 @@ describe('PackageURL', () => {
         ]
         validNames.forEach(name => {
           const comp = { namespace: '', name }
-          const result = PurlType.npm.validate(comp, true) // Should not throw
+          // Should not throw
+          const result = PurlType.npm.validate(comp, true)
           expect(result).toBe(true)
         })
       })
@@ -2491,7 +2493,8 @@ describe('PackageURL', () => {
         expect(result1).toBe('Invalid purl: a')
 
         // Test character just outside range
-        const result2 = formatPurlErrorMessage('[') // Character after Z
+        // Character after Z
+        const result2 = formatPurlErrorMessage('[')
         expect(result2).toBe('Invalid purl: [')
       })
 
@@ -2625,10 +2628,12 @@ describe('PackageURL', () => {
         )
         expect(formatPurlErrorMessage('[ message')).toBe(
           'Invalid purl: [ message',
-        ) // After Z
+        // After Z
+        )
         expect(formatPurlErrorMessage('@ message')).toBe(
           'Invalid purl: @ message',
-        ) // Before A
+        // Before A
+        )
 
         // Test normalize.js line 7 - namespace filter
         // Import already at top of file
@@ -2842,10 +2847,14 @@ describe('PackageURL', () => {
 
         const frozen = recursiveFreeze(arr)
         expect(Object.isFrozen(frozen)).toBe(true)
-        expect(Object.isFrozen(frozen[0])).toBe(true) // func1
-        expect(Object.isFrozen(frozen[1])).toBe(true) // object containing func2
-        expect(Object.isFrozen(frozen[2])).toBe(true) // func2
-        expect(Object.isFrozen(frozen[2].nested)).toBe(true) // func2's nested object
+        // func1
+        expect(Object.isFrozen(frozen[0])).toBe(true)
+        // object containing func2
+        expect(Object.isFrozen(frozen[1])).toBe(true)
+        // func2
+        expect(Object.isFrozen(frozen[2])).toBe(true)
+        // func2's nested object
+        expect(Object.isFrozen(frozen[2].nested)).toBe(true)
       })
 
       it('should handle purl with type but no slash', () => {

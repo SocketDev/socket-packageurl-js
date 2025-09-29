@@ -323,9 +323,12 @@ describe('PackageURL Result methods', () => {
       expect(result.isOk()).toBe(true)
       const components = result.unwrap()
       expect(components).toHaveLength(6)
-      expect(components[0]).toBe('npm') // type
-      expect(components[2]).toBe('lodash') // name
-      expect(components[3]).toBe('4.17.21') // version
+      // type
+      expect(components[0]).toBe('npm')
+      // name
+      expect(components[2]).toBe('lodash')
+      // version
+      expect(components[3]).toBe('4.17.21')
     })
 
     it('should return Err for invalid purl string', () => {
