@@ -96,7 +96,8 @@ describe('PackageURL JSON/dict export', () => {
       const obj = purl.toObject()
 
       expect(obj.qualifiers).toEqual(qualifiers)
-      expect(obj.qualifiers).not.toBe(qualifiers) // Should be a copy, not the same reference
+      // Should be a copy, not the same reference
+      expect(obj.qualifiers).not.toBe(qualifiers)
     })
   })
 
