@@ -28,6 +28,29 @@ import { PackageURL } from './package-url.js'
 import type { QualifiersObject } from './purl-component.js'
 
 /**
+ * Known Limitation: instanceof checks with ESM/CommonJS interop
+ * ==============================================================
+ *
+ * When using PackageURLBuilder in environments that mix ESM and CommonJS modules
+ * (such as Vitest tests importing CommonJS-compiled code as ESM), the instanceof
+ * operator may not work reliably for checking if the built objects are instances
+ * of PackageURL.
+ *
+ * This occurs because:
+ * - PackageURLBuilder internally imports PackageURL using CommonJS require()
+ * - External code may import PackageURL using ESM import
+ * - Node.js creates different wrapper objects for the same class
+ * - The instanceof check fails due to different object identities
+ *
+ * Workaround:
+ * Instead of: `purl instanceof PackageURL`
+ * Use: `purl.constructor.name === 'PackageURL'` or check for expected properties/methods
+ *
+ * This limitation only affects instanceof checks, not the actual functionality
+ * of the created PackageURL objects.
+ */
+
+/**
  * Builder class for constructing PackageURL instances using a fluent API.
  *
  * This class provides a convenient way to build PackageURL objects step by step
