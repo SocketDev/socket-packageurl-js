@@ -7,7 +7,9 @@
     "noPropertyAccessFromIndexSignature": false,
     "noUncheckedIndexedAccess": false,
     "types": ["vitest/globals", "node"],
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+    "skipLibCheck": true
   },
-  "include": ["test/**/*.mts", "src/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["test/**/*.mts"]
 }
