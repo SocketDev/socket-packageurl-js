@@ -75,13 +75,19 @@ function validateQualifierKey(key: string, throws: boolean): boolean {
     if (
       !(
         (
-          (code >= 48 && code <= 57) || // 0-9
-          (code >= 65 && code <= 90) || // A-Z
-          (code >= 97 && code <= 122) || // a-z
-          code === 46 || // .
-          code === 45 || // -
+          // 0-9
+          (code >= 48 && code <= 57) ||
+          // A-Z
+          (code >= 65 && code <= 90) ||
+          // a-z
+          (code >= 97 && code <= 122) ||
+          // .
+          code === 46 ||
+          // -
+          code === 45 ||
           code === 95
-        ) // _
+        // _
+        )
       )
     ) {
       if (throws) {
@@ -148,8 +154,7 @@ function validateStrings(
     return true
   }
   if (throws) {
-    throw new PurlError(`"'${name}" must be a string`)
-  }
+    throw new PurlError(`"'${name}" must be a string`)}
   return false
 }
 
@@ -174,12 +179,17 @@ function validateType(type: unknown, throws: boolean): boolean {
     if (
       !(
         (
-          (code >= 48 && code <= 57) || // 0-9
-          (code >= 65 && code <= 90) || // A-Z
-          (code >= 97 && code <= 122) || // a-z
-          code === 46 || // .
+          // 0-9
+          (code >= 48 && code <= 57) ||
+          // A-Z
+          (code >= 65 && code <= 90) ||
+          // a-z
+          (code >= 97 && code <= 122) ||
+          // .
+          code === 46 ||
           code === 45
-        ) // -
+        // -
+        )
       )
     ) {
       if (throws) {
