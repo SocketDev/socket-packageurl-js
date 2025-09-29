@@ -55,8 +55,6 @@ export default defineConfig({
       // Coverage should report on src files.
       reportsDirectory: './coverage',
       include: ['src/**/*.ts'],
-      // Enable source maps for proper coverage mapping.
-      sourcemap: true,
     },
   },
   resolve: {
