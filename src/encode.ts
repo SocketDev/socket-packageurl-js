@@ -10,7 +10,7 @@ import {
 import { isObject } from './objects.js'
 import { isNonEmptyString } from './strings.js'
 
-const { encodeURIComponent: encodeComponent } = globalThis
+const encodeComponent = globalThis.encodeURIComponent
 
 function encodeName(name: unknown): string {
   return isNonEmptyString(name)
