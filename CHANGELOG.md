@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+- Type-specific validation for cocoapods package names
+  - Name cannot contain whitespace
+  - Name cannot contain plus (+) character
+  - Name cannot begin with a period
+- Type-specific validation for cpan package namespaces
+  - Namespace must be UPPERCASE when present
+- Type-specific validation for swid package qualifiers
+  - Requires tag_id qualifier
+  - tag_id must not be empty
+  - GUID format tag_id must be lowercase
+
+### Fixed
+- Error message formatting in validateStrings function
+- JSDoc comment formatting in UrlConverter methods
+
 ## [1.1.4](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.4) - 2025-09-29
 
 ### Fixed
