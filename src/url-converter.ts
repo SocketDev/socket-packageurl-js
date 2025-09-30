@@ -69,7 +69,8 @@ export class UrlConverter {
   /**
    * Convert a PackageURL to a repository URL if possible.
    *
-   * This method attempts to generate a repository URL where the package's* source code can be found. Different package types use different URL
+   * This method attempts to generate a repository URL where the package's
+   * source code can be found. Different package types use different URL
    * patterns and repository hosting services.
    */
   static toRepositoryUrl(purl: PackageURL): RepositoryUrl | null {
@@ -185,7 +186,8 @@ export class UrlConverter {
   /**
    * Convert a PackageURL to a download URL if possible.
    *
-   * This method attempts to generate a download URL where the package's* artifact (binary, archive, etc.) can be obtained. Requires a version
+   * This method attempts to generate a download URL where the package's
+   * artifact (binary, archive, etc.) can be obtained. Requires a version
    * to be present in the PackageURL.
    */
   static toDownloadUrl(purl: PackageURL): DownloadUrl | null {
