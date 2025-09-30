@@ -3418,6 +3418,191 @@ describe('PackageURL', () => {
         const result3 = validateType('type@invalid', false)
         expect(result3).toBe(false)
       })
+
+      it('should validate cocoapods name restrictions', () => {
+        // Test name with whitespace
+        expect(
+          () => new PackageURL('cocoapods', null, 'Pod Name', null, null, null),
+        ).toThrow('cocoapods "name" component cannot contain whitespace')
+
+        // Test name with plus character
+        expect(
+          () => new PackageURL('cocoapods', null, 'Pod+Name', null, null, null),
+        ).toThrow(
+          'cocoapods "name" component cannot contain a plus (+) character',
+        )
+
+        // Test name beginning with period
+        expect(
+          () => new PackageURL('cocoapods', null, '.PodName', null, null, null),
+        ).toThrow('cocoapods "name" component cannot begin with a period')
+
+        // Test valid cocoapods name
+        const validPurl = new PackageURL(
+          'cocoapods',
+          null,
+          'AFNetworking',
+          '4.0.0',
+          null,
+          null,
+        )
+        expect(validPurl.toString()).toBe('pkg:cocoapods/AFNetworking@4.0.0')
+
+        // Test non-throwing mode
+        const result1 = (PurlType['cocoapods'] as any).validate(
+          { name: 'Pod Name' },
+          false,
+        )
+        expect(result1).toBe(false)
+
+        const result2 = (PurlType['cocoapods'] as any).validate(
+          { name: 'Pod+Name' },
+          false,
+        )
+        expect(result2).toBe(false)
+
+        const result3 = (PurlType['cocoapods'] as any).validate(
+          { name: '.PodName' },
+          false,
+        )
+        expect(result3).toBe(false)
+      })
+
+      it('should validate cpan namespace requirements', () => {
+        // Test lowercase namespace
+        expect(
+          () =>
+            new PackageURL('cpan', 'author', 'Module-Name', null, null, null),
+        ).toThrow('cpan "namespace" component must be UPPERCASE')
+
+        // Test mixed case namespace
+        expect(
+          () =>
+            new PackageURL('cpan', 'Author', 'Module-Name', null, null, null),
+        ).toThrow('cpan "namespace" component must be UPPERCASE')
+
+        // Test valid cpan with uppercase namespace
+        const validPurl = new PackageURL(
+          'cpan',
+          'AUTHOR',
+          'Module-Name',
+          '1.0.0',
+          null,
+          null,
+        )
+        expect(validPurl.toString()).toBe('pkg:cpan/AUTHOR/Module-Name@1.0.0')
+
+        // Test valid cpan without namespace (namespace is optional)
+        const validPurl2 = new PackageURL(
+          'cpan',
+          null,
+          'DateTime',
+          '1.55',
+          null,
+          null,
+        )
+        expect(validPurl2.toString()).toBe('pkg:cpan/DateTime@1.55')
+
+        // Test non-throwing mode
+        const result1 = (PurlType['cpan'] as any).validate(
+          { name: 'Module-Name', namespace: 'author' },
+          false,
+        )
+        expect(result1).toBe(false)
+
+        const result2 = (PurlType['cpan'] as any).validate(
+          { name: 'Module-Name', namespace: 'Author' },
+          false,
+        )
+        expect(result2).toBe(false)
+      })
+
+      it('should validate swid qualifier requirements', () => {
+        // Test missing tag_id qualifier
+        expect(
+          () =>
+            new PackageURL(
+              'swid',
+              'Acme',
+              'example.com/Enterprise+Server',
+              '1.0.0',
+              {},
+              null,
+            ),
+        ).toThrow('swid requires a "tag_id" qualifier')
+
+        // Test empty tag_id (whitespace gets normalized away, so this tests missing tag_id)
+        expect(
+          () =>
+            new PackageURL(
+              'swid',
+              'Acme',
+              'example.com/Enterprise+Server',
+              '1.0.0',
+              { tag_id: '   ' },
+              null,
+            ),
+        ).toThrow('swid requires a "tag_id" qualifier')
+
+        // Test uppercase GUID tag_id
+        expect(
+          () =>
+            new PackageURL(
+              'swid',
+              'Acme',
+              'example.com/Enterprise+Server',
+              '1.0.0',
+              { tag_id: '75B8C285-FA7B-485B-B199-4745E3004D0D' },
+              null,
+            ),
+        ).toThrow('swid "tag_id" qualifier must be lowercase when it is a GUID')
+
+        // Test valid swid with lowercase GUID
+        const validPurl = new PackageURL(
+          'swid',
+          'Acme',
+          'example.com/Enterprise+Server',
+          '1.0.0',
+          { tag_id: '75b8c285-fa7b-485b-b199-4745e3004d0d' },
+          null,
+        )
+        expect(validPurl.toString()).toContain(
+          'pkg:swid/Acme/example.com%2FEnterprise%2BServer@1.0.0?tag_id=75b8c285-fa7b-485b-b199-4745e3004d0d',
+        )
+
+        // Test valid swid with non-GUID tag_id (mixed case allowed)
+        const validPurl2 = new PackageURL(
+          'swid',
+          'Acme',
+          'example.com/Enterprise+Server',
+          '1.0.0',
+          { tag_id: 'CustomTagId123' },
+          null,
+        )
+        expect(validPurl2.toString()).toContain('tag_id=CustomTagId123')
+
+        // Test non-throwing mode
+        const result1 = (PurlType['swid'] as any).validate(
+          { name: 'test', qualifiers: undefined },
+          false,
+        )
+        expect(result1).toBe(false)
+
+        const result2 = (PurlType['swid'] as any).validate(
+          { name: 'test', qualifiers: { tag_id: '   ' } },
+          false,
+        )
+        expect(result2).toBe(false)
+
+        const result3 = (PurlType['swid'] as any).validate(
+          {
+            name: 'test',
+            qualifiers: { tag_id: '75B8C285-FA7B-485B-B199-4745E3004D0D' },
+          },
+          false,
+        )
+        expect(result3).toBe(false)
+      })
     })
   })
 })
