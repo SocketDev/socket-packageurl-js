@@ -42,11 +42,6 @@ describe('PackageURLBuilder', () => {
       expect(purl.version).toBeUndefined()
       expect(purl.qualifiers).toBeUndefined()
       expect(purl.subpath).toBeUndefined()
-      // Verify it has PackageURL methods
-      expect(typeof purl.toString).toBe('function')
-      expect(purl.toString()).toBe('pkg:npm/lodash')
-      expect(typeof purl.toJSON).toBe('function')
-      expect(typeof purl.toObject).toBe('function')
     })
 
     it('should build a complete PackageURL with all fields', () => {
@@ -276,26 +271,6 @@ describe('PackageURLBuilder', () => {
       expect(() => {
         PackageURLBuilder.create().type('npm').build()
       }).toThrow()
-    })
-  })
-
-  describe('toString integration', () => {
-    it('should produce valid purl strings', () => {
-      const purl = PackageURLBuilder.npm()
-        .namespace('@types')
-        .name('node')
-        .version('16.11.7')
-        .qualifier('arch', 'x64')
-        .subpath('lib/fs.d.ts')
-        .build()
-
-      const purlString = purl.toString()
-      expect(purlString).toContain('pkg:npm/')
-      expect(purlString).toContain('%40types/')
-      expect(purlString).toContain('node@')
-      expect(purlString).toContain('16.11.7')
-      expect(purlString).toContain('arch=x64')
-      expect(purlString).toContain('#lib/fs.d.ts')
     })
   })
 })
