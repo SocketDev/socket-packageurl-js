@@ -255,9 +255,38 @@ const PurlType = createHelpersNamespaceObject(
       },
     },
     validate: {
-      // TODO: cocoapods name validation
-      // TODO: cpan namespace validation
-      // TODO: swid qualifier validation
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/cocoapods-definition.md
+      cocoapods(purl: PurlObject, throws: boolean) {
+        const { name } = purl
+        // Name cannot contain whitespace.
+        if (/\s/.test(name)) {
+          if (throws) {
+            throw new PurlError(
+              'cocoapods "name" component cannot contain whitespace',
+            )
+          }
+          return false
+        }
+        // Name cannot contain a plus (+) character.
+        if (name.includes('+')) {
+          if (throws) {
+            throw new PurlError(
+              'cocoapods "name" component cannot contain a plus (+) character',
+            )
+          }
+          return false
+        }
+        // Name cannot begin with a period (.).
+        if (name.charCodeAt(0) === 46 /*'.'*/) {
+          if (throws) {
+            throw new PurlError(
+              'cocoapods "name" component cannot begin with a period',
+            )
+          }
+          return false
+        }
+        return true
+      },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#conan
       conan(purl: PurlObject, throws: boolean) {
         if (isNullishOrEmptyString(purl.namespace)) {
@@ -274,6 +303,18 @@ const PurlType = createHelpersNamespaceObject(
             throw new PurlError(
               'conan requires a "qualifiers" component when a namespace is present',
             )
+          }
+          return false
+        }
+        return true
+      },
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/cpan-definition.md
+      cpan(purl: PurlObject, throws: boolean) {
+        // CPAN namespace (author/publisher ID) must be uppercase when present.
+        const { namespace } = purl
+        if (namespace && namespace !== namespace.toUpperCase()) {
+          if (throws) {
+            throw new PurlError('cpan "namespace" component must be UPPERCASE')
           }
           return false
         }
@@ -477,6 +518,40 @@ const PurlType = createHelpersNamespaceObject(
               }
               return false
             }
+        }
+        return true
+      },
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/swid-definition.md
+      swid(purl: PurlObject, throws: boolean) {
+        const { qualifiers } = purl
+        // SWID requires a tag_id qualifier.
+        const tagId = qualifiers?.['tag_id']
+        if (!tagId) {
+          if (throws) {
+            throw new PurlError('swid requires a "tag_id" qualifier')
+          }
+          return false
+        }
+        // tag_id must not be empty after trimming.
+        const tagIdStr = String(tagId).trim()
+        if (tagIdStr.length === 0) {
+          if (throws) {
+            throw new PurlError('swid "tag_id" qualifier must not be empty')
+          }
+          return false
+        }
+        // If tag_id is a GUID, it must be lowercase.
+        const guidPattern =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        if (guidPattern.test(tagIdStr)) {
+          if (tagIdStr !== tagIdStr.toLowerCase()) {
+            if (throws) {
+              throw new PurlError(
+                'swid "tag_id" qualifier must be lowercase when it is a GUID',
+              )
+            }
+            return false
+          }
         }
         return true
       },
