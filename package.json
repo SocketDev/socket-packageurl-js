@@ -66,7 +66,7 @@
     "test-pre-commit": "dotenvx -q run -f .env.precommit -- pnpm test",
     "update": "run-p --aggregate-output update:* && run-s update:longtask:**",
     "update:deps": "node scripts/taze.mjs",
-    "update:socket": "pnpm update '@socketsecurity/*' '@socketregistry/*' --latest",
+    "update:socket": "pnpm -r update '@socketsecurity/*' '@socketregistry/*' --latest",
     "update:longtask:data:npm": "node ./scripts/update-data-npm.mjs"
   },
   "devDependencies": {
