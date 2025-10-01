@@ -32,10 +32,10 @@ import type { PackageURL } from './package-url.js'
  * repository URL where the source code can be found.
  */
 export interface RepositoryUrl {
-  /** The repository URL string. */
-  url: string
   /** The type of repository (version control system or web interface). */
   type: 'git' | 'hg' | 'svn' | 'web'
+  /** The repository URL string. */
+  url: string
 }
 
 /**
@@ -45,10 +45,10 @@ export interface RepositoryUrl {
  * download URL where the package artifact can be obtained.
  */
 export interface DownloadUrl {
-  /** The download URL string. */
-  url: string
   /** The type/format of the downloadable artifact. */
   type: 'tarball' | 'zip' | 'exe' | 'wheel' | 'jar' | 'gem' | 'other'
+  /** The download URL string. */
+  url: string
 }
 
 /**
@@ -79,14 +79,14 @@ export class UrlConverter {
     switch (type) {
       case 'npm':
         return {
-          url: `https://npmjs.com/package/${namespace ? `${namespace}/` : ''}${name}`,
           type: 'web',
+          url: `https://npmjs.com/package/${namespace ? `${namespace}/` : ''}${name}`,
         }
 
       case 'pypi':
         return {
-          url: `https://pypi.org/project/${name}/`,
           type: 'web',
+          url: `https://pypi.org/project/${name}/`,
         }
 
       case 'maven': {
@@ -95,15 +95,15 @@ export class UrlConverter {
         }
         const groupPath = namespace.replace(/\./g, '/')
         return {
-          url: `https://repo1.maven.org/maven2/${groupPath}/${name}/`,
           type: 'web',
+          url: `https://repo1.maven.org/maven2/${groupPath}/${name}/`,
         }
       }
 
       case 'gem':
         return {
-          url: `https://rubygems.org/gems/${name}`,
           type: 'web',
+          url: `https://rubygems.org/gems/${name}`,
         }
 
       case 'golang':
@@ -111,26 +111,26 @@ export class UrlConverter {
           return null
         }
         return {
-          url: `https://${namespace}/${name}`,
           type: 'git',
+          url: `https://${namespace}/${name}`,
         }
 
       case 'cargo':
         return {
-          url: `https://crates.io/crates/${name}`,
           type: 'web',
+          url: `https://crates.io/crates/${name}`,
         }
 
       case 'nuget':
         return {
-          url: `https://nuget.org/packages/${name}/`,
           type: 'web',
+          url: `https://nuget.org/packages/${name}/`,
         }
 
       case 'composer':
         return {
-          url: `https://packagist.org/packages/${namespace ? `${namespace}/` : ''}${name}`,
           type: 'web',
+          url: `https://packagist.org/packages/${namespace ? `${namespace}/` : ''}${name}`,
         }
 
       case 'github':
@@ -138,8 +138,8 @@ export class UrlConverter {
           return null
         }
         return {
-          url: `https://github.com/${namespace}/${name}`,
           type: 'git',
+          url: `https://github.com/${namespace}/${name}`,
         }
 
       case 'gitlab':
@@ -147,8 +147,8 @@ export class UrlConverter {
           return null
         }
         return {
-          url: `https://gitlab.com/${namespace}/${name}`,
           type: 'git',
+          url: `https://gitlab.com/${namespace}/${name}`,
         }
 
       case 'bitbucket':
@@ -156,26 +156,26 @@ export class UrlConverter {
           return null
         }
         return {
-          url: `https://bitbucket.org/${namespace}/${name}`,
           type: 'git',
+          url: `https://bitbucket.org/${namespace}/${name}`,
         }
 
       case 'hex':
         return {
-          url: `https://hex.pm/packages/${name}`,
           type: 'web',
+          url: `https://hex.pm/packages/${name}`,
         }
 
       case 'pub':
         return {
-          url: `https://pub.dev/packages/${name}`,
           type: 'web',
+          url: `https://pub.dev/packages/${name}`,
         }
 
       case 'luarocks':
         return {
-          url: `https://luarocks.org/modules/${namespace ? `${namespace}/` : ''}${name}`,
           type: 'web',
+          url: `https://luarocks.org/modules/${namespace ? `${namespace}/` : ''}${name}`,
         }
 
       default:
@@ -201,15 +201,15 @@ export class UrlConverter {
       case 'npm': {
         const npmName = namespace ? `${namespace}/${name}` : name
         return {
-          url: `https://registry.npmjs.org/${npmName}/-/${name}-${version}.tgz`,
           type: 'tarball',
+          url: `https://registry.npmjs.org/${npmName}/-/${name}-${version}.tgz`,
         }
       }
 
       case 'pypi':
         return {
-          url: `https://pypi.org/simple/${name}/`,
           type: 'wheel',
+          url: `https://pypi.org/simple/${name}/`,
         }
 
       case 'maven': {
@@ -218,27 +218,27 @@ export class UrlConverter {
         }
         const groupPath = namespace.replace(/\./g, '/')
         return {
-          url: `https://repo1.maven.org/maven2/${groupPath}/${name}/${version}/${name}-${version}.jar`,
           type: 'jar',
+          url: `https://repo1.maven.org/maven2/${groupPath}/${name}/${version}/${name}-${version}.jar`,
         }
       }
 
       case 'gem':
         return {
-          url: `https://rubygems.org/downloads/${name}-${version}.gem`,
           type: 'gem',
+          url: `https://rubygems.org/downloads/${name}-${version}.gem`,
         }
 
       case 'cargo':
         return {
-          url: `https://crates.io/api/v1/crates/${name}/${version}/download`,
           type: 'tarball',
+          url: `https://crates.io/api/v1/crates/${name}/${version}/download`,
         }
 
       case 'nuget':
         return {
-          url: `https://nuget.org/packages/${name}/${version}/download`,
           type: 'zip',
+          url: `https://nuget.org/packages/${name}/${version}/download`,
         }
 
       case 'composer':
@@ -246,20 +246,20 @@ export class UrlConverter {
           return null
         }
         return {
-          url: `https://repo.packagist.org/p2/${namespace}/${name}.json`,
           type: 'other',
+          url: `https://repo.packagist.org/p2/${namespace}/${name}.json`,
         }
 
       case 'hex':
         return {
-          url: `https://repo.hex.pm/tarballs/${name}-${version}.tar`,
           type: 'tarball',
+          url: `https://repo.hex.pm/tarballs/${name}-${version}.tar`,
         }
 
       case 'pub':
         return {
-          url: `https://pub.dev/packages/${name}/versions/${version}.tar.gz`,
           type: 'tarball',
+          url: `https://pub.dev/packages/${name}/versions/${version}.tar.gz`,
         }
 
       case 'golang':
@@ -267,8 +267,8 @@ export class UrlConverter {
           return null
         }
         return {
-          url: `https://proxy.golang.org/${namespace}/${name}/@v/${version}.zip`,
           type: 'zip',
+          url: `https://proxy.golang.org/${namespace}/${name}/@v/${version}.zip`,
         }
 
       default:
@@ -283,12 +283,12 @@ export class UrlConverter {
    * in a single call, useful when you need to check all URL options.
    */
   static getAllUrls(purl: PackageURL): {
-    repository: RepositoryUrl | null
     download: DownloadUrl | null
+    repository: RepositoryUrl | null
   } {
     return {
-      repository: this.toRepositoryUrl(purl),
       download: this.toDownloadUrl(purl),
+      repository: this.toRepositoryUrl(purl),
     }
   }
 
