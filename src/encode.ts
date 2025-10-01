@@ -16,18 +16,27 @@ import { isNonEmptyString } from './strings.js'
 // See: https://github.com/SocketDev/socket-packageurl-js/issues/3
 const encodeComponent = globalThis.encodeURIComponent
 
+/**
+ * Encode package name component for URL.
+ */
 function encodeName(name: unknown): string {
   return isNonEmptyString(name)
     ? encodeComponent(name).replaceAll('%3A', ':')
     : ''
 }
 
+/**
+ * Encode package namespace component for URL.
+ */
 function encodeNamespace(namespace: unknown): string {
   return isNonEmptyString(namespace)
     ? encodeComponent(namespace).replaceAll('%3A', ':').replaceAll('%2F', '/')
     : ''
 }
 
+/**
+ * Encode qualifier parameter key or value.
+ */
 function encodeQualifierParam(param: unknown): string {
   if (isNonEmptyString(param)) {
     // Replace spaces with %20's so they don't get converted to plus signs.
@@ -47,6 +56,9 @@ function encodeQualifierParam(param: unknown): string {
   return ''
 }
 
+/**
+ * Encode qualifiers object as URL query string.
+ */
 function encodeQualifiers(qualifiers: unknown): string {
   if (isObject(qualifiers)) {
     // Sort this list of qualifier strings lexicographically.
@@ -70,12 +82,18 @@ function encodeQualifiers(qualifiers: unknown): string {
   return ''
 }
 
+/**
+ * Encode subpath component for URL.
+ */
 function encodeSubpath(subpath: unknown): string {
   return isNonEmptyString(subpath)
     ? encodeComponent(subpath).replaceAll('%2F', '/')
     : ''
 }
 
+/**
+ * Encode package version component for URL.
+ */
 function encodeVersion(version: unknown): string {
   return isNonEmptyString(version)
     ? encodeComponent(version).replaceAll('%3A', ':')

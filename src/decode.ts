@@ -10,6 +10,10 @@ import { PurlError } from './error.js'
 // See: https://github.com/SocketDev/socket-packageurl-js/issues/3
 const decodeComponent = globalThis.decodeURIComponent
 
+/**
+ * Decode PURL component value from URL encoding.
+ * @throws {PurlError} When component cannot be decoded.
+ */
 function decodePurlComponent(comp: string, encodedComponent: string): string {
   try {
     return decodeComponent(encodedComponent)
