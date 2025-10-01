@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.5](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.5) - 2025-09-30
+
 ### Added
 - Type-specific validation for cocoapods package names
   - Name cannot contain whitespace
@@ -20,7 +22,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 - Error message formatting in validateStrings function
-- JSDoc comment formatting in UrlConverter methods
 
 ## [1.1.4](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.4) - 2025-09-29
 
