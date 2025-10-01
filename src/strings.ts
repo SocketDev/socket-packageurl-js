@@ -9,6 +9,9 @@
 // > it is better to create an Intl.Collator object and use the function provided
 // > by its compare() method.
 let _localeCompare: Intl.Collator['compare'] | undefined
+/**
+ * Perform locale-aware string comparison.
+ */
 function localeCompare(x: string, y: string): number {
   if (_localeCompare === undefined) {
     // Lazily call new Intl.Collator() because in Node it can take 10-14ms.
@@ -22,6 +25,9 @@ function localeCompare(x: string, y: string): number {
 const regexSemverNumberedGroups =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
+/**
+ * Check if string contains only whitespace characters.
+ */
 function isBlank(str: string): boolean {
   for (let i = 0, { length } = str; i < length; i += 1) {
     const code = str.charCodeAt(i)
@@ -90,18 +96,30 @@ function isBlank(str: string): boolean {
   return true
 }
 
+/**
+ * Check if value is a non-empty string.
+ */
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0
 }
 
+/**
+ * Check if value is a valid semantic version string.
+ */
 function isSemverString(value: unknown): value is string {
   return typeof value === 'string' && regexSemverNumberedGroups.test(value)
 }
 
+/**
+ * Convert package name to lowercase.
+ */
 function lowerName(purl: { name: string }): void {
   purl.name = purl.name.toLowerCase()
 }
 
+/**
+ * Convert package namespace to lowercase.
+ */
 function lowerNamespace(purl: { namespace?: string }): void {
   const { namespace } = purl
   if (typeof namespace === 'string') {
@@ -109,6 +127,9 @@ function lowerNamespace(purl: { namespace?: string }): void {
   }
 }
 
+/**
+ * Convert package version to lowercase.
+ */
 function lowerVersion(purl: { version?: string }): void {
   const { version } = purl
   if (typeof version === 'string') {
@@ -116,6 +137,9 @@ function lowerVersion(purl: { version?: string }): void {
   }
 }
 
+/**
+ * Replace all dashes with underscores in string.
+ */
 function replaceDashesWithUnderscores(str: string): string {
   // Replace all "-" with "_"
   let result = ''
@@ -128,6 +152,9 @@ function replaceDashesWithUnderscores(str: string): string {
   return fromIndex ? result + str.slice(fromIndex) : str
 }
 
+/**
+ * Replace all underscores with dashes in string.
+ */
 function replaceUnderscoresWithDashes(str: string): string {
   // Replace all "_" with "-"
   let result = ''
@@ -140,6 +167,9 @@ function replaceUnderscoresWithDashes(str: string): string {
   return fromIndex ? result + str.slice(fromIndex) : str
 }
 
+/**
+ * Remove leading slashes from string.
+ */
 function trimLeadingSlashes(str: string): string {
   let start = 0
   while (str.charCodeAt(start) === 47 /*'/'*/) {

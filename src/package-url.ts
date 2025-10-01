@@ -59,12 +59,12 @@ class PackageURL {
   static KnownQualifierNames = recursiveFreeze(PurlQualifierNames)
   static Type = recursiveFreeze(PurlType)
 
-  type?: string
   name?: string
   namespace?: string
-  version?: string
   qualifiers?: QualifiersObject
-  subpath?: string;
+  subpath?: string
+  type?: string
+  version?: string;
 
   [key: string]: any
 
@@ -154,6 +154,46 @@ class PackageURL {
     }
   }
 
+  /**
+   * Convert PackageURL to object for JSON.stringify compatibility.
+   */
+  toJSON(): Record<string, any> {
+    return this.toObject()
+  }
+
+  /**
+   * Convert PackageURL to JSON string representation.
+   */
+  toJSONString(): string {
+    return JSON.stringify(this.toObject())
+  }
+
+  /**
+   * Convert PackageURL to a plain object representation.
+   */
+  toObject(): Record<string, any> {
+    const result: Record<string, any> = {}
+    if (this.type !== undefined) {
+      result['type'] = this.type
+    }
+    if (this.namespace !== undefined) {
+      result['namespace'] = this.namespace
+    }
+    if (this.name !== undefined) {
+      result['name'] = this.name
+    }
+    if (this.version !== undefined) {
+      result['version'] = this.version
+    }
+    if (this.qualifiers !== undefined) {
+      result['qualifiers'] = this.qualifiers
+    }
+    if (this.subpath !== undefined) {
+      result['subpath'] = this.subpath
+    }
+    return result
+  }
+
   toString() {
     const {
       name,
@@ -188,56 +228,17 @@ class PackageURL {
   }
 
   /**
-   * Convert PackageURL to a plain object representation.
+   * Create PackageURL from JSON string.
    */
-  toObject(): Record<string, any> {
-    const result: Record<string, any> = {}
-    if (this.type !== undefined) {
-      result['type'] = this.type
+  static fromJSON(json: unknown): PackageURL {
+    if (typeof json !== 'string') {
+      throw new Error('JSON string argument is required.')
     }
-    if (this.namespace !== undefined) {
-      result['namespace'] = this.namespace
+    try {
+      return PackageURL.fromObject(JSON.parse(json))
+    } catch (e) {
+      throw new Error('Invalid JSON string.', { cause: e })
     }
-    if (this.name !== undefined) {
-      result['name'] = this.name
-    }
-    if (this.version !== undefined) {
-      result['version'] = this.version
-    }
-    if (this.qualifiers !== undefined) {
-      result['qualifiers'] = this.qualifiers
-    }
-    if (this.subpath !== undefined) {
-      result['subpath'] = this.subpath
-    }
-    return result
-  }
-
-  /**
-   * Convert PackageURL to JSON string representation.
-   */
-  toJSONString(): string {
-    return JSON.stringify(this.toObject())
-  }
-
-  /**
-   * Convert PackageURL to object for JSON.stringify compatibility.
-   */
-  toJSON(): Record<string, any> {
-    return this.toObject()
-  }
-
-  static fromString(purlStr: unknown): PackageURL {
-    return new PackageURL(
-      ...(PackageURL.parseString(purlStr) as [
-        unknown,
-        unknown,
-        unknown,
-        unknown,
-        unknown,
-        unknown,
-      ]),
-    )
   }
 
   /**
@@ -258,35 +259,17 @@ class PackageURL {
     )
   }
 
-  /**
-   * Create PackageURL from JSON string.
-   */
-  static fromJSON(json: unknown): PackageURL {
-    if (typeof json !== 'string') {
-      throw new Error('JSON string argument is required.')
-    }
-    try {
-      return PackageURL.fromObject(JSON.parse(json))
-    } catch (e) {
-      throw new Error('Invalid JSON string.', { cause: e })
-    }
-  }
-
-  // Result-based static methods
-  static tryFromString(purlStr: unknown): Result<PackageURL, Error> {
-    return ResultUtils.from(() => PackageURL.fromString(purlStr))
-  }
-
-  static tryFromObject(obj: unknown): Result<PackageURL, Error> {
-    return ResultUtils.from(() => PackageURL.fromObject(obj))
-  }
-
-  static tryFromJSON(json: unknown): Result<PackageURL, Error> {
-    return ResultUtils.from(() => PackageURL.fromJSON(json))
-  }
-
-  static tryParseString(purlStr: unknown): Result<any[], Error> {
-    return ResultUtils.from(() => PackageURL.parseString(purlStr))
+  static fromString(purlStr: unknown): PackageURL {
+    return new PackageURL(
+      ...(PackageURL.parseString(purlStr) as [
+        unknown,
+        unknown,
+        unknown,
+        unknown,
+        unknown,
+        unknown,
+      ]),
+    )
   }
 
   static parseString(purlStr: unknown): unknown[] {
@@ -448,6 +431,22 @@ class PackageURL {
       rawQualifiers,
       rawSubpath,
     ]
+  }
+
+  static tryFromJSON(json: unknown): Result<PackageURL, Error> {
+    return ResultUtils.from(() => PackageURL.fromJSON(json))
+  }
+
+  static tryFromObject(obj: unknown): Result<PackageURL, Error> {
+    return ResultUtils.from(() => PackageURL.fromObject(obj))
+  }
+
+  static tryFromString(purlStr: unknown): Result<PackageURL, Error> {
+    return ResultUtils.from(() => PackageURL.fromString(purlStr))
+  }
+
+  static tryParseString(purlStr: unknown): Result<any[], Error> {
+    return ResultUtils.from(() => PackageURL.parseString(purlStr))
   }
 }
 

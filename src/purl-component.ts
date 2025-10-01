@@ -52,6 +52,9 @@ const componentSortOrderLookup = {
   subpath: 7,
 }
 
+/**
+ * Get sort order for component name.
+ */
 function componentSortOrder(comp: string): string | number {
   return (
     (componentSortOrderLookup as unknown as Record<string, number>)[comp] ??
@@ -59,6 +62,9 @@ function componentSortOrder(comp: string): string | number {
   )
 }
 
+/**
+ * Compare two component names for sorting.
+ */
 function componentComparator(compA: string, compB: string): number {
   return localeCompare(
     String(componentSortOrder(compA)),
@@ -66,14 +72,23 @@ function componentComparator(compA: string, compB: string): number {
   )
 }
 
+/**
+ * Encode PURL component value to string.
+ */
 function PurlComponentEncoder(comp: unknown): string {
   return isNonEmptyString(comp) ? encodeComponent(comp) : ''
 }
 
+/**
+ * Normalize PURL component to string or undefined.
+ */
 function PurlComponentStringNormalizer(comp: unknown): string | undefined {
   return typeof comp === 'string' ? comp : undefined
 }
 
+/**
+ * Validate PURL component value.
+ */
 function PurlComponentValidator(_comp: unknown, _throws: boolean): boolean {
   return true
 }

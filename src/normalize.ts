@@ -7,16 +7,25 @@ import { isBlank } from './strings.js'
 
 import type { QualifiersObject } from './purl-component.js'
 
+/**
+ * Normalize package name by trimming whitespace.
+ */
 function normalizeName(rawName: unknown): string | undefined {
   return typeof rawName === 'string' ? rawName.trim() : undefined
 }
 
+/**
+ * Normalize package namespace by trimming and collapsing path separators.
+ */
 function normalizeNamespace(rawNamespace: unknown): string | undefined {
   return typeof rawNamespace === 'string'
     ? normalizePath(rawNamespace, undefined)
     : undefined
 }
 
+/**
+ * Normalize path by collapsing separators and filtering segments.
+ */
 function normalizePath(
   pathname: string,
   callback?: (_segment: string) => boolean,
@@ -55,6 +64,9 @@ function normalizePath(
   return collapsed
 }
 
+/**
+ * Normalize qualifiers by trimming values and lowercasing keys.
+ */
 function normalizeQualifiers(
   rawQualifiers: unknown,
 ): Record<string, string> | undefined {
@@ -77,18 +89,27 @@ function normalizeQualifiers(
   return qualifiers
 }
 
+/**
+ * Normalize subpath by filtering invalid segments.
+ */
 function normalizeSubpath(rawSubpath: unknown): string | undefined {
   return typeof rawSubpath === 'string'
     ? normalizePath(rawSubpath, subpathFilter)
     : undefined
 }
 
+/**
+ * Normalize package type to lowercase.
+ */
 function normalizeType(rawType: unknown): string | undefined {
   // The type must NOT be percent-encoded.
   // The type is case insensitive. The canonical form is lowercase.
   return typeof rawType === 'string' ? rawType.trim().toLowerCase() : undefined
 }
 
+/**
+ * Normalize package version by trimming whitespace.
+ */
 function normalizeVersion(rawVersion: unknown): string | undefined {
   return typeof rawVersion === 'string' ? rawVersion.trim() : undefined
 }
@@ -99,6 +120,9 @@ function normalizeVersion(rawVersion: unknown): string | undefined {
 // See: https://github.com/SocketDev/socket-packageurl-js/issues/3
 const ReflectApply = Reflect.apply
 
+/**
+ * Convert qualifiers to iterable entries.
+ */
 function qualifiersToEntries(
   rawQualifiers: unknown,
 ): Iterable<[string, string]> {
@@ -119,6 +143,9 @@ function qualifiersToEntries(
     : Object.entries({})
 }
 
+/**
+ * Filter invalid subpath segments.
+ */
 function subpathFilter(segment: string): boolean {
   // When percent-decoded, a segment
   //   - must not be any of '.' or '..'

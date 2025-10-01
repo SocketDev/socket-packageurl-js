@@ -86,24 +86,23 @@ export class PackageURLBuilder {
   private _subpath?: string
 
   /**
-   * Set the package type for the PackageURL.
-   */
-  type(type: string): this {
-    this._type = type
-    return this
-  }
-
-  /**
-   * Set the package namespace for the PackageURL.
+   * Build and return the final PackageURL instance.
    *
-   * The namespace represents different concepts depending on the package type:
-   * - npm: organization or scope (e.g., '@angular' for '@angular/core')
-   * - maven: groupId (e.g., 'org.apache.commons')
-   * - pypi: typically unused
+   * This method creates a new PackageURL instance using all the properties
+   * set on this builder. The PackageURL constructor will handle validation
+   * and normalization of the provided values.
+   *
+   * @throws {Error} If the configuration results in an invalid PackageURL
    */
-  namespace(namespace: string): this {
-    this._namespace = namespace
-    return this
+  build(): PackageURL {
+    return new PackageURL(
+      this._type,
+      this._namespace,
+      this._name,
+      this._version,
+      this._qualifiers,
+      this._subpath,
+    )
   }
 
   /**
@@ -119,26 +118,15 @@ export class PackageURLBuilder {
   }
 
   /**
-   * Set the package version for the PackageURL.
+   * Set the package namespace for the PackageURL.
    *
-   * The version string should match the format used by the package repository.
-   * Some package types may normalize version formats (e.g., removing leading 'v').
+   * The namespace represents different concepts depending on the package type:
+   * - npm: organization or scope (e.g., '@angular' for '@angular/core')
+   * - maven: groupId (e.g., 'org.apache.commons')
+   * - pypi: typically unused
    */
-  version(version: string): this {
-    this._version = version
-    return this
-  }
-
-  /**
-   * Set all qualifiers at once, replacing any existing qualifiers.
-   *
-   * Qualifiers provide additional metadata about the package such as:
-   * - arch: target architecture
-   * - os: target operating system
-   * - classifier: additional classifier for the package
-   */
-  qualifiers(qualifiers: Record<string, string>): this {
-    this._qualifiers = { ...qualifiers }
+  namespace(namespace: string): this {
+    this._namespace = namespace
     return this
   }
 
@@ -157,6 +145,19 @@ export class PackageURLBuilder {
   }
 
   /**
+   * Set all qualifiers at once, replacing any existing qualifiers.
+   *
+   * Qualifiers provide additional metadata about the package such as:
+   * - arch: target architecture
+   * - os: target operating system
+   * - classifier: additional classifier for the package
+   */
+  qualifiers(qualifiers: Record<string, string>): this {
+    this._qualifiers = { ...qualifiers }
+    return this
+  }
+
+  /**
    * Set the subpath for the PackageURL.
    *
    * The subpath represents a path within the package, useful for referencing
@@ -169,23 +170,42 @@ export class PackageURLBuilder {
   }
 
   /**
-   * Build and return the final PackageURL instance.
-   *
-   * This method creates a new PackageURL instance using all the properties
-   * set on this builder. The PackageURL constructor will handle validation
-   * and normalization of the provided values.
-   *
-   * @throws {Error} If the configuration results in an invalid PackageURL
+   * Set the package type for the PackageURL.
    */
-  build(): PackageURL {
-    return new PackageURL(
-      this._type,
-      this._namespace,
-      this._name,
-      this._version,
-      this._qualifiers,
-      this._subpath,
-    )
+  type(type: string): this {
+    this._type = type
+    return this
+  }
+
+  /**
+   * Set the package version for the PackageURL.
+   *
+   * The version string should match the format used by the package repository.
+   * Some package types may normalize version formats (e.g., removing leading 'v').
+   */
+  version(version: string): this {
+    this._version = version
+    return this
+  }
+
+  /**
+   * Create a builder with the cargo package type preset.
+   *
+   * This convenience method creates a new builder instance with the type
+   * already set to 'cargo', ready for building Rust crate URLs.
+   */
+  static cargo(): PackageURLBuilder {
+    return new PackageURLBuilder().type('cargo')
+  }
+
+  /**
+   * Create a builder with the composer package type preset.
+   *
+   * This convenience method creates a new builder instance with the type
+   * already set to 'composer', ready for building Composer package URLs.
+   */
+  static composer(): PackageURLBuilder {
+    return new PackageURLBuilder().type('composer')
   }
 
   /**
@@ -234,36 +254,6 @@ export class PackageURLBuilder {
   }
 
   /**
-   * Create a builder with the npm package type preset.
-   *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'npm', ready for building npm package URLs.
-   */
-  static npm(): PackageURLBuilder {
-    return new PackageURLBuilder().type('npm')
-  }
-
-  /**
-   * Create a builder with the pypi package type preset.
-   *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'pypi', ready for building Python package URLs.
-   */
-  static pypi(): PackageURLBuilder {
-    return new PackageURLBuilder().type('pypi')
-  }
-
-  /**
-   * Create a builder with the maven package type preset.
-   *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'maven', ready for building Maven package URLs.
-   */
-  static maven(): PackageURLBuilder {
-    return new PackageURLBuilder().type('maven')
-  }
-
-  /**
    * Create a builder with the gem package type preset.
    *
    * This convenience method creates a new builder instance with the type
@@ -284,13 +274,23 @@ export class PackageURLBuilder {
   }
 
   /**
-   * Create a builder with the cargo package type preset.
+   * Create a builder with the maven package type preset.
    *
    * This convenience method creates a new builder instance with the type
-   * already set to 'cargo', ready for building Rust crate URLs.
+   * already set to 'maven', ready for building Maven package URLs.
    */
-  static cargo(): PackageURLBuilder {
-    return new PackageURLBuilder().type('cargo')
+  static maven(): PackageURLBuilder {
+    return new PackageURLBuilder().type('maven')
+  }
+
+  /**
+   * Create a builder with the npm package type preset.
+   *
+   * This convenience method creates a new builder instance with the type
+   * already set to 'npm', ready for building npm package URLs.
+   */
+  static npm(): PackageURLBuilder {
+    return new PackageURLBuilder().type('npm')
   }
 
   /**
@@ -304,12 +304,12 @@ export class PackageURLBuilder {
   }
 
   /**
-   * Create a builder with the composer package type preset.
+   * Create a builder with the pypi package type preset.
    *
    * This convenience method creates a new builder instance with the type
-   * already set to 'composer', ready for building Composer package URLs.
+   * already set to 'pypi', ready for building Python package URLs.
    */
-  static composer(): PackageURLBuilder {
-    return new PackageURLBuilder().type('composer')
+  static pypi(): PackageURLBuilder {
+    return new PackageURLBuilder().type('pypi')
   }
 }

@@ -41,10 +41,10 @@ export class Ok<T> {
   }
 
   /**
-   * Check if this result is successful.
+   * Chain another result-returning operation.
    */
-  isOk(): this is Ok<T> {
-    return true
+  andThen<U, F>(fn: (_value: T) => Result<U, F>): Result<U, F> {
+    return fn(this.value)
   }
 
   /**
@@ -52,6 +52,34 @@ export class Ok<T> {
    */
   isErr(): boolean {
     return false
+  }
+
+  /**
+   * Check if this result is successful.
+   */
+  isOk(): this is Ok<T> {
+    return true
+  }
+
+  /**
+   * Transform the success value.
+   */
+  map<U>(fn: (_value: T) => U): Result<U, never> {
+    return new Ok(fn(this.value))
+  }
+
+  /**
+   * Transform the error (no-op for Ok).
+   */
+  mapErr<F>(_fn: (_error: never) => F): Result<T, F> {
+    return this as any
+  }
+
+  /**
+   * Return this result or the other if error (no-op for Ok).
+   */
+  orElse<U>(_fn: (_error: never) => Result<U, never>): Result<T | U, never> {
+    return this
   }
 
   /**
@@ -74,34 +102,6 @@ export class Ok<T> {
   unwrapOrElse(_fn: (_error: never) => T): T {
     return this.value
   }
-
-  /**
-   * Transform the success value.
-   */
-  map<U>(fn: (_value: T) => U): Result<U, never> {
-    return new Ok(fn(this.value))
-  }
-
-  /**
-   * Transform the error (no-op for Ok).
-   */
-  mapErr<F>(_fn: (_error: never) => F): Result<T, F> {
-    return this as any
-  }
-
-  /**
-   * Chain another result-returning operation.
-   */
-  andThen<U, F>(fn: (_value: T) => Result<U, F>): Result<U, F> {
-    return fn(this.value)
-  }
-
-  /**
-   * Return this result or the other if error (no-op for Ok).
-   */
-  orElse<U>(_fn: (_error: never) => Result<U, never>): Result<T | U, never> {
-    return this
-  }
 }
 
 /**
@@ -116,10 +116,10 @@ export class Err<E = Error> {
   }
 
   /**
-   * Check if this result is successful.
+   * Chain another result-returning operation (no-op for Err).
    */
-  isOk(): boolean {
-    return false
+  andThen<U, F>(_fn: (_value: never) => Result<U, F>): Result<U, E | F> {
+    return this as any
   }
 
   /**
@@ -127,6 +127,34 @@ export class Err<E = Error> {
    */
   isErr(): this is Err<E> {
     return true
+  }
+
+  /**
+   * Check if this result is successful.
+   */
+  isOk(): boolean {
+    return false
+  }
+
+  /**
+   * Transform the success value (no-op for Err).
+   */
+  map<U>(_fn: (_value: never) => U): Result<U, E> {
+    return this as any
+  }
+
+  /**
+   * Transform the error.
+   */
+  mapErr<F>(fn: (_error: E) => F): Result<never, F> {
+    return new Err(fn(this.error))
+  }
+
+  /**
+   * Return this result or the other if error.
+   */
+  orElse<T, F>(fn: (_error: E) => Result<T, F>): Result<T, F> {
+    return fn(this.error)
   }
 
   /**
@@ -152,34 +180,6 @@ export class Err<E = Error> {
   unwrapOrElse<T>(fn: (_error: E) => T): T {
     return fn(this.error)
   }
-
-  /**
-   * Transform the success value (no-op for Err).
-   */
-  map<U>(_fn: (_value: never) => U): Result<U, E> {
-    return this as any
-  }
-
-  /**
-   * Transform the error.
-   */
-  mapErr<F>(fn: (_error: E) => F): Result<never, F> {
-    return new Err(fn(this.error))
-  }
-
-  /**
-   * Chain another result-returning operation (no-op for Err).
-   */
-  andThen<U, F>(_fn: (_value: never) => Result<U, F>): Result<U, E | F> {
-    return this as any
-  }
-
-  /**
-   * Return this result or the other if error.
-   */
-  orElse<T, F>(fn: (_error: E) => Result<T, F>): Result<T, F> {
-    return fn(this.error)
-  }
 }
 
 /**
@@ -200,27 +200,6 @@ export function err<E = Error>(error: E): Err<E> {
  * Utility functions for working with Results.
  */
 export const ResultUtils = {
-  /**
-   * Create a successful result.
-   */
-  ok: ok,
-
-  /**
-   * Create an error result.
-   */
-  err: err,
-
-  /**
-   * Wrap a function that might throw into a Result.
-   */
-  from<T>(fn: () => T): Result<T, Error> {
-    try {
-      return ok(fn())
-    } catch (e) {
-      return err(e instanceof Error ? e : new Error(String(e)))
-    }
-  },
-
   /**
    * Convert all Results to Ok values or return first error.
    */
@@ -254,4 +233,25 @@ export const ResultUtils = {
     }
     return lastError as T[number]
   },
+
+  /**
+   * Create an error result.
+   */
+  err: err,
+
+  /**
+   * Wrap a function that might throw into a Result.
+   */
+  from<T>(fn: () => T): Result<T, Error> {
+    try {
+      return ok(fn())
+    } catch (e) {
+      return err(e instanceof Error ? e : new Error(String(e)))
+    }
+  },
+
+  /**
+   * Create a successful result.
+   */
+  ok: ok,
 }
