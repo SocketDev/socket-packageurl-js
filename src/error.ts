@@ -3,6 +3,9 @@
  * Provides consistent error message formatting for PURL-related exceptions.
  */
 
+/**
+ * Format error message for PURL exceptions.
+ */
 function formatPurlErrorMessage(message = ''): string {
   const { length } = message
   let formatted = ''

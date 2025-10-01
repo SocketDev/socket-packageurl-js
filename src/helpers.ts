@@ -3,6 +3,9 @@
  * Organizes helper functions by property names with configurable defaults and sorting.
  */
 
+/**
+ * Create namespace object organizing helpers by property names.
+ */
 function createHelpersNamespaceObject(
   helpers: Record<string, Record<string, unknown>>,
   options_: Record<string, unknown> = {},
