@@ -14,6 +14,9 @@ import type { QualifiersObject } from './purl-component.js'
 // See: https://github.com/SocketDev/socket-packageurl-js/issues/3
 const ReflectApply = Reflect.apply
 
+/**
+ * Validate that component is empty for specific package type.
+ */
 function validateEmptyByType(
   type: string,
   name: string,
@@ -29,6 +32,10 @@ function validateEmptyByType(
   return true
 }
 
+/**
+ * Validate package name component.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateName(name: unknown, throws: boolean): boolean {
   return (
     validateRequired('name', name, throws) &&
@@ -36,10 +43,18 @@ function validateName(name: unknown, throws: boolean): boolean {
   )
 }
 
+/**
+ * Validate package namespace component.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateNamespace(namespace: unknown, throws: boolean): boolean {
   return validateStrings('namespace', namespace, throws)
 }
 
+/**
+ * Validate qualifiers object structure and keys.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateQualifiers(qualifiers: unknown, throws: boolean): boolean {
   if (qualifiers === null || qualifiers === undefined) {
     return true
@@ -66,6 +81,10 @@ function validateQualifiers(qualifiers: unknown, throws: boolean): boolean {
   return true
 }
 
+/**
+ * Validate qualifier key format and characters.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateQualifierKey(key: string, throws: boolean): boolean {
   // A key cannot start with a number.
   if (!validateStartsWithoutNumber('qualifier', key, throws)) {
@@ -103,6 +122,10 @@ function validateQualifierKey(key: string, throws: boolean): boolean {
   return true
 }
 
+/**
+ * Validate that component is present and not empty.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateRequired(
   name: string,
   value: unknown,
@@ -117,6 +140,10 @@ function validateRequired(
   return true
 }
 
+/**
+ * Validate that component is required for specific package type.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateRequiredByType(
   type: string,
   name: string,
@@ -132,6 +159,10 @@ function validateRequiredByType(
   return true
 }
 
+/**
+ * Validate that value does not start with a number.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateStartsWithoutNumber(
   name: string,
   value: string,
@@ -149,6 +180,10 @@ function validateStartsWithoutNumber(
   return true
 }
 
+/**
+ * Validate that value is a string type.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateStrings(
   name: string,
   value: unknown,
@@ -163,10 +198,18 @@ function validateStrings(
   return false
 }
 
+/**
+ * Validate subpath component.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateSubpath(subpath: unknown, throws: boolean): boolean {
   return validateStrings('subpath', subpath, throws)
 }
 
+/**
+ * Validate package type component format and characters.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateType(type: unknown, throws: boolean): boolean {
   // The type cannot be nullish, an empty string, or start with a number.
   if (
@@ -207,6 +250,10 @@ function validateType(type: unknown, throws: boolean): boolean {
   return true
 }
 
+/**
+ * Validate package version component.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
 function validateVersion(version: unknown, throws: boolean): boolean {
   return validateStrings('version', version, throws)
 }

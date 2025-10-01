@@ -17,17 +17,20 @@ import {
 import { validateEmptyByType, validateRequiredByType } from './validate.js'
 
 interface PurlObject {
-  type?: string
-  namespace?: string
   name: string
-  version?: string
+  namespace?: string
   qualifiers?: Record<string, string>
   subpath?: string
+  type?: string
+  version?: string
 }
 
 const PurlTypNormalizer = (purl: PurlObject): PurlObject => purl
 const PurlTypeValidator = (_purl: PurlObject, _throws: boolean): boolean => true
 
+/**
+ * Get list of Node.js built-in module names.
+ */
 const getNpmBuiltinNames = (() => {
   let builtinNames: string[] | undefined
   return () => {
@@ -91,6 +94,9 @@ const getNpmBuiltinNames = (() => {
   }
 })()
 
+/**
+ * Get list of npm legacy package names.
+ */
 const getNpmLegacyNames = (() => {
   let fullLegacyNames: string[] | undefined
 
@@ -121,14 +127,23 @@ const getNpmLegacyNames = (() => {
   }
 })()
 
+/**
+ * Get npm package identifier with optional namespace.
+ */
 function getNpmId(purl: PurlObject): string {
   const { name, namespace } = purl
   return `${namespace && namespace.length > 0 ? `${namespace}/` : ''}${name}`
 }
 
+/**
+ * Check if npm identifier is a built-in module name.
+ */
 const isNpmBuiltinName = (id: string): boolean =>
   getNpmBuiltinNames().includes(id.toLowerCase())
 
+/**
+ * Check if npm identifier is a legacy package name.
+ */
 const isNpmLegacyName = (id: string): boolean =>
   getNpmLegacyNames().includes(id)
 
@@ -535,6 +550,7 @@ const PurlType = createHelpersNamespaceObject(
         // tag_id must not be empty after trimming.
         const tagIdStr = String(tagId).trim()
         if (tagIdStr.length === 0) {
+          /* c8 ignore next 3 -- Throw path tested separately from return false path. */
           if (throws) {
             throw new PurlError('swid "tag_id" qualifier must not be empty')
           }

@@ -4,10 +4,17 @@
  */
 import { LOOP_SENTINEL } from './constants.js'
 
+/**
+ * Check if value is an object type.
+ */
 function isObject(value: unknown): value is object {
   return value !== null && typeof value === 'object'
 }
 
+/**
+ * Recursively freeze an object and all nested objects.
+ * @throws {Error} When infinite loop detected.
+ */
 function recursiveFreeze<T>(value_: T): T {
   if (
     value_ === null ||
