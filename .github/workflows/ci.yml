@@ -1,0 +1,94 @@
+name: 🚀 CI Pipeline
+
+# Comprehensive CI pipeline that runs all quality checks and tests.
+# Orchestrates lint, type checking, and testing workflows in parallel.
+
+on:
+  push:
+    branches: [main]
+    tags: ['*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: 🧹 Lint Check
+    uses: SocketDev/socket-registry/.github/workflows/lint.yml@main
+    with:
+      lint-script: 'pnpm run check-ci'
+      node-version: '22'
+      timeout-minutes: 10
+
+  type-check:
+    name: 🔍 Type Check
+    uses: SocketDev/socket-registry/.github/workflows/types.yml@main
+    with:
+      type-script: 'pnpm run check:tsc'
+      setup-script: 'pnpm run build'
+      node-version: '22'
+      timeout-minutes: 10
+
+  test:
+    name: 🧪 Test Matrix
+    uses: SocketDev/socket-registry/.github/workflows/test.yml@main
+    with:
+      node-versions: '[20, 22, 24]'
+      os-versions: '["ubuntu-latest", "windows-latest"]'
+      setup-script: 'pnpm run build'
+      test-script: 'pnpm run test-ci'
+      timeout-minutes: 15
+      fail-fast: false
+      max-parallel: 4
+
+  test-coverage:
+    name: 📊 Coverage Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: SocketDev/socket-registry/.github/actions/setup-and-install@main
+        with:
+          node-version: '22'
+
+      - name: Build project
+        run: pnpm run build
+
+      - name: Run tests with coverage
+        run: pnpm run test:unit:coverage
+
+      - name: Generate coverage report
+        run: pnpm run coverage:percent --json
+
+      - name: Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  ci-summary:
+    name: ✅ CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint, type-check, test, test-coverage]
+    if: always()
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [ "${{ needs.lint.result }}" != "success" ] || \
+             [ "${{ needs.type-check.result }}" != "success" ] || \
+             [ "${{ needs.test.result }}" != "success" ] || \
+             [ "${{ needs.test-coverage.result }}" != "success" ]; then
+            echo "❌ CI Pipeline Failed"
+            exit 1
+          else
+            echo "✅ CI Pipeline Passed"
+          fi
