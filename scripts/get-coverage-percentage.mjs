@@ -123,11 +123,15 @@ async function logCoveragePercentage(argv) {
 
     jsonOutput.overall = overall
 
+    // Stop spinner before outputting JSON.
+    spinner.stop()
     console.log(JSON.stringify(jsonOutput, null, 2))
   } else if (argv.simple) {
     // Simple format: just the statement coverage percentage.
+    spinner.stop()
     console.log(codeCoverage.statements.percent)
   } else {
+    spinner.stop()
     // Default format: human-readable formatted output.
     logger.info(`Coverage Summary:`)
     logger.info(
