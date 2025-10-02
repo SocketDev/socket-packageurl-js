@@ -187,10 +187,48 @@ You are a **Principal Software Engineer** responsible for:
 - Use existing utilities from @socketsecurity/registry where available
 
 ### 6. Error Handling
-- Parser errors should be descriptive and actionable
-- Validate inputs thoroughly
-- Handle edge cases gracefully
-- Never throw on valid purls
+
+#### Error Types & Patterns
+- **Custom error type**: Use `PurlError` from `src/error.js` for all parser-specific errors
+- **Standard errors**: Use `Error` only for generic argument validation (e.g., invalid function arguments)
+- **Catch parameters**: 🚨 MANDATORY - Use `catch (e)` not `catch (error)`
+- **JSDoc documentation**: Include `@throws {ErrorType} When condition occurs.` in function documentation
+
+#### Error Message Format & Style
+- **Parser errors (PurlError)**: No ending period, lowercase start (unless proper noun)
+  - ✅ CORRECT: `throw new PurlError('missing required "pkg" scheme component')`
+  - ✅ CORRECT: `throw new PurlError('npm "name" component cannot contain whitespace')`
+  - ❌ WRONG: `throw new PurlError('Missing required component.')` (capitalized, has period)
+- **Argument validation (Error)**: Ending period, sentence case
+  - ✅ CORRECT: `throw new Error('JSON string argument is required.')`
+  - ✅ CORRECT: `throw new Error('Invalid JSON string.', { cause: e })`
+  - ❌ WRONG: `throw new Error('json string required')` (no period, not sentence case)
+- **Component references**: Use double quotes around component names
+  - ✅ CORRECT: `npm "name" component cannot start with a period`
+  - ❌ WRONG: `npm 'name' component cannot start with a period`
+- **Quote characters**: Use double quotes for literal values and component names in error messages
+  - ✅ CORRECT: `qualifier "tag_id" must not be empty`
+  - ❌ WRONG: `qualifier 'tag_id' must not be empty`
+
+#### Error Message Patterns
+Use these standardized patterns for consistency:
+- **Component validation**: `{type} "{component}" component {violation}`
+  - Example: `cocoapods "name" component cannot contain whitespace`
+- **Required components**: `"{component}" is a required component`
+- **Type-specific requirements**: `{type} requires a "{component}" component`
+- **Qualifier validation**: `qualifier "{key}" {violation}`
+  - Example: `qualifier "tag_id" must not be empty`
+- **Parse failures**: `failed to parse as {format}` or `unable to decode "{component}" component`
+- **Character restrictions**: Use specific descriptions like `cannot start with`, `cannot contain`, `must start with`
+
+#### Error Handling Requirements
+- **Descriptive and actionable**: Errors must clearly state what's wrong and which component failed
+- **Input validation**: Validate inputs thoroughly before processing
+- **Edge cases**: Handle edge cases gracefully with clear error messages
+- **Spec compliance**: Never throw on valid purls per spec
+- **Error context**: Include `{ cause: e }` when wrapping underlying errors
+- **No process.exit()**: Never use `process.exit(1)` - throw errors instead
+- **No silent failures**: Never use `logger.error()` or `console.error()` followed by `return` - throw proper errors
 
 ## Changelog Management
 
