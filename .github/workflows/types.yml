@@ -11,8 +11,15 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   type-check:
     uses: SocketDev/socket-registry/.github/workflows/types.yml@main
     with:
+      type-script: 'pnpm run check:tsc'
       setup-script: 'pnpm run build'
+      node-version: '22'
+      timeout-minutes: 10
