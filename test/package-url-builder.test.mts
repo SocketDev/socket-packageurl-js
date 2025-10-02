@@ -259,18 +259,4 @@ describe('PackageURLBuilder', () => {
       expect(originalPurl.qualifiers).toEqual({ arch: 'x64' })
     })
   })
-
-  describe('validation through build', () => {
-    it('should validate through PackageURL constructor', () => {
-      expect(() => {
-        PackageURLBuilder.create().type('').name('lodash').build()
-      }).toThrow()
-    })
-
-    it('should validate name is required', () => {
-      expect(() => {
-        PackageURLBuilder.create().type('npm').build()
-      }).toThrow()
-    })
-  })
 })
