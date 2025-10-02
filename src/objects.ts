@@ -13,6 +13,7 @@ function isObject(value: unknown): value is object {
 
 /**
  * Recursively freeze an object and all nested objects.
+ * Uses breadth-first traversal with a queue for memory efficiency.
  * @throws {Error} When infinite loop detected.
  */
 function recursiveFreeze<T>(value_: T): T {
@@ -23,10 +24,12 @@ function recursiveFreeze<T>(value_: T): T {
   ) {
     return value_
   }
+  // Use breadth-first traversal to avoid stack overflow on deep objects.
   const queue = [value_ as T & object]
   let { length: queueLength } = queue
   let pos = 0
   while (pos < queueLength) {
+    // Safety check to prevent infinite loops from circular references.
     if (pos === LOOP_SENTINEL) {
       throw new Error(
         'Detected infinite loop in object crawl of recursiveFreeze',
@@ -35,6 +38,7 @@ function recursiveFreeze<T>(value_: T): T {
     const obj = queue[pos++]!
     Object.freeze(obj)
     if (Array.isArray(obj)) {
+      // Queue unfrozen array items for processing.
       for (let i = 0, { length } = obj; i < length; i += 1) {
         const item: unknown = obj[i]
         if (
@@ -46,6 +50,7 @@ function recursiveFreeze<T>(value_: T): T {
         }
       }
     } else {
+      // Queue unfrozen object properties for processing.
       const keys = Reflect.ownKeys(obj)
       for (let i = 0, { length } = keys; i < length; i += 1) {
         const propValue: unknown = (obj as any)[keys[i]!]
