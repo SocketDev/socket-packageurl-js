@@ -30,7 +30,7 @@
   "sideEffects": false,
   "scripts": {
     "check": "run-p -c --aggregate-output check:*",
-    "check-ci": "pnpm run check:lint",
+    "lint-ci": "pnpm run check:lint",
     "check:lint": "eslint --report-unused-disable-directives .",
     "check:lint:fix": "pnpm run check:lint --fix",
     "build": "pnpm run clean:dist && tsgo --build",
@@ -62,7 +62,8 @@
     "test:unit": "dotenvx -q run -f .env.test -- vitest --run",
     "test:unit:coverage": "dotenvx -q run -f .env.test -- vitest run --coverage",
     "test:unit:update": "dotenvx -q run -f .env.test -- vitest --run --update",
-    "test-ci": "pnpm test",
+    "test-ci": "dotenvx -q run -f .env.test -- vitest --run",
+    "type-ci": "pnpm run check:tsc",
     "test-pre-commit": "dotenvx -q run -f .env.precommit -- pnpm test",
     "update": "run-p --aggregate-output update:* && run-s update:longtask:**",
     "update:deps": "node scripts/taze.mjs",
