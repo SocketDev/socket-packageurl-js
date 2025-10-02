@@ -143,6 +143,21 @@ Parsing and constructing package URLs, compiled to CommonJS for deployment.
   - `ComponentNormalizer = (_value: string) => string | undefined`
   - `QualifiersValue = string | number | boolean | null | undefined`
 
+## 🔧 GIT WORKFLOW
+
+### Pre-Commit Quality Checks
+- **🚨 MANDATORY**: Always run these commands before committing:
+  - `pnpm fix` - Fix linting and formatting issues
+  - `pnpm check` - Run all checks (lint, type-check, tests)
+  - **Rationale**: Ensures code quality regardless of whether hooks run
+
+### Commit Strategy with --no-verify
+- **--no-verify usage**: Use `--no-verify` flag for commits that don't require pre-commit hooks
+  - ✅ **Safe to skip hooks**: GitHub Actions workflows (.github/workflows/), tests (test/), documentation (*.md), configuration files
+  - ❌ **Always run hooks**: Package source code (src/), published library code, parser implementations
+  - **Important**: Even when using `--no-verify`, you MUST still run `pnpm fix` and `pnpm check` manually first
+  - **Rationale**: Pre-commit hooks run linting and type-checking which are critical for library code but less critical for non-published files
+
 ## 🔍 DEBUGGING
 
 ### Performance Testing
