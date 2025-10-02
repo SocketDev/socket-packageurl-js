@@ -72,11 +72,11 @@ void (async () => {
       // Load the 43.1MB names.json file of 'all-the-package-names@2.0.0'
       // which keeps the json file smaller while still covering the changes from:
       // https://blog.npmjs.org/post/168978377570/new-package-moniker-rules.html
-      ...allThePackageNamesData.default,
+      ...allThePackageNamesData,
       // Load the 24.7MB names.json from 'all-the-package-names@1.3905.0',
       // the last v1 release, because it has different names resolved by
       // npm's replicate.npmjs.com service.
-      ...allThePackageNamesV1Data.default,
+      ...allThePackageNamesV1Data,
     ]),
   ]
   const rawLegacyNames = allThePackageNames
