@@ -35,12 +35,26 @@ function encodeNamespace(namespace: unknown): string {
 }
 
 /**
+ * Normalize URLSearchParams output for qualifier encoding.
+ */
+function normalizeSearchParamsEncoding(encoded: string): string {
+  return encoded.replaceAll('%2520', '%20').replaceAll('+', '%2B')
+}
+
+/**
+ * Prepare string value for URLSearchParams encoding.
+ */
+function prepareValueForSearchParams(value: unknown): string {
+  // Replace spaces with %20's so they don't get converted to plus signs.
+  return String(value).replaceAll(' ', '%20')
+}
+
+/**
  * Encode qualifier parameter key or value.
  */
 function encodeQualifierParam(param: unknown): string {
   if (isNonEmptyString(param)) {
-    // Replace spaces with %20's so they don't get converted to plus signs.
-    const value = String(param).replaceAll(' ', '%20')
+    const value = prepareValueForSearchParams(param)
     // Use URLSearchParams#set to preserve plus signs.
     // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
     REUSED_SEARCH_PARAMS.set(REUSED_SEARCH_PARAMS_KEY, value)
@@ -48,10 +62,9 @@ function encodeQualifierParam(param: unknown): string {
     // 'application/x-www-form-urlencoded' and `spaceAsPlus` of `true`.
     // https://url.spec.whatwg.org/#urlencoded-serializing
     const search = REUSED_SEARCH_PARAMS.toString()
-    return search
-      .slice(REUSED_SEARCH_PARAMS_OFFSET)
-      .replaceAll('%2520', '%20')
-      .replaceAll('+', '%2B')
+    return normalizeSearchParamsEncoding(
+      search.slice(REUSED_SEARCH_PARAMS_OFFSET),
+    )
   }
   return ''
 }
@@ -66,18 +79,14 @@ function encodeQualifiers(qualifiers: unknown): string {
     const searchParams = new URLSearchParams()
     for (let i = 0, { length } = qualifiersKeys; i < length; i += 1) {
       const key = qualifiersKeys[i]!
-      // Replace spaces with %20's so they don't get converted to plus signs.
-      const value = String(
+      const value = prepareValueForSearchParams(
         (qualifiers as Record<string, unknown>)[key],
-      ).replaceAll(' ', '%20')
+      )
       // Use URLSearchParams#set to preserve plus signs.
       // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
       searchParams.set(key!, value)
     }
-    return searchParams
-      .toString()
-      .replaceAll('%2520', '%20')
-      .replaceAll('+', '%2B')
+    return normalizeSearchParamsEncoding(searchParams.toString())
   }
   return ''
 }
