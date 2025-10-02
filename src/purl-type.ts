@@ -147,58 +147,50 @@ const isNpmBuiltinName = (id: string): boolean =>
 const isNpmLegacyName = (id: string): boolean =>
   getNpmLegacyNames().includes(id)
 
+/**
+ * Create normalizer that lowercases both namespace and name.
+ */
+function createLowerNamespaceAndNameNormalizer(): (
+  _purl: PurlObject,
+) => PurlObject {
+  return (purl: PurlObject) => {
+    lowerNamespace(purl)
+    lowerName(purl)
+    return purl
+  }
+}
+
+/**
+ * Create normalizer that only lowercases name.
+ */
+function createLowerNameNormalizer(): (_purl: PurlObject) => PurlObject {
+  return (purl: PurlObject) => {
+    lowerName(purl)
+    return purl
+  }
+}
+
 // PURL types:
 // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
 const PurlType = createHelpersNamespaceObject(
   {
     normalize: {
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#alpm
-      alpm(purl: PurlObject) {
-        lowerNamespace(purl)
-        lowerName(purl)
-        return purl
-      },
+      alpm: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#apk
-      apk(purl: PurlObject) {
-        lowerNamespace(purl)
-        lowerName(purl)
-        return purl
-      },
+      apk: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#bitbucket
-      bitbucket(purl: PurlObject) {
-        lowerNamespace(purl)
-        lowerName(purl)
-        return purl
-      },
+      bitbucket: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#bitnami
-      bitnami(purl: PurlObject) {
-        lowerName(purl)
-        return purl
-      },
+      bitnami: createLowerNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#composer
-      composer(purl: PurlObject) {
-        lowerNamespace(purl)
-        lowerName(purl)
-        return purl
-      },
+      composer: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#deb
-      deb(purl: PurlObject) {
-        lowerNamespace(purl)
-        lowerName(purl)
-        return purl
-      },
+      deb: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#other-candidate-types-to-define
-      gitlab(purl: PurlObject) {
-        lowerNamespace(purl)
-        lowerName(purl)
-        return purl
-      },
+      gitlab: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#github
-      github(purl: PurlObject) {
-        lowerNamespace(purl)
-        lowerName(purl)
-        return purl
-      },
+      github: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#golang
       // golang(purl) {
       //     // Ignore case-insensitive rule because go.mod are case-sensitive.
@@ -208,11 +200,7 @@ const PurlType = createHelpersNamespaceObject(
       //     return purl
       // },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#hex
-      hex(purl: PurlObject) {
-        lowerNamespace(purl)
-        lowerName(purl)
-        return purl
-      },
+      hex: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#huggingface
       huggingface(purl: PurlObject) {
         lowerVersion(purl)
@@ -241,10 +229,7 @@ const PurlType = createHelpersNamespaceObject(
         return purl
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
-      oci(purl: PurlObject) {
-        lowerName(purl)
-        return purl
-      },
+      oci: createLowerNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pub
       pub(purl: PurlObject) {
         lowerName(purl)
