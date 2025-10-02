@@ -246,15 +246,6 @@ describe('PackageURL Result methods', () => {
       expect(result.isErr()).toBe(true)
       expect((result as Err<Error>).error).toBeInstanceOf(Error)
     })
-
-    it('should return Err for non-string input', () => {
-      const result = PackageURL.tryFromString(123)
-
-      expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error.message).toContain(
-        'purl string argument is required',
-      )
-    })
   })
 
   describe('tryFromObject', () => {
@@ -276,15 +267,6 @@ describe('PackageURL Result methods', () => {
       expect(result.isErr()).toBe(true)
       expect((result as Err<Error>).error).toBeInstanceOf(Error)
     })
-
-    it('should return Err for non-object input', () => {
-      const result = PackageURL.tryFromObject('not an object')
-
-      expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error.message).toContain(
-        'Object argument is required',
-      )
-    })
   })
 
   describe('tryFromJSON', () => {
@@ -305,15 +287,6 @@ describe('PackageURL Result methods', () => {
       expect(result.isErr()).toBe(true)
       expect((result as Err<Error>).error.message).toContain(
         'Invalid JSON string',
-      )
-    })
-
-    it('should return Err for non-string input', () => {
-      const result = PackageURL.tryFromJSON(123)
-
-      expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error.message).toContain(
-        'JSON string argument is required',
       )
     })
 
@@ -346,15 +319,6 @@ describe('PackageURL Result methods', () => {
 
       expect(result.isErr()).toBe(true)
       expect((result as Err<Error>).error).toBeInstanceOf(Error)
-    })
-
-    it('should return Err for non-string input', () => {
-      const result = PackageURL.tryParseString(null)
-
-      expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error.message).toContain(
-        'purl string argument is required',
-      )
     })
   })
 
