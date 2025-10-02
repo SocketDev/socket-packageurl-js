@@ -39,6 +39,7 @@ function normalizePath(
   }
   let nextIndex = pathname.indexOf('/', start)
   if (nextIndex === -1) {
+    // No slashes found - return trimmed pathname.
     return pathname.slice(start)
   }
   // Discard any empty string segments by collapsing repeated segment
@@ -46,14 +47,17 @@ function normalizePath(
   while (nextIndex !== -1) {
     const segment = pathname.slice(start, nextIndex)
     if (callback === undefined || callback(segment)) {
+      // Add segment with separator if not first segment.
       collapsed = collapsed + (collapsed.length === 0 ? '' : '/') + segment
     }
+    // Skip to next segment, consuming multiple consecutive slashes.
     start = nextIndex + 1
     while (pathname.charCodeAt(start) === 47) {
       start += 1
     }
     nextIndex = pathname.indexOf('/', start)
   }
+  // Handle last segment after final slash.
   const lastSegment = pathname.slice(start)
   if (
     lastSegment.length !== 0 &&
