@@ -1,5 +1,8 @@
 name: Publish to npm registry
 
+# Dependencies:
+#   - SocketDev/socket-registry/.github/workflows/provenance.yml
+
 on:
   workflow_dispatch:
     inputs:
@@ -18,7 +21,7 @@ permissions:
 
 jobs:
   publish:
-    uses: SocketDev/socket-registry/.github/workflows/provenance.yml@main
+    uses: SocketDev/socket-registry/.github/workflows/provenance.yml@797e90f4f82ac089a308acdc434d2027c2cd7d5d
     with:
       debug: ${{ inputs.debug }}
       package-name: '@socketregistry/packageurl-js'
