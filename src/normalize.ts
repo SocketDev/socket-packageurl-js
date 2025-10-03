@@ -28,7 +28,7 @@ function normalizeNamespace(rawNamespace: unknown): string | undefined {
  */
 function normalizePath(
   pathname: string,
-  callback?: (_segment: string) => boolean,
+  callback?: ((_segment: string) => boolean) | undefined,
 ): string {
   let collapsed = ''
   let start = 0

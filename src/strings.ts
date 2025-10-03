@@ -121,7 +121,7 @@ function lowerName(purl: { name: string }): void {
 /**
  * Convert package namespace to lowercase.
  */
-function lowerNamespace(purl: { namespace?: string }): void {
+function lowerNamespace(purl: { namespace?: string | undefined }): void {
   const { namespace } = purl
   if (typeof namespace === 'string') {
     purl.namespace = namespace.toLowerCase()
@@ -131,7 +131,7 @@ function lowerNamespace(purl: { namespace?: string }): void {
 /**
  * Convert package version to lowercase.
  */
-function lowerVersion(purl: { version?: string }): void {
+function lowerVersion(purl: { version?: string | undefined }): void {
   const { version } = purl
   if (typeof version === 'string') {
     purl.version = version.toLowerCase()

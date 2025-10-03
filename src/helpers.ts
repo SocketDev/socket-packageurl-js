@@ -14,7 +14,7 @@ function createHelpersNamespaceObject(
     __proto__: null,
     ...options_,
   } as Record<string, unknown> & {
-    comparator?: (_a: string, _b: string) => number
+    comparator?: ((_a: string, _b: string) => number) | undefined
   }
   const helperNames = Object.keys(helpers).sort()
   // Collect all unique property names from all helper objects.
