@@ -52,36 +52,6 @@ function validateNamespace(namespace: unknown, throws: boolean): boolean {
 }
 
 /**
- * Validate qualifiers object structure and keys.
- * @throws {PurlError} When validation fails and throws is true.
- */
-function validateQualifiers(qualifiers: unknown, throws: boolean): boolean {
-  if (qualifiers === null || qualifiers === undefined) {
-    return true
-  }
-  if (typeof qualifiers !== 'object') {
-    if (throws) {
-      throw new PurlError('"qualifiers" must be an object')
-    }
-    return false
-  }
-  const qualifiersObj = qualifiers as QualifiersObject | URLSearchParams
-  const keysProperty = (qualifiersObj as QualifiersObject)['keys']
-  const keysIterable: Iterable<string> =
-    // URLSearchParams instances have a "keys" method that returns an iterator.
-    typeof keysProperty === 'function'
-      ? (ReflectApply(keysProperty, qualifiersObj, []) as Iterable<string>)
-      : (Object.keys(qualifiers as QualifiersObject) as Iterable<string>)
-  // Use for-of to work with URLSearchParams#keys iterators.
-  for (const key of keysIterable) {
-    if (!validateQualifierKey(key, throws)) {
-      return false
-    }
-  }
-  return true
-}
-
-/**
  * Validate qualifier key format and characters.
  * @throws {PurlError} When validation fails and throws is true.
  */
@@ -116,6 +86,36 @@ function validateQualifierKey(key: string, throws: boolean): boolean {
       if (throws) {
         throw new PurlError(`qualifier "${key}" contains an illegal character`)
       }
+      return false
+    }
+  }
+  return true
+}
+
+/**
+ * Validate qualifiers object structure and keys.
+ * @throws {PurlError} When validation fails and throws is true.
+ */
+function validateQualifiers(qualifiers: unknown, throws: boolean): boolean {
+  if (qualifiers === null || qualifiers === undefined) {
+    return true
+  }
+  if (typeof qualifiers !== 'object') {
+    if (throws) {
+      throw new PurlError('"qualifiers" must be an object')
+    }
+    return false
+  }
+  const qualifiersObj = qualifiers as QualifiersObject | URLSearchParams
+  const keysProperty = (qualifiersObj as QualifiersObject)['keys']
+  const keysIterable: Iterable<string> =
+    // URLSearchParams instances have a "keys" method that returns an iterator.
+    typeof keysProperty === 'function'
+      ? (ReflectApply(keysProperty, qualifiersObj, []) as Iterable<string>)
+      : (Object.keys(qualifiers as QualifiersObject) as Iterable<string>)
+  // Use for-of to work with URLSearchParams#keys iterators.
+  for (const key of keysIterable) {
+    if (!validateQualifierKey(key, throws)) {
       return false
     }
   }

@@ -35,21 +35,6 @@ function encodeNamespace(namespace: unknown): string {
 }
 
 /**
- * Normalize URLSearchParams output for qualifier encoding.
- */
-function normalizeSearchParamsEncoding(encoded: string): string {
-  return encoded.replaceAll('%2520', '%20').replaceAll('+', '%2B')
-}
-
-/**
- * Prepare string value for URLSearchParams encoding.
- */
-function prepareValueForSearchParams(value: unknown): string {
-  // Replace spaces with %20's so they don't get converted to plus signs.
-  return String(value).replaceAll(' ', '%20')
-}
-
-/**
  * Encode qualifier parameter key or value.
  */
 function encodeQualifierParam(param: unknown): string {
@@ -107,6 +92,21 @@ function encodeVersion(version: unknown): string {
   return isNonEmptyString(version)
     ? encodeComponent(version).replaceAll('%3A', ':')
     : ''
+}
+
+/**
+ * Normalize URLSearchParams output for qualifier encoding.
+ */
+function normalizeSearchParamsEncoding(encoded: string): string {
+  return encoded.replaceAll('%2520', '%20').replaceAll('+', '%2B')
+}
+
+/**
+ * Prepare string value for URLSearchParams encoding.
+ */
+function prepareValueForSearchParams(value: unknown): string {
+  // Replace spaces with %20's so they don't get converted to plus signs.
+  return String(value).replaceAll(' ', '%20')
 }
 
 export {
