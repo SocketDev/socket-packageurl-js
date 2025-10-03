@@ -68,22 +68,22 @@ import type { QualifiersObject } from './purl-component.js'
  */
 export class PackageURLBuilder {
   /** The package type (e.g., 'npm', 'pypi', 'maven'). */
-  private _type?: string
+  private _type?: string | undefined
 
   /** The package namespace (organization, group, or scope). */
-  private _namespace?: string
+  private _namespace?: string | undefined
 
   /** The package name (required for valid PackageURLs). */
-  private _name?: string
+  private _name?: string | undefined
 
   /** The package version string. */
-  private _version?: string
+  private _version?: string | undefined
 
   /** Key-value pairs of additional package qualifiers. */
-  private _qualifiers?: Record<string, string>
+  private _qualifiers?: Record<string, string> | undefined
 
   /** Optional subpath within the package. */
-  private _subpath?: string
+  private _subpath?: string | undefined
 
   /**
    * Build and return the final PackageURL instance.

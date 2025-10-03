@@ -63,12 +63,12 @@ class PackageURL {
   static KnownQualifierNames = recursiveFreeze(PurlQualifierNames)
   static Type = recursiveFreeze(PurlType)
 
-  name?: string
-  namespace?: string
-  qualifiers?: QualifiersObject
-  subpath?: string
-  type?: string
-  version?: string;
+  name?: string | undefined
+  namespace?: string | undefined
+  qualifiers?: QualifiersObject | undefined
+  subpath?: string | undefined
+  type?: string | undefined
+  version?: string | undefined;
 
   [key: string]: any
 
@@ -207,12 +207,12 @@ class PackageURL {
       type,
       version,
     }: {
-      name?: string
-      namespace?: string
-      qualifiers?: QualifiersObject
-      subpath?: string
-      type?: string
-      version?: string
+      name?: string | undefined
+      namespace?: string | undefined
+      qualifiers?: QualifiersObject | undefined
+      subpath?: string | undefined
+      type?: string | undefined
+      version?: string | undefined
     } = this
     /* c8 ignore next - Type encoder uses default PurlComponentEncoder, never returns null/undefined. */ let purlStr = `pkg:${(PurlComponent['type']?.['encode'] as ComponentEncoder)?.(type) ?? ''}/`
     if (namespace) {
