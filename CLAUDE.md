@@ -73,6 +73,12 @@ Parsing and constructing package URLs, compiled to CommonJS for deployment.
   - ❌ WRONG: `pnpm test:unit -- path/to/file.test.js`
 - **Update snapshots**: `pnpm test:unit -u` or `pnpm testu`
 
+### CI Testing Infrastructure
+- **🚨 MANDATORY**: Use `SocketDev/socket-registry/.github/workflows/ci.yml@main` for consistent CI across Socket projects
+- **Reusable workflows**: Socket-registry provides centralized, reusable workflows for lint/type-check/test/coverage
+- **Benefits**: Parallel execution, consistent configuration, cross-platform testing
+- **Documentation**: See `socket-registry/docs/CI_TESTING_TOOLS.md` for reference
+
 ## 📋 PURL-SPECIFIC RULES
 
 ### 1. Package URL Standards
