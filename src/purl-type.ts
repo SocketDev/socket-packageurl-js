@@ -25,8 +25,38 @@ interface PurlObject {
   version?: string
 }
 
+/**
+ * Default normalizer for PURL types without specific normalization rules.
+ */
 const PurlTypNormalizer = (purl: PurlObject): PurlObject => purl
+
+/**
+ * Default validator for PURL types without specific validation rules.
+ */
 const PurlTypeValidator = (_purl: PurlObject, _throws: boolean): boolean => true
+
+/**
+ * Create normalizer that only lowercases name.
+ */
+function createLowerNameNormalizer(): (_purl: PurlObject) => PurlObject {
+  return (purl: PurlObject) => {
+    lowerName(purl)
+    return purl
+  }
+}
+
+/**
+ * Create normalizer that lowercases both namespace and name.
+ */
+function createLowerNamespaceAndNameNormalizer(): (
+  _purl: PurlObject,
+) => PurlObject {
+  return (purl: PurlObject) => {
+    lowerNamespace(purl)
+    lowerName(purl)
+    return purl
+  }
+}
 
 /**
  * Get list of Node.js built-in module names.
@@ -95,6 +125,14 @@ const getNpmBuiltinNames = (() => {
 })()
 
 /**
+ * Get npm package identifier with optional namespace.
+ */
+function getNpmId(purl: PurlObject): string {
+  const { name, namespace } = purl
+  return `${namespace && namespace.length > 0 ? `${namespace}/` : ''}${name}`
+}
+
+/**
  * Get list of npm legacy package names.
  */
 const getNpmLegacyNames = (() => {
@@ -128,14 +166,6 @@ const getNpmLegacyNames = (() => {
 })()
 
 /**
- * Get npm package identifier with optional namespace.
- */
-function getNpmId(purl: PurlObject): string {
-  const { name, namespace } = purl
-  return `${namespace && namespace.length > 0 ? `${namespace}/` : ''}${name}`
-}
-
-/**
  * Check if npm identifier is a built-in module name.
  */
 const isNpmBuiltinName = (id: string): boolean =>
@@ -146,29 +176,6 @@ const isNpmBuiltinName = (id: string): boolean =>
  */
 const isNpmLegacyName = (id: string): boolean =>
   getNpmLegacyNames().includes(id)
-
-/**
- * Create normalizer that lowercases both namespace and name.
- */
-function createLowerNamespaceAndNameNormalizer(): (
-  _purl: PurlObject,
-) => PurlObject {
-  return (purl: PurlObject) => {
-    lowerNamespace(purl)
-    lowerName(purl)
-    return purl
-  }
-}
-
-/**
- * Create normalizer that only lowercases name.
- */
-function createLowerNameNormalizer(): (_purl: PurlObject) => PurlObject {
-  return (purl: PurlObject) => {
-    lowerName(purl)
-    return purl
-  }
-}
 
 // PURL types:
 // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
