@@ -67,6 +67,163 @@ export interface DownloadUrl {
  */
 export class UrlConverter {
   /**
+   * Get all available URLs for a PackageURL.
+   *
+   * This convenience method returns both repository and download URLs
+   * in a single call, useful when you need to check all URL options.
+   */
+  static getAllUrls(purl: PackageURL): {
+    download: DownloadUrl | null
+    repository: RepositoryUrl | null
+  } {
+    return {
+      download: this.toDownloadUrl(purl),
+      repository: this.toRepositoryUrl(purl),
+    }
+  }
+
+  /**
+   * Check if a PackageURL type supports download URL conversion.
+   *
+   * This method checks if the given package type has download URL
+   * conversion logic implemented.
+   */
+  static supportsDownloadUrl(type: string): boolean {
+    const supportedTypes = [
+      'npm',
+      'pypi',
+      'maven',
+      'gem',
+      'cargo',
+      'nuget',
+      'composer',
+      'hex',
+      'pub',
+      'golang',
+    ]
+    return supportedTypes.includes(type)
+  }
+
+  /**
+   * Check if a PackageURL type supports repository URL conversion.
+   *
+   * This method checks if the given package type has repository URL
+   * conversion logic implemented.
+   */
+  static supportsRepositoryUrl(type: string): boolean {
+    const supportedTypes = [
+      'npm',
+      'pypi',
+      'maven',
+      'gem',
+      'golang',
+      'cargo',
+      'nuget',
+      'composer',
+      'github',
+      'gitlab',
+      'bitbucket',
+      'hex',
+      'pub',
+      'luarocks',
+    ]
+    return supportedTypes.includes(type)
+  }
+
+  /**
+   * Convert a PackageURL to a download URL if possible.
+   *
+   * This method attempts to generate a download URL where the package's
+   * artifact (binary, archive, etc.) can be obtained. Requires a version
+   * to be present in the PackageURL.
+   */
+  static toDownloadUrl(purl: PackageURL): DownloadUrl | null {
+    const { name, namespace, type, version } = purl
+
+    if (!version) {
+      return null
+    }
+
+    switch (type) {
+      case 'npm': {
+        const npmName = namespace ? `${namespace}/${name}` : name
+        return {
+          type: 'tarball',
+          url: `https://registry.npmjs.org/${npmName}/-/${name}-${version}.tgz`,
+        }
+      }
+
+      case 'pypi':
+        return {
+          type: 'wheel',
+          url: `https://pypi.org/simple/${name}/`,
+        }
+
+      case 'maven': {
+        if (!namespace) {
+          return null
+        }
+        const groupPath = namespace.replace(/\./g, '/')
+        return {
+          type: 'jar',
+          url: `https://repo1.maven.org/maven2/${groupPath}/${name}/${version}/${name}-${version}.jar`,
+        }
+      }
+
+      case 'gem':
+        return {
+          type: 'gem',
+          url: `https://rubygems.org/downloads/${name}-${version}.gem`,
+        }
+
+      case 'cargo':
+        return {
+          type: 'tarball',
+          url: `https://crates.io/api/v1/crates/${name}/${version}/download`,
+        }
+
+      case 'nuget':
+        return {
+          type: 'zip',
+          url: `https://nuget.org/packages/${name}/${version}/download`,
+        }
+
+      case 'composer':
+        if (!namespace) {
+          return null
+        }
+        return {
+          type: 'other',
+          url: `https://repo.packagist.org/p2/${namespace}/${name}.json`,
+        }
+
+      case 'hex':
+        return {
+          type: 'tarball',
+          url: `https://repo.hex.pm/tarballs/${name}-${version}.tar`,
+        }
+
+      case 'pub':
+        return {
+          type: 'tarball',
+          url: `https://pub.dev/packages/${name}/versions/${version}.tar.gz`,
+        }
+
+      case 'golang':
+        if (!namespace) {
+          return null
+        }
+        return {
+          type: 'zip',
+          url: `https://proxy.golang.org/${namespace}/${name}/@v/${version}.zip`,
+        }
+
+      default:
+        return null
+    }
+  }
+
+  /**
    * Convert a PackageURL to a repository URL if possible.
    *
    * This method attempts to generate a repository URL where the package's
@@ -181,162 +338,5 @@ export class UrlConverter {
       default:
         return null
     }
-  }
-
-  /**
-   * Convert a PackageURL to a download URL if possible.
-   *
-   * This method attempts to generate a download URL where the package's
-   * artifact (binary, archive, etc.) can be obtained. Requires a version
-   * to be present in the PackageURL.
-   */
-  static toDownloadUrl(purl: PackageURL): DownloadUrl | null {
-    const { name, namespace, type, version } = purl
-
-    if (!version) {
-      return null
-    }
-
-    switch (type) {
-      case 'npm': {
-        const npmName = namespace ? `${namespace}/${name}` : name
-        return {
-          type: 'tarball',
-          url: `https://registry.npmjs.org/${npmName}/-/${name}-${version}.tgz`,
-        }
-      }
-
-      case 'pypi':
-        return {
-          type: 'wheel',
-          url: `https://pypi.org/simple/${name}/`,
-        }
-
-      case 'maven': {
-        if (!namespace) {
-          return null
-        }
-        const groupPath = namespace.replace(/\./g, '/')
-        return {
-          type: 'jar',
-          url: `https://repo1.maven.org/maven2/${groupPath}/${name}/${version}/${name}-${version}.jar`,
-        }
-      }
-
-      case 'gem':
-        return {
-          type: 'gem',
-          url: `https://rubygems.org/downloads/${name}-${version}.gem`,
-        }
-
-      case 'cargo':
-        return {
-          type: 'tarball',
-          url: `https://crates.io/api/v1/crates/${name}/${version}/download`,
-        }
-
-      case 'nuget':
-        return {
-          type: 'zip',
-          url: `https://nuget.org/packages/${name}/${version}/download`,
-        }
-
-      case 'composer':
-        if (!namespace) {
-          return null
-        }
-        return {
-          type: 'other',
-          url: `https://repo.packagist.org/p2/${namespace}/${name}.json`,
-        }
-
-      case 'hex':
-        return {
-          type: 'tarball',
-          url: `https://repo.hex.pm/tarballs/${name}-${version}.tar`,
-        }
-
-      case 'pub':
-        return {
-          type: 'tarball',
-          url: `https://pub.dev/packages/${name}/versions/${version}.tar.gz`,
-        }
-
-      case 'golang':
-        if (!namespace) {
-          return null
-        }
-        return {
-          type: 'zip',
-          url: `https://proxy.golang.org/${namespace}/${name}/@v/${version}.zip`,
-        }
-
-      default:
-        return null
-    }
-  }
-
-  /**
-   * Get all available URLs for a PackageURL.
-   *
-   * This convenience method returns both repository and download URLs
-   * in a single call, useful when you need to check all URL options.
-   */
-  static getAllUrls(purl: PackageURL): {
-    download: DownloadUrl | null
-    repository: RepositoryUrl | null
-  } {
-    return {
-      download: this.toDownloadUrl(purl),
-      repository: this.toRepositoryUrl(purl),
-    }
-  }
-
-  /**
-   * Check if a PackageURL type supports repository URL conversion.
-   *
-   * This method checks if the given package type has repository URL
-   * conversion logic implemented.
-   */
-  static supportsRepositoryUrl(type: string): boolean {
-    const supportedTypes = [
-      'npm',
-      'pypi',
-      'maven',
-      'gem',
-      'golang',
-      'cargo',
-      'nuget',
-      'composer',
-      'github',
-      'gitlab',
-      'bitbucket',
-      'hex',
-      'pub',
-      'luarocks',
-    ]
-    return supportedTypes.includes(type)
-  }
-
-  /**
-   * Check if a PackageURL type supports download URL conversion.
-   *
-   * This method checks if the given package type has download URL
-   * conversion logic implemented.
-   */
-  static supportsDownloadUrl(type: string): boolean {
-    const supportedTypes = [
-      'npm',
-      'pypi',
-      'maven',
-      'gem',
-      'cargo',
-      'nuget',
-      'composer',
-      'hex',
-      'pub',
-      'golang',
-    ]
-    return supportedTypes.includes(type)
   }
 }
