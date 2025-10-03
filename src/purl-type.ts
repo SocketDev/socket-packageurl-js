@@ -18,11 +18,11 @@ import { validateEmptyByType, validateRequiredByType } from './validate.js'
 
 interface PurlObject {
   name: string
-  namespace?: string
-  qualifiers?: Record<string, string>
-  subpath?: string
-  type?: string
-  version?: string
+  namespace?: string | undefined
+  qualifiers?: Record<string, string> | undefined
+  subpath?: string | undefined
+  type?: string | undefined
+  version?: string | undefined
 }
 
 /**
