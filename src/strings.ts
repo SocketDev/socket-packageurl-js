@@ -3,28 +3,6 @@
  * Includes whitespace detection, semver validation, locale comparison, and character replacement.
  */
 
-// Intl.Collator is faster than String#localeCompare
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare:
-// > When comparing large numbers of strings, such as in sorting large arrays,
-// > it is better to create an Intl.Collator object and use the function provided
-// > by its compare() method.
-let _localeCompare: Intl.Collator['compare'] | undefined
-/**
- * Perform locale-aware string comparison.
- */
-function localeCompare(x: string, y: string): number {
-  if (_localeCompare === undefined) {
-    // Lazily call new Intl.Collator() because in Node it can take 10-14ms.
-    _localeCompare = new Intl.Collator().compare
-  }
-  return _localeCompare(x, y)
-}
-
-// This regexp is valid as of 2024-08-01.
-// https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-const regexSemverNumberedGroups =
-  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
-
 /**
  * Check if string contains only whitespace characters.
  */
@@ -103,11 +81,34 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0
 }
 
+// This regexp is valid as of 2024-08-01.
+// https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+const regexSemverNumberedGroups =
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+
 /**
  * Check if value is a valid semantic version string.
  */
 function isSemverString(value: unknown): value is string {
   return typeof value === 'string' && regexSemverNumberedGroups.test(value)
+}
+
+// Intl.Collator is faster than String#localeCompare
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare:
+// > When comparing large numbers of strings, such as in sorting large arrays,
+// > it is better to create an Intl.Collator object and use the function provided
+// > by its compare() method.
+let _localeCompare: Intl.Collator['compare'] | undefined
+
+/**
+ * Perform locale-aware string comparison.
+ */
+function localeCompare(x: string, y: string): number {
+  if (_localeCompare === undefined) {
+    // Lazily call new Intl.Collator() because in Node it can take 10-14ms.
+    _localeCompare = new Intl.Collator().compare
+  }
+  return _localeCompare(x, y)
 }
 
 /**

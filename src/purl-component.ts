@@ -53,22 +53,22 @@ const componentSortOrderLookup = {
 }
 
 /**
- * Get sort order for component name.
- */
-function componentSortOrder(comp: string): string | number {
-  return (
-    (componentSortOrderLookup as unknown as Record<string, number>)[comp] ??
-    comp
-  )
-}
-
-/**
  * Compare two component names for sorting.
  */
 function componentComparator(compA: string, compB: string): number {
   return localeCompare(
     String(componentSortOrder(compA)),
     String(componentSortOrder(compB)),
+  )
+}
+
+/**
+ * Get sort order for component name.
+ */
+function componentSortOrder(comp: string): string | number {
+  return (
+    (componentSortOrderLookup as unknown as Record<string, number>)[comp] ??
+    comp
   )
 }
 
