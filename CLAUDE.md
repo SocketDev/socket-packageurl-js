@@ -74,10 +74,11 @@ Parsing and constructing package URLs, compiled to CommonJS for deployment.
 - **Update snapshots**: `pnpm test:unit -u` or `pnpm testu`
 
 ### CI Testing Infrastructure
-- **🚨 MANDATORY**: Use `SocketDev/socket-registry/.github/workflows/ci.yml@main` for consistent CI across Socket projects
+- **🚨 MANDATORY**: Use `SocketDev/socket-registry/.github/workflows/ci.yml@<SHA>` with full commit SHA (not @main)
+- **🚨 CRITICAL**: GitHub Actions require full-length commit SHAs. Format: `@662bbcab1b7533e24ba8e3446cffd8a7e5f7617e # main`
 - **Reusable workflows**: Socket-registry provides centralized, reusable workflows for lint/type-check/test/coverage
 - **Benefits**: Parallel execution, consistent configuration, cross-platform testing
-- **Documentation**: See `socket-registry/docs/CI_TESTING_TOOLS.md` for reference
+- **Documentation**: See `docs/CI_TESTING.md` and `socket-registry/docs/CI_TESTING_TOOLS.md`
 
 ## 📋 PURL-SPECIFIC RULES
 
