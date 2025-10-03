@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.1.6](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.6) - 2025-10-03
+
+### Changed
+- Enhanced TypeScript strictness with explicit `| undefined` for optional properties and parameters
+- Added comprehensive JSDoc documentation for core classes
+- Optimized build output by disabling source map generation
+
 ## [1.1.5](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.5) - 2025-09-30
 
 ### Added
