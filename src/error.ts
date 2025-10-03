@@ -28,6 +28,9 @@ function formatPurlErrorMessage(message = ''): string {
   return `Invalid purl: ${formatted}`
 }
 
+/**
+ * Custom error class for Package URL parsing and validation failures.
+ */
 class PurlError extends Error {
   constructor(message?: string | undefined, options?: ErrorOptions) {
     super(formatPurlErrorMessage(message), options)

@@ -54,6 +54,10 @@ const OTHER_SCHEME_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//
 // Pattern to match purl-like strings with type/name format.
 const PURL_LIKE_PATTERN = /^[a-zA-Z0-9+.-]+\//
 
+/**
+ * Package URL parser and constructor implementing the PURL specification.
+ * Provides methods to parse, construct, and manipulate Package URLs with validation and normalization.
+ */
 class PackageURL {
   static Component = recursiveFreeze(PurlComponent)
   static KnownQualifierNames = recursiveFreeze(PurlQualifierNames)
