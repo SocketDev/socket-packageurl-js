@@ -1,5 +1,8 @@
 name: Claude Code
 
+# Dependencies:
+#   - SocketDev/socket-registry/.github/workflows/claude.yml
+
 on:
   issue_comment:
     types: [created]
@@ -19,6 +22,6 @@ permissions:
 
 jobs:
   claude:
-    uses: SocketDev/socket-registry/.github/workflows/claude.yml@main
+    uses: SocketDev/socket-registry/.github/workflows/claude.yml@797e90f4f82ac089a308acdc434d2027c2cd7d5d
     secrets:
       anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
