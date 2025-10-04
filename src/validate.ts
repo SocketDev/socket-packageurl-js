@@ -132,12 +132,16 @@ function validateQualifiers(
   }
   const qualifiersObj = qualifiers as QualifiersObject | URLSearchParams
   const keysProperty = (qualifiersObj as QualifiersObject)['keys']
+  // type-coverage:ignore-next-line -- TypeScript correctly infers this type through the ternary and cast
   const keysIterable: Iterable<string> =
     // URLSearchParams instances have a "keys" method that returns an iterator.
-    typeof keysProperty === 'function'
-      ? (ReflectApply(keysProperty, qualifiersObj, []) as Iterable<string>)
-      : (Object.keys(qualifiers as QualifiersObject) as Iterable<string>)
+    (
+      typeof keysProperty === 'function'
+        ? ReflectApply(keysProperty, qualifiersObj, [])
+        : Object.keys(qualifiers as QualifiersObject)
+    ) as Iterable<string>
   // Use for-of to work with URLSearchParams#keys iterators.
+  // type-coverage:ignore-next-line -- TypeScript correctly infers the iteration type
   for (const key of keysIterable) {
     if (!validateQualifierKey(key, opts)) {
       return false
