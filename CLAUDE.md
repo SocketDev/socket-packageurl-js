@@ -72,6 +72,11 @@ Parsing and constructing package URLs, compiled to CommonJS for deployment.
 - **Test single file**: ✅ CORRECT: `pnpm test:unit path/to/file.test.js`
   - ❌ WRONG: `pnpm test:unit -- path/to/file.test.js`
 - **Update snapshots**: `pnpm test:unit -u` or `pnpm testu`
+- **🚨 MANDATORY Coverage Requirements**: Before pushing commits, ensure test coverage is maintained or improved
+  - **Never decrease coverage**: All changes MUST maintain or increase existing coverage percentages
+  - **Check before push**: Run `pnpm run test` to verify coverage thresholds are met
+  - **Fix coverage drops**: If coverage decreases, add tests to restore or improve coverage before pushing
+  - **Rationale**: Declining coverage indicates untested code paths, which increases risk of bugs and regressions
 
 ### CI Testing Infrastructure
 - **🚨 MANDATORY**: Use `SocketDev/socket-registry/.github/workflows/ci.yml@<SHA>` with full commit SHA (not @main)
