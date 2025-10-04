@@ -322,100 +322,68 @@ describe('PackageURL JSON/dict export', () => {
   })
 
   describe('round-trip conversion', () => {
-    it('should preserve data through toObject -> fromObject', () => {
-      const original = new PackageURL(
+    const testCases = [
+      new PackageURL(
         'npm',
         '@types',
         'node',
         '16.11.7',
         { arch: 'x64', os: 'linux' },
         'lib/fs.d.ts',
-      )
-      const obj = original.toObject()
-      const restored = PackageURL.fromObject(obj)
-
-      expect(restored.type).toBe(original.type)
-      expect(restored.namespace).toBe(original.namespace)
-      expect(restored.name).toBe(original.name)
-      expect(restored.version).toBe(original.version)
-      expect(restored.qualifiers).toEqual(original.qualifiers)
-      expect(restored.subpath).toBe(original.subpath)
-      expect(restored.toString()).toBe(original.toString())
-    })
-
-    it('should preserve data through toJSONString -> fromJSON', () => {
-      const original = new PackageURL(
+      ),
+      new PackageURL(
         'maven',
         'org.apache.commons',
         'commons-lang3',
         '3.12.0',
         { classifier: 'sources', type: 'jar' },
         undefined,
-      )
-      const json = original.toJSONString()
-      const restored = PackageURL.fromJSON(json)
-
-      expect(restored.type).toBe(original.type)
-      expect(restored.namespace).toBe(original.namespace)
-      expect(restored.name).toBe(original.name)
-      expect(restored.version).toBe(original.version)
-      expect(restored.qualifiers).toEqual(original.qualifiers)
-      expect(restored.subpath).toBe(original.subpath)
-      expect(restored.toString()).toBe(original.toString())
-    })
-
-    it('should handle PackageURL with only required fields', () => {
-      const original = new PackageURL(
+      ),
+      new PackageURL(
         'npm',
         undefined,
         'lodash',
         undefined,
         undefined,
         undefined,
-      )
-      const json = original.toJSONString()
-      const restored = PackageURL.fromJSON(json)
+      ),
+      new PackageURL('npm', '@scope', 'package', '1.0.0', undefined, undefined),
+      new PackageURL(
+        'pypi',
+        undefined,
+        'requests',
+        '2.28.1',
+        undefined,
+        undefined,
+      ),
+      new PackageURL(
+        'gem',
+        undefined,
+        'rails',
+        '7.0.0',
+        { platform: 'ruby' },
+        undefined,
+      ),
+    ]
 
-      expect(restored.type).toBe(original.type)
-      expect(restored.name).toBe(original.name)
-      expect(restored.namespace).toBe(original.namespace)
-      expect(restored.version).toBe(original.version)
-      expect(restored.qualifiers).toBe(original.qualifiers)
-      expect(restored.subpath).toBe(original.subpath)
-      expect(restored.toString()).toBe(original.toString())
-    })
-
-    it('should work with various package types', () => {
-      const testCases = [
-        new PackageURL(
-          'npm',
-          '@scope',
-          'package',
-          '1.0.0',
-          undefined,
-          undefined,
-        ),
-        new PackageURL(
-          'pypi',
-          undefined,
-          'requests',
-          '2.28.1',
-          undefined,
-          undefined,
-        ),
-        new PackageURL(
-          'gem',
-          undefined,
-          'rails',
-          '7.0.0',
-          { platform: 'ruby' },
-          undefined,
-        ),
-      ]
-
+    it.each([
+      [
+        'toObject/fromObject',
+        (p: PackageURL) => PackageURL.fromObject(p.toObject()),
+      ],
+      [
+        'toJSONString/fromJSON',
+        (p: PackageURL) => PackageURL.fromJSON(p.toJSONString()),
+      ],
+    ])('should preserve data through %s round-trip', (_method, roundTrip) => {
       for (const original of testCases) {
-        const json = original.toJSONString()
-        const restored = PackageURL.fromJSON(json)
+        const restored = roundTrip(original)
+        expect(restored.type).toBe(original.type)
+        expect(restored.namespace).toBe(original.namespace)
+        expect(restored.name).toBe(original.name)
+        expect(restored.version).toBe(original.version)
+        expect(restored.qualifiers).toEqual(original.qualifiers)
+        expect(restored.subpath).toBe(original.subpath)
         expect(restored.toString()).toBe(original.toString())
       }
     })
