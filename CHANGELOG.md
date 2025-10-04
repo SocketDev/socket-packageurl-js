@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.2.0) - 2025-10-04
+
+### Added
+- Type coverage configuration with 100% coverage requirement
+- Comprehensive backward compatibility tests for validation functions
+
+### Changed
+- Converted validation functions to options pattern with backward compatibility
+- Renamed normalizePath to normalizePurlPath with options pattern
+- Refactored PackageURL types with explicit exports
+
+### Fixed
+- Fixed error handling and concurrency issues in test suite
+- Improved type safety with typed arrays replacing any[]
+
 ## [1.1.6](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.1.6) - 2025-10-03
 
 ### Changed
