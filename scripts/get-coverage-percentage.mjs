@@ -1,10 +1,11 @@
 import { existsSync } from 'node:fs'
+import path from 'node:path'
 
 import yargsParser from 'yargs-parser'
+import colors from 'yoctocolors-cjs'
 
 import constants from '@socketsecurity/registry/lib/constants'
 import { logger } from '@socketsecurity/registry/lib/logger'
-import { getCwd, resolve } from '@socketsecurity/registry/lib/path'
 import { indentString } from '@socketsecurity/registry/lib/strings'
 
 import { getCodeCoverage } from './utils/get-code-coverage.mjs'
@@ -18,7 +19,11 @@ async function logCoveragePercentage(argv) {
   const { spinner } = constants
 
   // Check if coverage data exists to determine whether to generate or read it.
-  const coverageJsonPath = resolve(getCwd(), 'coverage', 'coverage-final.json')
+  const coverageJsonPath = path.join(
+    process.cwd(),
+    'coverage',
+    'coverage-final.json',
+  )
 
   // Get code coverage metrics (statements, branches, functions, lines).
   let codeCoverage
@@ -144,7 +149,7 @@ async function logCoveragePercentage(argv) {
     logger.info(`Coverage Summary:`)
     logger.info(indentString(summaryLines.join('\n'), 2))
     logger.info('')
-    logger.info(logger.bold(`Current coverage: ${overall}% overall!${emoji}`))
+    logger.info(colors.bold(`Current coverage: ${overall}% overall!${emoji}`))
   }
 }
 
