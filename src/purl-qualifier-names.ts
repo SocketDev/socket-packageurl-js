@@ -5,13 +5,12 @@
 
 // Known qualifiers:
 // https://github.com/package-url/purl-spec/blob/master/PURL-SPECIFICATION.rst#known-qualifiers-keyvalue-pairs
-const PurlQualifierNames = {
-  __proto__: null,
+const PurlQualifierNames = Object.assign(Object.create(null), {
   RepositoryUrl: 'repository_url',
   DownloadUrl: 'download_url',
   VcsUrl: 'vcs_url',
   FileName: 'file_name',
   Checksum: 'checksum',
-}
+})
 
 export { PurlQualifierNames }
