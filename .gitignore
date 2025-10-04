@@ -9,7 +9,7 @@ Thumbs.db
 /npm-debug.log
 **/.cache
 **/node_modules
-/*.tsbuildinfo
+**/*.tsbuildinfo
 /dist
 
 !/.vscode/extensions.json
