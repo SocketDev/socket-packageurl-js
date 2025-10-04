@@ -47,10 +47,10 @@ export default defineConfig({
       ],
       all: true,
       thresholds: {
-        branches: 99.8,
+        branches: 100,
         functions: 100,
-        lines: 99.8,
-        statements: 99.8,
+        lines: 100,
+        statements: 100,
       },
       // Coverage should report on src files.
       reportsDirectory: './coverage',
