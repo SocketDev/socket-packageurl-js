@@ -14,7 +14,7 @@ function isObject(value: unknown): value is object {
 /**
  * Recursively freeze an object and all nested objects.
  * Uses breadth-first traversal with a queue for memory efficiency.
- * @throws {Error} When infinite loop detected.
+ * @throws {Error} When object graph too large or circular reference detected.
  */
 function recursiveFreeze<T>(value_: T): T {
   if (
@@ -26,14 +26,14 @@ function recursiveFreeze<T>(value_: T): T {
   }
   // Use breadth-first traversal to avoid stack overflow on deep objects.
   const queue = [value_ as T & object]
+  const visited = new WeakSet<object>()
+  visited.add(value_ as T & object)
   let { length: queueLength } = queue
   let pos = 0
   while (pos < queueLength) {
-    // Safety check to prevent infinite loops from circular references.
+    // Safety check to prevent processing excessively large object graphs.
     if (pos === LOOP_SENTINEL) {
-      throw new Error(
-        'Detected infinite loop in object crawl of recursiveFreeze',
-      )
+      throw new Error('Object graph too large (exceeds 1,000,000 items)')
     }
     const obj = queue[pos++]!
     Object.freeze(obj)
@@ -44,8 +44,10 @@ function recursiveFreeze<T>(value_: T): T {
         if (
           item !== null &&
           (typeof item === 'object' || typeof item === 'function') &&
-          !Object.isFrozen(item)
+          !Object.isFrozen(item) &&
+          !visited.has(item as object)
         ) {
+          visited.add(item as object)
           queue[queueLength++] = item as T & object
         }
       }
@@ -57,8 +59,10 @@ function recursiveFreeze<T>(value_: T): T {
         if (
           propValue !== null &&
           (typeof propValue === 'object' || typeof propValue === 'function') &&
-          !Object.isFrozen(propValue)
+          !Object.isFrozen(propValue) &&
+          !visited.has(propValue as object)
         ) {
+          visited.add(propValue as object)
           queue[queueLength++] = propValue as T & object
         }
       }
