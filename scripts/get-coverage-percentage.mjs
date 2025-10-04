@@ -1,16 +1,14 @@
 import { existsSync } from 'node:fs'
-import path from 'node:path'
 
 import yargsParser from 'yargs-parser'
-import colors from 'yoctocolors-cjs'
 
 import constants from '@socketsecurity/registry/lib/constants'
 import { logger } from '@socketsecurity/registry/lib/logger'
+import { getCwd, resolve } from '@socketsecurity/registry/lib/path'
+import { indentString } from '@socketsecurity/registry/lib/strings'
 
 import { getCodeCoverage } from './utils/get-code-coverage.mjs'
 import { getTypeCoverage } from './utils/get-type-coverage.mjs'
-
-const indent = '  '
 
 /**
  * Logs coverage percentage data including code and type coverage metrics.
@@ -20,11 +18,7 @@ async function logCoveragePercentage(argv) {
   const { spinner } = constants
 
   // Check if coverage data exists to determine whether to generate or read it.
-  const coverageJsonPath = path.join(
-    process.cwd(),
-    'coverage',
-    'coverage-final.json',
-  )
+  const coverageJsonPath = resolve(getCwd(), 'coverage', 'coverage-final.json')
 
   // Get code coverage metrics (statements, branches, functions, lines).
   let codeCoverage
@@ -136,26 +130,21 @@ async function logCoveragePercentage(argv) {
     console.log(codeCoverage.statements.percent)
   } else {
     // Default format: human-readable formatted output.
-    logger.info(`Coverage Summary:`)
-    logger.info(
-      `${indent}Statements: ${codeCoverage.statements.percent}% (${codeCoverage.statements.covered}/${codeCoverage.statements.total})`,
-    )
-    logger.info(
-      `${indent}Branches:   ${codeCoverage.branches.percent}% (${codeCoverage.branches.covered}/${codeCoverage.branches.total})`,
-    )
-    logger.info(
-      `${indent}Functions:  ${codeCoverage.functions.percent}% (${codeCoverage.functions.covered}/${codeCoverage.functions.total})`,
-    )
-    logger.info(
-      `${indent}Lines:      ${codeCoverage.lines.percent}% (${codeCoverage.lines.covered}/${codeCoverage.lines.total})`,
-    )
+    const summaryLines = [
+      `Statements: ${codeCoverage.statements.percent}% (${codeCoverage.statements.covered}/${codeCoverage.statements.total})`,
+      `Branches:   ${codeCoverage.branches.percent}% (${codeCoverage.branches.covered}/${codeCoverage.branches.total})`,
+      `Functions:  ${codeCoverage.functions.percent}% (${codeCoverage.functions.covered}/${codeCoverage.functions.total})`,
+      `Lines:      ${codeCoverage.lines.percent}% (${codeCoverage.lines.covered}/${codeCoverage.lines.total})`,
+    ]
 
     if (typeCoveragePercent !== null) {
-      logger.info(`${indent}Types:      ${typeCoveragePercent.toFixed(2)}%`)
+      summaryLines.push(`Types:      ${typeCoveragePercent.toFixed(2)}%`)
     }
 
+    logger.info(`Coverage Summary:`)
+    logger.info(indentString(summaryLines.join('\n'), 2))
     logger.info('')
-    logger.info(colors.bold(`Current coverage: ${overall}% overall!${emoji}`))
+    logger.info(logger.bold(`Current coverage: ${overall}% overall!${emoji}`))
   }
 }
 
