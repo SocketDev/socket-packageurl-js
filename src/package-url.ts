@@ -48,6 +48,25 @@ import type {
 import type { Result } from './result.js'
 import type { DownloadUrl, RepositoryUrl } from './url-converter.js'
 
+/**
+ * Type representing the possible values for PackageURL component properties.
+ * Used for index signature to allow dynamic property access.
+ */
+export type PackageURLComponentValue = string | QualifiersObject | undefined
+
+/**
+ * Type representing a plain object representation of a PackageURL.
+ * Contains all package URL components as properties.
+ */
+export type PackageURLObject = {
+  type?: string
+  namespace?: string
+  name?: string
+  version?: string
+  qualifiers?: QualifiersObject
+  subpath?: string
+}
+
 // Pattern to match URLs with schemes other than "pkg".
 const OTHER_SCHEME_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//
 
@@ -68,9 +87,7 @@ class PackageURL {
   qualifiers?: QualifiersObject | undefined
   subpath?: string | undefined
   type?: string | undefined
-  version?: string | undefined;
-
-  [key: string]: any
+  version?: string | undefined
 
   constructor(
     rawType: unknown,
@@ -161,7 +178,7 @@ class PackageURL {
   /**
    * Convert PackageURL to object for JSON.stringify compatibility.
    */
-  toJSON(): Record<string, any> {
+  toJSON(): PackageURLObject {
     return this.toObject()
   }
 
@@ -175,8 +192,8 @@ class PackageURL {
   /**
    * Convert PackageURL to a plain object representation.
    */
-  toObject(): Record<string, any> {
-    const result: Record<string, any> = {}
+  toObject(): PackageURLObject {
+    const result: PackageURLObject = {}
     if (this.type !== undefined) {
       result['type'] = this.type
     }
