@@ -19,17 +19,18 @@ function normalizeName(rawName: unknown): string | undefined {
  */
 function normalizeNamespace(rawNamespace: unknown): string | undefined {
   return typeof rawNamespace === 'string'
-    ? normalizePath(rawNamespace, undefined)
+    ? normalizePurlPath(rawNamespace)
     : undefined
 }
 
 /**
- * Normalize path by collapsing separators and filtering segments.
+ * Normalize purl path component by collapsing separators and filtering segments.
  */
-function normalizePath(
+function normalizePurlPath(
   pathname: string,
-  callback?: ((_segment: string) => boolean) | undefined,
+  options?: { filter?: ((_segment: string) => boolean) | undefined },
 ): string {
+  const { filter: callback } = options ?? {}
   let collapsed = ''
   let start = 0
   // Leading and trailing slashes, i.e. '/', are not significant and should be
@@ -98,7 +99,7 @@ function normalizeQualifiers(
  */
 function normalizeSubpath(rawSubpath: unknown): string | undefined {
   return typeof rawSubpath === 'string'
-    ? normalizePath(rawSubpath, subpathFilter)
+    ? normalizePurlPath(rawSubpath, { filter: subpathFilter })
     : undefined
 }
 
@@ -171,7 +172,7 @@ function subpathFilter(segment: string): boolean {
 export {
   normalizeName,
   normalizeNamespace,
-  normalizePath,
+  normalizePurlPath,
   normalizeQualifiers,
   normalizeSubpath,
   normalizeType,
