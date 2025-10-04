@@ -65,13 +65,13 @@ export default defineConfig({
             // Match: ../dist/some-module.js
             find: /^\.\.\/dist\/(.*)\.js$/,
             // Replace: src/some-module.ts
-            replacement: path.resolve(__dirname, 'src/$1.ts'),
+            replacement: path.resolve(__dirname, '../src/$1.ts'),
           },
           {
             // Match: ./dist/some-module.js
             find: /^\.\/dist\/(.*)\.js$/,
             // Replace: src/some-module.ts
-            replacement: path.resolve(__dirname, 'src/$1.ts'),
+            replacement: path.resolve(__dirname, '../src/$1.ts'),
           },
         ]
       : [],
