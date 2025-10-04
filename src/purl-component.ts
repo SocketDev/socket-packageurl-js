@@ -40,7 +40,8 @@ export type ComponentValidator = (_value: unknown, _throws: boolean) => boolean
 export type QualifiersValue = string | number | boolean | null | undefined
 export type QualifiersObject = Record<string, QualifiersValue>
 
-const componentSortOrderLookup = Object.assign(Object.create(null), {
+const componentSortOrderLookup = {
+  __proto__: null,
   type: 0,
   namespace: 1,
   name: 2,
@@ -49,7 +50,7 @@ const componentSortOrderLookup = Object.assign(Object.create(null), {
   qualifierKey: 5,
   qualifierValue: 6,
   subpath: 7,
-})
+}
 
 /**
  * Compare two component names for sorting.
