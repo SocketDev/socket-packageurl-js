@@ -1,9 +1,9 @@
 import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 
 import constants from '@socketsecurity/registry/lib/constants'
 import { readJson } from '@socketsecurity/registry/lib/fs'
 import { isObjectObject } from '@socketsecurity/registry/lib/objects'
-import { getCwd, resolve } from '@socketsecurity/registry/lib/path'
 import { spawn } from '@socketsecurity/registry/lib/spawn'
 
 function countCovered(counts) {
@@ -13,7 +13,11 @@ function countCovered(counts) {
 export async function getCodeCoverage(options = {}) {
   const { generateIfMissing = true } = { __proto__: null, ...options }
 
-  const coverageJsonPath = resolve(getCwd(), 'coverage', 'coverage-final.json')
+  const coverageJsonPath = resolve(
+    process.cwd(),
+    'coverage',
+    'coverage-final.json',
+  )
 
   if (!existsSync(coverageJsonPath)) {
     if (!generateIfMissing) {
