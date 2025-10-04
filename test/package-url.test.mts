@@ -1872,7 +1872,7 @@ describe('PackageURL', () => {
         }
 
         // This should throw when hitting the sentinel
-        expect(() => recursiveFreeze(obj)).toThrow(/Detected infinite loop/)
+        expect(() => recursiveFreeze(obj)).toThrow(/Object graph too large/)
       })
 
       // Test purl-component functions
@@ -1960,9 +1960,9 @@ describe('PackageURL', () => {
       it('should validate qualifiers must be an object', () => {
         // Import already at top of file
 
-        // Test lines 33-36 - qualifiers must be an object
+        // Test lines 33-36 - qualifiers must be a plain object
         expect(() => validateQualifiers('string-value', true)).toThrow(
-          /"qualifiers" must be an object/,
+          /"qualifiers" must be a plain object/,
         )
 
         expect(validateQualifiers('string-value', false)).toBe(false)

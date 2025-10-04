@@ -100,9 +100,9 @@ function validateQualifiers(qualifiers: unknown, throws: boolean): boolean {
   if (qualifiers === null || qualifiers === undefined) {
     return true
   }
-  if (typeof qualifiers !== 'object') {
+  if (typeof qualifiers !== 'object' || Array.isArray(qualifiers)) {
     if (throws) {
-      throw new PurlError('"qualifiers" must be an object')
+      throw new PurlError('"qualifiers" must be a plain object')
     }
     return false
   }
