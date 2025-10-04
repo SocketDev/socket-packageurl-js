@@ -131,72 +131,27 @@ describe('PackageURLBuilder', () => {
       expect(builder).toBeInstanceOf(PackageURLBuilder)
     })
 
-    it('should create npm builder', () => {
-      const purl = PackageURLBuilder.npm().name('lodash').build()
+    it.each([
+      ['npm', undefined, 'lodash'],
+      ['pypi', undefined, 'requests'],
+      ['maven', 'org.apache.commons', 'commons-lang3'],
+      ['gem', undefined, 'rails'],
+      ['golang', 'github.com/gin-gonic', 'gin'],
+      ['cargo', undefined, 'serde'],
+      ['nuget', undefined, 'Newtonsoft.Json'],
+      ['composer', 'symfony', 'console'],
+    ] as const)('should create %s builder', (type, namespace, name) => {
+      const builder = (PackageURLBuilder as any)[type]()
+      if (namespace !== undefined) {
+        builder.namespace(namespace)
+      }
+      const purl = builder.name(name).build()
 
-      expect(purl.type).toBe('npm')
-      expect(purl.name).toBe('lodash')
-    })
-
-    it('should create pypi builder', () => {
-      const purl = PackageURLBuilder.pypi().name('requests').build()
-
-      expect(purl.type).toBe('pypi')
-      expect(purl.name).toBe('requests')
-    })
-
-    it('should create maven builder', () => {
-      const purl = PackageURLBuilder.maven()
-        .namespace('org.apache.commons')
-        .name('commons-lang3')
-        .build()
-
-      expect(purl.type).toBe('maven')
-      expect(purl.namespace).toBe('org.apache.commons')
-      expect(purl.name).toBe('commons-lang3')
-    })
-
-    it('should create gem builder', () => {
-      const purl = PackageURLBuilder.gem().name('rails').build()
-
-      expect(purl.type).toBe('gem')
-      expect(purl.name).toBe('rails')
-    })
-
-    it('should create golang builder', () => {
-      const purl = PackageURLBuilder.golang()
-        .namespace('github.com/gin-gonic')
-        .name('gin')
-        .build()
-
-      expect(purl.type).toBe('golang')
-      expect(purl.namespace).toBe('github.com/gin-gonic')
-      expect(purl.name).toBe('gin')
-    })
-
-    it('should create cargo builder', () => {
-      const purl = PackageURLBuilder.cargo().name('serde').build()
-
-      expect(purl.type).toBe('cargo')
-      expect(purl.name).toBe('serde')
-    })
-
-    it('should create nuget builder', () => {
-      const purl = PackageURLBuilder.nuget().name('Newtonsoft.Json').build()
-
-      expect(purl.type).toBe('nuget')
-      expect(purl.name).toBe('Newtonsoft.Json')
-    })
-
-    it('should create composer builder', () => {
-      const purl = PackageURLBuilder.composer()
-        .namespace('symfony')
-        .name('console')
-        .build()
-
-      expect(purl.type).toBe('composer')
-      expect(purl.namespace).toBe('symfony')
-      expect(purl.name).toBe('console')
+      expect(purl.type).toBe(type)
+      expect(purl.name).toBe(name)
+      if (namespace !== undefined) {
+        expect(purl.namespace).toBe(namespace)
+      }
     })
   })
 
