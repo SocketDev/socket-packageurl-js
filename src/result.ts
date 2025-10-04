@@ -209,15 +209,19 @@ export const ResultUtils = {
     { [K in keyof T]: T[K] extends Result<infer U, any> ? U : never },
     T[number] extends Result<any, infer E> ? E : never
   > {
-    const values: any[] = []
+    type ExtractedValues = {
+      [K in keyof T]: T[K] extends Result<infer U, any> ? U : never
+    }
+    type ExtractedValue = T[number] extends Result<infer U, any> ? U : never
+    const values: Array<ExtractedValue> = []
     for (let i = 0; i < results.length; i++) {
       const result = results[i]!
       if (result.isErr()) {
         return result as any
       }
-      values.push((result as Ok<unknown>).value)
+      values.push((result as Ok<ExtractedValue>).value)
     }
-    return ok(values as any)
+    return ok(values as ExtractedValues)
   },
 
   /**
