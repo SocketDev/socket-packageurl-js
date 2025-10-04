@@ -190,6 +190,18 @@ Parsing and constructing package URLs, compiled to CommonJS for deployment.
 - Test against purl-spec test suite
 - Test with unusual but valid package URLs
 
+## 📝 SCRATCH DOCUMENTS
+
+### Working Documents Directory
+- **Location**: `.claude/` directory (gitignored)
+- **Purpose**: Store scratch documents, planning notes, analysis reports, and temporary documentation
+- **🚨 CRITICAL**: NEVER commit files in `.claude/` to version control
+- **Examples of scratch documents**:
+  - Working notes and implementation plans
+  - Analysis reports from codebase investigations
+  - Temporary documentation and TODO lists
+  - Any files not intended for production use
+
 ---
 
 **For all other standards not covered here, refer to `socket-registry/CLAUDE.md` (in sibling repository)**
