@@ -10,6 +10,6 @@
     "types": ["vitest/globals", "node"],
     "verbatimModuleSyntax": false
   },
-  "include": ["src/**/*.ts", "test/**/*.mts"],
+  "include": ["../src/**/*.ts", "../test/**/*.mts"],
   "exclude": ["**/node_modules/**/*"]
 }
