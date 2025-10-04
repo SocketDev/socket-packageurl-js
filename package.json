@@ -34,7 +34,7 @@
     "check:lint": "eslint --config .config/eslint.config.mjs --report-unused-disable-directives .",
     "check:lint:fix": "pnpm run check:lint --fix",
     "build": "pnpm run clean:dist && tsgo --build",
-    "check:tsc": "tsgo --noEmit -p tsconfig.check.json",
+    "check:tsc": "tsgo --noEmit -p .config/tsconfig.check.json",
     "clean:dist": "del-cli 'dist' '**/*.tsbuildinfo'",
     "clean": "run-s -c clean:*",
     "clean:cache": "del-cli '**/.cache'",
