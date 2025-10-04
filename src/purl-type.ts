@@ -329,7 +329,9 @@ const PurlType = createHelpersNamespaceObject(
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#cran
       cran(purl: PurlObject, throws: boolean) {
-        return validateRequiredByType('cran', 'version', purl.version, throws)
+        return validateRequiredByType('cran', 'version', purl.version, {
+          throws,
+        })
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#golang
       golang(purl: PurlObject, throws: boolean) {
@@ -356,21 +358,15 @@ const PurlType = createHelpersNamespaceObject(
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#maven
       maven(purl: PurlObject, throws: boolean) {
-        return validateRequiredByType(
-          'maven',
-          'namespace',
-          purl.namespace,
+        return validateRequiredByType('maven', 'namespace', purl.namespace, {
           throws,
-        )
+        })
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
       mlflow(purl: PurlObject, throws: boolean) {
-        return validateEmptyByType(
-          'mlflow',
-          'namespace',
-          purl.namespace,
+        return validateEmptyByType('mlflow', 'namespace', purl.namespace, {
           throws,
-        )
+        })
       },
       // Validation based on
       // https://github.com/npm/validate-npm-package-name/tree/v6.0.0
@@ -498,7 +494,9 @@ const PurlType = createHelpersNamespaceObject(
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
       oci(purl: PurlObject, throws: boolean) {
-        return validateEmptyByType('oci', 'namespace', purl.namespace, throws)
+        return validateEmptyByType('oci', 'namespace', purl.namespace, {
+          throws,
+        })
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pub
       pub(purl: PurlObject, throws: boolean) {
@@ -569,12 +567,10 @@ const PurlType = createHelpersNamespaceObject(
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#swift
       swift(purl: PurlObject, throws: boolean) {
         return (
-          validateRequiredByType(
-            'swift',
-            'namespace',
-            purl.namespace,
+          validateRequiredByType('swift', 'namespace', purl.namespace, {
             throws,
-          ) && validateRequiredByType('swift', 'version', purl.version, throws)
+          }) &&
+          validateRequiredByType('swift', 'version', purl.version, { throws })
         )
       },
     },
