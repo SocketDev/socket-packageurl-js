@@ -30,350 +30,184 @@ import { UrlConverter } from '../dist/url-converter.js'
 
 describe('UrlConverter', () => {
   describe('toRepositoryUrl', () => {
-    it('should convert npm packages to repository URLs', () => {
-      const purl = new PackageURL(
+    it.each([
+      [
         'npm',
         undefined,
         'lodash',
         '4.17.21',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://npmjs.com/package/lodash',
-        type: 'web',
-      })
-    })
-
-    it('should convert scoped npm packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://npmjs.com/package/lodash',
+        'web',
+      ],
+      [
         'npm',
         '@types',
         'node',
         '16.11.7',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://npmjs.com/package/@types/node',
-        type: 'web',
-      })
-    })
-
-    it('should convert pypi packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://npmjs.com/package/@types/node',
+        'web',
+      ],
+      [
         'pypi',
         undefined,
         'requests',
         '2.28.1',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://pypi.org/project/requests/',
-        type: 'web',
-      })
-    })
-
-    it('should convert maven packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://pypi.org/project/requests/',
+        'web',
+      ],
+      [
         'maven',
         'org.apache.commons',
         'commons-lang3',
         '3.12.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/',
-        type: 'web',
-      })
-    })
-
-    it('should convert gem packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/',
+        'web',
+      ],
+      [
         'gem',
         undefined,
         'rails',
         '7.0.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://rubygems.org/gems/rails',
-        type: 'web',
-      })
-    })
-
-    it('should convert golang packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://rubygems.org/gems/rails',
+        'web',
+      ],
+      [
         'golang',
         'github.com/gin-gonic',
         'gin',
         'v1.8.1',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://github.com/gin-gonic/gin',
-        type: 'git',
-      })
-    })
-
-    it('should return null for golang packages without namespace', () => {
-      const purl = new PackageURL(
-        'golang',
-        undefined,
-        'gin',
-        'v1.8.1',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toBeNull()
-    })
-
-    it('should convert cargo packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://github.com/gin-gonic/gin',
+        'git',
+      ],
+      [
         'cargo',
         undefined,
         'serde',
         '1.0.144',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://crates.io/crates/serde',
-        type: 'web',
-      })
-    })
-
-    it('should convert nuget packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://crates.io/crates/serde',
+        'web',
+      ],
+      [
         'nuget',
         undefined,
         'Newtonsoft.Json',
         '13.0.1',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://nuget.org/packages/Newtonsoft.Json/',
-        type: 'web',
-      })
-    })
-
-    it('should convert composer packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://nuget.org/packages/Newtonsoft.Json/',
+        'web',
+      ],
+      [
         'composer',
         'symfony',
         'console',
         '6.1.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://packagist.org/packages/symfony/console',
-        type: 'web',
-      })
-    })
-
-    it('should convert github packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://packagist.org/packages/symfony/console',
+        'web',
+      ],
+      [
         'github',
         'octocat',
         'hello-world',
         undefined,
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://github.com/octocat/hello-world',
-        type: 'git',
-      })
-    })
-
-    it('should convert gitlab packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://github.com/octocat/hello-world',
+        'git',
+      ],
+      [
         'gitlab',
         'group',
         'project',
         undefined,
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://gitlab.com/group/project',
-        type: 'git',
-      })
-    })
-
-    it('should convert bitbucket packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://gitlab.com/group/project',
+        'git',
+      ],
+      [
         'bitbucket',
         'user',
         'repo',
         undefined,
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://bitbucket.org/user/repo',
-        type: 'git',
-      })
-    })
-
-    it('should convert hex packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://bitbucket.org/user/repo',
+        'git',
+      ],
+      [
         'hex',
         undefined,
         'phoenix',
         '1.6.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://hex.pm/packages/phoenix',
-        type: 'web',
-      })
-    })
-
-    it('should convert pub packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://hex.pm/packages/phoenix',
+        'web',
+      ],
+      [
         'pub',
         undefined,
         'flutter',
         '3.0.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://pub.dev/packages/flutter',
-        type: 'web',
-      })
-    })
-
-    it('should convert luarocks packages to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://pub.dev/packages/flutter',
+        'web',
+      ],
+      [
         'luarocks',
         'user',
         'rock',
         '1.0.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://luarocks.org/modules/user/rock',
-        type: 'web',
-      })
-    })
-
-    it('should convert luarocks packages without namespace to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://luarocks.org/modules/user/rock',
+        'web',
+      ],
+      [
         'luarocks',
         undefined,
         'rock',
         '1.0.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://luarocks.org/modules/rock',
-        type: 'web',
-      })
-    })
-
-    it('should convert composer packages without namespace to repository URLs', () => {
-      const purl = new PackageURL(
+        'https://luarocks.org/modules/rock',
+        'web',
+      ],
+      [
         'composer',
         undefined,
         'package',
         '1.0.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
+        'https://packagist.org/packages/package',
+        'web',
+      ],
+    ])(
+      'should convert %s packages to repository URLs',
+      (type, namespace, name, version, expectedUrl, expectedType) => {
+        const purl = new PackageURL(
+          type,
+          namespace,
+          name,
+          version,
+          undefined,
+          undefined,
+        )
+        const result = UrlConverter.toRepositoryUrl(purl)
 
-      expect(result).toEqual({
-        url: 'https://packagist.org/packages/package',
-        type: 'web',
-      })
-    })
+        expect(result).toEqual({
+          url: expectedUrl,
+          type: expectedType,
+        })
+      },
+    )
 
-    it('should return null for github packages without namespace', () => {
-      const purl = new PackageURL(
-        'github',
-        undefined,
-        'repo',
-        undefined,
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
+    it.each([
+      ['golang', undefined, 'gin', 'v1.8.1', 'packages without namespace'],
+      ['github', undefined, 'repo', undefined, 'packages without namespace'],
+      ['gitlab', undefined, 'project', undefined, 'packages without namespace'],
+      ['bitbucket', undefined, 'repo', undefined, 'packages without namespace'],
+    ])(
+      'should return null for %s %s',
+      (type, namespace, name, version, _description) => {
+        const purl = new PackageURL(
+          type,
+          namespace,
+          name,
+          version,
+          undefined,
+          undefined,
+        )
+        const result = UrlConverter.toRepositoryUrl(purl)
 
-      expect(result).toBeNull()
-    })
-
-    it('should return null for gitlab packages without namespace', () => {
-      const purl = new PackageURL(
-        'gitlab',
-        undefined,
-        'project',
-        undefined,
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toBeNull()
-    })
-
-    it('should return null for bitbucket packages without namespace', () => {
-      const purl = new PackageURL(
-        'bitbucket',
-        undefined,
-        'repo',
-        undefined,
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toRepositoryUrl(purl)
-
-      expect(result).toBeNull()
-    })
+        expect(result).toBeNull()
+      },
+    )
 
     it('should return null for maven packages with empty namespace (defensive)', () => {
       // Create a mock purl object with empty namespace to test defensive null check
@@ -404,234 +238,135 @@ describe('UrlConverter', () => {
   })
 
   describe('toDownloadUrl', () => {
-    it('should convert npm packages to download URLs', () => {
-      const purl = new PackageURL(
+    it.each([
+      [
         'npm',
         undefined,
         'lodash',
         '4.17.21',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz',
-        type: 'tarball',
-      })
-    })
-
-    it('should convert scoped npm packages to download URLs', () => {
-      const purl = new PackageURL(
+        'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz',
+        'tarball',
+      ],
+      [
         'npm',
         '@types',
         'node',
         '16.11.7',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://registry.npmjs.org/@types/node/-/node-16.11.7.tgz',
-        type: 'tarball',
-      })
-    })
-
-    it('should convert pypi packages to download URLs', () => {
-      const purl = new PackageURL(
+        'https://registry.npmjs.org/@types/node/-/node-16.11.7.tgz',
+        'tarball',
+      ],
+      [
         'pypi',
         undefined,
         'requests',
         '2.28.1',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://pypi.org/simple/requests/',
-        type: 'wheel',
-      })
-    })
-
-    it('should convert maven packages to download URLs', () => {
-      const purl = new PackageURL(
+        'https://pypi.org/simple/requests/',
+        'wheel',
+      ],
+      [
         'maven',
         'org.apache.commons',
         'commons-lang3',
         '3.12.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar',
-        type: 'jar',
-      })
-    })
-
-    it('should convert gem packages to download URLs', () => {
-      const purl = new PackageURL(
+        'https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar',
+        'jar',
+      ],
+      [
         'gem',
         undefined,
         'rails',
         '7.0.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://rubygems.org/downloads/rails-7.0.0.gem',
-        type: 'gem',
-      })
-    })
-
-    it('should convert cargo packages to download URLs', () => {
-      const purl = new PackageURL(
+        'https://rubygems.org/downloads/rails-7.0.0.gem',
+        'gem',
+      ],
+      [
         'cargo',
         undefined,
         'serde',
         '1.0.144',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://crates.io/api/v1/crates/serde/1.0.144/download',
-        type: 'tarball',
-      })
-    })
-
-    it('should convert nuget packages to download URLs', () => {
-      const purl = new PackageURL(
+        'https://crates.io/api/v1/crates/serde/1.0.144/download',
+        'tarball',
+      ],
+      [
         'nuget',
         undefined,
         'Newtonsoft.Json',
         '13.0.1',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://nuget.org/packages/Newtonsoft.Json/13.0.1/download',
-        type: 'zip',
-      })
-    })
-
-    it('should convert composer packages to download URLs', () => {
-      const purl = new PackageURL(
+        'https://nuget.org/packages/Newtonsoft.Json/13.0.1/download',
+        'zip',
+      ],
+      [
         'composer',
         'symfony',
         'console',
         '6.1.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://repo.packagist.org/p2/symfony/console.json',
-        type: 'other',
-      })
-    })
-
-    it('should return null for composer packages without namespace', () => {
-      const purl = new PackageURL(
-        'composer',
-        undefined,
-        'console',
-        '6.1.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toBeNull()
-    })
-
-    it('should convert hex packages to download URLs', () => {
-      const purl = new PackageURL(
+        'https://repo.packagist.org/p2/symfony/console.json',
+        'other',
+      ],
+      [
         'hex',
         undefined,
         'phoenix',
         '1.6.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://repo.hex.pm/tarballs/phoenix-1.6.0.tar',
-        type: 'tarball',
-      })
-    })
-
-    it('should convert pub packages to download URLs', () => {
-      const purl = new PackageURL(
+        'https://repo.hex.pm/tarballs/phoenix-1.6.0.tar',
+        'tarball',
+      ],
+      [
         'pub',
         undefined,
         'flutter',
         '3.0.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toEqual({
-        url: 'https://pub.dev/packages/flutter/versions/3.0.0.tar.gz',
-        type: 'tarball',
-      })
-    })
-
-    it('should convert golang packages to download URLs', () => {
-      const purl = new PackageURL(
+        'https://pub.dev/packages/flutter/versions/3.0.0.tar.gz',
+        'tarball',
+      ],
+      [
         'golang',
         'github.com/gin-gonic',
         'gin',
         'v1.8.1',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
+        'https://proxy.golang.org/github.com/gin-gonic/gin/@v/v1.8.1.zip',
+        'zip',
+      ],
+    ])(
+      'should convert %s packages to download URLs',
+      (type, namespace, name, version, expectedUrl, expectedType) => {
+        const purl = new PackageURL(
+          type,
+          namespace,
+          name,
+          version,
+          undefined,
+          undefined,
+        )
+        const result = UrlConverter.toDownloadUrl(purl)
 
-      expect(result).toEqual({
-        url: 'https://proxy.golang.org/github.com/gin-gonic/gin/@v/v1.8.1.zip',
-        type: 'zip',
-      })
-    })
+        expect(result).toEqual({
+          url: expectedUrl,
+          type: expectedType,
+        })
+      },
+    )
 
-    it('should return null for golang packages without namespace', () => {
-      const purl = new PackageURL(
-        'golang',
-        undefined,
-        'gin',
-        'v1.8.1',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
+    it.each([
+      ['composer', undefined, 'console', '6.1.0', 'packages without namespace'],
+      ['golang', undefined, 'gin', 'v1.8.1', 'packages without namespace'],
+      ['npm', undefined, 'lodash', undefined, 'packages without version'],
+    ])(
+      'should return null for %s %s',
+      (type, namespace, name, version, _description) => {
+        const purl = new PackageURL(
+          type,
+          namespace,
+          name,
+          version,
+          undefined,
+          undefined,
+        )
+        const result = UrlConverter.toDownloadUrl(purl)
 
-      expect(result).toBeNull()
-    })
-
-    it('should return null for packages without version', () => {
-      const purl = new PackageURL(
-        'npm',
-        undefined,
-        'lodash',
-        undefined,
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toBeNull()
-    })
+        expect(result).toBeNull()
+      },
+    )
 
     it('should return null for maven packages with empty namespace (defensive)', () => {
       // Create a mock purl object with empty namespace to test defensive null check
