@@ -230,73 +230,148 @@ describe('Result types', () => {
 
 describe('PackageURL Result methods', () => {
   describe('tryFromString', () => {
-    it('should return Ok for valid purl string', () => {
-      const result = PackageURL.tryFromString('pkg:npm/lodash@4.17.21')
+    it.each([
+      [
+        'valid purl string',
+        'pkg:npm/lodash@4.17.21',
+        true,
+        'npm',
+        'lodash',
+        '4.17.21',
+      ],
+      [
+        'invalid purl string',
+        'invalid-purl',
+        false,
+        undefined,
+        undefined,
+        undefined,
+      ],
+    ] as const)(
+      'should return %s result for %s',
+      (
+        _desc,
+        input,
+        shouldBeOk,
+        expectedType,
+        expectedName,
+        expectedVersion,
+      ) => {
+        const result = PackageURL.tryFromString(input)
 
-      expect(result.isOk()).toBe(true)
-      const purl = result.unwrap()
-      expect(purl.type).toBe('npm')
-      expect(purl.name).toBe('lodash')
-      expect(purl.version).toBe('4.17.21')
-    })
-
-    it('should return Err for invalid purl string', () => {
-      const result = PackageURL.tryFromString('invalid-purl')
-
-      expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error).toBeInstanceOf(Error)
-    })
+        expect(result.isOk()).toBe(shouldBeOk)
+        if (shouldBeOk) {
+          const purl = result.unwrap()
+          expect(purl.type).toBe(expectedType)
+          expect(purl.name).toBe(expectedName)
+          expect(purl.version).toBe(expectedVersion)
+        } else {
+          expect((result as Err<Error>).error).toBeInstanceOf(Error)
+        }
+      },
+    )
   })
 
   describe('tryFromObject', () => {
-    it('should return Ok for valid object', () => {
-      const obj = { type: 'npm', name: 'lodash', version: '4.17.21' }
-      const result = PackageURL.tryFromObject(obj)
+    it.each([
+      [
+        'valid object',
+        { type: 'npm', name: 'lodash', version: '4.17.21' },
+        true,
+        'npm',
+        'lodash',
+        '4.17.21',
+      ],
+      [
+        'invalid object',
+        { type: '', name: 'lodash' },
+        false,
+        undefined,
+        undefined,
+        undefined,
+      ],
+    ] as const)(
+      'should return %s result for %s',
+      (
+        _desc,
+        input,
+        shouldBeOk,
+        expectedType,
+        expectedName,
+        expectedVersion,
+      ) => {
+        const result = PackageURL.tryFromObject(input)
 
-      expect(result.isOk()).toBe(true)
-      const purl = result.unwrap()
-      expect(purl.type).toBe('npm')
-      expect(purl.name).toBe('lodash')
-      expect(purl.version).toBe('4.17.21')
-    })
-
-    it('should return Err for invalid object', () => {
-      const obj = { type: '', name: 'lodash' }
-      const result = PackageURL.tryFromObject(obj)
-
-      expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error).toBeInstanceOf(Error)
-    })
+        expect(result.isOk()).toBe(shouldBeOk)
+        if (shouldBeOk) {
+          const purl = result.unwrap()
+          expect(purl.type).toBe(expectedType)
+          expect(purl.name).toBe(expectedName)
+          expect(purl.version).toBe(expectedVersion)
+        } else {
+          expect((result as Err<Error>).error).toBeInstanceOf(Error)
+        }
+      },
+    )
   })
 
   describe('tryFromJSON', () => {
-    it('should return Ok for valid JSON', () => {
-      const json = '{"type":"npm","name":"lodash","version":"4.17.21"}'
-      const result = PackageURL.tryFromJSON(json)
-
-      expect(result.isOk()).toBe(true)
-      const purl = result.unwrap()
-      expect(purl.type).toBe('npm')
-      expect(purl.name).toBe('lodash')
-      expect(purl.version).toBe('4.17.21')
-    })
-
-    it('should return Err for invalid JSON', () => {
-      const result = PackageURL.tryFromJSON('invalid json')
-
-      expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error.message).toContain(
+    it.each([
+      [
+        'valid JSON',
+        '{"type":"npm","name":"lodash","version":"4.17.21"}',
+        true,
+        'npm',
+        'lodash',
+        '4.17.21',
+        undefined,
+      ],
+      [
+        'invalid JSON',
+        'invalid json',
+        false,
+        undefined,
+        undefined,
+        undefined,
         'Invalid JSON string',
-      )
-    })
+      ],
+      [
+        'valid JSON with invalid purl data',
+        '{"type":"","name":"lodash"}',
+        false,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+      ],
+    ] as const)(
+      'should return %s result for %s',
+      (
+        _desc,
+        input,
+        shouldBeOk,
+        expectedType,
+        expectedName,
+        expectedVersion,
+        errorMessageContains,
+      ) => {
+        const result = PackageURL.tryFromJSON(input)
 
-    it('should return Err for valid JSON with invalid purl data', () => {
-      const json = '{"type":"","name":"lodash"}'
-      const result = PackageURL.tryFromJSON(json)
-
-      expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error).toBeInstanceOf(Error)
-    })
+        expect(result.isOk()).toBe(shouldBeOk)
+        if (shouldBeOk) {
+          const purl = result.unwrap()
+          expect(purl.type).toBe(expectedType)
+          expect(purl.name).toBe(expectedName)
+          expect(purl.version).toBe(expectedVersion)
+        } else {
+          const error = (result as Err<Error>).error
+          expect(error).toBeInstanceOf(Error)
+          if (errorMessageContains !== undefined) {
+            expect(error.message).toContain(errorMessageContains)
+          }
+        }
+      },
+    )
   })
 
   describe('tryParseString', () => {
