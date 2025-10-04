@@ -1,4 +1,5 @@
 import constants from '@socketsecurity/registry/lib/constants'
+import { escapeRegExp } from '@socketsecurity/registry/lib/regexps'
 import { spawn } from '@socketsecurity/registry/lib/spawn'
 
 /**
@@ -22,12 +23,15 @@ export async function getTypeCoverage() {
   // Parse the output to find the line containing the percentage.
   const output = result.stdout || ''
   const lines = output.split('\n')
+  const percentSymbol = escapeRegExp('%')
   const percentageLine = lines.find(line => line.includes('%'))
 
   // Extract the percentage value from the line using regex.
   if (percentageLine) {
     // Matches patterns like "95.12%" or "100%" and extracts the numeric part.
-    const match = percentageLine.match(/(\d+(?:\.\d+)?)%/)
+    const match = percentageLine.match(
+      new RegExp(`(\\d+(?:\\.\\d+)?)${percentSymbol}`),
+    )
     if (match) {
       return parseFloat(match[1])
     }
