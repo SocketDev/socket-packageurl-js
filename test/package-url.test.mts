@@ -65,6 +65,8 @@ import {
 } from '../src/purl-component.js'
 import {
   validateEmptyByType,
+  validateName,
+  validateNamespace,
   validateQualifierKey,
   validateQualifiers,
   validateRequired,
@@ -73,6 +75,7 @@ import {
   validateStrings,
   validateSubpath,
   validateType,
+  validateVersion,
 } from '../src/validate.js'
 
 function getNpmId(purl: any) {
@@ -1756,6 +1759,15 @@ describe('PackageURL', () => {
         )
         expect(validateRequired('field', null, { throws: false })).toBe(false)
         expect(validateRequired('field', '', { throws: false })).toBe(false)
+        // Test with undefined parameter (line 160)
+        expect(validateRequired('field', null, undefined)).toBe(false)
+        expect(validateRequired('field', 'value', undefined)).toBe(true)
+        // Test with legacy boolean parameter
+        expect(validateRequired('field', null, false)).toBe(false)
+        expect(validateRequired('field', 'value', false)).toBe(true)
+        expect(() => validateRequired('field', null, true)).toThrow(
+          '"field" is a required component',
+        )
 
         // validateRequiredByType
         expect(() =>
@@ -1767,6 +1779,18 @@ describe('PackageURL', () => {
         expect(
           validateRequiredByType('npm', 'name', null, { throws: false }),
         ).toBe(false)
+        // Test with undefined parameter (line 182)
+        expect(validateRequiredByType('npm', 'name', null, undefined)).toBe(
+          false,
+        )
+        expect(validateRequiredByType('npm', 'name', 'value', undefined)).toBe(
+          true,
+        )
+        // Test with legacy boolean parameter
+        expect(validateRequiredByType('npm', 'name', null, false)).toBe(false)
+        expect(() => validateRequiredByType('npm', 'name', null, true)).toThrow(
+          'npm requires a "name" component',
+        )
 
         // validateStartsWithoutNumber
         expect(() =>
@@ -1775,6 +1799,128 @@ describe('PackageURL', () => {
         expect(
           validateStartsWithoutNumber('field', '1test', { throws: false }),
         ).toBe(false)
+        // Test with undefined parameter (line 203)
+        expect(validateStartsWithoutNumber('field', '1test', undefined)).toBe(
+          false,
+        )
+        expect(validateStartsWithoutNumber('field', 'test', undefined)).toBe(
+          true,
+        )
+        // Test with legacy boolean parameter
+        expect(validateStartsWithoutNumber('field', '1test', false)).toBe(false)
+        expect(() =>
+          validateStartsWithoutNumber('field', '1test', true),
+        ).toThrow('field "1test" cannot start with a number')
+
+        // validateQualifiers with undefined parameter (line 123)
+        expect(validateQualifiers({ key: 'value' }, undefined)).toBe(true)
+        expect(validateQualifiers(null, undefined)).toBe(true)
+        expect(validateQualifiers([], undefined)).toBe(false)
+        // Test with legacy boolean parameter
+        expect(validateQualifiers({ key: 'value' }, false)).toBe(true)
+        expect(validateQualifiers([], false)).toBe(false)
+        expect(() => validateQualifiers([], true)).toThrow(
+          '"qualifiers" must be a plain object',
+        )
+      })
+
+      // Test legacy boolean parameter support for backward compatibility
+      it('should support legacy boolean parameter in validation functions', () => {
+        // validateEmptyByType with legacy boolean parameter (line 28)
+        expect(() =>
+          validateEmptyByType('swift', 'namespace', 'not-empty', true),
+        ).toThrow(/swift "namespace" component must be empty/)
+        expect(
+          validateEmptyByType('swift', 'namespace', 'not-empty', false),
+        ).toBe(false)
+        expect(validateEmptyByType('swift', 'namespace', '', false)).toBe(true)
+        expect(validateEmptyByType('swift', 'namespace', null, false)).toBe(
+          true,
+        )
+        // Test with undefined parameter
+        expect(validateEmptyByType('swift', 'namespace', '', undefined)).toBe(
+          true,
+        )
+        expect(
+          validateEmptyByType('swift', 'namespace', 'not-empty', undefined),
+        ).toBe(false)
+
+        // validateName with legacy boolean parameter (line 47)
+        expect(() => validateName(null, true)).toThrow(
+          /"name" is a required component/,
+        )
+        expect(validateName(null, false)).toBe(false)
+        expect(validateName('valid', false)).toBe(true)
+        // Test with undefined parameter
+        expect(validateName('valid', undefined)).toBe(true)
+        expect(validateName(null, undefined)).toBe(false)
+
+        // validateNamespace with legacy boolean parameter (line 62)
+        expect(() => validateNamespace(123, true)).toThrow(
+          /"namespace" must be a string/,
+        )
+        expect(validateNamespace(123, false)).toBe(false)
+        expect(validateNamespace('valid', false)).toBe(true)
+        expect(validateNamespace(null, false)).toBe(true)
+        // Test with undefined parameter
+        expect(validateNamespace('valid', undefined)).toBe(true)
+        expect(validateNamespace(123, undefined)).toBe(false)
+
+        // validateQualifierKey with legacy boolean parameter (line 75)
+        expect(() => validateQualifierKey('key!invalid', true)).toThrow(
+          /qualifier "key!invalid" contains an illegal character/,
+        )
+        expect(validateQualifierKey('key!invalid', false)).toBe(false)
+        expect(validateQualifierKey('validkey', false)).toBe(true)
+        // Test with undefined parameter
+        expect(validateQualifierKey('validkey', undefined)).toBe(true)
+        expect(validateQualifierKey('key!invalid', undefined)).toBe(false)
+
+        // validateStrings with legacy boolean parameter (line 227)
+        expect(() => validateStrings('test', 123, true)).toThrow(
+          /"test" must be a string/,
+        )
+        expect(validateStrings('test', 123, false)).toBe(false)
+        expect(validateStrings('test', 'valid', false)).toBe(true)
+        expect(validateStrings('test', null, false)).toBe(true)
+        // Test with undefined parameter
+        expect(validateStrings('test', 'valid', undefined)).toBe(true)
+        expect(validateStrings('test', 123, undefined)).toBe(false)
+
+        // validateType with legacy boolean parameter (line 260)
+        expect(() => validateType('type$illegal', true)).toThrow(
+          /type "type\$illegal" contains an illegal character/,
+        )
+        expect(validateType('type$illegal', false)).toBe(false)
+        expect(validateType('validtype', false)).toBe(true)
+        // Test with undefined parameter
+        expect(validateType('validtype', undefined)).toBe(true)
+        expect(validateType('type$illegal', undefined)).toBe(false)
+
+        // validateVersion with legacy boolean parameter (line 309)
+        expect(validateVersion('1.0.0', false)).toBe(true)
+        expect(validateVersion(123, false)).toBe(false)
+        expect(() => validateVersion(123, true)).toThrow(
+          /"version" must be a string/,
+        )
+        expect(validateVersion(null, false)).toBe(true)
+        expect(validateVersion(undefined, false)).toBe(true)
+        // Test with undefined parameter
+        expect(validateVersion('1.0.0', undefined)).toBe(true)
+        expect(validateVersion(123, undefined)).toBe(false)
+      })
+
+      // Test npm namespace validation non-throws mode
+      it('should validate npm namespace without @ character in non-throws mode', () => {
+        // Test purl-type.ts lines 428-429 - return false path
+        const comp = { namespace: 'namespace', name: 'test' }
+        const result = (PurlType['npm'] as any).validate(comp, false)
+        expect(result).toBe(false)
+
+        // Also verify throws mode works
+        expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+          /npm "namespace" component must start with an "@" character/,
+        )
       })
 
       // Test index.js exports
