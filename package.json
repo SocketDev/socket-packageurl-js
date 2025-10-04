@@ -43,7 +43,7 @@
     "coverage": "run-s coverage:*",
     "coverage:test": "run-s pretest:unit test:unit:coverage",
     "coverage:percent": "node scripts/get-coverage-percentage.mjs",
-    "coverage:type": "type-coverage --at-least 96",
+    "coverage:type": "type-coverage",
     "coverage:type:verbose": "type-coverage --detail",
     "fix": "run-s lint:fix check:lint:fix",
     "knip:dependencies": "knip --dependencies",
@@ -129,5 +129,16 @@
     "categories": [
       "levelup"
     ]
+  },
+  "typeCoverage": {
+    "cache": true,
+    "atLeast": 99,
+    "ignoreAsAssertion": true,
+    "ignoreCatch": true,
+    "ignoreEmptyType": true,
+    "ignore-non-null-assertion": true,
+    "ignore-type-assertion": true,
+    "ignore-files": "test/*",
+    "strict": true
   }
 }
