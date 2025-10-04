@@ -1,5 +1,4 @@
 import Module from 'node:module'
-import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import allThePackageNamesData from 'all-the-package-names/names.json' with {
@@ -12,9 +11,11 @@ import pacote from 'pacote'
 import semver from 'semver'
 import validateNpmPackageName from 'validate-npm-package-name'
 
+import { arrayUnique } from '@socketsecurity/registry/lib/arrays'
 import constants from '@socketsecurity/registry/lib/constants'
 import { writeJson } from '@socketsecurity/registry/lib/fs'
 import { logger } from '@socketsecurity/registry/lib/logger'
+import { dirname, resolve } from '@socketsecurity/registry/lib/path'
 import { pFilter } from '@socketsecurity/registry/lib/promises'
 import { confirm } from '@socketsecurity/registry/lib/prompts'
 import { naturalCompare } from '@socketsecurity/registry/lib/sorts'
@@ -22,13 +23,13 @@ import { naturalCompare } from '@socketsecurity/registry/lib/sorts'
 const { abortSignal } = constants
 
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const __dirname = dirname(__filename)
 
-const rootPath = path.resolve(__dirname, '..')
-const dataPath = path.join(rootPath, 'data')
-const npmDataPath = path.join(dataPath, 'npm')
-const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')
-const npmLegacyNamesJsonPath = path.join(npmDataPath, 'legacy-names.json')
+const rootPath = resolve(__dirname, '..')
+const dataPath = resolve(rootPath, 'data')
+const npmDataPath = resolve(dataPath, 'npm')
+const npmBuiltinNamesJsonPath = resolve(npmDataPath, 'builtin-names.json')
+const npmLegacyNamesJsonPath = resolve(npmDataPath, 'legacy-names.json')
 
 void (async () => {
   // Lazily access constants.spinner.
@@ -67,18 +68,16 @@ void (async () => {
     spinner.stop()
     return
   }
-  const allThePackageNames = [
-    ...new Set([
-      // Load the 43.1MB names.json file of 'all-the-package-names@2.0.0'
-      // which keeps the json file smaller while still covering the changes from:
-      // https://blog.npmjs.org/post/168978377570/new-package-moniker-rules.html
-      ...allThePackageNamesData,
-      // Load the 24.7MB names.json from 'all-the-package-names@1.3905.0',
-      // the last v1 release, because it has different names resolved by
-      // npm's replicate.npmjs.com service.
-      ...allThePackageNamesV1Data,
-    ]),
-  ]
+  const allThePackageNames = arrayUnique([
+    // Load the 43.1MB names.json file of 'all-the-package-names@2.0.0'
+    // which keeps the json file smaller while still covering the changes from:
+    // https://blog.npmjs.org/post/168978377570/new-package-moniker-rules.html
+    ...allThePackageNamesData,
+    // Load the 24.7MB names.json from 'all-the-package-names@1.3905.0',
+    // the last v1 release, because it has different names resolved by
+    // npm's replicate.npmjs.com service.
+    ...allThePackageNamesV1Data,
+  ])
   const rawLegacyNames = allThePackageNames
     // Don't simply check validateNpmPackageName(n).validForOldPackages.
     // Instead let registry.npmjs.org be our source of truth to whether a
