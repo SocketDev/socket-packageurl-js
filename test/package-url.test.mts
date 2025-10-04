@@ -1748,29 +1748,33 @@ describe('PackageURL', () => {
       // Test validation functions with throws parameter
       it('should handle validation errors with throws parameter', () => {
         // validateRequired
-        expect(() => validateRequired('field', null, true)).toThrow(
+        expect(() => validateRequired('field', null, { throws: true })).toThrow(
           '"field" is a required component',
         )
-        expect(() => validateRequired('field', '', true)).toThrow(
+        expect(() => validateRequired('field', '', { throws: true })).toThrow(
           '"field" is a required component',
         )
-        expect(validateRequired('field', null, false)).toBe(false)
-        expect(validateRequired('field', '', false)).toBe(false)
+        expect(validateRequired('field', null, { throws: false })).toBe(false)
+        expect(validateRequired('field', '', { throws: false })).toBe(false)
 
         // validateRequiredByType
-        expect(() => validateRequiredByType('npm', 'name', null, true)).toThrow(
-          'npm requires a "name" component',
-        )
-        expect(() => validateRequiredByType('npm', 'name', '', true)).toThrow(
-          'npm requires a "name" component',
-        )
-        expect(validateRequiredByType('npm', 'name', null, false)).toBe(false)
+        expect(() =>
+          validateRequiredByType('npm', 'name', null, { throws: true }),
+        ).toThrow('npm requires a "name" component')
+        expect(() =>
+          validateRequiredByType('npm', 'name', '', { throws: true }),
+        ).toThrow('npm requires a "name" component')
+        expect(
+          validateRequiredByType('npm', 'name', null, { throws: false }),
+        ).toBe(false)
 
         // validateStartsWithoutNumber
         expect(() =>
-          validateStartsWithoutNumber('field', '1test', true),
+          validateStartsWithoutNumber('field', '1test', { throws: true }),
         ).toThrow('field "1test" cannot start with a number')
-        expect(validateStartsWithoutNumber('field', '1test', false)).toBe(false)
+        expect(
+          validateStartsWithoutNumber('field', '1test', { throws: false }),
+        ).toBe(false)
       })
 
       // Test index.js exports
@@ -1947,12 +1951,16 @@ describe('PackageURL', () => {
       it('should validate empty component edge cases', () => {
         // Test line 12 - return false without throwing
         expect(
-          validateEmptyByType('swift', 'namespace', 'not-empty', false),
+          validateEmptyByType('swift', 'namespace', 'not-empty', {
+            throws: false,
+          }),
         ).toBe(false)
 
         // Test with throws=true
         expect(() =>
-          validateEmptyByType('swift', 'namespace', 'not-empty', true),
+          validateEmptyByType('swift', 'namespace', 'not-empty', {
+            throws: true,
+          }),
         ).toThrow(/swift "namespace" component must be empty/)
       })
 
@@ -1961,11 +1969,13 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test lines 33-36 - qualifiers must be a plain object
-        expect(() => validateQualifiers('string-value', true)).toThrow(
-          /"qualifiers" must be a plain object/,
-        )
+        expect(() =>
+          validateQualifiers('string-value', { throws: true }),
+        ).toThrow(/"qualifiers" must be a plain object/)
 
-        expect(validateQualifiers('string-value', false)).toBe(false)
+        expect(validateQualifiers('string-value', { throws: false })).toBe(
+          false,
+        )
       })
 
       // Test validateQualifierKey with invalid key
@@ -1973,14 +1983,16 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test line 46 - return false
-        expect(validateQualifierKey('1invalid', false)).toBe(false)
+        expect(validateQualifierKey('1invalid', { throws: false })).toBe(false)
 
         // Test lines 73-76 - illegal character in key
-        expect(() => validateQualifierKey('key!invalid', true)).toThrow(
-          /qualifier "key!invalid" contains an illegal character/,
-        )
+        expect(() =>
+          validateQualifierKey('key!invalid', { throws: true }),
+        ).toThrow(/qualifier "key!invalid" contains an illegal character/)
 
-        expect(validateQualifierKey('key!invalid', false)).toBe(false)
+        expect(validateQualifierKey('key!invalid', { throws: false })).toBe(
+          false,
+        )
       })
 
       // Test encode.js branch coverage
@@ -2178,10 +2190,16 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test returning false without throwing
-        expect(validateQualifierKey('1startsWithNumber', false)).toBe(false)
-        expect(validateQualifierKey('has-dashes', false)).toBe(true)
-        expect(validateQualifierKey('has_underscores', false)).toBe(true)
-        expect(validateQualifierKey('has.periods', false)).toBe(true)
+        expect(
+          validateQualifierKey('1startsWithNumber', { throws: false }),
+        ).toBe(false)
+        expect(validateQualifierKey('has-dashes', { throws: false })).toBe(true)
+        expect(validateQualifierKey('has_underscores', { throws: false })).toBe(
+          true,
+        )
+        expect(validateQualifierKey('has.periods', { throws: false })).toBe(
+          true,
+        )
       })
 
       // Test purl-component.js line 36
@@ -2404,12 +2422,14 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test line 46 - returns false when validateStartsWithoutNumber fails
-        expect(validateQualifierKey('1start', false)).toBe(false)
-        expect(validateQualifierKey('9number', false)).toBe(false)
+        expect(validateQualifierKey('1start', { throws: false })).toBe(false)
+        expect(validateQualifierKey('9number', { throws: false })).toBe(false)
 
         // Valid keys
-        expect(validateQualifierKey('valid_key', false)).toBe(true)
-        expect(validateQualifierKey('another.valid-key', false)).toBe(true)
+        expect(validateQualifierKey('valid_key', { throws: false })).toBe(true)
+        expect(
+          validateQualifierKey('another.valid-key', { throws: false }),
+        ).toBe(true)
       })
 
       // Test objects.js line 33 - check for recursiveFreeze edge case
@@ -2552,7 +2572,7 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         const qualifiers = { '9key': 'value' }
-        const result = validateQualifiers(qualifiers, false)
+        const result = validateQualifiers(qualifiers, { throws: false })
         expect(result).toBe(false)
       })
 
@@ -2672,7 +2692,7 @@ describe('PackageURL', () => {
 
         const params = new URLSearchParams()
         params.append('valid_key', 'value')
-        const result = validateQualifiers(params, false)
+        const result = validateQualifiers(params, { throws: false })
         expect(result).toBe(true)
       })
 
@@ -2681,21 +2701,23 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test line 121 - validateStartsWithoutNumber
-        expect(validateStartsWithoutNumber('test', '0start', false)).toBe(false)
+        expect(
+          validateStartsWithoutNumber('test', '0start', { throws: false }),
+        ).toBe(false)
         expect(() =>
-          validateStartsWithoutNumber('test', '0start', true),
+          validateStartsWithoutNumber('test', '0start', { throws: true }),
         ).toThrow(/test "0start" cannot start with a number/)
 
         // Test line 135 - validateSubpath empty check
-        expect(validateSubpath('', false)).toBe(true)
-        expect(validateSubpath(null, false)).toBe(true)
+        expect(validateSubpath('', { throws: false })).toBe(true)
+        expect(validateSubpath(null, { throws: false })).toBe(true)
 
         // Test line 156 - validateRequiredByType
-        expect(validateRequiredByType('swift', 'version', '', false)).toBe(
-          false,
-        )
+        expect(
+          validateRequiredByType('swift', 'version', '', { throws: false }),
+        ).toBe(false)
         expect(() =>
-          validateRequiredByType('swift', 'version', '', true),
+          validateRequiredByType('swift', 'version', '', { throws: true }),
         ).toThrow(/swift requires a "version" component/)
       })
 
@@ -2783,18 +2805,20 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test validateSubpath with various inputs (line 135)
-        expect(validateSubpath(undefined, false)).toBe(true)
-        expect(validateSubpath('valid/path', false)).toBe(true)
+        expect(validateSubpath(undefined, { throws: false })).toBe(true)
+        expect(validateSubpath('valid/path', { throws: false })).toBe(true)
 
         // Test validateStartsWithoutNumber edge case (line 121)
-        expect(validateStartsWithoutNumber('qualifier', 'valid', false)).toBe(
-          true,
-        )
+        expect(
+          validateStartsWithoutNumber('qualifier', 'valid', { throws: false }),
+        ).toBe(true)
 
         // Test validateRequiredByType with non-empty value (line 156)
-        expect(validateRequiredByType('swift', 'version', '1.0.0', false)).toBe(
-          true,
-        )
+        expect(
+          validateRequiredByType('swift', 'version', '1.0.0', {
+            throws: false,
+          }),
+        ).toBe(true)
       })
 
       // Final tests for 100% coverage
@@ -2885,15 +2909,19 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test validateStartsWithoutNumber with actual number start (line 121)
-        const result1 = validateStartsWithoutNumber('key', '5test', false)
+        const result1 = validateStartsWithoutNumber('key', '5test', {
+          throws: false,
+        })
         expect(result1).toBe(false)
 
         // Test validateSubpath with blank string (line 135)
-        const result2 = validateSubpath('   ', false)
+        const result2 = validateSubpath('   ', { throws: false })
         expect(result2).toBe(true)
 
         // Test validateRequiredByType with nullish value (line 156)
-        const result3 = validateRequiredByType('type', 'comp', null, false)
+        const result3 = validateRequiredByType('type', 'comp', null, {
+          throws: false,
+        })
         expect(result3).toBe(false)
       })
 
@@ -3071,17 +3099,19 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test validateStrings with non-string input (line 121)
-        expect(validateStrings('test', 123, false)).toBe(false)
-        expect(validateStrings('test', {}, false)).toBe(false)
+        expect(validateStrings('test', 123, { throws: false })).toBe(false)
+        expect(validateStrings('test', {}, { throws: false })).toBe(false)
 
         // Test validateStartsWithoutNumber (line 135)
-        expect(validateStartsWithoutNumber('test', '9name', false)).toBe(false)
+        expect(
+          validateStartsWithoutNumber('test', '9name', { throws: false }),
+        ).toBe(false)
 
         // Test validateType with type starting with number (line 135 branch)
-        expect(validateType('9type', false)).toBe(false)
+        expect(validateType('9type', { throws: false })).toBe(false)
 
         // Test validateType with illegal character in throws mode (line 156)
-        expect(() => validateType('type$illegal', true)).toThrow(
+        expect(() => validateType('type$illegal', { throws: true })).toThrow(
           'type "type$illegal" contains an illegal character',
         )
       })
@@ -3407,15 +3437,15 @@ describe('PackageURL', () => {
 
       it('should reject types with illegal characters without throwing errors', () => {
         // Test validateType with illegal character (line 157-158 in validate.ts)
-        const result = validateType('type!invalid', false)
+        const result = validateType('type!invalid', { throws: false })
         expect(result).toBe(false)
 
         // Test with space
-        const result2 = validateType('type invalid', false)
+        const result2 = validateType('type invalid', { throws: false })
         expect(result2).toBe(false)
 
         // Test with special characters
-        const result3 = validateType('type@invalid', false)
+        const result3 = validateType('type@invalid', { throws: false })
         expect(result3).toBe(false)
       })
 
