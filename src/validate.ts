@@ -21,8 +21,11 @@ function validateEmptyByType(
   type: string,
   name: string,
   value: unknown,
-  throws: boolean,
+  options?: { throws?: boolean } | boolean,
 ): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const { throws = false } =
+    typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (!isNullishOrEmptyString(value)) {
     if (throws) {
       throw new PurlError(`${type} "${name}" component must be empty`)
@@ -34,30 +37,45 @@ function validateEmptyByType(
 
 /**
  * Validate package name component.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateName(name: unknown, throws: boolean): boolean {
+function validateName(
+  name: unknown,
+  options?: { throws?: boolean } | boolean,
+): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const opts = typeof options === 'boolean' ? { throws: options } : options
   return (
-    validateRequired('name', name, throws) &&
-    validateStrings('name', name, throws)
+    validateRequired('name', name, opts) && validateStrings('name', name, opts)
   )
 }
 
 /**
  * Validate package namespace component.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateNamespace(namespace: unknown, throws: boolean): boolean {
-  return validateStrings('namespace', namespace, throws)
+function validateNamespace(
+  namespace: unknown,
+  options?: { throws?: boolean } | boolean,
+): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const opts = typeof options === 'boolean' ? { throws: options } : options
+  return validateStrings('namespace', namespace, opts)
 }
 
 /**
  * Validate qualifier key format and characters.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateQualifierKey(key: string, throws: boolean): boolean {
+function validateQualifierKey(
+  key: string,
+  options?: { throws?: boolean } | boolean,
+): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const opts = typeof options === 'boolean' ? { throws: options } : options
+  const { throws = false } = opts ?? {}
   // A key cannot start with a number.
-  if (!validateStartsWithoutNumber('qualifier', key, throws)) {
+  if (!validateStartsWithoutNumber('qualifier', key, opts)) {
     return false
   }
   // The key must be composed only of ASCII letters and numbers,
@@ -94,9 +112,15 @@ function validateQualifierKey(key: string, throws: boolean): boolean {
 
 /**
  * Validate qualifiers object structure and keys.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateQualifiers(qualifiers: unknown, throws: boolean): boolean {
+function validateQualifiers(
+  qualifiers: unknown,
+  options?: { throws?: boolean } | boolean,
+): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const opts = typeof options === 'boolean' ? { throws: options } : options
+  const { throws = false } = opts ?? {}
   if (qualifiers === null || qualifiers === undefined) {
     return true
   }
@@ -115,7 +139,7 @@ function validateQualifiers(qualifiers: unknown, throws: boolean): boolean {
       : (Object.keys(qualifiers as QualifiersObject) as Iterable<string>)
   // Use for-of to work with URLSearchParams#keys iterators.
   for (const key of keysIterable) {
-    if (!validateQualifierKey(key, throws)) {
+    if (!validateQualifierKey(key, opts)) {
       return false
     }
   }
@@ -124,13 +148,16 @@ function validateQualifiers(qualifiers: unknown, throws: boolean): boolean {
 
 /**
  * Validate that component is present and not empty.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
 function validateRequired(
   name: string,
   value: unknown,
-  throws: boolean,
+  options?: { throws?: boolean } | boolean,
 ): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const { throws = false } =
+    typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (isNullishOrEmptyString(value)) {
     if (throws) {
       throw new PurlError(`"${name}" is a required component`)
@@ -142,14 +169,17 @@ function validateRequired(
 
 /**
  * Validate that component is required for specific package type.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
 function validateRequiredByType(
   type: string,
   name: string,
   value: unknown,
-  throws: boolean,
+  options?: { throws?: boolean } | boolean,
 ): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const { throws = false } =
+    typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (isNullishOrEmptyString(value)) {
     if (throws) {
       throw new PurlError(`${type} requires a "${name}" component`)
@@ -161,13 +191,16 @@ function validateRequiredByType(
 
 /**
  * Validate that value does not start with a number.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
 function validateStartsWithoutNumber(
   name: string,
   value: string,
-  throws: boolean,
+  options?: { throws?: boolean } | boolean,
 ): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const { throws = false } =
+    typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (isNonEmptyString(value)) {
     const code = value.charCodeAt(0)
     if (code >= 48 /*'0'*/ && code <= 57 /*'9'*/) {
@@ -182,13 +215,16 @@ function validateStartsWithoutNumber(
 
 /**
  * Validate that value is a string type.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
 function validateStrings(
   name: string,
   value: unknown,
-  throws: boolean,
+  options?: { throws?: boolean } | boolean,
 ): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const { throws = false } =
+    typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (value === null || value === undefined || typeof value === 'string') {
     return true
   }
@@ -200,22 +236,33 @@ function validateStrings(
 
 /**
  * Validate subpath component.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateSubpath(subpath: unknown, throws: boolean): boolean {
-  return validateStrings('subpath', subpath, throws)
+function validateSubpath(
+  subpath: unknown,
+  options?: { throws?: boolean } | boolean,
+): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const opts = typeof options === 'boolean' ? { throws: options } : options
+  return validateStrings('subpath', subpath, opts)
 }
 
 /**
  * Validate package type component format and characters.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateType(type: unknown, throws: boolean): boolean {
+function validateType(
+  type: unknown,
+  options?: { throws?: boolean } | boolean,
+): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const opts = typeof options === 'boolean' ? { throws: options } : options
+  const { throws = false } = opts ?? {}
   // The type cannot be nullish, an empty string, or start with a number.
   if (
-    !validateRequired('type', type, throws) ||
-    !validateStrings('type', type, throws) ||
-    !validateStartsWithoutNumber('type', type as string, throws)
+    !validateRequired('type', type, opts) ||
+    !validateStrings('type', type, opts) ||
+    !validateStartsWithoutNumber('type', type as string, opts)
   ) {
     return false
   }
@@ -252,10 +299,15 @@ function validateType(type: unknown, throws: boolean): boolean {
 
 /**
  * Validate package version component.
- * @throws {PurlError} When validation fails and throws is true.
+ * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateVersion(version: unknown, throws: boolean): boolean {
-  return validateStrings('version', version, throws)
+function validateVersion(
+  version: unknown,
+  options?: { throws?: boolean } | boolean,
+): boolean {
+  // Support both legacy boolean parameter and new options object for backward compatibility.
+  const opts = typeof options === 'boolean' ? { throws: options } : options
+  return validateStrings('version', version, opts)
 }
 
 export {
