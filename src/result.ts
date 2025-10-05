@@ -213,7 +213,7 @@ export const ResultUtils = {
       [K in keyof T]: T[K] extends Result<infer U, any> ? U : never
     }
     type ExtractedValue = T[number] extends Result<infer U, any> ? U : never
-    const values: Array<ExtractedValue> = []
+    const values: ExtractedValue[] = []
     for (let i = 0; i < results.length; i++) {
       const result = results[i]!
       if (result.isErr()) {

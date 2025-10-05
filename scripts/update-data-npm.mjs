@@ -1,4 +1,5 @@
 import Module from 'node:module'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import allThePackageNamesData from 'all-the-package-names/names.json' with {
@@ -15,7 +16,6 @@ import { arrayUnique } from '@socketsecurity/registry/lib/arrays'
 import constants from '@socketsecurity/registry/lib/constants'
 import { writeJson } from '@socketsecurity/registry/lib/fs'
 import { logger } from '@socketsecurity/registry/lib/logger'
-import { dirname, resolve } from '@socketsecurity/registry/lib/path'
 import { pFilter } from '@socketsecurity/registry/lib/promises'
 import { confirm } from '@socketsecurity/registry/lib/prompts'
 import { naturalCompare } from '@socketsecurity/registry/lib/sorts'
@@ -23,13 +23,13 @@ import { naturalCompare } from '@socketsecurity/registry/lib/sorts'
 const { abortSignal } = constants
 
 const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __dirname = path.dirname(__filename)
 
-const rootPath = resolve(__dirname, '..')
-const dataPath = resolve(rootPath, 'data')
-const npmDataPath = resolve(dataPath, 'npm')
-const npmBuiltinNamesJsonPath = resolve(npmDataPath, 'builtin-names.json')
-const npmLegacyNamesJsonPath = resolve(npmDataPath, 'legacy-names.json')
+const rootPath = path.join(__dirname, '..')
+const dataPath = path.join(rootPath, 'data')
+const npmDataPath = path.join(dataPath, 'npm')
+const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')
+const npmLegacyNamesJsonPath = path.join(npmDataPath, 'legacy-names.json')
 
 void (async () => {
   // Lazily access constants.spinner.
