@@ -24,8 +24,8 @@ importers:
         specifier: 9.35.0
         version: 9.35.0
       '@socketsecurity/registry':
-        specifier: 1.4.2
-        version: 1.4.2
+        specifier: 1.4.6
+        version: 1.4.6
       '@types/node':
         specifier: 24.5.2
         version: 24.5.2
@@ -828,9 +828,9 @@ packages:
     resolution: {integrity: sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==}
     engines: {node: '>=18'}
 
-  '@socketsecurity/registry@1.4.2':
-    resolution: {integrity: sha512-uZOE8SYd724Ra8Gu9v507ltdYvsIg7fTM6+W/PcirGRkj/1G5oXm6lMfy+FEum+JSVQfrZYOJOk+OxNIiHtyFg==}
-    engines: {node: '>=18'}
+  '@socketsecurity/registry@1.4.6':
+    resolution: {integrity: sha512-DKwVhUcwAs2fSdkE0RkBQ7VdPDEI9/zWghHeNkcrJAIXV74iCIQe2UKl8SWHALar0A5+8BQfGI0TE0qNhlBKvA==}
+    engines: {node: '>=18', pnpm: '>=10.16.0'}
 
   '@tufjs/canonical-json@2.0.0':
     resolution: {integrity: sha512-yVtV8zsdo8qFHe+/3kw81dSLyF7D576A5cCFCi4X7B39tWT7SekaEFUnvnWJHz+9qO7qJTah1JbrDjWKqFtdWA==}
@@ -3391,7 +3391,7 @@ snapshots:
 
   '@sindresorhus/merge-streams@2.3.0': {}
 
-  '@socketsecurity/registry@1.4.2': {}
+  '@socketsecurity/registry@1.4.6': {}
 
   '@tufjs/canonical-json@2.0.0': {}
 
