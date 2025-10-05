@@ -1,7 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["import", "promise", "typescript", "unicorn"],
-  "ignorePatterns": ["**/dist/**"],
   "categories": {
     "correctness": "warn",
     "perf": "warn",
@@ -9,15 +8,25 @@
   },
   "settings": {},
   "rules": {
+    "@typescript-eslint/array-type": ["error", { "default": "array-simple" }],
+    "@typescript-eslint/no-extraneous-class": "off",
+    "@typescript-eslint/no-misused-new": "error",
+    "@typescript-eslint/no-this-alias": [
+      "error",
+      { "allowDestructuring": true }
+    ],
+    "@typescript-eslint/return-await": ["error", "always"],
     "curly": "error",
     "no-control-regex": "off",
     "no-extend-native": "off",
+    "no-func-assign": "off",
     "no-new": "off",
     "no-self-assign": "off",
     "no-undef": "off",
     "no-unused-vars": "off",
     "no-var": "error",
     "unicorn/no-empty-file": "off",
-    "unicorn/no-new-array": "off"
+    "unicorn/no-new-array": "off",
+    "unicorn/prefer-string-starts-ends-with": "off"
   }
 }
