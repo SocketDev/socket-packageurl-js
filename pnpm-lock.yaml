@@ -24,8 +24,8 @@ importers:
         specifier: 9.35.0
         version: 9.35.0
       '@socketsecurity/registry':
-        specifier: 1.4.0
-        version: 1.4.0
+        specifier: 1.4.2
+        version: 1.4.2
       '@types/node':
         specifier: 24.5.2
         version: 24.5.2
@@ -828,8 +828,8 @@ packages:
     resolution: {integrity: sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==}
     engines: {node: '>=18'}
 
-  '@socketsecurity/registry@1.4.0':
-    resolution: {integrity: sha512-j9PJHgJUl0LIJ1YMqEFncxo2m6Hd+GTCBXN8cTYfdb35bFxfCohCV3RMKTfVPC35iNlXgs746mrP1KyHZEY8lA==}
+  '@socketsecurity/registry@1.4.2':
+    resolution: {integrity: sha512-uZOE8SYd724Ra8Gu9v507ltdYvsIg7fTM6+W/PcirGRkj/1G5oXm6lMfy+FEum+JSVQfrZYOJOk+OxNIiHtyFg==}
     engines: {node: '>=18'}
 
   '@tufjs/canonical-json@2.0.0':
@@ -3391,7 +3391,7 @@ snapshots:
 
   '@sindresorhus/merge-streams@2.3.0': {}
 
-  '@socketsecurity/registry@1.4.0': {}
+  '@socketsecurity/registry@1.4.2': {}
 
   '@tufjs/canonical-json@2.0.0': {}
 
