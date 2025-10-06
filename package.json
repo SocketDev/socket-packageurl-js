@@ -137,7 +137,11 @@
   "pnpm": {
     "overrides": {
       "vite": "7.1.5"
-    }
+    },
+    "ignoredBuiltDependencies": [
+      "esbuild",
+      "unrs-resolver"
+    ]
   },
   "socket": {
     "categories": [
