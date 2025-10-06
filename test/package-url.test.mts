@@ -31,6 +31,13 @@ import {
   toSortedObjectFromEntries,
 } from '@socketsecurity/registry/lib/objects'
 
+import {
+  testInvalidParam,
+  testInvalidStringParam,
+  testValidParam,
+  testValidStringParam,
+} from './utils/param-validation.mjs'
+import { createTestFunction } from './utils/test-helpers.mjs'
 import npmBuiltinNames from '../data/npm/builtin-names.json'
 import npmLegacyNames from '../data/npm/legacy-names.json'
 import { LOOP_SENTINEL } from '../dist/constants.js'
@@ -94,156 +101,20 @@ function toUrlSearchParams(search: any) {
   return searchParams
 }
 
-// Helper functions for parameter validation tests.
-function testInvalidParam(
-  paramName: string,
-  paramMap: Record<string, number>,
-  createArgs: (
-    _name: string,
-    _value: unknown,
-  ) => [unknown, unknown, unknown, unknown, unknown, unknown],
-) {
-  const paramIndex = paramMap[paramName]
-  ;[
-    createArgs(paramName, 0),
-    createArgs(paramName, false),
-    createArgs(paramName, 1),
-    createArgs(paramName, true),
-    createArgs(paramName, {}),
-    createArgs(paramName, null),
-    createArgs(paramName, undefined),
-    createArgs(paramName, ''),
-  ].forEach(args => {
-    const message = JSON.stringify(args[paramIndex])
-    try {
-      new PackageURL(...args)
-      expect(false, message)
-    } catch {
-      expect(true, message)
-    }
-  })
-}
-
-function testInvalidStringParam(
-  paramName: string,
-  paramMap: Record<string, number>,
-  createArgs: (
-    _name: string,
-    _value: unknown,
-  ) => [unknown, unknown, unknown, unknown, unknown, unknown],
-) {
-  const paramIndex = paramMap[paramName]
-  ;[
-    createArgs(paramName, 0),
-    createArgs(paramName, false),
-    createArgs(paramName, 1),
-    createArgs(paramName, true),
-    createArgs(paramName, {}),
-  ].forEach(args => {
-    const message = JSON.stringify(args[paramIndex])
-    try {
-      new PackageURL(...args)
-      expect(false, message)
-    } catch {
-      expect(true, message)
-    }
-  })
-}
-
-function testValidParam(
-  paramName: string,
-  paramMap: Record<string, number>,
-  createArgs: (
-    _name: string,
-    _value: unknown,
-  ) => [unknown, unknown, unknown, unknown, unknown, unknown],
-) {
-  const paramIndex = paramMap[paramName]
-  const args = createArgs(paramName, paramName)
-  const message = JSON.stringify(args[paramIndex])
-  try {
-    new PackageURL(...args)
-    expect(true, message)
-  } catch {
-    expect(false, message)
-  }
-}
-
-function testValidStringParam(
-  paramName: string,
-  paramMap: Record<string, number>,
-  createArgs: (
-    _name: string,
-    _value: unknown,
-  ) => [unknown, unknown, unknown, unknown, unknown, unknown],
-) {
-  const paramIndex = paramMap[paramName]
-  ;[
-    createArgs(paramName, paramName),
-    createArgs(paramName, null),
-    createArgs(paramName, undefined),
-    createArgs(paramName, ''),
-  ].forEach(args => {
-    const message = JSON.stringify(args[paramIndex])
-    try {
-      new PackageURL(...args)
-      expect(true, message)
-    } catch {
-      expect(false, message)
-    }
-  })
-}
-
-// Helper function for parameter testing.
-const testFunction = () => {}
-
-// Helper functions for freeze testing.
-function createTestFunction(): any {
-  return function () {}
-}
-
-function createTestFunctionWithReturn(): any {
-  return function () {
-    return 'test'
-  }
-}
-
-function createTestFunction1(): any {
-  return function () {
-    return 'test1'
-  }
-}
-
-function createTestFunction2(): any {
-  return function () {
-    return 'test2'
-  }
-}
-
-function createAnotherTestFunction() {
-  return function () {
-    return 'another'
-  }
-}
-
 describe('PackageURL', () => {
   describe('KnownQualifierNames', () => {
-    describe('check access', () => {
-      ;[
-        ['RepositoryUrl', 'repository_url'],
-        ['DownloadUrl', 'download_url'],
-        ['VcsUrl', 'vcs_url'],
-        ['FileName', 'file_name'],
-        ['Checksum', 'checksum'],
-      ].forEach(function ([name, expectedValue]) {
-        it(`maps: ${name} => ${expectedValue}`, () => {
-          expect(
-            PackageURL.KnownQualifierNames[
-              name as keyof typeof PackageURL.KnownQualifierNames
-            ],
-          ).toBe(expectedValue)
-        })
-      })
+    it.each([
+      ['RepositoryUrl', 'repository_url'],
+      ['DownloadUrl', 'download_url'],
+      ['VcsUrl', 'vcs_url'],
+      ['FileName', 'file_name'],
+      ['Checksum', 'checksum'],
+    ])('maps: %s => %s', (name, expectedValue) => {
+      expect(
+        PackageURL.KnownQualifierNames[
+          name as keyof typeof PackageURL.KnownQualifierNames
+        ],
+      ).toBe(expectedValue)
     })
 
     it('readonly: cannot be written', () => {
@@ -378,9 +249,10 @@ describe('PackageURL', () => {
   })
 
   describe('toString()', () => {
-    it('type is validated', () => {
-      // Tests type validation rules (no special chars, can't start with number)
-      ;['ty#pe', 'ty@pe', 'ty/pe', '1type'].forEach(type => {
+    it.each(['ty#pe', 'ty@pe', 'ty/pe', '1type'])(
+      'type %s is validated and rejected',
+      type => {
+        // Tests type validation rules (no special chars, can't start with number)
         expect(
           () =>
             new PackageURL(
@@ -392,8 +264,8 @@ describe('PackageURL', () => {
               undefined,
             ),
         ).toThrow(/contains an illegal character|cannot start with a number/)
-      })
-    })
+      },
+    )
 
     it('encode #', () => {
       // Tests # encoding (delimiter between url and subpath, must be encoded in components)
@@ -1342,10 +1214,11 @@ describe('PackageURL', () => {
 
       it('should handle function as parameter (should reject)', () => {
         // Tests parameter type validation (functions rejected)
+        const testFn = () => {}
         expect(
           () =>
             new PackageURL(
-              testFunction,
+              testFn,
               null,
               'name',
               undefined,
@@ -1357,7 +1230,7 @@ describe('PackageURL', () => {
           () =>
             new PackageURL(
               'type',
-              testFunction,
+              testFn,
               'name',
               undefined,
               undefined,
@@ -1369,7 +1242,7 @@ describe('PackageURL', () => {
             new PackageURL(
               'type',
               null,
-              testFunction,
+              testFn,
               undefined,
               undefined,
               undefined,
@@ -2412,81 +2285,40 @@ describe('PackageURL', () => {
       })
 
       // Test purl-type.js lines 282-291 - npm name with non-URL-friendly characters
-      it('should test npm name validation with non-URL-friendly characters', () => {
-        // Import already at top of file
+      it.each([
+        'package<>',
+        'package[brackets]',
+        'package{braces}',
+        'package|pipe',
+        'package\\backslash',
+        'package^caret',
+        'package space',
+        // Non-ASCII characters
+        'パッケージ',
+      ])('should reject npm name with non-URL-friendly chars: %s', name => {
+        const comp = { namespace: '', name }
+        const expectedError =
+          /npm "name" component can only contain URL-friendly characters/
 
-        // Test names with non-URL-friendly characters that need encoding
-        const testCases = [
-          {
-            name: 'package<>',
-            expectedError:
-              /npm "name" component can only contain URL-friendly characters/,
-          },
-          {
-            name: 'package[brackets]',
-            expectedError:
-              /npm "name" component can only contain URL-friendly characters/,
-          },
-          {
-            name: 'package{braces}',
-            expectedError:
-              /npm "name" component can only contain URL-friendly characters/,
-          },
-          {
-            name: 'package|pipe',
-            expectedError:
-              /npm "name" component can only contain URL-friendly characters/,
-          },
-          {
-            name: 'package\\backslash',
-            expectedError:
-              /npm "name" component can only contain URL-friendly characters/,
-          },
-          {
-            name: 'package^caret',
-            expectedError:
-              /npm "name" component can only contain URL-friendly characters/,
-          },
-          {
-            name: 'package space',
-            expectedError:
-              /npm "name" component can only contain URL-friendly characters/,
-          },
-          {
-            name: 'パッケージ',
-            expectedError:
-              /npm "name" component can only contain URL-friendly characters/,
-            // Non-ASCII characters
-          },
-        ]
+        // Test with throwing disabled - should return false
+        const result = (PurlType['npm'] as any).validate(comp, false)
+        expect(result).toBe(false)
 
-        testCases.forEach(({ expectedError, name }) => {
-          const comp = { namespace: '', name }
+        // Test with throwing enabled - should throw with expected error
+        expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+          expectedError,
+        )
+      })
 
-          // Test with throwing disabled - should return false
-          const result = (PurlType['npm'] as any).validate(comp, false)
-          expect(result).toBe(false)
-
-          // Test with throwing enabled - should throw with expected error
-          expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
-            expectedError,
-          )
-        })
-
-        // Test that URL-friendly characters pass validation
-        const validNames = [
-          'package-name',
-          'package_name',
-          'package.name',
-          'package123',
-        ]
-        validNames.forEach(name => {
+      it.each(['package-name', 'package_name', 'package.name', 'package123'])(
+        'should accept npm name with URL-friendly chars: %s',
+        name => {
           const comp = { namespace: '', name }
           // Should not throw
           const result = (PurlType['npm'] as any).validate(comp, true)
           expect(result).toBe(true)
-        })
-      })
+        },
+      )
 
       // Test encode.js line 21 - null/undefined handling
       it('should test encode component with falsy values', () => {
@@ -3377,13 +3209,13 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test freezing object with function as property
-        const func: any = createTestFunctionWithReturn()
+        const func: any = createTestFunction('test')
         ;(func as any).prop = 'value'
 
         const obj = {
           fn: func,
           nested: {
-            anotherFn: createAnotherTestFunction(),
+            anotherFn: createTestFunction('another'),
           },
         }
 
@@ -3443,10 +3275,10 @@ describe('PackageURL', () => {
         // Import already at top of file
 
         // Test freezing array with functions (line 33 branch for typeof item === 'function')
-        const func1: any = createTestFunction1()
+        const func1: any = createTestFunction('test1')
         ;(func1 as any).prop = 'value1'
 
-        const func2: any = createTestFunction2()
+        const func2: any = createTestFunction('test2')
         ;(func2 as any).nested = { data: 'nested' }
 
         const arr = [func1, { method: func2 }, func2, null, 'string', 42]
