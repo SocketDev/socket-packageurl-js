@@ -69,7 +69,7 @@
     "test-ci": "dotenvx -q run -f .env.test -- vitest --config .config/vitest.config.mts --run",
     "type-ci": "pnpm run check:tsc",
     "test-pre-commit": "dotenvx -q run -f .env.precommit -- pnpm test",
-    "update": "run-p --aggregate-output update:* && run-s update:longtask:**",
+    "update": "run-p --aggregate-output update:* && run-s update:longtask:*",
     "update:deps": "node scripts/taze.mjs",
     "update:socket": "pnpm -r update '@socketsecurity/*' '@socketregistry/*' --latest",
     "update:longtask:data:npm": "node ./scripts/update-data-npm.mjs"
