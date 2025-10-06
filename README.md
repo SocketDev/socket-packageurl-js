@@ -89,6 +89,21 @@ UrlConverter.toDownloadUrl(purl)
 // -> 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz'
 ```
 
+**Use type-safe PURL types:**
+```javascript
+import { PURL_Type, EcosystemString } from '@socketregistry/packageurl-js'
+
+// Type-safe enum values
+console.log(PURL_Type.NPM)      // 'npm'
+console.log(PURL_Type.PYPI)     // 'pypi'
+console.log(PURL_Type.MAVEN)    // 'maven'
+
+// Use in type annotations
+function processPurl(type: EcosystemString) {
+  // type is constrained to valid PURL type strings
+}
+```
+
 ## Documentation
 
 **[→ Complete API Reference](./docs/API.md)** - Full API documentation with detailed examples
