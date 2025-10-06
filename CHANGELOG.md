@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-10-06
+
+### Added
+- Re-exported `PURL_Type` enum from `@socketsecurity/registry` for type-safe package ecosystem identifiers
+- Re-exported `EcosystemString` type for type annotations requiring valid PURL type strings
+- Documentation and usage examples for `PURL_Type` enum in README
+
 ## [1.2.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.2.0) - 2025-10-04
 
 ### Added
