@@ -1,6 +1,6 @@
 /**
- * @fileoverview Integration tests using socket-registry test helpers.
- * Tests the package in an isolated environment with installed dependencies.
+ * @fileoverview Integration tests for built package.
+ * Tests the package in the dist directory to verify build output.
  */
 
 import path from 'node:path'
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
-import { isolatePackage } from '../../socket-registry/test/utils/test-helpers.mjs'
+import { isolatePackage } from './utils/isolation.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const packagePath = path.resolve(__dirname, '..')
