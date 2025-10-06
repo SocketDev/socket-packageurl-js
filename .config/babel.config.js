@@ -9,7 +9,7 @@ module.exports = {
         absoluteRuntime: false,
         corejs: false,
         helpers: true,
-regenerator: false,
+        regenerator: false,
         version: '^7.27.1',
       },
     ],
