@@ -89,6 +89,14 @@ UrlConverter.toDownloadUrl(purl)
 // -> 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz'
 ```
 
+## Documentation
+
+**[→ Complete API Reference](./docs/API.md)** - Full API documentation with detailed examples
+
+**[→ Usage Examples](./docs/EXAMPLES.md)** - Practical examples for common use cases
+
+**[→ Builder Pattern Guide](./docs/BUILDERS.md)** - Comprehensive builder pattern documentation
+
 ## Development
 
 ```bash
