@@ -31,13 +31,13 @@ const npmDataPath = path.join(dataPath, 'npm')
 const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')
 const npmLegacyNamesJsonPath = path.join(npmDataPath, 'legacy-names.json')
 
-void (async () => {
-  // Lazily access constants.spinner.
+async function main() {
+  // Lazily access constants.spinner
   const { spinner } = constants
 
   spinner.start()
 
-  // Lazily access constants.maintainedNodeVersions.
+  // Lazily access constants.maintainedNodeVersions
   const { next } = constants.maintainedNodeVersions
   const nodeVersion = process.version.slice(1)
   const isGteNext = semver.gte(nodeVersion, next)
@@ -50,7 +50,7 @@ void (async () => {
     if (isGteNext) {
       const builtinNames = Module.builtinModules
         // Node 23 introduces 'node:sea', 'node:sqlite', 'node:test', and 'node:test/reporters'
-        // that have no unprefixed version so we skip them.
+        // that have no unprefixed version so we skip them
         .filter(n => !n.startsWith('node:'))
         .sort(naturalCompare)
       await writeJson(npmBuiltinNamesJsonPath, builtinNames, { spaces: 2 })
@@ -75,19 +75,19 @@ void (async () => {
     ...allThePackageNamesData,
     // Load the 24.7MB names.json from 'all-the-package-names@1.3905.0',
     // the last v1 release, because it has different names resolved by
-    // npm's replicate.npmjs.com service.
+    // npm's replicate.npmjs.com service
     ...allThePackageNamesV1Data,
   ])
   const rawLegacyNames = allThePackageNames
-    // Don't simply check validateNpmPackageName(n).validForOldPackages.
+    // Don't simply check validateNpmPackageName(n).validForOldPackages
     // Instead let registry.npmjs.org be our source of truth to whether a
-    // package exists or not.
+    // package exists or not
     .filter(n => !validateNpmPackageName(n).validForNewPackages)
     .sort(naturalCompare)
   const seenNames = new Set()
   const invalidNames = new Set()
   const legacyNames =
-    // Chunk package names to process them in parallel 3 at a time.
+    // Chunk package names to process them in parallel 3 at a time
     await pFilter(
       rawLegacyNames,
       async n => {
@@ -111,4 +111,6 @@ void (async () => {
   if (invalidNames.size) {
     logger.warn('Removed missing packages:', [...invalidNames])
   }
-})()
+}
+
+main().catch(console.error)
