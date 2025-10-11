@@ -1,6 +1,15 @@
 /**
  * @fileoverview Package URL type-specific normalization and validation rules for different package ecosystems.
- * Implements PURL-TYPES specification rules for npm, pypi, maven, golang, and other package managers.
+ *
+ * This module implements the PURL-TYPES specification for various package managers:
+ * - NPM: Node.js packages with scoped namespace support
+ * - PyPI: Python packages with normalized naming
+ * - Maven: Java artifacts with group/artifact structure
+ * - Go: Go modules with module path validation
+ * - Cargo: Rust crates from crates.io
+ * - And 20+ other package types
+ *
+ * Each type has specific rules for namespace, name, version normalization and validation.
  */
 import { encodeComponent } from './encode.js'
 import { PurlError } from './error.js'
@@ -67,7 +76,7 @@ const getNpmBuiltinNames = (() => {
     if (builtinNames === undefined) {
       /* c8 ignore start - Error handling for module access. */
       try {
-        // Try to use Node.js builtinModules first.
+        // Try to use Node.js builtinModules first
         builtinNames = (module.constructor as { builtinModules?: string[] })
           ?.builtinModules
       } catch {}
@@ -142,10 +151,10 @@ const getNpmLegacyNames = (() => {
     if (fullLegacyNames === undefined) {
       /* c8 ignore start - Fallback path only used if JSON file fails to load. */
       try {
-        // Try to load the full list from JSON file.
+        // Try to load the full list from JSON file
         fullLegacyNames = require('../data/npm/legacy-names.json')
       } catch {
-        // Fallback to hardcoded builtin names for simplicity.
+        // Fallback to hardcoded builtin names for simplicity
         fullLegacyNames = [
           'assert',
           'buffer',
@@ -166,7 +175,7 @@ const getNpmLegacyNames = (() => {
 })()
 
 /**
- * Check if npm identifier is a built-in module name.
+ * Check if npm identifier is a Node.js built-in module name.
  */
 const isNpmBuiltinName = (id: string): boolean =>
   getNpmBuiltinNames().includes(id.toLowerCase())
@@ -200,7 +209,7 @@ const PurlType = createHelpersNamespaceObject(
       github: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#golang
       // golang(purl) {
-      //     // Ignore case-insensitive rule because go.mod are case-sensitive.
+      //     // Ignore case-insensitive rule because go.mod are case-sensitive
       //     // Pending spec change: https://github.com/package-url/purl-spec/pull/196
       //     lowerNamespace(purl)
       //     lowerName(purl)
@@ -223,7 +232,7 @@ const PurlType = createHelpersNamespaceObject(
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#npm
       npm(purl: PurlObject) {
         lowerNamespace(purl)
-        // Ignore lowercasing legacy names because they could be mixed case.
+        // Ignore lowercasing legacy names because they could be mixed case
         // https://github.com/npm/validate-npm-package-name/tree/v6.0.0?tab=readme-ov-file#legacy-names
         if (!isNpmLegacyName(getNpmId(purl))) {
           lowerName(purl)
@@ -265,7 +274,7 @@ const PurlType = createHelpersNamespaceObject(
       // https://github.com/package-url/purl-spec/blob/master/types-doc/cocoapods-definition.md
       cocoapods(purl: PurlObject, throws: boolean) {
         const { name } = purl
-        // Name cannot contain whitespace.
+        // Name cannot contain whitespace
         if (/\s/.test(name)) {
           if (throws) {
             throw new PurlError(
@@ -274,7 +283,7 @@ const PurlType = createHelpersNamespaceObject(
           }
           return false
         }
-        // Name cannot contain a plus (+) character.
+        // Name cannot contain a plus (+) character
         if (name.includes('+')) {
           if (throws) {
             throw new PurlError(
@@ -283,7 +292,7 @@ const PurlType = createHelpersNamespaceObject(
           }
           return false
         }
-        // Name cannot begin with a period (.).
+        // Name cannot begin with a period (.)
         if (name.charCodeAt(0) === 46 /*'.'*/) {
           if (throws) {
             throw new PurlError(
@@ -317,7 +326,7 @@ const PurlType = createHelpersNamespaceObject(
       },
       // https://github.com/package-url/purl-spec/blob/master/types-doc/cpan-definition.md
       cpan(purl: PurlObject, throws: boolean) {
-        // CPAN namespace (author/publisher ID) must be uppercase when present.
+        // CPAN namespace (author/publisher ID) must be uppercase when present
         const { namespace } = purl
         if (namespace && namespace !== namespace.toUpperCase()) {
           if (throws) {
@@ -335,12 +344,12 @@ const PurlType = createHelpersNamespaceObject(
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#golang
       golang(purl: PurlObject, throws: boolean) {
-        // Still being lenient here since the standard changes aren't official.
+        // Still being lenient here since the standard changes aren't official
         // Pending spec change: https://github.com/package-url/purl-spec/pull/196
         const { version } = purl
         const length = typeof version === 'string' ? version.length : 0
-        // If the version starts with a "v" then ensure its a valid semver version.
-        // This, by semver semantics, also supports pseudo-version number.
+        // If the version starts with a "v" then ensure its a valid semver version
+        // This, by semver semantics, also supports pseudo-version number
         // https://go.dev/doc/modules/version-numbers#pseudo-version-number
         if (
           length &&
@@ -448,7 +457,7 @@ const PurlType = createHelpersNamespaceObject(
           }
           return false
         }
-        // The remaining checks are only for modern names.
+        // The remaining checks are only for modern names
         // https://github.com/npm/validate-npm-package-name/tree/v6.0.0?tab=readme-ov-file#naming-rules
         if (!isNpmLegacyName(id)) {
           if (id.length > 214) {
@@ -532,7 +541,7 @@ const PurlType = createHelpersNamespaceObject(
       // https://github.com/package-url/purl-spec/blob/master/types-doc/swid-definition.md
       swid(purl: PurlObject, throws: boolean) {
         const { qualifiers } = purl
-        // SWID requires a tag_id qualifier.
+        // SWID requires a tag_id qualifier
         const tagId = qualifiers?.['tag_id']
         if (!tagId) {
           if (throws) {
@@ -540,7 +549,7 @@ const PurlType = createHelpersNamespaceObject(
           }
           return false
         }
-        // tag_id must not be empty after trimming.
+        // tag_id must not be empty after trimming
         const tagIdStr = String(tagId).trim()
         if (tagIdStr.length === 0) {
           /* c8 ignore next 3 -- Throw path tested separately from return false path. */
@@ -549,7 +558,7 @@ const PurlType = createHelpersNamespaceObject(
           }
           return false
         }
-        // If tag_id is a GUID, it must be lowercase.
+        // If tag_id is a GUID, it must be lowercase
         const guidPattern =
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
         if (guidPattern.test(tagIdStr)) {

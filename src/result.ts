@@ -72,7 +72,7 @@ export class Ok<T> {
    * Transform the error (no-op for Ok).
    */
   mapErr<F>(_fn: (_error: never) => F): Result<T, F> {
-    return this as any
+    return this as unknown as Result<T, F>
   }
 
   /**
@@ -119,7 +119,7 @@ export class Err<E = Error> {
    * Chain another result-returning operation (no-op for Err).
    */
   andThen<U, F>(_fn: (_value: never) => Result<U, F>): Result<U, E | F> {
-    return this as any
+    return this as unknown as Result<U, E | F>
   }
 
   /**
@@ -140,7 +140,7 @@ export class Err<E = Error> {
    * Transform the success value (no-op for Err).
    */
   map<U>(_fn: (_value: never) => U): Result<U, E> {
-    return this as any
+    return this as unknown as Result<U, E>
   }
 
   /**
@@ -203,7 +203,7 @@ export const ResultUtils = {
   /**
    * Convert all Results to Ok values or return first error.
    */
-  all<T extends readonly Result<any, any>[]>(
+  all<T extends readonly Result<unknown, unknown>[]>(
     results: T,
   ): Result<
     { [K in keyof T]: T[K] extends Result<infer U, any> ? U : never },
@@ -213,11 +213,12 @@ export const ResultUtils = {
       [K in keyof T]: T[K] extends Result<infer U, any> ? U : never
     }
     type ExtractedValue = T[number] extends Result<infer U, any> ? U : never
+    type ExtractedError = T[number] extends Result<any, infer E> ? E : never
     const values: ExtractedValue[] = []
     for (let i = 0; i < results.length; i++) {
       const result = results[i]!
       if (result.isErr()) {
-        return result as any
+        return result as unknown as Result<ExtractedValues, ExtractedError>
       }
       values.push((result as Ok<ExtractedValue>).value)
     }
@@ -227,7 +228,7 @@ export const ResultUtils = {
   /**
    * Return the first Ok result or the last error.
    */
-  any<T extends readonly Result<any, any>[]>(results: T): T[number] {
+  any<T extends readonly Result<unknown, unknown>[]>(results: T): T[number] {
     let lastError: Result<unknown, unknown> | null = null
     for (const result of results) {
       if (result.isOk()) {

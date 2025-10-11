@@ -8,9 +8,9 @@ import { isNonEmptyString } from './strings.js'
 
 import type { QualifiersObject } from './purl-component.js'
 
-// IMPORTANT: Do not use destructuring here - use direct assignment instead.
+// IMPORTANT: Do not use destructuring here - use direct assignment instead
 // tsgo has a bug that incorrectly transpiles destructured exports, resulting in
-// `exports.ReflectApply = void 0;` which causes runtime errors.
+// `exports.ReflectApply = void 0;` which causes runtime errors
 // See: https://github.com/SocketDev/socket-packageurl-js/issues/3
 const ReflectApply = Reflect.apply
 
@@ -21,9 +21,9 @@ function validateEmptyByType(
   type: string,
   name: string,
   value: unknown,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const { throws = false } =
     typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (!isNullishOrEmptyString(value)) {
@@ -41,13 +41,32 @@ function validateEmptyByType(
  */
 function validateName(
   name: unknown,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const opts = typeof options === 'boolean' ? { throws: options } : options
-  return (
-    validateRequired('name', name, opts) && validateStrings('name', name, opts)
-  )
+  const { throws = false } = opts ?? {}
+
+  // First validate it's a required string
+  if (
+    !validateRequired('name', name, opts) ||
+    !validateStrings('name', name, opts)
+  ) {
+    return false
+  }
+
+  // Validate length (npm package name limit is 214 characters)
+  const MAX_NAME_LENGTH = 214
+  if (typeof name === 'string' && name.length > MAX_NAME_LENGTH) {
+    if (throws) {
+      throw new PurlError(
+        `"name" exceeds maximum length of ${MAX_NAME_LENGTH} characters`,
+      )
+    }
+    return false
+  }
+
+  return true
 }
 
 /**
@@ -56,11 +75,31 @@ function validateName(
  */
 function validateNamespace(
   namespace: unknown,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const opts = typeof options === 'boolean' ? { throws: options } : options
-  return validateStrings('namespace', namespace, opts)
+  const { throws = false } = opts ?? {}
+
+  if (!validateStrings('namespace', namespace, opts)) {
+    return false
+  }
+
+  // Validate length (reasonable limit for namespace)
+  const MAX_NAMESPACE_LENGTH = 512
+  if (
+    typeof namespace === 'string' &&
+    namespace.length > MAX_NAMESPACE_LENGTH
+  ) {
+    if (throws) {
+      throw new PurlError(
+        `"namespace" exceeds maximum length of ${MAX_NAMESPACE_LENGTH} characters`,
+      )
+    }
+    return false
+  }
+
+  return true
 }
 
 /**
@@ -69,17 +108,17 @@ function validateNamespace(
  */
 function validateQualifierKey(
   key: string,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const opts = typeof options === 'boolean' ? { throws: options } : options
   const { throws = false } = opts ?? {}
-  // A key cannot start with a number.
+  // A key cannot start with a number
   if (!validateStartsWithoutNumber('qualifier', key, opts)) {
     return false
   }
   // The key must be composed only of ASCII letters and numbers,
-  // '.', '-' and '_' (period, dash and underscore).
+  // '.', '-' and '_' (period, dash and underscore)
   for (let i = 0, { length } = key as string; i < length; i += 1) {
     const code = (key as string).charCodeAt(i)
     // biome-ignore format: newlines
@@ -116,9 +155,9 @@ function validateQualifierKey(
  */
 function validateQualifiers(
   qualifiers: unknown,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const opts = typeof options === 'boolean' ? { throws: options } : options
   const { throws = false } = opts ?? {}
   if (qualifiers === null || qualifiers === undefined) {
@@ -134,13 +173,13 @@ function validateQualifiers(
   const keysProperty = (qualifiersObj as QualifiersObject)['keys']
   // type-coverage:ignore-next-line -- TypeScript correctly infers this type through the ternary and cast
   const keysIterable: Iterable<string> =
-    // URLSearchParams instances have a "keys" method that returns an iterator.
+    // URLSearchParams instances have a "keys" method that returns an iterator
     (
       typeof keysProperty === 'function'
         ? ReflectApply(keysProperty, qualifiersObj, [])
         : Object.keys(qualifiers as QualifiersObject)
     ) as Iterable<string>
-  // Use for-of to work with URLSearchParams#keys iterators.
+  // Use for-of to work with URLSearchParams#keys iterators
   // type-coverage:ignore-next-line -- TypeScript correctly infers the iteration type
   for (const key of keysIterable) {
     if (!validateQualifierKey(key, opts)) {
@@ -157,9 +196,9 @@ function validateQualifiers(
 function validateRequired(
   name: string,
   value: unknown,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const { throws = false } =
     typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (isNullishOrEmptyString(value)) {
@@ -179,9 +218,9 @@ function validateRequiredByType(
   type: string,
   name: string,
   value: unknown,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const { throws = false } =
     typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (isNullishOrEmptyString(value)) {
@@ -200,9 +239,9 @@ function validateRequiredByType(
 function validateStartsWithoutNumber(
   name: string,
   value: string,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const { throws = false } =
     typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (isNonEmptyString(value)) {
@@ -224,9 +263,9 @@ function validateStartsWithoutNumber(
 function validateStrings(
   name: string,
   value: unknown,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const { throws = false } =
     typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (value === null || value === undefined || typeof value === 'string') {
@@ -244,9 +283,9 @@ function validateStrings(
  */
 function validateSubpath(
   subpath: unknown,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const opts = typeof options === 'boolean' ? { throws: options } : options
   return validateStrings('subpath', subpath, opts)
 }
@@ -257,12 +296,12 @@ function validateSubpath(
  */
 function validateType(
   type: unknown,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const opts = typeof options === 'boolean' ? { throws: options } : options
   const { throws = false } = opts ?? {}
-  // The type cannot be nullish, an empty string, or start with a number.
+  // The type cannot be nullish, an empty string, or start with a number
   if (
     !validateRequired('type', type, opts) ||
     !validateStrings('type', type, opts) ||
@@ -271,7 +310,7 @@ function validateType(
     return false
   }
   // The package type is composed only of ASCII letters and numbers,
-  // '.' (period), and '-' (dash).
+  // '.' (period), and '-' (dash)
   for (let i = 0, { length } = type as string; i < length; i += 1) {
     const code = (type as string).charCodeAt(i)
     // biome-ignore format: newlines
@@ -307,11 +346,28 @@ function validateType(
  */
 function validateVersion(
   version: unknown,
-  options?: { throws?: boolean } | boolean,
+  options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
-  // Support both legacy boolean parameter and new options object for backward compatibility.
+  // Support both legacy boolean parameter and new options object for backward compatibility
   const opts = typeof options === 'boolean' ? { throws: options } : options
-  return validateStrings('version', version, opts)
+  const { throws = false } = opts ?? {}
+
+  if (!validateStrings('version', version, opts)) {
+    return false
+  }
+
+  // Validate length (reasonable limit for version strings)
+  const MAX_VERSION_LENGTH = 256
+  if (typeof version === 'string' && version.length > MAX_VERSION_LENGTH) {
+    if (throws) {
+      throw new PurlError(
+        `"version" exceeds maximum length of ${MAX_VERSION_LENGTH} characters`,
+      )
+    }
+    return false
+  }
+
+  return true
 }
 
 export {

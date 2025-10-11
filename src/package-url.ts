@@ -31,7 +31,6 @@ SOFTWARE.
 import { decodePurlComponent } from './decode.js'
 import { PurlError } from './error.js'
 import { isObject, recursiveFreeze } from './objects.js'
-import { PackageURLBuilder } from './package-url-builder.js'
 import { PurlComponent } from './purl-component.js'
 import { PurlQualifierNames } from './purl-qualifier-names.js'
 import { PurlType } from './purl-type.js'
@@ -59,19 +58,21 @@ export type PackageURLComponentValue = string | QualifiersObject | undefined
  * Contains all package URL components as properties.
  */
 export type PackageURLObject = {
-  type?: string
-  namespace?: string
-  name?: string
-  version?: string
-  qualifiers?: QualifiersObject
-  subpath?: string
+  type?: string | undefined
+  namespace?: string | undefined
+  name?: string | undefined
+  version?: string | undefined
+  qualifiers?: QualifiersObject | undefined
+  subpath?: string | undefined
 }
 
-// Pattern to match URLs with schemes other than "pkg".
-const OTHER_SCHEME_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//
+// Pattern to match URLs with schemes other than "pkg"
+// Limited to 256 chars for scheme to prevent ReDoS
+const OTHER_SCHEME_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]{0,255}:\/\//
 
-// Pattern to match purl-like strings with type/name format.
-const PURL_LIKE_PATTERN = /^[a-zA-Z0-9+.-]+\//
+// Pattern to match purl-like strings with type/name format
+// Limited to 256 chars for type to prevent ReDoS
+const PURL_LIKE_PATTERN = /^[a-zA-Z0-9+.-]{1,256}\//
 
 /**
  * Package URL parser and constructor implementing the PURL specification.
@@ -255,11 +256,47 @@ class PackageURL {
     if (typeof json !== 'string') {
       throw new Error('JSON string argument is required.')
     }
-    try {
-      return PackageURL.fromObject(JSON.parse(json))
-    } catch (e) {
-      throw new Error('Invalid JSON string.', { cause: e })
+
+    // Size limit: 1MB to prevent memory exhaustion
+    // Check actual byte size, not character length
+    const MAX_JSON_SIZE = 1024 * 1024
+    const byteSize = Buffer.byteLength(json, 'utf8')
+    if (byteSize > MAX_JSON_SIZE) {
+      throw new Error(
+        `JSON string exceeds maximum size limit of ${MAX_JSON_SIZE} bytes`,
+      )
     }
+
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(json)
+    } catch (e) {
+      // For JSON parsing errors, throw a SyntaxError with the expected message
+      const syntaxError = new SyntaxError('Failed to parse PackageURL from JSON')
+      ;(syntaxError as any).cause = e
+      throw syntaxError
+    }
+
+    // Validate parsed result is an object
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('JSON must parse to an object.')
+    }
+
+    // Cast to record type for safe property access
+    const parsedRecord = parsed as Record<string, unknown>
+
+    // Create a safe object without prototype chain to prevent prototype pollution
+    const safeObject: PackageURLObject = {
+      __proto__: null,
+      type: parsedRecord['type'] as string | undefined,
+      namespace: parsedRecord['namespace'] as string | undefined,
+      name: parsedRecord['name'] as string | undefined,
+      version: parsedRecord['version'] as string | undefined,
+      qualifiers: parsedRecord['qualifiers'] as Record<string, string> | undefined,
+      subpath: parsedRecord['subpath'] as string | undefined,
+    } as PackageURLObject
+
+    return PackageURL.fromObject(safeObject)
   }
 
   /**
@@ -302,7 +339,16 @@ class PackageURL {
       return [undefined, undefined, undefined, undefined, undefined, undefined]
     }
 
-    // If the string doesn't start with "pkg:" but looks like a purl format, prepend "pkg:" and try parsing.
+    // Input length validation to prevent DoS
+    // Reasonable limit for a package URL
+    const MAX_PURL_LENGTH = 4096
+    if (purlStr.length > MAX_PURL_LENGTH) {
+      throw new Error(
+        `Package URL exceeds maximum length of ${MAX_PURL_LENGTH} characters.`,
+      )
+    }
+
+    // If the string doesn't start with "pkg:" but looks like a purl format, prepend "pkg:" and try parsing
     if (!purlStr.startsWith('pkg:')) {
       // Only auto-prepend "pkg:" if the string looks like a purl (contains a type/name pattern)
       // and doesn't look like a URL with a different scheme
@@ -314,9 +360,9 @@ class PackageURL {
       }
     }
 
-    // Split the remainder once from left on ':'.
+    // Split the remainder once from left on ':'
     const colonIndex = purlStr.indexOf(':')
-    // Use WHATWG URL to split up the purl string.
+    // Use WHATWG URL to split up the purl string
     /* c8 ignore next 3 -- Comment lines don't need coverage. */
     //   - Split the purl string once from right on '#'
     //   - Split the remainder once from right on '?'
@@ -343,7 +389,7 @@ class PackageURL {
         })
       }
     }
-    // The scheme is a constant with the value "pkg".
+    // The scheme is a constant with the value "pkg"
     /* c8 ignore next -- Tested: colonIndex === -1 (url undefined) case, but V8 can't see both branches. */ if (
       url?.protocol !== 'pkg:'
     ) {
@@ -351,7 +397,7 @@ class PackageURL {
       /* c8 ignore next -- Unreachable code after throw. */
     }
     // A purl must NOT contain a URL Authority i.e. there is no support for
-    // username, password, host and port components.
+    // username, password, host and port components
     if (
       maybeUrlWithAuth &&
       (maybeUrlWithAuth.username !== '' || maybeUrlWithAuth.password !== '')
@@ -373,14 +419,14 @@ class PackageURL {
     // Both branches of this ternary are tested, but V8 reports phantom branch combinations
     /* c8 ignore start -- npm vs non-npm path logic both tested but V8 sees extra branches. */
     // Deviate from the specification to handle a special npm purl type case for
-    // pnpm ids such as 'pkg:npm/next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)'.
+    // pnpm ids such as 'pkg:npm/next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)'
     let atSignIndex =
       rawType === 'npm'
         ? pathname.indexOf('@', firstSlashIndex + 2)
         : pathname.lastIndexOf('@')
     /* c8 ignore stop */
     // When a forward slash ('/') is directly preceding an '@' symbol,
-    // then the '@' symbol is NOT considered a version separator.
+    // then the '@' symbol is NOT considered a version separator
     if (
       atSignIndex !== -1 &&
       pathname.charCodeAt(atSignIndex - 1) === 47 /*'/'*/
@@ -392,7 +438,7 @@ class PackageURL {
       atSignIndex === -1 ? pathname.length : atSignIndex,
     )
     if (atSignIndex !== -1) {
-      // Split the remainder once from right on '@'.
+      // Split the remainder once from right on '@'
       rawVersion = decodePurlComponent(
         'version',
         pathname.slice(atSignIndex + 1),
@@ -403,15 +449,15 @@ class PackageURL {
     let rawName: string
     const lastSlashIndex = beforeVersion.lastIndexOf('/')
     if (lastSlashIndex === -1) {
-      // Split the remainder once from right on '/'.
+      // Split the remainder once from right on '/'
       rawName = decodePurlComponent('name', beforeVersion)
     } else {
-      // Split the remainder once from right on '/'.
+      // Split the remainder once from right on '/'
       rawName = decodePurlComponent(
         'name',
         beforeVersion.slice(lastSlashIndex + 1),
       )
-      // Split the remainder on '/'.
+      // Split the remainder on '/'
       rawNamespace = decodePurlComponent(
         'namespace',
         beforeVersion.slice(0, lastSlashIndex),
@@ -426,21 +472,21 @@ class PackageURL {
       for (let i = 0, { length } = entries; i < length; i += 1) {
         const pairs = entries[i]!.split('=')
         const value = decodePurlComponent('qualifiers', pairs.at(1) ?? '')
-        // Use URLSearchParams#append to preserve plus signs.
+        // Use URLSearchParams#append to preserve plus signs
         // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
         /* c8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */ searchParams.append(
           pairs[0]!,
           value,
         )
       }
-      // Split the remainder once from right on '?'.
+      // Split the remainder once from right on '?'
       rawQualifiers = searchParams
     }
 
     let rawSubpath: string | undefined
     const { hash } = url
     if (hash.length !== 0) {
-      // Split the purl string once from right on '#'.
+      // Split the purl string once from right on '#'
       rawSubpath = decodePurlComponent('subpath', hash.slice(1))
     }
 
@@ -484,7 +530,6 @@ export {
   Err,
   Ok,
   PackageURL,
-  PackageURLBuilder,
   PurlComponent,
   PurlQualifierNames,
   PurlType,

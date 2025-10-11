@@ -2,14 +2,10 @@
  * @fileoverview Object utility functions for type checking and immutable object creation.
  * Provides object validation and recursive freezing utilities.
  */
-import { LOOP_SENTINEL } from './constants.js'
+// eslint-disable-next-line import-x/extensions -- External package, no .js extension needed
+import { isObject } from '@socketsecurity/registry/lib/objects'
 
-/**
- * Check if value is an object type.
- */
-function isObject(value: unknown): value is object {
-  return value !== null && typeof value === 'object'
-}
+import { LOOP_SENTINEL } from './constants.js'
 
 /**
  * Recursively freeze an object and all nested objects.
@@ -24,21 +20,21 @@ function recursiveFreeze<T>(value_: T): T {
   ) {
     return value_
   }
-  // Use breadth-first traversal to avoid stack overflow on deep objects.
+  // Use breadth-first traversal to avoid stack overflow on deep objects
   const queue = [value_ as T & object]
   const visited = new WeakSet<object>()
   visited.add(value_ as T & object)
   let { length: queueLength } = queue
   let pos = 0
   while (pos < queueLength) {
-    // Safety check to prevent processing excessively large object graphs.
+    // Safety check to prevent processing excessively large object graphs
     if (pos === LOOP_SENTINEL) {
-      throw new Error('Object graph too large (exceeds 1,000,000 items)')
+      throw new Error('Object graph too large (exceeds 1,000,000 items).')
     }
     const obj = queue[pos++]!
     Object.freeze(obj)
     if (Array.isArray(obj)) {
-      // Queue unfrozen array items for processing.
+      // Queue unfrozen array items for processing
       for (let i = 0, { length } = obj; i < length; i += 1) {
         const item: unknown = obj[i]
         if (
@@ -52,10 +48,12 @@ function recursiveFreeze<T>(value_: T): T {
         }
       }
     } else {
-      // Queue unfrozen object properties for processing.
+      // Queue unfrozen object properties for processing
       const keys = Reflect.ownKeys(obj)
       for (let i = 0, { length } = keys; i < length; i += 1) {
-        const propValue: unknown = (obj as any)[keys[i]!]
+        const propValue: unknown = (obj as Record<PropertyKey, unknown>)[
+          keys[i]!
+        ]
         if (
           propValue !== null &&
           (typeof propValue === 'object' || typeof propValue === 'function') &&

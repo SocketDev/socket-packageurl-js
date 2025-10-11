@@ -34,31 +34,31 @@ function normalizePurlPath(
   let collapsed = ''
   let start = 0
   // Leading and trailing slashes, i.e. '/', are not significant and should be
-  // stripped in the canonical form.
+  // stripped in the canonical form
   while (pathname.charCodeAt(start) === 47 /*'/'*/) {
     start += 1
   }
   let nextIndex = pathname.indexOf('/', start)
   if (nextIndex === -1) {
-    // No slashes found - return trimmed pathname.
+    // No slashes found - return trimmed pathname
     return pathname.slice(start)
   }
   // Discard any empty string segments by collapsing repeated segment
-  // separator slashes, i.e. '/'.
+  // separator slashes, i.e. '/'
   while (nextIndex !== -1) {
     const segment = pathname.slice(start, nextIndex)
     if (callback === undefined || callback(segment)) {
-      // Add segment with separator if not first segment.
+      // Add segment with separator if not first segment
       collapsed = collapsed + (collapsed.length === 0 ? '' : '/') + segment
     }
-    // Skip to next segment, consuming multiple consecutive slashes.
+    // Skip to next segment, consuming multiple consecutive slashes
     start = nextIndex + 1
     while (pathname.charCodeAt(start) === 47) {
       start += 1
     }
     nextIndex = pathname.indexOf('/', start)
   }
-  // Handle last segment after final slash.
+  // Handle last segment after final slash
   const lastSegment = pathname.slice(start)
   if (
     lastSegment.length !== 0 &&
@@ -76,19 +76,19 @@ function normalizeQualifiers(
   rawQualifiers: unknown,
 ): Record<string, string> | undefined {
   let qualifiers: Record<string, string> | undefined
-  // Use for-of to work with entries iterators.
+  // Use for-of to work with entries iterators
   for (const { 0: key, 1: value } of qualifiersToEntries(rawQualifiers)) {
     const strValue = typeof value === 'string' ? value : String(value)
     const trimmed = strValue.trim()
     // A key=value pair with an empty value is the same as no key/value
-    // at all for this key.
+    // at all for this key
     if (trimmed.length === 0) {
       continue
     }
     if (qualifiers === undefined) {
       qualifiers = Object.create(null) as Record<string, string>
     }
-    // A key is case insensitive. The canonical form is lowercase.
+    // A key is case insensitive. The canonical form is lowercase
     qualifiers[key.toLowerCase()] = trimmed
   }
   return qualifiers
@@ -107,8 +107,8 @@ function normalizeSubpath(rawSubpath: unknown): string | undefined {
  * Normalize package type to lowercase.
  */
 function normalizeType(rawType: unknown): string | undefined {
-  // The type must NOT be percent-encoded.
-  // The type is case insensitive. The canonical form is lowercase.
+  // The type must NOT be percent-encoded
+  // The type is case insensitive. The canonical form is lowercase
   return typeof rawType === 'string' ? rawType.trim().toLowerCase() : undefined
 }
 
@@ -119,9 +119,9 @@ function normalizeVersion(rawVersion: unknown): string | undefined {
   return typeof rawVersion === 'string' ? rawVersion.trim() : undefined
 }
 
-// IMPORTANT: Do not use destructuring here - use direct assignment instead.
+// IMPORTANT: Do not use destructuring here - use direct assignment instead
 // tsgo has a bug that incorrectly transpiles destructured exports, resulting in
-// `exports.ReflectApply = void 0;` which causes runtime errors.
+// `exports.ReflectApply = void 0;` which causes runtime errors
 // See: https://github.com/SocketDev/socket-packageurl-js/issues/3
 const ReflectApply = Reflect.apply
 
@@ -132,7 +132,7 @@ function qualifiersToEntries(
   rawQualifiers: unknown,
 ): Iterable<[string, string]> {
   if (isObject(rawQualifiers)) {
-    // URLSearchParams instances have an "entries" method that returns an iterator.
+    // URLSearchParams instances have an "entries" method that returns an iterator
     const rawQualifiersObj = rawQualifiers as QualifiersObject | URLSearchParams
     const entriesProperty = (rawQualifiersObj as QualifiersObject)['entries']
     return typeof entriesProperty === 'function'

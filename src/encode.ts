@@ -9,9 +9,9 @@ import {
 import { isObject } from './objects.js'
 import { isNonEmptyString } from './strings.js'
 
-// IMPORTANT: Do not use destructuring here (e.g., const { encodeURIComponent } = globalThis).
+// IMPORTANT: Do not use destructuring here (e.g., const { encodeURIComponent } = globalThis)
 // tsgo has a bug that incorrectly transpiles destructured exports, resulting in
-// `exports.encodeComponent = void 0;` which causes runtime errors.
+// `exports.encodeComponent = void 0;` which causes runtime errors
 // See: https://github.com/SocketDev/socket-packageurl-js/issues/3
 const encodeComponent = globalThis.encodeURIComponent
 
@@ -39,13 +39,13 @@ function encodeNamespace(namespace: unknown): string {
 function encodeQualifierParam(param: unknown): string {
   if (isNonEmptyString(param)) {
     const value = prepareValueForSearchParams(param)
-    // Use URLSearchParams#set to preserve plus signs.
+    // Use URLSearchParams#set to preserve plus signs
     // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
-    // Use a local instance to avoid mutation issues in concurrent scenarios.
+    // Use a local instance to avoid mutation issues in concurrent scenarios
     const searchParams = new URLSearchParams()
     searchParams.set(REUSED_SEARCH_PARAMS_KEY, value)
     // Param key and value are encoded with `percentEncodeSet` of
-    // 'application/x-www-form-urlencoded' and `spaceAsPlus` of `true`.
+    // 'application/x-www-form-urlencoded' and `spaceAsPlus` of `true`
     // https://url.spec.whatwg.org/#urlencoded-serializing
     const search = searchParams.toString()
     return normalizeSearchParamsEncoding(
@@ -60,7 +60,7 @@ function encodeQualifierParam(param: unknown): string {
  */
 function encodeQualifiers(qualifiers: unknown): string {
   if (isObject(qualifiers)) {
-    // Sort this list of qualifier strings lexicographically.
+    // Sort this list of qualifier strings lexicographically
     const qualifiersKeys = Object.keys(qualifiers).sort()
     const searchParams = new URLSearchParams()
     for (let i = 0, { length } = qualifiersKeys; i < length; i += 1) {
@@ -68,7 +68,7 @@ function encodeQualifiers(qualifiers: unknown): string {
       const value = prepareValueForSearchParams(
         (qualifiers as Record<string, unknown>)[key],
       )
-      // Use URLSearchParams#set to preserve plus signs.
+      // Use URLSearchParams#set to preserve plus signs
       // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
       searchParams.set(key!, value)
     }
@@ -106,7 +106,7 @@ function normalizeSearchParamsEncoding(encoded: string): string {
  * Prepare string value for URLSearchParams encoding.
  */
 function prepareValueForSearchParams(value: unknown): string {
-  // Replace spaces with %20's so they don't get converted to plus signs.
+  // Replace spaces with %20's so they don't get converted to plus signs
   return String(value).replaceAll(' ', '%20')
 }
 
