@@ -25,7 +25,8 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL, PackageURLBuilder } from '../dist/package-url.js'
+import { PackageURLBuilder } from '../src/package-url-builder.js'
+import { PackageURL } from '../src/package-url.js'
 
 describe('PackageURLBuilder', () => {
   describe('basic construction', () => {
