@@ -1,11 +1,11 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 
-import yargsParser from 'yargs-parser'
 import colors from 'yoctocolors-cjs'
 
 import constants from '@socketsecurity/registry/lib/constants'
 import { logger } from '@socketsecurity/registry/lib/logger'
+import { parseArgs } from '@socketsecurity/registry/lib/parse-args'
 import { indentString } from '@socketsecurity/registry/lib/strings'
 
 import { getCodeCoverage } from './utils/get-code-coverage.mjs'
@@ -18,17 +18,17 @@ import { getTypeCoverage } from './utils/get-type-coverage.mjs'
 async function logCoveragePercentage(argv) {
   const { spinner } = constants
 
-  // Check if coverage data exists to determine whether to generate or read it.
+  // Check if coverage data exists to determine whether to generate or read it
   const coverageJsonPath = path.join(
     process.cwd(),
     'coverage',
     'coverage-final.json',
   )
 
-  // Get code coverage metrics (statements, branches, functions, lines).
+  // Get code coverage metrics (statements, branches, functions, lines)
   let codeCoverage
   try {
-    // Only show spinner in default output mode (not JSON or simple).
+    // Only show spinner in default output mode (not JSON or simple)
     if (!argv.json && !argv.simple) {
       if (!existsSync(coverageJsonPath)) {
         spinner.start('Generating coverage data...')
@@ -50,16 +50,16 @@ async function logCoveragePercentage(argv) {
     throw error
   }
 
-  // Get type coverage (optional - if it fails, we continue without it).
+  // Get type coverage (optional - if it fails, we continue without it)
   let typeCoveragePercent = null
   try {
     typeCoveragePercent = await getTypeCoverage()
   } catch (error) {
     logger.error('Failed to get type coverage:', error.message)
-    // Continue without type coverage - it's not critical.
+    // Continue without type coverage - it's not critical
   }
 
-  // Calculate overall percentage (average of all metrics including type coverage if available).
+  // Calculate overall percentage (average of all metrics including type coverage if available)
   const codeCoverageMetrics = [
     parseFloat(codeCoverage.statements.percent),
     parseFloat(codeCoverage.branches.percent),
@@ -69,51 +69,51 @@ async function logCoveragePercentage(argv) {
 
   let overall
   if (typeCoveragePercent !== null) {
-    // Include type coverage in the overall calculation.
+    // Include type coverage in the overall calculation
     const allMetrics = [...codeCoverageMetrics, typeCoveragePercent]
     overall = (
       allMetrics.reduce((a, b) => a + b, 0) / allMetrics.length
     ).toFixed(2)
   } else {
-    // Fallback to just code coverage metrics when type coverage is unavailable.
+    // Fallback to just code coverage metrics when type coverage is unavailable
     overall = (
       codeCoverageMetrics.reduce((a, b) => a + b, 0) /
       codeCoverageMetrics.length
     ).toFixed(2)
   }
 
-  // Select an emoji based on overall coverage percentage for visual feedback.
+  // Select an emoji based on overall coverage percentage for visual feedback
   const overallNum = parseFloat(overall)
   let emoji = ''
   if (overallNum >= 99) {
-    // Excellent coverage.
+    // Excellent coverage
     emoji = ' 🚀'
   } else if (overallNum >= 95) {
-    // Great coverage.
+    // Great coverage
     emoji = ' 🎯'
   } else if (overallNum >= 90) {
-    // Very good coverage.
+    // Very good coverage
     emoji = ' ✨'
   } else if (overallNum >= 80) {
-    // Good coverage.
+    // Good coverage
     emoji = ' 💪'
   } else if (overallNum >= 70) {
-    // Decent coverage.
+    // Decent coverage
     emoji = ' 📈'
   } else if (overallNum >= 60) {
-    // Fair coverage.
+    // Fair coverage
     emoji = ' ⚡'
   } else if (overallNum >= 50) {
-    // Needs improvement.
+    // Needs improvement
     emoji = ' 🔨'
   } else {
-    // Low coverage warning.
+    // Low coverage warning
     emoji = ' ⚠️'
   }
 
-  // Output the coverage data in the requested format.
+  // Output the coverage data in the requested format
   if (argv.json) {
-    // JSON format: structured output for programmatic consumption.
+    // JSON format: structured output for programmatic consumption
     const jsonOutput = {
       statements: codeCoverage.statements,
       branches: codeCoverage.branches,
@@ -131,10 +131,10 @@ async function logCoveragePercentage(argv) {
 
     console.log(JSON.stringify(jsonOutput, null, 2))
   } else if (argv.simple) {
-    // Simple format: just the statement coverage percentage.
+    // Simple format: just the statement coverage percentage
     console.log(codeCoverage.statements.percent)
   } else {
-    // Default format: human-readable formatted output.
+    // Default format: human-readable formatted output
     const summaryLines = [
       `Statements: ${codeCoverage.statements.percent}% (${codeCoverage.statements.covered}/${codeCoverage.statements.total})`,
       `Branches:   ${codeCoverage.branches.percent}% (${codeCoverage.branches.covered}/${codeCoverage.branches.total})`,
@@ -153,16 +153,23 @@ async function logCoveragePercentage(argv) {
   }
 }
 
-// Main entry point - parse command line arguments and display coverage.
-void (async () => {
-  const argv = yargsParser(process.argv.slice(2), {
-    boolean: ['json', 'simple'],
-    alias: {
-      // -j for JSON output.
-      j: 'json',
-      // -s for simple output.
-      s: 'simple',
+// Main entry point - parse command line arguments and display coverage
+async function main() {
+  const { values } = parseArgs({
+    options: {
+      json: {
+        type: 'boolean',
+        short: 'j',
+        default: false,
+      },
+      simple: {
+        type: 'boolean',
+        short: 's',
+        default: false,
+      },
     },
   })
-  await logCoveragePercentage(argv)
-})()
+  await logCoveragePercentage(values)
+}
+
+main().catch(console.error)

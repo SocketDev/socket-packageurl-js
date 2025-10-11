@@ -18,8 +18,8 @@ function includesProvenanceDowngradeWarning(output) {
   )
 }
 
-void (async () => {
-  // Run with command line arguments.
+async function main() {
+  // Run with command line arguments
   const args = process.argv.slice(2)
 
   const tazePromise = spawn('pnpm', ['taze', ...args], {
@@ -52,10 +52,11 @@ void (async () => {
       logger.error(
         '   Configure your dependencies to maintain provenance or exclude problematic packages.',
       )
-      // eslint-disable-next-line n/no-process-exit
-      process.exit(1)
+      process.exitCode = 1
     }
   })
 
   await tazePromise
-})()
+}
+
+main().catch(console.error)

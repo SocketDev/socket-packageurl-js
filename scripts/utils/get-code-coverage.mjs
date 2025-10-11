@@ -24,7 +24,7 @@ export async function getCodeCoverage(options = {}) {
       return null
     }
 
-    const result = await spawn('pnpm', ['run', 'test:unit:coverage'], {
+    const result = await spawn('dotenvx', ['-q', 'run', '-f', '.env.test', '--', 'vitest', '--config', '.config/vitest.config.mts', '--run', '--coverage'], {
       stdio: 'ignore',
       shell: constants.WIN32,
     })
@@ -51,22 +51,22 @@ export async function getCodeCoverage(options = {}) {
   let totalStatements = 0
 
   for (const coverage of Object.values(coverageData)) {
-    // Statements.
+    // Statements
     coveredStatements += countCovered(Object.values(coverage.s))
     totalStatements += Object.keys(coverage.s).length
 
-    // Branches.
+    // Branches
     for (const branchId in coverage.b) {
       const branches = coverage.b[branchId]
       coveredBranches += countCovered(branches)
       totalBranches += branches.length
     }
 
-    // Functions.
+    // Functions
     coveredFunctions += countCovered(Object.values(coverage.f))
     totalFunctions += Object.keys(coverage.f).length
 
-    // Lines (using statement map for line coverage).
+    // Lines (using statement map for line coverage)
     const linesCovered = new Set()
     const linesTotal = new Set()
     for (const stmtId in coverage.statementMap) {
