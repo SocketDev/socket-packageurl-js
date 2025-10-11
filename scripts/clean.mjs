@@ -3,21 +3,21 @@
  * Removes build artifacts, caches, and other generated files.
  */
 
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
 import { deleteAsync } from 'del'
 import fastGlob from 'fast-glob'
 
+import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
 import {
-  getRootPath,
-  isQuiet,
   log,
-  printFooter,
   printHeader,
-  printHelpHeader
-} from './utils/common.mjs'
+  printFooter
+} from '@socketsecurity/registry/lib/cli/output'
 
-const rootPath = getRootPath(import.meta.url)
+const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 /**
  * Clean specific directories.
@@ -115,7 +115,7 @@ async function main() {
 
     // Show help if requested
     if (values.help) {
-      printHelpHeader('Clean Runner')
+      console.log('Clean Runner')
       console.log('\nUsage: pnpm clean [options]')
       console.log('\nOptions:')
       console.log('  --help              Show this help message')
@@ -172,7 +172,7 @@ async function main() {
     }
 
     if (!quiet) {
-      printHeader('Clean Runner')
+      printHeader('Clean Runner', { width: 56, borderChar: '=' })
       log.step('Cleaning project directories')
     }
 
@@ -186,7 +186,7 @@ async function main() {
       process.exitCode = exitCode
     } else {
       if (!quiet) {
-        printFooter('Clean completed successfully!')
+        printFooter('Clean completed successfully!', { width: 56, borderChar: '=', color: 'green' })
       }
     }
   } catch (error) {

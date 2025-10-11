@@ -8,14 +8,15 @@ import { spawn } from 'node:child_process'
 import { existsSync, promises as fs } from 'node:fs'
 import path from 'node:path'
 import readline from 'node:readline'
+import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
 import semver from 'semver'
-import colors from 'yoctocolors-cjs'
+import colors from '@socketsecurity/registry/external/yoctocolors-cjs'
 
-import { getRootPath, log, printFooter, printHeader } from './utils/common.mjs'
+import { log, printFooter, printHeader } from '@socketsecurity/registry/lib/cli/output'
 
-const rootPath = getRootPath(import.meta.url)
+const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const WIN32 = process.platform === 'win32'
 
 // Check if prompts are available for interactive mode
@@ -653,7 +654,7 @@ async function main() {
       return
     }
 
-    printHeader('Version Bump')
+    printHeader('Version Bump', { width: 56, borderChar: '=' })
 
     // Handle interactive mode conflicts
     if (values['no-interactive']) {

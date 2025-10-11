@@ -8,18 +8,19 @@ import { parseArgs } from 'node:util'
 
 import { build } from 'esbuild'
 
+import { fileURLToPath } from 'node:url'
+
+import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
 import {
-  getRootPath,
-  isQuiet,
   log,
-  printFooter,
+  printHelpHeader,
   printHeader,
-  printHelpHeader
-} from './utils/common.mjs'
+  printFooter
+} from '@socketsecurity/registry/lib/cli/output'
 import { runSequence } from './utils/run-command.mjs'
 import { analyzeMetafile, buildConfig, watchConfig } from '../.config/esbuild.config.mjs'
 
-const rootPath = getRootPath(import.meta.url)
+const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 /**
  * Build source code with esbuild.
@@ -208,7 +209,7 @@ async function main() {
 
     // Show help if requested
     if (values.help) {
-      printHelpHeader('Build Runner')
+      console.log('Build Runner')
       console.log('\nUsage: pnpm build [options]')
       console.log('\nOptions:')
       console.log('  --help       Show this help message')
@@ -242,7 +243,7 @@ async function main() {
     }
 
     if (!quiet) {
-      printHeader('Build Runner')
+      printHeader('Build Runner', { width: 56, borderChar: '=' })
     }
 
     let exitCode = 0
@@ -303,7 +304,7 @@ async function main() {
       process.exitCode = exitCode
     } else {
       if (!quiet) {
-        printFooter('Build completed successfully!')
+        printFooter('Build completed successfully!', { width: 56, borderChar: '=', color: 'green' })
       }
     }
   } catch (error) {

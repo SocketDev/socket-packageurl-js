@@ -6,11 +6,12 @@
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
-import { getRootPath, log, printFooter, printHeader } from './utils/common.mjs'
+import { log, printFooter, printHeader } from '@socketsecurity/registry/lib/cli/output'
 
-const rootPath = getRootPath(import.meta.url)
+const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const WIN32 = process.platform === 'win32'
 
 function includesProvenanceDowngradeWarning(output) {
@@ -254,7 +255,7 @@ async function main() {
       return
     }
 
-    printHeader('Update Runner')
+    printHeader('Update Runner', { width: 56, borderChar: '=' })
 
     let exitCode = 0
     // When no flags are specified, run deps and socket updates but NOT project updates
@@ -300,7 +301,7 @@ async function main() {
       }
     }
 
-    printFooter('All updates completed successfully!')
+    printFooter('All updates completed successfully!', { width: 56, borderChar: '=', color: 'green' })
     process.exitCode = 0
   } catch (error) {
     log.error(`Update runner failed: ${error.message}`)

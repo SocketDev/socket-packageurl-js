@@ -5,13 +5,13 @@
 
 import { parseArgs } from 'node:util'
 
+import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
 import {
-  isQuiet,
   log,
-  printFooter,
+  printHelpHeader,
   printHeader,
-  printHelpHeader
-} from './utils/common.mjs'
+  printFooter
+} from '@socketsecurity/registry/lib/cli/output'
 import { runCommandQuiet } from './utils/run-command.mjs'
 
 /**
@@ -119,7 +119,7 @@ async function main() {
 
     // Show help if requested
     if (values.help) {
-      printHelpHeader('Check Runner')
+      console.log('Check Runner')
       console.log('\nUsage: pnpm check [options]')
       console.log('\nOptions:')
       console.log('  --help         Show this help message')
@@ -138,7 +138,7 @@ async function main() {
     const runAll = !values.lint && !values.types
 
     if (!quiet) {
-      printHeader('Check Runner')
+      printHeader('Check Runner', { width: 56, borderChar: '=' })
       log.step('Running code quality checks')
     }
 
@@ -169,7 +169,7 @@ async function main() {
     }
 
     if (!quiet) {
-      printFooter('All checks passed!')
+      printFooter('All checks passed!', { width: 56, borderChar: '=', color: 'green' })
     }
   } catch (error) {
     log.error(`Check runner failed: ${error.message}`)

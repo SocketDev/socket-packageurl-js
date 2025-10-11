@@ -6,14 +6,11 @@
 import path from 'node:path'
 import { parseArgs } from 'node:util'
 
-import {
-  isQuiet,
-  log,
-  printFooter,
-  printHeader,
-  printHelpHeader
-} from './utils/common.mjs'
-import { getChangedFiles, getStagedFiles } from './utils/git.mjs'
+import { fileURLToPath } from 'node:url'
+
+import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
+import { log, printHeader, printFooter } from '@socketsecurity/registry/lib/cli/output'
+import { getChangedFiles, getStagedFiles } from '@socketsecurity/registry/lib/git'
 import { runCommandQuiet } from './utils/run-command.mjs'
 
 // Files that trigger a full lint when changed
@@ -261,7 +258,7 @@ async function main() {
 
     // Show help if requested
     if (values.help) {
-      printHelpHeader('Lint Runner')
+      console.log('Lint Runner')
       console.log('\nUsage: pnpm lint [options] [files...]')
       console.log('\nOptions:')
       console.log('  --help         Show this help message')
@@ -283,7 +280,7 @@ async function main() {
     const quiet = isQuiet(values)
 
     if (!quiet) {
-      printHeader('Lint Runner')
+      printHeader('Lint Runner', { width: 56, borderChar: '=' })
     }
 
     let exitCode = 0
@@ -335,7 +332,7 @@ async function main() {
       process.exitCode = exitCode
     } else {
       if (!quiet) {
-        printFooter('All lint checks passed!')
+        printFooter('All lint checks passed!', { width: 56, borderChar: '=', color: 'green' })
       }
     }
   } catch (error) {

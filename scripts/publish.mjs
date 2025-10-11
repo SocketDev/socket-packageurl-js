@@ -6,11 +6,12 @@
 import { spawn } from 'node:child_process'
 import { existsSync, promises as fs } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
-import { getRootPath, log, printFooter, printHeader } from './utils/common.mjs'
+import { log, printFooter, printHeader } from '@socketsecurity/registry/lib/cli/output'
 
-const rootPath = getRootPath(import.meta.url)
+const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const WIN32 = process.platform === 'win32'
 const CI = !!process.env.CI
 
@@ -426,7 +427,7 @@ async function main() {
       return
     }
 
-    printHeader('Publish Runner')
+    printHeader('Publish Runner', { width: 56, borderChar: '=' })
 
     // Get current version
     const version = await getCurrentVersion()
@@ -490,7 +491,7 @@ async function main() {
       })
     }
 
-    printFooter('Publish completed successfully!')
+    printFooter('Publish completed successfully!', { width: 56, borderChar: '=', color: 'green' })
     process.exitCode = 0
   } catch (error) {
     log.error(`Publish runner failed: ${error.message}`)
