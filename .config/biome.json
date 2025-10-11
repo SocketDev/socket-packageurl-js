@@ -1,5 +1,5 @@
 {
-  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "$schema": "../node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
     "includes": [
       "**",
@@ -15,7 +15,8 @@
       "!**/dist",
       "!**/package.json",
       "!**/pnpm-lock.yaml"
-    ]
+    ],
+    "maxSize": 8388608
   },
   "formatter": {
     "enabled": true,
@@ -62,7 +63,7 @@
         "useSingleVarDeclarator": "error",
         "noUnusedTemplateLiteral": "error",
         "useNumberNamespace": "error",
-        "noInferrableTypes": "error",
+        "noInferrableTypes": "off",
         "noUselessElse": "error",
         "useNumericSeparators": "error"
       }
