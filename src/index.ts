@@ -22,30 +22,66 @@ SOFTWARE.
 
 /**
  * @fileoverview Main entry point for the socket-packageurl-js library.
- * Provides exports for PackageURL, PurlComponent, PurlQualifierNames, and PurlType.
+ *
+ * This library provides a complete implementation of the Package URL (purl) specification.
+ * Package URLs are used to identify and locate software packages in a standardized way
+ * across different package management systems and ecosystems.
+ *
+ * Core exports:
+ * - PackageURL: Main class for parsing and constructing package URLs
+ * - PackageURLBuilder: Builder pattern for constructing package URLs
+ * - PurlType: Type-specific normalization and validation rules
+ * - PurlComponent: Component encoding/decoding utilities
+ * - PurlQualifierNames: Known qualifier names from the specification
+ *
+ * Utility exports:
+ * - UrlConverter: Convert between purls and repository/download URLs
+ * - Result utilities: Functional error handling with Ok/Err pattern
  */
 
-/* c8 ignore start - Re-export only file, no logic to test. */
+/* c8 ignore start - Re-export only file, no logic to test */
+
+// ============================================================================
+// Core Classes and Functions
+// ============================================================================
 export {
-  Err,
-  Ok,
   PackageURL,
-  PackageURLBuilder,
   PurlComponent,
   PurlQualifierNames,
   PurlType,
-  ResultUtils,
+} from './package-url.js'
+
+export { PackageURLBuilder } from './package-url-builder.js'
+
+// ============================================================================
+// Utility Classes and Functions
+// ============================================================================
+export {
   UrlConverter,
+} from './package-url.js'
+
+export {
+  Err,
+  Ok,
+  ResultUtils,
   err,
   ok,
 } from './package-url.js'
+
+// ============================================================================
+// TypeScript Type Definitions
+// ============================================================================
 export type {
   DownloadUrl,
   RepositoryUrl,
   Result,
 } from './package-url.js'
 
+// ============================================================================
+// Registry Integration
+// ============================================================================
 // Re-export PURL types from socket-registry for consistency
 export { PURL_Type } from '@socketsecurity/registry'
 export type { EcosystemString } from '@socketsecurity/registry'
+
 /* c8 ignore stop */
