@@ -1,10 +1,10 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
 import { defineConfig } from 'vitest/config'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const isCoverage = process.argv.includes('--coverage')
+// Check if coverage is enabled via CLI flags or environment.
+const isCoverageEnabled =
+  process.env['COVERAGE'] === 'true' ||
+  process.env['npm_lifecycle_event']?.includes('coverage') ||
+  process.argv.some(arg => arg.includes('coverage'))
 
 export default defineConfig({
   test: {
@@ -16,22 +16,23 @@ export default defineConfig({
     pool: 'forks',
     poolOptions: {
       forks: {
-        singleFork: true,
-        maxForks: 1,
+        // Use single fork for coverage to reduce memory, parallel otherwise.
+        singleFork: isCoverageEnabled,
+        maxForks: isCoverageEnabled ? 1 : undefined,
         // Isolate tests to prevent memory leaks between test files.
         isolate: true,
       },
       threads: {
-        singleThread: true,
-        // Limit thread concurrency to prevent RegExp compiler exhaustion.
-        maxThreads: 1,
+        // Use single thread for coverage to reduce memory, parallel otherwise.
+        singleThread: isCoverageEnabled,
+        maxThreads: isCoverageEnabled ? 1 : undefined,
       },
     },
     testTimeout: 60_000,
     hookTimeout: 60_000,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'lcov', 'clover'],
       exclude: [
         '**/*.config.*',
         '**/node_modules/**',
@@ -44,8 +45,15 @@ export default defineConfig({
         'scripts/**',
         'test/**',
         'src/index.ts',
+        'perf/**',
+        // Explicit root-level exclusions
+        '/scripts/**',
+        '/test/**',
       ],
       all: true,
+      clean: true,
+      skipFull: false,
+      ignoreClassMethods: ['constructor'],
       thresholds: {
         branches: 100,
         functions: 100,
@@ -56,24 +64,5 @@ export default defineConfig({
       reportsDirectory: './coverage',
       include: ['src/**/*.ts'],
     },
-  },
-  resolve: {
-    // Map dist imports to src when running coverage, use dist otherwise.
-    alias: isCoverage
-      ? [
-          {
-            // Match: ../dist/some-module.js
-            find: /^\.\.\/dist\/(.*)\.js$/,
-            // Replace: src/some-module.ts
-            replacement: path.resolve(__dirname, '../src/$1.ts'),
-          },
-          {
-            // Match: ./dist/some-module.js
-            find: /^\.\/dist\/(.*)\.js$/,
-            // Replace: src/some-module.ts
-            replacement: path.resolve(__dirname, '../src/$1.ts'),
-          },
-        ]
-      : [],
   },
 })
