@@ -6,13 +6,7 @@
 [![Follow @SocketSecurity](https://img.shields.io/twitter/follow/SocketSecurity?style=social)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](https://img.shields.io/badge/Follow-@socket.dev-1DA1F2?style=social&logo=bluesky)](https://bsky.app/profile/socket.dev)
 
-TypeScript-first Package URL (purl) parser and builder. **Drop-in replacement** for [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) with better types and zero dependencies.
-
-**Why use this?**
-- 🎯 **TypeScript-first**: Full type safety and IntelliSense
-- 📦 **Zero dependencies**: No supply chain bloat
-- ✅ **Spec compliant**: Implements [Package URL specification](https://github.com/package-url/purl-spec)
-- 🔨 **Builder API**: Fluent, ecosystem-specific builders
+TypeScript Package URL (purl) parser and builder. Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) with full type safety, zero dependencies, and spec compliance with the [Package URL specification](https://github.com/package-url/purl-spec).
 
 ## Installation
 
@@ -20,7 +14,7 @@ TypeScript-first Package URL (purl) parser and builder. **Drop-in replacement** 
 pnpm install @socketregistry/packageurl-js
 ```
 
-**Package override** (recommended for drop-in replacement):
+**Drop-in replacement** via package override:
 ```json
 {
   "pnpm": {
@@ -35,7 +29,7 @@ pnpm install @socketregistry/packageurl-js
 
 ## Usage
 
-**Parse existing purls:**
+**Parse purls:**
 ```javascript
 import { PackageURL } from '@socketregistry/packageurl-js'
 
@@ -44,7 +38,7 @@ console.log(purl.name)      // 'lodash'
 console.log(purl.version)   // '4.17.21'
 ```
 
-**Build new purls (recommended):**
+**Build purls:**
 ```javascript
 import { PackageURLBuilder } from '@socketregistry/packageurl-js'
 
@@ -106,11 +100,11 @@ function processPurl(type: EcosystemString) {
 
 ## Documentation
 
-**[→ Complete API Reference](./docs/API.md)** - Full API documentation with detailed examples
+**[→ API Reference](./docs/API.md)** - Complete API documentation
 
-**[→ Usage Examples](./docs/EXAMPLES.md)** - Practical examples for common use cases
+**[→ Examples](./docs/EXAMPLES.md)** - Common use cases
 
-**[→ Builder Pattern Guide](./docs/BUILDERS.md)** - Comprehensive builder pattern documentation
+**[→ Builders](./docs/BUILDERS.md)** - Builder pattern guide
 
 ## Development
 

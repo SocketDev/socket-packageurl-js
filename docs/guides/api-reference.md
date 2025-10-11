@@ -1,6 +1,6 @@
 # API Reference
 
-Complete API reference for `@socketregistry/packageurl-js`. All parsing and validation methods throw errors on invalid input.
+API reference for `@socketregistry/packageurl-js`. All parsing and validation methods throw on invalid input.
 
 ## PackageURL
 
@@ -20,7 +20,7 @@ Create a new PackageURL instance with validation and normalization.
 - `qualifiers` - Additional qualifiers object (optional)
 - `subpath` - Subpath within package (optional)
 
-**Throws:** Error if validation fails
+**Throws:** On validation failure
 
 <details>
 <summary>Show example</summary>
@@ -74,7 +74,7 @@ Parse a purl string into a PackageURL instance.
 
 **Returns:** PackageURL instance
 
-**Throws:** Error if string is invalid
+**Throws:** On invalid string
 
 <details>
 <summary>Show example</summary>
@@ -112,7 +112,7 @@ Create a PackageURL from a JSON string representation.
 
 **Returns:** PackageURL instance
 
-**Throws:** Error if JSON is invalid
+**Throws:** On invalid JSON
 
 <details>
 <summary>Show example</summary>
@@ -141,7 +141,7 @@ Create a PackageURL from a plain object.
 
 **Returns:** PackageURL instance
 
-**Throws:** Error if object structure is invalid
+**Throws:** On invalid object structure
 
 <details>
 <summary>Show example</summary>
@@ -172,7 +172,7 @@ Parse a purl string into an array of components.
 
 **Returns:** Array of [type, namespace, name, version, qualifiers, subpath]
 
-**Throws:** Error if parsing fails
+**Throws:** On parse failure
 
 <details>
 <summary>Show example</summary>
@@ -657,7 +657,7 @@ Construct and return the final PackageURL instance.
 
 **Returns:** PackageURL instance
 
-**Throws:** Error if configuration is invalid
+**Throws:** On invalid configuration
 
 <details>
 <summary>Show example</summary>
