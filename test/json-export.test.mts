@@ -25,7 +25,7 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../dist/package-url.js'
+import { PackageURL } from '../src/package-url.js'
 
 describe('PackageURL JSON/dict export', () => {
   describe('toObject', () => {
@@ -243,16 +243,16 @@ describe('PackageURL JSON/dict export', () => {
     it('should validate input and throw appropriate errors', () => {
       // Test non-object inputs
       expect(() => PackageURL.fromObject('not an object')).toThrow(
-        'Object argument is required.',
+        'Object argument is required',
       )
       expect(() => PackageURL.fromObject(null)).toThrow(
-        'Object argument is required.',
+        'Object argument is required',
       )
       expect(() => PackageURL.fromObject(undefined)).toThrow(
-        'Object argument is required.',
+        'Object argument is required',
       )
       expect(() => PackageURL.fromObject(123)).toThrow(
-        'Object argument is required.',
+        'Object argument is required',
       )
 
       // Test validation errors
@@ -293,26 +293,26 @@ describe('PackageURL JSON/dict export', () => {
     it('should validate input and throw appropriate errors', () => {
       // Test non-string inputs
       expect(() => PackageURL.fromJSON(123)).toThrow(
-        'JSON string argument is required.',
+        'JSON string argument is required',
       )
       expect(() => PackageURL.fromJSON(null)).toThrow(
-        'JSON string argument is required.',
+        'JSON string argument is required',
       )
       expect(() => PackageURL.fromJSON(undefined)).toThrow(
-        'JSON string argument is required.',
+        'JSON string argument is required',
       )
       expect(() => PackageURL.fromJSON({})).toThrow(
-        'JSON string argument is required.',
+        'JSON string argument is required',
       )
 
       // Test invalid JSON
       expect(() => PackageURL.fromJSON('invalid json')).toThrow(
-        'Invalid JSON string.',
+        'Failed to parse PackageURL from JSON',
       )
       expect(() => PackageURL.fromJSON('{"type":"npm","name"}')).toThrow(
-        'Invalid JSON string.',
+        'Failed to parse PackageURL from JSON',
       )
-      expect(() => PackageURL.fromJSON('')).toThrow('Invalid JSON string.')
+      expect(() => PackageURL.fromJSON('')).toThrow('Failed to parse PackageURL from JSON')
 
       // Test validation of created PackageURL
       expect(() =>

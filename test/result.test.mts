@@ -25,8 +25,8 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../dist/package-url.js'
-import { Err, Ok, ResultUtils, err, ok } from '../dist/result.js'
+import { PackageURL } from '../src/package-url.js'
+import { Err, Ok, ResultUtils, err, ok } from '../src/result.js'
 
 describe('Result types', () => {
   describe('Ok', () => {
@@ -333,7 +333,7 @@ describe('PackageURL Result methods', () => {
         undefined,
         undefined,
         undefined,
-        'Invalid JSON string',
+        'Failed to parse PackageURL from JSON',
       ],
       [
         'valid JSON with invalid purl data',

@@ -18,7 +18,7 @@ describe('Integration tests', () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
     // Test that we can import the package
-    const { PackageURL } = await import(`${pkgPath}/dist/package-url.js`)
+    const { PackageURL } = await import(`${pkgPath}/dist/index.js`)
     expect(PackageURL).toBeDefined()
     expect(typeof PackageURL).toBe('function')
 
@@ -30,7 +30,7 @@ describe('Integration tests', () => {
   it('should load PackageURLBuilder and work correctly', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
-    const { PackageURLBuilder } = await import(`${pkgPath}/dist/package-url.js`)
+    const { PackageURLBuilder } = await import(`${pkgPath}/dist/index.js`)
     expect(PackageURLBuilder).toBeDefined()
     expect(typeof PackageURLBuilder.create).toBe('function')
 
@@ -46,8 +46,7 @@ describe('Integration tests', () => {
   it('should load UrlConverter and work correctly', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
-    const { UrlConverter } = await import(`${pkgPath}/dist/url-converter.js`)
-    const { PackageURL } = await import(`${pkgPath}/dist/package-url.js`)
+    const { PackageURL, UrlConverter } = await import(`${pkgPath}/dist/index.js`)
 
     expect(UrlConverter).toBeDefined()
     expect(typeof UrlConverter.toRepositoryUrl).toBe('function')
@@ -64,10 +63,7 @@ describe('Integration tests', () => {
   it('should have all entry points working together', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
-    const { PackageURL, PackageURLBuilder } = await import(
-      `${pkgPath}/dist/package-url.js`
-    )
-    const { UrlConverter } = await import(`${pkgPath}/dist/url-converter.js`)
+    const { PackageURL, PackageURLBuilder, UrlConverter } = await import(`${pkgPath}/dist/index.js`)
 
     // Build a purl
     const purl = PackageURLBuilder.create()
