@@ -13,8 +13,8 @@ import fastGlob from 'fast-glob'
 import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
 import {
   log,
-  printHeader,
-  printFooter
+  printFooter,
+  printHeader
 } from '@socketsecurity/registry/lib/cli/output'
 
 const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')

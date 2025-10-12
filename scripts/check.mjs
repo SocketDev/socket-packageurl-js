@@ -5,13 +5,12 @@
 
 import { parseArgs } from 'node:util'
 
-import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
 import {
   log,
-  printHelpHeader,
+  printFooter,
   printHeader,
-  printFooter
-} from '@socketsecurity/registry/lib/cli/output'
+  printSuccess,
+} from './utils/cli-helpers.mjs'
 import { runCommandQuiet } from './utils/run-command.mjs'
 
 /**
@@ -134,11 +133,11 @@ async function main() {
       return
     }
 
-    const quiet = isQuiet(values)
+    const quiet = values.quiet || values.silent
     const runAll = !values.lint && !values.types
 
     if (!quiet) {
-      printHeader('Check Runner', { width: 56, borderChar: '=' })
+      printHeader('Running Checks')
       log.step('Running code quality checks')
     }
 
@@ -169,7 +168,8 @@ async function main() {
     }
 
     if (!quiet) {
-      printFooter('All checks passed!', { width: 56, borderChar: '=', color: 'green' })
+      printSuccess('All checks passed')
+      printFooter()
     }
   } catch (error) {
     log.error(`Check runner failed: ${error.message}`)

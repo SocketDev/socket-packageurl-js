@@ -82,6 +82,6 @@ export type {
 // ============================================================================
 // Re-export PURL types from socket-registry for consistency
 export { PURL_Type } from '@socketsecurity/registry'
-export type { EcosystemString } from '@socketsecurity/registry'
+export type { PURLString } from '@socketsecurity/registry'
 
 /* c8 ignore stop */

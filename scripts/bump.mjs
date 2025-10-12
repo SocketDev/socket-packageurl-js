@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
 import semver from 'semver'
-import colors from '@socketsecurity/registry/external/yoctocolors-cjs'
+import colors from 'yoctocolors-cjs'
 
 import { log, printFooter, printHeader } from '@socketsecurity/registry/lib/cli/output'
 

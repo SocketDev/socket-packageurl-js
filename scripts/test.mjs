@@ -6,14 +6,14 @@
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
+import { log, printFooter, printHeader } from '@socketsecurity/registry/lib/cli/output'
 import WIN32 from '@socketsecurity/registry/lib/constants/WIN32'
 
 import { getTestsToRun } from './utils/changed-test-mapper.mjs'
-import { fileURLToPath } from 'node:url'
 
-import { log, printHelpHeader, printHeader, printFooter } from '@socketsecurity/registry/lib/cli/output'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.resolve(__dirname, '..')
@@ -115,7 +115,7 @@ async function runTests(options, positionals = []) {
 
   // Get tests to run
   const testInfo = getTestsToRun({ staged, all: runAll })
-  const { reason, tests: testsToRun } = testInfo
+  const { mode, reason, tests: testsToRun } = testInfo
 
   // No tests needed
   if (testsToRun === null) {
@@ -141,10 +141,10 @@ async function runTests(options, positionals = []) {
 
   // Add test patterns if not running all
   if (testsToRun === 'all') {
-    const reasonText = reason ? ` (${reason})` : ''
-    log.step(`Running all tests${reasonText}`)
+    log.step(`Running all tests (${reason})`)
   } else {
-    log.step(`Running affected tests:`)
+    const modeText = mode === 'staged' ? 'staged' : 'changed'
+    log.step(`Running tests for ${modeText} files:`)
     testsToRun.forEach(test => log.substep(test))
     vitestArgs.push(...testsToRun)
   }
@@ -242,7 +242,8 @@ async function main() {
       console.log('  --staged            Run tests affected by staged changes')
       console.log('  --skip-build        Skip the build step')
       console.log('\nExamples:')
-      console.log('  pnpm test                  # Run checks, build, and tests')
+      console.log('  pnpm test                  # Run checks, build, and tests for changed files')
+      console.log('  pnpm test --all            # Run all tests')
       console.log('  pnpm test --fast           # Skip checks for quick testing')
       console.log('  pnpm test --cover          # Run with coverage report')
       console.log('  pnpm test --fast --cover   # Quick test with coverage')

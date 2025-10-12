@@ -4,19 +4,19 @@
 
 import { existsSync } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
 import { build } from 'esbuild'
 
-import { fileURLToPath } from 'node:url'
 
 import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
 import {
   log,
-  printHelpHeader,
-  printHeader,
-  printFooter
+  printFooter,
+  printHeader
 } from '@socketsecurity/registry/lib/cli/output'
+
 import { runSequence } from './utils/run-command.mjs'
 import { analyzeMetafile, buildConfig, watchConfig } from '../.config/esbuild.config.mjs'
 

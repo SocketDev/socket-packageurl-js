@@ -4,12 +4,12 @@ import path from 'node:path'
 import colors from 'yoctocolors-cjs'
 
 import constants from '@socketsecurity/registry/lib/constants'
+import { getCodeCoverage } from '@socketsecurity/registry/lib/cover/code'
+import { getTypeCoverage } from '@socketsecurity/registry/lib/cover/type'
 import { logger } from '@socketsecurity/registry/lib/logger'
 import { parseArgs } from '@socketsecurity/registry/lib/parse-args'
 import { indentString } from '@socketsecurity/registry/lib/strings'
 
-import { getCodeCoverage } from '@socketsecurity/registry/lib/cover/code'
-import { getTypeCoverage } from '@socketsecurity/registry/lib/cover/type'
 
 /**
  * Logs coverage percentage data including code and type coverage metrics.
