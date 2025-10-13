@@ -11,11 +11,8 @@ import { deleteAsync } from 'del'
 import fastGlob from 'fast-glob'
 
 import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
-import {
-  log,
-  printFooter,
-  printHeader
-} from '@socketsecurity/registry/lib/cli/output'
+import { logger } from '@socketsecurity/registry/lib/logger'
+import { createSectionHeader } from '@socketsecurity/registry/lib/stdio/header'
 
 const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -30,7 +27,7 @@ async function cleanDirectories(tasks, options = {}) {
     const patternsToDelete = patterns || [pattern]
 
     if (!quiet) {
-      log.progress(`Cleaning ${name}`)
+      logger.progress(`Cleaning ${name}`)
     }
 
     try {
@@ -50,14 +47,14 @@ async function cleanDirectories(tasks, options = {}) {
 
       if (!quiet) {
         if (files.length > 0) {
-          log.done(`Cleaned ${name} (${files.length} items)`)
+          logger.done(`Cleaned ${name} (${files.length} items)`)
         } else {
-          log.done(`Cleaned ${name} (already clean)`)
+          logger.done(`Cleaned ${name} (already clean)`)
         }
       }
     } catch (error) {
       if (!quiet) {
-        log.failed(`Failed to clean ${name}`)
+        logger.error(`Failed to clean ${name}`)
         console.error(error.message)
       }
       return 1
@@ -165,15 +162,15 @@ async function main() {
     // Check if there's anything to clean
     if (tasks.length === 0) {
       if (!quiet) {
-        log.info('Nothing to clean')
+        logger.info('Nothing to clean')
       }
       process.exitCode = 0
       return
     }
 
     if (!quiet) {
-      printHeader('Clean Runner', { width: 56, borderChar: '=' })
-      log.step('Cleaning project directories')
+      console.log(createSectionHeader('Clean Runner', { width: 56, borderChar: '=' }))
+      logger.step('Cleaning project directories')
     }
 
     // Clean directories
@@ -181,16 +178,16 @@ async function main() {
 
     if (exitCode !== 0) {
       if (!quiet) {
-        log.error('Clean failed')
+        logger.error('Clean failed')
       }
       process.exitCode = exitCode
     } else {
       if (!quiet) {
-        printFooter('Clean completed successfully!', { width: 56, borderChar: '=', color: 'green' })
+        logger.success('Clean completed successfully!')
       }
     }
   } catch (error) {
-    log.error(`Clean runner failed: ${error.message}`)
+    logger.error(`Clean runner failed: ${error.message}`)
     process.exitCode = 1
   }
 }

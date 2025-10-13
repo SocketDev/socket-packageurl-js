@@ -9,8 +9,11 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
-import { log, printFooter, printHeader } from '@socketsecurity/registry/lib/cli/output'
 import WIN32 from '@socketsecurity/registry/lib/constants/WIN32'
+import { logger } from '@socketsecurity/registry/lib/logger'
+import { onExit } from '@socketsecurity/registry/lib/signal-exit'
+import { spinner } from '@socketsecurity/registry/lib/spinner'
+import { printHeader } from '@socketsecurity/registry/lib/stdio/header'
 
 import { getTestsToRun } from './utils/changed-test-mapper.mjs'
 
@@ -18,6 +21,30 @@ import { getTestsToRun } from './utils/changed-test-mapper.mjs'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.resolve(__dirname, '..')
 const nodeModulesBinPath = path.join(rootPath, 'node_modules', '.bin')
+
+// Track running processes for cleanup
+const runningProcesses = new Set()
+
+// Setup exit handler
+const removeExitHandler = onExit((_code, signal) => {
+  // Stop spinner first
+  try {
+    spinner.stop()
+  } catch {}
+
+  // Kill all running processes
+  for (const child of runningProcesses) {
+    try {
+      child.kill('SIGTERM')
+    } catch {}
+  }
+
+  if (signal) {
+    console.log(`\nReceived ${signal}, cleaning up...`)
+    // Let onExit handle the exit with proper code
+    process.exitCode = 128 + (signal === 'SIGINT' ? 2 : 15)
+  }
+})
 
 async function runCommand(command, args = [], options = {}) {
   return new Promise((resolve, reject) => {
@@ -27,34 +54,40 @@ async function runCommand(command, args = [], options = {}) {
       ...options,
     })
 
+    runningProcesses.add(child)
+
     child.on('exit', code => {
+      runningProcesses.delete(child)
       resolve(code || 0)
     })
 
     child.on('error', error => {
+      runningProcesses.delete(child)
       reject(error)
     })
   })
 }
 
 async function runCheck() {
-  log.step('Running checks')
+  logger.step('Running checks')
 
   // Run fix (auto-format) quietly since it has its own output
-  log.progress('Formatting code')
+  spinner.start('Formatting code...')
   let exitCode = await runCommand('pnpm', ['run', 'fix'], {
     stdio: 'pipe'
   })
   if (exitCode !== 0) {
-    log.failed('Formatting failed')
+    spinner.stop()
+    logger.error('Formatting failed')
     // Re-run with output to show errors
     await runCommand('pnpm', ['run', 'fix'])
     return exitCode
   }
-  log.done('Code formatted')
+  spinner.stop()
+  logger.success('Code formatted')
 
   // Run ESLint to check for remaining issues
-  log.progress('Checking ESLint')
+  spinner.start('Running ESLint...')
   exitCode = await runCommand('eslint', [
     '--config',
     '.config/eslint.config.mjs',
@@ -64,7 +97,8 @@ async function runCheck() {
     stdio: 'pipe'
   })
   if (exitCode !== 0) {
-    log.failed('ESLint failed')
+    spinner.stop()
+    logger.error('ESLint failed')
     // Re-run with output to show errors
     await runCommand('eslint', [
       '--config',
@@ -74,10 +108,11 @@ async function runCheck() {
     ])
     return exitCode
   }
-  log.done('ESLint passed')
+  spinner.stop()
+  logger.success('ESLint passed')
 
   // Run TypeScript check
-  log.progress('Checking TypeScript')
+  spinner.start('Checking TypeScript...')
   exitCode = await runCommand('tsgo', [
     '--noEmit',
     '-p',
@@ -86,7 +121,8 @@ async function runCheck() {
     stdio: 'pipe'
   })
   if (exitCode !== 0) {
-    log.failed('TypeScript check failed')
+    spinner.stop()
+    logger.error('TypeScript check failed')
     // Re-run with output to show errors
     await runCommand('tsgo', [
       '--noEmit',
@@ -95,7 +131,8 @@ async function runCheck() {
     ])
     return exitCode
   }
-  log.done('TypeScript check passed')
+  spinner.stop()
+  logger.success('TypeScript check passed')
 
   return exitCode
 }
@@ -103,7 +140,7 @@ async function runCheck() {
 async function runBuild() {
   const distIndexPath = path.join(rootPath, 'dist', 'index.js')
   if (!existsSync(distIndexPath)) {
-    log.step('Building project')
+    logger.step('Building project')
     return runCommand('pnpm', ['run', 'build'])
   }
   return 0
@@ -119,7 +156,7 @@ async function runTests(options, positionals = []) {
 
   // No tests needed
   if (testsToRun === null) {
-    log.substep('No relevant changes detected, skipping tests')
+    logger.substep('No relevant changes detected, skipping tests')
     return 0
   }
 
@@ -141,11 +178,11 @@ async function runTests(options, positionals = []) {
 
   // Add test patterns if not running all
   if (testsToRun === 'all') {
-    log.step(`Running all tests (${reason})`)
+    logger.step(`Running all tests (${reason})`)
   } else {
     const modeText = mode === 'staged' ? 'staged' : 'changed'
-    log.step(`Running tests for ${modeText} files:`)
-    testsToRun.forEach(test => log.substep(test))
+    logger.step(`Running tests for ${modeText} files:`)
+    testsToRun.forEach(test => logger.substep(test))
     vitestArgs.push(...testsToRun)
   }
 
@@ -271,7 +308,7 @@ async function main() {
       return
     }
 
-    printHeader('Test Runner', { width: 56, borderChar: '=' })
+    printHeader('Test Runner')
 
     // Handle aliases
     const skipChecks = values.fast || values.quick
@@ -283,18 +320,18 @@ async function main() {
     if (!skipChecks) {
       exitCode = await runCheck()
       if (exitCode !== 0) {
-        log.error('Checks failed')
+        logger.error('Checks failed')
         process.exitCode = exitCode
         return
       }
-      log.success('All checks passed')
+      logger.success('All checks passed')
     }
 
     // Run build unless skipped
     if (!values['skip-build']) {
       exitCode = await runBuild()
       if (exitCode !== 0) {
-        log.error('Build failed')
+        logger.error('Build failed')
         process.exitCode = exitCode
         return
       }
@@ -304,14 +341,24 @@ async function main() {
     exitCode = await runTests({ ...values, coverage: withCoverage }, positionals)
 
     if (exitCode !== 0) {
-      log.error('Tests failed')
+      logger.error('Tests failed')
       process.exitCode = exitCode
     } else {
-      printFooter('All tests passed!', { width: 56, borderChar: '=', color: 'green' })
+      logger.success('All tests passed!')
     }
   } catch (error) {
-    log.error(`Test runner failed: ${error.message}`)
+    // Ensure spinner is stopped
+    try {
+      spinner.stop()
+    } catch {}
+    logger.error(`Test runner failed: ${error.message}`)
     process.exitCode = 1
+  } finally {
+    // Ensure spinner is stopped
+    try {
+      spinner.stop()
+    } catch {}
+    removeExitHandler()
   }
 }
 

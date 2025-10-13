@@ -14,7 +14,8 @@ import { parseArgs } from 'node:util'
 import semver from 'semver'
 import colors from 'yoctocolors-cjs'
 
-import { log, printFooter, printHeader } from '@socketsecurity/registry/lib/cli/output'
+import { logger } from '@socketsecurity/registry/lib/logger'
+import { printFooter, printHeader } from '@socketsecurity/registry/lib/stdio/header'
 
 const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const WIN32 = process.platform === 'win32'
@@ -195,8 +196,8 @@ function getNewVersion(currentVersion, bumpType) {
 async function checkGitStatus() {
   const result = await runCommandWithOutput('git', ['status', '--porcelain'])
   if (result.stdout.trim()) {
-    log.error('Working directory is not clean')
-    log.info('Uncommitted changes:')
+    logger.error('Working directory is not clean')
+    logger.info('Uncommitted changes:')
     console.log(result.stdout)
     return false
   }
@@ -210,7 +211,7 @@ async function checkGitBranch() {
   const result = await runCommandWithOutput('git', ['rev-parse', '--abbrev-ref', 'HEAD'])
   const branch = result.stdout.trim()
   if (branch !== 'main' && branch !== 'master') {
-    log.warn(`Not on main/master branch (current: ${branch})`)
+    logger.warn(`Not on main/master branch (current: ${branch})`)
     return false
   }
   return true
@@ -251,7 +252,7 @@ async function getPackageName() {
  * Generate changelog using Claude.
  */
 async function generateChangelog(claudeCmd, currentVersion, newVersion) {
-  log.step('Generating changelog with Claude')
+  logger.step('Generating changelog with Claude')
 
   // Get recent commits for context
   const recentCommits = await getRecentCommits()
@@ -267,7 +268,7 @@ New version: ${newVersion}
 Recent commits since last release:
 ${recentCommits}
 
-Generate a changelog entry following the Keep a Changelog format (https://keepachangelog.com/).
+Generate a changelog entry following the Keep a Changelog format (https://keepachangelogger.com/).
 Include only the entry for this version, not the entire file.
 Format it like this:
 
@@ -291,7 +292,7 @@ Be concise but informative. Group related changes together.`
   await fs.writeFile(promptPath, prompt)
 
   // Call Claude to generate the changelog
-  log.progress('Asking Claude to generate changelog')
+  logger.progress('Asking Claude to generate changelog')
 
   const claudeResult = await runCommandWithOutput(claudeCmd, [], {
     input: prompt,
@@ -304,11 +305,11 @@ Be concise but informative. Group related changes together.`
   } catch {}
 
   if (claudeResult.exitCode !== 0) {
-    log.failed('Claude failed to generate changelog')
+    logger.failed('Claude failed to generate changelog')
     throw new Error('Claude failed to generate changelog')
   }
 
-  log.done('Changelog generated')
+  logger.done('Changelog generated')
   return claudeResult.stdout.trim()
 }
 
@@ -327,7 +328,7 @@ async function updateChangelog(changelogEntry) {
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/),
+The format is based on [Keep a Changelog](https://keepachangelogger.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
 `
@@ -379,7 +380,7 @@ async function reviewChangelog(claudeCmd, changelogEntry, interactive = false) {
         continue
       }
 
-      log.progress('Refining changelog with Claude')
+      logger.progress('Refining changelog with Claude')
 
       const refinePrompt = `Please refine this changelog entry based on the following feedback:
 
@@ -399,7 +400,7 @@ Provide the refined changelog entry in the same format.`
 
       if (refineResult.exitCode === 0) {
         changelogEntry = refineResult.stdout.trim()
-        log.done('Changelog refined')
+        logger.done('Changelog refined')
 
         console.log('\n' + colors.blue('━'.repeat(60)))
         console.log(colors.blue('Refined Changelog Entry:'))
@@ -407,7 +408,7 @@ Provide the refined changelog entry in the same format.`
         console.log(changelogEntry)
         console.log(colors.blue('━'.repeat(60)) + '\n')
       } else {
-        log.failed('Failed to refine changelog')
+        logger.failed('Failed to refine changelog')
       }
     } else if (response.toLowerCase() === 'no') {
       // Allow manual editing
@@ -551,7 +552,7 @@ Add technical details, specific file changes, implementation details, and any br
 
     // Send to Claude for refinement
     if (feedbackPrompt) {
-      log.progress('Updating changelog with Claude')
+      logger.progress('Updating changelog with Claude')
 
       // eslint-disable-next-line no-await-in-loop
       const refineResult = await runCommandWithOutput(claudeCmd, [], {
@@ -561,9 +562,9 @@ Add technical details, specific file changes, implementation details, and any br
 
       if (refineResult.exitCode === 0) {
         currentEntry = refineResult.stdout.trim()
-        log.done('Changelog updated')
+        logger.done('Changelog updated')
       } else {
-        log.failed('Failed to update changelog')
+        logger.failed('Failed to update changelog')
         // eslint-disable-next-line no-await-in-loop
         const retry = await prompts.confirm({
           message: 'Failed to update. Try again?',
@@ -663,83 +664,83 @@ async function main() {
 
     // Check git status unless skipped
     if (!values['skip-checks']) {
-      log.step('Checking prerequisites')
+      logger.step('Checking prerequisites')
 
-      log.progress('Checking git status')
+      logger.progress('Checking git status')
       const gitClean = await checkGitStatus()
       if (!gitClean && !values.force) {
-        log.failed('Git working directory is not clean')
+        logger.failed('Git working directory is not clean')
         process.exitCode = 1
         return
       }
-      log.done('Git status clean')
+      logger.done('Git status clean')
 
-      log.progress('Checking git branch')
+      logger.progress('Checking git branch')
       const onMainBranch = await checkGitBranch()
       if (!onMainBranch && !values.force) {
-        log.failed('Not on main/master branch')
+        logger.failed('Not on main/master branch')
         process.exitCode = 1
         return
       }
-      log.done('On main/master branch')
+      logger.done('On main/master branch')
     }
 
     // Check for Claude if not skipping changelog
     let claudeCmd = null
     if (!values['skip-changelog']) {
-      log.progress('Checking for Claude CLI')
+      logger.progress('Checking for Claude CLI')
       claudeCmd = await checkClaude()
       if (!claudeCmd) {
-        log.failed('claude-console not found')
-        log.error('Please install claude-console: https://github.com/anthropics/claude-console')
-        log.info('Install with: npm install -g @anthropic/claude-console')
-        log.info('Or use --skip-changelog to skip AI-generated changelog')
+        logger.failed('claude-console not found')
+        logger.error('Please install claude-console: https://github.com/anthropics/claude-console')
+        logger.info('Install with: npm install -g @anthropic/claude-console')
+        logger.info('Or use --skip-changelog to skip AI-generated changelog')
         process.exitCode = 1
         return
       }
-      log.done(`Found Claude CLI: ${claudeCmd}`)
+      logger.done(`Found Claude CLI: ${claudeCmd}`)
     }
 
     // Get current version
     const currentVersion = await getCurrentVersion()
-    log.info(`Current version: ${currentVersion}`)
+    logger.info(`Current version: ${currentVersion}`)
 
     // Calculate new version
     const newVersion = getNewVersion(currentVersion, values.bump)
     if (!newVersion) {
-      log.error('Failed to calculate new version')
+      logger.error('Failed to calculate new version')
       process.exitCode = 1
       return
     }
-    log.info(`New version: ${newVersion}`)
+    logger.info(`New version: ${newVersion}`)
 
     // Confirm version bump
     if (!await confirm(`Bump version from ${currentVersion} to ${newVersion}?`)) {
-      log.info('Version bump cancelled')
+      logger.info('Version bump cancelled')
       process.exitCode = 0
       return
     }
 
     // Update package.json
-    log.step('Updating version')
-    log.progress('Updating package.json')
+    logger.step('Updating version')
+    logger.progress('Updating package.json')
     const pkgJson = await readPackageJson()
     pkgJson.version = newVersion
     await writePackageJson(pkgJson)
-    log.done('Updated package.json')
+    logger.done('Updated package.json')
 
     // Update lockfile
-    log.progress('Updating lockfile')
+    logger.progress('Updating lockfile')
     await runCommand('pnpm', ['install', '--lockfile-only'], { stdio: 'pipe' })
-    log.done('Updated lockfile')
+    logger.done('Updated lockfile')
 
     // Check for interactive mode availability
     // Only warn if explicitly requested via --interactive flag
     const explicitlyRequestedInteractive = process.argv.includes('--interactive')
     if (values.interactive && !hasInteractivePrompts) {
       if (explicitlyRequestedInteractive) {
-        log.warn('Interactive mode requested but prompts not available')
-        log.info('To enable: install @socketsecurity/registry or build local registry')
+        logger.warn('Interactive mode requested but prompts not available')
+        logger.info('To enable: install @socketsecurity/registry or build local registry')
       }
       values.interactive = false
     }
@@ -750,59 +751,59 @@ async function main() {
       changelogEntry = await generateChangelog(claudeCmd, currentVersion, newVersion)
       changelogEntry = await reviewChangelog(claudeCmd, changelogEntry, values.interactive)
 
-      log.progress('Updating CHANGELOG.md')
+      logger.progress('Updating CHANGELOG.md')
       await updateChangelog(changelogEntry)
-      log.done('Updated CHANGELOG.md')
+      logger.done('Updated CHANGELOG.md')
     }
 
     // Create commit
-    log.step('Creating commit')
+    logger.step('Creating commit')
     const packageName = await getPackageName()
     const commitMessage = packageName === 'registry package'
       ? `Bump registry package to v${newVersion}`
       : `Bump to v${newVersion}`
 
-    log.progress('Staging changes')
+    logger.progress('Staging changes')
     await runCommand('git', ['add', 'package.json', 'pnpm-lock.yaml'])
     if (changelogEntry) {
       await runCommand('git', ['add', 'CHANGELOG.md'])
     }
-    log.done('Changes staged')
+    logger.done('Changes staged')
 
-    log.progress('Creating commit')
+    logger.progress('Creating commit')
     await runCommand('git', ['commit', '-m', commitMessage])
-    log.done(`Created commit: ${commitMessage}`)
+    logger.done(`Created commit: ${commitMessage}`)
 
     // Create tag
-    log.progress('Creating tag')
+    logger.progress('Creating tag')
     const tagName = `v${newVersion}`
     await runCommand('git', ['tag', tagName, '-m', `Release ${tagName}`])
-    log.done(`Created tag: ${tagName}`)
+    logger.done(`Created tag: ${tagName}`)
 
     // Push to remote
     if (!values['no-push']) {
       if (await confirm('Push changes to remote?')) {
-        log.step('Pushing to remote')
+        logger.step('Pushing to remote')
 
-        log.progress('Pushing commits')
+        logger.progress('Pushing commits')
         await runCommand('git', ['push'])
-        log.done('Pushed commits')
+        logger.done('Pushed commits')
 
-        log.progress('Pushing tags')
+        logger.progress('Pushing tags')
         await runCommand('git', ['push', '--tags'])
-        log.done('Pushed tags')
+        logger.done('Pushed tags')
       }
     }
 
     printFooter(`Version bumped to ${newVersion}!`)
 
-    log.info('\nNext steps:')
-    log.substep('1. Run `pnpm publish` to publish to npm')
-    log.substep('2. Create GitHub release if needed')
+    logger.info('\nNext steps:')
+    logger.substep('1. Run `pnpm publish` to publish to npm')
+    logger.substep('2. Create GitHub release if needed')
 
     process.exitCode = 0
   } catch (error) {
-    log.error(`Version bump failed: ${error.message}`)
+    logger.error(`Version bump failed: ${error.message}`)
     process.exitCode = 1
   }
 }

@@ -9,7 +9,8 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
-import { log, printFooter, printHeader } from '@socketsecurity/registry/lib/cli/output'
+import { logger } from '@socketsecurity/registry/lib/logger'
+import { printFooter, printHeader } from '@socketsecurity/registry/lib/stdio/header'
 
 const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const WIN32 = process.platform === 'win32'
@@ -82,8 +83,8 @@ async function readPackageJson(pkgPath = rootPath) {
 async function checkGitStatus() {
   const result = await runCommandWithOutput('git', ['status', '--porcelain'])
   if (result.stdout.trim()) {
-    log.error('Working directory is not clean')
-    log.info('Uncommitted changes:')
+    logger.error('Working directory is not clean')
+    logger.info('Uncommitted changes:')
     console.log(result.stdout)
     return false
   }
@@ -97,7 +98,7 @@ async function checkGitBranch() {
   const result = await runCommandWithOutput('git', ['rev-parse', '--abbrev-ref', 'HEAD'])
   const branch = result.stdout.trim()
   if (branch !== 'main' && branch !== 'master') {
-    log.warn(`Not on main/master branch (current: ${branch})`)
+    logger.warn(`Not on main/master branch (current: ${branch})`)
     return false
   }
   return true
@@ -138,55 +139,55 @@ function isRegistryPackage() {
 async function runPrePublishChecks(options = {}) {
   const { skipBranchCheck = false, skipGitCheck = false } = options
 
-  log.step('Running pre-publish checks')
+  logger.step('Running pre-publish checks')
 
   // Check git status
   if (!skipGitCheck) {
-    log.progress('Checking git status')
+    logger.progress('Checking git status')
     const gitClean = await checkGitStatus()
     if (!gitClean) {
-      log.failed('Git status check failed')
+      logger.failed('Git status check failed')
       return false
     }
-    log.done('Git status clean')
+    logger.done('Git status clean')
   }
 
   // Check git branch
   if (!skipBranchCheck) {
-    log.progress('Checking git branch')
+    logger.progress('Checking git branch')
     const onMainBranch = await checkGitBranch()
     if (!onMainBranch && !options.force) {
-      log.failed('Not on main/master branch')
+      logger.failed('Not on main/master branch')
       return false
     }
     if (!onMainBranch) {
-      log.done('Branch check skipped (forced)')
+      logger.done('Branch check skipped (forced)')
     } else {
-      log.done('On main/master branch')
+      logger.done('On main/master branch')
     }
   }
 
   // Run tests
-  log.progress('Running tests')
+  logger.progress('Running tests')
   const testCode = await runCommand('pnpm', ['test', '--all'], { stdio: 'pipe' })
   if (testCode !== 0) {
-    log.failed('Tests failed')
+    logger.failed('Tests failed')
     // Re-run with output
     await runCommand('pnpm', ['test', '--all'])
     return false
   }
-  log.done('Tests passed')
+  logger.done('Tests passed')
 
   // Run checks
-  log.progress('Running checks')
+  logger.progress('Running checks')
   const checkCode = await runCommand('pnpm', ['check', '--all'], { stdio: 'pipe' })
   if (checkCode !== 0) {
-    log.failed('Checks failed')
+    logger.failed('Checks failed')
     // Re-run with output
     await runCommand('pnpm', ['check', '--all'])
     return false
   }
-  log.done('Checks passed')
+  logger.done('Checks passed')
 
   return true
 }
@@ -195,25 +196,25 @@ async function runPrePublishChecks(options = {}) {
  * Build the project.
  */
 async function buildProject() {
-  log.step('Building project')
+  logger.step('Building project')
 
-  log.progress('Cleaning build directories')
+  logger.progress('Cleaning build directories')
   const cleanCode = await runCommand('pnpm', ['clean', '--dist'], { stdio: 'pipe' })
   if (cleanCode !== 0) {
-    log.failed('Clean failed')
+    logger.failed('Clean failed')
     return false
   }
-  log.done('Build directories cleaned')
+  logger.done('Build directories cleaned')
 
-  log.progress('Building package')
+  logger.progress('Building package')
   const buildCode = await runCommand('pnpm', ['build'], { stdio: 'pipe' })
   if (buildCode !== 0) {
-    log.failed('Build failed')
+    logger.failed('Build failed')
     // Re-run with output
     await runCommand('pnpm', ['build'])
     return false
   }
-  log.done('Build complete')
+  logger.done('Build complete')
 
   return true
 }
@@ -228,18 +229,18 @@ async function publishSimple(options = {}) {
   const packageName = pkgJson.name
   const version = pkgJson.version
 
-  log.step(`Publishing ${packageName}@${version}`)
+  logger.step(`Publishing ${packageName}@${version}`)
 
   // Check if version already exists
-  log.progress('Checking npm registry')
+  logger.progress('Checking npm registry')
   const exists = await versionExists(packageName, version)
   if (exists) {
-    log.warn(`Version ${version} already exists on npm`)
+    logger.warn(`Version ${version} already exists on npm`)
     if (!options.force) {
       return false
     }
   }
-  log.done('Version check complete')
+  logger.done('Version check complete')
 
   // Prepare publish args
   const publishArgs = ['publish', '--access', access, '--tag', tag]
@@ -258,18 +259,18 @@ async function publishSimple(options = {}) {
   }
 
   // Publish
-  log.progress(dryRun ? 'Running dry-run publish' : 'Publishing to npm')
+  logger.progress(dryRun ? 'Running dry-run publish' : 'Publishing to npm')
   const publishCode = await runCommand('npm', publishArgs)
 
   if (publishCode !== 0) {
-    log.failed('Publish failed')
+    logger.failed('Publish failed')
     return false
   }
 
   if (dryRun) {
-    log.done('Dry-run publish complete')
+    logger.done('Dry-run publish complete')
   } else {
-    log.done(`Published ${packageName}@${version} to npm`)
+    logger.done(`Published ${packageName}@${version} to npm`)
   }
 
   return true
@@ -283,7 +284,7 @@ async function publishComplex(options = {}) {
   // Check for project-specific publish script
   const projectPublishPath = path.join(rootPath, 'scripts', 'publish-packages.mjs')
   if (existsSync(projectPublishPath)) {
-    log.step('Running project-specific publish script')
+    logger.step('Running project-specific publish script')
     const exitCode = await runCommand('node', [projectPublishPath], {
       env: {
         ...process.env,
@@ -294,7 +295,7 @@ async function publishComplex(options = {}) {
   }
 
   // Fall back to simple publish
-  log.info('No project-specific publish script found, using simple flow')
+  logger.info('No project-specific publish script found, using simple flow')
   return publishSimple(options)
 }
 
@@ -307,27 +308,27 @@ async function pushExistingTag(version, options = {}) {
 
   const tagName = `v${version}`
 
-  log.step('Checking git tag')
+  logger.step('Checking git tag')
 
   // Check if tag exists locally
-  log.progress(`Checking for local tag ${tagName}`)
+  logger.progress(`Checking for local tag ${tagName}`)
   const localTagResult = await runCommandWithOutput('git', ['tag', '-l', tagName])
   if (!localTagResult.stdout.trim()) {
-    log.done('No local tag to push')
+    logger.done('No local tag to push')
     return true
   }
-  log.done(`Local tag ${tagName} exists`)
+  logger.done(`Local tag ${tagName} exists`)
 
   // Check if tag exists on remote
-  log.progress(`Checking remote for tag ${tagName}`)
+  logger.progress(`Checking remote for tag ${tagName}`)
   const remoteTagResult = await runCommandWithOutput('git', ['ls-remote', '--tags', 'origin', tagName])
   if (remoteTagResult.stdout.trim()) {
-    log.done('Tag already exists on remote')
+    logger.done('Tag already exists on remote')
     return true
   }
 
   // Push existing tag to remote
-  log.progress(`Pushing tag ${tagName} to remote`)
+  logger.progress(`Pushing tag ${tagName} to remote`)
   const pushArgs = ['push', 'origin', tagName]
   if (force) {
     pushArgs.push('-f')
@@ -335,10 +336,10 @@ async function pushExistingTag(version, options = {}) {
 
   const pushCode = await runCommand('git', pushArgs)
   if (pushCode !== 0) {
-    log.failed('Tag push failed')
+    logger.failed('Tag push failed')
     return false
   }
-  log.done('Pushed tag to remote')
+  logger.done('Pushed tag to remote')
 
   return true
 }
@@ -422,7 +423,7 @@ async function main() {
 
     // Check CI restrictions
     if (CI && values['skip-build']) {
-      log.error('--skip-build is not allowed in CI')
+      logger.error('--skip-build is not allowed in CI')
       process.exitCode = 1
       return
     }
@@ -431,7 +432,7 @@ async function main() {
 
     // Get current version
     const version = await getCurrentVersion()
-    log.info(`Current version: ${version}`)
+    logger.info(`Current version: ${version}`)
 
     // Run pre-publish checks unless skipped
     if (!values['skip-checks']) {
@@ -441,7 +442,7 @@ async function main() {
         force: values.force
       })
       if (!checksPass && !values.force) {
-        log.error('Pre-publish checks failed')
+        logger.error('Pre-publish checks failed')
         process.exitCode = 1
         return
       }
@@ -451,7 +452,7 @@ async function main() {
     if (!values['skip-build']) {
       const buildSuccess = await buildProject()
       if (!buildSuccess && !values.force) {
-        log.error('Build failed')
+        logger.error('Build failed')
         process.exitCode = 1
         return
       }
@@ -478,7 +479,7 @@ async function main() {
     }
 
     if (!publishSuccess && !values.force) {
-      log.error('Publish failed')
+      logger.error('Publish failed')
       process.exitCode = 1
       return
     }
@@ -494,7 +495,7 @@ async function main() {
     printFooter('Publish completed successfully!', { width: 56, borderChar: '=', color: 'green' })
     process.exitCode = 0
   } catch (error) {
-    log.error(`Publish runner failed: ${error.message}`)
+    logger.error(`Publish runner failed: ${error.message}`)
     process.exitCode = 1
   }
 }

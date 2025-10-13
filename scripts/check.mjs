@@ -5,12 +5,9 @@
 
 import { parseArgs } from 'node:util'
 
-import {
-  log,
-  printFooter,
-  printHeader,
-  printSuccess,
-} from './utils/cli-helpers.mjs'
+import { logger } from '@socketsecurity/registry/lib/logger'
+import { printFooter, printHeader } from '@socketsecurity/registry/lib/stdio/header'
+
 import { runCommandQuiet } from './utils/run-command.mjs'
 
 /**
@@ -20,7 +17,7 @@ async function runEslintCheck(options = {}) {
   const { quiet = false } = options
 
   if (!quiet) {
-    log.progress('Checking ESLint')
+    logger.progress('Checking ESLint')
   }
 
   const result = await runCommandQuiet('eslint', [
@@ -32,7 +29,7 @@ async function runEslintCheck(options = {}) {
 
   if (result.exitCode !== 0) {
     if (!quiet) {
-      log.failed('ESLint check failed')
+      logger.error('ESLint check failed')
     }
     if (result.stdout) {
       console.log(result.stdout)
@@ -44,7 +41,7 @@ async function runEslintCheck(options = {}) {
   }
 
   if (!quiet) {
-    log.done('ESLint check passed')
+    logger.done('ESLint check passed')
   }
 
   return 0
@@ -57,7 +54,7 @@ async function runTypeCheck(options = {}) {
   const { quiet = false } = options
 
   if (!quiet) {
-    log.progress('Checking TypeScript')
+    logger.progress('Checking TypeScript')
   }
 
   const result = await runCommandQuiet('tsgo', [
@@ -68,7 +65,7 @@ async function runTypeCheck(options = {}) {
 
   if (result.exitCode !== 0) {
     if (!quiet) {
-      log.failed('TypeScript check failed')
+      logger.error('TypeScript check failed')
     }
     if (result.stdout) {
       console.log(result.stdout)
@@ -80,7 +77,7 @@ async function runTypeCheck(options = {}) {
   }
 
   if (!quiet) {
-    log.done('TypeScript check passed')
+    logger.done('TypeScript check passed')
   }
 
   return 0
@@ -138,7 +135,7 @@ async function main() {
 
     if (!quiet) {
       printHeader('Running Checks')
-      log.step('Running code quality checks')
+      logger.step('Running code quality checks')
     }
 
     let exitCode = 0
@@ -148,7 +145,7 @@ async function main() {
       exitCode = await runEslintCheck({ quiet })
       if (exitCode !== 0) {
         if (!quiet) {
-          log.error('Checks failed')
+          logger.error('Checks failed')
         }
         process.exitCode = exitCode
         return
@@ -160,7 +157,7 @@ async function main() {
       exitCode = await runTypeCheck({ quiet })
       if (exitCode !== 0) {
         if (!quiet) {
-          log.error('Checks failed')
+          logger.error('Checks failed')
         }
         process.exitCode = exitCode
         return
@@ -168,11 +165,11 @@ async function main() {
     }
 
     if (!quiet) {
-      printSuccess('All checks passed')
+      logger.success('All checks passed')
       printFooter()
     }
   } catch (error) {
-    log.error(`Check runner failed: ${error.message}`)
+    logger.error(`Check runner failed: ${error.message}`)
     process.exitCode = 1
   }
 }

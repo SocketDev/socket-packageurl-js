@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * @fileoverview Unified runner for interactive commands with Ctrl+O toggle.
  * Standardized across all socket-* repositories.
@@ -6,6 +5,7 @@
 
 import { spawn } from 'node:child_process'
 import readline from 'node:readline'
+
 import { spinner } from '@socketsecurity/registry/lib/spinner'
 
 // Will import from registry once built:
@@ -26,12 +26,12 @@ import { spinner } from '@socketsecurity/registry/lib/spinner'
  */
 export async function runWithOutput(command, args = [], options = {}) {
   const {
-    message = 'Running',
-    toggleText = 'to see output',
-    showOnError = true,
-    verbose = false,
+    cwd = process.cwd(),
     env = process.env,
-    cwd = process.cwd()
+    message = 'Running',
+    showOnError = true,
+    toggleText = 'to see output',
+    verbose = false
   } = options
 
   return new Promise((resolve, reject) => {
@@ -90,7 +90,11 @@ export async function runWithOutput(command, args = [], options = {}) {
           if (process.stdin.isTTY) {
             process.stdin.setRawMode(false)
           }
-          process.exit(130)
+          process.exitCode = 130
+          // Force exit after cleanup
+          setImmediate(() => {
+            process.kill(process.pid, 'SIGTERM')
+          })
         }
       }
 
