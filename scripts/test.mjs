@@ -354,12 +354,24 @@ async function main() {
     logger.error(`Test runner failed: ${error.message}`)
     process.exitCode = 1
   } finally {
-    // Ensure spinner is stopped
+    // Ensure spinner is stopped and cleared
     try {
       spinner.stop()
     } catch {}
+    try {
+      // Clear any remaining spinner output - multiple times to be sure
+      process.stdout.write('\r\x1b[K')
+      process.stdout.write('\r')
+    } catch {}
     removeExitHandler()
+    // Explicitly exit to prevent hanging
+    // eslint-disable-next-line n/no-process-exit
+    process.exit(process.exitCode || 0)
   }
 }
 
-main().catch(console.error)
+main().catch(error => {
+  console.error(error)
+  // eslint-disable-next-line n/no-process-exit
+  process.exit(1)
+})

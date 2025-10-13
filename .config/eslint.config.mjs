@@ -168,6 +168,14 @@ export default [
     },
   },
   {
+    // Relax rules for script files
+    files: ['scripts/**/*.mjs'],
+    rules: {
+      'n/no-process-exit': 'off',
+      'no-await-in-loop': 'off',
+    },
+  },
+  {
     files: ['**/*.ts', '**/*.mts'],
     languageOptions: {
       parser: typescriptParser,
