@@ -168,6 +168,24 @@ async function runTests(options, positionals = []) {
   const dotenvxCmd = WIN32 ? 'dotenvx.cmd' : 'dotenvx'
   const dotenvxPath = path.join(nodeModulesBinPath, dotenvxCmd)
 
+  // Use unified runner for interactive Ctrl+O experience when appropriate
+  if (process.stdout.isTTY) {
+    const { runTests } = await import('./utils/unified-runner.mjs')
+    return runTests(dotenvxPath, [
+      '-q',
+      'run',
+      '-f',
+      '.env.test',
+      '--',
+      vitestPath,
+      ...vitestArgs
+    ], {
+      env: spawnOptions.env,
+      cwd: spawnOptions.cwd,
+      verbose: false
+    })
+  }
+
   return runCommand(dotenvxPath, [
     '-q',
     'run',

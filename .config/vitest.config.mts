@@ -12,24 +12,24 @@ export default defineConfig({
     environment: 'node',
     include: ['test/**/*.test.mts'],
     reporters: ['default'],
-    // Improve memory usage by running tests sequentially in CI.
-    pool: 'forks',
+    setupFiles: ['./test/utils/setup.mts'],
+    // Use threads for better performance
+    pool: 'threads',
     poolOptions: {
-      forks: {
-        // Use single fork for coverage to reduce memory, parallel otherwise.
-        singleFork: isCoverageEnabled,
-        maxForks: isCoverageEnabled ? 1 : undefined,
-        // Isolate tests to prevent memory leaks between test files.
-        isolate: true,
-      },
       threads: {
         // Use single thread for coverage to reduce memory, parallel otherwise.
         singleThread: isCoverageEnabled,
-        maxThreads: isCoverageEnabled ? 1 : undefined,
+        maxThreads: isCoverageEnabled ? 1 : 16,
+        minThreads: isCoverageEnabled ? 1 : 4,
+        // Don't isolate to reduce overhead
+        isolate: false,
+        // Use worker threads for better performance
+        useAtomics: true,
       },
     },
-    testTimeout: 60_000,
-    hookTimeout: 60_000,
+    // Reduce timeouts for faster failures
+    testTimeout: 10_000,
+    hookTimeout: 10_000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov', 'clover'],
