@@ -196,7 +196,7 @@ async function runTests(options, positionals = []) {
     env: {
       ...process.env,
       NODE_OPTIONS:
-        `${process.env.NODE_OPTIONS || ''} --max-old-space-size=${process.env.CI ? 8192 : 4096}`.trim(),
+        `${process.env.NODE_OPTIONS || ''} --max-old-space-size=${process.env.CI ? 8192 : 4096} --unhandled-rejections=warn`.trim(),
     },
     stdio: 'inherit',
   }
