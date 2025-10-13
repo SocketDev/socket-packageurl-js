@@ -32,7 +32,6 @@ async function cleanDirectories(tasks, options = {}) {
 
     try {
       // Find all files/dirs matching the patterns
-      // eslint-disable-next-line no-await-in-loop
       const files = await fastGlob(patternsToDelete, {
         cwd: rootPath,
         absolute: true,
@@ -42,7 +41,6 @@ async function cleanDirectories(tasks, options = {}) {
       })
 
       // Delete each file/directory
-      // eslint-disable-next-line no-await-in-loop
       await deleteAsync(files)
 
       if (!quiet) {

@@ -365,13 +365,11 @@ async function main() {
     } catch {}
     removeExitHandler()
     // Explicitly exit to prevent hanging
-    // eslint-disable-next-line n/no-process-exit
     process.exit(process.exitCode || 0)
   }
 }
 
 main().catch(error => {
   console.error(error)
-  // eslint-disable-next-line n/no-process-exit
   process.exit(1)
 })

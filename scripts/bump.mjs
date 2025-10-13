@@ -365,7 +365,6 @@ async function reviewChangelog(claudeCmd, changelogEntry, interactive = false) {
 
   // Fall back to basic prompts
   while (true) {
-    // eslint-disable-next-line no-await-in-loop
     const response = await prompt('Accept this changelog? (yes/no/edit)', 'yes')
 
     if (response.toLowerCase().startsWith('y')) {
@@ -373,7 +372,6 @@ async function reviewChangelog(claudeCmd, changelogEntry, interactive = false) {
     }
 
     if (response.toLowerCase() === 'edit') {
-      // eslint-disable-next-line no-await-in-loop
       const feedback = await prompt('Provide feedback for Claude to refine the changelog')
 
       if (!feedback) {
@@ -392,7 +390,6 @@ ${feedback}
 
 Provide the refined changelog entry in the same format.`
 
-      // eslint-disable-next-line no-await-in-loop
       const refineResult = await runCommandWithOutput(claudeCmd, [], {
         input: refinePrompt,
         stdio: ['pipe', 'pipe', 'pipe']
@@ -412,7 +409,6 @@ Provide the refined changelog entry in the same format.`
       }
     } else if (response.toLowerCase() === 'no') {
       // Allow manual editing
-      // eslint-disable-next-line no-await-in-loop
       const manualEntry = await prompt('Enter changelog manually (or press Enter to cancel)')
       if (manualEntry) {
         return manualEntry
@@ -438,7 +434,6 @@ async function interactiveReviewChangelog(claudeCmd, changelogEntry) {
     console.log(colors.dim('─'.repeat(60)) + '\n')
 
     // Offer action choices
-    // eslint-disable-next-line no-await-in-loop
     const action = await prompts.select({
       message: 'What would you like to do?',
       choices: [
@@ -458,7 +453,6 @@ async function interactiveReviewChangelog(claudeCmd, changelogEntry) {
     }
 
     if (action === 'cancel') {
-      // eslint-disable-next-line no-await-in-loop
       const confirmCancel = await prompts.confirm({
         message: 'Are you sure you want to cancel the version bump?',
         default: false
@@ -505,7 +499,6 @@ ${changelogEntry}
 
 Generate a fresh changelog entry with the same version information but different wording and potentially different emphasis.`
     } else if (action === 'refine') {
-      // eslint-disable-next-line no-await-in-loop
       const feedback = await prompts.input({
         message: 'Describe what changes you want:',
         validate: value => value.trim() ? true : 'Please provide feedback'
@@ -520,7 +513,6 @@ Feedback: ${feedback}
 
 Provide the refined changelog entry.`
     } else if (action === 'add') {
-      // eslint-disable-next-line no-await-in-loop
       const additions = await prompts.input({
         message: 'What information is missing?',
         validate: value => value.trim() ? true : 'Please describe what to add'
@@ -554,7 +546,6 @@ Add technical details, specific file changes, implementation details, and any br
     if (feedbackPrompt) {
       logger.progress('Updating changelog with Claude')
 
-      // eslint-disable-next-line no-await-in-loop
       const refineResult = await runCommandWithOutput(claudeCmd, [], {
         input: feedbackPrompt,
         stdio: ['pipe', 'pipe', 'pipe']
@@ -565,7 +556,6 @@ Add technical details, specific file changes, implementation details, and any br
         logger.done('Changelog updated')
       } else {
         logger.failed('Failed to update changelog')
-        // eslint-disable-next-line no-await-in-loop
         const retry = await prompts.confirm({
           message: 'Failed to update. Try again?',
           default: true

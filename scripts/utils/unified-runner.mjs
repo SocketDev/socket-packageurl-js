@@ -92,7 +92,6 @@ export async function runWithOutput(command, args = [], options = {}) {
           if (process.stdin.isTTY) {
             process.stdin.setRawMode(false)
           }
-          // eslint-disable-next-line n/no-process-exit
           process.exit(130)
         }
       }

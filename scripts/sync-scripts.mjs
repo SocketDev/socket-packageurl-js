@@ -137,7 +137,6 @@ async function main() {
     const projectName = path.basename(project)
 
     // Check if project exists
-    // eslint-disable-next-line no-await-in-loop
     if (!(await fileExists(projectPath))) {
       console.log(`\n${colors.yellow('⚠')} ${projectName} not found, skipping`)
       continue
@@ -148,16 +147,13 @@ async function main() {
     try {
       // Sync script files
       for (const file of FILES_TO_SYNC) {
-        // eslint-disable-next-line no-await-in-loop
         await syncFile(file, project)
       }
 
       // Update package.json
-      // eslint-disable-next-line no-await-in-loop
       await updatePackageJson(projectPath)
 
       // Update .husky/pre-commit
-      // eslint-disable-next-line no-await-in-loop
       await updateHuskyPreCommit(projectPath)
 
       console.log(`${colors.green('✓')} ${projectName} updated successfully`)
