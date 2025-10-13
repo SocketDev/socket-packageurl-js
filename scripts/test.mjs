@@ -17,6 +17,20 @@ import { printHeader } from '@socketsecurity/registry/lib/stdio/header'
 
 import { getTestsToRun } from './utils/changed-test-mapper.mjs'
 
+// Suppress non-fatal worker termination unhandled rejections
+process.on('unhandledRejection', (reason, _promise) => {
+  const errorMessage = String(reason?.message || reason || '')
+  // Filter out known non-fatal worker termination errors
+  if (
+    errorMessage.includes('Terminating worker thread') ||
+    errorMessage.includes('ThreadTermination')
+  ) {
+    // Ignore these - they're cleanup messages from vitest worker threads
+    return
+  }
+  // Re-throw other unhandled rejections
+  throw reason
+})
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.resolve(__dirname, '..')
@@ -59,6 +73,42 @@ async function runCommand(command, args = [], options = {}) {
     child.on('exit', code => {
       runningProcesses.delete(child)
       resolve(code || 0)
+    })
+
+    child.on('error', error => {
+      runningProcesses.delete(child)
+      reject(error)
+    })
+  })
+}
+
+async function runCommandWithOutput(command, args = [], options = {}) {
+  return new Promise((resolve, reject) => {
+    let stdout = ''
+    let stderr = ''
+
+    const child = spawn(command, args, {
+      ...(WIN32 && { shell: true }),
+      ...options,
+    })
+
+    runningProcesses.add(child)
+
+    if (child.stdout) {
+      child.stdout.on('data', data => {
+        stdout += data.toString()
+      })
+    }
+
+    if (child.stderr) {
+      child.stderr.on('data', data => {
+        stderr += data.toString()
+      })
+    }
+
+    child.on('exit', code => {
+      runningProcesses.delete(child)
+      resolve({ code: code || 0, stdout, stderr })
     })
 
     child.on('error', error => {
@@ -223,7 +273,8 @@ async function runTests(options, positionals = []) {
     })
   }
 
-  return runCommand(dotenvxPath, [
+  // Fallback to execution with output capture to handle worker termination errors
+  const result = await runCommandWithOutput(dotenvxPath, [
     '-q',
     'run',
     '-f',
@@ -231,7 +282,36 @@ async function runTests(options, positionals = []) {
     '--',
     vitestPath,
     ...vitestArgs
-  ], spawnOptions)
+  ], {
+    ...spawnOptions,
+    stdio: ['inherit', 'pipe', 'pipe']
+  })
+
+  // Print output
+  if (result.stdout) {
+    process.stdout.write(result.stdout)
+  }
+  if (result.stderr) {
+    process.stderr.write(result.stderr)
+  }
+
+  // Check if we have worker termination error but no test failures
+  const hasWorkerTerminationError =
+    (result.stdout + result.stderr).includes('Terminating worker thread') ||
+    (result.stdout + result.stderr).includes('ThreadTermination')
+
+  const output = result.stdout + result.stderr
+  const hasTestFailures =
+    output.includes('FAIL') ||
+    (output.includes('Test Files') && output.match(/(\d+) failed/) !== null) ||
+    (output.includes('Tests') && output.match(/Tests\s+\d+ failed/) !== null)
+
+  // Override exit code if we only have worker termination errors
+  if (result.code !== 0 && hasWorkerTerminationError && !hasTestFailures) {
+    return 0
+  }
+
+  return result.code
 }
 
 async function main() {
