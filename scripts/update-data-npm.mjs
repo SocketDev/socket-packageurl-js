@@ -55,7 +55,7 @@ async function main() {
         .sort(naturalCompare)
       await writeJson(npmBuiltinNamesJsonPath, builtinNames, { spaces: 2 })
     } else {
-      spinner.warn(`Skipping... (Running ${nodeVersion})`)
+      spinner.warn(`Skipping… (Running ${nodeVersion})`)
     }
   }
 

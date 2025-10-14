@@ -107,7 +107,7 @@ async function main() {
     console.log('│  Canonical claude.mjs not found!                           │')
     console.log('├─────────────────────────────────────────────────────────────┤')
     console.log('│  The file should exist at:                                 │')
-    console.log(`│  ${canonicalPath.length > 59 ? canonicalPath.substring(0, 56) + '...' : canonicalPath.padEnd(59)}│`)
+    console.log(`│  ${canonicalPath.length > 59 ? canonicalPath.substring(0, 56) + '…' : canonicalPath.padEnd(59)}│`)
     console.log('│                                                             │')
     console.log('│  This might be because socket-registry is out of date.     │')
     console.log('╰─────────────────────────────────────────────────────────────╯')
