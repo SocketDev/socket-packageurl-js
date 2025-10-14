@@ -132,11 +132,11 @@ async function updateSocketPackages() {
   logger.progress('Updating Socket packages')
 
   const exitCode = await runCommand('pnpm', [
-    '-r',
     'update',
     '@socketsecurity/*',
     '@socketregistry/*',
-    '--latest'
+    '--latest',
+    '--no-workspace',
   ])
 
   if (exitCode !== 0) {
