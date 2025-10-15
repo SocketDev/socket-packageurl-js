@@ -191,6 +191,8 @@ export default [
       },
     },
     rules: {
+      // Disable the following rules because they don't play well with TypeScript.
+      'dot-notation': 'off',
       'n/no-unsupported-features/es-syntax': 'off',
       'n/no-missing-import': 'off',
       'n/no-missing-require': 'off',
