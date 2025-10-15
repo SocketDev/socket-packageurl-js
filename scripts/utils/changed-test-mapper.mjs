@@ -115,7 +115,10 @@ export function getTestsToRun(options = {}) {
 
     // Test files always run themselves
     if (normalized.startsWith('test/') && normalized.includes('.test.')) {
-      testFiles.add(file)
+      // Skip deleted files.
+      if (existsSync(path.join(rootPath, file))) {
+        testFiles.add(file)
+      }
       continue
     }
 
@@ -128,7 +131,10 @@ export function getTestsToRun(options = {}) {
         break
       }
       for (const test of tests) {
-        testFiles.add(test)
+        // Skip deleted files.
+        if (existsSync(path.join(rootPath, test))) {
+          testFiles.add(test)
+        }
       }
       continue
     }
@@ -148,8 +154,13 @@ export function getTestsToRun(options = {}) {
 
     // Data changes run integration tests
     if (normalized.startsWith('data/')) {
-      testFiles.add('test/integration.test.mts')
-      testFiles.add('test/purl-types.test.mts')
+      // Skip deleted files.
+      if (existsSync(path.join(rootPath, 'test/integration.test.mts'))) {
+        testFiles.add('test/integration.test.mts')
+      }
+      if (existsSync(path.join(rootPath, 'test/purl-types.test.mts'))) {
+        testFiles.add('test/purl-types.test.mts')
+      }
     }
   }
 
