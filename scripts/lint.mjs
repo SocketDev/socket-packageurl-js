@@ -4,10 +4,9 @@
  */
 
 import path from 'node:path'
-import { parseArgs } from 'node:util'
-
 
 import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
+import { parseArgs } from '@socketsecurity/registry/lib/argv/parse'
 import { getChangedFiles, getStagedFiles } from '@socketsecurity/registry/lib/git'
 import { logger } from '@socketsecurity/registry/lib/logger'
 import { printHeader } from '@socketsecurity/registry/lib/stdio/header'
@@ -98,7 +97,7 @@ async function runLintOnFiles(files, options = {}) {
   const args = [
     'exec',
     'eslint',
-    '--config',
+    '-c',
     '.config/eslint.config.mjs',
     '--report-unused-disable-directives',
     ...(fix ? ['--fix'] : []),
@@ -124,7 +123,9 @@ async function runLintOnFiles(files, options = {}) {
   }
 
   if (!quiet) {
-    logger.done(`Linting passed`)
+    logger.clearLine().done(`Linting passed`)
+    // Add newline after message (use error to write to same stream)
+    logger.error('')
   }
 
   return 0
@@ -143,7 +144,7 @@ async function runLintOnAll(options = {}) {
   const args = [
     'exec',
     'eslint',
-    '--config',
+    '-c',
     '.config/eslint.config.mjs',
     '--report-unused-disable-directives',
     ...(fix ? ['--fix'] : []),
@@ -169,7 +170,9 @@ async function runLintOnAll(options = {}) {
   }
 
   if (!quiet) {
-    logger.done('Linting passed')
+    logger.clearLine().done('Linting passed')
+    // Add newline after message (use error to write to same stream)
+    logger.error('')
   }
 
   return 0
@@ -290,6 +293,7 @@ async function main() {
 
     if (!quiet) {
       printHeader('Lint Runner')
+      console.log('')
     }
 
     let exitCode = 0
@@ -336,11 +340,13 @@ async function main() {
 
     if (exitCode !== 0) {
       if (!quiet) {
-        logger.error('Lint failed')
+        logger.error('')
+        console.log('Lint failed')
       }
       process.exitCode = exitCode
     } else {
       if (!quiet) {
+        console.log('')
         logger.success('All lint checks passed!')
       }
     }

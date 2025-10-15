@@ -5,12 +5,12 @@
 
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseArgs } from 'node:util'
 
 import { deleteAsync } from 'del'
 import fastGlob from 'fast-glob'
 
 import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
+import { parseArgs } from '@socketsecurity/registry/lib/argv/parse'
 import { logger } from '@socketsecurity/registry/lib/logger'
 import { createSectionHeader } from '@socketsecurity/registry/lib/stdio/header'
 

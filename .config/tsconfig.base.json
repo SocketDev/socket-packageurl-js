@@ -11,7 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "incremental": false,
     "isolatedModules": true,
-    "lib": ["esnext"],
+    "lib": ["ES2024"],
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
@@ -26,7 +26,7 @@
     "sourceMap": false,
     "strict": true,
     "strictNullChecks": true,
-    "target": "esnext",
+    "target": "ES2024",
     "useUnknownInCatchVariables": true,
     "verbatimModuleSyntax": true,
     "allowSyntheticDefaultImports": true

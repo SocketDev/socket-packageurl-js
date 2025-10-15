@@ -25,8 +25,8 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
+import { createTestPurl } from './utils/test-helpers.mjs'
 import { PackageURLBuilder } from '../src/package-url-builder.js'
-import { PackageURL } from '../src/package-url.js'
 
 describe('PackageURLBuilder', () => {
   describe('basic construction', () => {
@@ -158,14 +158,12 @@ describe('PackageURLBuilder', () => {
 
   describe('from existing PackageURL', () => {
     it('should create builder from existing PackageURL', () => {
-      const originalPurl = new PackageURL(
-        'npm',
-        '@types',
-        'node',
-        '16.11.7',
-        { arch: 'x64' },
-        'lib/fs.d.ts',
-      )
+      const originalPurl = createTestPurl('npm', 'node', {
+        namespace: '@types',
+        qualifiers: { arch: 'x64' },
+        subpath: 'lib/fs.d.ts',
+        version: '16.11.7',
+      })
 
       const newPurl = PackageURLBuilder.from(originalPurl)
         .version('18.0.0')
@@ -181,14 +179,9 @@ describe('PackageURLBuilder', () => {
     })
 
     it('should handle PackageURL with no qualifiers', () => {
-      const originalPurl = new PackageURL(
-        'npm',
-        undefined,
-        'lodash',
-        '4.17.21',
-        undefined,
-        undefined,
-      )
+      const originalPurl = createTestPurl('npm', 'lodash', {
+        version: '4.17.21',
+      })
 
       const newPurl = PackageURLBuilder.from(originalPurl)
         .qualifier('extra', 'value')
@@ -201,14 +194,10 @@ describe('PackageURLBuilder', () => {
     })
 
     it('should not mutate original PackageURL qualifiers', () => {
-      const originalPurl = new PackageURL(
-        'npm',
-        undefined,
-        'lodash',
-        '4.17.21',
-        { arch: 'x64' },
-        undefined,
-      )
+      const originalPurl = createTestPurl('npm', 'lodash', {
+        qualifiers: { arch: 'x64' },
+        version: '4.17.21',
+      })
 
       PackageURLBuilder.from(originalPurl).qualifier('os', 'linux').build()
 

@@ -6,8 +6,7 @@
  *   node scripts/cover.mjs [--code-only|--type-only|--percent|--summary]
  */
 
-import { parseArgs } from 'node:util'
-
+import { parseArgs } from '@socketsecurity/registry/lib/argv/parse'
 import { logger } from '@socketsecurity/registry/lib/logger'
 
 import { runSequence } from './utils/run-command.mjs'

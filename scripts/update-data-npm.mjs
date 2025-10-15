@@ -12,15 +12,16 @@ import pacote from 'pacote'
 import semver from 'semver'
 import validateNpmPackageName from 'validate-npm-package-name'
 
+import { getMaintainedNodeVersions } from '@socketsecurity/registry/constants/node'
+import { getAbortSignal, getSpinner } from '@socketsecurity/registry/constants/process'
 import { arrayUnique } from '@socketsecurity/registry/lib/arrays'
-import constants from '@socketsecurity/registry/lib/constants'
 import { writeJson } from '@socketsecurity/registry/lib/fs'
 import { logger } from '@socketsecurity/registry/lib/logger'
 import { pFilter } from '@socketsecurity/registry/lib/promises'
 import { confirm } from '@socketsecurity/registry/lib/prompts'
 import { naturalCompare } from '@socketsecurity/registry/lib/sorts'
 
-const { abortSignal } = constants
+const abortSignal = getAbortSignal()
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -32,13 +33,10 @@ const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')
 const npmLegacyNamesJsonPath = path.join(npmDataPath, 'legacy-names.json')
 
 async function main() {
-  // Lazily access constants.spinner
-  const { spinner } = constants
-
+  const spinner = getSpinner()
   spinner.start()
 
-  // Lazily access constants.maintainedNodeVersions
-  const { next } = constants.maintainedNodeVersions
+  const { next } = getMaintainedNodeVersions()
   const nodeVersion = process.version.slice(1)
   const isGteNext = semver.gte(nodeVersion, next)
   if (

@@ -2,7 +2,6 @@
 
 import { spawn, spawnSync } from 'node:child_process'
 
-import WIN32 from '@socketsecurity/registry/lib/constants/WIN32'
 import { logger } from '@socketsecurity/registry/lib/logger'
 
 /**
@@ -16,7 +15,7 @@ export function runCommand(command, args = [], options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: 'inherit',
-      ...(WIN32 && { shell: true }),
+      ...(process.platform === 'win32' && { shell: true }),
       ...options,
     })
 
@@ -40,7 +39,7 @@ export function runCommand(command, args = [], options = {}) {
 export function runCommandSync(command, args = [], options = {}) {
   const result = spawnSync(command, args, {
     stdio: 'inherit',
-    ...(WIN32 && { shell: true }),
+    ...(process.platform === 'win32' && { shell: true }),
     ...options,
   })
 
@@ -99,7 +98,7 @@ export function runCommandQuiet(command, args = [], options = {}) {
 
     const child = spawn(command, args, {
       ...options,
-      ...(WIN32 && { shell: true }),
+      ...(process.platform === 'win32' && { shell: true }),
       stdio: ['inherit', 'pipe', 'pipe'],
     })
 

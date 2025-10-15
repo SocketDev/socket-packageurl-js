@@ -3,7 +3,7 @@
  * @fileoverview Sync unified scripts to other Socket repositories
  */
 
-import { promises as fs } from 'node:fs'
+import { existsSync, promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -27,13 +27,8 @@ const FILES_TO_SYNC = [
   'scripts/utils/changed-test-mapper.mjs',
 ]
 
-async function fileExists(filepath) {
-  try {
-    await fs.access(filepath)
-    return true
-  } catch {
-    return false
-  }
+function fileExists(filepath) {
+  return existsSync(filepath)
 }
 
 async function syncFile(sourceFile, targetProject) {
@@ -105,7 +100,7 @@ async function updatePackageJson(projectPath) {
 async function updateHuskyPreCommit(projectPath) {
   const preCommitPath = path.join(projectPath, '.husky/pre-commit')
 
-  if (!(await fileExists(preCommitPath))) {
+  if (!fileExists(preCommitPath)) {
     console.log(`  ${colors.yellow('⚠')} .husky/pre-commit not found, skipping`)
     return
   }
@@ -137,7 +132,7 @@ async function main() {
     const projectName = path.basename(project)
 
     // Check if project exists
-    if (!(await fileExists(projectPath))) {
+    if (!fileExists(projectPath)) {
       console.log(`\n${colors.yellow('⚠')} ${projectName} not found, skipping`)
       continue
     }

@@ -7,15 +7,16 @@ import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseArgs } from 'node:util'
 
-import WIN32 from '@socketsecurity/registry/lib/constants/WIN32'
+import { parseArgs } from '@socketsecurity/registry/lib/argv/parse'
 import { logger } from '@socketsecurity/registry/lib/logger'
 import { onExit } from '@socketsecurity/registry/lib/signal-exit'
 import { spinner } from '@socketsecurity/registry/lib/spinner'
 import { printHeader } from '@socketsecurity/registry/lib/stdio/header'
 
 import { getTestsToRun } from './utils/changed-test-mapper.mjs'
+
+const WIN32 = process.platform === 'win32'
 
 // Suppress non-fatal worker termination unhandled rejections
 process.on('unhandledRejection', (reason, _promise) => {
@@ -64,7 +65,7 @@ async function runCommand(command, args = [], options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: 'inherit',
-      ...(WIN32 && { shell: true }),
+      ...(process.platform === 'win32' && { shell: true }),
       ...options,
     })
 
@@ -88,7 +89,7 @@ async function runCommandWithOutput(command, args = [], options = {}) {
     let stderr = ''
 
     const child = spawn(command, args, {
-      ...(WIN32 && { shell: true }),
+      ...(process.platform === 'win32' && { shell: true }),
       ...options,
     })
 
@@ -255,9 +256,9 @@ async function runTests(options, positionals = []) {
   const dotenvxCmd = WIN32 ? 'dotenvx.cmd' : 'dotenvx'
   const dotenvxPath = path.join(nodeModulesBinPath, dotenvxCmd)
 
-  // Use unified runner for interactive Ctrl+O experience when appropriate
+  // Use interactive runner for interactive Ctrl+O experience when appropriate
   if (process.stdout.isTTY) {
-    const { runTests } = await import('./utils/unified-runner.mjs')
+    const { runTests } = await import('./utils/interactive-runner.mjs')
     return runTests(dotenvxPath, [
       '-q',
       'run',
@@ -434,14 +435,9 @@ async function main() {
     logger.error(`Test runner failed: ${error.message}`)
     process.exitCode = 1
   } finally {
-    // Ensure spinner is stopped and cleared
+    // Ensure spinner is stopped
     try {
       spinner.stop()
-    } catch {}
-    try {
-      // Clear any remaining spinner output - multiple times to be sure
-      process.stdout.write('\r\x1b[K')
-      process.stdout.write('\r')
     } catch {}
     removeExitHandler()
     // Explicitly exit to prevent hanging

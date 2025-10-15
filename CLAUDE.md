@@ -111,9 +111,51 @@ With `exactOptionalPropertyTypes`, assign conditionally:
 - `QualifiersValue = string | number | boolean | null | undefined`
 
 ### Testing
+
+#### Test Structure
+- **Test files**: `test/` - All test files
+- **Spec compliance**: `test/purl-spec.test.mts` - Package URL spec tests
+- **Edge cases**: `test/purl-edge-cases.test.mts` - Edge cases and coverage
+- **Test helpers**: `test/utils/test-helpers.mts` - Reusable test utilities
+
+#### Test Helpers (`test/utils/test-helpers.mts`)
+
+**createTestPurl(type, name, opts?)** - Factory for creating PackageURL instances
+```typescript
+import { createTestPurl } from './utils/test-helpers.mts'
+
+// Before: new PackageURL('npm', undefined, 'lodash', '4.17.21', undefined, undefined)
+// After:
+const purl = createTestPurl('npm', 'lodash', { version: '4.17.21' })
+
+// With all options:
+const purl = createTestPurl('npm', 'lodash', {
+  version: '4.17.21',
+  namespace: '@scope',
+  qualifiers: { arch: 'x64' },
+  subpath: 'dist/index.js'
+})
+```
+
+**createTestFunction(returnValue?)** - Creates test functions with optional return values
+```typescript
+const testFn = createTestFunction('result')
+expect(testFn()).toBe('result')
+```
+
+#### Running Tests
+- **All tests**: `pnpm test` or `pnpm test:unit`
+- **Specific file**: `pnpm test:unit path/to/file.test.js`
 - **🚨 NEVER USE `--` before test paths** - runs ALL tests
-- **Test single file**: ✅ `pnpm test:unit path/to/file.test.js`
 - **Update snapshots**: `pnpm test:unit -u` or `pnpm testu`
+- **Coverage**: `pnpm cover` (must maintain 100%)
+
+#### Best Practices
+- **Use createTestPurl()**: Cleaner than `new PackageURL()` with many undefined params
+- **Maintain 100% coverage**: All code paths must be tested
+- **Spec compliance**: Strict compliance with purl spec required
+- **Test edge cases**: Include edge cases in `purl-edge-cases.test.mts`
+- **Performance**: Benchmark performance-sensitive changes
 
 ### CI Testing
 - **🚨 MANDATORY**: `SocketDev/socket-registry/.github/workflows/ci.yml@<SHA>` with full SHA

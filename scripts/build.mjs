@@ -5,12 +5,12 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseArgs } from 'node:util'
 
 import { build } from 'esbuild'
-
+import colors from 'yoctocolors-cjs'
 
 import { isQuiet } from '@socketsecurity/registry/lib/argv/flags'
+import { parseArgs } from '@socketsecurity/registry/lib/argv/parse'
 import { logger } from '@socketsecurity/registry/lib/logger'
 import { printFooter, printHeader } from '@socketsecurity/registry/lib/stdio/header'
 
@@ -21,12 +21,13 @@ const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 
 /**
  * Build source code with esbuild.
+ * Returns { exitCode, buildTime, result } for external logging.
  */
 async function buildSource(options = {}) {
-  const { analyze = false, quiet = false, skipClean = false, verbose = false } = options
+  const { quiet = false, skipClean = false, verbose = false } = options
 
   if (!quiet) {
-    logger.progress('Building source code')
+    logger.substep('Building source code')
   }
 
   // Clean dist directory if needed
@@ -38,7 +39,7 @@ async function buildSource(options = {}) {
       if (!quiet) {
         logger.error('Clean failed')
       }
-      return exitCode
+      return { exitCode, buildTime: 0, result: null }
     }
   }
 
@@ -52,37 +53,25 @@ async function buildSource(options = {}) {
     })
     const buildTime = Date.now() - startTime
 
-    if (!quiet) {
-      logger.done(`Source build complete in ${buildTime}ms`)
-
-      if (analyze && result.metafile) {
-        const analysis = analyzeMetafile(result.metafile)
-        logger.info('Build output:')
-        for (const file of analysis.files) {
-          logger.substep(`${file.name}: ${file.size}`)
-        }
-        logger.step(`Total bundle size: ${analysis.totalSize}`)
-      }
-    }
-
-    return 0
+    return { exitCode: 0, buildTime, result }
   } catch (error) {
     if (!quiet) {
       logger.error('Source build failed')
       console.error(error)
     }
-    return 1
+    return { exitCode: 1, buildTime: 0, result: null }
   }
 }
 
 /**
  * Build TypeScript declarations.
+ * Returns exitCode for external logging.
  */
 async function buildTypes(options = {}) {
   const { quiet = false, skipClean = false, verbose: _verbose = false } = options
 
   if (!quiet) {
-    logger.progress('Building TypeScript declarations')
+    logger.substep('Building TypeScript declarations')
   }
 
   const commands = []
@@ -102,14 +91,9 @@ async function buildTypes(options = {}) {
     if (!quiet) {
       logger.error('Type declarations build failed')
     }
-    return exitCode
   }
 
-  if (!quiet) {
-    logger.done('Type declarations built')
-  }
-
-  return 0
+  return exitCode
 }
 
 /**
@@ -255,13 +239,29 @@ async function main() {
         logger.step('Building TypeScript declarations only')
       }
       exitCode = await buildTypes({ quiet, verbose })
+      if (exitCode === 0 && !quiet) {
+        logger.substep('Type declarations built')
+      }
     }
     // Build source only
     else if (values.src && !values.types) {
       if (!quiet) {
         logger.step('Building source only')
       }
-      exitCode = await buildSource({ quiet, verbose, analyze: values.analyze })
+      const { buildTime, exitCode: srcExitCode, result } = await buildSource({ quiet, verbose, analyze: values.analyze })
+      exitCode = srcExitCode
+      if (exitCode === 0 && !quiet) {
+        logger.substep(`Source build complete in ${buildTime}ms`)
+
+        if (values.analyze && result?.['metafile']) {
+          const analysis = analyzeMetafile(result['metafile'])
+          logger.info('Build output:')
+          for (const file of analysis['files']) {
+            logger.substep(`${file['name']}: ${file['size']}`)
+          }
+          logger.step(`Total bundle size: ${analysis['totalSize']}`)
+        }
+      }
     }
     // Build everything (default)
     else {
@@ -271,7 +271,7 @@ async function main() {
 
       // Clean all directories first (once)
       if (!quiet) {
-        logger.progress('Cleaning build directories')
+        logger.substep('Cleaning build directories')
       }
       exitCode = await runSequence([
         { args: ['exec', 'node', 'scripts/clean.mjs', '--dist', '--types', '--quiet'], command: 'pnpm' }
@@ -285,24 +285,46 @@ async function main() {
       }
 
       // Run source and types builds in parallel
-      const buildPromises = [
+      const [srcResult, typesExitCode] = await Promise.all([
         buildSource({ quiet, verbose, skipClean: true, analyze: values.analyze }),
         buildTypes({ quiet, verbose, skipClean: true })
-      ]
+      ])
 
-      const results = await Promise.all(buildPromises)
-      exitCode = results.find(code => code !== 0) || 0
+      // Log completion messages in order
+      if (!quiet) {
+        if (srcResult['exitCode'] === 0) {
+          logger.substep(`Source build complete in ${srcResult['buildTime']}ms`)
+
+          if (values.analyze && srcResult['result']?.['metafile']) {
+            const analysis = analyzeMetafile(srcResult['result']['metafile'])
+            logger.info('Build output:')
+            for (const file of analysis['files']) {
+              logger.substep(`${file['name']}: ${file['size']}`)
+            }
+            logger.step(`Total bundle size: ${analysis['totalSize']}`)
+          }
+        }
+
+        if (typesExitCode === 0) {
+          logger.substep('Type declarations built')
+        }
+      }
+
+      exitCode = srcResult['exitCode'] !== 0 ? srcResult['exitCode'] : typesExitCode
+    }
+
+    // Print final status and footer
+    if (!quiet) {
+      if (exitCode === 0) {
+        console.log(colors.green('✓ Build completed successfully!'))
+      } else {
+        console.error(colors.red('✗ Build failed'))
+      }
+      printFooter()
     }
 
     if (exitCode !== 0) {
-      if (!quiet) {
-        logger.error('Build failed')
-      }
       process.exitCode = exitCode
-    } else {
-      if (!quiet) {
-        printFooter('Build completed successfully!')
-      }
     }
   } catch (error) {
     logger.error(`Build runner failed: ${error.message}`)

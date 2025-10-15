@@ -1,7 +1,10 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 import { defineConfig } from 'vitest/config'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Check if coverage is enabled via CLI flags or environment.
 const isCoverageEnabled =
@@ -13,7 +16,7 @@ const isCoverageEnabled =
 // Falls back to published versions in CI.
 function getLocalPackageAliases() {
   const aliases = {}
-  const rootDir = path.join(import.meta.dirname, '..')
+  const rootDir = path.join(__dirname, '..')
 
   // Check for ../socket-registry/registry/dist
   const registryPath = path.join(rootDir, '..', 'socket-registry', 'registry', 'dist')

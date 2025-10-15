@@ -9,11 +9,11 @@ import { existsSync, promises as fs } from 'node:fs'
 import path from 'node:path'
 import readline from 'node:readline'
 import { fileURLToPath } from 'node:url'
-import { parseArgs } from 'node:util'
 
 import semver from 'semver'
 import colors from 'yoctocolors-cjs'
 
+import { parseArgs } from '@socketsecurity/registry/lib/argv/parse'
 import { logger } from '@socketsecurity/registry/lib/logger'
 import { printFooter, printHeader } from '@socketsecurity/registry/lib/stdio/header'
 

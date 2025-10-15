@@ -28,6 +28,7 @@ import {
   testValidParam,
   testValidStringParam,
 } from './utils/param-validation.mjs'
+import { createTestPurl } from './utils/test-helpers.mjs'
 import { PackageURL } from '../src/package-url.js'
 
 describe('PackageURL', () => {
@@ -113,46 +114,29 @@ describe('PackageURL', () => {
     it('should not decode params', () => {
       // Tests that constructor params are treated as already-decoded (double encoding prevention)
       expect(
-        new PackageURL(
-          'type',
-          '%21',
-          'name',
-          undefined,
-          undefined,
-          undefined,
-        ).toString(),
+        createTestPurl('type', 'name', {
+          namespace: '%21',
+        }).toString(),
       ).toBe('pkg:type/%2521/name')
       expect(
-        new PackageURL(
-          'type',
-          'namespace',
-          '%21',
-          undefined,
-          undefined,
-          undefined,
-        ).toString(),
+        createTestPurl('type', '%21', {
+          namespace: 'namespace',
+        }).toString(),
       ).toBe('pkg:type/namespace/%2521')
       expect(
-        new PackageURL(
-          'type',
-          'namespace',
-          'name',
-          '%21',
-          undefined,
-          undefined,
-        ).toString(),
+        createTestPurl('type', 'name', {
+          namespace: 'namespace',
+          version: '%21',
+        }).toString(),
       ).toBe('pkg:type/namespace/name@%2521')
       expect(
-        new PackageURL(
-          'type',
-          'namespace',
-          'name',
-          '1.0',
-          {
+        createTestPurl('type', 'name', {
+          namespace: 'namespace',
+          qualifiers: {
             a: '%21',
           },
-          undefined,
-        ).toString(),
+          version: '1.0',
+        }).toString(),
       ).toBe('pkg:type/namespace/name@1.0?a=%2521')
       expect(
         new PackageURL(
@@ -165,14 +149,12 @@ describe('PackageURL', () => {
         ).toString(),
       ).toBe('pkg:type/namespace/name@1.0?a=%2521')
       expect(
-        new PackageURL(
-          'type',
-          'namespace',
-          'name',
-          '1.0',
-          null,
-          '%21',
-        ).toString(),
+        createTestPurl('type', 'name', {
+          namespace: 'namespace',
+          qualifiers: null,
+          subpath: '%21',
+          version: '1.0',
+        }).toString(),
       ).toBe('pkg:type/namespace/name@1.0#%2521')
     })
   })
@@ -198,14 +180,12 @@ describe('PackageURL', () => {
 
     it('encode #', () => {
       // Tests # encoding (delimiter between url and subpath, must be encoded in components)
-      const purl = new PackageURL(
-        'type',
-        'name#space',
-        'na#me',
-        'ver#sion',
-        { foo: 'bar#baz' },
-        'sub#path',
-      )
+      const purl = createTestPurl('type', 'na#me', {
+        namespace: 'name#space',
+        qualifiers: { foo: 'bar#baz' },
+        subpath: 'sub#path',
+        version: 'ver#sion',
+      })
       expect(purl.toString()).toBe(
         'pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path',
       )
@@ -213,14 +193,12 @@ describe('PackageURL', () => {
 
     it('encode @', () => {
       /* The @ is a delimiter between package name and version. */
-      const purl = new PackageURL(
-        'type',
-        'name@space',
-        'na@me',
-        'ver@sion',
-        { foo: 'bar@baz' },
-        'sub@path',
-      )
+      const purl = createTestPurl('type', 'na@me', {
+        namespace: 'name@space',
+        qualifiers: { foo: 'bar@baz' },
+        subpath: 'sub@path',
+        version: 'ver@sion',
+      })
       expect(purl.toString()).toBe(
         'pkg:type/name%40space/na%40me@ver%40sion?foo=bar%40baz#sub%40path',
       )
@@ -228,14 +206,9 @@ describe('PackageURL', () => {
 
     it('path components encode /', () => {
       /* only namespace is allowed to have multiple segments separated by `/`` */
-      const purl = new PackageURL(
-        'type',
-        'namespace1/namespace2',
-        'na/me',
-        undefined,
-        undefined,
-        undefined,
-      )
+      const purl = createTestPurl('type', 'na/me', {
+        namespace: 'namespace1/namespace2',
+      })
       expect(purl.toString()).toBe('pkg:type/namespace1/namespace2/na%2Fme')
     })
   })

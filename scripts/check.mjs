@@ -3,29 +3,28 @@
  * Runs code quality checks: ESLint and TypeScript type checking.
  */
 
-import { parseArgs } from 'node:util'
-
+import { parseArgs } from '@socketsecurity/registry/lib/argv/parse'
 import { logger } from '@socketsecurity/registry/lib/logger'
 import { printFooter, printHeader } from '@socketsecurity/registry/lib/stdio/header'
 
 import { runCommandQuiet } from './utils/run-command.mjs'
 
 /**
- * Run ESLint check.
+ * Run ESLint check via lint script.
  */
 async function runEslintCheck(options = {}) {
-  const { quiet = false } = options
+  const { all = false, changed = false, quiet = false, staged = false } = options
 
   if (!quiet) {
     logger.progress('Checking ESLint')
   }
 
-  const result = await runCommandQuiet('eslint', [
-    '--config',
-    '.config/eslint.config.mjs',
-    '--report-unused-disable-directives',
-    '.',
-  ])
+  const args = ['run', 'lint']
+  if (all) {args.push('--all')}
+  else if (staged) {args.push('--staged')}
+  else if (changed) {args.push('--changed')}
+
+  const result = await runCommandQuiet('pnpm', args)
 
   if (result.exitCode !== 0) {
     if (!quiet) {
@@ -41,7 +40,9 @@ async function runEslintCheck(options = {}) {
   }
 
   if (!quiet) {
-    logger.done('ESLint check passed')
+    logger.clearLine().done('ESLint check passed')
+    // Add newline after message (use error to write to same stream)
+    logger.error('')
   }
 
   return 0
@@ -77,7 +78,9 @@ async function runTypeCheck(options = {}) {
   }
 
   if (!quiet) {
-    logger.done('TypeScript check passed')
+    logger.clearLine().done('TypeScript check passed')
+    // Add newline after message (use error to write to same stream)
+    logger.error('')
   }
 
   return 0
@@ -97,6 +100,18 @@ async function main() {
           default: false,
         },
         types: {
+          type: 'boolean',
+          default: false,
+        },
+        all: {
+          type: 'boolean',
+          default: false,
+        },
+        staged: {
+          type: 'boolean',
+          default: false,
+        },
+        changed: {
           type: 'boolean',
           default: false,
         },
@@ -121,11 +136,16 @@ async function main() {
       console.log('  --help         Show this help message')
       console.log('  --lint         Run ESLint check only')
       console.log('  --types        Run TypeScript check only')
+      console.log('  --all          Check all files (passes to lint)')
+      console.log('  --staged       Check staged files (passes to lint)')
+      console.log('  --changed      Check changed files (passes to lint)')
       console.log('  --quiet, --silent  Suppress progress messages')
       console.log('\nExamples:')
-      console.log('  pnpm check             # Run all checks')
+      console.log('  pnpm check             # Run all checks on changed files')
+      console.log('  pnpm check --all       # Run all checks on all files')
       console.log('  pnpm check --lint      # Run ESLint only')
       console.log('  pnpm check --types     # Run TypeScript only')
+      console.log('  pnpm check --lint --staged  # Run ESLint on staged files')
       process.exitCode = 0
       return
     }
@@ -134,7 +154,7 @@ async function main() {
     const runAll = !values.lint && !values.types
 
     if (!quiet) {
-      printHeader('Running Checks')
+      printHeader('Check Runner')
       logger.step('Running code quality checks')
     }
 
@@ -142,7 +162,12 @@ async function main() {
 
     // Run ESLint check if requested or running all
     if (runAll || values.lint) {
-      exitCode = await runEslintCheck({ quiet })
+      exitCode = await runEslintCheck({
+        all: values.all,
+        changed: values.changed,
+        quiet,
+        staged: values.staged
+      })
       if (exitCode !== 0) {
         if (!quiet) {
           logger.error('Checks failed')
