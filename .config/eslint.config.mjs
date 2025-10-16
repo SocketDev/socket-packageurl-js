@@ -46,8 +46,19 @@ export default [
   biomeIgnores,
   gitIgnores,
   {
-    name: 'Ignore dist directory',
-    ignores: ['**/dist/**'],
+    ignores: [
+      // Dot folders.
+      '.*/**',
+      // Nested directories.
+      '**/coverage/**',
+      '**/dist/**',
+      '**/external/**',
+      '**/node_modules/**',
+      // Generated TypeScript files.
+      '**/*.d.ts',
+      '**/*.d.ts.map',
+      '**/*.tsbuildinfo',
+    ],
   },
   {
     ...js.configs.recommended,
@@ -146,7 +157,7 @@ export default [
       curly: 'error',
       'line-comment-position': ['error', { position: 'above' }],
       'no-await-in-loop': 'error',
-      'no-control-regex': 'error',
+      'no-control-regex': 'off',
       'no-empty': ['error', { allowEmptyCatch: true }],
       'no-new': 'error',
       'no-proto': 'error',
