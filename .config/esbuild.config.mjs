@@ -2,35 +2,16 @@
  * @fileoverview esbuild configuration for fast builds with smaller bundles
  */
 
-import { existsSync } from 'node:fs'
 import { builtinModules } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+import { getLocalPackageAliases } from '../scripts/utils/get-local-package-aliases.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.join(__dirname, '..')
 const srcPath = path.join(rootPath, 'src')
 const distPath = path.join(rootPath, 'dist')
-
-// Check for local sibling projects to use in development.
-// Falls back to published versions in CI.
-function getLocalPackageAliases() {
-  const aliases = {}
-
-  // Check for ../socket-registry/registry/dist
-  const registryPath = path.join(
-    rootPath,
-    '..',
-    'socket-registry',
-    'registry',
-    'dist',
-  )
-  if (existsSync(registryPath)) {
-    aliases['@socketsecurity/registry'] = registryPath
-  }
-
-  return aliases
-}
 
 // Build configuration for CommonJS output
 export const buildConfig = {
@@ -52,7 +33,7 @@ export const buildConfig = {
   splitting: false,
 
   // Alias local packages when available (dev mode).
-  alias: getLocalPackageAliases(),
+  alias: getLocalPackageAliases(rootPath),
 
   // External dependencies
   external: [
@@ -75,24 +56,16 @@ export const buildConfig = {
   }
 }
 
-// Watch configuration for development
+// Watch configuration for development with incremental builds
+// Note: The 'watch' property is extracted in build script before passing to context()
 export const watchConfig = {
   ...buildConfig,
   minify: false,
   sourcemap: 'inline',
   logLevel: 'debug',
   watch: {
-    onRebuild(error, result) {
-      if (error) {
-        console.error('Watch build failed:', error)
-      } else {
-        console.log('Watch build succeeded')
-        if (result.metafile) {
-          const analysis = analyzeMetafile(result.metafile)
-          console.log(analysis)
-        }
-      }
-    }
+    // This will be extracted and not passed to context()
+    // Rebuild logging is handled via plugin in build script
   }
 }
 

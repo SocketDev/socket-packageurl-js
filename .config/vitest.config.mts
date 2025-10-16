@@ -1,8 +1,9 @@
-import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { defineConfig } from 'vitest/config'
+
+import { getLocalPackageAliases } from '../scripts/utils/get-local-package-aliases.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -12,30 +13,9 @@ const isCoverageEnabled =
   process.env['npm_lifecycle_event']?.includes('coverage') ||
   process.argv.some(arg => arg.includes('coverage'))
 
-// Check for local sibling projects to use in development.
-// Falls back to published versions in CI.
-function getLocalPackageAliases() {
-  const aliases = {}
-  const rootDir = path.join(__dirname, '..')
-
-  // Check for ../socket-registry/registry/dist
-  const registryPath = path.join(rootDir, '..', 'socket-registry', 'registry', 'dist')
-  if (existsSync(path.join(registryPath, '../package.json'))) {
-    aliases['@socketsecurity/registry'] = registryPath
-  }
-
-  // Check for ../socket-sdk-js/dist
-  const sdkPath = path.join(rootDir, '..', 'socket-sdk-js', 'dist')
-  if (existsSync(path.join(sdkPath, '../package.json'))) {
-    aliases['@socketsecurity/sdk'] = sdkPath
-  }
-
-  return aliases
-}
-
 export default defineConfig({
   resolve: {
-    alias: getLocalPackageAliases(),
+    alias: getLocalPackageAliases(path.join(__dirname, '..')),
   },
   test: {
     globals: false,
