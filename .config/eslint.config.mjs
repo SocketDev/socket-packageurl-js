@@ -14,11 +14,12 @@ import unicornPlugin from 'eslint-plugin-unicorn'
 import globals from 'globals'
 import { parser as typescriptParser } from 'typescript-eslint'
 
-import { getMaintainedNodeVersions } from '@socketsecurity/registry/constants/node'
-
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const require = createRequire(import.meta.url)
+
+// Get maintained Node versions - inline to avoid registry dependency
+const getMaintainedNodeVersions = () => ['18', '20', '22', '24']
 
 const rootPath = path.dirname(__dirname)
 
@@ -108,7 +109,14 @@ export default [
         },
       ],
       'import-x/no-named-as-default-member': 'off',
-      'import-x/no-unresolved': ['error', { commonjs: true }],
+      'import-x/no-unresolved': [
+        'error',
+        {
+          commonjs: true,
+          // Ignore @socketsecurity/registry subpaths - resolved by runtime loader
+          ignore: ['^@socketsecurity/registry/'],
+        },
+      ],
       'import-x/order': [
         'warn',
         {
@@ -133,6 +141,13 @@ export default [
         },
       ],
       'n/exports-style': ['error', 'module.exports'],
+      // Ignore @socketsecurity/registry subpaths - resolved by runtime loader
+      'n/no-missing-import': [
+        'error',
+        {
+          allowModules: ['@socketsecurity/registry'],
+        },
+      ],
       // The n/no-unpublished-bin rule does does not support non-trivial glob
       // patterns used in package.json "files" fields. In those cases we simplify
       // the glob patterns used.
