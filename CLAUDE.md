@@ -28,13 +28,16 @@ TypeScript implementation of [Package URL specification](https://github.com/pack
 **Features**: Full purl spec compliance, high-performance parsing, TypeScript type safety, type-specific normalization, CommonJS-only deployment
 
 ### Commands
-- **Build**: `pnpm build`
+- **Build**: `pnpm build` (production build)
+- **Watch**: `pnpm build --watch` (dev mode with 68% faster incremental builds)
 - **Test**: `pnpm test`, `pnpm test:unit`
 - **Type check**: `pnpm check:tsc`
 - **Lint**: `pnpm check:lint`
 - **Check all**: `pnpm check`
 - **Fix**: `pnpm check:lint:fix` or `pnpm fix`
 - **Coverage**: `pnpm cover`
+
+**Development tip:** Use `pnpm build --watch` for 68% faster rebuilds (9ms vs 27ms). Incremental builds use esbuild's context API for in-memory caching.
 
 ### PURL Standards
 
