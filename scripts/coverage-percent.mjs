@@ -3,12 +3,12 @@ import path from 'node:path'
 
 import colors from 'yoctocolors-cjs'
 
-import { getSpinner } from '@socketsecurity/registry/constants/process'
-import { getCodeCoverage } from '@socketsecurity/registry/lib/cover/code'
-import { getTypeCoverage } from '@socketsecurity/registry/lib/cover/type'
-import { logger } from '@socketsecurity/registry/lib/logger'
-import { parseArgs } from '@socketsecurity/registry/lib/parse-args'
-import { indentString } from '@socketsecurity/registry/lib/strings'
+import { getSpinner } from '@socketsecurity/lib/constants/process'
+import { getCodeCoverage } from '@socketsecurity/lib/cover/code'
+import { getTypeCoverage } from '@socketsecurity/lib/cover/type'
+import { logger } from '@socketsecurity/lib/logger'
+import { parseArgs } from '@socketsecurity/lib/parse-args'
+import { indentString } from '@socketsecurity/lib/strings'
 
 /**
  * Logs coverage percentage data including code and type coverage metrics.

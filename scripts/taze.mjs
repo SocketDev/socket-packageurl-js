@@ -7,8 +7,8 @@
  * Usage: node scripts/taze.mjs [taze-args...]
  */
 
-import { logger } from '@socketsecurity/registry/lib/logger'
-import { spawn } from '@socketsecurity/registry/lib/spawn'
+import { logger } from '@socketsecurity/lib/logger'
+import { spawn } from '@socketsecurity/lib/spawn'
 
 function includesProvenanceDowngradeWarning(output) {
   const lowered = output.toString().toLowerCase()

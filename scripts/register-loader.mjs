@@ -1,5 +1,5 @@
 /**
- * @fileoverview Register module loader for aliasing @socketsecurity/registry to local build.
+ * @fileoverview Register module loader for aliasing @socketsecurity/lib to local build.
  * This should be imported at the very top of any script that needs local registry access.
  */
 

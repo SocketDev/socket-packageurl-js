@@ -8,10 +8,12 @@
  */
 
 import path from 'node:path'
-import { parseArgs } from 'node:util'
 import { fileURLToPath } from 'node:url'
 
-import { printError, printHeader, printSuccess } from './utils/cli-helpers.mjs'
+import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import { logger } from '@socketsecurity/lib/logger'
+import { printHeader } from '@socketsecurity/lib/stdio/header'
+
 import { runCommandQuiet } from './utils/run-command.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -24,6 +26,7 @@ const { values } = parseArgs({
     'type-only': { type: 'boolean', default: false },
   },
   strict: false,
+  allowPositionals: true,
 })
 
 printHeader('Running Coverage')
@@ -205,13 +208,13 @@ try {
   }
 
   if (exitCode === 0) {
-    printSuccess('Coverage completed successfully')
+    logger.success('Coverage completed successfully')
   } else {
-    printError('Coverage failed')
+    logger.error('Coverage failed')
   }
 
   process.exitCode = exitCode
 } catch (error) {
-  printError(`Coverage script failed: ${error.message}`)
+  logger.error(`Coverage script failed: ${error.message}`)
   process.exitCode = 1
 }

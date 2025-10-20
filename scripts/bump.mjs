@@ -13,9 +13,9 @@ import { fileURLToPath } from 'node:url'
 import semver from 'semver'
 import colors from 'yoctocolors-cjs'
 
-import { parseArgs } from '@socketsecurity/registry/lib/argv/parse'
-import { logger } from '@socketsecurity/registry/lib/logger'
-import { printFooter, printHeader } from '@socketsecurity/registry/lib/stdio/header'
+import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import { logger } from '@socketsecurity/lib/logger'
+import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
 const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const WIN32 = process.platform === 'win32'
@@ -639,7 +639,7 @@ async function main() {
         console.log('\nInteractive mode: Available ✓ (default)')
       } else {
         console.log('\nInteractive mode: Not available')
-        console.log('  (install @socketsecurity/registry or build local registry)')
+        console.log('  (install @socketsecurity/lib or build local registry)')
       }
       process.exitCode = 0
       return
@@ -730,7 +730,7 @@ async function main() {
     if (values.interactive && !hasInteractivePrompts) {
       if (explicitlyRequestedInteractive) {
         logger.warn('Interactive mode requested but prompts not available')
-        logger.info('To enable: install @socketsecurity/registry or build local registry')
+        logger.info('To enable: install @socketsecurity/lib or build local registry')
       }
       values.interactive = false
     }

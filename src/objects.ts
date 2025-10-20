@@ -2,8 +2,8 @@
  * @fileoverview Object utility functions for type checking and immutable object creation.
  * Provides object validation and recursive freezing utilities.
  */
-// eslint-disable-next-line import-x/extensions -- External package, no .js extension needed
-import { isObject } from '@socketsecurity/registry/lib/objects'
+ 
+import { isObject } from '@socketsecurity/lib/objects'
 
 import { LOOP_SENTINEL } from './constants.js'
 

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Node.js loader to alias @socketsecurity/registry to local build when available.
+ * @fileoverview Node.js loader to alias @socketsecurity/lib to local build when available.
  * This allows scripts to use the latest local version during development.
  */
 
@@ -15,9 +15,9 @@ const registryPath = path.join(rootPath, '..', 'socket-registry', 'registry', 'd
 const useLocalRegistry = existsSync(registryPath)
 
 export function resolve(specifier, context, nextResolve) {
-  // Rewrite @socketsecurity/registry imports to local dist if available
-  if (useLocalRegistry && specifier.startsWith('@socketsecurity/registry')) {
-    const subpath = specifier.slice('@socketsecurity/registry'.length) || '/index.js'
+  // Rewrite @socketsecurity/lib imports to local dist if available
+  if (useLocalRegistry && specifier.startsWith('@socketsecurity/lib')) {
+    const subpath = specifier.slice('@socketsecurity/lib'.length) || '/index.js'
     const localPath = path.join(registryPath, subpath.startsWith('/') ? subpath.slice(1) : subpath)
 
     // Add .js extension if not present

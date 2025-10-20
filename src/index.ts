@@ -81,7 +81,7 @@ export type {
 // Registry Integration
 // ============================================================================
 // Re-export PURL types from socket-registry for consistency
-export { PURL_Type } from '@socketsecurity/registry'
-export type { PURLString } from '@socketsecurity/registry'
+export { PURL_Type } from '@socketsecurity/lib'
+export type { PURLString } from '@socketsecurity/lib'
 
 /* c8 ignore stop */

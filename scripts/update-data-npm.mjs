@@ -12,14 +12,14 @@ import pacote from 'pacote'
 import semver from 'semver'
 import validateNpmPackageName from 'validate-npm-package-name'
 
-import { getMaintainedNodeVersions } from '@socketsecurity/registry/constants/node'
-import { getAbortSignal, getSpinner } from '@socketsecurity/registry/constants/process'
-import { arrayUnique } from '@socketsecurity/registry/lib/arrays'
-import { writeJson } from '@socketsecurity/registry/lib/fs'
-import { logger } from '@socketsecurity/registry/lib/logger'
-import { pFilter } from '@socketsecurity/registry/lib/promises'
-import { confirm } from '@socketsecurity/registry/lib/prompts'
-import { naturalCompare } from '@socketsecurity/registry/lib/sorts'
+import { arrayUnique } from '@socketsecurity/lib/arrays'
+import { getMaintainedNodeVersions } from '@socketsecurity/lib/constants/node'
+import { getAbortSignal, getSpinner } from '@socketsecurity/lib/constants/process'
+import { writeJson } from '@socketsecurity/lib/fs'
+import { logger } from '@socketsecurity/lib/logger'
+import { pFilter } from '@socketsecurity/lib/promises'
+import { confirm } from '@socketsecurity/lib/prompts'
+import { naturalCompare } from '@socketsecurity/lib/sorts'
 
 const abortSignal = getAbortSignal()
 
