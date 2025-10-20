@@ -16,4 +16,5 @@ Thumbs.db
 **/*.tsbuildinfo
 /dist
 
+# Allow specific files
 !/.vscode/extensions.json
