@@ -200,7 +200,7 @@ export default [
   },
   {
     // Relax rules for script files
-    files: ['scripts/**/*.mjs'],
+    files: ['scripts/**/*.mjs', 'scripts/**/*.cjs'],
     rules: {
       'n/no-process-exit': 'off',
       'no-await-in-loop': 'off',
