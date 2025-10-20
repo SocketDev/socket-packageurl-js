@@ -113,8 +113,8 @@ export default [
         'error',
         {
           commonjs: true,
-          // Ignore @socketsecurity/registry subpaths - resolved by runtime loader
-          ignore: ['^@socketsecurity/registry/'],
+          // Ignore @socketsecurity/registry and @socketsecurity/lib subpaths - resolved by runtime loader
+          ignore: ['^@socketsecurity/registry/', '^@socketsecurity/lib/'],
         },
       ],
       'import-x/order': [
@@ -141,11 +141,11 @@ export default [
         },
       ],
       'n/exports-style': ['error', 'module.exports'],
-      // Ignore @socketsecurity/registry subpaths - resolved by runtime loader
+      // Ignore @socketsecurity/registry and @socketsecurity/lib subpaths - resolved by runtime loader
       'n/no-missing-import': [
         'error',
         {
-          allowModules: ['@socketsecurity/registry'],
+          allowModules: ['@socketsecurity/registry', '@socketsecurity/lib'],
         },
       ],
       // The n/no-unpublished-bin rule does does not support non-trivial glob

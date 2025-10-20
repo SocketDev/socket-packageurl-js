@@ -6,6 +6,10 @@
     "noEmit": true,
     "noPropertyAccessFromIndexSignature": false,
     "noUncheckedIndexedAccess": false,
+    "paths": {
+      "@socketsecurity/lib": ["../../socket-lib/dist/index.d.ts"],
+      "@socketsecurity/lib/*": ["../../socket-lib/dist/*"]
+    },
     "skipLibCheck": true,
     "types": ["vitest/globals", "node"],
     "verbatimModuleSyntax": false
