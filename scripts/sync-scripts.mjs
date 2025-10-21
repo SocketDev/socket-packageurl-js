@@ -15,15 +15,22 @@ const SOCKET_PROJECTS = [
   '../socket-cli',
   '../socket-sdk-js',
   '../socket-registry',
+  '../socket-lib',
+  '../acorn',
 ]
 
 const FILES_TO_SYNC = [
+  'scripts/claude.mjs',
   'scripts/test.mjs',
   'scripts/lint.mjs',
   'scripts/build.mjs',
   'scripts/clean.mjs',
   'scripts/utils/common.mjs',
   'scripts/utils/changed-test-mapper.mjs',
+  'scripts/utils/run-command.mjs',
+  'scripts/utils/suppress-warnings.mjs',
+  'scripts/utils/path-helpers.mjs',
+  'scripts/utils/interactive-runner.mjs',
 ]
 
 function fileExists(filepath) {
