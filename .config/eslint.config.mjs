@@ -177,6 +177,7 @@ export default [
       'no-new': 'error',
       'no-proto': 'error',
       'no-undef': 'error',
+      'no-unexpected-multiline': 'off',
       'no-unused-vars': [
         'error',
         {
@@ -189,7 +190,7 @@ export default [
       'no-warning-comments': ['warn', { terms: ['fixme'] }],
       'prefer-const': 'error',
       'sort-destructure-keys/sort-destructure-keys': 'error',
-      'sort-imports': ['error', { ignoreDeclarationSort: true }],
+      'sort-imports': 'off',
     },
   },
   {

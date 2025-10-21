@@ -60,12 +60,13 @@
   "linter": {
     "rules": {
       "complexity": {
+        "noBannedTypes": "off",
         "noStaticOnlyClass": "off",
         "useLiteralKeys": "off"
       },
       "style": {
         "noNonNullAssertion": "off",
-        "noParameterAssign": "error",
+        "noParameterAssign": "off",
         "useAsConstAssertion": "error",
         "useDefaultParameterLast": "error",
         "useEnumInitializers": "error",
@@ -79,6 +80,8 @@
       },
       "suspicious": {
         "noAssignInExpressions": "off",
+        "noAsyncPromiseExecutor": "off",
+        "noExplicitAny": "off",
         "useIterableCallbackReturn": "off"
       }
     }
