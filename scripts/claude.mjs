@@ -500,6 +500,60 @@ async function ensureGitHubAuthenticated() {
 }
 
 /**
+ * Check if a commit SHA is part of a pull request.
+ * @param {string} sha - The commit SHA to check
+ * @param {string} owner - The repository owner
+ * @param {string} repo - The repository name
+ * @returns {Promise<{isPR: boolean, prNumber?: number, prTitle?: string}>}
+ */
+async function checkIfCommitIsPartOfPR(sha, owner, repo) {
+  try {
+    const result = await runCommandWithOutput('gh', [
+      'pr',
+      'list',
+      '--repo',
+      `${owner}/${repo}`,
+      '--state',
+      'all',
+      '--search',
+      sha,
+      '--json',
+      'number,title,state',
+      '--limit',
+      '1',
+    ])
+
+    if (result.exitCode === 0 && result.stdout) {
+      const prs = JSON.parse(result.stdout)
+      if (prs.length > 0) {
+        const pr = prs[0]
+        return {
+          isPR: true,
+          prNumber: pr.number,
+          prTitle: pr.title,
+          prState: pr.state,
+        }
+      }
+    }
+  } catch (e) {
+    log.warn(`Failed to check if commit is part of PR: ${e.message}`)
+  }
+
+  return { isPR: false }
+}
+
+/**
+ * Create a hash of error output for tracking duplicate errors.
+ * @param {string} errorOutput - The error output to hash
+ * @returns {string} A simple hash of the error
+ */
+function hashError(errorOutput) {
+  // Simple hash: take first 200 chars of error, normalize whitespace
+  const normalized = errorOutput.trim().slice(0, 200).replace(/\s+/g, ' ')
+  return normalized
+}
+
+/**
  * Model strategy for intelligent Pinky/Brain switching.
  * "Gee, Brain, what do you want to do tonight?"
  * "The same thing we do every night, Pinky - try to take over the world!"
@@ -2678,8 +2732,14 @@ async function runGreen(claudeCmd, options = {}) {
     opts['max-auto-fixes'] || '10',
     10,
   )
+  const useNoVerify = opts['no-verify'] === true
 
   printHeader('Green CI Pipeline')
+
+  // Track errors to avoid checking same error repeatedly
+  const seenErrors = new Set()
+  // Track CI errors by run ID
+  const ciErrorHistory = new Map()
 
   // Step 1: Run local checks
   const repoName = path.basename(rootPath)
@@ -2711,12 +2771,24 @@ async function runGreen(claudeCmd, options = {}) {
 
     if (result.exitCode !== 0) {
       log.failed(`${check.name} failed`)
+
+      // Track error to avoid repeated attempts on same error
+      const errorOutput =
+        result.stderr || result.stdout || 'No error output available'
+      const errorHash = hashError(errorOutput)
+
+      if (seenErrors.has(errorHash)) {
+        log.error(`Detected same error again for "${check.name}"`)
+        log.substep('Skipping auto-fix to avoid infinite loop')
+        log.substep('Error appears unchanged from previous attempt')
+        return false
+      }
+
+      seenErrors.add(errorHash)
       autoFixAttempts++
 
       // Decide whether to auto-fix or go interactive
       const isAutoMode = autoFixAttempts <= MAX_AUTO_FIX_ATTEMPTS
-      const errorOutput =
-        result.stderr || result.stdout || 'No error output available'
 
       if (isAutoMode) {
         // Attempt automatic fix
@@ -2890,9 +2962,13 @@ Let's work through this together to get CI passing.`
       // Stage all changes
       await runCommand('git', ['add', '.'], { cwd: rootPath })
 
-      // Commit
-      const commitMessage = 'Fix CI issues and update tests'
-      await runCommand('git', ['commit', '-m', commitMessage, '--no-verify'], {
+      // Commit with descriptive message (no AI attribution per CLAUDE.md)
+      const commitMessage = 'Fix local checks and update tests'
+      const commitArgs = ['commit', '-m', commitMessage]
+      if (useNoVerify) {
+        commitArgs.push('--no-verify')
+      }
+      await runCommand('git', commitArgs, {
         cwd: rootPath,
       })
 
@@ -2968,6 +3044,17 @@ Let's work through this together to get CI passing.`
 
   const [, owner, repoNameMatch] = repoMatch
   const repo = repoNameMatch.replace('.git', '')
+
+  // Check if commit is part of a PR
+  const prInfo = await checkIfCommitIsPartOfPR(currentSha, owner, repo)
+  if (prInfo.isPR) {
+    log.info(
+      `Commit is part of PR #${prInfo.prNumber}: ${colors.cyan(prInfo.prTitle)}`,
+    )
+    log.substep(`PR state: ${prInfo.prState}`)
+  } else {
+    log.info('Commit is a direct push (not part of a PR)')
+  }
 
   // Monitor workflow with retries
   let retryCount = 0
@@ -3118,6 +3205,29 @@ Let's work through this together to get CI passing.`
           },
         )
 
+        // Check if we've seen this CI error before
+        const ciErrorOutput = logsResult.stdout || 'No logs available'
+        const ciErrorHash = hashError(ciErrorOutput)
+
+        if (ciErrorHistory.has(lastRunId)) {
+          log.error(`Already attempted fix for run ${lastRunId}`)
+          log.substep('Skipping to avoid repeated attempts on same CI run')
+          retryCount++
+          continue
+        }
+
+        if (seenErrors.has(ciErrorHash)) {
+          log.error('Detected same CI error pattern as previous attempt')
+          log.substep('Error appears unchanged after push')
+          log.substep(
+            `View run at: https://github.com/${owner}/${repo}/actions/runs/${lastRunId}`,
+          )
+          return false
+        }
+
+        ciErrorHistory.set(lastRunId, ciErrorHash)
+        seenErrors.add(ciErrorHash)
+
         // Analyze and fix with Claude
         log.progress('Analyzing CI failure with Claude')
         const fixPrompt = `You are automatically fixing CI failures. The CI workflow failed for commit ${currentSha} in ${owner}/${repo}.
@@ -3207,17 +3317,16 @@ Fix all CI failures now by making the necessary changes.`
         if (fixStatusResult.stdout.trim()) {
           log.progress('Committing CI fixes')
           await runCommand('git', ['add', '.'], { cwd: rootPath })
-          await runCommand(
-            'git',
-            [
-              'commit',
-              '-m',
-              `Fix CI failures (attempt ${retryCount + 1})`,
-              '--no-verify',
-            ],
-            { cwd: rootPath },
-          )
+
+          // Commit with descriptive message (no AI attribution per CLAUDE.md)
+          const ciFixMessage = `Fix CI failures from run ${lastRunId}`
+          const ciCommitArgs = ['commit', '-m', ciFixMessage]
+          if (useNoVerify) {
+            ciCommitArgs.push('--no-verify')
+          }
+          await runCommand('git', ciCommitArgs, { cwd: rootPath })
           await runCommand('git', ['push'], { cwd: rootPath })
+          log.done(`Pushed fix commit: ${ciFixMessage}`)
 
           // Update SHA for next check
           const newShaResult = await runCommandWithOutput(
