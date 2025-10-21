@@ -224,7 +224,7 @@ const PurlType = createHelpersNamespaceObject(
       },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
       mlflow(purl: PurlObject) {
-        if (purl.qualifiers?.['repository_url']?.includes('databricks')) {
+        if (purl.qualifiers?.repository_url?.includes('databricks')) {
           lowerName(purl)
         }
         return purl
@@ -306,7 +306,7 @@ const PurlType = createHelpersNamespaceObject(
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#conan
       conan(purl: PurlObject, throws: boolean) {
         if (isNullishOrEmptyString(purl.namespace)) {
-          if (purl.qualifiers?.['channel']) {
+          if (purl.qualifiers?.channel) {
             if (throws) {
               throw new PurlError(
                 'conan requires a "namespace" component when a "channel" qualifier is present',
@@ -542,7 +542,7 @@ const PurlType = createHelpersNamespaceObject(
       swid(purl: PurlObject, throws: boolean) {
         const { qualifiers } = purl
         // SWID requires a tag_id qualifier
-        const tagId = qualifiers?.['tag_id']
+        const tagId = qualifiers?.tag_id
         if (!tagId) {
           if (throws) {
             throw new PurlError('swid requires a "tag_id" qualifier')

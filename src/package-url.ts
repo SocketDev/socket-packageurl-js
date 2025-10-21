@@ -20,6 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+import { decodePurlComponent } from './decode.js'
+import { PurlError } from './error.js'
+import { isObject, recursiveFreeze } from './objects.js'
 /**
  * @fileoverview Package URL parsing and construction utilities.
  *
@@ -28,9 +31,6 @@ SOFTWARE.
  * instanceof checks may fail due to module system interoperability issues.
  * See package-url-builder.ts for detailed explanation and workarounds.
  */
-import { decodePurlComponent } from './decode.js'
-import { PurlError } from './error.js'
-import { isObject, recursiveFreeze } from './objects.js'
 import { PurlComponent } from './purl-component.js'
 import { PurlQualifierNames } from './purl-qualifier-names.js'
 import { PurlType } from './purl-type.js'
@@ -99,47 +99,47 @@ class PackageURL {
     rawSubpath: unknown,
   ) {
     const type = isNonEmptyString(rawType)
-      ? (PurlComponent['type']?.['normalize'] as ComponentNormalizer)?.(rawType)
+      ? (PurlComponent.type?.normalize as ComponentNormalizer)?.(rawType)
       : rawType
-    ;(PurlComponent['type']?.['validate'] as ComponentValidator)?.(type, true)
+    ;(PurlComponent.type?.validate as ComponentValidator)?.(type, true)
 
     const namespace = isNonEmptyString(rawNamespace)
-      ? (PurlComponent['namespace']?.['normalize'] as ComponentNormalizer)?.(
+      ? (PurlComponent.namespace?.normalize as ComponentNormalizer)?.(
           rawNamespace,
         )
       : rawNamespace
-    ;(PurlComponent['namespace']?.['validate'] as ComponentValidator)?.(
+    ;(PurlComponent.namespace?.validate as ComponentValidator)?.(
       namespace,
       true,
     )
 
     const name = isNonEmptyString(rawName)
-      ? (PurlComponent['name']?.['normalize'] as ComponentNormalizer)?.(rawName)
+      ? (PurlComponent.name?.normalize as ComponentNormalizer)?.(rawName)
       : rawName
-    ;(PurlComponent['name']?.['validate'] as ComponentValidator)?.(name, true)
+    ;(PurlComponent.name?.validate as ComponentValidator)?.(name, true)
 
     const version = isNonEmptyString(rawVersion)
-      ? (PurlComponent['version']?.['normalize'] as ComponentNormalizer)?.(rawVersion)
+      ? (PurlComponent.version?.normalize as ComponentNormalizer)?.(rawVersion)
       : rawVersion
-    ;(PurlComponent['version']?.['validate'] as ComponentValidator)?.(version, true)
+    ;(PurlComponent.version?.validate as ComponentValidator)?.(version, true)
 
     const qualifiers =
       typeof rawQualifiers === 'string' || isObject(rawQualifiers)
         ? (
-            PurlComponent['qualifiers']?.['normalize'] as (
+            PurlComponent.qualifiers?.normalize as (
               _value: string | QualifiersObject,
             ) => Record<string, string> | undefined
           )?.(rawQualifiers as string | QualifiersObject)
         : rawQualifiers
-    ;(PurlComponent['qualifiers']?.['validate'] as ComponentValidator)?.(
+    ;(PurlComponent.qualifiers?.validate as ComponentValidator)?.(
       qualifiers,
       true,
     )
 
     const subpath = isNonEmptyString(rawSubpath)
-      ? (PurlComponent['subpath']?.['normalize'] as ComponentNormalizer)?.(rawSubpath)
+      ? (PurlComponent.subpath?.normalize as ComponentNormalizer)?.(rawSubpath)
       : rawSubpath
-    ;(PurlComponent['subpath']?.['validate'] as ComponentValidator)?.(subpath, true)
+    ;(PurlComponent.subpath?.validate as ComponentValidator)?.(subpath, true)
 
     this.type = type as string
     this.name = name as string
@@ -156,9 +156,9 @@ class PackageURL {
 
     const typeHelpers = PurlType[type as string]
     if (typeHelpers) {
-      ;(typeHelpers?.['normalize'] as (_purl: PackageURL) => void)?.(this)
+      ;(typeHelpers?.normalize as (_purl: PackageURL) => void)?.(this)
       ;(
-        typeHelpers?.['validate'] as (
+        typeHelpers?.validate as (
           _purl: PackageURL,
           _throws: boolean,
         ) => boolean
@@ -222,19 +222,19 @@ class PackageURL {
       type?: string | undefined
       version?: string | undefined
     } = this
-    /* c8 ignore next - Type encoder uses default PurlComponentEncoder, never returns null/undefined. */ let purlStr = `pkg:${(PurlComponent['type']?.['encode'] as ComponentEncoder)?.(type) ?? ''}/`
+    /* c8 ignore next - Type encoder uses default PurlComponentEncoder, never returns null/undefined. */ let purlStr = `pkg:${(PurlComponent.type?.encode as ComponentEncoder)?.(type) ?? ''}/`
     if (namespace) {
-      /* c8 ignore next - Namespace encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent['namespace']?.['encode'] as ComponentEncoder)?.(namespace) ?? ''}/`
+      /* c8 ignore next - Namespace encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent.namespace?.encode as ComponentEncoder)?.(namespace) ?? ''}/`
     }
-    /* c8 ignore next - Name encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent['name']?.['encode'] as ComponentEncoder)?.(name) ?? ''}`
+    /* c8 ignore next - Name encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent.name?.encode as ComponentEncoder)?.(name) ?? ''}`
     if (version) {
-      /* c8 ignore next - Version encoder always returns string, never null/undefined. */ purlStr = `${purlStr}@${(PurlComponent['version']?.['encode'] as ComponentEncoder)?.(version) ?? ''}`
+      /* c8 ignore next - Version encoder always returns string, never null/undefined. */ purlStr = `${purlStr}@${(PurlComponent.version?.encode as ComponentEncoder)?.(version) ?? ''}`
     }
     if (qualifiers) {
-      /* c8 ignore next - Qualifiers encoder always returns string, never null/undefined. */ purlStr = `${purlStr}?${(PurlComponent['qualifiers']?.['encode'] as ComponentEncoder)?.(qualifiers) ?? ''}`
+      /* c8 ignore next - Qualifiers encoder always returns string, never null/undefined. */ purlStr = `${purlStr}?${(PurlComponent.qualifiers?.encode as ComponentEncoder)?.(qualifiers) ?? ''}`
     }
     if (subpath) {
-      /* c8 ignore next - Subpath encoder always returns string, never null/undefined. */ purlStr = `${purlStr}#${(PurlComponent['subpath']?.['encode'] as ComponentEncoder)?.(subpath) ?? ''}`
+      /* c8 ignore next - Subpath encoder always returns string, never null/undefined. */ purlStr = `${purlStr}#${(PurlComponent.subpath?.encode as ComponentEncoder)?.(subpath) ?? ''}`
     }
     return purlStr
   }
@@ -278,12 +278,12 @@ class PackageURL {
     // Create a safe object without prototype chain to prevent prototype pollution
     const safeObject: PackageURLObject = {
       __proto__: null,
-      type: parsedRecord['type'] as string | undefined,
-      namespace: parsedRecord['namespace'] as string | undefined,
-      name: parsedRecord['name'] as string | undefined,
-      version: parsedRecord['version'] as string | undefined,
-      qualifiers: parsedRecord['qualifiers'] as Record<string, string> | undefined,
-      subpath: parsedRecord['subpath'] as string | undefined,
+      type: parsedRecord.type as string | undefined,
+      namespace: parsedRecord.namespace as string | undefined,
+      name: parsedRecord.name as string | undefined,
+      version: parsedRecord.version as string | undefined,
+      qualifiers: parsedRecord.qualifiers as Record<string, string> | undefined,
+      subpath: parsedRecord.subpath as string | undefined,
     } as PackageURLObject
 
     return PackageURL.fromObject(safeObject)
@@ -298,12 +298,12 @@ class PackageURL {
     }
     const typedObj = obj as Record<string, unknown>
     return new PackageURL(
-      typedObj['type'],
-      typedObj['namespace'],
-      typedObj['name'],
-      typedObj['version'],
-      typedObj['qualifiers'],
-      typedObj['subpath'],
+      typedObj.type,
+      typedObj.namespace,
+      typedObj.name,
+      typedObj.version,
+      typedObj.qualifiers,
+      typedObj.subpath,
     )
   }
 
