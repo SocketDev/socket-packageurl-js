@@ -3308,19 +3308,30 @@ Fix all CI failures now by making the necessary changes.`
         }, 10_000)
 
         try {
-          // Use --print flag to run Claude in non-interactive mode
-          // This avoids stdin raw mode issues (Ink requires TTY for raw mode)
-          const printArgs = ['--print', ...prepareClaudeArgs([], opts)]
-          const result = await runCommandWithOutput(claudeCmd, printArgs, {
-            cwd: rootPath,
-            input: fixPrompt,
-            stdio: ['pipe', 'pipe', 'pipe'],
-          })
-          if (result.exitCode !== 0) {
-            log.warn(`Claude fix exited with code ${result.exitCode}`)
-            if (result.stderr) {
-              log.warn(`Claude stderr: ${result.stderr.slice(0, 500)}`)
+          const fixArgs = prepareClaudeArgs([], opts)
+          const exitCode = await new Promise((resolve, _reject) => {
+            const child = spawn(claudeCmd, fixArgs, {
+              stdio: ['pipe', 'inherit', 'inherit'],
+              cwd: rootPath,
+              ...(WIN32 && { shell: true }),
+            })
+
+            // Write the fix prompt to stdin
+            if (fixPrompt) {
+              child.stdin.write(fixPrompt)
+              child.stdin.end()
             }
+
+            child.on('exit', code => {
+              resolve(code || 0)
+            })
+
+            child.on('error', () => {
+              resolve(1)
+            })
+          })
+          if (exitCode !== 0) {
+            log.warn(`Claude fix exited with code ${exitCode}`)
           }
         } catch (error) {
           log.warn(`Claude fix error: ${error.message}`)
@@ -3502,17 +3513,30 @@ Fix the failure now by making the necessary changes.`
               }, 10_000)
 
               try {
-                const printArgs = ['--print', ...prepareClaudeArgs([], opts)]
-                const result = await runCommandWithOutput(claudeCmd, printArgs, {
-                  cwd: rootPath,
-                  input: fixPrompt,
-                  stdio: ['pipe', 'pipe', 'pipe'],
-                })
-                if (result.exitCode !== 0) {
-                  log.warn(`Claude fix exited with code ${result.exitCode}`)
-                  if (result.stderr) {
-                    log.warn(`Claude stderr: ${result.stderr.slice(0, 500)}`)
+                const fixArgs = prepareClaudeArgs([], opts)
+                const exitCode = await new Promise((resolve, _reject) => {
+                  const child = spawn(claudeCmd, fixArgs, {
+                    stdio: ['pipe', 'inherit', 'inherit'],
+                    cwd: rootPath,
+                    ...(WIN32 && { shell: true }),
+                  })
+
+                  // Write the fix prompt to stdin
+                  if (fixPrompt) {
+                    child.stdin.write(fixPrompt)
+                    child.stdin.end()
                   }
+
+                  child.on('exit', code => {
+                    resolve(code || 0)
+                  })
+
+                  child.on('error', () => {
+                    resolve(1)
+                  })
+                })
+                if (exitCode !== 0) {
+                  log.warn(`Claude fix exited with code ${exitCode}`)
                 }
               } catch (error) {
                 log.warn(`Claude fix error: ${error.message}`)
