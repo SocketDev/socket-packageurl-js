@@ -53,6 +53,9 @@
       "allowTrailingCommas": true
     }
   },
+  "assist": {
+    "enabled": false
+  },
   "linter": {
     "rules": {
       "complexity": {

@@ -3321,7 +3321,9 @@ Let's work through this together to get CI passing.`
           }
         }
         if (filteredLogs.split('\n').length > 10) {
-          log.substep(`  ... (${filteredLogs.split('\n').length - 10} more lines)`)
+          log.substep(
+            `  ... (${filteredLogs.split('\n').length - 10} more lines)`,
+          )
         }
 
         // Check if we've seen this CI error before
@@ -3350,9 +3352,10 @@ Let's work through this together to get CI passing.`
         log.progress('Analyzing CI failure with Claude')
 
         // Keep logs under 2000 chars to avoid context issues
-        const truncatedLogs = filteredLogs.length > 2000
-          ? `${filteredLogs.substring(0, 2000)}\n... (truncated)`
-          : filteredLogs
+        const truncatedLogs =
+          filteredLogs.length > 2000
+            ? `${filteredLogs.substring(0, 2000)}\n... (truncated)`
+            : filteredLogs
 
         const fixPrompt = `Fix CI failures for commit ${currentSha.substring(0, 7)} in ${owner}/${repo}.
 
@@ -3498,7 +3501,10 @@ Requirements:
 
 Commit the changes now.`
 
-          const commitTmpFile = path.join(rootPath, `.claude-commit-${Date.now()}.txt`)
+          const commitTmpFile = path.join(
+            rootPath,
+            `.claude-commit-${Date.now()}.txt`,
+          )
           await fs.writeFile(commitTmpFile, commitPrompt, 'utf8')
 
           const commitArgs = prepareClaudeArgs([], opts)
@@ -3603,7 +3609,8 @@ Commit the changes now.`
 
           // Check for any failed or cancelled jobs
           const failedJobs = jobs.filter(
-            job => job.conclusion === 'failure' || job.conclusion === 'cancelled'
+            job =>
+              job.conclusion === 'failure' || job.conclusion === 'cancelled',
           )
 
           // Find new failures we haven't fixed yet
@@ -3648,16 +3655,19 @@ Commit the changes now.`
                 }
               }
               if (filteredLogs.split('\n').length > 10) {
-                log.substep(`  ... (${filteredLogs.split('\n').length - 10} more lines)`)
+                log.substep(
+                  `  ... (${filteredLogs.split('\n').length - 10} more lines)`,
+                )
               }
 
               // Analyze and fix with Claude
               log.progress(`Analyzing failure in ${job.name}`)
 
               // Keep logs under 2000 chars to avoid context issues
-              const truncatedLogs = filteredLogs.length > 2000
-                ? `${filteredLogs.substring(0, 2000)}\n... (truncated)`
-                : filteredLogs
+              const truncatedLogs =
+                filteredLogs.length > 2000
+                  ? `${filteredLogs.substring(0, 2000)}\n... (truncated)`
+                  : filteredLogs
 
               const fixPrompt = `Fix CI failure in "${job.name}" (run ${lastRunId}, commit ${currentSha.substring(0, 7)}).
 
@@ -3688,7 +3698,10 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
 
               try {
                 // Write prompt to temp file
-                const tmpFile = path.join(rootPath, `.claude-fix-${Date.now()}.txt`)
+                const tmpFile = path.join(
+                  rootPath,
+                  `.claude-fix-${Date.now()}.txt`,
+                )
                 await fs.writeFile(tmpFile, fixPrompt, 'utf8')
 
                 const fixArgs = prepareClaudeArgs([], opts)
@@ -3707,7 +3720,9 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
                 let scriptCmd
                 if (WIN32) {
                   // Try winpty (comes with Git for Windows)
-                  const winptyCheck = await runCommandWithOutput('where', ['winpty'])
+                  const winptyCheck = await runCommandWithOutput('where', [
+                    'winpty',
+                  ])
                   if (winptyCheck.exitCode === 0) {
                     scriptCmd = `winpty ${claudeCommand} < "${tmpFile}"`
                   } else {
@@ -3804,7 +3819,10 @@ Requirements:
 
 Commit the changes now.`
 
-                const commitTmpFile = path.join(rootPath, `.claude-commit-${Date.now()}.txt`)
+                const commitTmpFile = path.join(
+                  rootPath,
+                  `.claude-commit-${Date.now()}.txt`,
+                )
                 await fs.writeFile(commitTmpFile, commitPrompt, 'utf8')
 
                 const commitArgs = prepareClaudeArgs([], opts)
@@ -3815,7 +3833,9 @@ Commit the changes now.`
 
                 let commitScriptCmd
                 if (WIN32) {
-                  const winptyCheck = await runCommandWithOutput('where', ['winpty'])
+                  const winptyCheck = await runCommandWithOutput('where', [
+                    'winpty',
+                  ])
                   if (winptyCheck.exitCode === 0) {
                     commitScriptCmd = `winpty ${commitCommand} < "${commitTmpFile}"`
                   } else {
@@ -3857,7 +3877,9 @@ Commit the changes now.`
                   log.done(`Committed fix for ${job.name}`)
                   hasPendingCommits = true
                 } else {
-                  log.warn(`Claude commit failed with exit code ${commitExitCode}`)
+                  log.warn(
+                    `Claude commit failed with exit code ${commitExitCode}`,
+                  )
                 }
               } else {
                 log.substep(`No changes to commit for ${job.name}`)
@@ -3870,7 +3892,9 @@ Commit the changes now.`
 
           // Show current status
           if (fixedJobs.size > 0) {
-            log.substep(`Fixed ${fixedJobs.size} job(s) so far (commits pending push)`)
+            log.substep(
+              `Fixed ${fixedJobs.size} job(s) so far (commits pending push)`,
+            )
           }
         } catch (e) {
           log.warn(`Failed to parse job data: ${e.message}`)
