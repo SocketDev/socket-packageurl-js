@@ -2786,6 +2786,113 @@ Be specific and actionable.`
 }
 
 /**
+ * Generate a commit message using Claude non-interactively.
+ * @param {string} claudeCmd - Path to Claude CLI
+ * @param {string} cwd - Working directory
+ * @param {object} options - Options from parent command
+ * @returns {Promise<string>} Generated commit message
+ */
+async function generateCommitMessage(claudeCmd, cwd, options = {}) {
+  const opts = { __proto__: null, ...options }
+
+  // Get git diff of staged changes
+  const diffResult = await runCommandWithOutput('git', ['diff', '--cached'], {
+    cwd,
+  })
+
+  // Get git status
+  const statusResult = await runCommandWithOutput(
+    'git',
+    ['status', '--short'],
+    { cwd },
+  )
+
+  // Get recent commit messages for style consistency
+  const logResult = await runCommandWithOutput(
+    'git',
+    ['log', '--oneline', '-n', '5'],
+    { cwd },
+  )
+
+  const prompt = `Generate a concise commit message for these changes.
+
+Git status:
+${statusResult.stdout || 'No status output'}
+
+Git diff (staged changes):
+${diffResult.stdout || 'No diff output'}
+
+Recent commits (for style reference):
+${logResult.stdout || 'No recent commits'}
+
+Requirements:
+1. Write a clear, concise commit message (1-2 lines preferred)
+2. Follow the style of recent commits
+3. Focus on WHY the changes were made, not just WHAT changed
+4. NO AI attribution (per CLAUDE.md rules)
+5. NO emojis
+6. Output ONLY the commit message text, nothing else
+
+Commit message:`
+
+  // Run Claude non-interactively to generate commit message
+  const result = await new Promise((resolve, reject) => {
+    let stdout = ''
+    let stderr = ''
+
+    const claudeProcess = spawn(claudeCmd, prepareClaudeArgs([], opts), {
+      cwd,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+
+    claudeProcess.stdout.on('data', data => {
+      stdout += data.toString()
+    })
+
+    claudeProcess.stderr.on('data', data => {
+      stderr += data.toString()
+    })
+
+    claudeProcess.on('close', code => {
+      if (code === 0) {
+        resolve(stdout.trim())
+      } else {
+        reject(
+          new Error(
+            `Claude failed to generate commit message: ${stderr || 'Unknown error'}`,
+          ),
+        )
+      }
+    })
+
+    claudeProcess.stdin.write(prompt)
+    claudeProcess.stdin.end()
+  })
+
+  // Extract just the commit message (Claude might add extra text)
+  // Look for the actual message after "Commit message:" or just use the whole output
+  const lines = result.split('\n').filter(line => line.trim())
+
+  // Return the first substantial line that looks like a commit message
+  for (const line of lines) {
+    const trimmed = line.trim()
+    // Skip common Claude preamble phrases
+    if (
+      trimmed &&
+      !trimmed.toLowerCase().startsWith('here') &&
+      !trimmed.toLowerCase().startsWith('commit message:') &&
+      !trimmed.startsWith('```') &&
+      trimmed.length > 10
+    ) {
+      return trimmed
+    }
+  }
+
+  // Fallback to first non-empty line
+  return lines[0] || 'Fix local checks and update tests'
+}
+
+/**
  * Run all checks, push, and monitor CI until green.
  * NOTE: This operates on the current repo by default. Use --cross-repo for all Socket projects.
  * Multi-repo parallel execution would conflict with interactive prompts if fixes fail.
@@ -3028,8 +3135,15 @@ Let's work through this together to get CI passing.`
       // Stage all changes
       await runCommand('git', ['add', '.'], { cwd: rootPath })
 
-      // Commit with descriptive message (no AI attribution per CLAUDE.md)
-      const commitMessage = 'Fix local checks and update tests'
+      // Generate commit message using Claude (non-interactive)
+      log.progress('Generating commit message with Claude')
+      const commitMessage = await generateCommitMessage(
+        claudeCmd,
+        rootPath,
+        opts,
+      )
+      log.substep(`Commit message: ${commitMessage}`)
+
       const commitArgs = ['commit', '-m', commitMessage]
       if (useNoVerify) {
         commitArgs.push('--no-verify')
