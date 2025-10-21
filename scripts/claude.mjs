@@ -3308,19 +3308,19 @@ Fix all CI failures now by making the necessary changes.`
         }, 10_000)
 
         try {
-          const fixArgs = prepareClaudeArgs([], opts)
-          const exitCode = await new Promise((resolve, _reject) => {
-            const child = spawn(claudeCmd, fixArgs, {
-              stdio: ['pipe', 'inherit', 'inherit'],
-              cwd: rootPath,
-              ...(WIN32 && { shell: true }),
-            })
+          // Write prompt to temp file to avoid stdin raw mode issues
+          const tmpFile = path.join(rootPath, `.claude-fix-${Date.now()}.txt`)
+          await fs.writeFile(tmpFile, fixPrompt, 'utf8')
 
-            // Write the fix prompt to stdin
-            if (fixPrompt) {
-              child.stdin.write(fixPrompt)
-              child.stdin.end()
-            }
+          const fixArgs = prepareClaudeArgs([], opts)
+          // Use shell input redirection to pass prompt without stdin pipe
+          const shellCmd = `${claudeCmd} ${fixArgs.join(' ')} < "${tmpFile}"`
+          const exitCode = await new Promise((resolve, _reject) => {
+            const child = spawn(shellCmd, [], {
+              stdio: 'inherit',
+              cwd: rootPath,
+              shell: true,
+            })
 
             child.on('exit', code => {
               resolve(code || 0)
@@ -3330,6 +3330,12 @@ Fix all CI failures now by making the necessary changes.`
               resolve(1)
             })
           })
+
+          // Clean up temp file
+          try {
+            await fs.unlink(tmpFile)
+          } catch {}
+
           if (exitCode !== 0) {
             log.warn(`Claude fix exited with code ${exitCode}`)
           }
@@ -3513,19 +3519,19 @@ Fix the failure now by making the necessary changes.`
               }, 10_000)
 
               try {
-                const fixArgs = prepareClaudeArgs([], opts)
-                const exitCode = await new Promise((resolve, _reject) => {
-                  const child = spawn(claudeCmd, fixArgs, {
-                    stdio: ['pipe', 'inherit', 'inherit'],
-                    cwd: rootPath,
-                    ...(WIN32 && { shell: true }),
-                  })
+                // Write prompt to temp file to avoid stdin raw mode issues
+                const tmpFile = path.join(rootPath, `.claude-fix-${Date.now()}.txt`)
+                await fs.writeFile(tmpFile, fixPrompt, 'utf8')
 
-                  // Write the fix prompt to stdin
-                  if (fixPrompt) {
-                    child.stdin.write(fixPrompt)
-                    child.stdin.end()
-                  }
+                const fixArgs = prepareClaudeArgs([], opts)
+                // Use shell input redirection to pass prompt without stdin pipe
+                const shellCmd = `${claudeCmd} ${fixArgs.join(' ')} < "${tmpFile}"`
+                const exitCode = await new Promise((resolve, _reject) => {
+                  const child = spawn(shellCmd, [], {
+                    stdio: 'inherit',
+                    cwd: rootPath,
+                    shell: true,
+                  })
 
                   child.on('exit', code => {
                     resolve(code || 0)
@@ -3535,6 +3541,12 @@ Fix the failure now by making the necessary changes.`
                     resolve(1)
                   })
                 })
+
+                // Clean up temp file
+                try {
+                  await fs.unlink(tmpFile)
+                } catch {}
+
                 if (exitCode !== 0) {
                   log.warn(`Claude fix exited with code ${exitCode}`)
                 }
