@@ -3060,8 +3060,15 @@ Let's work through this together to get CI passing.`
   let retryCount = 0
   let lastRunId = null
   let pushTime = Date.now()
+  // Track which jobs we've already fixed (jobName -> true)
+  let fixedJobs = new Map()
+  // Track if we've made any commits during this workflow run
+  let hasPendingCommits = false
 
   while (retryCount < maxRetries) {
+    // Reset tracking for each new CI run
+    fixedJobs = new Map()
+    hasPendingCommits = false
     log.progress(`Checking CI status (attempt ${retryCount + 1}/${maxRetries})`)
 
     // Wait a bit for CI to start
@@ -3186,6 +3193,28 @@ Let's work through this together to get CI passing.`
       }
       log.failed(`CI workflow failed with conclusion: ${run.conclusion}`)
 
+      // If we have pending commits from fixing jobs during execution, push them now
+      if (hasPendingCommits) {
+        log.progress('Pushing all fix commits')
+        await runCommand('git', ['push'], { cwd: rootPath })
+        log.done(`Pushed ${fixedJobs.size} fix commit(s)`)
+
+        // Update SHA and push time for next check
+        const newShaResult = await runCommandWithOutput(
+          'git',
+          ['rev-parse', 'HEAD'],
+          {
+            cwd: rootPath,
+          },
+        )
+        currentSha = newShaResult.stdout.trim()
+        pushTime = Date.now()
+
+        retryCount++
+        continue
+      }
+
+      // No fixes were made during execution, handle as traditional completed workflow
       if (retryCount < maxRetries - 1) {
         // Fetch failure logs
         log.progress('Fetching failure logs')
@@ -3367,8 +3396,195 @@ Fix all CI failures now by making the necessary changes.`
         return false
       }
     } else {
-      // Workflow still running, wait and check again
-      log.substep('Workflow still running, waiting 30 seconds...')
+      // Workflow still running - check for failed jobs and fix them immediately
+      log.substep('Workflow still running, checking for failed jobs...')
+
+      // Fetch jobs for this workflow run
+      const jobsResult = await runCommandWithOutput(
+        'gh',
+        [
+          'run',
+          'view',
+          lastRunId.toString(),
+          '--repo',
+          `${owner}/${repo}`,
+          '--json',
+          'jobs',
+        ],
+        {
+          cwd: rootPath,
+        },
+      )
+
+      if (jobsResult.exitCode === 0 && jobsResult.stdout) {
+        try {
+          const runData = JSON.parse(jobsResult.stdout)
+          const jobs = runData.jobs || []
+
+          // Check for any failed or cancelled jobs
+          const failedJobs = jobs.filter(
+            job => job.conclusion === 'failure' || job.conclusion === 'cancelled'
+          )
+
+          // Find new failures we haven't fixed yet
+          const newFailures = failedJobs.filter(job => !fixedJobs.has(job.name))
+
+          if (newFailures.length > 0) {
+            log.failed(`Detected ${newFailures.length} new failed job(s)`)
+
+            // Fix each failed job immediately
+            for (const job of newFailures) {
+              log.substep(`❌ ${job.name}: ${job.conclusion}`)
+
+              // Fetch logs for this specific failed job
+              log.progress(`Fetching logs for ${job.name}`)
+              const logsResult = await runCommandWithOutput(
+                'gh',
+                [
+                  'run',
+                  'view',
+                  lastRunId.toString(),
+                  '--repo',
+                  `${owner}/${repo}`,
+                  '--log-failed',
+                ],
+                {
+                  cwd: rootPath,
+                },
+              )
+              console.log('')
+
+              // Analyze and fix with Claude
+              log.progress(`Analyzing failure in ${job.name}`)
+              const fixPrompt = `You are automatically fixing CI failures. The job "${job.name}" failed in workflow run ${lastRunId} for commit ${currentSha} in ${owner}/${repo}.
+
+Job: ${job.name}
+Status: ${job.conclusion}
+
+Failure logs:
+${logsResult.stdout || 'No logs available'}
+
+Your task:
+1. Analyze these CI logs for the "${job.name}" job
+2. Identify the root cause of the failure
+3. Apply fixes directly to resolve the issue
+
+Focus on:
+- Test failures: Update snapshots, fix test logic, or correct test data
+- Lint errors: Fix code style and formatting issues
+- Type checking: Fix type errors and missing type annotations
+- Build problems: Fix import errors, missing pinned dependencies, or syntax issues
+
+IMPORTANT:
+- Be direct and apply fixes immediately
+- Don't ask for clarification or permission
+- Make all necessary file changes to fix this specific failure
+- Focus ONLY on fixing the "${job.name}" job
+
+Fix the failure now by making the necessary changes.`
+
+              // Run Claude non-interactively to apply fixes
+              log.substep(`Applying fix for ${job.name}...`)
+
+              const fixStartTime = Date.now()
+              const fixTimeout = 180_000
+
+              const progressInterval = setInterval(() => {
+                const elapsed = Date.now() - fixStartTime
+                if (elapsed > fixTimeout) {
+                  log.warn('Claude fix timeout, proceeding...')
+                  clearInterval(progressInterval)
+                } else {
+                  log.progress(
+                    `Claude fixing ${job.name}... (${Math.round(elapsed / 1000)}s)`,
+                  )
+                }
+              }, 10_000)
+
+              try {
+                const printArgs = ['--print', ...prepareClaudeArgs([], opts)]
+                const result = await runCommandWithOutput(claudeCmd, printArgs, {
+                  cwd: rootPath,
+                  input: fixPrompt,
+                  stdio: ['pipe', 'pipe', 'pipe'],
+                })
+                if (result.exitCode !== 0) {
+                  log.warn(`Claude fix exited with code ${result.exitCode}`)
+                  if (result.stderr) {
+                    log.warn(`Claude stderr: ${result.stderr.slice(0, 500)}`)
+                  }
+                }
+              } catch (error) {
+                log.warn(`Claude fix error: ${error.message}`)
+              } finally {
+                clearInterval(progressInterval)
+                log.done(`Fix attempt for ${job.name} completed`)
+              }
+
+              // Give Claude's changes a moment to complete
+              await new Promise(resolve => setTimeout(resolve, 2000))
+
+              // Run local checks
+              log.progress('Running local checks after fix')
+              console.log('')
+              for (const check of localChecks) {
+                await runCommandWithOutput(check.cmd, check.args, {
+                  cwd: rootPath,
+                  stdio: 'inherit',
+                })
+              }
+
+              // Check if there are changes to commit
+              const fixStatusResult = await runCommandWithOutput(
+                'git',
+                ['status', '--porcelain'],
+                {
+                  cwd: rootPath,
+                },
+              )
+
+              if (fixStatusResult.stdout.trim()) {
+                log.progress(`Committing fix for ${job.name}`)
+
+                const changedFiles = fixStatusResult.stdout
+                  .trim()
+                  .split('\n')
+                  .map(line => line.substring(3))
+                  .join(', ')
+                log.substep(`Changed files: ${changedFiles}`)
+
+                await runCommand('git', ['add', '.'], { cwd: rootPath })
+
+                // Commit with descriptive message (no AI attribution per CLAUDE.md)
+                const ciFixMessage = `Fix CI failure in ${job.name} (run ${lastRunId})`
+                const ciCommitArgs = ['commit', '-m', ciFixMessage]
+                if (useNoVerify) {
+                  ciCommitArgs.push('--no-verify')
+                }
+                await runCommand('git', ciCommitArgs, { cwd: rootPath })
+                log.done(`Committed fix for ${job.name}`)
+
+                hasPendingCommits = true
+              } else {
+                log.substep(`No changes to commit for ${job.name}`)
+              }
+
+              // Mark this job as fixed
+              fixedJobs.set(job.name, true)
+            }
+          }
+
+          // Show current status
+          if (fixedJobs.size > 0) {
+            log.substep(`Fixed ${fixedJobs.size} job(s) so far (commits pending push)`)
+          }
+        } catch (e) {
+          log.warn(`Failed to parse job data: ${e.message}`)
+        }
+      }
+
+      // Wait and check again
+      log.substep('Waiting 30 seconds before next check...')
       await new Promise(resolve => setTimeout(resolve, 30_000))
     }
   }
