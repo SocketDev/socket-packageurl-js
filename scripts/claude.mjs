@@ -3656,7 +3656,7 @@ Commit the changes now.`
 
               // Keep logs under 2000 chars to avoid context issues
               const truncatedLogs = filteredLogs.length > 2000
-                ? filteredLogs.substring(0, 2000) + '\n... (truncated)'
+                ? `${filteredLogs.substring(0, 2000)}\n... (truncated)`
                 : filteredLogs
 
               const fixPrompt = `Fix CI failure in "${job.name}" (run ${lastRunId}, commit ${currentSha.substring(0, 7)}).
