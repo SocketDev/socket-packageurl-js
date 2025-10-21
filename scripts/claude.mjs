@@ -3296,7 +3296,9 @@ Let's work through this together to get CI passing.`
       const validation = await validateBeforePush(rootPath)
       if (!validation.valid) {
         log.warn('Pre-push validation warnings:')
-        validation.warnings.forEach(warning => log.substep(warning))
+        validation.warnings.forEach(warning => {
+          log.substep(warning)
+        })
         log.substep('Continuing with push (warnings are non-blocking)...')
       }
 
@@ -3786,7 +3788,9 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
           const validation = await validateBeforePush(rootPath)
           if (!validation.valid) {
             log.warn('Pre-commit validation warnings:')
-            validation.warnings.forEach(warning => log.substep(warning))
+            validation.warnings.forEach(warning => {
+              log.substep(warning)
+            })
           }
 
           // Commit with generated message
@@ -4101,7 +4105,9 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
                 const validation = await validateBeforePush(rootPath)
                 if (!validation.valid) {
                   log.warn('Pre-commit validation warnings:')
-                  validation.warnings.forEach(warning => log.substep(warning))
+                  validation.warnings.forEach(warning => {
+                    log.substep(warning)
+                  })
                 }
 
                 // Commit with generated message
