@@ -10,6 +10,7 @@
 
 const { spawn } = require('node:child_process')
 const path = require('node:path')
+const { pathToFileURL } = require('node:url')
 
 // When run directly, act as a wrapper script.
 if (require.main === module) {
@@ -26,8 +27,9 @@ if (require.main === module) {
   const scriptPath = path.join(__dirname, scriptFile)
 
   // Run the script with the alias loader.
+  // Convert loader path to file:// URL for cross-platform ESM loader support (Windows requires file:// URLs)
   const loaderPath = path.join(__dirname, 'utils', 'alias-loader.mjs')
-  const args = [`--loader=${loaderPath}`, scriptPath, ...flags]
+  const args = [`--loader=${pathToFileURL(loaderPath).href}`, scriptPath, ...flags]
 
   const child = spawn(process.execPath, args, {
     stdio: 'inherit',
