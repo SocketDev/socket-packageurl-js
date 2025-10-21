@@ -3397,7 +3397,15 @@ Let's work through this together to get CI passing.`
         currentSha = newShaResult.stdout.trim()
         pushTime = Date.now()
 
-        retryCount++
+        // Reset retry count for new commit - it deserves its own attempts
+        log.substep(
+          `New commit ${currentSha.substring(0, 7)}, resetting retry counter`,
+        )
+        retryCount = 0
+
+        // Wait for new CI run to start
+        log.substep('Waiting 15 seconds for new CI run to start...')
+        await new Promise(resolve => setTimeout(resolve, 15_000))
         continue
       }
 
@@ -3591,6 +3599,8 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
           },
         )
 
+        let pushedNewCommit = false
+
         if (fixStatusResult.stdout.trim()) {
           log.progress('Committing CI fixes')
 
@@ -3602,72 +3612,28 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
             .join(', ')
           log.substep(`Changed files: ${changedFiles}`)
 
-          // Use Claude to create proper commits (logical groupings, no AI attribution)
-          const commitPrompt = `Review the changes and create commits with logical groupings.
+          // Stage all changes
+          await runCommand('git', ['add', '.'], { cwd: rootPath })
 
-Changed files: ${changedFiles}
-
-Requirements:
-- Create one or more commits as needed for logical grouping
-- No AI attribution in commit messages
-- Follow conventional commit style from the repo
-- Be concise and descriptive
-
-Commit the changes now.`
-
-          const commitTmpFile = path.join(
+          // Generate commit message using Claude (non-interactive)
+          log.progress('Generating CI fix commit message with Claude')
+          const commitMessage = await generateCommitMessage(
+            claudeCmd,
             rootPath,
-            `.claude-commit-${Date.now()}.txt`,
+            opts,
           )
-          await fs.writeFile(commitTmpFile, commitPrompt, 'utf8')
+          log.substep(`Commit message: ${commitMessage}`)
 
-          const commitArgs = prepareClaudeArgs([], opts)
-          const commitArgsStr = commitArgs.join(' ')
-          const commitCommand = commitArgsStr
-            ? `${claudeCmd} ${commitArgsStr}`
-            : claudeCmd
-
-          let commitScriptCmd
-          if (WIN32) {
-            const winptyCheck = await runCommandWithOutput('where', ['winpty'])
-            if (winptyCheck.exitCode === 0) {
-              commitScriptCmd = `winpty ${commitCommand} < "${commitTmpFile}"`
-            } else {
-              commitScriptCmd = `${commitCommand} < "${commitTmpFile}"`
-            }
-          } else {
-            commitScriptCmd = `script -q /dev/null sh -c '${commitCommand} < "${commitTmpFile}"'`
+          // Commit with generated message
+          const commitArgs = ['commit', '-m', commitMessage]
+          if (useNoVerify) {
+            commitArgs.push('--no-verify')
           }
-
-          const commitExitCode = await new Promise((resolve, _reject) => {
-            const child = spawn(commitScriptCmd, [], {
-              stdio: 'inherit',
-              cwd: rootPath,
-              shell: true,
-            })
-
-            const sigintHandler = () => {
-              child.kill('SIGINT')
-              resolve(130)
-            }
-            process.on('SIGINT', sigintHandler)
-
-            child.on('exit', code => {
-              process.off('SIGINT', sigintHandler)
-              resolve(code || 0)
-            })
-
-            child.on('error', () => {
-              process.off('SIGINT', sigintHandler)
-              resolve(1)
-            })
+          const commitResult = await runCommandWithOutput('git', commitArgs, {
+            cwd: rootPath,
           })
 
-          try {
-            await fs.unlink(commitTmpFile)
-          } catch {}
-
-          if (commitExitCode === 0) {
+          if (commitResult.exitCode === 0) {
             // Push the commits
             await runCommand('git', ['push'], { cwd: rootPath })
             log.done('Pushed fix commits')
@@ -3682,12 +3648,28 @@ Commit the changes now.`
             )
             currentSha = newShaResult.stdout.trim()
             pushTime = Date.now()
+            pushedNewCommit = true
+
+            // Reset retry count for new commit - it deserves its own attempts
+            log.substep(
+              `New commit ${currentSha.substring(0, 7)}, resetting retry counter`,
+            )
+            retryCount = 0
+
+            // Wait for new CI run to start
+            log.substep('Waiting 15 seconds for new CI run to start...')
+            await new Promise(resolve => setTimeout(resolve, 15_000))
           } else {
-            log.warn(`Claude commit failed with exit code ${commitExitCode}`)
+            log.warn(
+              `Git commit failed: ${commitResult.stderr || commitResult.stdout}`,
+            )
           }
         }
 
-        retryCount++
+        // Only increment retry count if we didn't push a new commit
+        if (!pushedNewCommit) {
+          retryCount++
+        }
       } else {
         log.error(`CI still failing after ${maxRetries} attempts`)
         log.substep(
@@ -3920,79 +3902,39 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
                   .join(', ')
                 log.substep(`Changed files: ${changedFiles}`)
 
-                // Use Claude to create proper commits (logical groupings, no AI attribution)
-                const commitPrompt = `Review the changes and create commits with logical groupings.
+                // Stage all changes
+                await runCommand('git', ['add', '.'], { cwd: rootPath })
 
-Changed files: ${changedFiles}
-
-Requirements:
-- Create one or more commits as needed for logical grouping
-- No AI attribution in commit messages
-- Follow conventional commit style from the repo
-- Be concise and descriptive
-
-Commit the changes now.`
-
-                const commitTmpFile = path.join(
-                  rootPath,
-                  `.claude-commit-${Date.now()}.txt`,
+                // Generate commit message using Claude (non-interactive)
+                log.progress(
+                  `Generating commit message for ${job.name} fix with Claude`,
                 )
-                await fs.writeFile(commitTmpFile, commitPrompt, 'utf8')
+                const commitMessage = await generateCommitMessage(
+                  claudeCmd,
+                  rootPath,
+                  opts,
+                )
+                log.substep(`Commit message: ${commitMessage}`)
 
-                const commitArgs = prepareClaudeArgs([], opts)
-                const commitArgsStr = commitArgs.join(' ')
-                const commitCommand = commitArgsStr
-                  ? `${claudeCmd} ${commitArgsStr}`
-                  : claudeCmd
-
-                let commitScriptCmd
-                if (WIN32) {
-                  const winptyCheck = await runCommandWithOutput('where', [
-                    'winpty',
-                  ])
-                  if (winptyCheck.exitCode === 0) {
-                    commitScriptCmd = `winpty ${commitCommand} < "${commitTmpFile}"`
-                  } else {
-                    commitScriptCmd = `${commitCommand} < "${commitTmpFile}"`
-                  }
-                } else {
-                  commitScriptCmd = `script -q /dev/null sh -c '${commitCommand} < "${commitTmpFile}"'`
+                // Commit with generated message
+                const commitArgs = ['commit', '-m', commitMessage]
+                if (useNoVerify) {
+                  commitArgs.push('--no-verify')
                 }
-
-                const commitExitCode = await new Promise((resolve, _reject) => {
-                  const child = spawn(commitScriptCmd, [], {
-                    stdio: 'inherit',
+                const commitResult = await runCommandWithOutput(
+                  'git',
+                  commitArgs,
+                  {
                     cwd: rootPath,
-                    shell: true,
-                  })
+                  },
+                )
 
-                  const sigintHandler = () => {
-                    child.kill('SIGINT')
-                    resolve(130)
-                  }
-                  process.on('SIGINT', sigintHandler)
-
-                  child.on('exit', code => {
-                    process.off('SIGINT', sigintHandler)
-                    resolve(code || 0)
-                  })
-
-                  child.on('error', () => {
-                    process.off('SIGINT', sigintHandler)
-                    resolve(1)
-                  })
-                })
-
-                try {
-                  await fs.unlink(commitTmpFile)
-                } catch {}
-
-                if (commitExitCode === 0) {
+                if (commitResult.exitCode === 0) {
                   log.done(`Committed fix for ${job.name}`)
                   hasPendingCommits = true
                 } else {
                   log.warn(
-                    `Claude commit failed with exit code ${commitExitCode}`,
+                    `Git commit failed: ${commitResult.stderr || commitResult.stdout}`,
                   )
                 }
               } else {
