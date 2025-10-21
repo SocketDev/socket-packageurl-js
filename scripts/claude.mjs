@@ -927,6 +927,66 @@ async function buildEnhancedPrompt(template, basePrompt, options = {}) {
 }
 
 /**
+ * Filter CI logs to extract only relevant failure information
+ * Removes runner setup noise and focuses on actual errors
+ */
+function filterCILogs(rawLogs) {
+  const lines = rawLogs.split('\n')
+  const relevantLines = []
+  let inErrorSection = false
+
+  for (const line of lines) {
+    // Skip runner metadata and setup
+    if (
+      line.includes('Current runner version:') ||
+      line.includes('Runner Image') ||
+      line.includes('Operating System') ||
+      line.includes('GITHUB_TOKEN') ||
+      line.includes('Prepare workflow') ||
+      line.includes('Prepare all required') ||
+      line.includes('##[group]') ||
+      line.includes('##[endgroup]') ||
+      line.includes('Post job cleanup') ||
+      line.includes('git config') ||
+      line.includes('git submodule') ||
+      line.includes('Cleaning up orphan') ||
+      line.includes('secret source:') ||
+      line.includes('[command]/usr/bin/git')
+    ) {
+      continue
+    }
+
+    // Detect error sections
+    if (
+      line.includes('##[error]') ||
+      line.includes('Error:') ||
+      line.includes('error TS') ||
+      line.includes('FAIL') ||
+      line.includes('✗') ||
+      line.includes('❌') ||
+      line.includes('failed') ||
+      line.includes('ELIFECYCLE')
+    ) {
+      inErrorSection = true
+      relevantLines.push(line)
+    } else if (inErrorSection && line.trim() !== '') {
+      relevantLines.push(line)
+      // Keep context for 5 lines after error
+      if (relevantLines.length > 100) {
+        inErrorSection = false
+      }
+    }
+  }
+
+  // If no errors found, return last 50 lines (might contain useful context)
+  if (relevantLines.length === 0) {
+    return lines.slice(-50).join('\n')
+  }
+
+  return relevantLines.join('\n')
+}
+
+/**
  * Prepare Claude command arguments for Claude Code.
  * Claude Code uses natural language prompts, not the same flags.
  * We'll translate our flags into appropriate context.
@@ -3505,6 +3565,22 @@ Fix all CI failures now by making the necessary changes.`
               )
               console.log('')
 
+              // Filter logs to extract relevant errors
+              const rawLogs = logsResult.stdout || 'No logs available'
+              const filteredLogs = filterCILogs(rawLogs)
+
+              // Show summary to user (not full logs)
+              const logLines = filteredLogs.split('\n').slice(0, 10)
+              log.substep('Error summary:')
+              for (const line of logLines) {
+                if (line.trim()) {
+                  log.substep(`  ${line.trim().substring(0, 100)}`)
+                }
+              }
+              if (filteredLogs.split('\n').length > 10) {
+                log.substep(`  ... (${filteredLogs.split('\n').length - 10} more lines)`)
+              }
+
               // Analyze and fix with Claude
               log.progress(`Analyzing failure in ${job.name}`)
               const fixPrompt = `You are automatically fixing CI failures. The job "${job.name}" failed in workflow run ${lastRunId} for commit ${currentSha} in ${owner}/${repo}.
@@ -3513,7 +3589,7 @@ Job: ${job.name}
 Status: ${job.conclusion}
 
 Failure logs:
-${logsResult.stdout || 'No logs available'}
+${filteredLogs}
 
 Your task:
 1. Analyze these CI logs for the "${job.name}" job
