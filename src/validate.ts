@@ -170,7 +170,7 @@ function validateQualifiers(
     return false
   }
   const qualifiersObj = qualifiers as QualifiersObject | URLSearchParams
-  const keysProperty = (qualifiersObj as QualifiersObject)['keys']
+  const keysProperty = (qualifiersObj as QualifiersObject).keys
   // type-coverage:ignore-next-line -- TypeScript correctly infers this type through the ternary and cast
   const keysIterable: Iterable<string> =
     // URLSearchParams instances have a "keys" method that returns an iterator

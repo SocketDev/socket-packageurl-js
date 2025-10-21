@@ -12,7 +12,10 @@ import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { logger } from '@socketsecurity/lib/logger'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
-const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const rootPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+)
 const WIN32 = process.platform === 'win32'
 
 function includesProvenanceDowngradeWarning(output) {
@@ -111,8 +114,12 @@ async function updateDependencies(options = {}) {
 
   if (result.hasProvenanceDowngrade) {
     logger.failed('Provenance downgrade detected!')
-    logger.error('ERROR: Provenance downgrade detected! Failing to maintain security.')
-    logger.error('Configure your dependencies to maintain provenance or exclude problematic packages.')
+    logger.error(
+      'ERROR: Provenance downgrade detected! Failing to maintain security.',
+    )
+    logger.error(
+      'Configure your dependencies to maintain provenance or exclude problematic packages.',
+    )
     return 1
   }
 
@@ -163,7 +170,7 @@ async function runProjectUpdates() {
     'update-package-json.mjs',
     'update-npm-package-json.mjs',
     'update-npm-readmes.mjs',
-    'update-data-npm.mjs'
+    'update-data-npm.mjs',
   ]
 
   for (const script of projectScripts) {
@@ -171,7 +178,7 @@ async function runProjectUpdates() {
     if (existsSync(scriptPath)) {
       updates.push({
         name: script.replace(/^update-/, '').replace(/\.mjs$/, ''),
-        script: scriptPath
+        script: scriptPath,
       })
     }
   }
@@ -186,7 +193,7 @@ async function runProjectUpdates() {
     logger.progress(`Updating ${name}`)
 
     const exitCode = await runCommand('node', [script], {
-      stdio: 'pipe'
+      stdio: 'pipe',
     })
 
     if (exitCode !== 0) {
@@ -245,9 +252,13 @@ async function main() {
       console.log('  --socket   Update Socket packages only')
       console.log('  --project  Run project-specific updates only')
       console.log('\nExamples:')
-      console.log('  pnpm update                # Update deps and Socket packages')
+      console.log(
+        '  pnpm update                # Update deps and Socket packages',
+      )
       console.log('  pnpm update --check        # Check for dependency updates')
-      console.log('  pnpm update --write        # Update dependencies in package.json')
+      console.log(
+        '  pnpm update --write        # Update dependencies in package.json',
+      )
       console.log('  pnpm update --deps         # Update dependencies only')
       console.log('  pnpm update --socket       # Update Socket packages only')
       console.log('  pnpm update --project      # Run project-specific updates')
@@ -271,7 +282,7 @@ async function main() {
       exitCode = await updateDependencies({
         check: values.check,
         write: values.write,
-        args: positionals
+        args: positionals,
       })
       if (exitCode !== 0) {
         logger.error('Dependency update failed')
@@ -301,7 +312,11 @@ async function main() {
       }
     }
 
-    printFooter('All updates completed successfully!', { width: 56, borderChar: '=', color: 'green' })
+    printFooter('All updates completed successfully!', {
+      width: 56,
+      borderChar: '=',
+      color: 'green',
+    })
     process.exitCode = 0
   } catch (error) {
     logger.error(`Update runner failed: ${error.message}`)

@@ -36,7 +36,7 @@ describe('PackageURL type-specific tests', () => {
     it("should allow legacy names to be mixed case, match a builtin, or contain ~'!()* characters", () => {
       // Tests npm legacy package exceptions (historical packages with special names)
       for (const legacyName of npmLegacyNames) {
-        let purl
+        let purl: PackageURL | undefined
         expect(() => {
           const parts = legacyName.split('/')
           const namespace = parts.length > 1 ? parts[0] : ''

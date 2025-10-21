@@ -16,54 +16,54 @@ function isBlank(str: string): boolean {
         // https://tc39.es/ecma262/#sec-white-space
         (
           // Space
-          code === 0x0020 ||
+          code === 0x00_20 ||
           // Tab
-          code === 0x0009 ||
+          code === 0x00_09 ||
           // Line Feed
-          code === 0x000a ||
+          code === 0x00_0a ||
           // Vertical Tab
-          code === 0x000b ||
+          code === 0x00_0b ||
           // Form Feed
-          code === 0x000c ||
+          code === 0x00_0c ||
           // Carriage Return
-          code === 0x000d ||
+          code === 0x00_0d ||
           // No-Break Space
-          code === 0x00a0 ||
+          code === 0x00_a0 ||
           // Ogham Space Mark
-          code === 0x1680 ||
+          code === 0x16_80 ||
           // En Quad
-          code === 0x2000 ||
+          code === 0x20_00 ||
           // Em Quad
-          code === 0x2001 ||
+          code === 0x20_01 ||
           // En Space
-          code === 0x2002 ||
+          code === 0x20_02 ||
           // Em Space
-          code === 0x2003 ||
+          code === 0x20_03 ||
           // Three-Per-Em Space
-          code === 0x2004 ||
+          code === 0x20_04 ||
           // Four-Per-Em Space
-          code === 0x2005 ||
+          code === 0x20_05 ||
           // Six-Per-Em Space
-          code === 0x2006 ||
+          code === 0x20_06 ||
           // Figure Space
-          code === 0x2007 ||
+          code === 0x20_07 ||
           // Punctuation Space
-          code === 0x2008 ||
+          code === 0x20_08 ||
           // Thin Space
-          code === 0x2009 ||
+          code === 0x20_09 ||
           // Hair Space
-          code === 0x200a ||
+          code === 0x20_0a ||
           // Line Separator
-          code === 0x2028 ||
+          code === 0x20_28 ||
           // Paragraph Separator
-          code === 0x2029 ||
+          code === 0x20_29 ||
           // Narrow No-Break Space
-          code === 0x202f ||
+          code === 0x20_2f ||
           // Medium Mathematical Space
-          code === 0x205f ||
+          code === 0x20_5f ||
           // Ideographic Space
-          code === 0x3000 ||
-          code === 0xfeff
+          code === 0x30_00 ||
+          code === 0xfe_ff
         // Byte Order Mark
         )
       )
@@ -147,7 +147,7 @@ function replaceDashesWithUnderscores(str: string): string {
   let fromIndex = 0
   let index = 0
   while ((index = str.indexOf('-', fromIndex)) !== -1) {
-    result = result + str.slice(fromIndex, index) + '_'
+    result = `${result + str.slice(fromIndex, index)}_`
     fromIndex = index + 1
   }
   return fromIndex ? result + str.slice(fromIndex) : str
@@ -162,7 +162,7 @@ function replaceUnderscoresWithDashes(str: string): string {
   let fromIndex = 0
   let index = 0
   while ((index = str.indexOf('_', fromIndex)) !== -1) {
-    result = result + str.slice(fromIndex, index) + '-'
+    result = `${result + str.slice(fromIndex, index)}-`
     fromIndex = index + 1
   }
   return fromIndex ? result + str.slice(fromIndex) : str

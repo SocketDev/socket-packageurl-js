@@ -324,7 +324,9 @@ async function main() {
       console.log('  --staged       Lint staged files')
       console.log('  --quiet, --silent  Suppress progress messages')
       console.log('\nExamples:')
-      console.log('  pnpm lint                   # Lint changed files (default)')
+      console.log(
+        '  pnpm lint                   # Lint changed files (default)',
+      )
       console.log('  pnpm lint --fix             # Fix issues in changed files')
       console.log('  pnpm lint --all             # Lint all files')
       console.log('  pnpm lint --staged --fix    # Fix issues in staged files')
@@ -350,7 +352,7 @@ async function main() {
       }
       exitCode = await runLintOnFiles(files, {
         fix: values.fix,
-        quiet
+        quiet,
       })
     } else {
       // Get files to lint based on flags
@@ -368,7 +370,7 @@ async function main() {
         }
         exitCode = await runLintOnAll({
           fix: values.fix,
-          quiet
+          quiet,
         })
       } else {
         if (!quiet) {
@@ -377,7 +379,7 @@ async function main() {
         }
         exitCode = await runLintOnFiles(files, {
           fix: values.fix,
-          quiet
+          quiet,
         })
       }
     }

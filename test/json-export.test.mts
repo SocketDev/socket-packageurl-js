@@ -95,9 +95,9 @@ describe('PackageURL JSON/dict export', () => {
       )
       const obj = purl.toObject()
 
-      expect(obj['qualifiers']).toEqual(qualifiers)
+      expect(obj.qualifiers).toEqual(qualifiers)
       // Should be a copy, not the same reference
-      expect(obj['qualifiers']).not.toBe(qualifiers)
+      expect(obj.qualifiers).not.toBe(qualifiers)
     })
   })
 
@@ -312,7 +312,9 @@ describe('PackageURL JSON/dict export', () => {
       expect(() => PackageURL.fromJSON('{"type":"npm","name"}')).toThrow(
         'Failed to parse PackageURL from JSON',
       )
-      expect(() => PackageURL.fromJSON('')).toThrow('Failed to parse PackageURL from JSON')
+      expect(() => PackageURL.fromJSON('')).toThrow(
+        'Failed to parse PackageURL from JSON',
+      )
 
       // Test validation of created PackageURL
       expect(() =>

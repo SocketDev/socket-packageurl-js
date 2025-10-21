@@ -13,16 +13,25 @@ import { runCommandQuiet } from './utils/run-command.mjs'
  * Run ESLint check via lint script.
  */
 async function runEslintCheck(options = {}) {
-  const { all = false, changed = false, quiet = false, staged = false } = options
+  const {
+    all = false,
+    changed = false,
+    quiet = false,
+    staged = false,
+  } = options
 
   if (!quiet) {
     logger.progress('Checking ESLint')
   }
 
   const args = ['run', 'lint']
-  if (all) {args.push('--all')}
-  else if (staged) {args.push('--staged')}
-  else if (changed) {args.push('--changed')}
+  if (all) {
+    args.push('--all')
+  } else if (staged) {
+    args.push('--staged')
+  } else if (changed) {
+    args.push('--changed')
+  }
 
   const result = await runCommandQuiet('pnpm', args)
 
@@ -61,7 +70,7 @@ async function runTypeCheck(options = {}) {
   const result = await runCommandQuiet('tsgo', [
     '--noEmit',
     '-p',
-    '.config/tsconfig.check.json'
+    '.config/tsconfig.check.json',
   ])
 
   if (result.exitCode !== 0) {
@@ -166,7 +175,7 @@ async function main() {
         all: values.all,
         changed: values.changed,
         quiet,
-        staged: values.staged
+        staged: values.staged,
       })
       if (exitCode !== 0) {
         if (!quiet) {

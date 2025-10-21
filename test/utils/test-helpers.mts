@@ -8,13 +8,13 @@ import { PackageURL } from '../../src/package-url.js'
  * Create a test function with optional return value.
  * @param returnValue - Optional value to return from the function
  */
-export function createTestFunction(returnValue?: string): () => string | void {
+export function createTestFunction(
+  returnValue?: string,
+): () => string | undefined {
   if (returnValue !== undefined) {
-    return function () {
-      return returnValue
-    }
+    return () => returnValue
   }
-  return function () {}
+  return () => undefined
 }
 
 /**

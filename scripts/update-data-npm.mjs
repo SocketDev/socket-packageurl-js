@@ -14,7 +14,10 @@ import validateNpmPackageName from 'validate-npm-package-name'
 
 import { arrayUnique } from '@socketsecurity/lib/arrays'
 import { getMaintainedNodeVersions } from '@socketsecurity/lib/constants/node'
-import { getAbortSignal, getSpinner } from '@socketsecurity/lib/constants/process'
+import {
+  getAbortSignal,
+  getSpinner,
+} from '@socketsecurity/lib/constants/process'
 import { writeJson } from '@socketsecurity/lib/fs'
 import { logger } from '@socketsecurity/lib/logger'
 import { pFilter } from '@socketsecurity/lib/promises'

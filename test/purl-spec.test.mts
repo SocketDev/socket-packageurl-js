@@ -26,7 +26,10 @@ import { glob } from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 
 import { readJson } from '@socketsecurity/lib/fs'
-import { isObject, toSortedObjectFromEntries } from '@socketsecurity/lib/objects'
+import {
+  isObject,
+  toSortedObjectFromEntries,
+} from '@socketsecurity/lib/objects'
 
 import { PackageURL } from '../src/package-url.js'
 

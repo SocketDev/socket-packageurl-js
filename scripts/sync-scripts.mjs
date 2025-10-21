@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Sync unified scripts to other Socket repositories
  */
@@ -53,11 +52,11 @@ async function updatePackageJson(projectPath) {
 
   // Update scripts
   const updates = {
-    'build': 'node scripts/build.mjs',
-    'clean': 'node scripts/clean.mjs',
-    'lint': 'node scripts/lint.mjs',
-    'fix': 'node scripts/lint.mjs --fix',
-    'test': 'node scripts/test.mjs',
+    build: 'node scripts/build.mjs',
+    clean: 'node scripts/clean.mjs',
+    lint: 'node scripts/lint.mjs',
+    fix: 'node scripts/lint.mjs --fix',
+    test: 'node scripts/test.mjs',
   }
 
   // Remove old scripts
@@ -93,7 +92,7 @@ async function updatePackageJson(projectPath) {
     pkg.scripts[name] = command
   }
 
-  await fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8')
+  await fs.writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`, 'utf8')
   console.log(`  ${colors.green('✓')} package.json updated`)
 }
 
@@ -153,7 +152,10 @@ async function main() {
 
       console.log(`${colors.green('✓')} ${projectName} updated successfully`)
     } catch (error) {
-      console.error(`${colors.red('✗')} Error updating ${projectName}:`, error.message)
+      console.error(
+        `${colors.red('✗')} Error updating ${projectName}:`,
+        error.message,
+      )
     }
   }
 

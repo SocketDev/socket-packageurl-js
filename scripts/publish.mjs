@@ -12,7 +12,10 @@ import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { logger } from '@socketsecurity/lib/logger'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
-const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const rootPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+)
 const WIN32 = process.platform === 'win32'
 const CI = !!process.env.CI
 
@@ -95,7 +98,11 @@ async function checkGitStatus() {
  * Check if we're on the main/master branch.
  */
 async function checkGitBranch() {
-  const result = await runCommandWithOutput('git', ['rev-parse', '--abbrev-ref', 'HEAD'])
+  const result = await runCommandWithOutput('git', [
+    'rev-parse',
+    '--abbrev-ref',
+    'HEAD',
+  ])
   const branch = result.stdout.trim()
   if (branch !== 'main' && branch !== 'master') {
     logger.warn(`Not on main/master branch (current: ${branch})`)
@@ -116,11 +123,11 @@ async function getCurrentVersion(pkgPath = rootPath) {
  * Check if a version exists on npm.
  */
 async function versionExists(packageName, version) {
-  const result = await runCommandWithOutput('npm', [
-    'view',
-    `${packageName}@${version}`,
-    'version'
-  ], { stdio: 'pipe' })
+  const result = await runCommandWithOutput(
+    'npm',
+    ['view', `${packageName}@${version}`, 'version'],
+    { stdio: 'pipe' },
+  )
 
   return result.exitCode === 0
 }
@@ -169,7 +176,9 @@ async function runPrePublishChecks(options = {}) {
 
   // Run tests
   logger.progress('Running tests')
-  const testCode = await runCommand('pnpm', ['test', '--all'], { stdio: 'pipe' })
+  const testCode = await runCommand('pnpm', ['test', '--all'], {
+    stdio: 'pipe',
+  })
   if (testCode !== 0) {
     logger.failed('Tests failed')
     // Re-run with output
@@ -180,7 +189,9 @@ async function runPrePublishChecks(options = {}) {
 
   // Run checks
   logger.progress('Running checks')
-  const checkCode = await runCommand('pnpm', ['check', '--all'], { stdio: 'pipe' })
+  const checkCode = await runCommand('pnpm', ['check', '--all'], {
+    stdio: 'pipe',
+  })
   if (checkCode !== 0) {
     logger.failed('Checks failed')
     // Re-run with output
@@ -199,7 +210,9 @@ async function buildProject() {
   logger.step('Building project')
 
   logger.progress('Cleaning build directories')
-  const cleanCode = await runCommand('pnpm', ['clean', '--dist'], { stdio: 'pipe' })
+  const cleanCode = await runCommand('pnpm', ['clean', '--dist'], {
+    stdio: 'pipe',
+  })
   if (cleanCode !== 0) {
     logger.failed('Clean failed')
     return false
@@ -282,14 +295,18 @@ async function publishSimple(options = {}) {
  */
 async function publishComplex(options = {}) {
   // Check for project-specific publish script
-  const projectPublishPath = path.join(rootPath, 'scripts', 'publish-packages.mjs')
+  const projectPublishPath = path.join(
+    rootPath,
+    'scripts',
+    'publish-packages.mjs',
+  )
   if (existsSync(projectPublishPath)) {
     logger.step('Running project-specific publish script')
     const exitCode = await runCommand('node', [projectPublishPath], {
       env: {
         ...process.env,
-        ...options.env
-      }
+        ...options.env,
+      },
     })
     return exitCode === 0
   }
@@ -312,7 +329,11 @@ async function pushExistingTag(version, options = {}) {
 
   // Check if tag exists locally
   logger.progress(`Checking for local tag ${tagName}`)
-  const localTagResult = await runCommandWithOutput('git', ['tag', '-l', tagName])
+  const localTagResult = await runCommandWithOutput('git', [
+    'tag',
+    '-l',
+    tagName,
+  ])
   if (!localTagResult.stdout.trim()) {
     logger.done('No local tag to push')
     return true
@@ -321,7 +342,12 @@ async function pushExistingTag(version, options = {}) {
 
   // Check if tag exists on remote
   logger.progress(`Checking remote for tag ${tagName}`)
-  const remoteTagResult = await runCommandWithOutput('git', ['ls-remote', '--tags', 'origin', tagName])
+  const remoteTagResult = await runCommandWithOutput('git', [
+    'ls-remote',
+    '--tags',
+    'origin',
+    tagName,
+  ])
   if (remoteTagResult.stdout.trim()) {
     logger.done('Tag already exists on remote')
     return true
@@ -439,7 +465,7 @@ async function main() {
       const checksPass = await runPrePublishChecks({
         skipGitCheck: values['skip-git'],
         skipBranchCheck: values['skip-git'],
-        force: values.force
+        force: values.force,
       })
       if (!checksPass && !values.force) {
         logger.error('Pre-publish checks failed')
@@ -466,7 +492,7 @@ async function main() {
         tag: values.tag,
         access: values.access,
         otp: values.otp,
-        force: values.force
+        force: values.force,
       })
     } else {
       publishSuccess = await publishSimple({
@@ -474,7 +500,7 @@ async function main() {
         tag: values.tag,
         access: values.access,
         otp: values.otp,
-        force: values.force
+        force: values.force,
       })
     }
 
@@ -488,11 +514,15 @@ async function main() {
     // Tags are created by version bump commits, not by this script
     if (!values['skip-tag'] && !values['dry-run'] && !isRegistryPackage()) {
       await pushExistingTag(version, {
-        force: values.force
+        force: values.force,
       })
     }
 
-    printFooter('Publish completed successfully!', { width: 56, borderChar: '=', color: 'green' })
+    printFooter('Publish completed successfully!', {
+      width: 56,
+      borderChar: '=',
+      color: 'green',
+    })
     process.exitCode = 0
   } catch (error) {
     logger.error(`Publish runner failed: ${error.message}`)

@@ -22,6 +22,7 @@ SOFTWARE.
 
 import { describe, expect, it } from 'vitest'
 
+import { PackageURL } from '../src/package-url.js'
 import {
   testInvalidParam,
   testInvalidStringParam,
@@ -29,7 +30,6 @@ import {
   testValidStringParam,
 } from './utils/param-validation.mjs'
 import { createTestPurl } from './utils/test-helpers.mjs'
-import { PackageURL } from '../src/package-url.js'
 
 describe('PackageURL', () => {
   describe('KnownQualifierNames', () => {
@@ -49,7 +49,7 @@ describe('PackageURL', () => {
 
     it('readonly: cannot be written', () => {
       expect(() => {
-        // @ts-ignore Testing runtime immutability.
+        // @ts-expect-error Testing runtime immutability.
         PackageURL.KnownQualifierNames = { foo: 'bar' }
       }).toThrow(TypeError)
       expect(PackageURL.KnownQualifierNames).not.toStrictEqual({
@@ -59,10 +59,10 @@ describe('PackageURL', () => {
 
     it('frozen: cannot be modified', () => {
       expect(() => {
-        // @ts-ignore Testing runtime immutability.
+        // @ts-expect-error Testing runtime immutability.
         PackageURL.KnownQualifierNames.foo = 'bar'
       }).toThrow(TypeError)
-      // @ts-ignore Testing runtime immutability.
+      // @ts-expect-error Testing runtime immutability.
       expect(PackageURL.KnownQualifierNames.foo).toBe(undefined)
     })
   })
@@ -445,7 +445,7 @@ describe('PackageURL', () => {
     // for better organization and to avoid duplication
 
     it('should reject package URLs exceeding maximum length', () => {
-      const longUrl = 'pkg:npm/' + 'x'.repeat(4090)
+      const longUrl = `pkg:npm/${'x'.repeat(4090)}`
       expect(() => PackageURL.fromString(longUrl)).toThrow(
         'Package URL exceeds maximum length of 4096 characters',
       )
@@ -453,8 +453,8 @@ describe('PackageURL', () => {
 
     it('should handle bounded regex patterns without ReDoS', () => {
       // These used to be potential ReDoS vectors with unbounded quantifiers.
-      const longScheme = 'a'.repeat(300) + '://'
-      const longType = 'a'.repeat(300) + '/'
+      const longScheme = `${'a'.repeat(300)}://`
+      const longType = `${'a'.repeat(300)}/`
 
       // Should not hang with bounded patterns.
       expect(() => PackageURL.fromString(longScheme)).toThrow()

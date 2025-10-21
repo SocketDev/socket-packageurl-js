@@ -14,7 +14,7 @@ function formatPurlErrorMessage(message = ''): string {
     const code0 = message.charCodeAt(0)
     formatted =
       code0 >= 65 /*'A'*/ && code0 <= 90 /*'Z'*/
-        ? `${message[0]!.toLowerCase()}${message.slice(1)}`
+        ? `${message[0]?.toLowerCase()}${message.slice(1)}`
         : message
     // Remove period from end of message
     if (

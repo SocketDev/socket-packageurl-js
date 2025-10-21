@@ -41,33 +41,12 @@ SOFTWARE.
 
 /* c8 ignore start - Re-export only file, no logic to test */
 
+export type { PURLString } from '@socketsecurity/lib'
 // ============================================================================
-// Core Classes and Functions
+// Registry Integration
 // ============================================================================
-export {
-  PackageURL,
-  PurlComponent,
-  PurlQualifierNames,
-  PurlType,
-} from './package-url.js'
-
-export { PackageURLBuilder } from './package-url-builder.js'
-
-// ============================================================================
-// Utility Classes and Functions
-// ============================================================================
-export {
-  UrlConverter,
-} from './package-url.js'
-
-export {
-  Err,
-  Ok,
-  ResultUtils,
-  err,
-  ok,
-} from './package-url.js'
-
+// Re-export PURL types from socket-registry for consistency
+export { PURL_Type } from '@socketsecurity/lib'
 // ============================================================================
 // TypeScript Type Definitions
 // ============================================================================
@@ -76,12 +55,24 @@ export type {
   RepositoryUrl,
   Result,
 } from './package-url.js'
-
 // ============================================================================
-// Registry Integration
+// Core Classes and Functions
 // ============================================================================
-// Re-export PURL types from socket-registry for consistency
-export { PURL_Type } from '@socketsecurity/lib'
-export type { PURLString } from '@socketsecurity/lib'
+// ============================================================================
+// Utility Classes and Functions
+// ============================================================================
+export {
+  Err,
+  err,
+  Ok,
+  ok,
+  PackageURL,
+  PurlComponent,
+  PurlQualifierNames,
+  PurlType,
+  ResultUtils,
+  UrlConverter,
+} from './package-url.js'
+export { PackageURLBuilder } from './package-url-builder.js'
 
 /* c8 ignore stop */

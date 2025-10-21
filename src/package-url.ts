@@ -99,57 +99,47 @@ class PackageURL {
     rawSubpath: unknown,
   ) {
     const type = isNonEmptyString(rawType)
-      ? (PurlComponent['type']?.['normalize'] as ComponentNormalizer)?.(rawType)
+      ? (PurlComponent.type?.normalize as ComponentNormalizer)?.(rawType)
       : rawType
-    ;(PurlComponent['type']?.['validate'] as ComponentValidator)?.(type, true)
+    ;(PurlComponent.type?.validate as ComponentValidator)?.(type, true)
 
     const namespace = isNonEmptyString(rawNamespace)
-      ? (PurlComponent['namespace']?.['normalize'] as ComponentNormalizer)?.(
+      ? (PurlComponent.namespace?.normalize as ComponentNormalizer)?.(
           rawNamespace,
         )
       : rawNamespace
-    ;(PurlComponent['namespace']?.['validate'] as ComponentValidator)?.(
+    ;(PurlComponent.namespace?.validate as ComponentValidator)?.(
       namespace,
       true,
     )
 
     const name = isNonEmptyString(rawName)
-      ? (PurlComponent['name']?.['normalize'] as ComponentNormalizer)?.(rawName)
+      ? (PurlComponent.name?.normalize as ComponentNormalizer)?.(rawName)
       : rawName
-    ;(PurlComponent['name']?.['validate'] as ComponentValidator)?.(name, true)
+    ;(PurlComponent.name?.validate as ComponentValidator)?.(name, true)
 
     const version = isNonEmptyString(rawVersion)
-      ? (PurlComponent['version']?.['normalize'] as ComponentNormalizer)?.(
-          rawVersion,
-        )
+      ? (PurlComponent.version?.normalize as ComponentNormalizer)?.(rawVersion)
       : rawVersion
-    ;(PurlComponent['version']?.['validate'] as ComponentValidator)?.(
-      version,
-      true,
-    )
+    ;(PurlComponent.version?.validate as ComponentValidator)?.(version, true)
 
     const qualifiers =
       typeof rawQualifiers === 'string' || isObject(rawQualifiers)
         ? (
-            PurlComponent['qualifiers']?.['normalize'] as (
+            PurlComponent.qualifiers?.normalize as (
               _value: string | QualifiersObject,
             ) => Record<string, string> | undefined
           )?.(rawQualifiers as string | QualifiersObject)
         : rawQualifiers
-    ;(PurlComponent['qualifiers']?.['validate'] as ComponentValidator)?.(
+    ;(PurlComponent.qualifiers?.validate as ComponentValidator)?.(
       qualifiers,
       true,
     )
 
     const subpath = isNonEmptyString(rawSubpath)
-      ? (PurlComponent['subpath']?.['normalize'] as ComponentNormalizer)?.(
-          rawSubpath,
-        )
+      ? (PurlComponent.subpath?.normalize as ComponentNormalizer)?.(rawSubpath)
       : rawSubpath
-    ;(PurlComponent['subpath']?.['validate'] as ComponentValidator)?.(
-      subpath,
-      true,
-    )
+    ;(PurlComponent.subpath?.validate as ComponentValidator)?.(subpath, true)
 
     this.type = type as string
     this.name = name as string
@@ -166,9 +156,9 @@ class PackageURL {
 
     const typeHelpers = PurlType[type as string]
     if (typeHelpers) {
-      ;(typeHelpers?.['normalize'] as (_purl: PackageURL) => void)?.(this)
+      ;(typeHelpers?.normalize as (_purl: PackageURL) => void)?.(this)
       ;(
-        typeHelpers?.['validate'] as (
+        typeHelpers?.validate as (
           _purl: PackageURL,
           _throws: boolean,
         ) => boolean
@@ -196,22 +186,22 @@ class PackageURL {
   toObject(): PackageURLObject {
     const result: PackageURLObject = {}
     if (this.type !== undefined) {
-      result['type'] = this.type
+      result.type = this.type
     }
     if (this.namespace !== undefined) {
-      result['namespace'] = this.namespace
+      result.namespace = this.namespace
     }
     if (this.name !== undefined) {
-      result['name'] = this.name
+      result.name = this.name
     }
     if (this.version !== undefined) {
-      result['version'] = this.version
+      result.version = this.version
     }
     if (this.qualifiers !== undefined) {
-      result['qualifiers'] = this.qualifiers
+      result.qualifiers = this.qualifiers
     }
     if (this.subpath !== undefined) {
-      result['subpath'] = this.subpath
+      result.subpath = this.subpath
     }
     return result
   }
@@ -232,19 +222,19 @@ class PackageURL {
       type?: string | undefined
       version?: string | undefined
     } = this
-    /* c8 ignore next - Type encoder uses default PurlComponentEncoder, never returns null/undefined. */ let purlStr = `pkg:${(PurlComponent['type']?.['encode'] as ComponentEncoder)?.(type) ?? ''}/`
+    /* c8 ignore next - Type encoder uses default PurlComponentEncoder, never returns null/undefined. */ let purlStr = `pkg:${(PurlComponent.type?.encode as ComponentEncoder)?.(type) ?? ''}/`
     if (namespace) {
-      /* c8 ignore next - Namespace encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent['namespace']?.['encode'] as ComponentEncoder)?.(namespace) ?? ''}/`
+      /* c8 ignore next - Namespace encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent.namespace?.encode as ComponentEncoder)?.(namespace) ?? ''}/`
     }
-    /* c8 ignore next - Name encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent['name']?.['encode'] as ComponentEncoder)?.(name) ?? ''}`
+    /* c8 ignore next - Name encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent.name?.encode as ComponentEncoder)?.(name) ?? ''}`
     if (version) {
-      /* c8 ignore next - Version encoder always returns string, never null/undefined. */ purlStr = `${purlStr}@${(PurlComponent['version']?.['encode'] as ComponentEncoder)?.(version) ?? ''}`
+      /* c8 ignore next - Version encoder always returns string, never null/undefined. */ purlStr = `${purlStr}@${(PurlComponent.version?.encode as ComponentEncoder)?.(version) ?? ''}`
     }
     if (qualifiers) {
-      /* c8 ignore next - Qualifiers encoder always returns string, never null/undefined. */ purlStr = `${purlStr}?${(PurlComponent['qualifiers']?.['encode'] as ComponentEncoder)?.(qualifiers) ?? ''}`
+      /* c8 ignore next - Qualifiers encoder always returns string, never null/undefined. */ purlStr = `${purlStr}?${(PurlComponent.qualifiers?.encode as ComponentEncoder)?.(qualifiers) ?? ''}`
     }
     if (subpath) {
-      /* c8 ignore next - Subpath encoder always returns string, never null/undefined. */ purlStr = `${purlStr}#${(PurlComponent['subpath']?.['encode'] as ComponentEncoder)?.(subpath) ?? ''}`
+      /* c8 ignore next - Subpath encoder always returns string, never null/undefined. */ purlStr = `${purlStr}#${(PurlComponent.subpath?.encode as ComponentEncoder)?.(subpath) ?? ''}`
     }
     return purlStr
   }
@@ -272,9 +262,9 @@ class PackageURL {
       parsed = JSON.parse(json)
     } catch (e) {
       // For JSON parsing errors, throw a SyntaxError with the expected message
-      const syntaxError = new SyntaxError('Failed to parse PackageURL from JSON')
-      ;(syntaxError as any).cause = e
-      throw syntaxError
+      throw new SyntaxError('Failed to parse PackageURL from JSON', {
+        cause: e,
+      })
     }
 
     // Validate parsed result is an object
@@ -288,12 +278,12 @@ class PackageURL {
     // Create a safe object without prototype chain to prevent prototype pollution
     const safeObject: PackageURLObject = {
       __proto__: null,
-      type: parsedRecord['type'] as string | undefined,
-      namespace: parsedRecord['namespace'] as string | undefined,
-      name: parsedRecord['name'] as string | undefined,
-      version: parsedRecord['version'] as string | undefined,
-      qualifiers: parsedRecord['qualifiers'] as Record<string, string> | undefined,
-      subpath: parsedRecord['subpath'] as string | undefined,
+      type: parsedRecord.type as string | undefined,
+      namespace: parsedRecord.namespace as string | undefined,
+      name: parsedRecord.name as string | undefined,
+      version: parsedRecord.version as string | undefined,
+      qualifiers: parsedRecord.qualifiers as Record<string, string> | undefined,
+      subpath: parsedRecord.subpath as string | undefined,
     } as PackageURLObject
 
     return PackageURL.fromObject(safeObject)
@@ -308,12 +298,12 @@ class PackageURL {
     }
     const typedObj = obj as Record<string, unknown>
     return new PackageURL(
-      typedObj['type'],
-      typedObj['namespace'],
-      typedObj['name'],
-      typedObj['version'],
-      typedObj['qualifiers'],
-      typedObj['subpath'],
+      typedObj.type,
+      typedObj.namespace,
+      typedObj.name,
+      typedObj.version,
+      typedObj.qualifiers,
+      typedObj.subpath,
     )
   }
 
@@ -470,7 +460,7 @@ class PackageURL {
       const searchParams = new URLSearchParams()
       const entries = search.split('&')
       for (let i = 0, { length } = entries; i < length; i += 1) {
-        const pairs = entries[i]!.split('=')
+        const pairs = entries[i]?.split('=')
         const value = decodePurlComponent('qualifiers', pairs.at(1) ?? '')
         // Use URLSearchParams#append to preserve plus signs
         // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
@@ -512,7 +502,7 @@ class PackageURL {
     return ResultUtils.from(() => PackageURL.fromString(purlStr))
   }
 
-  static tryParseString(purlStr: unknown): Result<any[], Error> {
+  static tryParseString(purlStr: unknown): Result<unknown[], Error> {
     return ResultUtils.from(() => PackageURL.parseString(purlStr))
   }
 }

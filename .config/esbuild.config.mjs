@@ -39,12 +39,12 @@ export const buildConfig = {
   external: [
     // Node.js built-ins
     ...builtinModules,
-    ...builtinModules.map(m => `node:${m}`)
+    ...builtinModules.map(m => `node:${m}`),
   ],
 
   // Banner for generated code
   banner: {
-    js: '/* Socket PackageURL - Built with esbuild */'
+    js: '/* Socket PackageURL - Built with esbuild */',
   },
 
   // TypeScript configuration
@@ -52,8 +52,10 @@ export const buildConfig = {
 
   // Define constants for optimization
   define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
-  }
+    'process.env.NODE_ENV': JSON.stringify(
+      process.env.NODE_ENV || 'production',
+    ),
+  },
 }
 
 // Watch configuration for development with incremental builds
@@ -66,7 +68,7 @@ export const watchConfig = {
   watch: {
     // This will be extracted and not passed to context()
     // Rebuild logging is handled via plugin in build script
-  }
+  },
 }
 
 /**
@@ -81,13 +83,13 @@ function analyzeMetafile(metafile) {
     totalSize += output.bytes
     return {
       name: path.relative(rootPath, file),
-      size: (output.bytes / 1024).toFixed(2) + ' KB'
+      size: `${(output.bytes / 1024).toFixed(2)} KB`,
     }
   })
 
   return {
     files,
-    totalSize: (totalSize / 1024).toFixed(2) + ' KB'
+    totalSize: `${(totalSize / 1024).toFixed(2)} KB`,
   }
 }
 

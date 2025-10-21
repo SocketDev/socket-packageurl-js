@@ -132,7 +132,7 @@ describe('Result types', () => {
     it('should map error correctly', () => {
       const result = err(new Error('original'))
       const mapped = result.mapErr(
-        (e: Error) => new Error('mapped: ' + e.message),
+        (e: Error) => new Error(`mapped: ${e.message}`),
       )
 
       expect(mapped.isErr()).toBe(true)

@@ -33,7 +33,7 @@ export type Result<T, E = Error> = Ok<T> | Err<E>
  * Successful result containing a value.
  */
 export class Ok<T> {
-  readonly kind: 'ok' = 'ok'
+  readonly kind = 'ok' as const
   readonly value: T
 
   constructor(value: T) {
@@ -108,7 +108,7 @@ export class Ok<T> {
  * Error result containing an error.
  */
 export class Err<E = Error> {
-  readonly kind: 'err' = 'err'
+  readonly kind = 'err' as const
   readonly error: E
 
   constructor(error: E) {

@@ -40,7 +40,7 @@ describe('PackageURL.fromJSON security features', () => {
       })
 
       expect(() => PackageURL.fromJSON(largeJson)).toThrow(
-        'JSON string exceeds maximum size limit of 1048576 bytes'
+        'JSON string exceeds maximum size limit of 1048576 bytes',
       )
     })
 
@@ -62,18 +62,26 @@ describe('PackageURL.fromJSON security features', () => {
       const qualifiers: Record<string, string> = { bigQualifier: largeValue }
 
       // Add a few smaller qualifiers to fine-tune the size
-      let currentSize = baseStructure.length + JSON.stringify(qualifiers).length - 1 + endStructure.length
+      let currentSize =
+        baseStructure.length +
+        JSON.stringify(qualifiers).length -
+        1 +
+        endStructure.length
       let i = 0
       while (currentSize < targetSize - 50) {
         qualifiers[`q${i}`] = 'x'.repeat(10)
-        currentSize = baseStructure.length + JSON.stringify(qualifiers).length - 1 + endStructure.length
+        currentSize =
+          baseStructure.length +
+          JSON.stringify(qualifiers).length -
+          1 +
+          endStructure.length
         i++
       }
 
       const finalJson = JSON.stringify({
         type: 'npm',
         name: 'test',
-        qualifiers
+        qualifiers,
       })
 
       expect(finalJson.length).toBeLessThanOrEqual(targetSize)
@@ -90,18 +98,18 @@ describe('PackageURL.fromJSON security features', () => {
       const qualifierValue = 'x'.repeat(100)
 
       // Add enough qualifiers to exceed 1MB
-      for (let i = 0; i < 12000; i++) {
+      for (let i = 0; i < 12_000; i++) {
         largeQualifiers[`q${i}`] = qualifierValue
       }
 
       const overLimitJson = JSON.stringify({
         type: 'npm',
         name: 'test',
-        qualifiers: largeQualifiers
+        qualifiers: largeQualifiers,
       })
 
       expect(() => PackageURL.fromJSON(overLimitJson)).toThrow(
-        'JSON string exceeds maximum size limit'
+        'JSON string exceeds maximum size limit',
       )
     })
 
@@ -113,7 +121,7 @@ describe('PackageURL.fromJSON security features', () => {
       const qualifiers: Record<string, string> = {}
 
       // Each qualifier entry with emoji values will use more bytes than characters
-      for (let i = 0; i < 50000; i++) {
+      for (let i = 0; i < 50_000; i++) {
         // 40 bytes per value
         qualifiers[`q${i}`] = emoji.repeat(10)
       }
@@ -121,11 +129,11 @@ describe('PackageURL.fromJSON security features', () => {
       const largeJson = JSON.stringify({
         type: 'npm',
         name: 'test',
-        qualifiers
+        qualifiers,
       })
 
       expect(() => PackageURL.fromJSON(largeJson)).toThrow(
-        'JSON string exceeds maximum size limit'
+        'JSON string exceeds maximum size limit',
       )
     })
   })
@@ -133,7 +141,8 @@ describe('PackageURL.fromJSON security features', () => {
   describe('prototype pollution protection', () => {
     it('should handle __proto__ safely without pollution', () => {
       // JSON.stringify removes __proto__, so we need to manually create the JSON
-      const maliciousJson = '{"type":"npm","name":"test","__proto__":{"polluted":true}}'
+      const maliciousJson =
+        '{"type":"npm","name":"test","__proto__":{"polluted":true}}'
 
       // Should parse without throwing
       const result = PackageURL.fromJSON(maliciousJson)
@@ -180,7 +189,7 @@ describe('PackageURL.fromJSON security features', () => {
         name: 'test',
         qualifiers: {
           normal: 'value',
-          '__proto__': {
+          __proto__: {
             polluted: true,
           },
         },
@@ -197,14 +206,16 @@ describe('PackageURL.fromJSON security features', () => {
       const invalidJson = '{ invalid json }'
 
       expect(() => PackageURL.fromJSON(invalidJson)).toThrow(SyntaxError)
-      expect(() => PackageURL.fromJSON(invalidJson)).toThrow('Failed to parse PackageURL from JSON')
+      expect(() => PackageURL.fromJSON(invalidJson)).toThrow(
+        'Failed to parse PackageURL from JSON',
+      )
     })
 
     it('should throw for missing required fields', () => {
       const incompleteJson = JSON.stringify({ name: 'test' })
 
       expect(() => PackageURL.fromJSON(incompleteJson)).toThrow(
-        '"type" is a required component'
+        '"type" is a required component',
       )
     })
 
@@ -215,7 +226,7 @@ describe('PackageURL.fromJSON security features', () => {
       })
 
       expect(() => PackageURL.fromJSON(invalidJson)).toThrow(
-        '"type" is a required component'
+        '"type" is a required component',
       )
     })
 
@@ -226,7 +237,7 @@ describe('PackageURL.fromJSON security features', () => {
       })
 
       expect(() => PackageURL.fromJSON(invalidJson)).toThrow(
-        '"name" is a required component'
+        '"name" is a required component',
       )
     })
 
@@ -237,25 +248,37 @@ describe('PackageURL.fromJSON security features', () => {
       })
 
       expect(() => PackageURL.fromJSON(invalidJson)).toThrow(
-        '"type" is a required component'
+        '"type" is a required component',
       )
     })
   })
 
   describe('edge cases', () => {
     it('should handle empty JSON object', () => {
-      expect(() => PackageURL.fromJSON('{}')).toThrow('"type" is a required component')
+      expect(() => PackageURL.fromJSON('{}')).toThrow(
+        '"type" is a required component',
+      )
     })
 
     it('should handle JSON array instead of object', () => {
-      expect(() => PackageURL.fromJSON('[]')).toThrow('JSON must parse to an object')
+      expect(() => PackageURL.fromJSON('[]')).toThrow(
+        'JSON must parse to an object',
+      )
     })
 
     it('should handle JSON primitive values', () => {
-      expect(() => PackageURL.fromJSON('"string"')).toThrow('JSON must parse to an object')
-      expect(() => PackageURL.fromJSON('123')).toThrow('JSON must parse to an object')
-      expect(() => PackageURL.fromJSON('true')).toThrow('JSON must parse to an object')
-      expect(() => PackageURL.fromJSON('null')).toThrow('JSON must parse to an object')
+      expect(() => PackageURL.fromJSON('"string"')).toThrow(
+        'JSON must parse to an object',
+      )
+      expect(() => PackageURL.fromJSON('123')).toThrow(
+        'JSON must parse to an object',
+      )
+      expect(() => PackageURL.fromJSON('true')).toThrow(
+        'JSON must parse to an object',
+      )
+      expect(() => PackageURL.fromJSON('null')).toThrow(
+        'JSON must parse to an object',
+      )
     })
 
     it('should handle very long but valid field values', () => {
@@ -307,7 +330,7 @@ describe('PackageURL.fromJSON security features', () => {
   describe('performance considerations', () => {
     it('should quickly reject extremely large JSON', () => {
       const start = performance.now()
-      const largeJson = '{"type":"npm","data":"' + 'x'.repeat(2 * 1024 * 1024) + '"}'
+      const largeJson = `{"type":"npm","data":"${'x'.repeat(2 * 1024 * 1024)}"}`
 
       expect(() => PackageURL.fromJSON(largeJson)).toThrow()
 

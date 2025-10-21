@@ -17,13 +17,32 @@ import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { logger } from '@socketsecurity/lib/logger'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
-const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const rootPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+)
 const WIN32 = process.platform === 'win32'
 
 // Check if prompts are available for interactive mode
 // First check for local registry build, then check for installed package
-const localPromptsPath = path.join(rootPath, 'registry', 'dist', 'lib', 'cli', 'prompts.js')
-const packagePromptsPath = path.join(rootPath, 'node_modules', '@socketsecurity', 'registry', 'dist', 'lib', 'cli', 'prompts.js')
+const localPromptsPath = path.join(
+  rootPath,
+  'registry',
+  'dist',
+  'lib',
+  'cli',
+  'prompts.js',
+)
+const packagePromptsPath = path.join(
+  rootPath,
+  'node_modules',
+  '@socketsecurity',
+  'registry',
+  'dist',
+  'lib',
+  'cli',
+  'prompts.js',
+)
 
 let promptsPath = null
 if (existsSync(localPromptsPath)) {
@@ -50,7 +69,7 @@ if (hasInteractivePrompts) {
 function createReadline() {
   return readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   })
 }
 
@@ -73,7 +92,10 @@ async function prompt(question, defaultValue = '') {
  */
 async function confirm(question, defaultYes = true) {
   const defaultHint = defaultYes ? 'Y/n' : 'y/N'
-  const answer = await prompt(`${question} [${defaultHint}]`, defaultYes ? 'y' : 'n')
+  const answer = await prompt(
+    `${question} [${defaultHint}]`,
+    defaultYes ? 'y' : 'n',
+  )
   return answer.toLowerCase().startsWith('y')
 }
 
@@ -161,7 +183,7 @@ async function readPackageJson(pkgPath = rootPath) {
  */
 async function writePackageJson(pkgJson, pkgPath = rootPath) {
   const packageJsonPath = path.join(pkgPath, 'package.json')
-  await fs.writeFile(packageJsonPath, JSON.stringify(pkgJson, null, 2) + '\n')
+  await fs.writeFile(packageJsonPath, `${JSON.stringify(pkgJson, null, 2)}\n`)
 }
 
 /**
@@ -182,9 +204,19 @@ function getNewVersion(currentVersion, bumpType) {
   }
 
   // Otherwise treat as release type
-  const validTypes = ['major', 'minor', 'patch', 'premajor', 'preminor', 'prepatch', 'prerelease']
+  const validTypes = [
+    'major',
+    'minor',
+    'patch',
+    'premajor',
+    'preminor',
+    'prepatch',
+    'prerelease',
+  ]
   if (!validTypes.includes(bumpType)) {
-    throw new Error(`Invalid bump type: ${bumpType}. Must be one of: ${validTypes.join(', ')} or a valid semver version`)
+    throw new Error(
+      `Invalid bump type: ${bumpType}. Must be one of: ${validTypes.join(', ')} or a valid semver version`,
+    )
   }
 
   return semver.inc(currentVersion, bumpType)
@@ -208,7 +240,11 @@ async function checkGitStatus() {
  * Check if we're on the main/master branch.
  */
 async function checkGitBranch() {
-  const result = await runCommandWithOutput('git', ['rev-parse', '--abbrev-ref', 'HEAD'])
+  const result = await runCommandWithOutput('git', [
+    'rev-parse',
+    '--abbrev-ref',
+    'HEAD',
+  ])
   const branch = result.stdout.trim()
   if (branch !== 'main' && branch !== 'master') {
     logger.warn(`Not on main/master branch (current: ${branch})`)
@@ -225,7 +261,7 @@ async function getRecentCommits(count = 20) {
     'log',
     '--oneline',
     '--no-decorate',
-    `-${count}`
+    `-${count}`,
   ])
   return result.stdout.trim()
 }
@@ -296,7 +332,7 @@ Be concise but informative. Group related changes together.`
 
   const claudeResult = await runCommandWithOutput(claudeCmd, [], {
     input: prompt,
-    stdio: ['pipe', 'pipe', 'pipe']
+    stdio: ['pipe', 'pipe', 'pipe'],
   })
 
   // Clean up temp file
@@ -338,10 +374,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   const headerEnd = existingContent.indexOf('\n## ')
   if (headerEnd > 0) {
     // Insert before first version entry
-    existingContent = existingContent.slice(0, headerEnd) + '\n' + changelogEntry + '\n' + existingContent.slice(headerEnd)
+    existingContent = `${existingContent.slice(0, headerEnd)}\n${changelogEntry}\n${existingContent.slice(headerEnd)}`
   } else {
     // Append to end
-    existingContent += '\n' + changelogEntry + '\n'
+    existingContent += `\n${changelogEntry}\n`
   }
 
   await fs.writeFile(changelogPath, existingContent)
@@ -352,11 +388,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
  * Uses interactive prompts if available, falls back to basic readline prompts.
  */
 async function reviewChangelog(claudeCmd, changelogEntry, interactive = false) {
-  console.log('\n' + colors.blue('━'.repeat(60)))
+  console.log(`\n${colors.blue('━'.repeat(60))}`)
   console.log(colors.blue('Proposed Changelog Entry:'))
   console.log(colors.blue('━'.repeat(60)))
   console.log(changelogEntry)
-  console.log(colors.blue('━'.repeat(60)) + '\n')
+  console.log(`${colors.blue('━'.repeat(60))}\n`)
 
   // Use interactive prompts if available and requested
   if (interactive && prompts) {
@@ -372,7 +408,9 @@ async function reviewChangelog(claudeCmd, changelogEntry, interactive = false) {
     }
 
     if (response.toLowerCase() === 'edit') {
-      const feedback = await prompt('Provide feedback for Claude to refine the changelog')
+      const feedback = await prompt(
+        'Provide feedback for Claude to refine the changelog',
+      )
 
       if (!feedback) {
         continue
@@ -392,24 +430,26 @@ Provide the refined changelog entry in the same format.`
 
       const refineResult = await runCommandWithOutput(claudeCmd, [], {
         input: refinePrompt,
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       })
 
       if (refineResult.exitCode === 0) {
         changelogEntry = refineResult.stdout.trim()
         logger.done('Changelog refined')
 
-        console.log('\n' + colors.blue('━'.repeat(60)))
+        console.log(`\n${colors.blue('━'.repeat(60))}`)
         console.log(colors.blue('Refined Changelog Entry:'))
         console.log(colors.blue('━'.repeat(60)))
         console.log(changelogEntry)
-        console.log(colors.blue('━'.repeat(60)) + '\n')
+        console.log(`${colors.blue('━'.repeat(60))}\n`)
       } else {
         logger.failed('Failed to refine changelog')
       }
     } else if (response.toLowerCase() === 'no') {
       // Allow manual editing
-      const manualEntry = await prompt('Enter changelog manually (or press Enter to cancel)')
+      const manualEntry = await prompt(
+        'Enter changelog manually (or press Enter to cancel)',
+      )
       if (manualEntry) {
         return manualEntry
       }
@@ -428,24 +468,27 @@ async function interactiveReviewChangelog(claudeCmd, changelogEntry) {
 
   while (true) {
     // Show the current changelog
-    console.log('\n' + colors.cyan('Current Changelog Entry:'))
+    console.log(`\n${colors.cyan('Current Changelog Entry:')}`)
     console.log(colors.dim('─'.repeat(60)))
     console.log(currentEntry)
-    console.log(colors.dim('─'.repeat(60)) + '\n')
+    console.log(`${colors.dim('─'.repeat(60))}\n`)
 
     // Offer action choices
     const action = await prompts.select({
       message: 'What would you like to do?',
       choices: [
         { value: 'accept', name: '✅ Accept this changelog' },
-        { value: 'regenerate', name: '🔄 Regenerate entirely (fresh perspective)' },
+        {
+          value: 'regenerate',
+          name: '🔄 Regenerate entirely (fresh perspective)',
+        },
         { value: 'refine', name: '✏️  Refine with specific feedback' },
         { value: 'add', name: '➕ Add missing information' },
         { value: 'simplify', name: '📝 Simplify and make more concise' },
         { value: 'technical', name: '🔧 Make more technical/detailed' },
         { value: 'manual', name: '✍️  Write manually' },
-        { value: 'cancel', name: '❌ Cancel' }
-      ]
+        { value: 'cancel', name: '❌ Cancel' },
+      ],
     })
 
     if (action === 'accept') {
@@ -455,7 +498,7 @@ async function interactiveReviewChangelog(claudeCmd, changelogEntry) {
     if (action === 'cancel') {
       const confirmCancel = await prompts.confirm({
         message: 'Are you sure you want to cancel the version bump?',
-        default: false
+        default: false,
       })
       if (confirmCancel) {
         throw new Error('Version bump cancelled by user')
@@ -464,7 +507,9 @@ async function interactiveReviewChangelog(claudeCmd, changelogEntry) {
     }
 
     if (action === 'manual') {
-      console.log('\nEnter the changelog manually (paste and press Enter twice when done):')
+      console.log(
+        '\nEnter the changelog manually (paste and press Enter twice when done):',
+      )
       const rl = createReadline()
       let manualEntry = ''
       return new Promise((resolve, reject) => {
@@ -473,7 +518,7 @@ async function interactiveReviewChangelog(claudeCmd, changelogEntry) {
             rl.close()
             resolve(manualEntry.trim())
           } else {
-            manualEntry += line + '\n'
+            manualEntry += `${line}\n`
           }
         })
         rl.on('close', () => {
@@ -501,7 +546,7 @@ Generate a fresh changelog entry with the same version information but different
     } else if (action === 'refine') {
       const feedback = await prompts.input({
         message: 'Describe what changes you want:',
-        validate: value => value.trim() ? true : 'Please provide feedback'
+        validate: value => (value.trim() ? true : 'Please provide feedback'),
       })
 
       feedbackPrompt = `Refine this changelog based on the feedback:
@@ -515,7 +560,8 @@ Provide the refined changelog entry.`
     } else if (action === 'add') {
       const additions = await prompts.input({
         message: 'What information is missing?',
-        validate: value => value.trim() ? true : 'Please describe what to add'
+        validate: value =>
+          value.trim() ? true : 'Please describe what to add',
       })
 
       feedbackPrompt = `Add the following information to the changelog:
@@ -548,7 +594,7 @@ Add technical details, specific file changes, implementation details, and any br
 
       const refineResult = await runCommandWithOutput(claudeCmd, [], {
         input: feedbackPrompt,
-        stdio: ['pipe', 'pipe', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe'],
       })
 
       if (refineResult.exitCode === 0) {
@@ -558,7 +604,7 @@ Add technical details, specific file changes, implementation details, and any br
         logger.failed('Failed to update changelog')
         const retry = await prompts.confirm({
           message: 'Failed to update. Try again?',
-          default: true
+          default: true,
         })
         if (!retry) {
           return currentEntry
@@ -617,8 +663,12 @@ async function main() {
       console.log('\nOptions:')
       console.log('  --help           Show this help message')
       console.log('  --bump <type>    Version bump type (default: patch)')
-      console.log('                   Can be: major, minor, patch, premajor, preminor,')
-      console.log('                   prepatch, prerelease, or a specific version')
+      console.log(
+        '                   Can be: major, minor, patch, premajor, preminor,',
+      )
+      console.log(
+        '                   prepatch, prerelease, or a specific version',
+      )
       console.log('  --interactive    Force interactive changelog review')
       console.log('  --no-interactive Disable interactive mode')
       console.log('  --skip-changelog Skip changelog generation with Claude')
@@ -626,11 +676,15 @@ async function main() {
       console.log('  --no-push        Do not push changes to remote')
       console.log('  --force          Force bump even with warnings')
       console.log('\nExamples:')
-      console.log('  pnpm bump                    # Bump patch (interactive by default)')
+      console.log(
+        '  pnpm bump                    # Bump patch (interactive by default)',
+      )
       console.log('  pnpm bump --bump=minor       # Bump minor version')
       console.log('  pnpm bump --no-interactive   # Use basic prompts')
       console.log('  pnpm bump --bump=2.0.0       # Set specific version')
-      console.log('  pnpm bump --skip-changelog   # Skip AI changelog generation')
+      console.log(
+        '  pnpm bump --skip-changelog   # Skip AI changelog generation',
+      )
       console.log('\nRequires:')
       console.log('  - claude-console (or claude) CLI tool installed')
       console.log('  - Clean git working directory')
@@ -682,7 +736,9 @@ async function main() {
       claudeCmd = await checkClaude()
       if (!claudeCmd) {
         logger.failed('claude-console not found')
-        logger.error('Please install claude-console: https://github.com/anthropics/claude-console')
+        logger.error(
+          'Please install claude-console: https://github.com/anthropics/claude-console',
+        )
         logger.info('Install with: npm install -g @anthropic/claude-console')
         logger.info('Or use --skip-changelog to skip AI-generated changelog')
         process.exitCode = 1
@@ -705,7 +761,9 @@ async function main() {
     logger.info(`New version: ${newVersion}`)
 
     // Confirm version bump
-    if (!await confirm(`Bump version from ${currentVersion} to ${newVersion}?`)) {
+    if (
+      !(await confirm(`Bump version from ${currentVersion} to ${newVersion}?`))
+    ) {
       logger.info('Version bump cancelled')
       process.exitCode = 0
       return
@@ -726,11 +784,14 @@ async function main() {
 
     // Check for interactive mode availability
     // Only warn if explicitly requested via --interactive flag
-    const explicitlyRequestedInteractive = process.argv.includes('--interactive')
+    const explicitlyRequestedInteractive =
+      process.argv.includes('--interactive')
     if (values.interactive && !hasInteractivePrompts) {
       if (explicitlyRequestedInteractive) {
         logger.warn('Interactive mode requested but prompts not available')
-        logger.info('To enable: install @socketsecurity/lib or build local registry')
+        logger.info(
+          'To enable: install @socketsecurity/lib or build local registry',
+        )
       }
       values.interactive = false
     }
@@ -738,8 +799,16 @@ async function main() {
     // Generate and review changelog
     let changelogEntry = null
     if (!values['skip-changelog'] && claudeCmd) {
-      changelogEntry = await generateChangelog(claudeCmd, currentVersion, newVersion)
-      changelogEntry = await reviewChangelog(claudeCmd, changelogEntry, values.interactive)
+      changelogEntry = await generateChangelog(
+        claudeCmd,
+        currentVersion,
+        newVersion,
+      )
+      changelogEntry = await reviewChangelog(
+        claudeCmd,
+        changelogEntry,
+        values.interactive,
+      )
 
       logger.progress('Updating CHANGELOG.md')
       await updateChangelog(changelogEntry)
@@ -749,9 +818,10 @@ async function main() {
     // Create commit
     logger.step('Creating commit')
     const packageName = await getPackageName()
-    const commitMessage = packageName === 'registry package'
-      ? `Bump registry package to v${newVersion}`
-      : `Bump to v${newVersion}`
+    const commitMessage =
+      packageName === 'registry package'
+        ? `Bump registry package to v${newVersion}`
+        : `Bump to v${newVersion}`
 
     logger.progress('Staging changes')
     await runCommand('git', ['add', 'package.json', 'pnpm-lock.yaml'])

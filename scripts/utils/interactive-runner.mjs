@@ -31,7 +31,7 @@ export async function runWithOutput(command, args = [], options = {}) {
     message = 'Running',
     showOnError = true,
     toggleText = 'to see output',
-    verbose = false
+    verbose = false,
   } = options
 
   return new Promise((resolve, reject) => {
@@ -50,7 +50,7 @@ export async function runWithOutput(command, args = [], options = {}) {
     const child = spawn(command, args, {
       cwd,
       env,
-      stdio: ['inherit', 'pipe', 'pipe']
+      stdio: ['inherit', 'pipe', 'pipe'],
     })
 
     // Setup keyboard handling for TTY
@@ -60,7 +60,7 @@ export async function runWithOutput(command, args = [], options = {}) {
 
       const keypressHandler = (_str, key) => {
         // ctrl+o toggles output
-        if (key && key.ctrl && key.name === 'o') {
+        if (key?.ctrl && key.name === 'o') {
           showOutput = !showOutput
 
           if (showOutput) {
@@ -87,7 +87,7 @@ export async function runWithOutput(command, args = [], options = {}) {
           }
         }
         // ctrl+c to cancel
-        else if (key && key.ctrl && key.name === 'c') {
+        else if (key?.ctrl && key.name === 'c') {
           child.kill('SIGTERM')
           if (process.stdin.isTTY) {
             process.stdin.setRawMode(false)
@@ -246,7 +246,7 @@ export async function runTests(command, args, options = {}) {
   return runWithOutput(command, args, {
     message: 'Running tests',
     toggleText: 'to see test output',
-    ...options
+    ...options,
   })
 }
 
@@ -257,7 +257,7 @@ export async function runLint(command, args, options = {}) {
   return runWithOutput(command, args, {
     message: 'Running linter',
     toggleText: 'to see lint results',
-    ...options
+    ...options,
   })
 }
 
@@ -268,6 +268,6 @@ export async function runBuild(command, args, options = {}) {
   return runWithOutput(command, args, {
     message: 'Building',
     toggleText: 'to see build output',
-    ...options
+    ...options,
   })
 }

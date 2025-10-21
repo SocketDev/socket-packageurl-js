@@ -77,8 +77,8 @@ export class UrlConverter {
     repository: RepositoryUrl | null
   } {
     return {
-      download: this.toDownloadUrl(purl),
-      repository: this.toRepositoryUrl(purl),
+      download: UrlConverter.toDownloadUrl(purl),
+      repository: UrlConverter.toRepositoryUrl(purl),
     }
   }
 

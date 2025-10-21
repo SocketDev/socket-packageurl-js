@@ -64,7 +64,7 @@ function normalizePurlPath(
     lastSegment.length !== 0 &&
     (callback === undefined || callback(lastSegment))
   ) {
-    collapsed = collapsed + '/' + lastSegment
+    collapsed = `${collapsed}/${lastSegment}`
   }
   return collapsed
 }
@@ -134,7 +134,7 @@ function qualifiersToEntries(
   if (isObject(rawQualifiers)) {
     // URLSearchParams instances have an "entries" method that returns an iterator
     const rawQualifiersObj = rawQualifiers as QualifiersObject | URLSearchParams
-    const entriesProperty = (rawQualifiersObj as QualifiersObject)['entries']
+    const entriesProperty = (rawQualifiersObj as QualifiersObject).entries
     return typeof entriesProperty === 'function'
       ? (ReflectApply(entriesProperty, rawQualifiersObj, []) as Iterable<
           [string, string]

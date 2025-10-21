@@ -25,8 +25,8 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
-import { createTestPurl } from './utils/test-helpers.mjs'
 import { PackageURLBuilder } from '../src/package-url-builder.js'
+import { createTestPurl } from './utils/test-helpers.mjs'
 
 describe('PackageURLBuilder', () => {
   describe('basic construction', () => {

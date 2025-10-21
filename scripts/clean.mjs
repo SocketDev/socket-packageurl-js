@@ -14,7 +14,10 @@ import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { logger } from '@socketsecurity/lib/logger'
 import { createSectionHeader } from '@socketsecurity/lib/stdio/header'
 
-const rootPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+const rootPath = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+)
 
 /**
  * Clean specific directories.
@@ -37,7 +40,7 @@ async function cleanDirectories(tasks, options = {}) {
         absolute: true,
         dot: true,
         onlyFiles: false,
-        markDirectories: true
+        markDirectories: true,
       })
 
       // Delete each file/directory
@@ -114,7 +117,9 @@ async function main() {
       console.log('\nUsage: pnpm clean [options]')
       console.log('\nOptions:')
       console.log('  --help              Show this help message')
-      console.log('  --all               Clean everything (default if no flags)')
+      console.log(
+        '  --all               Clean everything (default if no flags)',
+      )
       console.log('  --cache             Clean cache directories')
       console.log('  --coverage          Clean coverage reports')
       console.log('  --dist              Clean build output')
@@ -122,10 +127,14 @@ async function main() {
       console.log('  --modules           Clean node_modules')
       console.log('  --quiet, --silent   Suppress progress messages')
       console.log('\nExamples:')
-      console.log('  pnpm clean                  # Clean everything except node_modules')
+      console.log(
+        '  pnpm clean                  # Clean everything except node_modules',
+      )
       console.log('  pnpm clean --dist           # Clean build output only')
       console.log('  pnpm clean --cache --coverage  # Clean cache and coverage')
-      console.log('  pnpm clean --all --modules  # Clean everything including node_modules')
+      console.log(
+        '  pnpm clean --all --modules  # Clean everything including node_modules',
+      )
       process.exitCode = 0
       return
     }
@@ -133,8 +142,13 @@ async function main() {
     const quiet = isQuiet(values)
 
     // Determine what to clean
-    const cleanAll = values.all ||
-      (!values.cache && !values.coverage && !values.dist && !values.types && !values.modules)
+    const cleanAll =
+      values.all ||
+      (!values.cache &&
+        !values.coverage &&
+        !values.dist &&
+        !values.types &&
+        !values.modules)
 
     const tasks = []
 
@@ -148,7 +162,10 @@ async function main() {
     }
 
     if (cleanAll || values.dist) {
-      tasks.push({ name: 'dist', patterns: ['dist', '*.tsbuildinfo', '.tsbuildinfo'] })
+      tasks.push({
+        name: 'dist',
+        patterns: ['dist', '*.tsbuildinfo', '.tsbuildinfo'],
+      })
     } else if (values.types) {
       tasks.push({ name: 'dist/types', patterns: ['dist/types'] })
     }
@@ -167,7 +184,9 @@ async function main() {
     }
 
     if (!quiet) {
-      console.log(createSectionHeader('Clean Runner', { width: 56, borderChar: '=' }))
+      console.log(
+        createSectionHeader('Clean Runner', { width: 56, borderChar: '=' }),
+      )
       logger.step('Cleaning project directories')
     }
 

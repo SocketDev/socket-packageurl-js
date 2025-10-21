@@ -22,7 +22,6 @@ SOFTWARE.
 
 import { describe, expect, it } from 'vitest'
 
-import { createTestFunction, createTestPurl } from './utils/test-helpers.mjs'
 import {
   encodeComponent,
   encodeNamespace,
@@ -66,6 +65,7 @@ import {
   validateType,
   validateVersion,
 } from '../src/validate.js'
+import { createTestFunction, createTestPurl } from './utils/test-helpers.mjs'
 
 describe('Edge cases and additional coverage', () => {
   describe('URL scheme handling', () => {
@@ -218,8 +218,8 @@ describe('Edge cases and additional coverage', () => {
       expect(purl.version).toBe(maxVersion)
 
       // Test that exceeding limits throws errors.
-      expect(
-        () => createTestPurl('type', 'name', { namespace: 'a'.repeat(513) }),
+      expect(() =>
+        createTestPurl('type', 'name', { namespace: 'a'.repeat(513) }),
       ).toThrow('"namespace" exceeds maximum length of 512 characters')
       expect(() => createTestPurl('type', 'a'.repeat(215))).toThrow(
         '"name" exceeds maximum length of 214 characters',
@@ -530,7 +530,7 @@ describe('Edge cases and additional coverage', () => {
       const purl = PackageURL.fromString('pkg:type/name?__proto__=polluted')
 
       expect(purl.qualifiers?.__proto__).toBe('polluted')
-      expect((Object.prototype as any)['polluted']).toBe(undefined)
+      expect((Object.prototype as any).polluted).toBe(undefined)
     })
 
     it('should have proper prototype for PackageURL instances', () => {
@@ -691,7 +691,7 @@ describe('Edge cases and additional coverage', () => {
         version: '1.0',
       })
       expect(purl.type).toBe('mlflow')
-      expect(purl.qualifiers!.repository_url).toBe('https://example.com')
+      expect(purl.qualifiers?.repository_url).toBe('https://example.com')
     })
 
     it('should handle qpkg type', () => {
@@ -702,7 +702,7 @@ describe('Edge cases and additional coverage', () => {
         version: '1.0',
       })
       expect(purl.type).toBe('qpkg')
-      expect(purl.qualifiers!.arch).toBe('x86_64')
+      expect(purl.qualifiers?.arch).toBe('x86_64')
     })
 
     // Test index.js exports
@@ -919,11 +919,11 @@ describe('Edge cases and additional coverage', () => {
     it('should validate npm namespace without @ character in non-throws mode', () => {
       // Test purl-type.ts lines 428-429 - return false path
       const comp = { namespace: 'namespace', name: 'test' }
-      const result = (PurlType['npm'] as any).validate(comp, false)
+      const result = (PurlType.npm as any).validate(comp, false)
       expect(result).toBe(false)
 
       // Also verify throws mode works
-      expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
         /npm "namespace" component must start with an "@" character/,
       )
     })
@@ -1040,7 +1040,9 @@ describe('Edge cases and additional coverage', () => {
 
       const largeGraph = createDeepStructure()
       // This should throw when hitting the sentinel
-      expect(() => recursiveFreeze(largeGraph)).toThrow(/Object graph too large/)
+      expect(() => recursiveFreeze(largeGraph)).toThrow(
+        /Object graph too large/,
+      )
     })
 
     // Test purl-component functions
@@ -1062,7 +1064,7 @@ describe('Edge cases and additional coverage', () => {
 
     // Test npm type edge cases with long names
     it('should validate npm namespace+name length limit', () => {
-      const namespace = '@' + 'a'.repeat(100)
+      const namespace = `@${'a'.repeat(100)}`
       // This makes namespace + name > 214 chars
       const name = 'b'.repeat(115)
 
@@ -1123,7 +1125,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test validateQualifiers with non-object type
     it('should validate qualifiers must be an object', () => {
-
       // Test lines 33-36 - qualifiers must be a plain object
       expect(() =>
         validateQualifiers('string-value', { throws: true }),
@@ -1134,7 +1135,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test validateQualifierKey with invalid key
     it('should validate qualifier key format', () => {
-
       // Test line 46 - return false
       expect(validateQualifierKey('1invalid', { throws: false })).toBe(false)
 
@@ -1148,7 +1148,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test encode.js branch coverage
     it('should handle encoding edge cases', () => {
-
       // Test encode.js lines for namespace encoding
       const namespace = 'test/namespace/path'
       const encoded = encodeNamespace(namespace)
@@ -1157,7 +1156,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test normalize.js branch coverage
     it('should handle normalization edge cases', () => {
-
       // Test various namespace normalization paths
       const namespace1 = 'test//namespace'
       const normalized1 = normalizeNamespace(namespace1)
@@ -1216,26 +1214,24 @@ describe('Edge cases and additional coverage', () => {
 
     // Test purl-type.js lines 334-338 - npm name with uppercase (not throwing)
     it('should handle npm type validation without throwing', () => {
-
       // npm.validate expects an object with namespace and name properties
       const comp1 = { namespace: '@TEST', name: 'test' }
-      const result1 = (PurlType['npm'] as any).validate(comp1, false)
+      const result1 = (PurlType.npm as any).validate(comp1, false)
       expect(result1).toBe(false)
 
       // Test validation for name with special characters
       const comp2 = { namespace: '', name: 'name!with!special' }
-      const result2 = (PurlType['npm'] as any).validate(comp2, false)
+      const result2 = (PurlType.npm as any).validate(comp2, false)
       expect(result2).toBe(false)
 
       // Test validation for forbidden names
       const comp3 = { namespace: '', name: 'node_modules' }
-      const result3 = (PurlType['npm'] as any).validate(comp3, false)
+      const result3 = (PurlType.npm as any).validate(comp3, false)
       expect(result3).toBe(false)
     })
 
     // Test encode.js branches
     it('should handle encoding branches', () => {
-
       // Test encodeVersion with special characters
       const version = encodeVersion('1.0.0+build')
       expect(version).toBeTruthy()
@@ -1276,7 +1272,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test objects.js line 33 - infinite loop branch
     it('should handle massive arrays in recursiveFreeze', () => {
-
       // Create object with nested structures but under the limit
       const obj = { a: { b: { c: [] } } }
       for (let i = 0; i < 100; i++) {
@@ -1316,7 +1311,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test normalize.js lines 103-104, 109-110
     it('should handle normalization edge cases for various types', () => {
-
       // Test golang type normalization (lines 109-110)
       const goNs = normalizeNamespace('github.com//owner//repo')
       expect(goNs).toBe('github.com/owner/repo')
@@ -1328,7 +1322,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test validate.js line 46 - qualifier key validation
     it('should handle invalid qualifier keys', () => {
-
       // Test returning false without throwing
       expect(validateQualifierKey('1startsWithNumber', { throws: false })).toBe(
         false,
@@ -1371,29 +1364,27 @@ describe('Edge cases and additional coverage', () => {
 
     // Test purl-type.js lines 307-310 - npm namespace validation
     it('should test npm namespace validation with special characters', () => {
-
       // Test validation with invalid namespace characters (lines 307-310)
       // The exclamation mark is actually URL-encoded so it passes validation
       const comp1 = { namespace: '@namespace with spaces', name: 'test' }
-      const result1 = (PurlType['npm'] as any).validate(comp1, false)
+      const result1 = (PurlType.npm as any).validate(comp1, false)
       expect(result1).toBe(false)
 
       // Test with throwing enabled
-      expect(() => (PurlType['npm'] as any).validate(comp1, true)).toThrow(
+      expect(() => (PurlType.npm as any).validate(comp1, true)).toThrow(
         /npm "namespace" component can only contain URL-friendly characters/,
       )
     })
 
     // Test purl-type.js lines 335-338 - npm name uppercase validation
     it('should test npm name validation for modern packages with uppercase', () => {
-
       // Test with a modern package name (not in legacy list) that has special characters
       const comp = { namespace: '', name: 'my-package*' }
-      const result = (PurlType['npm'] as any).validate(comp, false)
+      const result = (PurlType.npm as any).validate(comp, false)
       expect(result).toBe(false)
 
       // Test with throwing enabled for special characters
-      expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
         /npm "name" component can not contain special characters/,
       )
     })
@@ -1415,11 +1406,11 @@ describe('Edge cases and additional coverage', () => {
         /npm "name" component can only contain URL-friendly characters/
 
       // Test with throwing disabled - should return false
-      const result = (PurlType['npm'] as any).validate(comp, false)
+      const result = (PurlType.npm as any).validate(comp, false)
       expect(result).toBe(false)
 
       // Test with throwing enabled - should throw with expected error
-      expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
         expectedError,
       )
     })
@@ -1429,14 +1420,13 @@ describe('Edge cases and additional coverage', () => {
       name => {
         const comp = { namespace: '', name }
         // Should not throw
-        const result = (PurlType['npm'] as any).validate(comp, true)
+        const result = (PurlType.npm as any).validate(comp, true)
         expect(result).toBe(true)
       },
     )
 
     // Test encode.js line 21 - null/undefined handling
     it('should test encode component with falsy values', () => {
-
       // encodeComponent is just encodeURIComponent alias
       expect(encodeComponent('test')).toBe('test')
       expect(encodeComponent('')).toBe('')
@@ -1445,7 +1435,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test encode.js line 73 - subpath normalization
     it('should test encodeSubpath with slashes', () => {
-
       // Test line 67 - encodeSubpath preserves slashes
       expect(encodeSubpath('path/to/file')).toBe('path/to/file')
       expect(encodeSubpath('path/to/file with spaces')).toBe(
@@ -1459,7 +1448,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test normalize.js lines 103-104 - subpathFilter edge cases
     it('should test subpathFilter edge cases in normalize', () => {
-
       // Test lines 103-104 - filters out single dot
       expect(normalizeSubpath('./path/to/file')).toBe('path/to/file')
       expect(normalizeSubpath('path/./to/file')).toBe('path/to/file')
@@ -1471,7 +1459,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test normalize.js lines 109-110 - golang double slash normalization
     it('should test golang namespace normalization with double slashes', () => {
-
       // Test lines 109-110 - golang normalizes double slashes
       expect(normalizeNamespace('github.com//owner//repo')).toBe(
         'github.com/owner/repo',
@@ -1508,7 +1495,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test validate.js line 46 - qualifier key validation return false
     it('should test qualifier key validation edge cases', () => {
-
       // Test line 46 - returns false when validateStartsWithoutNumber fails
       expect(validateQualifierKey('1start', { throws: false })).toBe(false)
       expect(validateQualifierKey('9number', { throws: false })).toBe(false)
@@ -1527,7 +1513,6 @@ describe('Edge cases and additional coverage', () => {
     // Additional tests for 100% coverage
     // Test normalize.js lines 7, 13 - namespaceFilter
     it('should test namespace filter edge cases', () => {
-
       // Test namespace normalization for various types
       // normalizeNamespace doesn't filter . and .. for namespaces
       const result1 = normalizeNamespace('./some/namespace')
@@ -1542,7 +1527,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test normalize.js lines 73-84 - normalizeSubpath with non-string
     it('should test normalizeSubpath with non-string values', () => {
-
       expect(normalizeSubpath(123)).toBe(undefined)
       expect(normalizeSubpath(null)).toBe(undefined)
       expect(normalizeSubpath(undefined)).toBe(undefined)
@@ -1550,14 +1534,12 @@ describe('Edge cases and additional coverage', () => {
 
     // Test normalize.js line 95 - qualifiersToEntries with string
     it('should test qualifiersToEntries with string parameter', () => {
-
       const result = normalizeQualifiers('key1=value1&key2=value2')
       expect(result).toEqual({ key1: 'value1', key2: 'value2' })
     })
 
     // Test encode.js line 21 - encodeNamespace with empty string
     it('should test encodeNamespace with empty values', () => {
-
       expect(encodeNamespace('')).toBe('')
       expect(encodeNamespace(null)).toBe('')
       expect(encodeNamespace(undefined)).toBe('')
@@ -1565,7 +1547,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test encode.js line 73 - encodeVersion with colons
     it('should test encodeVersion preserves colons', () => {
-
       expect(encodeVersion('')).toBe('')
       expect(encodeVersion(null)).toBe('')
       expect(encodeVersion('1.0.0:rc.1')).toBe('1.0.0:rc.1')
@@ -1573,7 +1554,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test purl-component.js line 33 - PurlComponentEncoder with empty
     it('should test PurlComponentEncoder with non-strings', () => {
-
       // Test the encode function with empty values
       const encoded = PurlComponentEncoder(null)
       expect(encoded).toBe('')
@@ -1596,7 +1576,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test purl-component.js line 53 - componentSortOrder default
     it('should test component comparator with unknown components', () => {
-
       // Test comparator with unknown component names
       const order = componentComparator('unknown1', 'unknown2')
       expect(typeof order).toBe('number')
@@ -1608,28 +1587,26 @@ describe('Edge cases and additional coverage', () => {
 
     // Test purl-type.js lines 291-294 - npm namespace with trailing spaces
     it('should test npm namespace with leading/trailing spaces', () => {
-
       const comp = { namespace: ' @namespace ', name: 'test' }
-      const result = (PurlType['npm'] as any).validate(comp, false)
+      const result = (PurlType.npm as any).validate(comp, false)
       expect(result).toBe(false)
 
-      expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
         /npm "namespace" component cannot contain leading or trailing spaces/,
       )
     })
 
     // Test purl-type.js lines 335-338 - npm name uppercase for non-legacy
     it('should test npm name uppercase validation edge case', () => {
-
       // Test a package name that's definitely not in the legacy list
       const comp = {
         namespace: '',
         name: 'VERYNEWPACKAGE2025THATDOESNOTEXIST',
       }
-      const result = (PurlType['npm'] as any).validate(comp, false)
+      const result = (PurlType.npm as any).validate(comp, false)
       expect(result).toBe(false)
 
-      expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
         /npm "name" component can not contain capital letters/,
       )
     })
@@ -1647,7 +1624,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test validate.js line 46 - validateQualifierKey early return
     it('should test validateQualifierKey with number start', () => {
-
       const qualifiers = { '9key': 'value' }
       const result = validateQualifiers(qualifiers, { throws: false })
       expect(result).toBe(false)
@@ -1657,7 +1633,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test objects.js line 33 - else branch (non-array)
     it('should test recursiveFreeze with objects that have getters', () => {
-
       const obj = {
         get computed() {
           return 'value'
@@ -1671,7 +1646,6 @@ describe('Edge cases and additional coverage', () => {
     // Final tests for 100% coverage
     // Test normalize.js lines 7, 13 - subpath filtering
     it('should test subpath with dot segments', () => {
-
       // Test lines 7, 13 - filters . and ..
       expect(normalizeSubpath('./path/to/file')).toBe('path/to/file')
       expect(normalizeSubpath('../../../path')).toBe('/path')
@@ -1681,7 +1655,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test normalize.js lines 80-84
     it('should test normalizeType and normalizeVersion edge cases', () => {
-
       // Export these functions for testing
       expect(normalizeType).toBeDefined()
       expect(normalizeVersion).toBeDefined()
@@ -1693,7 +1666,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test normalize.js line 95
     it('should test qualifiersToEntries with URLSearchParams string', () => {
-
       const result = normalizeQualifiers('foo=bar&baz=qux')
       expect(result).toHaveProperty('foo', 'bar')
       expect(result).toHaveProperty('baz', 'qux')
@@ -1703,7 +1675,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test objects.js line 33 - property descriptor iteration
     it('should test recursiveFreeze with symbols and non-enumerable props', () => {
-
       const sym = Symbol('test')
       const obj = {
         [sym]: { nested: 'value' },
@@ -1734,31 +1705,28 @@ describe('Edge cases and additional coverage', () => {
 
     // Test purl-type.js lines 273-277 - npm name trimming
     it('should test npm name with leading/trailing spaces', () => {
-
       const comp = { namespace: '', name: ' test-name ' }
-      const result = (PurlType['npm'] as any).validate(comp, false)
+      const result = (PurlType.npm as any).validate(comp, false)
       expect(result).toBe(false)
 
-      expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
         /npm "name" component cannot contain leading or trailing spaces/,
       )
     })
 
     // Test purl-type.js lines 281-285 - npm name starting with dot
     it('should test npm name starting with dot', () => {
-
       const comp = { namespace: '', name: '.hidden-package' }
-      const result = (PurlType['npm'] as any).validate(comp, false)
+      const result = (PurlType.npm as any).validate(comp, false)
       expect(result).toBe(false)
 
-      expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
         /npm "name" component cannot start with a period/,
       )
     })
 
     // Test validate.js line 40 - URLSearchParams check
     it('should test validateQualifiers with URLSearchParams instance', () => {
-
       const params = new URLSearchParams()
       params.append('valid_key', 'value')
       const result = validateQualifiers(params, { throws: false })
@@ -1767,7 +1735,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test validate.js lines 121, 135, 156 - various validation branches
     it('should test validation utility functions thoroughly', () => {
-
       // Test line 121 - validateStartsWithoutNumber
       expect(
         validateStartsWithoutNumber('test', '0start', { throws: false }),
@@ -1792,36 +1759,33 @@ describe('Edge cases and additional coverage', () => {
     // Additional tests for remaining uncovered lines
     // Test purl-type.js lines 220-223 - golang version validation
     it('should test golang version validation', () => {
-
       // Test golang version starting with v but not valid semver
       const comp = {
         namespace: 'github.com/owner/repo',
         name: 'test',
         version: 'vInvalid',
       }
-      const result = (PurlType['golang'] as any).validate(comp, false)
+      const result = (PurlType.golang as any).validate(comp, false)
       expect(result).toBe(false)
 
-      expect(() => (PurlType['golang'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.golang as any).validate(comp, true)).toThrow(
         /golang "version" component starting with a "v" must be followed by a valid semver version/,
       )
     })
 
     // Test purl-type.js lines 281-285 - npm name starting with underscore
     it('should test npm name starting with underscore', () => {
-
       const comp = { namespace: '', name: '_hidden' }
-      const result = (PurlType['npm'] as any).validate(comp, false)
+      const result = (PurlType.npm as any).validate(comp, false)
       expect(result).toBe(false)
 
-      expect(() => (PurlType['npm'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
         /npm "name" component cannot start with an underscore/,
       )
     })
 
     // Test normalize.js lines 7, 13 - namespace path filtering
     it('should test namespace path filtering', () => {
-
       // For types that filter paths
       const result = normalizeNamespace('vendor/package')
       expect(result).toBe('vendor/package')
@@ -1855,7 +1819,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test objects.js line 33 - Object.values path
     it('should test recursiveFreeze with Object.values path', () => {
-
       // Test the else path for non-arrays
       const obj = { a: { b: 1 }, c: { d: 2 } }
       const frozen = recursiveFreeze(obj)
@@ -1865,7 +1828,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test validate.js lines 121, 135, 156 - edge cases
     it('should test additional validation edge cases', () => {
-
       // Test validateSubpath with various inputs (line 135)
       expect(validateSubpath(undefined, { throws: false })).toBe(true)
       expect(validateSubpath('valid/path', { throws: false })).toBe(true)
@@ -1903,33 +1865,30 @@ describe('Edge cases and additional coverage', () => {
 
     // Test purl-type.js lines 194-197 - conan with namespace but no qualifiers
     it('should test conan validation with namespace but no qualifiers', () => {
-
       const comp = { namespace: 'namespace', name: 'test', qualifiers: null }
-      const result = (PurlType['conan'] as any).validate(comp, false)
+      const result = (PurlType.conan as any).validate(comp, false)
       expect(result).toBe(false)
 
-      expect(() => (PurlType['conan'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.conan as any).validate(comp, true)).toThrow(
         /conan requires a "qualifiers" component when a namespace is present/,
       )
     })
 
     // Test purl-type.js lines 281-285 - npm name edge cases
     it('should test npm name with period and underscore prefixes', () => {
-
       // Test name starting with period
       const comp1 = { namespace: '', name: '.test' }
-      const result1 = (PurlType['npm'] as any).validate(comp1, false)
+      const result1 = (PurlType.npm as any).validate(comp1, false)
       expect(result1).toBe(false)
 
       // Test name starting with underscore
       const comp2 = { namespace: '', name: '_test' }
-      const result2 = (PurlType['npm'] as any).validate(comp2, false)
+      const result2 = (PurlType.npm as any).validate(comp2, false)
       expect(result2).toBe(false)
     })
 
     // Test normalize.js line 7 - filtering single dot
     it('should test normalize filtering single dots', () => {
-
       // Test filtering of single dots in paths
       const result = normalizeSubpath('path/./to/./file')
       expect(result).toBe('path/to/file')
@@ -1937,7 +1896,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test error.js line 12 - the && condition
     it('should test error uppercase check condition', () => {
-
       // Test the boundary condition
       const result1 = formatPurlErrorMessage('A')
       expect(result1).toBe('Invalid purl: a')
@@ -1950,7 +1908,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test objects.js line 33 - else branch with Object.values
     it('should test recursiveFreeze with plain objects', () => {
-
       // Force the else branch (not an array)
       const obj = Object.create(null)
       obj.prop1 = { nested: 'value1' }
@@ -1963,7 +1920,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test validate.js final edge cases
     it('should test validate functions final edge cases', () => {
-
       // Test validateStartsWithoutNumber with actual number start (line 121)
       const result1 = validateStartsWithoutNumber('key', '5test', {
         throws: false,
@@ -1984,16 +1940,15 @@ describe('Edge cases and additional coverage', () => {
     // Additional tests for 100% coverage
     // Test purl-type.js lines 185-189 - conan with channel but no namespace
     it('should test conan validation with channel qualifier but no namespace', () => {
-
       const comp = {
         namespace: '',
         name: 'test',
         qualifiers: { channel: 'stable' },
       }
-      const result = (PurlType['conan'] as any).validate(comp, false)
+      const result = (PurlType.conan as any).validate(comp, false)
       expect(result).toBe(false)
 
-      expect(() => (PurlType['conan'] as any).validate(comp, true)).toThrow(
+      expect(() => (PurlType.conan as any).validate(comp, true)).toThrow(
         /conan requires a "namespace" component when a "channel" qualifier is present/,
       )
     })
@@ -2057,18 +2012,17 @@ describe('Edge cases and additional coverage', () => {
 
     // Test purl-type.js lines 281-285 - npm name validation
     it('should test npm name prefix validation thoroughly', () => {
-
       // Test line 283 - period check
       const comp1 = { namespace: '', name: '.hidden' }
-      expect((PurlType['npm'] as any).validate(comp1, false)).toBe(false)
+      expect((PurlType.npm as any).validate(comp1, false)).toBe(false)
 
       // Test line 285 - underscore check
       const comp2 = { namespace: '', name: '_private' }
-      expect((PurlType['npm'] as any).validate(comp2, false)).toBe(false)
+      expect((PurlType.npm as any).validate(comp2, false)).toBe(false)
 
       // Valid name
       const comp3 = { namespace: '', name: 'valid-name' }
-      expect((PurlType['npm'] as any).validate(comp3, false)).toBe(true)
+      expect((PurlType.npm as any).validate(comp3, false)).toBe(true)
     })
 
     // Additional branch coverage tests
@@ -2111,7 +2065,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Test for line 169 - decodePurlComponent
     it('should handle purl with encoded type component (edge case)', () => {
-
       // Test a type that contains URL-encoded characters
       const purlWithEncodedType = 'pkg:type%2Dwith%2Ddashes/namespace/name'
 
@@ -2122,7 +2075,6 @@ describe('Edge cases and additional coverage', () => {
 
     // Additional coverage tests for edge cases
     it('should test normalizeName with non-string input', () => {
-
       // Test with non-string input (line 7 branch)
       expect(normalizeName(null)).toBe(undefined)
       expect(normalizeName(undefined)).toBe(undefined)
@@ -2130,12 +2082,9 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should test recursiveFreeze with functions', () => {
-
       // Test freezing objects containing functions (line 35 branch)
       const objWithFunc = {
-        method: function () {
-          return 'test'
-        },
+        method: () => 'test',
         data: { nested: 'value' },
       }
       const frozen = recursiveFreeze(objWithFunc)
@@ -2144,7 +2093,6 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should test validation edge cases', () => {
-
       // Test validateStrings with non-string input (line 121)
       expect(validateStrings('test', 123, { throws: false })).toBe(false)
       expect(validateStrings('test', {}, { throws: false })).toBe(false)
@@ -2271,7 +2219,6 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should test deep freeze with function type', () => {
-
       // Test freezing object with function as property
       const func: any = createTestFunction('test')
       ;(func as any).prop = 'value'
@@ -2336,7 +2283,6 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should test deep freeze with array containing functions', () => {
-
       // Test freezing array with functions (line 33 branch for typeof item === 'function')
       const func1: any = createTestFunction('test1')
       ;(func1 as any).prop = 'value1'
@@ -2424,14 +2370,14 @@ describe('Edge cases and additional coverage', () => {
   describe('Type-specific validation non-throwing mode', () => {
     it('should reject invalid npm package names without throwing errors', () => {
       // Test npm name starting with period (line 324-325 in purl-type.ts)
-      const result1 = (PurlType['npm'] as any).validate(
+      const result1 = (PurlType.npm as any).validate(
         { name: '.hidden', namespace: '' },
         false,
       )
       expect(result1).toBe(false)
 
       // Test npm name starting with underscore
-      const result2 = (PurlType['npm'] as any).validate(
+      const result2 = (PurlType.npm as any).validate(
         { name: '_private', namespace: '' },
         false,
       )
@@ -2440,7 +2386,7 @@ describe('Edge cases and additional coverage', () => {
       // Test npm name that is a core module (line 424-425 in purl-type.ts)
       // Note: fs and path are legacy names, so they don't trigger the builtin check
       // Use a non-legacy builtin like worker_threads
-      const result3 = (PurlType['npm'] as any).validate(
+      const result3 = (PurlType.npm as any).validate(
         { name: 'worker_threads', namespace: '' },
         false,
       )
@@ -2448,7 +2394,7 @@ describe('Edge cases and additional coverage', () => {
 
       // Test npm name that's too long (line 397-398 in purl-type.ts)
       const longName = 'a'.repeat(215)
-      const result4 = (PurlType['npm'] as any).validate(
+      const result4 = (PurlType.npm as any).validate(
         { name: longName, namespace: '' },
         false,
       )
@@ -2457,21 +2403,21 @@ describe('Edge cases and additional coverage', () => {
 
     it('should reject invalid pub package names without throwing errors', () => {
       // Test pub name with invalid characters (line 456-457 in purl-type.ts)
-      const result = (PurlType['pub'] as any).validate(
+      const result = (PurlType.pub as any).validate(
         { name: 'invalid-name', namespace: '' },
         false,
       )
       expect(result).toBe(false)
 
       // Test with special characters
-      const result2 = (PurlType['pub'] as any).validate(
+      const result2 = (PurlType.pub as any).validate(
         { name: 'invalid!name', namespace: '' },
         false,
       )
       expect(result2).toBe(false)
 
       // Test with uppercase
-      const result3 = (PurlType['pub'] as any).validate(
+      const result3 = (PurlType.pub as any).validate(
         { name: 'InvalidName', namespace: '' },
         false,
       )
@@ -2522,19 +2468,19 @@ describe('Edge cases and additional coverage', () => {
       expect(validPurl.toString()).toBe('pkg:cocoapods/AFNetworking@4.0.0')
 
       // Test non-throwing mode
-      const result1 = (PurlType['cocoapods'] as any).validate(
+      const result1 = (PurlType.cocoapods as any).validate(
         { name: 'Pod Name' },
         false,
       )
       expect(result1).toBe(false)
 
-      const result2 = (PurlType['cocoapods'] as any).validate(
+      const result2 = (PurlType.cocoapods as any).validate(
         { name: 'Pod+Name' },
         false,
       )
       expect(result2).toBe(false)
 
-      const result3 = (PurlType['cocoapods'] as any).validate(
+      const result3 = (PurlType.cocoapods as any).validate(
         { name: '.PodName' },
         false,
       )
@@ -2575,13 +2521,13 @@ describe('Edge cases and additional coverage', () => {
       expect(validPurl2.toString()).toBe('pkg:cpan/DateTime@1.55')
 
       // Test non-throwing mode
-      const result1 = (PurlType['cpan'] as any).validate(
+      const result1 = (PurlType.cpan as any).validate(
         { name: 'Module-Name', namespace: 'author' },
         false,
       )
       expect(result1).toBe(false)
 
-      const result2 = (PurlType['cpan'] as any).validate(
+      const result2 = (PurlType.cpan as any).validate(
         { name: 'Module-Name', namespace: 'Author' },
         false,
       )
@@ -2653,19 +2599,19 @@ describe('Edge cases and additional coverage', () => {
       expect(validPurl2.toString()).toContain('tag_id=CustomTagId123')
 
       // Test non-throwing mode
-      const result1 = (PurlType['swid'] as any).validate(
+      const result1 = (PurlType.swid as any).validate(
         { name: 'test', qualifiers: undefined },
         false,
       )
       expect(result1).toBe(false)
 
-      const result2 = (PurlType['swid'] as any).validate(
+      const result2 = (PurlType.swid as any).validate(
         { name: 'test', qualifiers: { tag_id: '   ' } },
         false,
       )
       expect(result2).toBe(false)
 
-      const result3 = (PurlType['swid'] as any).validate(
+      const result3 = (PurlType.swid as any).validate(
         {
           name: 'test',
           qualifiers: { tag_id: '75B8C285-FA7B-485B-B199-4745E3004D0D' },

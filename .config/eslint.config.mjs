@@ -30,7 +30,7 @@ const nodeGlobalsConfig = Object.fromEntries(
 const biomeConfigPath = path.join(rootPath, 'biome.json')
 const biomeConfig = require(biomeConfigPath)
 const biomeIgnores = {
-  name: `Imported biome.json ignore patterns`,
+  name: 'Imported biome.json ignore patterns',
   ignores: biomeConfig.files.includes
     .filter(p => p.startsWith('!'))
     .map(p => convertIgnorePatternToMinimatch(p.slice(1))),
@@ -39,7 +39,7 @@ const biomeIgnores = {
 const gitignorePath = path.join(rootPath, '.gitignore')
 const gitIgnores = {
   ...includeIgnoreFile(gitignorePath),
-  name: `Imported .gitignore ignore patterns`,
+  name: 'Imported .gitignore ignore patterns',
 }
 
 export default [

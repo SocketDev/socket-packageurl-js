@@ -11,7 +11,13 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.resolve(__dirname, '..')
-const registryPath = path.join(rootPath, '..', 'socket-registry', 'registry', 'dist')
+const registryPath = path.join(
+  rootPath,
+  '..',
+  'socket-registry',
+  'registry',
+  'dist',
+)
 
 if (existsSync(registryPath)) {
   const loaderPath = path.join(__dirname, 'loader.mjs')

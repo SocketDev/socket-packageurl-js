@@ -11,21 +11,32 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.resolve(__dirname, '..')
 
 // Check for local socket-registry build
-const registryPath = path.join(rootPath, '..', 'socket-registry', 'registry', 'dist')
+const registryPath = path.join(
+  rootPath,
+  '..',
+  'socket-registry',
+  'registry',
+  'dist',
+)
 const useLocalRegistry = existsSync(registryPath)
 
 export function resolve(specifier, context, nextResolve) {
   // Rewrite @socketsecurity/lib imports to local dist if available
   if (useLocalRegistry && specifier.startsWith('@socketsecurity/lib')) {
     const subpath = specifier.slice('@socketsecurity/lib'.length) || '/index.js'
-    const localPath = path.join(registryPath, subpath.startsWith('/') ? subpath.slice(1) : subpath)
+    const localPath = path.join(
+      registryPath,
+      subpath.startsWith('/') ? subpath.slice(1) : subpath,
+    )
 
     // Add .js extension if not present
-    const resolvedPath = localPath.endsWith('.js') ? localPath : `${localPath}.js`
+    const resolvedPath = localPath.endsWith('.js')
+      ? localPath
+      : `${localPath}.js`
 
     return {
       url: `file://${resolvedPath}`,
-      shortCircuit: true
+      shortCircuit: true,
     }
   }
 

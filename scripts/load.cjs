@@ -23,13 +23,19 @@ if (require.main === module) {
   }
 
   // Add .mjs extension if not present.
-  const scriptFile = scriptName.endsWith('.mjs') ? scriptName : `${scriptName}.mjs`
+  const scriptFile = scriptName.endsWith('.mjs')
+    ? scriptName
+    : `${scriptName}.mjs`
   const scriptPath = path.join(__dirname, scriptFile)
 
   // Run the script with the alias loader.
   // Convert loader path to file:// URL for cross-platform ESM loader support (Windows requires file:// URLs)
   const loaderPath = path.join(__dirname, 'utils', 'alias-loader.mjs')
-  const args = [`--loader=${pathToFileURL(loaderPath).href}`, scriptPath, ...flags]
+  const args = [
+    `--loader=${pathToFileURL(loaderPath).href}`,
+    scriptPath,
+    ...flags,
+  ]
 
   const child = spawn(process.execPath, args, {
     stdio: 'inherit',
