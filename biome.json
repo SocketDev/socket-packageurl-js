@@ -59,7 +59,8 @@
   "linter": {
     "rules": {
       "complexity": {
-        "noStaticOnlyClass": "off"
+        "noStaticOnlyClass": "off",
+        "useLiteralKeys": "off"
       },
       "style": {
         "noNonNullAssertion": "off",
