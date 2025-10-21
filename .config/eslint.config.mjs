@@ -225,12 +225,9 @@ export default [
       'import-x/no-unresolved': 'off',
       'import-x/extensions': [
         'error',
-        'never',
+        'ignorePackages',
         {
-          js: 'always',
           json: 'always',
-          ts: 'ignorePackages',
-          mts: 'ignorePackages',
         },
       ],
     },

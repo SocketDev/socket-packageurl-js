@@ -3,7 +3,7 @@
  * Provides object validation and recursive freezing utilities.
  */
  
-import { isObject } from '@socketsecurity/lib/objects.js'
+import { isObject } from '@socketsecurity/lib/objects'
 
 import { LOOP_SENTINEL } from './constants.js'
 

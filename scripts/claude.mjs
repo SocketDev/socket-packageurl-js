@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url'
 
 import colors from 'yoctocolors-cjs'
 
-import { parseArgs } from '@socketsecurity/lib/argv/parse.js'
+import { parseArgs } from '@socketsecurity/lib/argv/parse'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.join(__dirname, '..')
