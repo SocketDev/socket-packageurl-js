@@ -5,6 +5,7 @@
     "includes": [
       "**",
       "!**/.cache",
+      "!**/.claude",
       "!**/.DS_Store",
       "!**/._.DS_Store",
       "!**/.env",
@@ -12,9 +13,10 @@
       "!**/.github",
       "!**/.husky",
       "!**/.vscode",
+      "!**/CHANGELOG.md",
       "!**/coverage",
       "!**/dist",
-      "!**/CHANGELOG.md",
+      "!**/node_modules",
       "!**/package.json",
       "!**/pnpm-lock.yaml"
     ],
