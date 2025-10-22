@@ -558,6 +558,6 @@ Some package types apply automatic normalization:
 
 ## See Also
 
-- [API Reference](./API.md) - Complete API documentation
-- [Examples](./EXAMPLES.md) - Practical usage examples
+- [API Reference](./api-reference.md) - Complete API documentation
+- [Usage Examples](./usage-examples.md) - Practical usage examples
 - [PURL Types Specification](https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst) - Official type definitions

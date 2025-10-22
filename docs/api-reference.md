@@ -468,7 +468,7 @@ Additional factory methods available:
 - `PackageURLBuilder.deb()` - Debian packages
 - `PackageURLBuilder.rpm()` - RPM packages
 
-See [Builders Guide](./BUILDERS.md) for complete list.
+See [Builder Pattern Guide](./builder-pattern.md) for complete list.
 
 ---
 
@@ -910,6 +910,6 @@ if (ResultUtils.isErr(result)) {
 
 ## See Also
 
-- [Examples](./EXAMPLES.md) - Practical usage examples
-- [Builder Guide](./BUILDERS.md) - Comprehensive builder patterns
+- [Usage Examples](./usage-examples.md) - Practical usage examples
+- [Builder Pattern Guide](./builder-pattern.md) - Comprehensive builder patterns
 - [Package URL Spec](https://github.com/package-url/purl-spec) - Official specification
