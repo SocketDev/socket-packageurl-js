@@ -146,6 +146,11 @@ TypeScript implementation of [Package URL specification](https://github.com/pack
   `import type { ArgParserConfig } from './argv.mjs'`
 - ❌ `import { parseScriptArgs, isQuiet, type ArgParserConfig } from './argv.mjs'`
 
+#### Working Directory
+- **🚨 NEVER use `process.chdir()`** - use `{ cwd }` options and absolute paths instead
+  - Breaks tests, worker threads, and causes race conditions
+  - Always pass `{ cwd: absolutePath }` to spawn/exec/fs operations
+
 #### Optional Properties
 With `exactOptionalPropertyTypes`, assign conditionally:
 - ✅ `if (value !== undefined) { this.prop = value }`
