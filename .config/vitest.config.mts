@@ -13,7 +13,13 @@ const isCoverageEnabled =
   process.env.npm_lifecycle_event?.includes('coverage') ||
   process.argv.some(arg => arg.includes('coverage'))
 
+// Set environment variable so tests can detect coverage mode
+if (isCoverageEnabled) {
+  process.env.COVERAGE = 'true'
+}
+
 export default defineConfig({
+  cacheDir: './.cache/vitest',
   resolve: {
     alias: getLocalPackageAliases(path.join(__dirname, '..')),
   },
@@ -26,6 +32,14 @@ export default defineConfig({
     // Use threads for better performance
     pool: 'threads',
     poolOptions: {
+      forks: {
+        // Configuration for tests that opt into fork isolation via { pool: 'forks' }
+        // During coverage, use multiple forks for better isolation
+        singleFork: false,
+        maxForks: isCoverageEnabled ? 4 : 16,
+        minForks: isCoverageEnabled ? 1 : 2,
+        isolate: true,
+      },
       threads: {
         // Use single thread for coverage to reduce memory, parallel otherwise.
         singleThread: isCoverageEnabled,
@@ -54,6 +68,14 @@ export default defineConfig({
     // Reduce timeouts for faster failures
     testTimeout: 10_000,
     hookTimeout: 10_000,
+    // Speed optimizations
+    // Note: cache is now configured via Vite's cacheDir
+    sequence: {
+      // Run tests concurrently within suites
+      concurrent: true,
+    },
+    // Bail early on first failure in CI
+    bail: process.env.CI ? 1 : 0,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov', 'clover'],
