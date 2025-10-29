@@ -19,3 +19,4 @@ Thumbs.db
 
 # Allow specific files
 !/.vscode/extensions.json
+**/html
