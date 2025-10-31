@@ -60,7 +60,7 @@
     "all-the-package-names-v1.3905.0": "npm:all-the-package-names@1.3905.0",
     "del": "8.0.1",
     "dev-null-cli": "2.0.0",
-    "esbuild": "0.25.10",
+    "esbuild": "0.25.11",
     "eslint": "9.35.0",
     "eslint-plugin-import-x": "4.16.1",
     "eslint-plugin-n": "17.23.1",
