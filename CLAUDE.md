@@ -173,6 +173,10 @@ With `exactOptionalPropertyTypes`, assign conditionally:
 
 ### Testing
 
+**Vitest Configuration**: This repo uses the shared vitest configuration patterns documented in `../socket-registry/CLAUDE.md` (see "Vitest Configuration Variants" section). Three configs available:
+- `.config/vitest.config.mts` - Main config (default)
+- `.config/vitest.config.isolated.mts` - Full process isolation for vi.doMock()
+
 #### Test Structure
 - **Test files**: `test/` - All test files
 - **Spec compliance**: `test/purl-spec.test.mts` - Package URL spec tests

@@ -4,13 +4,23 @@ Thumbs.db
 /.claude
 /.env
 /.env.local
+/.env.*.local
 /.pnpmfile.cjs
 /.nvm
 /.tap
 /.type-coverage
 /.vscode
 /coverage
-/npm-debug.log
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Editor files
+*.swp
+*.swo
+#*#
+.#*
 **/.cache
 **/node_modules
 **/*.tmp
@@ -19,4 +29,3 @@ Thumbs.db
 
 # Allow specific files
 !/.vscode/extensions.json
-**/html

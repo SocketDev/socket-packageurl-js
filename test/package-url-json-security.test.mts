@@ -45,37 +45,21 @@ describe('PackageURL.fromJSON security features', () => {
     })
 
     it('should handle JSON exactly at 1MB limit', () => {
-      // Create a JSON string that's exactly at the 1MB limit much more efficiently
+      // Create a JSON string that's exactly at the 1MB limit efficiently
       const targetSize = 1024 * 1024
 
-      // Calculate size of base JSON structure
-      const baseStructure = '{"type":"npm","name":"test","qualifiers":{'
-      const endStructure = '}}'
-      const baseSize = baseStructure.length + endStructure.length
+      // Calculate size of base JSON structure:
+      // '{"type":"npm","name":"test","qualifiers":{"bigQualifier":"..."}}'
+      // The key "bigQualifier" takes: "bigQualifier":"" = 17 bytes
+      const baseOverhead =
+        '{"type":"npm","name":"test","qualifiers":{}}'.length + 17
 
-      // Calculate size needed for qualifiers
-      // Leave some buffer for JSON overhead
-      const remainingSize = targetSize - baseSize - 100
+      // Calculate the value length needed (with small buffer)
+      const valueLength = targetSize - baseOverhead - 50
 
-      // Create one large qualifier that takes up most of the space
-      const largeValue = 'x'.repeat(Math.floor(remainingSize * 0.95))
-      const qualifiers: Record<string, string> = { bigQualifier: largeValue }
-
-      // Add a few smaller qualifiers to fine-tune the size
-      let currentSize =
-        baseStructure.length +
-        JSON.stringify(qualifiers).length -
-        1 +
-        endStructure.length
-      let i = 0
-      while (currentSize < targetSize - 50) {
-        qualifiers[`q${i}`] = 'x'.repeat(10)
-        currentSize =
-          baseStructure.length +
-          JSON.stringify(qualifiers).length -
-          1 +
-          endStructure.length
-        i++
+      // Create one large qualifier
+      const qualifiers: Record<string, string> = {
+        bigQualifier: 'x'.repeat(valueLength),
       }
 
       const finalJson = JSON.stringify({

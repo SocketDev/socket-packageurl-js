@@ -1020,11 +1020,11 @@ describe('Edge cases and additional coverage', () => {
     // Test recursiveFreeze infinite loop detection
     it('should detect infinite loops in recursiveFreeze', () => {
       // Create a structure that will exceed LOOP_SENTINEL when traversed
-      // Use nested objects to reach the limit more efficiently
+      // Use nested objects to reach the limit efficiently
       const createDeepStructure = () => {
-        const depth = 1000
+        const depth = 400
         // depth * width > 1,000,000 (LOOP_SENTINEL)
-        const width = 1001
+        const width = 2501
         const root: any = { children: [] }
 
         for (let i = 0; i < width; i++) {
