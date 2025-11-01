@@ -2340,31 +2340,8 @@ describe('Edge cases and additional coverage', () => {
       expect(purl4.version).toBe(undefined)
     })
 
-    it('should handle URL parsing error', () => {
-      // Test package-url.js lines 144-148 - URL parsing failure
-      // We need to mock URL constructor to throw an error
-      const originalURL = global.URL
-      let callCount = 0
-
-      // Mock URL to throw error
-      global.URL = class MockURL {
-        constructor(_url: string) {
-          callCount++
-          // Always throw to trigger the catch block
-          throw new Error('Mocked URL error')
-        }
-      } as any
-
-      try {
-        expect(() => PackageURL.fromString('pkg:type/name')).toThrow(
-          'failed to parse as URL',
-        )
-        // Make sure our mock was actually called
-        expect(callCount).toBeGreaterThan(0)
-      } finally {
-        global.URL = originalURL
-      }
-    })
+    // Note: URL parsing error test moved to test/purl-global-mocking.isolated.test.mts
+    // because it modifies global.URL and cannot run concurrently with other tests.
   })
 
   describe('Type-specific validation non-throwing mode', () => {
@@ -2623,43 +2600,24 @@ describe('Edge cases and additional coverage', () => {
   })
 
   describe('Length validation', () => {
-    it('should reject names exceeding maximum length', () => {
-      const longName = 'x'.repeat(215)
-      expect(validateName(longName, { throws: false })).toBe(false)
-      expect(() => validateName(longName, { throws: true })).toThrow(
-        '"name" exceeds maximum length of 214 characters',
-      )
-    })
+    it.each([
+      ['name', validateName, 214],
+      ['namespace', validateNamespace, 512],
+      ['version', validateVersion, 256],
+    ] as const)(
+      'should validate %s length limits (max: %d characters)',
+      (component, validator, maxLength) => {
+        // At max length - should pass
+        const maxValue = 'x'.repeat(maxLength)
+        expect(validator(maxValue, { throws: false })).toBe(true)
 
-    it('should accept names at maximum length', () => {
-      const maxName = 'x'.repeat(214)
-      expect(validateName(maxName, { throws: false })).toBe(true)
-    })
-
-    it('should reject namespaces exceeding maximum length', () => {
-      const longNamespace = 'x'.repeat(513)
-      expect(validateNamespace(longNamespace, { throws: false })).toBe(false)
-      expect(() => validateNamespace(longNamespace, { throws: true })).toThrow(
-        '"namespace" exceeds maximum length of 512 characters',
-      )
-    })
-
-    it('should accept namespaces at maximum length', () => {
-      const maxNamespace = 'x'.repeat(512)
-      expect(validateNamespace(maxNamespace, { throws: false })).toBe(true)
-    })
-
-    it('should reject versions exceeding maximum length', () => {
-      const longVersion = 'x'.repeat(257)
-      expect(validateVersion(longVersion, { throws: false })).toBe(false)
-      expect(() => validateVersion(longVersion, { throws: true })).toThrow(
-        '"version" exceeds maximum length of 256 characters',
-      )
-    })
-
-    it('should accept versions at maximum length', () => {
-      const maxVersion = 'x'.repeat(256)
-      expect(validateVersion(maxVersion, { throws: false })).toBe(true)
-    })
+        // Over max length - should fail
+        const overMaxValue = 'x'.repeat(maxLength + 1)
+        expect(validator(overMaxValue, { throws: false })).toBe(false)
+        expect(() => validator(overMaxValue, { throws: true })).toThrow(
+          `"${component}" exceeds maximum length of ${maxLength} characters`,
+        )
+      },
+    )
   })
 })

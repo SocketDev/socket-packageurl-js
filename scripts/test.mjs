@@ -227,6 +227,11 @@ async function runTests(options, positionals = []) {
     vitestArgs.push('--update')
   }
 
+  // Exclude isolated tests from main test run
+  if (!vitestArgs.includes('*.isolated.test.mts')) {
+    vitestArgs.push('--exclude', '**/*.isolated.test.mts')
+  }
+
   // Add test patterns if not running all
   if (testsToRun === 'all') {
     logger.step(`Running all tests (${reason})`)
@@ -305,6 +310,56 @@ async function runTests(options, positionals = []) {
   }
 
   return result.code
+}
+
+async function runIsolatedTests() {
+  // Check if there are any isolated tests
+  const { existsSync } = await import('node:fs')
+  const { glob } = await import('fast-glob')
+
+  const isolatedTests = await glob('test/**/*.isolated.test.mts', {
+    cwd: rootPath,
+  })
+
+  if (isolatedTests.length === 0) {
+    return 0
+  }
+
+  logger.step(`Running ${isolatedTests.length} isolated test file(s)`)
+  isolatedTests.forEach(test => logger.substep(test))
+
+  const vitestCmd = WIN32 ? 'vitest.cmd' : 'vitest'
+  const vitestPath = path.join(nodeModulesBinPath, vitestCmd)
+
+  const spawnOptions = {
+    cwd: rootPath,
+    env: {
+      ...process.env,
+      NODE_OPTIONS:
+        `${process.env.NODE_OPTIONS || ''} --max-old-space-size=${process.env.CI ? 8192 : 4096} --unhandled-rejections=warn`.trim(),
+    },
+    stdio: 'inherit',
+  }
+
+  const dotenvxCmd = WIN32 ? 'dotenvx.cmd' : 'dotenvx'
+  const dotenvxPath = path.join(nodeModulesBinPath, dotenvxCmd)
+
+  return runCommand(
+    dotenvxPath,
+    [
+      '-q',
+      'run',
+      '-f',
+      '.env.test',
+      '--',
+      vitestPath,
+      '--config',
+      '.config/vitest.config.isolated.mts',
+      'run',
+      ...isolatedTests,
+    ],
+    spawnOptions,
+  )
 }
 
 async function main() {
@@ -416,14 +471,23 @@ async function main() {
       }
     }
 
-    // Run tests
+    // Run main tests
     exitCode = await runTests(
       { ...values, coverage: withCoverage },
       positionals,
     )
 
     if (exitCode !== 0) {
-      logger.error('Tests failed')
+      logger.error('Main tests failed')
+      process.exitCode = exitCode
+      return
+    }
+
+    // Run isolated tests
+    exitCode = await runIsolatedTests()
+
+    if (exitCode !== 0) {
+      logger.error('Isolated tests failed')
       process.exitCode = exitCode
     } else {
       logger.success('All tests passed!')

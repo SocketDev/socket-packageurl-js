@@ -2,6 +2,20 @@
 
 Practical usage examples for `@socketregistry/packageurl-js`.
 
+## Quick Navigation
+
+| Task | Section |
+|------|---------|
+| Parse PURL strings | [Parsing Package URLs](#parsing-package-urls) |
+| Build PURLs for npm | [npm Packages](#npm-packages) |
+| Build PURLs for Python | [Python Packages](#python-packages) |
+| Build PURLs for Maven | [Maven Packages](#maven-packages) |
+| Get repository URLs | [URL Conversion](#url-conversion) |
+| Serialize to JSON | [Serialization](#serialization) |
+| Handle errors | [Error Handling](#error-handling) |
+| Process multiple packages | [Batch Processing](#batch-processing) |
+| Dependency analysis | [Integration Examples](#integration-examples) |
+
 ## Parsing Package URLs
 
 ### Basic Parsing

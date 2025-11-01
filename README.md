@@ -8,6 +8,31 @@
 
 TypeScript Package URL (purl) parser and builder. Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) with full type safety, zero dependencies, and spec compliance with the [Package URL specification](https://github.com/package-url/purl-spec).
 
+## What is a PURL?
+
+A Package URL (purl) standardizes how to identify software packages:
+
+```
+pkg:npm/lodash@4.17.21
+pkg:pypi/requests@2.28.1
+pkg:maven/org.springframework/spring-core@5.3.21
+```
+
+**Format breakdown**:
+```
+  pkg:type/namespace/name@version?qualifiers#subpath
+  │   │    │         │    │       │          │
+  │   │    │         │    │       │          └─ Optional subpath
+  │   │    │         │    │       └──────────── Optional key=value pairs
+  │   │    │         │    └──────────────────── Optional version
+  │   │    │         └───────────────────────── Required package name
+  │   │    └─────────────────────────────────── Optional namespace/scope
+  │   └──────────────────────────────────────── Required package type
+  └──────────────────────────────────────────── Scheme (always "pkg:")
+```
+
+**Supports 35+ ecosystems**: npm, pypi, maven, gem, cargo, nuget, composer, golang, docker, and more.
+
 ## Installation
 
 ```sh
@@ -100,11 +125,12 @@ function processPurl(type: EcosystemString) {
 
 ## Documentation
 
-**[→ API Reference](./docs/API.md)** - Complete API documentation
-
-**[→ Examples](./docs/EXAMPLES.md)** - Common use cases
-
-**[→ Builders](./docs/BUILDERS.md)** - Builder pattern guide
+| Doc | Description |
+|-----|-------------|
+| **[Getting Started](./docs/getting-started.md)** | Quick setup guide for contributors |
+| **[API Reference](./docs/api-reference.md)** | Complete API documentation |
+| **[Examples](./docs/usage-examples.md)** | Common use cases and patterns |
+| **[Builder Pattern](./docs/builder-pattern.md)** | Fluent builder guide |
 
 ## Development
 

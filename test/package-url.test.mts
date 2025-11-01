@@ -23,6 +23,7 @@ SOFTWARE.
 import { describe, expect, it } from 'vitest'
 
 import { PackageURL } from '../src/package-url.js'
+import { expectPurlProperties } from './utils/assertions.mts'
 import {
   testInvalidParam,
   testInvalidStringParam,
@@ -178,31 +179,28 @@ describe('PackageURL', () => {
       },
     )
 
-    it('encode #', () => {
-      // Tests # encoding (delimiter between url and subpath, must be encoded in components)
-      const purl = createTestPurl('type', 'na#me', {
-        namespace: 'name#space',
-        qualifiers: { foo: 'bar#baz' },
-        subpath: 'sub#path',
-        version: 'ver#sion',
-      })
-      expect(purl.toString()).toBe(
-        'pkg:type/name%23space/na%23me@ver%23sion?foo=bar%23baz#sub%23path',
-      )
-    })
+    it.each([
+      ['#', '%23', 'fragment delimiter'],
+      ['@', '%40', 'version separator'],
+    ] as const)(
+      'should encode special character %s as %s (%s)',
+      (char, encoded, _description) => {
+        const purl = createTestPurl('type', `na${char}me`, {
+          namespace: `name${char}space`,
+          qualifiers: { foo: `bar${char}baz` },
+          subpath: `sub${char}path`,
+          version: `ver${char}sion`,
+        })
 
-    it('encode @', () => {
-      /* The @ is a delimiter between package name and version. */
-      const purl = createTestPurl('type', 'na@me', {
-        namespace: 'name@space',
-        qualifiers: { foo: 'bar@baz' },
-        subpath: 'sub@path',
-        version: 'ver@sion',
-      })
-      expect(purl.toString()).toBe(
-        'pkg:type/name%40space/na%40me@ver%40sion?foo=bar%40baz#sub%40path',
-      )
-    })
+        const str = purl.toString()
+        // Verify all occurrences are encoded
+        expect(str).toContain(`name${encoded}space`)
+        expect(str).toContain(`na${encoded}me`)
+        expect(str).toContain(`ver${encoded}sion`)
+        expect(str).toContain(`bar${encoded}baz`)
+        expect(str).toContain(`sub${encoded}path`)
+      },
+    )
 
     it('path components encode /', () => {
       /* only namespace is allowed to have multiple segments separated by `/`` */

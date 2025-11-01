@@ -26,6 +26,7 @@ SOFTWARE.
 import { describe, expect, it } from 'vitest'
 
 import { PackageURL } from '../src/package-url.js'
+import { expectPurlEquality } from './utils/assertions.mts'
 
 describe('PackageURL JSON/dict export', () => {
   describe('toObject', () => {
@@ -380,13 +381,7 @@ describe('PackageURL JSON/dict export', () => {
     ])('should preserve data through %s round-trip', (_method, roundTrip) => {
       for (const original of testCases) {
         const restored = roundTrip(original)
-        expect(restored.type).toBe(original.type)
-        expect(restored.namespace).toBe(original.namespace)
-        expect(restored.name).toBe(original.name)
-        expect(restored.version).toBe(original.version)
-        expect(restored.qualifiers).toEqual(original.qualifiers)
-        expect(restored.subpath).toBe(original.subpath)
-        expect(restored.toString()).toBe(original.toString())
+        expectPurlEquality(restored, original)
       }
     })
   })

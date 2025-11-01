@@ -173,15 +173,40 @@ With `exactOptionalPropertyTypes`, assign conditionally:
 
 ### Testing
 
-**Vitest Configuration**: This repo uses the shared vitest configuration patterns documented in `../socket-registry/CLAUDE.md` (see "Vitest Configuration Variants" section). Three configs available:
-- `.config/vitest.config.mts` - Main config (default)
-- `.config/vitest.config.isolated.mts` - Full process isolation for vi.doMock()
+**Vitest Configuration**: This repo uses the shared vitest configuration patterns documented in `../socket-registry/CLAUDE.md` (see "Vitest Configuration Variants" section). Two configs available:
+- `.config/vitest.config.mts` - Main config (threads, isolate: false, concurrent: true)
+- `.config/vitest.config.isolated.mts` - Full process isolation (forks, isolate: true)
+
+#### Test File Naming Conventions
+🚨 **MANDATORY** - Use correct suffix based on isolation requirements:
+
+**Standard tests** (`*.test.mts`):
+- Run with thread pool, shared worker context
+- Fast execution, parallel within suites
+- Most tests should use this pattern
+- Example: `test/package-url.test.mts`
+
+**Isolated tests** (`*.isolated.test.mts`):
+- Run with fork pool, full process isolation
+- Required for tests that:
+  - Mock global objects (global.URL, global.process, etc.)
+  - Use vi.doMock() for dynamic module mocking
+  - Would cause race conditions in concurrent execution
+- Automatically detected and run separately by `scripts/test.mjs`
+- Example: `test/purl-global-mocking.isolated.test.mts`
+
+**When to use isolated tests**:
+- ✅ Modifying global.URL, global.process, or other globals
+- ✅ Tests that fail intermittently in concurrent mode
+- ❌ Standard property testing - use regular tests
+- ❌ HTTP mocking with nock - works fine in thread pool
 
 #### Test Structure
 - **Test files**: `test/` - All test files
 - **Spec compliance**: `test/purl-spec.test.mts` - Package URL spec tests
 - **Edge cases**: `test/purl-edge-cases.test.mts` - Edge cases and coverage
 - **Test helpers**: `test/utils/test-helpers.mts` - Reusable test utilities
+- **Assertion helpers**: `test/utils/assertions.mts` - Property validation helpers
 
 #### Test Helpers (`test/utils/test-helpers.mts`)
 

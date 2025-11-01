@@ -15,9 +15,36 @@ const purl = PackageURLBuilder.npm()
   .build()
 ```
 
+**Visual flow**:
+```
+PackageURLBuilder
+      ↓
+  .npm()              ← Factory method sets type='npm'
+      ↓
+  .name('express')    ← Set required name
+      ↓
+  .version('4.18.0')  ← Set optional version
+      ↓
+  .build()            ← Returns PackageURL instance
+      ↓
+'pkg:npm/express@4.18.0'
+```
+
 ## Factory Methods
 
 Pre-configured builders for popular package ecosystems.
+
+| Ecosystem | Factory | Example Type |
+|-----------|---------|--------------|
+| JavaScript | `.npm()` | `pkg:npm/lodash@4.17.21` |
+| Python | `.pypi()` | `pkg:pypi/requests@2.28.1` |
+| Java | `.maven()` | `pkg:maven/org.springframework/spring-core@5.3.21` |
+| Ruby | `.gem()` | `pkg:gem/rails@7.0.4` |
+| Rust | `.cargo()` | `pkg:cargo/serde@1.0.152` |
+| .NET | `.nuget()` | `pkg:nuget/Newtonsoft.Json@13.0.2` |
+| PHP | `.composer()` | `pkg:composer/symfony/console@6.2.5` |
+| Go | `.golang()` | `pkg:golang/github.com/gin-gonic/gin@v1.8.1` |
+| Docker | `.docker()` | `pkg:docker/nginx@1.23.0` |
 
 ### npm - JavaScript/Node.js
 
