@@ -8,6 +8,8 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import glob from 'fast-glob'
+
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { onExit } from '@socketsecurity/lib/signal-exit'
@@ -317,8 +319,6 @@ async function runTests(options, positionals = []) {
 
 async function runIsolatedTests() {
   // Check if there are any isolated tests
-  const { glob } = await import('fast-glob')
-
   const isolatedTests = await glob('test/**/*.isolated.test.mts', {
     cwd: rootPath,
   })
