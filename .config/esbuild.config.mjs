@@ -57,7 +57,7 @@ export const buildConfig = {
   // Minimum Node version from package.json
   target: 'node18',
   sourcemap: false,
-  minify: true,
+  minify: false,
   treeShaking: true,
   // For bundle analysis
   metafile: true,
