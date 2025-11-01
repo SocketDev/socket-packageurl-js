@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.2](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.3.2) - 2025-11-01
+
+### Changed
+- Disabled minification in build output for improved readability and debugging
+
 ## [1.3.1](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.3.1) - 2025-10-21
 
 ### Changed
