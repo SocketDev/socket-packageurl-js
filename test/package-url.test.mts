@@ -23,7 +23,6 @@ SOFTWARE.
 import { describe, expect, it } from 'vitest'
 
 import { PackageURL } from '../src/package-url.js'
-import { expectPurlProperties } from './utils/assertions.mts'
 import {
   testInvalidParam,
   testInvalidStringParam,

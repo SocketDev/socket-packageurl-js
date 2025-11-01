@@ -92,7 +92,7 @@ export function expectPurlEquality(purl1: PackageURL, purl2: PackageURL): void {
  * )
  */
 export function testThrowingAndNonThrowing(
-  validator: (opts: { throws: boolean }) => boolean | never,
+  validator: (_opts: { throws: boolean }) => boolean | never,
   shouldPass: boolean,
   errorPattern?: RegExp | string,
 ): void {

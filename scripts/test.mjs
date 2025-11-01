@@ -9,12 +9,15 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
-import { logger } from '@socketsecurity/lib/logger'
+import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { onExit } from '@socketsecurity/lib/signal-exit'
-import { spinner } from '@socketsecurity/lib/spinner'
+import { getDefaultSpinner } from '@socketsecurity/lib/spinner'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
 
 import { getTestsToRun } from './utils/changed-test-mapper.mjs'
+
+const logger = getDefaultLogger()
+const spinner = getDefaultSpinner()
 
 const WIN32 = process.platform === 'win32'
 
@@ -314,7 +317,6 @@ async function runTests(options, positionals = []) {
 
 async function runIsolatedTests() {
   // Check if there are any isolated tests
-  const { existsSync } = await import('node:fs')
   const { glob } = await import('fast-glob')
 
   const isolatedTests = await glob('test/**/*.isolated.test.mts', {

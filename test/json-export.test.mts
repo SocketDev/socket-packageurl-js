@@ -26,7 +26,7 @@ SOFTWARE.
 import { describe, expect, it } from 'vitest'
 
 import { PackageURL } from '../src/package-url.js'
-import { expectPurlEquality } from './utils/assertions.mts'
+import { expectPurlEquality } from './utils/assertions.mjs'
 
 describe('PackageURL JSON/dict export', () => {
   describe('toObject', () => {

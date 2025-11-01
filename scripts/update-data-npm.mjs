@@ -19,10 +19,12 @@ import {
   getSpinner,
 } from '@socketsecurity/lib/constants/process'
 import { writeJson } from '@socketsecurity/lib/fs'
-import { logger } from '@socketsecurity/lib/logger'
+import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { pFilter } from '@socketsecurity/lib/promises'
 import { confirm } from '@socketsecurity/lib/prompts'
 import { naturalCompare } from '@socketsecurity/lib/sorts'
+
+const logger = getDefaultLogger()
 
 const abortSignal = getAbortSignal()
 

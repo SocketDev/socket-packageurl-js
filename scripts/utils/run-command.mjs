@@ -2,7 +2,9 @@
 
 import { spawn, spawnSync } from 'node:child_process'
 
-import { logger } from '@socketsecurity/lib/logger'
+import { getDefaultLogger } from '@socketsecurity/lib/logger'
+
+const logger = getDefaultLogger()
 
 /**
  * Run a command and return a promise that resolves with the exit code.
