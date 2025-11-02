@@ -242,6 +242,27 @@ async function main() {
       }
     }
 
+    // Run esbuild minify validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating esbuild minify setting')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate-esbuild-minify.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('esbuild minify validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('esbuild minify validated')
+        logger.error('')
+      }
+    }
+
     if (!quiet) {
       logger.success('All checks passed')
       printFooter()
