@@ -200,6 +200,27 @@ async function main() {
       }
     }
 
+    // Run link: validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating no link: dependencies')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate-no-link-deps.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('Validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('No link: dependencies found')
+        logger.error('')
+      }
+    }
+
     if (!quiet) {
       logger.success('All checks passed')
       printFooter()
