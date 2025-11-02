@@ -4,7 +4,7 @@
  * Requires Claude Code (claude) CLI to be installed.
  */
 
-import { spawn } from 'node:child_process'
+import { spawn } from '@socketsecurity/lib/spawn'
 import crypto from 'node:crypto'
 import {
   existsSync,

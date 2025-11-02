@@ -3,7 +3,7 @@
  * Combines check, build, and test steps with clean, consistent output.
  */
 
-import { spawn } from 'node:child_process'
+import { spawn } from '@socketsecurity/lib/spawn'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'

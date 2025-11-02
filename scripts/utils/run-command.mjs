@@ -1,6 +1,6 @@
 /** @fileoverview Utility for running shell commands with proper error handling. */
 
-import { spawn, spawnSync } from 'node:child_process'
+import { spawn, spawnSync } from '@socketsecurity/lib/spawn'
 
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 
@@ -13,22 +13,22 @@ const logger = getDefaultLogger()
  * @param {object} options - Spawn options
  * @returns {Promise<number>} Exit code
  */
-export function runCommand(command, args = [], options = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+export async function runCommand(command, args = [], options = {}) {
+  try {
+    const result = await spawn(command, args, {
       stdio: 'inherit',
       ...(process.platform === 'win32' && { shell: true }),
       ...options,
     })
-
-    child.on('exit', code => {
-      resolve(code || 0)
-    })
-
-    child.on('error', error => {
-      reject(error)
-    })
-  })
+    return result.code
+  } catch (error) {
+    // spawn() from @socketsecurity/lib throws on non-zero exit
+    // Return the exit code from the error
+    if (error && typeof error === 'object' && 'code' in error) {
+      return error.code
+    }
+    throw error
+  }
 }
 
 /**
@@ -93,37 +93,38 @@ export async function runParallel(commands) {
  * @param {object} options - Spawn options
  * @returns {Promise<{exitCode: number, stdout: string, stderr: string}>}
  */
-export function runCommandQuiet(command, args = [], options = {}) {
-  return new Promise((resolve, reject) => {
-    let stdout = ''
-    let stderr = ''
-
-    const child = spawn(command, args, {
+export async function runCommandQuiet(command, args = [], options = {}) {
+  try {
+    const result = await spawn(command, args, {
       ...options,
       ...(process.platform === 'win32' && { shell: true }),
-      stdio: ['inherit', 'pipe', 'pipe'],
+      stdio: 'pipe',
+      stdioString: true,
     })
 
-    child.stdout?.on('data', data => {
-      stdout += data.toString()
-    })
-
-    child.stderr?.on('data', data => {
-      stderr += data.toString()
-    })
-
-    child.on('exit', code => {
-      resolve({
-        exitCode: code || 0,
-        stderr,
-        stdout,
-      })
-    })
-
-    child.on('error', error => {
-      reject(error)
-    })
-  })
+    return {
+      exitCode: result.code,
+      stderr: result.stderr,
+      stdout: result.stdout,
+    }
+  } catch (error) {
+    // spawn() from @socketsecurity/lib throws on non-zero exit
+    // Return the exit code and output from the error
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      'stdout' in error &&
+      'stderr' in error
+    ) {
+      return {
+        exitCode: error.code,
+        stderr: error.stderr,
+        stdout: error.stdout,
+      }
+    }
+    throw error
+  }
 }
 
 /**

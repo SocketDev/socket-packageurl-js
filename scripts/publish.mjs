@@ -3,13 +3,13 @@
  * Supports both simple single-package and complex multi-package publishing.
  */
 
-import { spawn } from 'node:child_process'
 import { existsSync, promises as fs } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import { spawn } from '@socketsecurity/lib/spawn'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
 const logger = getDefaultLogger()
@@ -22,55 +22,54 @@ const WIN32 = process.platform === 'win32'
 const CI = !!process.env.CI
 
 async function runCommand(command, args = [], options = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+  try {
+    const result = await spawn(command, args, {
       stdio: 'inherit',
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
       ...options,
     })
-
-    child.on('exit', code => {
-      resolve(code || 0)
-    })
-
-    child.on('error', error => {
-      reject(error)
-    })
-  })
+    return result.code
+  } catch (error) {
+    // spawn() throws on non-zero exit
+    if (error && typeof error === 'object' && 'code' in error) {
+      return error.code
+    }
+    throw error
+  }
 }
 
 async function runCommandWithOutput(command, args = [], options = {}) {
-  return new Promise((resolve, reject) => {
-    let stdout = ''
-    let stderr = ''
-
-    const child = spawn(command, args, {
+  try {
+    const result = await spawn(command, args, {
       cwd: rootPath,
+      stdio: 'pipe',
+      stdioString: true,
       ...(WIN32 && { shell: true }),
       ...options,
     })
-
-    if (child.stdout) {
-      child.stdout.on('data', data => {
-        stdout += data
-      })
+    return {
+      exitCode: result.code,
+      stderr: result.stderr,
+      stdout: result.stdout,
     }
-
-    if (child.stderr) {
-      child.stderr.on('data', data => {
-        stderr += data
-      })
+  } catch (error) {
+    // spawn() throws on non-zero exit
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      'stdout' in error &&
+      'stderr' in error
+    ) {
+      return {
+        exitCode: error.code,
+        stderr: error.stderr,
+        stdout: error.stdout,
+      }
     }
-
-    child.on('exit', code => {
-      resolve({ exitCode: code || 0, stdout, stderr })
-    })
-
-    child.on('error', error => {
-      reject(error)
-    })
-  })
+    throw error
+  }
 }
 
 /**

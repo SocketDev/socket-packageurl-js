@@ -4,7 +4,7 @@
  * Includes interactive mode for reviewing and refining AI-generated changelogs.
  */
 
-import { spawn } from 'node:child_process'
+import { spawn } from '@socketsecurity/lib/spawn'
 import { existsSync, promises as fs } from 'node:fs'
 import path from 'node:path'
 import readline from 'node:readline'

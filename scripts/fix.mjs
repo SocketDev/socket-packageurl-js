@@ -2,7 +2,7 @@
  * @fileoverview Fix script that runs lint with auto-fix enabled.
  */
 
-import { spawn } from 'node:child_process'
+import { spawn } from '@socketsecurity/lib/spawn'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
