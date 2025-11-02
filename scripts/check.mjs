@@ -284,6 +284,69 @@ async function main() {
       }
     }
 
+    // Run markdown filenames validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating markdown filenames')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate-markdown-filenames.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('Markdown filenames validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('Markdown filenames validated')
+        logger.error('')
+      }
+    }
+
+    // Run file size validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating file sizes')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate-file-size.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('File size validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('File sizes validated')
+        logger.error('')
+      }
+    }
+
+    // Run file count validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating file count')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate-file-count.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('File count validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('File count validated')
+        logger.error('')
+      }
+    }
+
     if (!quiet) {
       logger.success('All checks passed')
       printFooter()
