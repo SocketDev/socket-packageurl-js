@@ -263,6 +263,27 @@ async function main() {
       }
     }
 
+    // Run CDN references validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating no CDN references')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate-no-cdn-refs.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('CDN references validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('No CDN references found')
+        logger.error('')
+      }
+    }
+
     if (!quiet) {
       logger.success('All checks passed')
       printFooter()
