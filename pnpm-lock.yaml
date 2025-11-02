@@ -24,8 +24,8 @@ importers:
         specifier: 9.35.0
         version: 9.35.0
       '@socketsecurity/lib':
-        specifier: 3.1.0
-        version: 3.1.0(typescript@5.9.2)
+        specifier: 3.1.1
+        version: 3.1.1(typescript@5.9.2)
       '@socketsecurity/registry':
         specifier: 1.5.3
         version: 1.5.3
@@ -684,8 +684,8 @@ packages:
     resolution: {integrity: sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==}
     engines: {node: '>=18'}
 
-  '@socketsecurity/lib@3.1.0':
-    resolution: {integrity: sha512-nqTgPtXDX/n9PAboTz+db2mCvqSOhsEuOeiOIoJUurWsOxrXSmkrZMNWiDLSl1Yi/heVwUTAh0wZLPkYcbdvAw==}
+  '@socketsecurity/lib@3.1.1':
+    resolution: {integrity: sha512-0N8sJtG0uGxbmzaupW8bekpBPKrSd1sngkcQRt3c14tp500obDG1sP1uncTctmhw6jjg3BoCHmANN93aldgouA==}
     engines: {node: '>=22'}
     peerDependencies:
       typescript: '>=5.0.0'
@@ -3018,7 +3018,7 @@ snapshots:
 
   '@sindresorhus/merge-streams@2.3.0': {}
 
-  '@socketsecurity/lib@3.1.0(typescript@5.9.2)':
+  '@socketsecurity/lib@3.1.1(typescript@5.9.2)':
     optionalDependencies:
       typescript: 5.9.2
 
