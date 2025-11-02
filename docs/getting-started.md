@@ -164,9 +164,8 @@ pnpm cover                       # With coverage
 ### Essential Reading
 
 1. **[CLAUDE.md](../CLAUDE.md)** - Project standards (MANDATORY)
-2. **[API Reference](./api-reference.md)** - Complete API docs
-3. **[Usage Examples](./usage-examples.md)** - Real-world patterns
-4. **[Builder Pattern](./builder-pattern.md)** - Builder guide
+2. **[Usage Examples](./usage-examples.md)** - Real-world patterns & builder guide
+3. **[API Reference](./api-reference.md)** - Complete API documentation
 
 ### Deep Dives
 
