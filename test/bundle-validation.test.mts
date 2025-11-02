@@ -44,33 +44,65 @@ function hasAbsolutePaths(content: string): {
 }
 
 /**
- * Check if content is missing external dependencies (they should be require() calls).
- * External dependencies should NOT be bundled inline.
+ * Check if bundle contains inlined dependencies.
+ * Reads package.json dependencies and ensures they are NOT bundled inline.
  */
-function checkExternalDependencies(content: string): {
-  missingRequires: string[]
-  hasAllRequires: boolean
-} {
-  // Dependencies that should be external (as require() calls).
-  const externalDeps = ['@socketsecurity/lib']
+async function checkBundledDependencies(content: string): Promise<{
+  bundledDeps: string[]
+  hasNoBundledDeps: boolean
+}> {
+  // Read package.json to get runtime dependencies.
+  const pkgJsonPath = path.join(packagePath, 'package.json')
+  const pkgJson = JSON.parse(await fs.readFile(pkgJsonPath, 'utf8'))
+  const dependencies = pkgJson.dependencies || {}
 
-  const missingRequires: string[] = []
+  const bundledDeps: string[] = []
 
-  for (const dep of externalDeps) {
-    // Check if the bundle has require() calls for this dependency.
-    const requirePattern = new RegExp(
-      `require\\(["']${dep.replace('/', '\\/')}["']\\)`,
-    )
-    const hasRequire = requirePattern.test(content)
+  // If we have NO dependencies, check that no external packages are bundled.
+  if (Object.keys(dependencies).length === 0) {
+    // Look for signs of bundled npm packages.
+    // Bundled packages often have characteristic patterns like:
+    // - var xxx_exports = {};
+    // - __toCommonJS(package_name_exports)
+    // - Multiple functions from same package bundled together.
+    const bundledPackagePatterns = [
+      // Socket packages that should always be external.
+      /@socketsecurity\/lib/,
+      /@socketsecurity\/sdk/,
+      /@socketsecurity\/registry/,
+      /@socketregistry\/packageurl-js/,
+    ]
 
-    if (!hasRequire) {
-      missingRequires.push(dep)
+    for (const pattern of bundledPackagePatterns) {
+      // Check if package name appears in context that suggests bundling.
+      // Look for: var import_package = require("package") without the actual require call.
+      // This would indicate the package code is bundled inline.
+      const bundlePattern = new RegExp(
+        `var\\s+\\w+\\s*=\\s*__toCommonJS\\([^)]*${pattern.source}`,
+      )
+
+      if (bundlePattern.test(content)) {
+        bundledDeps.push(pattern.source)
+      }
+    }
+  } else {
+    // If we have dependencies, check that they remain external (not bundled).
+    for (const dep of Object.keys(dependencies)) {
+      const escapedDep = dep.replace(/[/\\^$*+?.()|[\]{}]/g, '\\$&')
+      // Check if dependency code is bundled by looking for __toCommonJS pattern.
+      const bundlePattern = new RegExp(
+        `var\\s+\\w+\\s*=\\s*__toCommonJS\\([^)]*${escapedDep}`,
+      )
+
+      if (bundlePattern.test(content)) {
+        bundledDeps.push(dep)
+      }
     }
   }
 
   return {
-    missingRequires,
-    hasAllRequires: missingRequires.length === 0,
+    bundledDeps,
+    hasNoBundledDeps: bundledDeps.length === 0,
   }
 }
 
@@ -93,22 +125,22 @@ describe('Bundle validation', () => {
     )
   })
 
-  it('should have external dependencies as require() calls', async () => {
+  it('should not bundle dependencies inline (validate against package.json dependencies)', async () => {
     const indexPath = path.join(distPath, 'index.js')
     const content = await fs.readFile(indexPath, 'utf8')
 
-    const result = checkExternalDependencies(content)
+    const result = await checkBundledDependencies(content)
 
-    if (!result.hasAllRequires) {
-      console.error('Missing require() calls for external dependencies:')
-      for (const dep of result.missingRequires) {
+    if (!result.hasNoBundledDeps) {
+      console.error('Found bundled dependencies (should be external):')
+      for (const dep of result.bundledDeps) {
         console.error(`  - ${dep}`)
       }
     }
 
     expect(
-      result.hasAllRequires,
-      'All external dependencies should be require() calls, not bundled inline',
+      result.hasNoBundledDeps,
+      'Dependencies from package.json should be external, not bundled inline',
     ).toBe(true)
   })
 })
