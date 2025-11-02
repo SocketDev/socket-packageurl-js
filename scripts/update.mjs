@@ -3,13 +3,13 @@
  * Handles taze updates, Socket package updates, and project-specific tasks.
  */
 
-import { spawn } from '@socketsecurity/lib/spawn'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import { spawn } from '@socketsecurity/lib/spawn'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
 const logger = getDefaultLogger()
@@ -30,12 +30,14 @@ function includesProvenanceDowngradeWarning(output) {
 
 async function runCommand(command, args = [], options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const spawnPromise = spawn(command, args, {
       stdio: 'inherit',
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
       ...options,
     })
+
+    const child = spawnPromise.process
 
     child.on('exit', code => {
       resolve(code || 0)
@@ -53,11 +55,13 @@ async function runCommandWithOutput(command, args = [], options = {}) {
     let stderr = ''
     let hasProvenanceDowngrade = false
 
-    const child = spawn(command, args, {
+    const spawnPromise = spawn(command, args, {
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
       ...options,
     })
+
+    const child = spawnPromise.process
 
     if (child.stdout) {
       child.stdout.on('data', chunk => {

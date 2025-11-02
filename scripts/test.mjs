@@ -3,7 +3,6 @@
  * Combines check, build, and test steps with clean, consistent output.
  */
 
-import { spawn } from '@socketsecurity/lib/spawn'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -13,6 +12,7 @@ import glob from 'fast-glob'
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { onExit } from '@socketsecurity/lib/signal-exit'
+import { spawn } from '@socketsecurity/lib/spawn'
 import { getDefaultSpinner } from '@socketsecurity/lib/spinner'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
 
@@ -68,11 +68,13 @@ const removeExitHandler = onExit((_code, signal) => {
 
 async function runCommand(command, args = [], options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const spawnPromise = spawn(command, args, {
       stdio: 'inherit',
       ...(process.platform === 'win32' && { shell: true }),
       ...options,
     })
+
+    const child = spawnPromise.process
 
     runningProcesses.add(child)
 
@@ -93,10 +95,12 @@ async function runCommandWithOutput(command, args = [], options = {}) {
     let stdout = ''
     let stderr = ''
 
-    const child = spawn(command, args, {
+    const spawnPromise = spawn(command, args, {
       ...(process.platform === 'win32' && { shell: true }),
       ...options,
     })
+
+    const child = spawnPromise.process
 
     runningProcesses.add(child)
 

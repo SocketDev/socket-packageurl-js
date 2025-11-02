@@ -4,7 +4,6 @@
  * Requires Claude Code (claude) CLI to be installed.
  */
 
-import { spawn } from '@socketsecurity/lib/spawn'
 import crypto from 'node:crypto'
 import {
   existsSync,
@@ -20,6 +19,7 @@ import { deleteAsync as del } from 'del'
 import colors from 'yoctocolors-cjs'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import { spawn } from '@socketsecurity/lib/spawn'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.join(__dirname, '..')
@@ -892,12 +892,14 @@ function displayAnalysis(analysis) {
 async function runCommand(command, args = [], options = {}) {
   const opts = { __proto__: null, ...options }
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const spawnPromise = spawn(command, args, {
       stdio: 'inherit',
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
       ...opts,
     })
+
+    const child = spawnPromise.process
 
     child.on('exit', code => {
       resolve(code || 0)
@@ -917,11 +919,13 @@ async function runCommandWithOutput(command, args = [], options = {}) {
     let stdout = ''
     let stderr = ''
 
-    const child = spawn(command, args, {
+    const spawnPromise = spawn(command, args, {
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
       ...spawnOpts,
     })
+
+    const child = spawnPromise.process
 
     // Write input to stdin if provided.
     if (input && child.stdin) {
@@ -1022,11 +1026,13 @@ async function runClaude(claudeCmd, prompt, options = {}) {
     if (opts.interactive !== false) {
       // Interactive mode - spawn with inherited stdio and pipe prompt
       result = await new Promise((resolve, _reject) => {
-        const child = spawn(claudeCmd, args, {
+        const spawnPromise = spawn(claudeCmd, args, {
           stdio: ['pipe', 'inherit', 'inherit'],
           cwd: opts.cwd || rootPath,
           ...(WIN32 && { shell: true }),
         })
+
+        const child = spawnPromise.process
 
         // Set up timeout for interactive mode
         const timeoutId = setTimeout(() => {
@@ -4716,11 +4722,13 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
           }
 
           const exitCode = await new Promise((resolve, _reject) => {
-            const child = spawn(scriptCmd, [], {
+            const spawnPromise = spawn(scriptCmd, [], {
               stdio: 'inherit',
               cwd: rootPath,
               shell: true,
             })
+
+            const child = spawnPromise.process
 
             // Handle Ctrl+C gracefully
             const sigintHandler = () => {
@@ -5036,11 +5044,13 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
                 }
 
                 const exitCode = await new Promise((resolve, _reject) => {
-                  const child = spawn(scriptCmd, [], {
+                  const spawnPromise = spawn(scriptCmd, [], {
                     stdio: 'inherit',
                     cwd: rootPath,
                     shell: true,
                   })
+
+                  const child = spawnPromise.process
 
                   // Handle Ctrl+C gracefully
                   const sigintHandler = () => {

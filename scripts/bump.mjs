@@ -4,7 +4,6 @@
  * Includes interactive mode for reviewing and refining AI-generated changelogs.
  */
 
-import { spawn } from '@socketsecurity/lib/spawn'
 import { existsSync, promises as fs } from 'node:fs'
 import path from 'node:path'
 import readline from 'node:readline'
@@ -15,6 +14,7 @@ import colors from 'yoctocolors-cjs'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import { spawn } from '@socketsecurity/lib/spawn'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
 const logger = getDefaultLogger()
@@ -103,12 +103,14 @@ async function confirm(question, defaultYes = true) {
 
 async function runCommand(command, args = [], options = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const spawnPromise = spawn(command, args, {
       stdio: 'inherit',
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
       ...options,
     })
+
+    const child = spawnPromise.process
 
     child.on('exit', code => {
       resolve(code || 0)
@@ -125,11 +127,13 @@ async function runCommandWithOutput(command, args = [], options = {}) {
     let stdout = ''
     let stderr = ''
 
-    const child = spawn(command, args, {
+    const spawnPromise = spawn(command, args, {
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
       ...options,
     })
+
+    const child = spawnPromise.process
 
     if (child.stdout) {
       child.stdout.on('data', data => {
