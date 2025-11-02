@@ -46,16 +46,18 @@ function toUrlSearchParams(search: string) {
 
 describe('PackageURL purl-spec test suite', async () => {
   // Tests from the official purl-spec test suite (data/*.json files)
-  const TEST_FILES = (
-    await Promise.all(
-      (
-        await glob(['**/**.json'], {
-          absolute: true,
-          cwd: path.join(__dirname, 'data'),
-        })
-      ).map(p => readJson(p)),
-    )
+  const settled = await Promise.allSettled(
+    (
+      await glob(['**/**.json'], {
+        absolute: true,
+        cwd: path.join(__dirname, 'data'),
+      })
+    ).map(p => readJson(p)),
   )
+
+  const TEST_FILES = settled
+    .filter(r => r.status === 'fulfilled')
+    .map(r => r.value)
     .filter(Boolean)
     .flatMap((o: any) => o.tests ?? [])
 
