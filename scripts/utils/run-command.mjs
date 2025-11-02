@@ -1,8 +1,7 @@
 /** @fileoverview Utility for running shell commands with proper error handling. */
 
-import { spawn, spawnSync } from '@socketsecurity/lib/spawn'
-
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import { spawn, spawnSync } from '@socketsecurity/lib/spawn'
 
 const logger = getDefaultLogger()
 
