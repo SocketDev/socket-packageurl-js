@@ -63,10 +63,11 @@ export default defineConfig({
         isolate: true,
       },
       threads: {
-        // Use single thread for coverage to reduce memory, parallel otherwise.
-        singleThread: isCoverageEnabled,
-        maxThreads: isCoverageEnabled ? 1 : 16,
-        minThreads: isCoverageEnabled ? 1 : 4,
+        // Use single thread to prevent worker termination errors.
+        // Multiple threads with isolate: false can cause race conditions in tinypool cleanup.
+        singleThread: true,
+        maxThreads: 1,
+        minThreads: 1,
         // IMPORTANT: isolate: false for performance and test compatibility
         //
         // Tradeoff Analysis:
@@ -90,12 +91,6 @@ export default defineConfig({
     // Reduce timeouts for faster failures
     testTimeout: 10_000,
     hookTimeout: 10_000,
-    // Speed optimizations
-    // Note: cache is now configured via Vite's cacheDir
-    sequence: {
-      // Run tests concurrently within suites
-      concurrent: true,
-    },
     // Bail early on first failure in CI
     bail: process.env.CI ? 1 : 0,
     coverage: {

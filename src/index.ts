@@ -41,12 +41,12 @@ SOFTWARE.
 
 /* c8 ignore start - Re-export only file, no logic to test */
 
-export type { PURLString } from '@socketsecurity/lib'
+export type { PURLString } from '@socketsecurity/lib/types'
 // ============================================================================
 // Registry Integration
 // ============================================================================
 // Re-export PURL types from socket-registry for consistency
-export { PURL_Type } from '@socketsecurity/lib'
+export { PURL_Type } from '@socketsecurity/lib/types'
 // ============================================================================
 // TypeScript Type Definitions
 // ============================================================================
