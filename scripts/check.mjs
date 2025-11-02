@@ -221,6 +221,27 @@ async function main() {
       }
     }
 
+    // Run bundle dependencies validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating bundle dependencies')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate-bundle-deps.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('Bundle validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('Bundle dependencies validated')
+        logger.error('')
+      }
+    }
+
     if (!quiet) {
       logger.success('All checks passed')
       printFooter()
