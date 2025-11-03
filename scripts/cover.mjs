@@ -40,11 +40,6 @@ console.log('')
 // Filter out custom flags that vitest doesn't understand
 const customFlags = ['--code-only', '--type-only', '--summary']
 const vitestArgs = [
-  '-q',
-  'run',
-  '-f',
-  '.env.test',
-  '--',
   'vitest',
   '--config',
   '.config/vitest.config.mts',
@@ -88,8 +83,13 @@ try {
   }
   // Handle --code-only flag
   else if (values['code-only']) {
-    codeCoverageResult = await runCommandQuiet('dotenvx', vitestArgs, {
+    codeCoverageResult = await runCommandQuiet('pnpm', vitestArgs, {
       cwd: rootPath,
+      env: {
+        ...process.env,
+        NODE_COMPILE_CACHE: './.cache',
+        VITEST: '1',
+      },
     })
     exitCode = codeCoverageResult.exitCode
 
@@ -139,8 +139,13 @@ try {
   }
   // Default: run both code and type coverage
   else {
-    codeCoverageResult = await runCommandQuiet('dotenvx', vitestArgs, {
+    codeCoverageResult = await runCommandQuiet('pnpm', vitestArgs, {
       cwd: rootPath,
+      env: {
+        ...process.env,
+        NODE_COMPILE_CACHE: './.cache',
+        VITEST: '1',
+      },
     })
     exitCode = codeCoverageResult.exitCode
 
