@@ -27,8 +27,8 @@ importers:
         specifier: 3.2.1
         version: 3.2.1(typescript@5.9.2)
       '@socketsecurity/registry':
-        specifier: 1.5.3
-        version: 1.5.3
+        specifier: 2.0.2
+        version: 2.0.2(typescript@5.9.2)
       '@types/node':
         specifier: 24.9.2
         version: 24.9.2
@@ -664,9 +664,14 @@ packages:
       typescript:
         optional: true
 
-  '@socketsecurity/registry@1.5.3':
-    resolution: {integrity: sha512-0/o4RFTgqqIl5bKBuacp4HiYq0KttXkvGti2fN4lXqGh7FEe39gcX/dxFlhk2eoTuZ21Nbx/I3GPe5EDdMaYVA==}
-    engines: {node: '>=18', pnpm: '>=10.16.0'}
+  '@socketsecurity/registry@2.0.2':
+    resolution: {integrity: sha512-hGfteZxSnPN2gmOc9A5cJmyTZBumgMWmg2MVOMRmQjFwxVssk/Bs5dgETGGSOfWBmo/g1K5rBfPs1vE0n/SXMQ==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      typescript: '>=5.0.0'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   '@standard-schema/spec@1.0.0':
     resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
@@ -2848,7 +2853,9 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.2
 
-  '@socketsecurity/registry@1.5.3': {}
+  '@socketsecurity/registry@2.0.2(typescript@5.9.2)':
+    optionalDependencies:
+      typescript: 5.9.2
 
   '@standard-schema/spec@1.0.0': {}
 
