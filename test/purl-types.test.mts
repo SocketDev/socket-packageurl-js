@@ -20,6 +20,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @fileoverview Unit tests for type-specific PackageURL behavior.
+ * Tests package-type-specific normalizations and validations for npm (legacy names, builtins),
+ * pub (dash-to-underscore), and pypi (lowercase, underscore-to-dash) package types.
+ */
 import { describe, expect, it } from 'vitest'
 
 import npmBuiltinNames from '../data/npm/builtin-names.json'
