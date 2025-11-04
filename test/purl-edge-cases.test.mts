@@ -20,6 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @fileoverview Comprehensive edge case and coverage tests for PackageURL.
+ * Tests URL scheme handling, component validation, special characters, version separators,
+ * subpath/qualifier handling, type-specific normalizations, parameter types, roundtrip
+ * consistency, error messages, encoding/decoding, normalization, validation, and internal utilities.
+ * This file aims for complete code coverage of all edge cases and boundary conditions.
+ */
 import { describe, expect, it } from 'vitest'
 
 import {

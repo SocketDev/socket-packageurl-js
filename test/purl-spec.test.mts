@@ -20,6 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @fileoverview Official Package URL specification compliance tests.
+ * Tests PackageURL implementation against the official purl-spec test suite (test/data/*.json).
+ * Validates parsing, building, and roundtrip behavior for all package types defined in the spec,
+ * ensuring strict compliance with expected successes and failures.
+ */
 import path from 'node:path'
 
 import { glob } from 'fast-glob'
