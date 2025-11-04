@@ -62,7 +62,7 @@ describe('PackageURL type-specific tests', () => {
         expect(
           isBuiltin || isMixedCased || containsIllegalCharacters,
           `assert for ${legacyName}`,
-        )
+        ).toBe(true)
       }
     })
 
