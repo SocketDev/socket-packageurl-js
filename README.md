@@ -129,13 +129,15 @@ function processPurl(type: EcosystemString) {
 
 | Doc | Description |
 |-----|-------------|
-| **[Getting Started](./docs/getting-started.md)** | Quick setup guide for contributors |
+| **[Getting Started](./docs/getting-started.md)** | Quick start for contributors (5 min setup) |
 | **[API Reference](./docs/api-reference.md)** | Complete API documentation |
 | **[Examples](./docs/usage-examples.md)** | Common use cases and patterns |
-| **[Builder Pattern](./docs/builder-pattern.md)** | Fluent builder guide |
 
 ## Development
 
+**New to the project?** See the [**Getting Started Guide**](./docs/getting-started.md) for setup, workflow, and contribution guidelines.
+
+**Quick commands:**
 ```bash
 pnpm install   # Install dependencies
 pnpm build     # Build
