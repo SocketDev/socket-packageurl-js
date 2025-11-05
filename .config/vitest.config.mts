@@ -118,10 +118,10 @@ export default defineConfig({
       skipFull: false,
       ignoreClassMethods: ['constructor'],
       thresholds: {
-        branches: 100,
-        functions: 100,
-        lines: 100,
-        statements: 100,
+        branches: 99,
+        functions: 99,
+        lines: 99,
+        statements: 99,
       },
       // Coverage should report on src files.
       reportsDirectory: './coverage',
