@@ -21,8 +21,8 @@ import {
 import { writeJson } from '@socketsecurity/lib/fs'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { pFilter } from '@socketsecurity/lib/promises'
-import { confirm } from '@socketsecurity/lib/stdio/prompts'
 import { naturalCompare } from '@socketsecurity/lib/sorts'
+import { confirm } from '@socketsecurity/lib/stdio/prompts'
 
 const logger = getDefaultLogger()
 
