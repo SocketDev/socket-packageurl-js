@@ -137,18 +137,3 @@ const purl = new PackageURL(
 
 - [API Reference](./api-reference.md) - Complete API docs
 - [Usage Examples](./usage-examples.md) - Common patterns
-- [Getting Started](./getting-started.md) - Detailed setup
-- [CLAUDE.md](../CLAUDE.md) - Development standards
-
----
-
-## ✅ Checklist
-
-- [ ] Installed dependencies (`pnpm install`)
-- [ ] Tests passing (`pnpm test`)
-- [ ] Read [API Reference](./api-reference.md)
-- [ ] Understand Package URL spec
-- [ ] Know commit format (conventional commits)
-- [ ] Ready to contribute!
-
-**Welcome!** 🎉

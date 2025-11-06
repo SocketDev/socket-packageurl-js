@@ -628,5 +628,4 @@ if (isNpmPackage(purl) && hasVersion(purl)) {
 ## See Also
 
 - [API Reference](./api-reference.md) - Complete API documentation
-- [Builder Pattern Guide](./builder-pattern.md) - Builder pattern reference
 - [Package URL Spec](https://github.com/package-url/purl-spec) - Official specification

@@ -911,5 +911,4 @@ if (ResultUtils.isErr(result)) {
 ## See Also
 
 - [Usage Examples](./usage-examples.md) - Practical usage examples
-- [Builder Pattern Guide](./builder-pattern.md) - Comprehensive builder patterns
 - [Package URL Spec](https://github.com/package-url/purl-spec) - Official specification
