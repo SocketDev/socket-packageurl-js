@@ -24,6 +24,7 @@ Thumbs.db
 .#*
 **/.cache
 **/node_modules
+**/*.tgz
 **/*.tmp
 **/*.tsbuildinfo
 /dist
