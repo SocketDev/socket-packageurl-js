@@ -206,7 +206,7 @@ async function main() {
         logger.progress('Validating no link: dependencies')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate-no-link-deps.mjs',
+        'scripts/validate/no-link-deps.mjs',
       ]).then(r => r.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
@@ -227,7 +227,7 @@ async function main() {
         logger.progress('Validating bundle dependencies')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate-bundle-deps.mjs',
+        'scripts/validate/bundle-deps.mjs',
       ]).then(r => r.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
@@ -248,7 +248,7 @@ async function main() {
         logger.progress('Validating esbuild minify setting')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate-esbuild-minify.mjs',
+        'scripts/validate/esbuild-minify.mjs',
       ]).then(r => r.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
@@ -269,7 +269,7 @@ async function main() {
         logger.progress('Validating no CDN references')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate-no-cdn-refs.mjs',
+        'scripts/validate/no-cdn-refs.mjs',
       ]).then(r => r.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
@@ -290,7 +290,7 @@ async function main() {
         logger.progress('Validating markdown filenames')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate-markdown-filenames.mjs',
+        'scripts/validate/markdown-filenames.mjs',
       ]).then(r => r.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
@@ -311,7 +311,7 @@ async function main() {
         logger.progress('Validating file sizes')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate-file-size.mjs',
+        'scripts/validate/file-size.mjs',
       ]).then(r => r.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
@@ -332,7 +332,7 @@ async function main() {
         logger.progress('Validating file count')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate-file-count.mjs',
+        'scripts/validate/file-count.mjs',
       ]).then(r => r.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
