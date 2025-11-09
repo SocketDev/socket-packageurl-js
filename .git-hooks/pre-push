@@ -71,7 +71,7 @@ while read local_ref local_sha remote_ref remote_sha; do
   printf "Checking files for security issues...\n"
 
   # Get all files changed in these commits.
-  CHANGED_FILES=$(git diff --name-only "$range" 2>/dev/null || echo "")
+  CHANGED_FILES=$(git diff --name-only "$range" 2>/dev/null || printf "\n")
 
   if [ -n "$CHANGED_FILES" ]; then
     # Check for sensitive files.
