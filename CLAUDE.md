@@ -117,11 +117,11 @@ TypeScript implementation of [Package URL specification](https://github.com/pack
 ### Commands
 - **Build**: `pnpm build` (production build)
 - **Watch**: `pnpm build --watch` (dev mode with 68% faster incremental builds)
-- **Test**: `pnpm test`, `pnpm test:unit`
-- **Type check**: `pnpm check:tsc`
-- **Lint**: `pnpm check:lint`
+- **Test**: `pnpm test`
+- **Type check**: `pnpm type`
+- **Lint**: `pnpm lint`
 - **Check all**: `pnpm check`
-- **Fix**: `pnpm check:lint:fix` or `pnpm fix`
+- **Fix**: `pnpm fix`
 - **Coverage**: `pnpm cover`
 
 **Development tip:** Use `pnpm build --watch` for 68% faster rebuilds (9ms vs 27ms). Incremental builds use esbuild's context API for in-memory caching.
@@ -242,30 +242,13 @@ With `exactOptionalPropertyTypes`, assign conditionally:
 - **Test helpers**: `test/utils/test-helpers.mts` - Reusable test utilities
 - **Assertion helpers**: `test/utils/assertions.mts` - Property validation helpers
 
-#### Test Helpers (`test/utils/test-helpers.mts`)
+#### Test Helpers
 
-**createTestPurl(type, name, opts?)** - Factory for creating PackageURL instances
-```typescript
-import { createTestPurl } from './utils/test-helpers.mts'
+Test helpers in `test/utils/test-helpers.mts`:
+- `createTestPurl(type, name, opts?)` - Factory for PackageURL instances
+- `createTestFunction(returnValue?)` - Creates test functions with optional return values
 
-// Before: new PackageURL('npm', undefined, 'lodash', '4.17.21', undefined, undefined)
-// After:
-const purl = createTestPurl('npm', 'lodash', { version: '4.17.21' })
-
-// With all options:
-const purl = createTestPurl('npm', 'lodash', {
-  version: '4.17.21',
-  namespace: '@scope',
-  qualifiers: { arch: 'x64' },
-  subpath: 'dist/index.js'
-})
-```
-
-**createTestFunction(returnValue?)** - Creates test functions with optional return values
-```typescript
-const testFn = createTestFunction('result')
-expect(testFn()).toBe('result')
-```
+See file for usage examples.
 
 #### Running Tests
 - **All tests**: `pnpm test` or `pnpm test:unit`
