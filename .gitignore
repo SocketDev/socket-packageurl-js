@@ -31,3 +31,6 @@ Thumbs.db
 
 # Allow specific files
 !/.vscode/extensions.json
+
+# Archive directories
+**/docs/archive/
