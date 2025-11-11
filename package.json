@@ -82,8 +82,9 @@
   },
   "engines": {
     "node": ">=18",
-    "pnpm": ">=10.16.0"
+    "pnpm": ">=10.21.0"
   },
+  "packageManager": "pnpm@10.21.0",
   "files": [
     "dist/**/*",
     "data/**/*.json",
