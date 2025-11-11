@@ -19,6 +19,7 @@ import { deleteAsync as del } from 'del'
 import colors from 'yoctocolors-cjs'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import { LOG_SYMBOLS } from '@socketsecurity/lib/logger'
 import { spawn } from '@socketsecurity/lib/spawn'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -98,7 +99,7 @@ const log = {
   substep: msg => console.log(`  ${msg}`),
   progress: msg => {
     process.stdout.write('\r\x1b[K')
-    process.stdout.write(`  ∴ ${msg}`)
+    process.stdout.write(`  ${LOG_SYMBOLS.reason} ${msg}`)
   },
   done: msg => {
     process.stdout.write('\r\x1b[K')
