@@ -35,7 +35,7 @@
   ],
   "engines": {
     "node": ">=18",
-    "pnpm": ">=10.21.0"
+    "pnpm": ">=10.22.0"
   },
   "sideEffects": false,
   "scripts": {
