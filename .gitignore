@@ -1,12 +1,13 @@
 .DS_Store
 ._.DS_Store
 Thumbs.db
-/.claude
+**/.claude/
 /.env
 /.env.local
 /.env.*.local
-/.pnpmfile.cjs
+/.node-version
 /.nvm
+/.pnpmfile.cjs
 /.tap
 /.type-coverage
 /.vscode
@@ -23,9 +24,13 @@ Thumbs.db
 .#*
 **/.cache
 **/node_modules
+**/*.tgz
 **/*.tmp
 **/*.tsbuildinfo
 /dist
 
 # Allow specific files
 !/.vscode/extensions.json
+
+# Archive directories
+**/docs/archive/
