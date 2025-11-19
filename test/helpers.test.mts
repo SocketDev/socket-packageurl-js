@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Unit tests for helper utilities.
+ * Tests the createHelpersNamespaceObject function which reorganizes helper objects
+ * by property names, with support for defaults, custom comparators, and null prototypes.
+ */
 import { describe, expect, it } from 'vitest'
 
 import { createHelpersNamespaceObject } from '../src/helpers.js'

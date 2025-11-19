@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Unit tests for language utility functions.
+ * Tests null/undefined/empty string detection utilities used throughout the codebase.
+ */
 import { describe, expect, it } from 'vitest'
 
 import { isNullishOrEmptyString } from '../src/lang.js'

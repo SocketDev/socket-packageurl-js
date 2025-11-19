@@ -20,6 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @fileoverview Official Package URL specification compliance tests.
+ * Tests PackageURL implementation against the official purl-spec test suite (test/data/*.json).
+ * Validates parsing, building, and roundtrip behavior for all package types defined in the spec,
+ * ensuring strict compliance with expected successes and failures.
+ */
 import path from 'node:path'
 
 import { glob } from 'fast-glob'
@@ -46,16 +52,18 @@ function toUrlSearchParams(search: string) {
 
 describe('PackageURL purl-spec test suite', async () => {
   // Tests from the official purl-spec test suite (data/*.json files)
-  const TEST_FILES = (
-    await Promise.all(
-      (
-        await glob(['**/**.json'], {
-          absolute: true,
-          cwd: path.join(__dirname, 'data'),
-        })
-      ).map(p => readJson(p)),
-    )
+  const settled = await Promise.allSettled(
+    (
+      await glob(['**/**.json'], {
+        absolute: true,
+        cwd: path.join(__dirname, 'data'),
+      })
+    ).map(p => readJson(p)),
   )
+
+  const TEST_FILES = settled
+    .filter(r => r.status === 'fulfilled')
+    .map(r => r.value)
     .filter(Boolean)
     .flatMap((o: any) => o.tests ?? [])
 

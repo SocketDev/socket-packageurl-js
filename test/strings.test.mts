@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Unit tests for string manipulation utilities.
+ * Tests string validation, normalization, transformation, and comparison functions
+ * including whitespace detection, semver validation, case conversion, and character replacement.
+ */
 import { describe, expect, it } from 'vitest'
 
 import {
