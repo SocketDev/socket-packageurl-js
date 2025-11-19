@@ -206,7 +206,7 @@ async function main() {
         logger.progress('Validating no link: dependencies')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate-no-link-deps.mjs',
+        'scripts/validate/no-link-deps.mjs',
       ]).then(r => r.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
@@ -227,7 +227,7 @@ async function main() {
         logger.progress('Validating bundle dependencies')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate-bundle-deps.mjs',
+        'scripts/validate/bundle-deps.mjs',
       ]).then(r => r.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
@@ -238,6 +238,111 @@ async function main() {
       }
       if (!quiet) {
         logger.clearLine().done('Bundle dependencies validated')
+        logger.error('')
+      }
+    }
+
+    // Run esbuild minify validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating esbuild minify setting')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate/esbuild-minify.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('esbuild minify validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('esbuild minify validated')
+        logger.error('')
+      }
+    }
+
+    // Run CDN references validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating no CDN references')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate/no-cdn-refs.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('CDN references validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('No CDN references found')
+        logger.error('')
+      }
+    }
+
+    // Run markdown filenames validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating markdown filenames')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate/markdown-filenames.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('Markdown filenames validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('Markdown filenames validated')
+        logger.error('')
+      }
+    }
+
+    // Run file size validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating file sizes')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate/file-size.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('File size validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('File sizes validated')
+        logger.error('')
+      }
+    }
+
+    // Run file count validation check
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Validating file count')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/validate/file-count.mjs',
+      ]).then(r => r.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error('File count validation failed')
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('File count validated')
         logger.error('')
       }
     }

@@ -43,7 +43,7 @@ async function buildSource(options = {}) {
   if (!skipClean) {
     const exitCode = await runSequence([
       {
-        args: ['scripts/load.cjs', 'clean', '--dist', '--quiet'],
+        args: ['scripts/clean.mjs', '--dist', '--quiet'],
         command: 'node',
       },
     ])
@@ -94,7 +94,7 @@ async function buildTypes(options = {}) {
 
   if (!skipClean) {
     commands.push({
-      args: ['scripts/load.cjs', 'clean', '--types', '--quiet'],
+      args: ['scripts/clean.mjs', '--types', '--quiet'],
       command: 'node',
     })
   }
@@ -338,7 +338,7 @@ async function main() {
       }
       exitCode = await runSequence([
         {
-          args: ['scripts/load.cjs', 'clean', '--dist', '--types', '--quiet'],
+          args: ['scripts/clean.mjs', '--dist', '--types', '--quiet'],
           command: 'node',
         },
       ])
@@ -351,7 +351,7 @@ async function main() {
       }
 
       // Run source and types builds in parallel
-      const [srcResult, typesExitCode] = await Promise.all([
+      const results = await Promise.allSettled([
         buildSource({
           quiet,
           verbose,
@@ -360,6 +360,13 @@ async function main() {
         }),
         buildTypes({ quiet, verbose, skipClean: true }),
       ])
+
+      const srcResult =
+        results[0].status === 'fulfilled'
+          ? results[0].value
+          : { exitCode: 1, buildTime: 0, result: null }
+      const typesExitCode =
+        results[1].status === 'fulfilled' ? results[1].value : 1
 
       // Log completion messages in order
       if (!quiet) {

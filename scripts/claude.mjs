@@ -19,6 +19,7 @@ import { deleteAsync as del } from 'del'
 import colors from 'yoctocolors-cjs'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import { LOG_SYMBOLS } from '@socketsecurity/lib/logger'
 import { spawn } from '@socketsecurity/lib/spawn'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -98,7 +99,7 @@ const log = {
   substep: msg => console.log(`  ${msg}`),
   progress: msg => {
     process.stdout.write('\r\x1b[K')
-    process.stdout.write(`  ∴ ${msg}`)
+    process.stdout.write(`  ${LOG_SYMBOLS.reason} ${msg}`)
   },
   done: msg => {
     process.stdout.write('\r\x1b[K')
@@ -1914,7 +1915,8 @@ async function executeParallel(tasks, workers = 3) {
     }
   }
 
-  return Promise.all(results)
+  const settled = await Promise.allSettled(results)
+  return settled.map(r => (r.status === 'fulfilled' ? r.value : undefined))
 }
 
 /**
@@ -3420,11 +3422,18 @@ async function runAudit(claudeCmd, options = {}) {
   log.step('Gathering project information')
 
   // Run various checks.
-  const [npmAudit, depCheck, licenseCheck] = await Promise.all([
+  const results = await Promise.allSettled([
     runCommandWithOutput('npm', ['audit', '--json']),
     runCommandWithOutput('pnpm', ['licenses', 'list', '--json']),
     fs.readFile(path.join(rootPath, 'package.json'), 'utf8'),
   ])
+
+  const npmAudit =
+    results[0].status === 'fulfilled' ? results[0].value : { stdout: '' }
+  const depCheck =
+    results[1].status === 'fulfilled' ? results[1].value : { stdout: '' }
+  const licenseCheck =
+    results[2].status === 'fulfilled' ? results[2].value : '{}'
 
   const packageJson = JSON.parse(licenseCheck)
 

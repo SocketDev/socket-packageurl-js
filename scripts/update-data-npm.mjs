@@ -14,15 +14,13 @@ import validateNpmPackageName from 'validate-npm-package-name'
 
 import { arrayUnique } from '@socketsecurity/lib/arrays'
 import { getMaintainedNodeVersions } from '@socketsecurity/lib/constants/node'
-import {
-  getAbortSignal,
-  getSpinner,
-} from '@socketsecurity/lib/constants/process'
+import { getAbortSignal } from '@socketsecurity/lib/constants/process'
 import { writeJson } from '@socketsecurity/lib/fs'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { pFilter } from '@socketsecurity/lib/promises'
-import { confirm } from '@socketsecurity/lib/prompts'
 import { naturalCompare } from '@socketsecurity/lib/sorts'
+import { getDefaultSpinner } from '@socketsecurity/lib/spinner'
+import { confirm } from '@socketsecurity/lib/stdio/prompts'
 
 const logger = getDefaultLogger()
 
@@ -38,7 +36,7 @@ const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')
 const npmLegacyNamesJsonPath = path.join(npmDataPath, 'legacy-names.json')
 
 async function main() {
-  const spinner = getSpinner()
+  const spinner = getDefaultSpinner()
   spinner.start()
 
   const { next } = getMaintainedNodeVersions()
