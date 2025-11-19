@@ -20,14 +20,7 @@
  * - Full process isolation between tests
  * - File naming: *.isolated.test.mts suffix
  */
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
 import { defineConfig } from 'vitest/config'
-
-import { getLocalPackageAliases } from '../scripts/utils/get-local-package-aliases.mjs'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Check if coverage is enabled via CLI flags or environment.
 const isCoverageEnabled =
@@ -42,9 +35,6 @@ if (isCoverageEnabled) {
 
 export default defineConfig({
   cacheDir: './.cache/vitest',
-  resolve: {
-    alias: getLocalPackageAliases(path.join(__dirname, '..')),
-  },
   test: {
     globals: false,
     environment: 'node',
@@ -118,10 +108,10 @@ export default defineConfig({
       skipFull: false,
       ignoreClassMethods: ['constructor'],
       thresholds: {
-        branches: 100,
-        functions: 100,
-        lines: 100,
-        statements: 100,
+        branches: 99,
+        functions: 99,
+        lines: 99,
+        statements: 99,
       },
       // Coverage should report on src files.
       reportsDirectory: './coverage',

@@ -6,8 +6,6 @@ import { builtinModules } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { getLocalPackageAliases } from '../scripts/utils/get-local-package-aliases.mjs'
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.join(__dirname, '..')
 const srcPath = path.join(rootPath, 'src')
@@ -181,43 +179,6 @@ function createPathShorteningPlugin() {
   }
 }
 
-/**
- * Plugin to handle local package aliases.
- * Provides consistent alias resolution across all Socket repos.
- * Note: Does not externalize @socketsecurity/lib - that should be bundled.
- */
-function createAliasPlugin() {
-  const aliases = getLocalPackageAliases(rootPath)
-
-  // Only create plugin if we have local aliases
-  if (Object.keys(aliases).length === 0) {
-    return null
-  }
-
-  return {
-    name: 'local-package-aliases',
-    setup(build) {
-      // Intercept imports for aliased packages (except @socketsecurity/lib which should be bundled)
-      for (const [packageName, _aliasPath] of Object.entries(aliases)) {
-        // Skip @socketsecurity/lib - it should be bundled, not externalized
-        if (packageName === '@socketsecurity/lib') {
-          continue
-        }
-
-        // Match both exact package name and subpath imports
-        build.onResolve(
-          { filter: new RegExp(`^${packageName}(/|$)`) },
-          args => {
-            // Mark as external using the original package name to avoid absolute paths in output.
-            // This ensures require('@socketsecurity/lib') instead of require('/absolute/path/to/socket-lib/dist').
-            return { path: args.path, external: true }
-          },
-        )
-      }
-    },
-  }
-}
-
 // Build configuration for CommonJS output
 export const buildConfig = {
   entryPoints: [`${srcPath}/index.ts`],
@@ -238,8 +199,8 @@ export const buildConfig = {
   // Preserve module structure for better tree-shaking
   splitting: false,
 
-  // Use plugins for local package aliases and path shortening
-  plugins: [createPathShorteningPlugin(), createAliasPlugin()].filter(Boolean),
+  // Use plugins for path shortening
+  plugins: [createPathShorteningPlugin()],
 
   // External dependencies
   external: [
