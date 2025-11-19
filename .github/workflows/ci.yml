@@ -1,4 +1,4 @@
-name: 🚀 CI Pipeline
+name: ⚡ CI
 
 # Dependencies:
 #   - SocketDev/socket-registry/.github/workflows/ci.yml
@@ -17,11 +17,11 @@ permissions:
 jobs:
   ci:
     name: Run CI Pipeline
-    uses: SocketDev/socket-registry/.github/workflows/ci.yml@e7f70a7eb857a85b4f30677f9fc2c38bc9c4d56e # 2025-10-28
+    uses: SocketDev/socket-registry/.github/workflows/ci.yml@63ad52562c1f2d007a1833b2b22cffc3001e1cc2 # main
     with:
       fail-fast: false
       lint-script: 'pnpm run lint --all'
-      node-versions: '[20, 22, 24]'
+      node-versions: '["24.10.0"]'
       os-versions: '["ubuntu-latest", "windows-latest"]'
       test-script: 'pnpm run test --all'
       test-setup-script: 'pnpm run build'
