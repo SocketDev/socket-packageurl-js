@@ -2,11 +2,13 @@
 
 [![Socket Badge](https://socket.dev/api/badge/npm/package/@socketregistry/packageurl-js)](https://socket.dev/npm/package/@socketregistry/packageurl-js)
 [![CI - @socketregistry/packageurl-js](https://github.com/SocketDev/socket-packageurl-js/actions/workflows/ci.yml/badge.svg)](https://github.com/SocketDev/socket-packageurl-js/actions/workflows/ci.yml)
+![Coverage](https://img.shields.io/badge/coverage-99.72%25-brightgreen)
 
 [![Follow @SocketSecurity](https://img.shields.io/twitter/follow/SocketSecurity?style=social)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](https://img.shields.io/badge/Follow-@socket.dev-1DA1F2?style=social&logo=bluesky)](https://bsky.app/profile/socket.dev)
 
-TypeScript Package URL (purl) parser and builder. Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) with full type safety, zero dependencies, and spec compliance with the [Package URL specification](https://github.com/package-url/purl-spec).
+TypeScript Package URL (purl) parser and builder. 
+Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) with full type safety, zero dependencies, and spec compliance with the [Package URL specification](https://github.com/package-url/purl-spec).
 
 ## What is a PURL?
 
@@ -33,7 +35,7 @@ pkg:maven/org.springframework/spring-core@5.3.21
 
 **Supports 35+ ecosystems**: npm, pypi, maven, gem, cargo, nuget, composer, golang, docker, and more.
 
-## Installation
+## Install
 
 ```sh
 pnpm install @socketregistry/packageurl-js
@@ -123,20 +125,16 @@ function processPurl(type: EcosystemString) {
 }
 ```
 
-## Documentation
-
-| Doc | Description |
-|-----|-------------|
-| **[Getting Started](./docs/getting-started.md)** | Quick setup guide for contributors |
-| **[API Reference](./docs/api-reference.md)** | Complete API documentation |
-| **[Examples](./docs/usage-examples.md)** | Common use cases and patterns |
-| **[Builder Pattern](./docs/builder-pattern.md)** | Fluent builder guide |
-
 ## Development
 
+**Quick commands:**
 ```bash
 pnpm install   # Install dependencies
 pnpm build     # Build
 pnpm test      # Test
 pnpm check     # Lint + typecheck
 ```
+
+## License
+
+MIT

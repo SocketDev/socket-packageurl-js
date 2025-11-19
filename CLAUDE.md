@@ -1,6 +1,10 @@
 # CLAUDE.md
 
-🚨 **MANDATORY**: Act as principal-level engineer with deep expertise in JavaScript, Node.js, and package URL parsing.
+**MANDATORY**: Act as principal-level engineer. Follow these guidelines exactly.
+
+## CANONICAL REFERENCE
+
+This is a reference to shared Socket standards. See `../socket-registry/CLAUDE.md` for canonical source.
 
 ## 👤 USER CONTEXT
 
@@ -10,6 +14,33 @@
 - **Discussing their work**: Use their actual name when referencing their commits/contributions
 - **Example**: If git shows "John-David Dalton <jdalton@example.com>", refer to them as "John-David"
 - **Other contributors**: Use their actual names from commit history/context
+
+## PRE-ACTION PROTOCOL
+
+**MANDATORY**: Review CLAUDE.md before any action. No exceptions.
+
+## VERIFICATION PROTOCOL
+
+**MANDATORY**: Before claiming any task is complete:
+1. Test the solution end-to-end
+2. Verify all changes work as expected
+3. Run the actual commands to confirm functionality
+4. Never claim "Done" without verification
+
+## ABSOLUTE RULES
+
+- Never create files unless necessary
+- Always prefer editing existing files
+- Forbidden to create docs unless requested
+- Required to do exactly what was asked
+
+## ROLE
+
+Principal Software Engineer: production code, architecture, reliability, ownership.
+
+## EVOLUTION
+
+If user repeats instruction 2+ times, ask: "Should I add this to CLAUDE.md?"
 
 ## 📚 SHARED STANDARDS
 
@@ -22,6 +53,9 @@ All shared standards (git, testing, code style, cross-platform, CI) defined in s
 - Scripts: Prefer `pnpm run foo --flag` over `foo:bar` scripts
 - Docs: Use `docs/` folder, lowercase-with-hyphens.md filenames, pithy writing with visuals
 - Dependencies: After `package.json` edits, run `pnpm install` to update `pnpm-lock.yaml`
+- Backward Compatibility: NO backward compat - we're our only consumers, make clean breaks
+- Work Safeguards: MANDATORY commit + backup branch before bulk changes
+- Safe Deletion: Use `safeDelete()` from `@socketsecurity/lib/fs` (NEVER `fs.rm/rmSync` or `rm -rf`)
 
 ---
 
@@ -83,11 +117,11 @@ TypeScript implementation of [Package URL specification](https://github.com/pack
 ### Commands
 - **Build**: `pnpm build` (production build)
 - **Watch**: `pnpm build --watch` (dev mode with 68% faster incremental builds)
-- **Test**: `pnpm test`, `pnpm test:unit`
-- **Type check**: `pnpm check:tsc`
-- **Lint**: `pnpm check:lint`
+- **Test**: `pnpm test`
+- **Type check**: `pnpm type`
+- **Lint**: `pnpm lint`
 - **Check all**: `pnpm check`
-- **Fix**: `pnpm check:lint:fix` or `pnpm fix`
+- **Fix**: `pnpm fix`
 - **Coverage**: `pnpm cover`
 
 **Development tip:** Use `pnpm build --watch` for 68% faster rebuilds (9ms vs 27ms). Incremental builds use esbuild's context API for in-memory caching.
@@ -208,30 +242,13 @@ With `exactOptionalPropertyTypes`, assign conditionally:
 - **Test helpers**: `test/utils/test-helpers.mts` - Reusable test utilities
 - **Assertion helpers**: `test/utils/assertions.mts` - Property validation helpers
 
-#### Test Helpers (`test/utils/test-helpers.mts`)
+#### Test Helpers
 
-**createTestPurl(type, name, opts?)** - Factory for creating PackageURL instances
-```typescript
-import { createTestPurl } from './utils/test-helpers.mts'
+Test helpers in `test/utils/test-helpers.mts`:
+- `createTestPurl(type, name, opts?)` - Factory for PackageURL instances
+- `createTestFunction(returnValue?)` - Creates test functions with optional return values
 
-// Before: new PackageURL('npm', undefined, 'lodash', '4.17.21', undefined, undefined)
-// After:
-const purl = createTestPurl('npm', 'lodash', { version: '4.17.21' })
-
-// With all options:
-const purl = createTestPurl('npm', 'lodash', {
-  version: '4.17.21',
-  namespace: '@scope',
-  qualifiers: { arch: 'x64' },
-  subpath: 'dist/index.js'
-})
-```
-
-**createTestFunction(returnValue?)** - Creates test functions with optional return values
-```typescript
-const testFn = createTestFunction('result')
-expect(testFn()).toBe('result')
-```
+See file for usage examples.
 
 #### Running Tests
 - **All tests**: `pnpm test` or `pnpm test:unit`
