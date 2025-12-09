@@ -42,6 +42,7 @@
     "build": "node scripts/build.mjs",
     "bump": "node scripts/bump.mjs",
     "check": "node scripts/check.mjs",
+    "ci:validate": "node scripts/ci-validate.mjs",
     "clean": "node scripts/clean.mjs",
     "cover": "node scripts/cover.mjs",
     "fix": "node scripts/fix.mjs",
