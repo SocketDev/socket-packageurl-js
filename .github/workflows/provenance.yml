@@ -32,5 +32,5 @@ jobs:
       dist-tag: ${{ inputs.dist-tag }}
       package-name: '@socketregistry/packageurl-js'
       publish-script: 'publish:ci'
-      setup-script: 'pnpm test && pnpm check && pnpm build'
+      setup-script: 'pnpm run ci:validate'
       use-trusted-publishing: true
