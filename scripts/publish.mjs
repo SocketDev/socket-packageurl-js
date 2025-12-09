@@ -19,7 +19,6 @@ const rootPath = path.resolve(
   '..',
 )
 const WIN32 = process.platform === 'win32'
-const CI = !!process.env.CI
 
 async function runCommand(command, args = [], options = {}) {
   try {
@@ -201,6 +200,30 @@ async function runPrePublishChecks(options = {}) {
   }
   logger.done('Checks passed')
 
+  return true
+}
+
+/**
+ * Validate that build artifacts exist.
+ */
+async function validateBuildArtifacts() {
+  logger.step('Validating build artifacts')
+
+  // Check for main entry point
+  const distIndex = path.join(rootPath, 'dist', 'index.js')
+  if (!existsSync(distIndex)) {
+    logger.error('Missing dist/index.js')
+    return false
+  }
+
+  // Check for type definitions
+  const distIndexDts = path.join(rootPath, 'dist', 'index.d.ts')
+  if (!existsSync(distIndexDts)) {
+    logger.error('Missing dist/index.d.ts')
+    return false
+  }
+
+  logger.success('Build artifacts validated')
   return true
 }
 
@@ -432,7 +455,9 @@ async function main() {
       console.log('  --dry-run      Perform a dry-run without publishing')
       console.log('  --force        Force publish even with warnings')
       console.log('  --skip-checks  Skip pre-publish checks')
-      console.log('  --skip-build   Skip build step (not allowed in CI)')
+      console.log(
+        '  --skip-build   Skip build step (validates artifacts exist)',
+      )
       console.log('  --skip-git     Skip git status checks')
       console.log('  --skip-tag     Skip git tag push')
       console.log('  --complex      Use complex multi-package flow')
@@ -445,13 +470,6 @@ async function main() {
       console.log('  pnpm publish --complex    # Multi-package publish')
       console.log('  pnpm publish --otp 123456 # Publish with OTP')
       process.exitCode = 0
-      return
-    }
-
-    // Check CI restrictions
-    if (CI && values['skip-build']) {
-      logger.error('--skip-build is not allowed in CI')
-      process.exitCode = 1
       return
     }
 
@@ -480,6 +498,14 @@ async function main() {
       const buildSuccess = await buildProject()
       if (!buildSuccess && !values.force) {
         logger.error('Build failed')
+        process.exitCode = 1
+        return
+      }
+    } else {
+      // Validate that build artifacts exist when skipping build
+      const artifactsExist = await validateBuildArtifacts()
+      if (!artifactsExist && !values.force) {
+        logger.error('Build artifacts missing - run pnpm build first')
         process.exitCode = 1
         return
       }
