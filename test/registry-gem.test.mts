@@ -95,6 +95,30 @@ describe('gemExists', () => {
       expect(result.error).toContain('Version 999.0.0 not found')
       expect(result.latestVersion).toBe('13.1.0')
     })
+
+    it('should handle version check with empty versions array', async () => {
+      nock('https://rubygems.org')
+        .get('/api/v1/versions/rake.json')
+        .reply(200, [])
+
+      const result = await gemExists('rake', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('No versions found')
+      expect(result.latestVersion).toBeUndefined()
+    })
+
+    it('should handle version not found with missing number field', async () => {
+      nock('https://rubygems.org')
+        .get('/api/v1/versions/rake.json')
+        .reply(200, [{}])
+
+      const result = await gemExists('rake', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
   })
 
   describe('error handling', () => {
@@ -118,6 +142,48 @@ describe('gemExists', () => {
 
       expect(result.exists).toBe(false)
       expect(result.error).toBeDefined()
+    })
+  })
+
+  describe('caching', () => {
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      const cachedResult = { exists: true, latestVersion: '7.1.3' }
+      await mockCache.set('rails', cachedResult)
+
+      const result = await gemExists('rails', undefined, { cache: mockCache })
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://rubygems.org')
+        .get('/api/v1/versions/rails.json')
+        .reply(200, [{ number: '7.1.3' }])
+
+      const result = await gemExists('rails', undefined, { cache: mockCache })
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('rails')).toEqual(result)
     })
   })
 })

@@ -55,6 +55,17 @@ describe('hackageExists', () => {
       expect(result.exists).toBe(false)
       expect(result.error).toContain('No versions found')
     })
+
+    it('should handle package without normal-version field', async () => {
+      nock('https://hackage.haskell.org')
+        .get('/package/aeson/preferred')
+        .reply(200, {})
+
+      const result = await hackageExists('aeson')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('No versions found')
+    })
   })
 
   describe('version validation', () => {
@@ -109,6 +120,54 @@ describe('hackageExists', () => {
 
       expect(result.exists).toBe(false)
       expect(result.error).toBeDefined()
+    })
+  })
+
+  describe('caching', () => {
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      const cachedResult = { exists: true, latestVersion: '2.2.0.0' }
+      await mockCache.set('aeson', cachedResult)
+
+      const result = await hackageExists('aeson', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://hackage.haskell.org')
+        .get('/package/aeson/preferred')
+        .reply(200, {
+          'normal-version': ['2.2.0.0'],
+        })
+
+      const result = await hackageExists('aeson', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('aeson')).toEqual(result)
     })
   })
 })

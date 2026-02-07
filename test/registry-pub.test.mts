@@ -41,6 +41,19 @@ describe('pubExists', () => {
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Package not found')
     })
+
+    it('should handle package without latest version field', async () => {
+      nock('https://pub.dev')
+        .get('/api/packages/flutter_bloc')
+        .reply(200, {
+          versions: [{ version: '8.1.3' }],
+        })
+
+      const result = await pubExists('flutter_bloc')
+
+      expect(result.exists).toBe(true)
+      expect(result.latestVersion).toBeUndefined()
+    })
   })
 
   describe('version validation', () => {
@@ -97,6 +110,55 @@ describe('pubExists', () => {
 
       expect(result.exists).toBe(false)
       expect(result.error).toBeDefined()
+    })
+  })
+
+  describe('caching', () => {
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      const cachedResult = { exists: true, latestVersion: '8.1.3' }
+      await mockCache.set('flutter_bloc', cachedResult)
+
+      const result = await pubExists('flutter_bloc', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://pub.dev')
+        .get('/api/packages/flutter_bloc')
+        .reply(200, {
+          latest: { version: '8.1.3' },
+          versions: [{ version: '8.1.3' }],
+        })
+
+      const result = await pubExists('flutter_bloc', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('flutter_bloc')).toEqual(result)
     })
   })
 })

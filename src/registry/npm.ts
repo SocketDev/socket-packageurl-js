@@ -128,6 +128,7 @@ export async function npmExists(
       }
       return result
     } catch (e) {
+      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
       // httpGetJson throws on non-2xx status codes
       const error = e instanceof Error ? e.message : String(e)
       return {

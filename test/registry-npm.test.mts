@@ -149,5 +149,121 @@ describe('npmExists', () => {
 
       expect(result.exists).toBe(true)
     })
+
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      // Pre-populate cache
+      const cachedResult = { exists: true, latestVersion: '4.17.21' }
+      await mockCache.set('lodash', cachedResult)
+
+      // Should NOT make HTTP request
+      const result = await npmExists('lodash', undefined, undefined, {
+        cache: mockCache,
+      })
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://registry.npmjs.org')
+        .get('/lodash')
+        .reply(200, {
+          'dist-tags': { latest: '4.17.21' },
+          versions: { '4.17.21': {} },
+        })
+
+      const result = await npmExists('lodash', undefined, undefined, {
+        cache: mockCache,
+      })
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('lodash')).toEqual(result)
+    })
+
+    it('should use correct cache key for scoped packages', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://registry.npmjs.org')
+        .get('/%40babel%2Fcore')
+        .reply(200, {
+          'dist-tags': { latest: '7.23.0' },
+          versions: { '7.23.0': {} },
+        })
+
+      await npmExists('core', '@babel', undefined, { cache: mockCache })
+
+      expect(cacheData.has('@babel/core')).toBe(true)
+    })
+
+    it('should use correct cache key with version', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://registry.npmjs.org')
+        .get('/lodash')
+        .reply(200, {
+          'dist-tags': { latest: '4.17.21' },
+          versions: { '4.17.20': {}, '4.17.21': {} },
+        })
+
+      await npmExists('lodash', undefined, '4.17.20', { cache: mockCache })
+
+      expect(cacheData.has('lodash@4.17.20')).toBe(true)
+    })
+
+    it('should cache error results', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://registry.npmjs.org').get('/nonexistent').reply(404)
+
+      const result = await npmExists('nonexistent', undefined, undefined, {
+        cache: mockCache,
+      })
+
+      expect(result.exists).toBe(false)
+      expect(cacheData.get('nonexistent')).toEqual(result)
+    })
   })
 })

@@ -94,6 +94,22 @@ describe('pypiExists', () => {
       expect(result.error).toContain('Version 999.0.0 not found')
       expect(result.latestVersion).toBe('5.0.0')
     })
+
+    it('should handle version not found without latest version', async () => {
+      nock('https://pypi.org')
+        .get('/pypi/django/json')
+        .reply(200, {
+          releases: {
+            '5.0.0': [],
+          },
+        })
+
+      const result = await pypiExists('django', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
   })
 
   describe('error handling', () => {
@@ -117,6 +133,55 @@ describe('pypiExists', () => {
 
       expect(result.exists).toBe(false)
       expect(result.error).toBeDefined()
+    })
+  })
+
+  describe('caching', () => {
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      const cachedResult = { exists: true, latestVersion: '2.31.0' }
+      await mockCache.set('requests', cachedResult)
+
+      const result = await pypiExists('requests', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://pypi.org')
+        .get('/pypi/requests/json')
+        .reply(200, {
+          info: { version: '2.31.0' },
+          releases: { '2.31.0': [] },
+        })
+
+      const result = await pypiExists('requests', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('requests')).toEqual(result)
     })
   })
 })

@@ -169,4 +169,63 @@ describe('mavenExists', () => {
       expect(result.error).toBeDefined()
     })
   })
+
+  describe('caching', () => {
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      const cachedResult = { exists: true, latestVersion: '3.12.0' }
+      await mockCache.set('org.apache.commons:commons-lang3', cachedResult)
+
+      const result = await mavenExists(
+        'commons-lang3',
+        'org.apache.commons',
+        undefined,
+        { cache: mockCache },
+      )
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://search.maven.org')
+        .get(
+          '/solrsearch/select?q=g:org.apache.commons+AND+a:commons-lang3&rows=1&wt=json',
+        )
+        .reply(200, {
+          response: {
+            numFound: 1,
+            docs: [{ latestVersion: '3.12.0' }],
+          },
+        })
+
+      const result = await mavenExists(
+        'commons-lang3',
+        'org.apache.commons',
+        undefined,
+        { cache: mockCache },
+      )
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('org.apache.commons:commons-lang3')).toEqual(result)
+    })
+  })
 })

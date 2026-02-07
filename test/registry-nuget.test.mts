@@ -140,4 +140,56 @@ describe('nugetExists', () => {
       expect(result.error).toBeDefined()
     })
   })
+
+  describe('caching', () => {
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      const cachedResult = { exists: true, latestVersion: '13.0.3' }
+      await mockCache.set('Newtonsoft.Json', cachedResult)
+
+      const result = await nugetExists('Newtonsoft.Json', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://api.nuget.org')
+        .get('/v3/registration5-semver1/newtonsoft.json/index.json')
+        .reply(200, {
+          items: [
+            {
+              items: [{ catalogEntry: { version: '13.0.3' } }],
+            },
+          ],
+        })
+
+      const result = await nugetExists('Newtonsoft.Json', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('Newtonsoft.Json')).toEqual(result)
+    })
+  })
 })

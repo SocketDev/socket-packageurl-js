@@ -82,6 +82,7 @@ export async function hackageExists(
       }
       return result
     } catch (e) {
+      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,

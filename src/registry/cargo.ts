@@ -98,7 +98,9 @@ export async function cargoExists(
       }
       return result
     } catch (e) {
+      /* c8 ignore start */
       const error = e instanceof Error ? e.message : String(e)
+      /* c8 ignore stop */
       return {
         exists: false,
         error: error.includes('404') ? 'Crate not found' : error,

@@ -142,4 +142,60 @@ describe('packagistExists', () => {
       expect(result.error).toBeDefined()
     })
   })
+
+  describe('caching', () => {
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      const cachedResult = { exists: true, latestVersion: 'v6.3.0' }
+      await mockCache.set('symfony/http-foundation', cachedResult)
+
+      const result = await packagistExists(
+        'http-foundation',
+        'symfony',
+        undefined,
+        { cache: mockCache },
+      )
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://repo.packagist.org')
+        .get('/p2/symfony%2Fhttp-foundation.json')
+        .reply(200, {
+          packages: {
+            'symfony/http-foundation': [{ version: 'v6.3.0' }],
+          },
+        })
+
+      const result = await packagistExists(
+        'http-foundation',
+        'symfony',
+        undefined,
+        { cache: mockCache },
+      )
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('symfony/http-foundation')).toEqual(result)
+    })
+  })
 })

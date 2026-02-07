@@ -145,4 +145,58 @@ describe('golangExists', () => {
       expect(result.error).toContain('Module not found')
     })
   })
+
+  describe('caching', () => {
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      const cachedResult = { exists: true, latestVersion: 'v1.8.0' }
+      await mockCache.set('github.com/gorilla/mux', cachedResult)
+
+      const result = await golangExists(
+        'mux',
+        'github.com/gorilla',
+        undefined,
+        { cache: mockCache },
+      )
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://proxy.golang.org')
+        .get('/github.com/gorilla/mux/@latest')
+        .reply(200, {
+          Version: 'v1.8.0',
+        })
+
+      const result = await golangExists(
+        'mux',
+        'github.com/gorilla',
+        undefined,
+        { cache: mockCache },
+      )
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('github.com/gorilla/mux')).toEqual(result)
+    })
+  })
 })

@@ -51,6 +51,30 @@ describe('cocoapodsExists', () => {
       expect(result.exists).toBe(false)
       expect(result.error).toContain('No versions found')
     })
+
+    it('should handle pod without versions field', async () => {
+      nock('https://trunk.cocoapods.org')
+        .get('/api/v1/pods/TestPod')
+        .reply(200, {})
+
+      const result = await cocoapodsExists('TestPod')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('No versions found')
+    })
+
+    it('should handle pod without latest version name', async () => {
+      nock('https://trunk.cocoapods.org')
+        .get('/api/v1/pods/TestPod')
+        .reply(200, {
+          versions: [{}],
+        })
+
+      const result = await cocoapodsExists('TestPod')
+
+      expect(result.exists).toBe(true)
+      expect(result.latestVersion).toBeUndefined()
+    })
   })
 
   describe('version validation', () => {
@@ -105,6 +129,54 @@ describe('cocoapodsExists', () => {
 
       expect(result.exists).toBe(false)
       expect(result.error).toBeDefined()
+    })
+  })
+
+  describe('caching', () => {
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      const cachedResult = { exists: true, latestVersion: '5.8.1' }
+      await mockCache.set('Alamofire', cachedResult)
+
+      const result = await cocoapodsExists('Alamofire', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://trunk.cocoapods.org')
+        .get('/api/v1/pods/Alamofire')
+        .reply(200, {
+          versions: [{ name: '5.8.1' }],
+        })
+
+      const result = await cocoapodsExists('Alamofire', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('Alamofire')).toEqual(result)
     })
   })
 })

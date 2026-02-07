@@ -43,6 +43,19 @@ describe('cranExists', () => {
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Package not found')
     })
+
+    it('should handle package without Version field', async () => {
+      nock('https://cran.r-universe.dev')
+        .get('/api/packages/ggplot2')
+        .reply(200, {
+          versions: ['3.4.4'],
+        })
+
+      const result = await cranExists('ggplot2')
+
+      expect(result.exists).toBe(true)
+      expect(result.latestVersion).toBeUndefined()
+    })
   })
 
   describe('version validation', () => {
@@ -99,6 +112,55 @@ describe('cranExists', () => {
 
       expect(result.exists).toBe(false)
       expect(result.error).toBeDefined()
+    })
+  })
+
+  describe('caching', () => {
+    it('should use cached result when available', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      const cachedResult = { exists: true, latestVersion: '3.4.4' }
+      await mockCache.set('ggplot2', cachedResult)
+
+      const result = await cranExists('ggplot2', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result).toEqual(cachedResult)
+    })
+
+    it('should cache result after fetching', async () => {
+      const cacheData = new Map<string, unknown>()
+      const mockCache = {
+        get: async <T,>(key: string): Promise<T | undefined> => {
+          return cacheData.get(key) as T | undefined
+        },
+        set: async <T,>(key: string, value: T): Promise<void> => {
+          cacheData.set(key, value)
+        },
+      }
+
+      nock('https://cran.r-universe.dev')
+        .get('/api/packages/ggplot2')
+        .reply(200, {
+          Version: '3.4.4',
+          versions: ['3.4.4'],
+        })
+
+      const result = await cranExists('ggplot2', undefined, {
+        cache: mockCache,
+      })
+
+      expect(result.exists).toBe(true)
+      expect(cacheData.get('ggplot2')).toEqual(result)
     })
   })
 })
