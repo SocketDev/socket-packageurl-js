@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { cargoExists } from '../src/registry/cargo.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { cargoExists } from '../src/purl-types/cargo.js'
 
 describe('cargoExists', () => {
   beforeEach(() => {
@@ -155,15 +156,7 @@ describe('cargoExists', () => {
 
   describe('caching', () => {
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '1.0.197' }
       await mockCache.set('serde', cachedResult)
@@ -174,15 +167,7 @@ describe('cargoExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://crates.io')
         .get('/api/v1/crates/serde')
@@ -194,7 +179,7 @@ describe('cargoExists', () => {
       const result = await cargoExists('serde', undefined, { cache: mockCache })
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('serde')).toEqual(result)
+      expect(await mockCache.get('serde')).toEqual(result)
     })
   })
 })

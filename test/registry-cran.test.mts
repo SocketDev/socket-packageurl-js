@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { cranExists } from '../src/registry/cran.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { cranExists } from '../src/purl-types/cran.js'
 
 describe('cranExists', () => {
   beforeEach(() => {
@@ -117,15 +118,7 @@ describe('cranExists', () => {
 
   describe('caching', () => {
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '3.4.4' }
       await mockCache.set('ggplot2', cachedResult)
@@ -138,15 +131,7 @@ describe('cranExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://cran.r-universe.dev')
         .get('/api/packages/ggplot2')
@@ -160,7 +145,7 @@ describe('cranExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('ggplot2')).toEqual(result)
+      expect(await mockCache.get('ggplot2')).toEqual(result)
     })
   })
 })

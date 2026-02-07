@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { cpanExists } from '../src/registry/cpan.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { cpanExists } from '../src/purl-types/cpan.js'
 
 describe('cpanExists', () => {
   beforeEach(() => {
@@ -116,15 +117,7 @@ describe('cpanExists', () => {
 
   describe('caching', () => {
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '2.2206' }
       await mockCache.set('Moose', cachedResult)
@@ -137,15 +130,7 @@ describe('cpanExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://fastapi.metacpan.org').get('/v1/module/Moose').reply(200, {
         version: '2.2206',
@@ -156,7 +141,7 @@ describe('cpanExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('Moose')).toEqual(result)
+      expect(await mockCache.get('Moose')).toEqual(result)
     })
   })
 })

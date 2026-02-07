@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { mavenExists } from '../src/registry/maven.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { mavenExists } from '../src/purl-types/maven.js'
 
 describe('mavenExists', () => {
   beforeEach(() => {
@@ -172,15 +173,7 @@ describe('mavenExists', () => {
 
   describe('caching', () => {
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '3.12.0' }
       await mockCache.set('org.apache.commons:commons-lang3', cachedResult)
@@ -196,15 +189,7 @@ describe('mavenExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://search.maven.org')
         .get(
@@ -225,7 +210,9 @@ describe('mavenExists', () => {
       )
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('org.apache.commons:commons-lang3')).toEqual(result)
+      expect(await mockCache.get('org.apache.commons:commons-lang3')).toEqual(
+        result,
+      )
     })
   })
 })

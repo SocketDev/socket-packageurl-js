@@ -1,0 +1,136 @@
+/**
+ * @fileoverview PyPI-specific PURL normalization.
+ * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pypi
+ */
+
+import { httpGetJson } from '@socketsecurity/lib/http-request'
+
+import {
+  lowerName,
+  lowerNamespace,
+  replaceUnderscoresWithDashes,
+} from '../strings.js'
+
+import type { ExistsResult, ExistsOptions } from './npm.js'
+
+interface PurlObject {
+  name: string
+  namespace?: string | undefined
+  qualifiers?: Record<string, string> | undefined
+  subpath?: string | undefined
+  type?: string | undefined
+  version?: string | undefined
+}
+
+/**
+ * Normalize PyPI package URL.
+ * Lowercases namespace and name, replaces underscores with dashes in name.
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  lowerNamespace(purl)
+  lowerName(purl)
+  purl.name = replaceUnderscoresWithDashes(purl.name)
+  return purl
+}
+
+/**
+ * Check if a PyPI package exists in the registry.
+ *
+ * Queries PyPI at https://pypi.org/pypi to verify package existence and
+ * optionally validate a specific version. Returns the latest version from
+ * package metadata.
+ *
+ * **Caching:** Responses can be cached using a TTL cache to reduce registry
+ * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
+ *
+ * @param name - Package name (e.g., 'requests', 'django')
+ * @param version - Optional version to validate (e.g., '2.28.1')
+ * @param options - Optional configuration including cache
+ * @returns Promise resolving to existence result with latest version
+ *
+ * @example
+ * ```typescript
+ * // Check if package exists
+ * const result = await pypiExists('requests')
+ * // -> { exists: true, latestVersion: '2.31.0' }
+ *
+ * // Validate specific version
+ * const result = await pypiExists('django', '4.2.0')
+ * // -> { exists: true, latestVersion: '5.0.0' }
+ *
+ * // With caching
+ * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'pypi' })
+ * const result = await pypiExists('requests', undefined, { cache })
+ *
+ * // Non-existent package
+ * const result = await pypiExists('this-package-does-not-exist')
+ * // -> { exists: false, error: 'Package not found' }
+ * ```
+ */
+export async function pypiExists(
+  name: string,
+  version?: string,
+  options?: ExistsOptions,
+): Promise<ExistsResult> {
+  const cacheKey = version ? `${name}@${version}` : name
+
+  // Try cache first if provided
+  if (options?.cache) {
+    const cached = await options.cache.get<ExistsResult>(cacheKey)
+    if (cached !== undefined) {
+      return cached
+    }
+  }
+
+  const fetchResult = async (): Promise<ExistsResult> => {
+    try {
+      const url = `https://pypi.org/pypi/${encodeURIComponent(name)}/json`
+
+      const data = await httpGetJson<{
+        info?: { version?: string }
+        releases?: Record<string, unknown[]>
+      }>(url)
+
+      const latestVersion = data.info?.['version']
+
+      // If specific version requested, validate it exists
+      if (version && data.releases) {
+        if (!(version in data.releases)) {
+          const result: ExistsResult = {
+            exists: false,
+            error: `Version ${version} not found`,
+          }
+          if (latestVersion !== undefined) {
+            result.latestVersion = latestVersion
+          }
+          return result
+        }
+      }
+
+      const result: ExistsResult = {
+        exists: true,
+      }
+      if (latestVersion !== undefined) {
+        result.latestVersion = latestVersion
+      }
+      return result
+    } catch (e) {
+      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
+      const error = e instanceof Error ? e.message : String(e)
+      return {
+        exists: false,
+        error: error.includes('404') ? 'Package not found' : error,
+      }
+    }
+  }
+
+  const result = await fetchResult()
+
+  // Cache result if cache provided
+  if (options?.cache) {
+    await options.cache.set(cacheKey, result)
+  }
+
+  return result
+}

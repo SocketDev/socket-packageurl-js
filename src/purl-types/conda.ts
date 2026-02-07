@@ -1,0 +1,156 @@
+/**
+ * @fileoverview Conda-specific PURL normalization and validation.
+ * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#conda
+ */
+
+import { httpGetJson } from '@socketsecurity/lib/http-request'
+
+import { lowerName } from '../strings.js'
+import { validateEmptyByType } from '../validate.js'
+
+import type { ExistsOptions, ExistsResult } from './npm.js'
+
+interface PurlObject {
+  name: string
+  namespace?: string | undefined
+  qualifiers?: Record<string, string> | undefined
+  subpath?: string | undefined
+  type?: string | undefined
+  version?: string | undefined
+}
+
+/**
+ * Normalize Conda package URL.
+ * Lowercases name only.
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  lowerName(purl)
+  return purl
+}
+
+/**
+ * Validate Conda package URL.
+ * Conda packages must not have a namespace.
+ */
+export function validate(purl: PurlObject, throws: boolean): boolean {
+  return validateEmptyByType('conda', 'namespace', purl.namespace, {
+    throws,
+  })
+}
+
+/**
+ * Check if a Conda package exists in Anaconda.org.
+ *
+ * Queries Anaconda.org at https://api.anaconda.org/package to verify package
+ * existence and optionally validate a specific version. Returns the latest
+ * version from package metadata.
+ *
+ * **Note:** Defaults to conda-forge channel. Specify channel parameter for
+ * other channels like 'defaults', 'anaconda', etc.
+ *
+ * **Caching:** Responses can be cached using a TTL cache to reduce registry
+ * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
+ *
+ * @param name - Package name (e.g., 'numpy', 'pandas')
+ * @param version - Optional version to validate (e.g., '1.24.3')
+ * @param channel - Optional channel name (defaults to 'conda-forge')
+ * @param options - Optional configuration including cache
+ * @returns Promise resolving to existence result with latest version
+ *
+ * @example
+ * ```typescript
+ * // Check if package exists (defaults to conda-forge)
+ * const result = await condaExists('numpy')
+ * // -> { exists: true, latestVersion: '1.26.3' }
+ *
+ * // Check with custom channel
+ * const result = await condaExists('numpy', undefined, 'defaults')
+ * // -> { exists: true, latestVersion: '1.26.3' }
+ *
+ * // Validate specific version
+ * const result = await condaExists('pandas', '2.1.4')
+ * // -> { exists: true, latestVersion: '2.2.0' }
+ *
+ * // With caching
+ * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'conda' })
+ * const result = await condaExists('numpy', undefined, undefined, { cache })
+ *
+ * // Non-existent package
+ * const result = await condaExists('this-package-does-not-exist')
+ * // -> { exists: false, error: 'Package not found' }
+ * ```
+ */
+export async function condaExists(
+  name: string,
+  version?: string,
+  channel?: string,
+  options?: ExistsOptions,
+): Promise<ExistsResult> {
+  // Use provided channel or default to conda-forge (most popular community channel)
+  const channelName = channel || 'conda-forge'
+  const cacheKey = version
+    ? `${channelName}/${name}@${version}`
+    : `${channelName}/${name}`
+
+  // Try cache first if provided
+  if (options?.cache) {
+    const cached = await options.cache.get<ExistsResult>(cacheKey)
+    if (cached !== undefined) {
+      return cached
+    }
+  }
+
+  const fetchResult = async (): Promise<ExistsResult> => {
+    try {
+      const encodedName = encodeURIComponent(name)
+      const url = `https://api.anaconda.org/package/${channelName}/${encodedName}`
+
+      const data = await httpGetJson<{
+        latest_version?: string
+        versions?: string[]
+      }>(url)
+
+      const latestVersion = data.latest_version
+
+      // If specific version requested, validate it exists
+      if (version) {
+        if (!data.versions || !data.versions.includes(version)) {
+          const result: ExistsResult = {
+            exists: false,
+            error: `Version ${version} not found`,
+          }
+          if (latestVersion !== undefined) {
+            result.latestVersion = latestVersion
+          }
+          return result
+        }
+      }
+
+      const result: ExistsResult = {
+        exists: true,
+      }
+      if (latestVersion !== undefined) {
+        result.latestVersion = latestVersion
+      }
+      return result
+    } catch (e) {
+      /* c8 ignore start */
+      const error = e instanceof Error ? e.message : String(e)
+      /* c8 ignore stop */
+      return {
+        exists: false,
+        error: error.includes('404') ? 'Package not found' : error,
+      }
+    }
+  }
+
+  const result = await fetchResult()
+
+  // Cache result if cache provided
+  if (options?.cache) {
+    await options.cache.set(cacheKey, result)
+  }
+
+  return result
+}

@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { npmExists } from '../src/registry/npm.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { npmExists } from '../src/purl-types/npm.js'
 
 describe('npmExists', () => {
   beforeEach(() => {
@@ -151,15 +152,7 @@ describe('npmExists', () => {
     })
 
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       // Pre-populate cache
       const cachedResult = { exists: true, latestVersion: '4.17.21' }
@@ -174,15 +167,7 @@ describe('npmExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://registry.npmjs.org')
         .get('/lodash')
@@ -196,19 +181,11 @@ describe('npmExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('lodash')).toEqual(result)
+      expect(await mockCache.get('lodash')).toEqual(result)
     })
 
     it('should use correct cache key for scoped packages', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://registry.npmjs.org')
         .get('/%40babel%2Fcore')
@@ -219,19 +196,11 @@ describe('npmExists', () => {
 
       await npmExists('core', '@babel', undefined, { cache: mockCache })
 
-      expect(cacheData.has('@babel/core')).toBe(true)
+      expect(await mockCache.get('@babel/core')).toBeDefined()
     })
 
     it('should use correct cache key with version', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://registry.npmjs.org')
         .get('/lodash')
@@ -242,19 +211,11 @@ describe('npmExists', () => {
 
       await npmExists('lodash', undefined, '4.17.20', { cache: mockCache })
 
-      expect(cacheData.has('lodash@4.17.20')).toBe(true)
+      expect(await mockCache.get('lodash@4.17.20')).toBeDefined()
     })
 
     it('should cache error results', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://registry.npmjs.org').get('/nonexistent').reply(404)
 
@@ -263,7 +224,7 @@ describe('npmExists', () => {
       })
 
       expect(result.exists).toBe(false)
-      expect(cacheData.get('nonexistent')).toEqual(result)
+      expect(await mockCache.get('nonexistent')).toEqual(result)
     })
   })
 })

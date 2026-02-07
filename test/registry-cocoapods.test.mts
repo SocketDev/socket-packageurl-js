@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { cocoapodsExists } from '../src/registry/cocoapods.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { cocoapodsExists } from '../src/purl-types/cocoapods.js'
 
 describe('cocoapodsExists', () => {
   beforeEach(() => {
@@ -134,15 +135,7 @@ describe('cocoapodsExists', () => {
 
   describe('caching', () => {
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '5.8.1' }
       await mockCache.set('Alamofire', cachedResult)
@@ -155,15 +148,7 @@ describe('cocoapodsExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://trunk.cocoapods.org')
         .get('/api/v1/pods/Alamofire')
@@ -176,7 +161,7 @@ describe('cocoapodsExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('Alamofire')).toEqual(result)
+      expect(await mockCache.get('Alamofire')).toEqual(result)
     })
   })
 })

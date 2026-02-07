@@ -29,19 +29,16 @@ SOFTWARE.
  * See package-url-builder.ts for detailed explanation and workarounds.
  */
 
-import {
-  compare as comparePurls,
-  equals as equalsPurls,
-} from './comparators/index.js'
+import { compare as comparePurls, equals as equalsPurls } from './compare.js'
 import { decodePurlComponent } from './decode.js'
 import { PurlError } from './error.js'
 import { isObject, recursiveFreeze } from './objects.js'
-import { parseNpmSpecifier } from './parsers/npm.js'
 import { PurlComponent } from './purl-component.js'
 import { PurlQualifierNames } from './purl-qualifier-names.js'
 import { PurlType } from './purl-type.js'
+import { parseNpmSpecifier } from './purl-types/npm.js'
 import { Err, Ok, ResultUtils, err, ok } from './result.js'
-import { stringify } from './serializers/stringify.js'
+import { stringify } from './stringify.js'
 import { isBlank, isNonEmptyString, trimLeadingSlashes } from './strings.js'
 import { UrlConverter } from './url-converter.js'
 

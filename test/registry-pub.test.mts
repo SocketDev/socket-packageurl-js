@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { pubExists } from '../src/registry/pub.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { pubExists } from '../src/purl-types/pub.js'
 
 describe('pubExists', () => {
   beforeEach(() => {
@@ -115,15 +116,7 @@ describe('pubExists', () => {
 
   describe('caching', () => {
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '8.1.3' }
       await mockCache.set('flutter_bloc', cachedResult)
@@ -136,15 +129,7 @@ describe('pubExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://pub.dev')
         .get('/api/packages/flutter_bloc')
@@ -158,7 +143,7 @@ describe('pubExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('flutter_bloc')).toEqual(result)
+      expect(await mockCache.get('flutter_bloc')).toEqual(result)
     })
   })
 })

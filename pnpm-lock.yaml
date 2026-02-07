@@ -10,6 +10,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      picomatch:
+        specifier: ^4.0.3
+        version: 4.0.3
     devDependencies:
       '@babel/parser':
         specifier: ^7.29.0
@@ -32,6 +36,9 @@ importers:
       '@types/node':
         specifier: 24.9.2
         version: 24.9.2
+      '@types/picomatch':
+        specifier: ^4.0.2
+        version: 4.0.2
       '@typescript/native-preview':
         specifier: 7.0.0-dev.20250926.1
         version: 7.0.0-dev.20250926.1
@@ -743,6 +750,9 @@ packages:
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
+
+  '@types/picomatch@4.0.2':
+    resolution: {integrity: sha512-qHHxQ+P9PysNEGbALT8f8YOSHW0KJu6l2xU8DYY0fu/EmGxXdVnuTLvFUvBgPJMSqXq29SYHveejeAha+4AYgA==}
 
   '@typescript-eslint/eslint-plugin@8.44.1':
     resolution: {integrity: sha512-molgphGqOBT7t4YKCSkbasmu1tb1MgrZ2szGzHbclF7PNmOkSTQVHy+2jXOSnxvR3+Xe1yySHFZoqMpz3TfQsw==}
@@ -2985,6 +2995,8 @@ snapshots:
       undici-types: 7.16.0
 
   '@types/normalize-package-data@2.4.4': {}
+
+  '@types/picomatch@4.0.2': {}
 
   '@typescript-eslint/eslint-plugin@8.44.1(@typescript-eslint/parser@8.44.1(eslint@9.35.0(jiti@2.6.1))(typescript@5.9.2))(eslint@9.35.0(jiti@2.6.1))(typescript@5.9.2)':
     dependencies:

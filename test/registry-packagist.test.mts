@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { packagistExists } from '../src/registry/packagist.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { packagistExists } from '../src/purl-types/composer.js'
 
 describe('packagistExists', () => {
   beforeEach(() => {
@@ -145,15 +146,7 @@ describe('packagistExists', () => {
 
   describe('caching', () => {
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: 'v6.3.0' }
       await mockCache.set('symfony/http-foundation', cachedResult)
@@ -169,15 +162,7 @@ describe('packagistExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://repo.packagist.org')
         .get('/p2/symfony%2Fhttp-foundation.json')
@@ -195,7 +180,7 @@ describe('packagistExists', () => {
       )
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('symfony/http-foundation')).toEqual(result)
+      expect(await mockCache.get('symfony/http-foundation')).toEqual(result)
     })
   })
 })

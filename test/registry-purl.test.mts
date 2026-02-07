@@ -5,7 +5,7 @@ import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { PackageURL } from '../src/package-url.js'
-import { purlExists } from '../src/registry/index.js'
+import { purlExists } from '../src/purl-exists.js'
 
 describe('purlExists', () => {
   beforeEach(() => {

@@ -1,29 +1,79 @@
 /**
  * @fileoverview Package URL type-specific normalization and validation rules for different package ecosystems.
  *
- * This module implements the PURL-TYPES specification for various package managers:
- * - NPM: Node.js packages with scoped namespace support
- * - PyPI: Python packages with normalized naming
- * - Maven: Java artifacts with group/artifact structure
- * - Go: Go modules with module path validation
- * - Cargo: Rust crates from crates.io
- * - And 20+ other package types
- *
- * Each type has specific rules for namespace, name, version normalization and validation.
+ * This module provides centralized access to type-specific normalize and validate functions
+ * from individual type modules. Each package ecosystem (npm, pypi, maven, etc.) has its own
+ * module in the purl-types/ directory with specific rules for namespace, name, version
+ * normalization and validation.
  */
-import { encodeComponent } from './encode.js'
-import { PurlError } from './error.js'
 import { createHelpersNamespaceObject } from './helpers.js'
-import { isNullishOrEmptyString } from './lang.js'
+import { normalize as alpmNormalize } from './purl-types/alpm.js'
+import { normalize as apkNormalize } from './purl-types/apk.js'
 import {
-  isSemverString,
-  lowerName,
-  lowerNamespace,
-  lowerVersion,
-  replaceDashesWithUnderscores,
-  replaceUnderscoresWithDashes,
-} from './strings.js'
-import { validateEmptyByType, validateRequiredByType } from './validate.js'
+  normalize as bazelNormalize,
+  validate as bazelValidate,
+} from './purl-types/bazel.js'
+import { normalize as bitbucketNormalize } from './purl-types/bitbucket.js'
+import { normalize as bitnamiNormalize } from './purl-types/bitnami.js'
+import { validate as cargoValidate } from './purl-types/cargo.js'
+import { validate as cocoaodsValidate } from './purl-types/cocoapods.js'
+import { normalize as composerNormalize } from './purl-types/composer.js'
+import { validate as conanValidate } from './purl-types/conan.js'
+import {
+  normalize as condaNormalize,
+  validate as condaValidate,
+} from './purl-types/conda.js'
+import { validate as cpanValidate } from './purl-types/cpan.js'
+import { validate as cranValidate } from './purl-types/cran.js'
+import { normalize as debNormalize } from './purl-types/deb.js'
+import { normalize as dockerNormalize } from './purl-types/docker.js'
+import { validate as gemValidate } from './purl-types/gem.js'
+import { normalize as genericNormalize } from './purl-types/generic.js'
+import { normalize as githubNormalize } from './purl-types/github.js'
+import { normalize as gitlabNormalize } from './purl-types/gitlab.js'
+import { validate as golangValidate } from './purl-types/golang.js'
+import { normalize as hexNormalize } from './purl-types/hex.js'
+import { normalize as huggingfaceNormalize } from './purl-types/huggingface.js'
+import {
+  normalize as juliaNormalize,
+  validate as juliaValidate,
+} from './purl-types/julia.js'
+import { normalize as luarocksNormalize } from './purl-types/luarocks.js'
+import { validate as mavenValidate } from './purl-types/maven.js'
+import {
+  normalize as mlflowNormalize,
+  validate as mlflowValidate,
+} from './purl-types/mlflow.js'
+import {
+  normalize as npmNormalize,
+  validate as npmValidate,
+} from './purl-types/npm.js'
+import { validate as nugetValidate } from './purl-types/nuget.js'
+import {
+  normalize as ociNormalize,
+  validate as ociValidate,
+} from './purl-types/oci.js'
+import { validate as opamValidate } from './purl-types/opam.js'
+import {
+  normalize as otpNormalize,
+  validate as otpValidate,
+} from './purl-types/otp.js'
+import {
+  normalize as pubNormalize,
+  validate as pubValidate,
+} from './purl-types/pub.js'
+import { normalize as pypiNormalize } from './purl-types/pypi.js'
+import { normalize as qpkgNormalize } from './purl-types/qpkg.js'
+import { normalize as rpmNormalize } from './purl-types/rpm.js'
+import { normalize as socketNormalize } from './purl-types/socket.js'
+import { validate as swidValidate } from './purl-types/swid.js'
+import { validate as swiftValidate } from './purl-types/swift.js'
+import { normalize as unknownNormalize } from './purl-types/unknown.js'
+import { normalize as vscodeExtensionNormalize } from './purl-types/vscode-extension.js'
+import {
+  normalize as yoctoNormalize,
+  validate as yoctoValidate,
+} from './purl-types/yocto.js'
 
 interface PurlObject {
   name: string
@@ -44,574 +94,62 @@ const PurlTypNormalizer = (purl: PurlObject): PurlObject => purl
  */
 const PurlTypeValidator = (_purl: PurlObject, _throws: boolean): boolean => true
 
-/**
- * Create normalizer that only lowercases name.
- */
-function createLowerNameNormalizer(): (_purl: PurlObject) => PurlObject {
-  return (purl: PurlObject) => {
-    lowerName(purl)
-    return purl
-  }
-}
-
-/**
- * Create normalizer that lowercases both namespace and name.
- */
-function createLowerNamespaceAndNameNormalizer(): (
-  _purl: PurlObject,
-) => PurlObject {
-  return (purl: PurlObject) => {
-    lowerNamespace(purl)
-    lowerName(purl)
-    return purl
-  }
-}
-
-/**
- * Get list of Node.js built-in module names.
- */
-const getNpmBuiltinNames = (() => {
-  let builtinNames: string[] | undefined
-  return () => {
-    if (builtinNames === undefined) {
-      /* c8 ignore start - Error handling for module access. */
-      try {
-        // Try to use Node.js builtinModules first
-        builtinNames = (module.constructor as { builtinModules?: string[] })
-          ?.builtinModules
-      } catch {}
-      /* c8 ignore stop */
-      if (!builtinNames) {
-        // Fallback to hardcoded list
-        builtinNames = [
-          'assert',
-          'async_hooks',
-          'buffer',
-          'child_process',
-          'cluster',
-          'console',
-          'constants',
-          'crypto',
-          'dgram',
-          'diagnostics_channel',
-          'dns',
-          'domain',
-          'events',
-          'fs',
-          'http',
-          'http2',
-          'https',
-          'inspector',
-          'module',
-          'net',
-          'os',
-          'path',
-          'perf_hooks',
-          'process',
-          'punycode',
-          'querystring',
-          'readline',
-          'repl',
-          'stream',
-          'string_decoder',
-          'sys',
-          'timers',
-          'tls',
-          'trace_events',
-          'tty',
-          'url',
-          'util',
-          'v8',
-          'vm',
-          'wasi',
-          'worker_threads',
-          'zlib',
-        ]
-      }
-    }
-    return builtinNames
-  }
-})()
-
-/**
- * Get npm package identifier with optional namespace.
- */
-function getNpmId(purl: PurlObject): string {
-  const { name, namespace } = purl
-  return `${namespace && namespace.length > 0 ? `${namespace}/` : ''}${name}`
-}
-
-/**
- * Get list of npm legacy package names.
- */
-const getNpmLegacyNames = (() => {
-  let fullLegacyNames: string[] | undefined
-
-  return (): string[] => {
-    if (fullLegacyNames === undefined) {
-      /* c8 ignore start - Fallback path only used if JSON file fails to load. */
-      try {
-        // Try to load the full list from JSON file
-        fullLegacyNames = require('../data/npm/legacy-names.json')
-      } catch {
-        // Fallback to hardcoded builtin names for simplicity
-        fullLegacyNames = [
-          'assert',
-          'buffer',
-          'crypto',
-          'events',
-          'fs',
-          'http',
-          'os',
-          'path',
-          'url',
-          'util',
-        ]
-      }
-      /* c8 ignore stop */
-    }
-    return fullLegacyNames!
-  }
-})()
-
-/**
- * Check if npm identifier is a Node.js built-in module name.
- */
-const isNpmBuiltinName = (id: string): boolean =>
-  getNpmBuiltinNames().includes(id.toLowerCase())
-
-/**
- * Check if npm identifier is a legacy package name.
- */
-const isNpmLegacyName = (id: string): boolean =>
-  getNpmLegacyNames().includes(id)
-
 // PURL types:
 // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
 const PurlType = createHelpersNamespaceObject(
   {
     normalize: {
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#alpm
-      alpm: createLowerNamespaceAndNameNormalizer(),
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#apk
-      apk: createLowerNamespaceAndNameNormalizer(),
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#bitbucket
-      bitbucket: createLowerNamespaceAndNameNormalizer(),
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#bitnami
-      bitnami: createLowerNameNormalizer(),
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/cargo-definition.md
-      // Cargo names are case-sensitive, no normalization required
-      // cargo: PurlTypNormalizer,
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#composer
-      composer: createLowerNamespaceAndNameNormalizer(),
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#deb
-      deb: createLowerNamespaceAndNameNormalizer(),
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/gem-definition.md
-      // RubyGems names are case-sensitive, no normalization mentioned in spec
-      // gem: PurlTypNormalizer,
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#other-candidate-types-to-define
-      gitlab: createLowerNamespaceAndNameNormalizer(),
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#github
-      github: createLowerNamespaceAndNameNormalizer(),
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#golang
-      // golang(purl) {
-      //     // Ignore case-insensitive rule because go.mod are case-sensitive
-      //     // Pending spec change: https://github.com/package-url/purl-spec/pull/196
-      //     lowerNamespace(purl)
-      //     lowerName(purl)
-      //     return purl
-      // },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#hex
-      hex: createLowerNamespaceAndNameNormalizer(),
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#huggingface
-      huggingface(purl: PurlObject) {
-        lowerVersion(purl)
-        return purl
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
-      mlflow(purl: PurlObject) {
-        if (purl.qualifiers?.['repository_url']?.includes('databricks')) {
-          lowerName(purl)
-        }
-        return purl
-      },
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/maven-definition.md
-      // Maven groupId and artifactId are case-sensitive, no normalization
-      // maven: PurlTypNormalizer,
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#npm
-      npm(purl: PurlObject) {
-        lowerNamespace(purl)
-        // Ignore lowercasing legacy names because they could be mixed case
-        // https://github.com/npm/validate-npm-package-name/tree/v6.0.0?tab=readme-ov-file#legacy-names
-        if (!isNpmLegacyName(getNpmId(purl))) {
-          lowerName(purl)
-        }
-        return purl
-      },
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/nuget-definition.md
-      // NuGet names are case-preserving but case-insensitive (no normalization)
-      // nuget: PurlTypNormalizer,
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#luarocks
-      luarocks(purl: PurlObject) {
-        lowerVersion(purl)
-        return purl
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
-      oci: createLowerNameNormalizer(),
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pub
-      pub(purl: PurlObject) {
-        lowerName(purl)
-        purl.name = replaceDashesWithUnderscores(purl.name)
-        return purl
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pypi
-      pypi(purl: PurlObject) {
-        lowerNamespace(purl)
-        lowerName(purl)
-        purl.name = replaceUnderscoresWithDashes(purl.name)
-        return purl
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#qpkg
-      qpkg(purl: PurlObject) {
-        lowerNamespace(purl)
-        return purl
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#rpm
-      rpm(purl: PurlObject) {
-        lowerNamespace(purl)
-        return purl
-      },
+      alpm: alpmNormalize,
+      apk: apkNormalize,
+      bazel: bazelNormalize,
+      bitbucket: bitbucketNormalize,
+      bitnami: bitnamiNormalize,
+      composer: composerNormalize,
+      conda: condaNormalize,
+      deb: debNormalize,
+      docker: dockerNormalize,
+      generic: genericNormalize,
+      github: githubNormalize,
+      gitlab: gitlabNormalize,
+      hex: hexNormalize,
+      huggingface: huggingfaceNormalize,
+      julia: juliaNormalize,
+      luarocks: luarocksNormalize,
+      mlflow: mlflowNormalize,
+      npm: npmNormalize,
+      oci: ociNormalize,
+      otp: otpNormalize,
+      pub: pubNormalize,
+      pypi: pypiNormalize,
+      qpkg: qpkgNormalize,
+      rpm: rpmNormalize,
+      socket: socketNormalize,
+      unknown: unknownNormalize,
+      'vscode-extension': vscodeExtensionNormalize,
+      yocto: yoctoNormalize,
     },
     validate: {
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/cargo-definition.md
-      cargo(purl: PurlObject, throws: boolean) {
-        return validateEmptyByType('cargo', 'namespace', purl.namespace, {
-          throws,
-        })
-      },
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/cocoapods-definition.md
-      cocoapods(purl: PurlObject, throws: boolean) {
-        const { name } = purl
-        // Name cannot contain whitespace
-        if (/\s/.test(name)) {
-          if (throws) {
-            throw new PurlError(
-              'cocoapods "name" component cannot contain whitespace',
-            )
-          }
-          return false
-        }
-        // Name cannot contain a plus (+) character
-        if (name.includes('+')) {
-          if (throws) {
-            throw new PurlError(
-              'cocoapods "name" component cannot contain a plus (+) character',
-            )
-          }
-          return false
-        }
-        // Name cannot begin with a period (.)
-        if (name.charCodeAt(0) === 46 /*'.'*/) {
-          if (throws) {
-            throw new PurlError(
-              'cocoapods "name" component cannot begin with a period',
-            )
-          }
-          return false
-        }
-        return true
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#conan
-      conan(purl: PurlObject, throws: boolean) {
-        if (isNullishOrEmptyString(purl.namespace)) {
-          if (purl.qualifiers?.['channel']) {
-            if (throws) {
-              throw new PurlError(
-                'conan requires a "namespace" component when a "channel" qualifier is present',
-              )
-            }
-            return false
-          }
-        } else if (isNullishOrEmptyString(purl.qualifiers)) {
-          if (throws) {
-            throw new PurlError(
-              'conan requires a "qualifiers" component when a namespace is present',
-            )
-          }
-          return false
-        }
-        return true
-      },
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/cpan-definition.md
-      cpan(purl: PurlObject, throws: boolean) {
-        // CPAN namespace (author/publisher ID) must be uppercase when present
-        const { namespace } = purl
-        if (namespace && namespace !== namespace.toUpperCase()) {
-          if (throws) {
-            throw new PurlError('cpan "namespace" component must be UPPERCASE')
-          }
-          return false
-        }
-        return true
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#cran
-      cran(purl: PurlObject, throws: boolean) {
-        return validateRequiredByType('cran', 'version', purl.version, {
-          throws,
-        })
-      },
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/gem-definition.md
-      gem(purl: PurlObject, throws: boolean) {
-        return validateEmptyByType('gem', 'namespace', purl.namespace, {
-          throws,
-        })
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#golang
-      golang(purl: PurlObject, throws: boolean) {
-        // Still being lenient here since the standard changes aren't official
-        // Pending spec change: https://github.com/package-url/purl-spec/pull/196
-        const { version } = purl
-        const length = typeof version === 'string' ? version.length : 0
-        // If the version starts with a "v" then ensure its a valid semver version
-        // This, by semver semantics, also supports pseudo-version number
-        // https://go.dev/doc/modules/version-numbers#pseudo-version-number
-        if (
-          length &&
-          version?.charCodeAt(0) === 118 /*'v'*/ &&
-          !isSemverString(version?.slice(1))
-        ) {
-          if (throws) {
-            throw new PurlError(
-              'golang "version" component starting with a "v" must be followed by a valid semver version',
-            )
-          }
-          return false
-        }
-        return true
-      },
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/maven-definition.md
-      maven(purl: PurlObject, throws: boolean) {
-        return validateRequiredByType('maven', 'namespace', purl.namespace, {
-          throws,
-        })
-      },
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/nuget-definition.md
-      nuget(purl: PurlObject, throws: boolean) {
-        return validateEmptyByType('nuget', 'namespace', purl.namespace, {
-          throws,
-        })
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
-      mlflow(purl: PurlObject, throws: boolean) {
-        return validateEmptyByType('mlflow', 'namespace', purl.namespace, {
-          throws,
-        })
-      },
-      // Validation based on
-      // https://github.com/npm/validate-npm-package-name/tree/v6.0.0
-      // ISC License
-      // Copyright (c) 2015, npm, Inc
-      npm(purl: PurlObject, throws: boolean) {
-        const { name, namespace } = purl
-        const hasNs = namespace && namespace.length > 0
-        const id = getNpmId(purl)
-        const code0 = id.charCodeAt(0)
-        const compName = hasNs ? 'namespace' : 'name'
-        if (code0 === 46 /*'.'*/) {
-          if (throws) {
-            throw new PurlError(
-              `npm "${compName}" component cannot start with a period`,
-            )
-          }
-          return false
-        }
-        if (code0 === 95 /*'_'*/) {
-          if (throws) {
-            throw new PurlError(
-              `npm "${compName}" component cannot start with an underscore`,
-            )
-          }
-          return false
-        }
-        if (name.trim() !== name) {
-          if (throws) {
-            throw new PurlError(
-              'npm "name" component cannot contain leading or trailing spaces',
-            )
-          }
-          return false
-        }
-        if (encodeComponent(name) !== name) {
-          if (throws) {
-            throw new PurlError(
-              `npm "name" component can only contain URL-friendly characters`,
-            )
-          }
-          return false
-        }
-        if (hasNs) {
-          if (namespace?.trim() !== namespace) {
-            if (throws) {
-              throw new PurlError(
-                'npm "namespace" component cannot contain leading or trailing spaces',
-              )
-            }
-            return false
-          }
-          if (code0 !== 64 /*'@'*/) {
-            if (throws) {
-              throw new PurlError(
-                `npm "namespace" component must start with an "@" character`,
-              )
-            }
-            return false
-          }
-          const namespaceWithoutAtSign = namespace?.slice(1)
-          if (
-            encodeComponent(namespaceWithoutAtSign) !== namespaceWithoutAtSign
-          ) {
-            if (throws) {
-              throw new PurlError(
-                `npm "namespace" component can only contain URL-friendly characters`,
-              )
-            }
-            return false
-          }
-        }
-        const loweredId = id.toLowerCase()
-        if (loweredId === 'node_modules' || loweredId === 'favicon.ico') {
-          if (throws) {
-            throw new PurlError(
-              `npm "${compName}" component of "${loweredId}" is not allowed`,
-            )
-          }
-          return false
-        }
-        // The remaining checks are only for modern names
-        // https://github.com/npm/validate-npm-package-name/tree/v6.0.0?tab=readme-ov-file#naming-rules
-        if (!isNpmLegacyName(id)) {
-          if (id.length > 214) {
-            if (throws) {
-              // Tested: validation returns false in non-throw mode
-              // V8 coverage can't see both throw and return false paths in same test
-              /* c8 ignore next 3 -- Throw path tested separately from return false path. */
-              throw new PurlError(
-                `npm "namespace" and "name" components can not collectively be more than 214 characters`,
-              )
-            }
-            return false
-          }
-          if (loweredId !== id) {
-            if (throws) {
-              throw new PurlError(
-                `npm "name" component can not contain capital letters`,
-              )
-            }
-            return false
-          }
-          if (/[~'!()*]/.test(name)) {
-            if (throws) {
-              throw new PurlError(
-                `npm "name" component can not contain special characters ("~'!()*")`,
-              )
-            }
-            return false
-          }
-          if (isNpmBuiltinName(id)) {
-            if (throws) {
-              // Tested: validation returns false in non-throw mode
-              // V8 coverage can't see both throw and return false paths in same test
-              /* c8 ignore next 3 -- Throw path tested separately from return false path. */
-              throw new PurlError(
-                'npm "name" component can not be a core module name',
-              )
-            }
-            return false
-          }
-        }
-        return true
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
-      oci(purl: PurlObject, throws: boolean) {
-        return validateEmptyByType('oci', 'namespace', purl.namespace, {
-          throws,
-        })
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pub
-      pub(purl: PurlObject, throws: boolean) {
-        const { name } = purl
-        for (let i = 0, { length } = name; i < length; i += 1) {
-          const code = name.charCodeAt(i)
-          // biome-ignore format: newlines
-          if (
-              !(
-                (
-                  // 0-9
-                  (code >= 48 && code <= 57) ||
-                  // a-z
-                  (code >= 97 && code <= 122) ||
-                  code === 95
-                // _
-                )
-              )
-            ) {
-              if (throws) {
-                // Tested: validation returns false in non-throw mode
-                // V8 coverage can't see both throw and return false paths in same test
-                /* c8 ignore next 3 -- Throw path tested separately from return false path. */
-                throw new PurlError(
-                  'pub "name" component may only contain [a-z0-9_] characters'
-                )
-              }
-              return false
-            }
-        }
-        return true
-      },
-      // https://github.com/package-url/purl-spec/blob/master/types-doc/swid-definition.md
-      swid(purl: PurlObject, throws: boolean) {
-        const { qualifiers } = purl
-        // SWID requires a tag_id qualifier
-        const tagId = qualifiers?.['tag_id']
-        if (!tagId) {
-          if (throws) {
-            throw new PurlError('swid requires a "tag_id" qualifier')
-          }
-          return false
-        }
-        // tag_id must not be empty after trimming
-        const tagIdStr = String(tagId).trim()
-        if (tagIdStr.length === 0) {
-          /* c8 ignore next 3 -- Throw path tested separately from return false path. */
-          if (throws) {
-            throw new PurlError('swid "tag_id" qualifier must not be empty')
-          }
-          return false
-        }
-        // If tag_id is a GUID, it must be lowercase
-        const guidPattern =
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-        if (guidPattern.test(tagIdStr)) {
-          if (tagIdStr !== tagIdStr.toLowerCase()) {
-            if (throws) {
-              throw new PurlError(
-                'swid "tag_id" qualifier must be lowercase when it is a GUID',
-              )
-            }
-            return false
-          }
-        }
-        return true
-      },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#swift
-      swift(purl: PurlObject, throws: boolean) {
-        return (
-          validateRequiredByType('swift', 'namespace', purl.namespace, {
-            throws,
-          }) &&
-          validateRequiredByType('swift', 'version', purl.version, { throws })
-        )
-      },
+      bazel: bazelValidate,
+      cargo: cargoValidate,
+      cocoapods: cocoaodsValidate,
+      conda: condaValidate,
+      conan: conanValidate,
+      cpan: cpanValidate,
+      cran: cranValidate,
+      gem: gemValidate,
+      golang: golangValidate,
+      julia: juliaValidate,
+      maven: mavenValidate,
+      mlflow: mlflowValidate,
+      npm: npmValidate,
+      nuget: nugetValidate,
+      oci: ociValidate,
+      opam: opamValidate,
+      otp: otpValidate,
+      pub: pubValidate,
+      swift: swiftValidate,
+      swid: swidValidate,
+      yocto: yoctoValidate,
     },
   },
   {

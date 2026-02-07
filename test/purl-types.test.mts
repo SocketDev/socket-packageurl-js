@@ -30,6 +30,7 @@ import { describe, expect, it } from 'vitest'
 import npmBuiltinNames from '../data/npm/builtin-names.json'
 import npmLegacyNames from '../data/npm/legacy-names.json'
 import { PackageURL } from '../src/package-url.js'
+import { validate as validateBazel } from '../src/purl-types/bazel.js'
 
 function getNpmId(purl: any) {
   const { name, namespace } = purl
@@ -241,6 +242,365 @@ describe('PackageURL type-specific tests', () => {
       )
       expect(purl.name).toBe('Newtonsoft.Json')
       expect(purl.toString()).toBe('pkg:nuget/Newtonsoft.Json@13.0.1')
+    })
+  })
+
+  describe('bazel', () => {
+    it('should require version for bazel packages', () => {
+      expect(() => {
+        new PackageURL(
+          'bazel',
+          undefined,
+          'rules_go',
+          undefined,
+          undefined,
+          undefined,
+        )
+      }).toThrow('bazel requires a "version" component')
+    })
+
+    it('should accept bazel packages with version', () => {
+      const purl = new PackageURL(
+        'bazel',
+        undefined,
+        'rules_go',
+        '0.41.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:bazel/rules_go@0.41.0')
+    })
+
+    it('should lowercase bazel package names', () => {
+      const purl = new PackageURL(
+        'bazel',
+        undefined,
+        'RulesGo',
+        '0.41.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('rulesgo')
+      expect(purl.toString()).toBe('pkg:bazel/rulesgo@0.41.0')
+    })
+
+    it('should return false when validation fails without throws', () => {
+      // Test validate function directly with throws: false
+      const invalidPurl = { name: 'rules_go', type: 'bazel' }
+      expect(validateBazel(invalidPurl, false)).toBe(false)
+    })
+  })
+
+  describe('conda', () => {
+    it('should reject conda packages with namespace', () => {
+      expect(() => {
+        new PackageURL(
+          'conda',
+          'some-namespace',
+          'numpy',
+          '1.26.3',
+          undefined,
+          undefined,
+        )
+      }).toThrow('conda "namespace" component must be empty')
+    })
+
+    it('should accept conda packages without namespace', () => {
+      const purl = new PackageURL(
+        'conda',
+        undefined,
+        'numpy',
+        '1.26.3',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:conda/numpy@1.26.3')
+    })
+
+    it('should lowercase conda package names', () => {
+      const purl = new PackageURL(
+        'conda',
+        undefined,
+        'NumPy',
+        '1.26.3',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('numpy')
+      expect(purl.toString()).toBe('pkg:conda/numpy@1.26.3')
+    })
+  })
+
+  describe('julia', () => {
+    it('should reject julia packages with namespace', () => {
+      expect(() => {
+        new PackageURL(
+          'julia',
+          'some-namespace',
+          'DataFrames',
+          '1.5.0',
+          undefined,
+          undefined,
+        )
+      }).toThrow('julia "namespace" component must be empty')
+    })
+
+    it('should accept julia packages without namespace', () => {
+      const purl = new PackageURL(
+        'julia',
+        undefined,
+        'DataFrames',
+        '1.5.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:julia/DataFrames@1.5.0')
+    })
+
+    it('should preserve case in julia package names', () => {
+      // Julia names are case-sensitive (typically CamelCase)
+      const purl = new PackageURL(
+        'julia',
+        undefined,
+        'DataFrames',
+        '1.5.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('DataFrames')
+      expect(purl.toString()).toBe('pkg:julia/DataFrames@1.5.0')
+    })
+  })
+
+  describe('opam', () => {
+    it('should reject opam packages with namespace', () => {
+      expect(() => {
+        new PackageURL(
+          'opam',
+          'some-namespace',
+          'ocaml',
+          '5.1.0',
+          undefined,
+          undefined,
+        )
+      }).toThrow('opam "namespace" component must be empty')
+    })
+
+    it('should accept opam packages without namespace', () => {
+      const purl = new PackageURL(
+        'opam',
+        undefined,
+        'ocaml',
+        '5.1.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:opam/ocaml@5.1.0')
+    })
+  })
+
+  describe('otp', () => {
+    it('should reject otp packages with namespace', () => {
+      expect(() => {
+        new PackageURL(
+          'otp',
+          'some-namespace',
+          'cowboy',
+          '2.10.0',
+          undefined,
+          undefined,
+        )
+      }).toThrow('otp "namespace" component must be empty')
+    })
+
+    it('should accept otp packages without namespace', () => {
+      const purl = new PackageURL(
+        'otp',
+        undefined,
+        'cowboy',
+        '2.10.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:otp/cowboy@2.10.0')
+    })
+
+    it('should lowercase otp package names', () => {
+      const purl = new PackageURL(
+        'otp',
+        undefined,
+        'CowBoy',
+        '2.10.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('cowboy')
+      expect(purl.toString()).toBe('pkg:otp/cowboy@2.10.0')
+    })
+  })
+
+  describe('yocto', () => {
+    it('should reject yocto packages with namespace', () => {
+      expect(() => {
+        new PackageURL(
+          'yocto',
+          'some-namespace',
+          'zlib',
+          '1.2.11',
+          undefined,
+          undefined,
+        )
+      }).toThrow('yocto "namespace" component must be empty')
+    })
+
+    it('should accept yocto packages without namespace', () => {
+      const purl = new PackageURL(
+        'yocto',
+        undefined,
+        'zlib',
+        '1.2.11',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:yocto/zlib@1.2.11')
+    })
+
+    it('should lowercase yocto package names', () => {
+      const purl = new PackageURL(
+        'yocto',
+        undefined,
+        'ZLib',
+        '1.2.11',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('zlib')
+      expect(purl.toString()).toBe('pkg:yocto/zlib@1.2.11')
+    })
+  })
+
+  describe('docker', () => {
+    it('should lowercase docker image names', () => {
+      const purl = new PackageURL(
+        'docker',
+        'library',
+        'Nginx',
+        'latest',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('nginx')
+      expect(purl.toString()).toBe('pkg:docker/library/nginx@latest')
+    })
+
+    it('should preserve namespace case for registry hosts', () => {
+      const purl = new PackageURL(
+        'docker',
+        'MyRegistry.io',
+        'myapp',
+        'v1.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.namespace).toBe('MyRegistry.io')
+      expect(purl.toString()).toBe('pkg:docker/MyRegistry.io/myapp@v1.0')
+    })
+  })
+
+  describe('vscode-extension', () => {
+    it('should lowercase both namespace and name', () => {
+      const purl = new PackageURL(
+        'vscode-extension',
+        'Microsoft',
+        'VSCode-ESLint',
+        '2.4.2',
+        undefined,
+        undefined,
+      )
+      expect(purl.namespace).toBe('microsoft')
+      expect(purl.name).toBe('vscode-eslint')
+      expect(purl.toString()).toBe(
+        'pkg:vscode-extension/microsoft/vscode-eslint@2.4.2',
+      )
+    })
+  })
+
+  describe('generic', () => {
+    it('should accept generic packages with any components', () => {
+      const purl = new PackageURL(
+        'generic',
+        'some-namespace',
+        'some-name',
+        '1.0.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:generic/some-namespace/some-name@1.0.0')
+    })
+
+    it('should not normalize generic package names', () => {
+      const purl = new PackageURL(
+        'generic',
+        'MyNamespace',
+        'MyPackage',
+        '1.0.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.namespace).toBe('MyNamespace')
+      expect(purl.name).toBe('MyPackage')
+    })
+  })
+
+  describe('socket', () => {
+    it('should accept socket packages', () => {
+      const purl = new PackageURL(
+        'socket',
+        undefined,
+        'package-name',
+        '1.0.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:socket/package-name@1.0.0')
+    })
+
+    it('should not normalize socket package names', () => {
+      const purl = new PackageURL(
+        'socket',
+        undefined,
+        'MyPackage',
+        '1.0.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('MyPackage')
+    })
+  })
+
+  describe('unknown', () => {
+    it('should accept unknown packages', () => {
+      const purl = new PackageURL(
+        'unknown',
+        undefined,
+        'package-name',
+        '1.0.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:unknown/package-name@1.0.0')
+    })
+
+    it('should not normalize unknown package names', () => {
+      const purl = new PackageURL(
+        'unknown',
+        undefined,
+        'MyPackage',
+        '1.0.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('MyPackage')
     })
   })
 })

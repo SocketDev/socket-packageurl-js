@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { parseNpmSpecifier } from '../src/parsers/npm.js'
+import { parseNpmSpecifier } from '../src/purl-types/npm.js'
 
 describe('parseNpmSpecifier', () => {
   describe('basic package parsing', () => {

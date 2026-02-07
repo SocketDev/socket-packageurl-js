@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { pypiExists } from '../src/registry/pypi.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { pypiExists } from '../src/purl-types/pypi.js'
 
 describe('pypiExists', () => {
   beforeEach(() => {
@@ -138,15 +139,7 @@ describe('pypiExists', () => {
 
   describe('caching', () => {
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '2.31.0' }
       await mockCache.set('requests', cachedResult)
@@ -159,15 +152,7 @@ describe('pypiExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://pypi.org')
         .get('/pypi/requests/json')
@@ -181,7 +166,7 @@ describe('pypiExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('requests')).toEqual(result)
+      expect(await mockCache.get('requests')).toEqual(result)
     })
   })
 })

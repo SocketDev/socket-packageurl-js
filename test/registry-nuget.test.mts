@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { nugetExists } from '../src/registry/nuget.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { nugetExists } from '../src/purl-types/nuget.js'
 
 describe('nugetExists', () => {
   beforeEach(() => {
@@ -143,15 +144,7 @@ describe('nugetExists', () => {
 
   describe('caching', () => {
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '13.0.3' }
       await mockCache.set('Newtonsoft.Json', cachedResult)
@@ -164,15 +157,7 @@ describe('nugetExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://api.nuget.org')
         .get('/v3/registration5-semver1/newtonsoft.json/index.json')
@@ -189,7 +174,7 @@ describe('nugetExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('Newtonsoft.Json')).toEqual(result)
+      expect(await mockCache.get('Newtonsoft.Json')).toEqual(result)
     })
   })
 })

@@ -1,0 +1,201 @@
+/**
+ * @fileoverview VSCode extension PURL normalization and validation.
+ * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
+ *
+ * VSCode extensions use the Visual Studio Marketplace for distribution.
+ * The namespace is the publisher name, and the name is the extension name.
+ */
+
+import { httpRequest } from '@socketsecurity/lib/http-request'
+
+import { lowerName, lowerNamespace } from '../strings.js'
+
+import type { ExistsOptions, ExistsResult } from './npm.js'
+
+interface PurlObject {
+  name: string
+  namespace?: string | undefined
+  qualifiers?: Record<string, string> | undefined
+  subpath?: string | undefined
+  type?: string | undefined
+  version?: string | undefined
+}
+
+/**
+ * Normalize VSCode extension package URL.
+ * Lowercases both namespace (publisher) and name (extension).
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  lowerNamespace(purl)
+  lowerName(purl)
+  return purl
+}
+
+/**
+ * Check if a VSCode extension exists in the Visual Studio Marketplace.
+ *
+ * Queries the VS Marketplace API to verify extension existence and optionally
+ * validate a specific version. Returns the latest version from extension metadata.
+ *
+ * **Note:** VS Marketplace requires specific headers for API access.
+ *
+ * **Caching:** Responses can be cached using a TTL cache to reduce registry
+ * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
+ *
+ * @param name - Extension name (e.g., 'vscode-eslint')
+ * @param namespace - Publisher name (e.g., 'dbaeumer')
+ * @param version - Optional version to validate (e.g., '2.4.2')
+ * @param options - Optional configuration including cache
+ * @returns Promise resolving to existence result with latest version
+ *
+ * @example
+ * ```typescript
+ * // Check if extension exists
+ * const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
+ * // -> { exists: true, latestVersion: '2.4.2' }
+ *
+ * // Validate specific version
+ * const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer', '2.4.0')
+ * // -> { exists: true, latestVersion: '2.4.2' }
+ *
+ * // With caching
+ * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'vscode' })
+ * const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer', undefined, { cache })
+ *
+ * // Non-existent extension
+ * const result = await vscodeExtensionExists('non-existent', 'publisher')
+ * // -> { exists: false, error: 'Extension not found' }
+ * ```
+ */
+export async function vscodeExtensionExists(
+  name: string,
+  namespace?: string,
+  version?: string,
+  options?: ExistsOptions,
+): Promise<ExistsResult> {
+  if (!namespace) {
+    return {
+      exists: false,
+      error: 'Namespace (publisher) is required for VSCode extensions',
+    }
+  }
+
+  const extensionId = `${namespace}.${name}`
+  const cacheKey = version ? `${extensionId}@${version}` : extensionId
+
+  // Try cache first if provided
+  if (options?.cache) {
+    const cached = await options.cache.get<ExistsResult>(cacheKey)
+    if (cached !== undefined) {
+      return cached
+    }
+  }
+
+  const fetchResult = async (): Promise<ExistsResult> => {
+    try {
+      // VS Marketplace API endpoint
+      const url =
+        'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery'
+
+      const requestBody = {
+        filters: [
+          {
+            criteria: [
+              {
+                filterType: 7,
+                value: extensionId,
+              },
+            ],
+          },
+        ],
+        flags: 914,
+      }
+
+      const response = await httpRequest(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json;api-version=7.1-preview.1',
+        },
+        body: JSON.stringify(requestBody),
+      })
+
+      // Check HTTP status before parsing JSON
+      if (response.status === 404) {
+        return {
+          exists: false,
+          error: 'Extension not found',
+        }
+      }
+
+      if (!response.ok) {
+        return {
+          exists: false,
+          error: `HTTP ${response.status} error`,
+        }
+      }
+
+      const data = response.json<{
+        results?: Array<{
+          extensions?: Array<{
+            versions?: Array<{
+              version?: string
+            }>
+          }>
+        }>
+      }>()
+
+      const extensions = data.results?.[0]?.['extensions']
+      if (!extensions || extensions.length === 0) {
+        return {
+          exists: false,
+          error: 'Extension not found',
+        }
+      }
+
+      const versions = extensions[0]?.['versions']
+      const latestVersion = versions?.[0]?.['version']
+
+      // If specific version requested, validate it exists
+      if (version && versions) {
+        const versionExists = versions.some(v => v.version === version)
+        if (!versionExists) {
+          const result: ExistsResult = {
+            exists: false,
+            error: `Version ${version} not found`,
+          }
+          if (latestVersion !== undefined) {
+            result.latestVersion = latestVersion
+          }
+          return result
+        }
+      }
+
+      const result: ExistsResult = {
+        exists: true,
+      }
+      if (latestVersion !== undefined) {
+        result.latestVersion = latestVersion
+      }
+      return result
+    } catch (e) {
+      /* c8 ignore start */
+      const error = e instanceof Error ? e.message : String(e)
+      /* c8 ignore stop */
+      return {
+        exists: false,
+        error: error.includes('404') ? 'Extension not found' : error,
+      }
+    }
+  }
+
+  const result = await fetchResult()
+
+  // Cache result if cache provided
+  if (options?.cache) {
+    await options.cache.set(cacheKey, result)
+  }
+
+  return result
+}

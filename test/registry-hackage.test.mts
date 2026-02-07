@@ -4,7 +4,8 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { hackageExists } from '../src/registry/hackage.js'
+import { createMockCache } from './utils/test-helpers.mjs'
+import { hackageExists } from '../src/purl-types/hackage.js'
 
 describe('hackageExists', () => {
   beforeEach(() => {
@@ -125,15 +126,7 @@ describe('hackageExists', () => {
 
   describe('caching', () => {
     it('should use cached result when available', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '2.2.0.0' }
       await mockCache.set('aeson', cachedResult)
@@ -146,15 +139,7 @@ describe('hackageExists', () => {
     })
 
     it('should cache result after fetching', async () => {
-      const cacheData = new Map<string, unknown>()
-      const mockCache = {
-        get: async <T,>(key: string): Promise<T | undefined> => {
-          return cacheData.get(key) as T | undefined
-        },
-        set: async <T,>(key: string, value: T): Promise<void> => {
-          cacheData.set(key, value)
-        },
-      }
+      const mockCache = createMockCache()
 
       nock('https://hackage.haskell.org')
         .get('/package/aeson/preferred')
@@ -167,7 +152,7 @@ describe('hackageExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(cacheData.get('aeson')).toEqual(result)
+      expect(await mockCache.get('aeson')).toEqual(result)
     })
   })
 })
