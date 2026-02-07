@@ -72,6 +72,20 @@ export type PackageURLObject = {
   subpath?: string | undefined
 }
 
+/**
+ * Type representing parsed PURL components as a tuple.
+ * Returned by PackageURL.parseString() in the order:
+ * [type, namespace, name, version, qualifiers, subpath]
+ */
+export type ParsedPurlComponents = [
+  type: string | undefined,
+  namespace: string | undefined,
+  name: string | undefined,
+  version: string | undefined,
+  qualifiers: URLSearchParams | undefined,
+  subpath: string | undefined,
+]
+
 // Pattern to match URLs with schemes other than "pkg"
 // Limited to 256 chars for scheme to prevent ReDoS
 const OTHER_SCHEME_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]{0,255}:\/\//
@@ -325,16 +339,7 @@ class PackageURL {
   }
 
   static fromString(purlStr: unknown): PackageURL {
-    return new PackageURL(
-      ...(PackageURL.parseString(purlStr) as [
-        unknown,
-        unknown,
-        unknown,
-        unknown,
-        unknown,
-        unknown,
-      ]),
-    )
+    return new PackageURL(...PackageURL.parseString(purlStr))
   }
 
   /**
@@ -431,7 +436,7 @@ class PackageURL {
     }
   }
 
-  static parseString(purlStr: unknown): unknown[] {
+  static parseString(purlStr: unknown): ParsedPurlComponents {
     // https://github.com/package-url/purl-spec/blob/master/PURL-SPECIFICATION.rst#how-to-parse-a-purl-string-in-its-components
     if (typeof purlStr !== 'string') {
       throw new Error('A purl string argument is required.')

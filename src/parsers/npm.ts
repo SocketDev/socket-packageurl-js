@@ -6,6 +6,16 @@
 import { isBlank } from '../strings.js'
 
 /**
+ * Components parsed from npm package specifier.
+ * Includes namespace (for scoped packages), name, and version.
+ */
+export type NpmPackageComponents = {
+  namespace: string | undefined
+  name: string
+  version: string | undefined
+}
+
+/**
  * Parse npm package specifier into component data.
  *
  * Parses npm package specifiers into namespace, name, and version components.
@@ -50,11 +60,7 @@ import { isBlank } from '../strings.js'
  * // -> { namespace: undefined, name: 'express', version: undefined }
  * ```
  */
-export function parseNpmSpecifier(specifier: unknown): {
-  namespace: string | undefined
-  name: string
-  version: string | undefined
-} {
+export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
   if (typeof specifier !== 'string') {
     throw new Error('npm package specifier string is required.')
   }

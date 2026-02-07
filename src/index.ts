@@ -53,9 +53,20 @@ export { PURL_Type } from '@socketsecurity/lib/types'
 // ============================================================================
 export type {
   DownloadUrl,
+  PackageURLComponentValue,
+  PackageURLObject,
+  ParsedPurlComponents,
   RepositoryUrl,
   Result,
 } from './package-url.js'
+export type {
+  ComponentEncoder,
+  ComponentNormalizer,
+  ComponentValidator,
+  QualifiersObject,
+  QualifiersValue,
+} from './purl-component.js'
+export type { NpmPackageComponents } from './parsers/npm.js'
 // ============================================================================
 // Core Classes and Functions
 // ============================================================================
