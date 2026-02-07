@@ -92,6 +92,14 @@ export { PurlError } from './error.js'
 // ============================================================================
 export { compare, equals } from './comparators/index.js'
 export { parseNpmSpecifier } from './parsers/npm.js'
+export {
+  cargoExists,
+  gemExists,
+  npmExists,
+  purlExists,
+  pypiExists,
+} from './registry/index.js'
 export { stringify } from './serializers/stringify.js'
+export type { ExistsOptions, ExistsResult } from './registry/index.js'
 
 /* c8 ignore stop */

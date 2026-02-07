@@ -269,6 +269,36 @@ class PackageURL {
   }
 
   /**
+   * Compare two PackageURLs for equality.
+   *
+   * Two PURLs are considered equal if their canonical string representations match.
+   *
+   * @param a - First PackageURL to compare
+   * @param b - Second PackageURL to compare
+   * @returns true if the PURLs are equal, false otherwise
+   */
+  static equals(a: PackageURL, b: PackageURL): boolean {
+    return equalsPurls(a, b)
+  }
+
+  /**
+   * Compare two PackageURLs for sorting.
+   *
+   * Compares PURLs using their canonical string representations.
+   * Returns a number indicating sort order:
+   * - Negative if a comes before b
+   * - Zero if they are equal
+   * - Positive if a comes after b
+   *
+   * @param a - First PackageURL to compare
+   * @param b - Second PackageURL to compare
+   * @returns -1, 0, or 1 for sort ordering
+   */
+  static compare(a: PackageURL, b: PackageURL): -1 | 0 | 1 {
+    return comparePurls(a, b)
+  }
+
+  /**
    * Create PackageURL from JSON string.
    */
   static fromJSON(json: unknown): PackageURL {
@@ -622,36 +652,6 @@ class PackageURL {
 
   static tryParseString(purlStr: unknown): Result<unknown[], Error> {
     return ResultUtils.from(() => PackageURL.parseString(purlStr))
-  }
-
-  /**
-   * Compare two PackageURLs for equality.
-   *
-   * Two PURLs are considered equal if their canonical string representations match.
-   *
-   * @param a - First PackageURL to compare
-   * @param b - Second PackageURL to compare
-   * @returns true if the PURLs are equal, false otherwise
-   */
-  static equals(a: PackageURL, b: PackageURL): boolean {
-    return equalsPurls(a, b)
-  }
-
-  /**
-   * Compare two PackageURLs for sorting.
-   *
-   * Compares PURLs using their canonical string representations.
-   * Returns a number indicating sort order:
-   * - Negative if a comes before b
-   * - Zero if they are equal
-   * - Positive if a comes after b
-   *
-   * @param a - First PackageURL to compare
-   * @param b - Second PackageURL to compare
-   * @returns -1, 0, or 1 for sort ordering
-   */
-  static compare(a: PackageURL, b: PackageURL): -1 | 0 | 1 {
-    return comparePurls(a, b)
   }
 }
 
