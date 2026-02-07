@@ -4,8 +4,18 @@
  */
 
 import { cargoExists } from './cargo.js'
+import { cocoapodsExists } from './cocoapods.js'
+import { cpanExists } from './cpan.js'
+import { cranExists } from './cran.js'
 import { gemExists } from './gem.js'
+import { golangExists } from './golang.js'
+import { hackageExists } from './hackage.js'
+import { hexExists } from './hex.js'
+import { mavenExists } from './maven.js'
 import { npmExists } from './npm.js'
+import { nugetExists } from './nuget.js'
+import { packagistExists } from './packagist.js'
+import { pubExists } from './pub.js'
 import { pypiExists } from './pypi.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -13,8 +23,18 @@ import type { PackageURL } from '../package-url.js'
 
 // Re-export all specific existence checks
 export { cargoExists } from './cargo.js'
+export { cocoapodsExists } from './cocoapods.js'
+export { cpanExists } from './cpan.js'
+export { cranExists } from './cran.js'
 export { gemExists } from './gem.js'
+export { golangExists } from './golang.js'
+export { hackageExists } from './hackage.js'
+export { hexExists } from './hex.js'
+export { mavenExists } from './maven.js'
 export { npmExists } from './npm.js'
+export { nugetExists } from './nuget.js'
+export { packagistExists } from './packagist.js'
+export { pubExists } from './pub.js'
 export { pypiExists } from './pypi.js'
 export type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -30,6 +50,16 @@ export type { ExistsResult, ExistsOptions } from './npm.js'
  * - `pypi` - Python packages from pypi.org
  * - `cargo` - Rust crates from crates.io
  * - `gem` - Ruby gems from rubygems.org
+ * - `maven` - Java packages from Maven Central
+ * - `nuget` - .NET packages from nuget.org
+ * - `golang` - Go modules from proxy.golang.org
+ * - `composer` - PHP packages from packagist.org
+ * - `cocoapods` - iOS/macOS pods from trunk.cocoapods.org
+ * - `pub` - Dart/Flutter packages from pub.dev
+ * - `hex` - Elixir/Erlang packages from hex.pm
+ * - `cpan` - Perl modules from metacpan.org
+ * - `cran` - R packages from cran.r-universe.dev
+ * - `hackage` - Haskell packages from hackage.haskell.org
  *
  * **Unsupported types:** Returns `{ exists: false, error: 'Unsupported type' }`
  *
@@ -94,6 +124,26 @@ export async function purlExists(
       return cargoExists(name, version, options)
     case 'gem':
       return gemExists(name, version, options)
+    case 'maven':
+      return mavenExists(name, namespace, version, options)
+    case 'nuget':
+      return nugetExists(name, version, options)
+    case 'golang':
+      return golangExists(name, namespace, version, options)
+    case 'composer':
+      return packagistExists(name, namespace, version, options)
+    case 'cocoapods':
+      return cocoapodsExists(name, version, options)
+    case 'pub':
+      return pubExists(name, version, options)
+    case 'hex':
+      return hexExists(name, version, options)
+    case 'cpan':
+      return cpanExists(name, version, options)
+    case 'cran':
+      return cranExists(name, version, options)
+    case 'hackage':
+      return hackageExists(name, version, options)
     default:
       return {
         exists: false,

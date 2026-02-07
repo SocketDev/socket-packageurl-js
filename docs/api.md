@@ -8,6 +8,7 @@ Complete API documentation for `@socketregistry/packageurl-js`.
 - [PackageURL Class](#packageurl-class)
 - [PurlBuilder Class](#purlbuilder-class)
 - [UrlConverter Class](#urlconverter-class)
+- [Registry Existence Checks](#registry-existence-checks)
 - [Type Constants](#type-constants)
 
 ---
@@ -471,6 +472,255 @@ Convert to download URL.
 ```javascript
 UrlConverter.toDownloadUrl(purl)
 // -> { type: 'tarball', url: 'https://registry.npmjs.org/...' }
+```
+
+---
+
+## Registry Existence Checks
+
+Modular functions to verify package existence across 14 package registries. Each function queries the official registry API to check if a package exists and optionally validates a specific version.
+
+### `purlExists(purl, options?)`
+
+Generic wrapper that dispatches to type-specific existence checks based on the PackageURL type.
+
+**Parameters:**
+- `purl: PackageURL` - PackageURL instance to check
+- `options?: ExistsOptions` - Optional configuration
+  - `cache?: TtlCache` - Optional TTL cache for caching responses
+
+**Returns:** `Promise<ExistsResult>`
+```typescript
+{
+  exists: boolean            // Whether the package exists
+  latestVersion?: string     // Latest version from registry
+  error?: string            // Error message if check failed
+}
+```
+
+**Example:**
+```javascript
+import { purlExists, PackageURL } from '@socketregistry/packageurl-js'
+
+const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+const result = await purlExists(purl)
+// -> { exists: true, latestVersion: '4.17.21' }
+
+// With caching
+import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+const cache = createTtlCache({ ttl: 5 * 60 * 1000 })
+await purlExists(purl, { cache })
+```
+
+**Supported types:** npm, pypi, cargo, gem, maven, nuget, golang, composer, cocoapods, pub, hex, cpan, cran, hackage
+
+---
+
+### Type-Specific Functions
+
+All registry functions follow the same signature pattern and return `ExistsResult`.
+
+#### `npmExists(name, namespace?, version?, options?)`
+
+Check npm packages from registry.npmjs.org.
+
+**Example:**
+```javascript
+import { npmExists } from '@socketregistry/packageurl-js'
+
+await npmExists('lodash')
+// -> { exists: true, latestVersion: '4.17.21' }
+
+await npmExists('core', '@babel')  // scoped package
+// -> { exists: true, latestVersion: '7.23.0' }
+
+await npmExists('lodash', undefined, '4.17.21')  // validate version
+// -> { exists: true, latestVersion: '4.17.21' }
+```
+
+---
+
+#### `pypiExists(name, version?, options?)`
+
+Check Python packages from pypi.org.
+
+**Example:**
+```javascript
+import { pypiExists } from '@socketregistry/packageurl-js'
+
+await pypiExists('requests')
+// -> { exists: true, latestVersion: '2.31.0' }
+```
+
+---
+
+#### `cargoExists(name, version?, options?)`
+
+Check Rust crates from crates.io.
+
+**Example:**
+```javascript
+import { cargoExists } from '@socketregistry/packageurl-js'
+
+await cargoExists('serde')
+// -> { exists: true, latestVersion: '1.0.197' }
+```
+
+---
+
+#### `gemExists(name, version?, options?)`
+
+Check Ruby gems from rubygems.org.
+
+**Example:**
+```javascript
+import { gemExists } from '@socketregistry/packageurl-js'
+
+await gemExists('rails')
+// -> { exists: true, latestVersion: '7.1.3' }
+```
+
+---
+
+#### `mavenExists(name, namespace, version?, options?)`
+
+Check Java packages from Maven Central. Requires namespace (group ID).
+
+**Example:**
+```javascript
+import { mavenExists } from '@socketregistry/packageurl-js'
+
+await mavenExists('commons-lang3', 'org.apache.commons')
+// -> { exists: true, latestVersion: '3.12.0' }
+```
+
+---
+
+#### `nugetExists(name, version?, options?)`
+
+Check .NET packages from nuget.org.
+
+**Example:**
+```javascript
+import { nugetExists } from '@socketregistry/packageurl-js'
+
+await nugetExists('Newtonsoft.Json')
+// -> { exists: true, latestVersion: '13.0.3' }
+```
+
+---
+
+#### `golangExists(name, namespace?, version?, options?)`
+
+Check Go modules from proxy.golang.org.
+
+**Example:**
+```javascript
+import { golangExists } from '@socketregistry/packageurl-js'
+
+await golangExists('github.com/gorilla/mux')
+// -> { exists: true, latestVersion: 'v1.8.0' }
+
+await golangExists('mux', 'github.com/gorilla')  // with namespace
+// -> { exists: true, latestVersion: 'v1.8.0' }
+```
+
+---
+
+#### `packagistExists(name, namespace, version?, options?)`
+
+Check PHP/Composer packages from packagist.org. Requires namespace (vendor).
+
+**Example:**
+```javascript
+import { packagistExists } from '@socketregistry/packageurl-js'
+
+await packagistExists('http-foundation', 'symfony')
+// -> { exists: true, latestVersion: 'v6.3.0' }
+```
+
+---
+
+#### `cocoapodsExists(name, version?, options?)`
+
+Check iOS/macOS pods from trunk.cocoapods.org.
+
+**Example:**
+```javascript
+import { cocoapodsExists } from '@socketregistry/packageurl-js'
+
+await cocoapodsExists('Alamofire')
+// -> { exists: true, latestVersion: '5.8.1' }
+```
+
+---
+
+#### `pubExists(name, version?, options?)`
+
+Check Dart/Flutter packages from pub.dev.
+
+**Example:**
+```javascript
+import { pubExists } from '@socketregistry/packageurl-js'
+
+await pubExists('flutter_bloc')
+// -> { exists: true, latestVersion: '8.1.3' }
+```
+
+---
+
+#### `hexExists(name, version?, options?)`
+
+Check Elixir/Erlang packages from hex.pm.
+
+**Example:**
+```javascript
+import { hexExists } from '@socketregistry/packageurl-js'
+
+await hexExists('phoenix')
+// -> { exists: true, latestVersion: '1.7.10' }
+```
+
+---
+
+#### `cpanExists(name, version?, options?)`
+
+Check Perl modules from metacpan.org.
+
+**Example:**
+```javascript
+import { cpanExists } from '@socketregistry/packageurl-js'
+
+await cpanExists('Moose')
+// -> { exists: true, latestVersion: '2.2206' }
+```
+
+---
+
+#### `cranExists(name, version?, options?)`
+
+Check R packages from cran.r-universe.dev.
+
+**Example:**
+```javascript
+import { cranExists } from '@socketregistry/packageurl-js'
+
+await cranExists('ggplot2')
+// -> { exists: true, latestVersion: '3.4.4' }
+```
+
+---
+
+#### `hackageExists(name, version?, options?)`
+
+Check Haskell packages from hackage.haskell.org.
+
+**Example:**
+```javascript
+import { hackageExists } from '@socketregistry/packageurl-js'
+
+await hackageExists('aeson')
+// -> { exists: true, latestVersion: '2.2.0.0' }
 ```
 
 ---

@@ -96,7 +96,7 @@ export async function npmExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const encodedName = encodeURIComponent(packageName).replace(/^%40/, '@')
+      const encodedName = encodeURIComponent(packageName)
       const url = `https://registry.npmjs.org/${encodedName}`
 
       const data = await httpGetJson<{

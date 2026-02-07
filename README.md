@@ -41,9 +41,10 @@ pkg:maven/org.springframework/spring-core@5.3.21
 - ✅ **Full TypeScript support** - Comprehensive type exports
 - ✅ **Zero dependencies** - Lightweight and secure
 - ✅ **Spec compliant** - Follows [purl-spec](https://github.com/package-url/purl-spec)
-- ✅ **100% test coverage** - 969 passing tests
+- ✅ **100% test coverage** - Over 1,000 passing tests
 - ✅ **Multiple APIs** - Functional, class-based, and builder patterns
 - ✅ **URL conversion** - Convert to repository and download URLs
+- ✅ **Registry checks** - Verify package existence across 14 registries
 
 ## Install
 
@@ -135,6 +136,26 @@ UrlConverter.toRepositoryUrl(purl)
 
 UrlConverter.toDownloadUrl(purl)
 // -> 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz'
+```
+
+**Registry existence checks:**
+```javascript
+import { purlExists, npmExists } from '@socketregistry/packageurl-js'
+
+// Check if package exists in its registry
+await purlExists(purl)
+// -> { exists: true, latestVersion: '4.17.21' }
+
+// Type-specific checks (modular)
+await npmExists('lodash')
+await npmExists('core', '@babel')  // scoped package
+await npmExists('lodash', undefined, '4.17.21')  // validate version
+
+// Supported registries:
+// npmExists, pypiExists, cargoExists, gemExists,
+// mavenExists, nugetExists, golangExists, packagistExists,
+// cocoapodsExists, pubExists, hexExists, cpanExists,
+// cranExists, hackageExists
 ```
 
 ### TypeScript Types

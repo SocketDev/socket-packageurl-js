@@ -94,8 +94,18 @@ export { compare, equals } from './comparators/index.js'
 export { parseNpmSpecifier } from './parsers/npm.js'
 export {
   cargoExists,
+  cocoapodsExists,
+  cpanExists,
+  cranExists,
   gemExists,
+  golangExists,
+  hackageExists,
+  hexExists,
+  mavenExists,
   npmExists,
+  nugetExists,
+  packagistExists,
+  pubExists,
   purlExists,
   pypiExists,
 } from './registry/index.js'
