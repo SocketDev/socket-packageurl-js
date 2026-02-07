@@ -29,7 +29,7 @@ SOFTWARE.
  *
  * Core exports:
  * - PackageURL: Main class for parsing and constructing package URLs
- * - PackageURLBuilder: Builder pattern for constructing package URLs
+ * - PurlBuilder: Builder pattern for constructing package URLs
  * - PurlType: Type-specific normalization and validation rules
  * - PurlComponent: Component encoding/decoding utilities
  * - PurlQualifierNames: Known qualifier names from the specification
@@ -85,7 +85,7 @@ export {
   ResultUtils,
   UrlConverter,
 } from './package-url.js'
-export { PackageURLBuilder } from './package-url-builder.js'
+export { PurlBuilder } from './package-url-builder.js'
 export { PurlError } from './error.js'
 // ============================================================================
 // Modular Utilities

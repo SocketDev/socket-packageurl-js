@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   PackageURL,
-  PackageURLBuilder,
+  PurlBuilder,
   PurlComponent,
   PurlError,
   PurlQualifierNames,
@@ -38,14 +38,14 @@ describe('Package exports', () => {
       expect(purl).toBeInstanceOf(PackageURL)
     })
 
-    it('should export PackageURLBuilder class', () => {
-      expect(PackageURLBuilder).toBeDefined()
-      expect(typeof PackageURLBuilder).toBe('function')
-      expect(PackageURLBuilder.name).toBe('PackageURLBuilder')
+    it('should export PurlBuilder class', () => {
+      expect(PurlBuilder).toBeDefined()
+      expect(typeof PurlBuilder).toBe('function')
+      expect(PurlBuilder.name).toBe('PurlBuilder')
 
       // Test it can be instantiated
-      const builder = new PackageURLBuilder()
-      expect(builder).toBeInstanceOf(PackageURLBuilder)
+      const builder = new PurlBuilder()
+      expect(builder).toBeInstanceOf(PurlBuilder)
     })
 
     it('should export PurlError class', () => {

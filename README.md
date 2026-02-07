@@ -35,6 +35,16 @@ pkg:maven/org.springframework/spring-core@5.3.21
 
 **Supports 35+ ecosystems**: npm, pypi, maven, gem, cargo, nuget, composer, golang, docker, and more.
 
+## Features
+
+- ✅ **Modular & tree-shakeable** - Import only what you need
+- ✅ **Full TypeScript support** - Comprehensive type exports
+- ✅ **Zero dependencies** - Lightweight and secure
+- ✅ **Spec compliant** - Follows [purl-spec](https://github.com/package-url/purl-spec)
+- ✅ **100% test coverage** - 969 passing tests
+- ✅ **Multiple APIs** - Functional, class-based, and builder patterns
+- ✅ **URL conversion** - Convert to repository and download URLs
+
 ## Install
 
 ```sh
@@ -56,50 +66,67 @@ pnpm install @socketregistry/packageurl-js
 
 ## Usage
 
-**Parse purls:**
+### Modular Functions (Tree-shakeable)
+
+**Parse npm specifiers:**
+```javascript
+import { parseNpmSpecifier } from '@socketregistry/packageurl-js'
+
+parseNpmSpecifier('lodash@4.17.21')
+// -> { namespace: undefined, name: 'lodash', version: '4.17.21' }
+
+parseNpmSpecifier('@babel/core@^7.0.0')
+// -> { namespace: '@babel', name: 'core', version: '7.0.0' }
+```
+
+**Stringify PURLs:**
+```javascript
+import { stringify } from '@socketregistry/packageurl-js'
+
+stringify(purl)
+// -> 'pkg:npm/lodash@4.17.21'
+```
+
+**Compare PURLs:**
+```javascript
+import { equals, compare } from '@socketregistry/packageurl-js'
+
+equals(purl1, purl2)  // -> boolean
+compare(purl1, purl2) // -> -1 | 0 | 1
+```
+
+### Class API
+
+**Parse and build:**
 ```javascript
 import { PackageURL } from '@socketregistry/packageurl-js'
 
+// Parse strings
 const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
 console.log(purl.name)      // 'lodash'
 console.log(purl.version)   // '4.17.21'
-```
 
-**Build purls:**
-```javascript
-import { PackageURLBuilder } from '@socketregistry/packageurl-js'
+// Parse npm specifiers
+PackageURL.fromNpm('lodash@4.17.21')
+PackageURL.fromNpm('@babel/core@^7.0.0')
 
-// npm packages
-PackageURLBuilder.npm().name('lodash').version('4.17.21').build()
-// -> 'pkg:npm/lodash@4.17.21'
-
-// Python packages
-PackageURLBuilder.pypi().name('requests').version('2.28.1').build()
-// -> 'pkg:pypi/requests@2.28.1'
-
-// Maven with namespace and qualifiers
-PackageURLBuilder.maven()
-  .namespace('org.springframework')
-  .name('spring-core')
-  .version('5.3.21')
-  .qualifier('classifier', 'sources')
-  .build()
-// -> 'pkg:maven/org.springframework/spring-core@5.3.21?classifier=sources'
-```
-
-**Constructor API:**
-```javascript
-import { PackageURL } from '@socketregistry/packageurl-js'
-
+// Constructor
 new PackageURL('npm', null, 'express', '4.18.2')
 // -> 'pkg:npm/express@4.18.2'
-
-// With namespace and subpath
-new PackageURL('npm', '@babel', 'runtime', '7.18.6', null, 'helpers/typeof.js')
-// -> 'pkg:npm/%40babel/runtime@7.18.6#helpers/typeof.js'
 ```
 
-**Convert to URLs:**
+**Builder pattern:**
+```javascript
+import { PurlBuilder } from '@socketregistry/packageurl-js'
+
+PurlBuilder.npm()
+  .name('lodash')
+  .version('4.17.21')
+  .build()
+// -> 'pkg:npm/lodash@4.17.21'
+```
+
+**URL conversion:**
 ```javascript
 import { UrlConverter } from '@socketregistry/packageurl-js'
 
@@ -110,20 +137,34 @@ UrlConverter.toDownloadUrl(purl)
 // -> 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz'
 ```
 
-**Use type-safe PURL types:**
-```javascript
-import { PURL_Type, EcosystemString } from '@socketregistry/packageurl-js'
+### TypeScript Types
 
-// Type-safe enum values
-console.log(PURL_Type.NPM)      // 'npm'
-console.log(PURL_Type.PYPI)     // 'pypi'
-console.log(PURL_Type.MAVEN)    // 'maven'
+All types are exported for maximum flexibility:
 
-// Use in type annotations
-function processPurl(type: EcosystemString) {
-  // type is constrained to valid PURL type strings
-}
+```typescript
+import type {
+  PackageURLObject,
+  NpmPackageComponents,
+  ParsedPurlComponents,
+  QualifiersObject,
+  ComponentEncoder,
+  DownloadUrl,
+  RepositoryUrl,
+} from '@socketregistry/packageurl-js'
+
+// Type-safe npm package parsing
+const components: NpmPackageComponents = parseNpmSpecifier('lodash@4.17.21')
+
+// Type-safe PURL objects
+const obj: PackageURLObject = purl.toObject()
 ```
+
+See [docs/types.md](docs/types.md) for complete type reference.
+
+## API Reference
+
+- **[docs/api.md](docs/api.md)** - Complete API documentation
+- **[docs/types.md](docs/types.md)** - TypeScript type reference
 
 ## Development
 

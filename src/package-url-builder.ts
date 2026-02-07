@@ -31,13 +31,13 @@ import type { QualifiersObject } from './purl-component.js'
  * Known Limitation: instanceof checks with ESM/CommonJS interop
  * ==============================================================
  *
- * When using PackageURLBuilder in environments that mix ESM and CommonJS modules
+ * When using PurlBuilder in environments that mix ESM and CommonJS modules
  * (such as Vitest tests importing CommonJS-compiled code as ESM), the instanceof
  * operator may not work reliably for checking if the built objects are instances
  * of PackageURL.
  *
  * This occurs because:
- * - PackageURLBuilder internally imports PackageURL using CommonJS require()
+ * - PurlBuilder internally imports PackageURL using CommonJS require()
  * - External code may import PackageURL using ESM import
  * - Node.js creates different wrapper objects for the same class
  * - The instanceof check fails due to different object identities
@@ -59,14 +59,14 @@ import type { QualifiersObject } from './purl-component.js'
  *
  * @example
  * ```typescript
- * const purl = PackageURLBuilder
+ * const purl = PurlBuilder
  *   .npm()
  *   .name('lodash')
  *   .version('4.17.21')
  *   .build()
  * ```
  */
-export class PackageURLBuilder {
+export class PurlBuilder {
   /** The package type (e.g., 'npm', 'pypi', 'maven'). */
   private _type?: string | undefined
 
@@ -194,8 +194,8 @@ export class PackageURLBuilder {
    * This convenience method creates a new builder instance with the type
    * already set to 'cargo', ready for building Rust crate URLs.
    */
-  static cargo(): PackageURLBuilder {
-    return new PackageURLBuilder().type('cargo')
+  static cargo(): PurlBuilder {
+    return new PurlBuilder().type('cargo')
   }
 
   /**
@@ -204,18 +204,18 @@ export class PackageURLBuilder {
    * This convenience method creates a new builder instance with the type
    * already set to 'composer', ready for building Composer package URLs.
    */
-  static composer(): PackageURLBuilder {
-    return new PackageURLBuilder().type('composer')
+  static composer(): PurlBuilder {
+    return new PurlBuilder().type('composer')
   }
 
   /**
    * Create a new empty builder instance.
    *
-   * This is a convenience factory method that returns a new PackageURLBuilder
+   * This is a convenience factory method that returns a new PurlBuilder
    * instance ready for configuration.
    */
-  static create(): PackageURLBuilder {
-    return new PackageURLBuilder()
+  static create(): PurlBuilder {
+    return new PurlBuilder()
   }
 
   /**
@@ -224,8 +224,8 @@ export class PackageURLBuilder {
    * This factory method copies all properties from an existing PackageURL
    * into a new builder, allowing for modification of existing URLs.
    */
-  static from(purl: PackageURL): PackageURLBuilder {
-    const builder = new PackageURLBuilder()
+  static from(purl: PackageURL): PurlBuilder {
+    const builder = new PurlBuilder()
     if (purl.type !== undefined) {
       builder._type = purl.type
     }
@@ -261,15 +261,15 @@ export class PackageURLBuilder {
    *
    * @example
    * ```typescript
-   * PackageURLBuilder.gem()
+   * PurlBuilder.gem()
    *   .name('rails')
    *   .version('7.0.0')
    *   .build()
    * // -> pkg:gem/rails@7.0.0
    * ```
    */
-  static gem(): PackageURLBuilder {
-    return new PackageURLBuilder().type('gem')
+  static gem(): PurlBuilder {
+    return new PurlBuilder().type('gem')
   }
 
   /**
@@ -278,8 +278,8 @@ export class PackageURLBuilder {
    * This convenience method creates a new builder instance with the type
    * already set to 'golang', ready for building Go package URLs.
    */
-  static golang(): PackageURLBuilder {
-    return new PackageURLBuilder().type('golang')
+  static golang(): PurlBuilder {
+    return new PurlBuilder().type('golang')
   }
 
   /**
@@ -288,8 +288,8 @@ export class PackageURLBuilder {
    * This convenience method creates a new builder instance with the type
    * already set to 'maven', ready for building Maven package URLs.
    */
-  static maven(): PackageURLBuilder {
-    return new PackageURLBuilder().type('maven')
+  static maven(): PurlBuilder {
+    return new PurlBuilder().type('maven')
   }
 
   /**
@@ -298,8 +298,8 @@ export class PackageURLBuilder {
    * This convenience method creates a new builder instance with the type
    * already set to 'npm', ready for building npm package URLs.
    */
-  static npm(): PackageURLBuilder {
-    return new PackageURLBuilder().type('npm')
+  static npm(): PurlBuilder {
+    return new PurlBuilder().type('npm')
   }
 
   /**
@@ -308,8 +308,8 @@ export class PackageURLBuilder {
    * This convenience method creates a new builder instance with the type
    * already set to 'nuget', ready for building NuGet package URLs.
    */
-  static nuget(): PackageURLBuilder {
-    return new PackageURLBuilder().type('nuget')
+  static nuget(): PurlBuilder {
+    return new PurlBuilder().type('nuget')
   }
 
   /**
@@ -318,7 +318,7 @@ export class PackageURLBuilder {
    * This convenience method creates a new builder instance with the type
    * already set to 'pypi', ready for building Python package URLs.
    */
-  static pypi(): PackageURLBuilder {
-    return new PackageURLBuilder().type('pypi')
+  static pypi(): PurlBuilder {
+    return new PurlBuilder().type('pypi')
   }
 }

@@ -27,15 +27,15 @@ describe('Integration tests', () => {
     expect(purl.toString()).toBe('pkg:npm/lodash@4.17.21')
   })
 
-  it('should load PackageURLBuilder and work correctly', async () => {
+  it('should load PurlBuilder and work correctly', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
-    const { PackageURLBuilder } = await import(`${pkgPath}/dist/index.js`)
-    expect(PackageURLBuilder).toBeDefined()
-    expect(typeof PackageURLBuilder.create).toBe('function')
+    const { PurlBuilder } = await import(`${pkgPath}/dist/index.js`)
+    expect(PurlBuilder).toBeDefined()
+    expect(typeof PurlBuilder.create).toBe('function')
 
     // Test basic functionality
-    const purl = PackageURLBuilder.create()
+    const purl = PurlBuilder.create()
       .type('npm')
       .name('lodash')
       .version('4.17.21')
@@ -65,12 +65,12 @@ describe('Integration tests', () => {
   it('should have all entry points working together', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
-    const { PackageURL, PackageURLBuilder, UrlConverter } = await import(
+    const { PackageURL, PurlBuilder, UrlConverter } = await import(
       `${pkgPath}/dist/index.js`
     )
 
     // Build a purl
-    const purl = PackageURLBuilder.create()
+    const purl = PurlBuilder.create()
       .type('npm')
       .namespace('@types')
       .name('node')
