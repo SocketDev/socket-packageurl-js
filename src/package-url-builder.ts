@@ -258,6 +258,15 @@ export class PackageURLBuilder {
    *
    * This convenience method creates a new builder instance with the type
    * already set to 'gem', ready for building Ruby gem URLs.
+   *
+   * @example
+   * ```typescript
+   * PackageURLBuilder.gem()
+   *   .name('rails')
+   *   .version('7.0.0')
+   *   .build()
+   * // -> pkg:gem/rails@7.0.0
+   * ```
    */
   static gem(): PackageURLBuilder {
     return new PackageURLBuilder().type('gem')

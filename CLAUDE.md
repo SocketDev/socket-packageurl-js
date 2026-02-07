@@ -171,7 +171,8 @@ TypeScript implementation of [Package URL specification](https://github.com/pack
 #### Error Requirements
 - Never throw on valid purls per spec
 - Include `{ cause: e }` when wrapping errors
-- No `process.exit()` - throw errors
+- No `process.exit()` in library code - throw errors instead
+  - **Exception**: CLI scripts in `scripts/` may use `process.exit()` for proper exit codes
 - No silent failures - throw proper errors
 
 ### TypeScript Patterns
