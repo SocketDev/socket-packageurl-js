@@ -368,6 +368,30 @@ result.error.message // -> 'failed'
 
 ---
 
+## Constants
+
+### `PurlQualifierNames`
+
+Constants for standard PURL qualifier keys.
+
+```typescript
+import { PurlQualifierNames } from '@socketregistry/packageurl-js'
+
+const qualifiers = {
+  [PurlQualifierNames.Checksum]: 'sha256:abc123',
+  [PurlQualifierNames.DownloadUrl]: 'https://example.com/package.tar.gz'
+}
+```
+
+**Available constants:**
+- `RepositoryUrl` = `'repository_url'`
+- `DownloadUrl` = `'download_url'`
+- `VcsUrl` = `'vcs_url'`
+- `FileName` = `'file_name'`
+- `Checksum` = `'checksum'`
+
+---
+
 ## Importing Types
 
 All types can be imported from the main entry point:
@@ -395,6 +419,16 @@ import type {
 
   // Result types
   Result,
+} from '@socketregistry/packageurl-js'
+```
+
+**Constants (value imports):**
+```typescript
+import {
+  PurlQualifierNames,
+  PURL_Type,
+  PurlType,
+  PurlComponent,
 } from '@socketregistry/packageurl-js'
 ```
 

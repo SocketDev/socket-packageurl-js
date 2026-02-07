@@ -159,6 +159,19 @@ const components: NpmPackageComponents = parseNpmSpecifier('lodash@4.17.21')
 const obj: PackageURLObject = purl.toObject()
 ```
 
+**Constants:**
+```typescript
+import { PurlQualifierNames, PURL_Type } from '@socketregistry/packageurl-js'
+
+// Standard qualifier keys
+PurlQualifierNames.Checksum       // 'checksum'
+PurlQualifierNames.RepositoryUrl  // 'repository_url'
+
+// Package types
+PURL_Type.NPM    // 'npm'
+PURL_Type.PYPI   // 'pypi'
+```
+
 See [docs/types.md](docs/types.md) for complete type reference.
 
 ## API Reference

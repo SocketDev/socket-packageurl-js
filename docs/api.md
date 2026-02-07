@@ -292,7 +292,54 @@ new PurlBuilder()
 
 ### Static Factory Methods
 
-Create type-specific builders:
+#### `PurlBuilder.create()`
+
+Create a new empty builder instance.
+
+**Returns:** `PurlBuilder`
+
+**Example:**
+```javascript
+const builder = PurlBuilder.create()
+  .type('npm')
+  .name('lodash')
+  .build()
+```
+
+---
+
+#### `PurlBuilder.from(purl)`
+
+Create a builder from an existing PackageURL instance.
+
+**Parameters:**
+- `purl: PackageURL` - Existing PackageURL to copy properties from
+
+**Returns:** `PurlBuilder` - Builder with all properties pre-populated
+
+**Example:**
+```javascript
+const originalPurl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+
+const modifiedPurl = PurlBuilder.from(originalPurl)
+  .version('4.18.0')
+  .qualifier('arch', 'x64')
+  .build()
+
+console.log(modifiedPurl.toString())
+// -> 'pkg:npm/lodash@4.18.0?arch=x64'
+```
+
+**Use cases:**
+- Modify existing PURLs while preserving most properties
+- Create variants of a PURL with different versions or qualifiers
+- Clone and customize PURLs
+
+---
+
+#### Type-Specific Factory Methods
+
+Create builders with type preset:
 
 ```javascript
 PurlBuilder.npm()
@@ -300,7 +347,18 @@ PurlBuilder.pypi()
 PurlBuilder.maven()
 PurlBuilder.gem()
 PurlBuilder.cargo()
+PurlBuilder.composer()
+PurlBuilder.golang()
+PurlBuilder.nuget()
 // ... and 30+ more ecosystems
+```
+
+**Example:**
+```javascript
+const purl = PurlBuilder.npm()
+  .name('lodash')
+  .version('4.17.21')
+  .build()
 ```
 
 ### Builder Methods
@@ -433,6 +491,42 @@ PURL_Type.CARGO    // 'cargo'
 // ... 35+ types
 ```
 
+---
+
+### `PurlQualifierNames`
+
+Constants for standard PURL qualifier keys as defined in the [purl-spec](https://github.com/package-url/purl-spec/blob/master/PURL-SPECIFICATION.rst#known-qualifiers-keyvalue-pairs).
+
+```javascript
+import { PurlQualifierNames } from '@socketregistry/packageurl-js'
+
+PurlQualifierNames.RepositoryUrl  // 'repository_url'
+PurlQualifierNames.DownloadUrl    // 'download_url'
+PurlQualifierNames.VcsUrl         // 'vcs_url'
+PurlQualifierNames.FileName       // 'file_name'
+PurlQualifierNames.Checksum       // 'checksum'
+```
+
+**Usage:**
+```javascript
+const purl = PurlBuilder.maven()
+  .namespace('org.apache.commons')
+  .name('commons-lang3')
+  .version('3.12.0')
+  .qualifier(PurlQualifierNames.Checksum, 'sha256:abc123')
+  .qualifier(PurlQualifierNames.DownloadUrl, 'https://repo1.maven.org/...')
+  .build()
+```
+
+**Known qualifiers:**
+- `repository_url` - URL to package repository homepage
+- `download_url` - Direct download URL for the package artifact
+- `vcs_url` - Version control system URL (git, svn, etc.)
+- `file_name` - Name of the package file or artifact
+- `checksum` - Checksum value in the format `algorithm:value` (e.g., `sha256:abc123`)
+
+---
+
 ### `PurlType`
 
 Object with type-specific normalization and validation:
@@ -444,6 +538,30 @@ PurlType.npm.normalize(purl)
 PurlType.npm.validate(purl)
 ```
 
+**Type-specific rules:**
+
+**npm:**
+- Name: Lowercased, namespace preserved with `@` prefix
+- Version: Requires valid semver format
+- Namespace: Used for scoped packages (e.g., `@types`)
+
+**pypi:**
+- Name: Lowercased, underscores replaced with dashes
+- Namespace: Must be empty
+- Version: Normalized according to PEP 440
+
+**maven:**
+- Name: Preserved as-is
+- Namespace: Required (groupId)
+- Case-sensitive
+
+**cargo:**
+- Name: Lowercased
+- Namespace: Must be empty
+- Version: Follows semver
+
+---
+
 ### `PurlComponent`
 
 Component encoding/decoding utilities:
@@ -454,6 +572,20 @@ import { PurlComponent } from '@socketregistry/packageurl-js'
 PurlComponent.name.encode('my-package')
 PurlComponent.name.decode('my-package')
 ```
+
+**Available components:**
+- `type` - Package ecosystem type
+- `namespace` - Optional namespace/scope
+- `name` - Package name (required)
+- `version` - Package version
+- `qualifiers` - Key-value pairs
+- `subpath` - Path within package
+
+**Encoding rules:**
+- UTF-8 characters are percent-encoded
+- Forward slashes in namespaces become encoded
+- `@` in npm scopes is encoded as `%40`
+- Special characters in names/versions are encoded per spec
 
 ---
 
@@ -473,6 +605,93 @@ try {
     console.error('PURL error:', error.message)
   }
 }
+```
+
+### Validation Rules
+
+The library performs strict validation on all components:
+
+**Type validation:**
+- Required for all PURLs
+- Must be lowercase letters, numbers, `.`, `+`, or `-`
+- Cannot be empty
+- Example errors:
+  - `'type' is a required component`
+  - `'type' component must be lowercase`
+
+**Name validation:**
+- Required for all PURLs
+- Cannot contain whitespace (some types)
+- Cannot be empty
+- Type-specific rules apply (e.g., npm name validation)
+- Example errors:
+  - `'name' is a required component`
+  - `npm 'name' component cannot contain whitespace`
+
+**Namespace validation:**
+- Optional for most types, required for some (e.g., maven)
+- Type-specific rules apply
+- Cannot contain whitespace (some types)
+- Example errors:
+  - `maven requires a 'namespace' component`
+  - `npm 'namespace' component cannot contain whitespace`
+
+**Version validation:**
+- Optional for most types
+- Type-specific format requirements (e.g., semver for npm)
+- Example errors:
+  - `npm 'version' component must be valid semver`
+  - `'version' component cannot be empty`
+
+**Qualifiers validation:**
+- Keys must be lowercase alphanumeric with `.`, `-`, or `_`
+- Values must not be empty strings
+- Example errors:
+  - `qualifier 'Arch' must be lowercase`
+  - `qualifier 'os' must not be empty`
+
+**Subpath validation:**
+- Must not start with `/`
+- Cannot contain `..` segments
+- Example errors:
+  - `'subpath' component cannot start with '/'`
+  - `'subpath' component cannot contain '..' segments`
+
+### Common Error Scenarios
+
+**Invalid PURL string:**
+```javascript
+// Missing 'pkg:' scheme
+PackageURL.fromString('npm/lodash')
+// -> PurlError: missing required "pkg" scheme component
+
+// Missing type
+PackageURL.fromString('pkg:/lodash')
+// -> PurlError: 'type' is a required component
+
+// Missing name
+PackageURL.fromString('pkg:npm/')
+// -> PurlError: 'name' is a required component
+```
+
+**Type-specific violations:**
+```javascript
+// npm requires valid semver
+new PackageURL('npm', undefined, 'lodash', 'latest')
+// -> PurlError: npm 'version' component must be valid semver
+
+// maven requires namespace
+new PackageURL('maven', undefined, 'commons-lang3', '3.12.0')
+// -> PurlError: maven requires a 'namespace' component
+```
+
+**Invalid qualifiers:**
+```javascript
+const purl = PurlBuilder.npm()
+  .name('lodash')
+  .qualifier('Arch', 'x64')  // Uppercase not allowed
+  .build()
+// -> PurlError: qualifier 'Arch' must be lowercase
 ```
 
 ---
