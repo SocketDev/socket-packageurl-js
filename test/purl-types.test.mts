@@ -117,4 +117,130 @@ describe('PackageURL type-specific tests', () => {
       )
     })
   })
+
+  describe('cargo', () => {
+    it('should reject cargo packages with namespace', () => {
+      // Cargo does not support namespace per spec
+      expect(() => {
+        new PackageURL(
+          'cargo',
+          'some-namespace',
+          'rand',
+          '0.7.2',
+          undefined,
+          undefined,
+        )
+      }).toThrow('cargo "namespace" component must be empty')
+    })
+
+    it('should accept cargo packages without namespace', () => {
+      const purl = new PackageURL(
+        'cargo',
+        undefined,
+        'rand',
+        '0.7.2',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:cargo/rand@0.7.2')
+    })
+
+    it('should preserve case in cargo package names', () => {
+      // Cargo names are case-sensitive
+      const purl = new PackageURL(
+        'cargo',
+        undefined,
+        'MyPackage',
+        '1.0.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('MyPackage')
+      expect(purl.toString()).toBe('pkg:cargo/MyPackage@1.0.0')
+    })
+  })
+
+  describe('gem', () => {
+    it('should reject gem packages with namespace', () => {
+      // RubyGems does not support namespace per spec
+      expect(() => {
+        new PackageURL(
+          'gem',
+          'some-namespace',
+          'rails',
+          '7.0.0',
+          undefined,
+          undefined,
+        )
+      }).toThrow('gem "namespace" component must be empty')
+    })
+
+    it('should accept gem packages without namespace', () => {
+      const purl = new PackageURL(
+        'gem',
+        undefined,
+        'rails',
+        '7.0.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:gem/rails@7.0.0')
+    })
+
+    it('should preserve case in gem package names', () => {
+      // Gem names are case-sensitive
+      const purl = new PackageURL(
+        'gem',
+        undefined,
+        'MyGem',
+        '1.0.0',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('MyGem')
+      expect(purl.toString()).toBe('pkg:gem/MyGem@1.0.0')
+    })
+  })
+
+  describe('nuget', () => {
+    it('should reject nuget packages with namespace', () => {
+      // NuGet does not support namespace per spec
+      expect(() => {
+        new PackageURL(
+          'nuget',
+          'some-namespace',
+          'Newtonsoft.Json',
+          '13.0.1',
+          undefined,
+          undefined,
+        )
+      }).toThrow('nuget "namespace" component must be empty')
+    })
+
+    it('should accept nuget packages without namespace', () => {
+      const purl = new PackageURL(
+        'nuget',
+        undefined,
+        'Newtonsoft.Json',
+        '13.0.1',
+        undefined,
+        undefined,
+      )
+      expect(purl.toString()).toBe('pkg:nuget/Newtonsoft.Json@13.0.1')
+    })
+
+    it('should preserve case in nuget package names', () => {
+      // NuGet names are case-preserving but case-insensitive (no normalization)
+      const purl = new PackageURL(
+        'nuget',
+        undefined,
+        'Newtonsoft.Json',
+        '13.0.1',
+        undefined,
+        undefined,
+      )
+      expect(purl.name).toBe('Newtonsoft.Json')
+      expect(purl.toString()).toBe('pkg:nuget/Newtonsoft.Json@13.0.1')
+    })
+  })
 })

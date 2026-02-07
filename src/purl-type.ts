@@ -199,10 +199,16 @@ const PurlType = createHelpersNamespaceObject(
       bitbucket: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#bitnami
       bitnami: createLowerNameNormalizer(),
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/cargo-definition.md
+      // Cargo names are case-sensitive, no normalization required
+      // cargo: PurlTypNormalizer,
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#composer
       composer: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#deb
       deb: createLowerNamespaceAndNameNormalizer(),
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/gem-definition.md
+      // RubyGems names are case-sensitive, no normalization mentioned in spec
+      // gem: PurlTypNormalizer,
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#other-candidate-types-to-define
       gitlab: createLowerNamespaceAndNameNormalizer(),
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#github
@@ -229,6 +235,9 @@ const PurlType = createHelpersNamespaceObject(
         }
         return purl
       },
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/maven-definition.md
+      // Maven groupId and artifactId are case-sensitive, no normalization
+      // maven: PurlTypNormalizer,
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#npm
       npm(purl: PurlObject) {
         lowerNamespace(purl)
@@ -239,6 +248,9 @@ const PurlType = createHelpersNamespaceObject(
         }
         return purl
       },
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/nuget-definition.md
+      // NuGet names are case-preserving but case-insensitive (no normalization)
+      // nuget: PurlTypNormalizer,
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#luarocks
       luarocks(purl: PurlObject) {
         lowerVersion(purl)
@@ -271,6 +283,12 @@ const PurlType = createHelpersNamespaceObject(
       },
     },
     validate: {
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/cargo-definition.md
+      cargo(purl: PurlObject, throws: boolean) {
+        return validateEmptyByType('cargo', 'namespace', purl.namespace, {
+          throws,
+        })
+      },
       // https://github.com/package-url/purl-spec/blob/master/types-doc/cocoapods-definition.md
       cocoapods(purl: PurlObject, throws: boolean) {
         const { name } = purl
@@ -342,6 +360,12 @@ const PurlType = createHelpersNamespaceObject(
           throws,
         })
       },
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/gem-definition.md
+      gem(purl: PurlObject, throws: boolean) {
+        return validateEmptyByType('gem', 'namespace', purl.namespace, {
+          throws,
+        })
+      },
       // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#golang
       golang(purl: PurlObject, throws: boolean) {
         // Still being lenient here since the standard changes aren't official
@@ -365,9 +389,15 @@ const PurlType = createHelpersNamespaceObject(
         }
         return true
       },
-      // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#maven
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/maven-definition.md
       maven(purl: PurlObject, throws: boolean) {
         return validateRequiredByType('maven', 'namespace', purl.namespace, {
+          throws,
+        })
+      },
+      // https://github.com/package-url/purl-spec/blob/master/types-doc/nuget-definition.md
+      nuget(purl: PurlObject, throws: boolean) {
+        return validateEmptyByType('nuget', 'namespace', purl.namespace, {
           throws,
         })
       },
