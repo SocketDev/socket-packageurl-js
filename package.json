@@ -20,48 +20,8 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./comparators": {
-      "types": "./dist/comparators/index.d.ts",
-      "default": "./dist/comparators/index.js"
-    },
-    "./parsers": {
-      "types": "./dist/parsers/index.d.ts",
-      "default": "./dist/parsers/index.js"
-    },
-    "./parsers/*": {
-      "types": "./dist/parsers/*.d.ts",
-      "default": "./dist/parsers/*.js"
-    },
-    "./serializers": {
-      "types": "./dist/serializers/index.d.ts",
-      "default": "./dist/serializers/index.js"
-    },
-    "./builder": {
-      "types": "./dist/package-url-builder.d.ts",
-      "default": "./dist/package-url-builder.js"
-    },
-    "./error": {
-      "types": "./dist/error.d.ts",
-      "default": "./dist/error.js"
-    },
-    "./result": {
-      "types": "./dist/result.d.ts",
-      "default": "./dist/result.js"
-    },
-    "./url-converter": {
-      "types": "./dist/url-converter.d.ts",
-      "default": "./dist/url-converter.js"
-    },
-    "./serializers/*": {
-      "types": "./dist/serializers/*.d.ts",
-      "default": "./dist/serializers/*.js"
-    },
     "./data/npm/builtin-names.json": "./data/npm/builtin-names.json",
     "./data/npm/legacy-names.json": "./data/npm/legacy-names.json",
-    "./dist/*": {
-      "types": "./dist/*.d.ts",
-      "default": "./dist/*.js"
-    },
     "./package.json": "./package.json"
   },
   "files": [

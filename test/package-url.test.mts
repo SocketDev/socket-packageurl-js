@@ -605,6 +605,89 @@ describe('PackageURL', () => {
     })
   })
 
+  describe('fromSpec', () => {
+    it('should create PackageURL from npm specifier', () => {
+      const purl = PackageURL.fromSpec('npm', 'lodash@4.17.21')
+      expect(purl.type).toBe('npm')
+      expect(purl.name).toBe('lodash')
+      expect(purl.version).toBe('4.17.21')
+      expect(purl.toString()).toBe('pkg:npm/lodash@4.17.21')
+    })
+
+    it('should create PackageURL from scoped npm specifier', () => {
+      const purl = PackageURL.fromSpec('npm', '@babel/core@^7.0.0')
+      expect(purl.type).toBe('npm')
+      expect(purl.namespace).toBe('@babel')
+      expect(purl.name).toBe('core')
+      expect(purl.version).toBe('7.0.0')
+      expect(purl.toString()).toBe('pkg:npm/%40babel/core@7.0.0')
+    })
+
+    it('should handle npm specifier without version', () => {
+      const purl = PackageURL.fromSpec('npm', 'express')
+      expect(purl.type).toBe('npm')
+      expect(purl.name).toBe('express')
+      expect(purl.version).toBe(undefined)
+      expect(purl.toString()).toBe('pkg:npm/express')
+    })
+
+    it('should handle npm version ranges', () => {
+      const purl1 = PackageURL.fromSpec('npm', 'lodash@>=1.0.0')
+      expect(purl1.version).toBe('1.0.0')
+
+      const purl2 = PackageURL.fromSpec('npm', 'lodash@~2.0.0')
+      expect(purl2.version).toBe('2.0.0')
+
+      const purl3 = PackageURL.fromSpec('npm', 'foo@1.0.0 - 2.0.0')
+      expect(purl3.version).toBe('1.0.0')
+    })
+
+    it('should handle npm dist-tags', () => {
+      const purl = PackageURL.fromSpec('npm', 'react@latest')
+      expect(purl.type).toBe('npm')
+      expect(purl.name).toBe('react')
+      expect(purl.version).toBe('latest')
+    })
+
+    it('should throw for unsupported package types', () => {
+      expect(() => PackageURL.fromSpec('pypi', 'django@4.0.0')).toThrow(
+        'Unsupported package type: pypi. Currently supported: npm',
+      )
+
+      expect(() => PackageURL.fromSpec('maven', 'org.example:lib@1.0')).toThrow(
+        'Unsupported package type: maven. Currently supported: npm',
+      )
+
+      expect(() => PackageURL.fromSpec('gem', 'rails@7.0.0')).toThrow(
+        'Unsupported package type: gem. Currently supported: npm',
+      )
+    })
+
+    it('should validate npm specifier format', () => {
+      expect(() =>
+        PackageURL.fromSpec('npm', null as unknown as string),
+      ).toThrow('npm package specifier string is required')
+
+      expect(() => PackageURL.fromSpec('npm', '')).toThrow(
+        'npm package specifier cannot be empty',
+      )
+
+      expect(() => PackageURL.fromSpec('npm', '@babel')).toThrow(
+        'Invalid scoped package specifier',
+      )
+    })
+
+    it('should produce same result as fromNpm for npm packages', () => {
+      const spec1 = PackageURL.fromSpec('npm', 'lodash@4.17.21')
+      const spec2 = PackageURL.fromNpm('lodash@4.17.21')
+      expect(spec1.toString()).toBe(spec2.toString())
+
+      const spec3 = PackageURL.fromSpec('npm', '@babel/core@^7.0.0')
+      const spec4 = PackageURL.fromNpm('@babel/core@^7.0.0')
+      expect(spec3.toString()).toBe(spec4.toString())
+    })
+  })
+
   describe('Path normalization', () => {
     it('should strip leading slashes from subpath with filtered segments', () => {
       // When segments like ".." are filtered, the remaining path should not have a leading slash
