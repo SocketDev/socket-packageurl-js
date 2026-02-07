@@ -3,8 +3,9 @@
  * Delegates to type-specific parsers based on ecosystem type.
  */
 
-import type { PackageURL } from '../package-url.js'
 import { fromNpm } from './npm.js'
+
+import type { PackageURL } from '../package-url.js'
 
 /**
  * Create PackageURL from ecosystem-specific package specifier.

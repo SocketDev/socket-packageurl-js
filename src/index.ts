@@ -76,8 +76,10 @@ export {
 } from './package-url.js'
 export { PackageURLBuilder } from './package-url-builder.js'
 // ============================================================================
-// Parsers (Modular)
+// Modular Utilities
 // ============================================================================
-export { fromNpm, fromSpec } from './parsers/index.js'
+export { compare, equals } from './comparators/index.js'
+export { fromNpm, fromSpec, parse } from './parsers/index.js'
+export { stringify } from './serializers/index.js'
 
 /* c8 ignore stop */

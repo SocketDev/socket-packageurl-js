@@ -20,10 +20,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+import {
+  compare as comparePurls,
+  equals as equalsPurls,
+} from './comparators/index.js'
 import { decodePurlComponent } from './decode.js'
 import { PurlError } from './error.js'
 import { isObject, recursiveFreeze } from './objects.js'
-import { fromNpm, fromSpec } from './parsers/index.js'
+import { fromNpm, fromSpec, parse as parsePurl } from './parsers/index.js'
 /**
  * @fileoverview Package URL parsing and construction utilities.
  *
@@ -36,11 +40,11 @@ import { PurlComponent } from './purl-component.js'
 import { PurlQualifierNames } from './purl-qualifier-names.js'
 import { PurlType } from './purl-type.js'
 import { Err, Ok, ResultUtils, err, ok } from './result.js'
+import { stringify as stringifyPurl } from './serializers/index.js'
 import { isBlank, isNonEmptyString, trimLeadingSlashes } from './strings.js'
 import { UrlConverter } from './url-converter.js'
 
 import type {
-  ComponentEncoder,
   ComponentNormalizer,
   ComponentValidator,
   QualifiersObject,
@@ -218,36 +222,7 @@ class PackageURL {
   }
 
   toString() {
-    const {
-      name,
-      namespace,
-      qualifiers,
-      subpath,
-      type,
-      version,
-    }: {
-      name?: string | undefined
-      namespace?: string | undefined
-      qualifiers?: QualifiersObject | undefined
-      subpath?: string | undefined
-      type?: string | undefined
-      version?: string | undefined
-    } = this
-    /* c8 ignore next - Type encoder uses default PurlComponentEncoder, never returns null/undefined. */ let purlStr = `pkg:${(PurlComponent['type']?.['encode'] as ComponentEncoder)?.(type) ?? ''}/`
-    if (namespace) {
-      /* c8 ignore next - Namespace encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent['namespace']?.['encode'] as ComponentEncoder)?.(namespace) ?? ''}/`
-    }
-    /* c8 ignore next - Name encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent['name']?.['encode'] as ComponentEncoder)?.(name) ?? ''}`
-    if (version) {
-      /* c8 ignore next - Version encoder always returns string, never null/undefined. */ purlStr = `${purlStr}@${(PurlComponent['version']?.['encode'] as ComponentEncoder)?.(version) ?? ''}`
-    }
-    if (qualifiers) {
-      /* c8 ignore next - Qualifiers encoder always returns string, never null/undefined. */ purlStr = `${purlStr}?${(PurlComponent['qualifiers']?.['encode'] as ComponentEncoder)?.(qualifiers) ?? ''}`
-    }
-    if (subpath) {
-      /* c8 ignore next - Subpath encoder always returns string, never null/undefined. */ purlStr = `${purlStr}#${(PurlComponent['subpath']?.['encode'] as ComponentEncoder)?.(subpath) ?? ''}`
-    }
-    return purlStr
+    return stringifyPurl(this)
   }
 
   /**
@@ -260,7 +235,7 @@ class PackageURL {
    * @returns true if the PURLs are equal, false otherwise
    */
   equals(other: PackageURL): boolean {
-    return this.toString() === other.toString()
+    return equalsPurls(this, other)
   }
 
   /**
@@ -275,7 +250,7 @@ class PackageURL {
    * @returns -1, 0, or 1 for sort ordering
    */
   compare(other: PackageURL): -1 | 0 | 1 {
-    return PackageURL.compare(this, other)
+    return comparePurls(this, other)
   }
 
   /**
@@ -349,16 +324,7 @@ class PackageURL {
   }
 
   static fromString(purlStr: unknown): PackageURL {
-    return new PackageURL(
-      ...(PackageURL.parseString(purlStr) as [
-        unknown,
-        unknown,
-        unknown,
-        unknown,
-        unknown,
-        unknown,
-      ]),
-    )
+    return parsePurl(purlStr)
   }
 
   /**
@@ -636,7 +602,7 @@ class PackageURL {
    * @returns true if the PURLs are equal, false otherwise
    */
   static equals(a: PackageURL, b: PackageURL): boolean {
-    return a.toString() === b.toString()
+    return equalsPurls(a, b)
   }
 
   /**
@@ -653,15 +619,7 @@ class PackageURL {
    * @returns -1, 0, or 1 for sort ordering
    */
   static compare(a: PackageURL, b: PackageURL): -1 | 0 | 1 {
-    const aStr = a.toString()
-    const bStr = b.toString()
-    if (aStr < bStr) {
-      return -1
-    }
-    if (aStr > bStr) {
-      return 1
-    }
-    return 0
+    return comparePurls(a, b)
   }
 }
 
