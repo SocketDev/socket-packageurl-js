@@ -64,7 +64,8 @@ function normalizePurlPath(
     lastSegment.length !== 0 &&
     (callback === undefined || callback(lastSegment))
   ) {
-    collapsed = `${collapsed}/${lastSegment}`
+    // Add segment with separator if not first segment
+    collapsed = collapsed + (collapsed.length === 0 ? '' : '/') + lastSegment
   }
   return collapsed
 }

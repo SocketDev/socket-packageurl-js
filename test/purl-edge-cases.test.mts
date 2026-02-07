@@ -1654,8 +1654,9 @@ describe('Edge cases and additional coverage', () => {
     // Test normalize.js lines 7, 13 - subpath filtering
     it('should test subpath with dot segments', () => {
       // Test lines 7, 13 - filters . and ..
+      // When filtered segments precede valid segments, no leading slash should be added
       expect(normalizeSubpath('./path/to/file')).toBe('path/to/file')
-      expect(normalizeSubpath('../../../path')).toBe('/path')
+      expect(normalizeSubpath('../../../path')).toBe('path')
       expect(normalizeSubpath('.')).toBe('.')
       expect(normalizeSubpath('..')).toBe('..')
     })
