@@ -94,7 +94,7 @@ async function main() {
       async n => {
         if (!seenNames.has(n)) {
           seenNames.add(n)
-          spinner.setText(`Checking package ${n}...`)
+          spinner.text(`Checking package ${n}…`)
         }
         try {
           await pacote.manifest(`${n}@latest`)
