@@ -262,7 +262,6 @@ async function runTests(options, positionals = []) {
       ...process.env,
       NODE_OPTIONS:
         `${process.env.NODE_OPTIONS || ''} --max-old-space-size=${process.env.CI ? 8192 : 4096} --max-semi-space-size=512 --unhandled-rejections=warn`.trim(),
-      NODE_COMPILE_CACHE: './.cache',
       VITEST: '1',
     },
     stdio: 'inherit',
@@ -333,7 +332,6 @@ async function runIsolatedTests() {
       ...process.env,
       NODE_OPTIONS:
         `${process.env.NODE_OPTIONS || ''} --max-old-space-size=${process.env.CI ? 8192 : 4096} --max-semi-space-size=512 --unhandled-rejections=warn`.trim(),
-      NODE_COMPILE_CACHE: './.cache',
       VITEST: '1',
     },
     stdio: 'inherit',
@@ -489,8 +487,7 @@ async function main() {
       spinner.stop()
     } catch {}
     removeExitHandler()
-    // Explicitly exit to prevent hanging
-    process.exit(process.exitCode || 0)
+    // Let Node.js exit naturally with process.exitCode
   }
 }
 

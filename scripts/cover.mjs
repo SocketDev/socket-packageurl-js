@@ -87,7 +87,6 @@ try {
       cwd: rootPath,
       env: {
         ...process.env,
-        NODE_COMPILE_CACHE: './.cache',
         VITEST: '1',
       },
     })
@@ -143,7 +142,6 @@ try {
       cwd: rootPath,
       env: {
         ...process.env,
-        NODE_COMPILE_CACHE: './.cache',
         VITEST: '1',
       },
     })

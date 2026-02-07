@@ -396,6 +396,8 @@ Error handling in scripts:
 - Exit codes: Non-zero exit on failure for CI detection
 - Error messages: Should use colored symbols (✓✗⚠ℹ→) from yoctocolors-cjs
 - Dependency checks: Do scripts check for required tools before use?
+
+**Note on file existence checks**: existsSync() is ACCEPTABLE and actually PREFERRED over async fs.access() for synchronous file checks. Node.js has quirks where the synchronous check is more reliable for immediate validation. Do NOT flag existsSync() as an issue.
 </pattern>
 
 <pattern name="package_json_scripts">

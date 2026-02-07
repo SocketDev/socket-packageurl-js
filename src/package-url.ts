@@ -561,7 +561,7 @@ class PackageURL {
     // When a forward slash ('/') is directly preceding an '@' symbol,
     // then the '@' symbol is NOT considered a version separator
     if (
-      atSignIndex !== -1 &&
+      atSignIndex > 0 &&
       pathname.charCodeAt(atSignIndex - 1) === 47 /*'/'*/
     ) {
       atSignIndex = -1
