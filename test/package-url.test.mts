@@ -443,6 +443,208 @@ describe('PackageURL', () => {
     })
   })
 
+  describe('Comparison methods', () => {
+    it('should compare PURLs for equality using equals instance method', () => {
+      const purl1 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+      const purl2 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+      const purl3 = PackageURL.fromString('pkg:npm/lodash@4.17.20')
+
+      expect(purl1.equals(purl2)).toBe(true)
+      expect(purl1.equals(purl3)).toBe(false)
+    })
+
+    it('should compare PURLs for equality using static equals method', () => {
+      const purl1 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+      const purl2 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+      const purl3 = PackageURL.fromString('pkg:npm/lodash@4.17.20')
+
+      expect(PackageURL.equals(purl1, purl2)).toBe(true)
+      expect(PackageURL.equals(purl1, purl3)).toBe(false)
+    })
+
+    it('should handle equality with different components', () => {
+      const purl1 = PackageURL.fromString('pkg:npm/@babel/core@7.0.0')
+      const purl2 = PackageURL.fromString('pkg:npm/@babel/core@7.0.0')
+      const purl3 = PackageURL.fromString('pkg:npm/babel-core@7.0.0')
+
+      expect(purl1.equals(purl2)).toBe(true)
+      expect(purl1.equals(purl3)).toBe(false)
+    })
+
+    it('should compare PURLs for sorting using compare instance method', () => {
+      const purl1 = PackageURL.fromString('pkg:npm/a@1.0.0')
+      const purl2 = PackageURL.fromString('pkg:npm/b@1.0.0')
+      const purl3 = PackageURL.fromString('pkg:npm/a@1.0.0')
+
+      expect(purl1.compare(purl2)).toBe(-1)
+      expect(purl2.compare(purl1)).toBe(1)
+      expect(purl1.compare(purl3)).toBe(0)
+    })
+
+    it('should compare PURLs for sorting using static compare method', () => {
+      const purl1 = PackageURL.fromString('pkg:npm/a@1.0.0')
+      const purl2 = PackageURL.fromString('pkg:npm/b@1.0.0')
+      const purl3 = PackageURL.fromString('pkg:npm/a@1.0.0')
+
+      expect(PackageURL.compare(purl1, purl2)).toBe(-1)
+      expect(PackageURL.compare(purl2, purl1)).toBe(1)
+      expect(PackageURL.compare(purl1, purl3)).toBe(0)
+    })
+
+    it('should sort array of PURLs correctly', () => {
+      const purls = [
+        PackageURL.fromString('pkg:npm/z@1.0.0'),
+        PackageURL.fromString('pkg:npm/a@1.0.0'),
+        PackageURL.fromString('pkg:npm/m@1.0.0'),
+      ]
+
+      purls.sort((a, b) => a.compare(b))
+
+      expect(purls[0]?.name).toBe('a')
+      expect(purls[1]?.name).toBe('m')
+      expect(purls[2]?.name).toBe('z')
+    })
+  })
+
+  describe('fromNPM', () => {
+    it('should parse npm package without version', () => {
+      const purl = PackageURL.fromNPM('lodash')
+      expect(purl.type).toBe('npm')
+      expect(purl.name).toBe('lodash')
+      expect(purl.namespace).toBe(undefined)
+      expect(purl.version).toBe(undefined)
+    })
+
+    it('should parse npm package with version', () => {
+      const purl = PackageURL.fromNPM('lodash@4.17.21')
+      expect(purl.type).toBe('npm')
+      expect(purl.name).toBe('lodash')
+      expect(purl.version).toBe('4.17.21')
+    })
+
+    it('should parse scoped npm package without version', () => {
+      const purl = PackageURL.fromNPM('@babel/core')
+      expect(purl.type).toBe('npm')
+      expect(purl.namespace).toBe('@babel')
+      expect(purl.name).toBe('core')
+      expect(purl.version).toBe(undefined)
+    })
+
+    it('should parse scoped npm package with version', () => {
+      const purl = PackageURL.fromNPM('@babel/core@7.20.0')
+      expect(purl.type).toBe('npm')
+      expect(purl.namespace).toBe('@babel')
+      expect(purl.name).toBe('core')
+      expect(purl.version).toBe('7.20.0')
+    })
+
+    it('should strip caret version prefix', () => {
+      const purl = PackageURL.fromNPM('lodash@^4.17.21')
+      expect(purl.version).toBe('4.17.21')
+    })
+
+    it('should strip tilde version prefix', () => {
+      const purl = PackageURL.fromNPM('lodash@~4.17.21')
+      expect(purl.version).toBe('4.17.21')
+    })
+
+    it('should strip >= version prefix', () => {
+      const purl = PackageURL.fromNPM('lodash@>=4.17.21')
+      expect(purl.version).toBe('4.17.21')
+    })
+
+    it('should handle version ranges by taking first version', () => {
+      const purl = PackageURL.fromNPM('lodash@1.0.0 - 2.0.0')
+      expect(purl.version).toBe('1.0.0')
+    })
+
+    it('should support dist-tags (passed through as version)', () => {
+      const purl = PackageURL.fromNPM('react@latest')
+      expect(purl.type).toBe('npm')
+      expect(purl.name).toBe('react')
+      expect(purl.version).toBe('latest')
+    })
+
+    it('should support dist-tags for scoped packages', () => {
+      const purl = PackageURL.fromNPM('@babel/core@next')
+      expect(purl.type).toBe('npm')
+      expect(purl.namespace).toBe('@babel')
+      expect(purl.name).toBe('core')
+      expect(purl.version).toBe('next')
+    })
+
+    it('should support common dist-tags', () => {
+      expect(PackageURL.fromNPM('lodash@latest').version).toBe('latest')
+      expect(PackageURL.fromNPM('lodash@next').version).toBe('next')
+      expect(PackageURL.fromNPM('lodash@beta').version).toBe('beta')
+      expect(PackageURL.fromNPM('lodash@canary').version).toBe('canary')
+    })
+
+    it('should reject non-string input', () => {
+      expect(() => PackageURL.fromNPM(null as unknown as string)).toThrow(
+        'npm package specifier string is required',
+      )
+      expect(() => PackageURL.fromNPM(123 as unknown as string)).toThrow(
+        'npm package specifier string is required',
+      )
+    })
+
+    it('should reject empty string', () => {
+      expect(() => PackageURL.fromNPM('')).toThrow(
+        'npm package specifier cannot be empty',
+      )
+      expect(() => PackageURL.fromNPM('  ')).toThrow(
+        'npm package specifier cannot be empty',
+      )
+    })
+
+    it('should reject invalid scoped package format', () => {
+      expect(() => PackageURL.fromNPM('@babel')).toThrow(
+        'Invalid scoped package specifier',
+      )
+    })
+  })
+
+  describe('Path normalization', () => {
+    it('should strip leading slashes from subpath with filtered segments', () => {
+      // When segments like ".." are filtered, the remaining path should not have a leading slash
+      // Should be "abc", not "/abc"
+      const purl = new PackageURL(
+        'npm',
+        undefined,
+        'foo',
+        '1.0.0',
+        undefined,
+        '../abc',
+      )
+      expect(purl.subpath).toBe('abc')
+    })
+
+    it('should strip leading slashes from subpath with only dots', () => {
+      const purl = new PackageURL(
+        'npm',
+        undefined,
+        'foo',
+        '1.0.0',
+        undefined,
+        './../abc',
+      )
+      expect(purl.subpath).toBe('abc')
+    })
+
+    it('should handle subpath with multiple filtered segments', () => {
+      const purl = new PackageURL(
+        'npm',
+        undefined,
+        'foo',
+        '1.0.0',
+        undefined,
+        '../../abc/def',
+      )
+      expect(purl.subpath).toBe('abc/def')
+    })
+  })
+
   describe('Input validation', () => {
     // JSON security tests moved to package-url-json-security.test.mts
     // for better organization and to avoid duplication

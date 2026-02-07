@@ -250,6 +250,34 @@ class PackageURL {
   }
 
   /**
+   * Compare this PackageURL with another for equality.
+   *
+   * Two PURLs are considered equal if their canonical string representations match.
+   * This comparison is case-sensitive after normalization.
+   *
+   * @param other - The PackageURL to compare with
+   * @returns true if the PURLs are equal, false otherwise
+   */
+  equals(other: PackageURL): boolean {
+    return this.toString() === other.toString()
+  }
+
+  /**
+   * Compare this PackageURL with another for sorting.
+   *
+   * Returns a number indicating sort order:
+   * - Negative if this comes before other
+   * - Zero if they are equal
+   * - Positive if this comes after other
+   *
+   * @param other - The PackageURL to compare with
+   * @returns -1, 0, or 1 for sort ordering
+   */
+  compare(other: PackageURL): -1 | 0 | 1 {
+    return PackageURL.compare(this, other)
+  }
+
+  /**
    * Create PackageURL from JSON string.
    */
   static fromJSON(json: unknown): PackageURL {
@@ -330,6 +358,110 @@ class PackageURL {
         unknown,
       ]),
     )
+  }
+
+  /**
+   * Create PackageURL from npm package specifier.
+   *
+   * Parses npm package specifiers and converts them to PackageURL format.
+   * Handles scoped packages, version ranges, and normalizes version strings.
+   *
+   * **Supported formats:**
+   * - Basic packages: `lodash`, `lodash@4.17.21`
+   * - Scoped packages: `@babel/core`, `@babel/core@7.0.0`
+   * - Version ranges: `^4.17.21`, `~1.2.3`, `>=1.0.0` (prefixes stripped)
+   * - Dist-tags: `latest`, `next`, `beta` (passed through as version)
+   *
+   * **Not supported:**
+   * - Git URLs: `git+https://...` (use PackageURL constructor directly)
+   * - File paths: `file:../package.tgz`
+   * - GitHub shortcuts: `user/repo#branch`
+   * - Aliases: `npm:package@version`
+   *
+   * **Note:** Dist-tags like `latest` are mutable and should be resolved to
+   * concrete versions for reproducible builds. This method passes them through
+   * as-is for convenience.
+   *
+   * @param specifier - npm package specifier (e.g., 'lodash@4.17.21', '@babel/core@^7.0.0')
+   * @returns PackageURL instance for the npm package
+   * @throws {Error} If specifier is not a string or is empty
+   *
+   * @example
+   * ```typescript
+   * // Basic packages
+   * PackageURL.fromNPM('lodash@4.17.21')
+   * // -> pkg:npm/lodash@4.17.21
+   *
+   * // Scoped packages
+   * PackageURL.fromNPM('@babel/core@^7.0.0')
+   * // -> pkg:npm/%40babel/core@7.0.0
+   *
+   * // Dist-tags (passed through)
+   * PackageURL.fromNPM('react@latest')
+   * // -> pkg:npm/react@latest
+   *
+   * // No version
+   * PackageURL.fromNPM('express')
+   * // -> pkg:npm/express
+   * ```
+   */
+  static fromNPM(specifier: unknown): PackageURL {
+    if (typeof specifier !== 'string') {
+      throw new Error('npm package specifier string is required.')
+    }
+
+    if (isBlank(specifier)) {
+      throw new Error('npm package specifier cannot be empty.')
+    }
+
+    // Handle scoped packages: @scope/name@version
+    let namespace: string | undefined
+    let name: string
+    let version: string | undefined
+
+    // Check if it's a scoped package
+    if (specifier.startsWith('@')) {
+      // Find the second slash (after @scope/)
+      const slashIndex = specifier.indexOf('/')
+      if (slashIndex === -1) {
+        throw new Error('Invalid scoped package specifier.')
+      }
+
+      // Find the @ after the scope
+      const atIndex = specifier.indexOf('@', slashIndex)
+      if (atIndex === -1) {
+        // No version specified
+        namespace = specifier.slice(0, slashIndex)
+        name = specifier.slice(slashIndex + 1)
+      } else {
+        namespace = specifier.slice(0, slashIndex)
+        name = specifier.slice(slashIndex + 1, atIndex)
+        version = specifier.slice(atIndex + 1)
+      }
+    } else {
+      // Non-scoped package: name@version
+      const atIndex = specifier.indexOf('@')
+      if (atIndex === -1) {
+        // No version specified
+        name = specifier
+      } else {
+        name = specifier.slice(0, atIndex)
+        version = specifier.slice(atIndex + 1)
+      }
+    }
+
+    // Clean up version - remove common npm range prefixes
+    if (version) {
+      // Remove leading ^, ~, >=, <=, >, <, =
+      version = version.replace(/^[\^~>=<]+/, '')
+      // Handle version ranges like "1.0.0 - 2.0.0" by taking first version
+      const spaceIndex = version.indexOf(' ')
+      if (spaceIndex !== -1) {
+        version = version.slice(0, spaceIndex)
+      }
+    }
+
+    return new PackageURL('npm', namespace, name, version, undefined, undefined)
   }
 
   static parseString(purlStr: unknown): unknown[] {
@@ -518,6 +650,44 @@ class PackageURL {
 
   static tryParseString(purlStr: unknown): Result<unknown[], Error> {
     return ResultUtils.from(() => PackageURL.parseString(purlStr))
+  }
+
+  /**
+   * Compare two PackageURLs for equality.
+   *
+   * Two PURLs are considered equal if their canonical string representations match.
+   *
+   * @param a - First PackageURL to compare
+   * @param b - Second PackageURL to compare
+   * @returns true if the PURLs are equal, false otherwise
+   */
+  static equals(a: PackageURL, b: PackageURL): boolean {
+    return a.toString() === b.toString()
+  }
+
+  /**
+   * Compare two PackageURLs for sorting.
+   *
+   * Compares PURLs using their canonical string representations.
+   * Returns a number indicating sort order:
+   * - Negative if a comes before b
+   * - Zero if they are equal
+   * - Positive if a comes after b
+   *
+   * @param a - First PackageURL to compare
+   * @param b - Second PackageURL to compare
+   * @returns -1, 0, or 1 for sort ordering
+   */
+  static compare(a: PackageURL, b: PackageURL): -1 | 0 | 1 {
+    const aStr = a.toString()
+    const bStr = b.toString()
+    if (aStr < bStr) {
+      return -1
+    }
+    if (aStr > bStr) {
+      return 1
+    }
+    return 0
   }
 }
 
