@@ -75,11 +75,12 @@ export {
   UrlConverter,
 } from './package-url.js'
 export { PackageURLBuilder } from './package-url-builder.js'
+export { PurlError } from './error.js'
 // ============================================================================
 // Modular Utilities
 // ============================================================================
 export { compare, equals } from './comparators/index.js'
-export { fromNpm, fromSpec, parse } from './parsers/index.js'
-export { stringify } from './serializers/index.js'
+export { parseNpmSpecifier } from './parsers/npm.js'
+export { stringify } from './serializers/stringify.js'
 
 /* c8 ignore stop */

@@ -36,9 +36,25 @@
       "types": "./dist/serializers/index.d.ts",
       "default": "./dist/serializers/index.js"
     },
+    "./builder": {
+      "types": "./dist/package-url-builder.d.ts",
+      "default": "./dist/package-url-builder.js"
+    },
+    "./error": {
+      "types": "./dist/error.d.ts",
+      "default": "./dist/error.js"
+    },
+    "./result": {
+      "types": "./dist/result.d.ts",
+      "default": "./dist/result.js"
+    },
     "./url-converter": {
       "types": "./dist/url-converter.d.ts",
       "default": "./dist/url-converter.js"
+    },
+    "./serializers/*": {
+      "types": "./dist/serializers/*.d.ts",
+      "default": "./dist/serializers/*.js"
     },
     "./data/npm/builtin-names.json": "./data/npm/builtin-names.json",
     "./data/npm/legacy-names.json": "./data/npm/legacy-names.json",

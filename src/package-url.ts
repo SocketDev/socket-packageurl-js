@@ -20,14 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import {
-  compare as comparePurls,
-  equals as equalsPurls,
-} from './comparators/index.js'
-import { decodePurlComponent } from './decode.js'
-import { PurlError } from './error.js'
-import { isObject, recursiveFreeze } from './objects.js'
-import { fromNpm, fromSpec, parse as parsePurl } from './parsers/index.js'
 /**
  * @fileoverview Package URL parsing and construction utilities.
  *
@@ -36,11 +28,20 @@ import { fromNpm, fromSpec, parse as parsePurl } from './parsers/index.js'
  * instanceof checks may fail due to module system interoperability issues.
  * See package-url-builder.ts for detailed explanation and workarounds.
  */
+
+import {
+  compare as comparePurls,
+  equals as equalsPurls,
+} from './comparators/index.js'
+import { decodePurlComponent } from './decode.js'
+import { PurlError } from './error.js'
+import { isObject, recursiveFreeze } from './objects.js'
+import { parseNpmSpecifier } from './parsers/npm.js'
 import { PurlComponent } from './purl-component.js'
 import { PurlQualifierNames } from './purl-qualifier-names.js'
 import { PurlType } from './purl-type.js'
 import { Err, Ok, ResultUtils, err, ok } from './result.js'
-import { stringify as stringifyPurl } from './serializers/index.js'
+import { stringify } from './serializers/stringify.js'
 import { isBlank, isNonEmptyString, trimLeadingSlashes } from './strings.js'
 import { UrlConverter } from './url-converter.js'
 
@@ -222,7 +223,7 @@ class PackageURL {
   }
 
   toString() {
-    return stringifyPurl(this)
+    return stringify(this)
   }
 
   /**
@@ -324,7 +325,16 @@ class PackageURL {
   }
 
   static fromString(purlStr: unknown): PackageURL {
-    return parsePurl(purlStr)
+    return new PackageURL(
+      ...(PackageURL.parseString(purlStr) as [
+        unknown,
+        unknown,
+        unknown,
+        unknown,
+        unknown,
+        unknown,
+      ]),
+    )
   }
 
   /**
@@ -373,7 +383,8 @@ class PackageURL {
    * ```
    */
   static fromNpm(specifier: unknown): PackageURL {
-    return fromNpm(specifier)
+    const { name, namespace, version } = parseNpmSpecifier(specifier)
+    return new PackageURL('npm', namespace, name, version, undefined, undefined)
   }
 
   /**
@@ -401,7 +412,23 @@ class PackageURL {
    * ```
    */
   static fromSpec(type: string, specifier: unknown): PackageURL {
-    return fromSpec(type, specifier)
+    switch (type) {
+      case 'npm': {
+        const { name, namespace, version } = parseNpmSpecifier(specifier)
+        return new PackageURL(
+          'npm',
+          namespace,
+          name,
+          version,
+          undefined,
+          undefined,
+        )
+      }
+      default:
+        throw new Error(
+          `Unsupported package type: ${type}. Currently supported: npm`,
+        )
+    }
   }
 
   static parseString(purlStr: unknown): unknown[] {

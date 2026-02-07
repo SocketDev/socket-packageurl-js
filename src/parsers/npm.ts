@@ -1,15 +1,14 @@
 /**
  * @fileoverview npm package specifier parser.
- * Converts npm package specifiers to PackageURL instances.
+ * Parses npm package specifiers into component data.
  */
 
-import { PackageURL } from '../package-url.js'
 import { isBlank } from '../strings.js'
 
 /**
- * Create PackageURL from npm package specifier.
+ * Parse npm package specifier into component data.
  *
- * Parses npm package specifiers and converts them to PackageURL format.
+ * Parses npm package specifiers into namespace, name, and version components.
  * Handles scoped packages, version ranges, and normalizes version strings.
  *
  * **Supported formats:**
@@ -19,7 +18,7 @@ import { isBlank } from '../strings.js'
  * - Dist-tags: `latest`, `next`, `beta` (passed through as version)
  *
  * **Not supported:**
- * - Git URLs: `git+https://...` (use PackageURL constructor directly)
+ * - Git URLs: `git+https://...`
  * - File paths: `file:../package.tgz`
  * - GitHub shortcuts: `user/repo#branch`
  * - Aliases: `npm:package@version`
@@ -29,29 +28,33 @@ import { isBlank } from '../strings.js'
  * as-is for convenience.
  *
  * @param specifier - npm package specifier (e.g., 'lodash@4.17.21', '@babel/core@^7.0.0')
- * @returns PackageURL instance for the npm package
+ * @returns Object with namespace, name, and version components
  * @throws {Error} If specifier is not a string or is empty
  *
  * @example
  * ```typescript
  * // Basic packages
- * fromNpm('lodash@4.17.21')
- * // -> pkg:npm/lodash@4.17.21
+ * parseNpmSpecifier('lodash@4.17.21')
+ * // -> { namespace: undefined, name: 'lodash', version: '4.17.21' }
  *
  * // Scoped packages
- * fromNpm('@babel/core@^7.0.0')
- * // -> pkg:npm/%40babel/core@7.0.0
+ * parseNpmSpecifier('@babel/core@^7.0.0')
+ * // -> { namespace: '@babel', name: 'core', version: '7.0.0' }
  *
  * // Dist-tags (passed through)
- * fromNpm('react@latest')
- * // -> pkg:npm/react@latest
+ * parseNpmSpecifier('react@latest')
+ * // -> { namespace: undefined, name: 'react', version: 'latest' }
  *
  * // No version
- * fromNpm('express')
- * // -> pkg:npm/express
+ * parseNpmSpecifier('express')
+ * // -> { namespace: undefined, name: 'express', version: undefined }
  * ```
  */
-export function fromNpm(specifier: unknown): PackageURL {
+export function parseNpmSpecifier(specifier: unknown): {
+  namespace: string | undefined
+  name: string
+  version: string | undefined
+} {
   if (typeof specifier !== 'string') {
     throw new Error('npm package specifier string is required.')
   }
@@ -107,5 +110,5 @@ export function fromNpm(specifier: unknown): PackageURL {
     }
   }
 
-  return new PackageURL('npm', namespace, name, version, undefined, undefined)
+  return { namespace, name, version }
 }
