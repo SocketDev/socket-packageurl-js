@@ -1,16 +1,22 @@
+# OS files
 .DS_Store
 ._.DS_Store
 Thumbs.db
-**/.claude/
+
+# Environment & config
+/.claude/*
+!/.claude/skills
+!/.claude/commands
 /.env
 /.env.local
 /.env.*.local
 /.node-version
 /.nvm
 /.pnpmfile.cjs
+
+# Build artifacts
 /.tap
 /.type-coverage
-/.vscode
 /coverage
 *.log
 *.pid
@@ -18,12 +24,19 @@ Thumbs.db
 *.pid.lock
 
 # Editor files
+/.vscode
 *.swp
 *.swo
 #*#
 .#*
+
+# Cache directories
 **/.cache
+
+# Runtime
 **/node_modules
+
+# Build and temporary
 **/*.tgz
 **/*.tmp
 **/*.tsbuildinfo
