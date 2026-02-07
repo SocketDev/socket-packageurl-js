@@ -23,6 +23,7 @@ SOFTWARE.
 import { decodePurlComponent } from './decode.js'
 import { PurlError } from './error.js'
 import { isObject, recursiveFreeze } from './objects.js'
+import { fromNpm, fromSpec } from './parsers/index.js'
 /**
  * @fileoverview Package URL parsing and construction utilities.
  *
@@ -389,79 +390,52 @@ class PackageURL {
    * @example
    * ```typescript
    * // Basic packages
-   * PackageURL.fromNPM('lodash@4.17.21')
+   * PackageURL.fromNpm('lodash@4.17.21')
    * // -> pkg:npm/lodash@4.17.21
    *
    * // Scoped packages
-   * PackageURL.fromNPM('@babel/core@^7.0.0')
+   * PackageURL.fromNpm('@babel/core@^7.0.0')
    * // -> pkg:npm/%40babel/core@7.0.0
    *
    * // Dist-tags (passed through)
-   * PackageURL.fromNPM('react@latest')
+   * PackageURL.fromNpm('react@latest')
    * // -> pkg:npm/react@latest
    *
    * // No version
-   * PackageURL.fromNPM('express')
+   * PackageURL.fromNpm('express')
    * // -> pkg:npm/express
    * ```
    */
-  static fromNPM(specifier: unknown): PackageURL {
-    if (typeof specifier !== 'string') {
-      throw new Error('npm package specifier string is required.')
-    }
+  static fromNpm(specifier: unknown): PackageURL {
+    return fromNpm(specifier)
+  }
 
-    if (isBlank(specifier)) {
-      throw new Error('npm package specifier cannot be empty.')
-    }
-
-    // Handle scoped packages: @scope/name@version
-    let namespace: string | undefined
-    let name: string
-    let version: string | undefined
-
-    // Check if it's a scoped package
-    if (specifier.startsWith('@')) {
-      // Find the second slash (after @scope/)
-      const slashIndex = specifier.indexOf('/')
-      if (slashIndex === -1) {
-        throw new Error('Invalid scoped package specifier.')
-      }
-
-      // Find the @ after the scope
-      const atIndex = specifier.indexOf('@', slashIndex)
-      if (atIndex === -1) {
-        // No version specified
-        namespace = specifier.slice(0, slashIndex)
-        name = specifier.slice(slashIndex + 1)
-      } else {
-        namespace = specifier.slice(0, slashIndex)
-        name = specifier.slice(slashIndex + 1, atIndex)
-        version = specifier.slice(atIndex + 1)
-      }
-    } else {
-      // Non-scoped package: name@version
-      const atIndex = specifier.indexOf('@')
-      if (atIndex === -1) {
-        // No version specified
-        name = specifier
-      } else {
-        name = specifier.slice(0, atIndex)
-        version = specifier.slice(atIndex + 1)
-      }
-    }
-
-    // Clean up version - remove common npm range prefixes
-    if (version) {
-      // Remove leading ^, ~, >=, <=, >, <, =
-      version = version.replace(/^[\^~>=<]+/, '')
-      // Handle version ranges like "1.0.0 - 2.0.0" by taking first version
-      const spaceIndex = version.indexOf(' ')
-      if (spaceIndex !== -1) {
-        version = version.slice(0, spaceIndex)
-      }
-    }
-
-    return new PackageURL('npm', namespace, name, version, undefined, undefined)
+  /**
+   * Create PackageURL from ecosystem-specific package specifier.
+   *
+   * This is a convenience wrapper that delegates to type-specific parsers.
+   * Each ecosystem has its own specifier format and parsing rules.
+   *
+   * **Supported types:**
+   * - `npm`: npm package specifiers (e.g., 'lodash@4.17.21', '@babel/core@^7.0.0')
+   *
+   * @param type - Package ecosystem type (e.g., 'npm', 'pypi', 'maven')
+   * @param specifier - Ecosystem-specific package specifier string
+   * @returns PackageURL instance for the package
+   * @throws {Error} If type is not supported or specifier is invalid
+   *
+   * @example
+   * ```typescript
+   * // npm packages
+   * PackageURL.fromSpec('npm', 'lodash@4.17.21')
+   * // -> pkg:npm/lodash@4.17.21
+   *
+   * PackageURL.fromSpec('npm', '@babel/core@^7.0.0')
+   * // -> pkg:npm/%40babel/core@7.0.0
+   * ```
+   */
+  static fromSpec(type: string, specifier: unknown): PackageURL {
+    return fromSpec(type, specifier)
   }
 
   static parseString(purlStr: unknown): unknown[] {

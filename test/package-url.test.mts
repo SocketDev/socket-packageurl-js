@@ -506,9 +506,9 @@ describe('PackageURL', () => {
     })
   })
 
-  describe('fromNPM', () => {
+  describe('fromNpm', () => {
     it('should parse npm package without version', () => {
-      const purl = PackageURL.fromNPM('lodash')
+      const purl = PackageURL.fromNpm('lodash')
       expect(purl.type).toBe('npm')
       expect(purl.name).toBe('lodash')
       expect(purl.namespace).toBe(undefined)
@@ -516,14 +516,14 @@ describe('PackageURL', () => {
     })
 
     it('should parse npm package with version', () => {
-      const purl = PackageURL.fromNPM('lodash@4.17.21')
+      const purl = PackageURL.fromNpm('lodash@4.17.21')
       expect(purl.type).toBe('npm')
       expect(purl.name).toBe('lodash')
       expect(purl.version).toBe('4.17.21')
     })
 
     it('should parse scoped npm package without version', () => {
-      const purl = PackageURL.fromNPM('@babel/core')
+      const purl = PackageURL.fromNpm('@babel/core')
       expect(purl.type).toBe('npm')
       expect(purl.namespace).toBe('@babel')
       expect(purl.name).toBe('core')
@@ -531,7 +531,7 @@ describe('PackageURL', () => {
     })
 
     it('should parse scoped npm package with version', () => {
-      const purl = PackageURL.fromNPM('@babel/core@7.20.0')
+      const purl = PackageURL.fromNpm('@babel/core@7.20.0')
       expect(purl.type).toBe('npm')
       expect(purl.namespace).toBe('@babel')
       expect(purl.name).toBe('core')
@@ -539,34 +539,34 @@ describe('PackageURL', () => {
     })
 
     it('should strip caret version prefix', () => {
-      const purl = PackageURL.fromNPM('lodash@^4.17.21')
+      const purl = PackageURL.fromNpm('lodash@^4.17.21')
       expect(purl.version).toBe('4.17.21')
     })
 
     it('should strip tilde version prefix', () => {
-      const purl = PackageURL.fromNPM('lodash@~4.17.21')
+      const purl = PackageURL.fromNpm('lodash@~4.17.21')
       expect(purl.version).toBe('4.17.21')
     })
 
     it('should strip >= version prefix', () => {
-      const purl = PackageURL.fromNPM('lodash@>=4.17.21')
+      const purl = PackageURL.fromNpm('lodash@>=4.17.21')
       expect(purl.version).toBe('4.17.21')
     })
 
     it('should handle version ranges by taking first version', () => {
-      const purl = PackageURL.fromNPM('lodash@1.0.0 - 2.0.0')
+      const purl = PackageURL.fromNpm('lodash@1.0.0 - 2.0.0')
       expect(purl.version).toBe('1.0.0')
     })
 
     it('should support dist-tags (passed through as version)', () => {
-      const purl = PackageURL.fromNPM('react@latest')
+      const purl = PackageURL.fromNpm('react@latest')
       expect(purl.type).toBe('npm')
       expect(purl.name).toBe('react')
       expect(purl.version).toBe('latest')
     })
 
     it('should support dist-tags for scoped packages', () => {
-      const purl = PackageURL.fromNPM('@babel/core@next')
+      const purl = PackageURL.fromNpm('@babel/core@next')
       expect(purl.type).toBe('npm')
       expect(purl.namespace).toBe('@babel')
       expect(purl.name).toBe('core')
@@ -574,32 +574,32 @@ describe('PackageURL', () => {
     })
 
     it('should support common dist-tags', () => {
-      expect(PackageURL.fromNPM('lodash@latest').version).toBe('latest')
-      expect(PackageURL.fromNPM('lodash@next').version).toBe('next')
-      expect(PackageURL.fromNPM('lodash@beta').version).toBe('beta')
-      expect(PackageURL.fromNPM('lodash@canary').version).toBe('canary')
+      expect(PackageURL.fromNpm('lodash@latest').version).toBe('latest')
+      expect(PackageURL.fromNpm('lodash@next').version).toBe('next')
+      expect(PackageURL.fromNpm('lodash@beta').version).toBe('beta')
+      expect(PackageURL.fromNpm('lodash@canary').version).toBe('canary')
     })
 
     it('should reject non-string input', () => {
-      expect(() => PackageURL.fromNPM(null as unknown as string)).toThrow(
+      expect(() => PackageURL.fromNpm(null as unknown as string)).toThrow(
         'npm package specifier string is required',
       )
-      expect(() => PackageURL.fromNPM(123 as unknown as string)).toThrow(
+      expect(() => PackageURL.fromNpm(123 as unknown as string)).toThrow(
         'npm package specifier string is required',
       )
     })
 
     it('should reject empty string', () => {
-      expect(() => PackageURL.fromNPM('')).toThrow(
+      expect(() => PackageURL.fromNpm('')).toThrow(
         'npm package specifier cannot be empty',
       )
-      expect(() => PackageURL.fromNPM('  ')).toThrow(
+      expect(() => PackageURL.fromNpm('  ')).toThrow(
         'npm package specifier cannot be empty',
       )
     })
 
     it('should reject invalid scoped package format', () => {
-      expect(() => PackageURL.fromNPM('@babel')).toThrow(
+      expect(() => PackageURL.fromNpm('@babel')).toThrow(
         'Invalid scoped package specifier',
       )
     })

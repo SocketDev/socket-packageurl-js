@@ -20,6 +20,14 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./parsers": {
+      "types": "./dist/parsers/index.d.ts",
+      "default": "./dist/parsers/index.js"
+    },
+    "./parsers/*": {
+      "types": "./dist/parsers/*.d.ts",
+      "default": "./dist/parsers/*.js"
+    },
     "./data/npm/builtin-names.json": "./data/npm/builtin-names.json",
     "./data/npm/legacy-names.json": "./data/npm/legacy-names.json",
     "./dist/*": {

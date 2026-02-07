@@ -37,6 +37,7 @@ SOFTWARE.
  * Utility exports:
  * - UrlConverter: Convert between purls and repository/download URLs
  * - Result utilities: Functional error handling with Ok/Err pattern
+ * - Parsers: Modular parsers for ecosystem-specific package specifiers
  */
 
 /* c8 ignore start - Re-export only file, no logic to test */
@@ -74,5 +75,9 @@ export {
   UrlConverter,
 } from './package-url.js'
 export { PackageURLBuilder } from './package-url-builder.js'
+// ============================================================================
+// Parsers (Modular)
+// ============================================================================
+export { fromNpm, fromSpec } from './parsers/index.js'
 
 /* c8 ignore stop */
