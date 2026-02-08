@@ -27,6 +27,7 @@ This is Socket Security's binary tooling manager (BTM) that:
 3. **cache** - Cache staleness, race conditions, invalidation bugs
 4. **workflow** - Build scripts, CI issues, cross-platform compatibility
 5. **security** - GitHub Actions workflow security (zizmor scanner)
+6. **documentation** - README accuracy, outdated docs, missing documentation
 
 **Why Quality Scanning Matters:**
 - Catches bugs before they reach production
@@ -103,6 +104,7 @@ Ask user which scans to run:
 3. **cache** - Caching issues (staleness, races, invalidation)
 4. **workflow** - Workflow problems (scripts, CI, git hooks)
 5. **security** - GitHub Actions security (template injection, cache poisoning, etc.)
+6. **documentation** - Documentation accuracy (README errors, outdated docs)
 
 **User Interaction:**
 Use AskUserQuestion tool:
@@ -124,6 +126,7 @@ Validate selected scan types exist in reference.md:
 - cache-scan → reference.md line ~200
 - workflow-scan → reference.md line ~300
 - security-scan → reference.md line ~400
+- documentation-scan → reference.md line ~810
 
 If user requests non-existent scan type, report error and suggest valid types.
 </validation>
@@ -177,6 +180,7 @@ Scan systematically and report all findings. If no issues found, state that expl
 - Cache scan: reference.md starting at line ~200
 - Workflow scan: reference.md starting at line ~300
 - Security scan: reference.md starting at line ~400
+- Documentation scan: reference.md starting at line ~810
 
 <validation>
 For each scan completion:
@@ -353,6 +357,7 @@ See `reference.md` for detailed agent prompts with structured tags:
 - **cache-scan** - Invalidation, key generation, memory management, concurrency
 - **workflow-scan** - Scripts, package.json, git hooks, CI configuration
 - **security-scan** - GitHub Actions workflow security (runs zizmor scanner)
+- **documentation-scan** - README accuracy, outdated examples, incorrect package names, missing documentation
 
 All agent prompts follow Claude best practices with <context>, <instructions>, <pattern>, <output_format>, and <quality_guidelines> tags.
 
