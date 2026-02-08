@@ -4,32 +4,43 @@
 
 ### Critical Scan Agent
 
-**Mission**: Identify critical bugs that could cause crashes, data corruption, or security vulnerabilities in PURL processing.
+**Mission**: Identify critical bugs that could cause crashes, data corruption, or security vulnerabilities.
 
-**Scan Targets**: All `.ts` files in `src/`
+**Scan Targets**: All `.mts` files in `src/`
 
 **Prompt Template:**
 ```
-Your task is to perform a critical bug scan on a TypeScript Package URL (PURL) parser and builder library. Identify bugs that could cause crashes, data corruption, or security vulnerabilities.
+Your task is to perform a critical bug scan on socket-btm, a monorepo containing Node.js binary tooling written in TypeScript (.mts/.mjs), C/C++, and shell scripts. Identify bugs that could cause build failures, data corruption, or security vulnerabilities.
 
 <context>
-This is a production PURL library (socket-packageurl-js) that:
-- Parses and constructs Package URLs per PURL specification
-- Processes untrusted input (user-provided strings, JSON)
-- Used by Socket.dev for security scanning of 35+ package ecosystems
-- Must handle malformed input gracefully without crashes
-- Performance-critical (high-volume scanning)
+This is Socket Security's Binary Tooling Manager (BTM) monorepo with multiple packages:
+- **node-smol-builder**: Builds Node.js from source with Socket Security patches
+- **binject**: Binary injection library (C/C++ with LIEF integration)
+- **bin-infra**: Binary infrastructure utilities (compression, format handling)
+- **build-infra**: Build infrastructure utilities (tar, gzip, file I/O)
+- **binsuite**: Binary suite tools
+
+Key characteristics:
+- Uses TypeScript with .mts/.mjs extension for build scripts
+- C/C++ code for binary manipulation and injection
+- Manages Node.js version synchronization and patch application
+- Processes external source code and applies unified diff patches
+- Handles cross-platform compilation (macOS, Linux, Windows)
+- Manages build checkpoints and caching for performance
+- Must handle patch failures and build errors gracefully
 </context>
 
 <instructions>
-Scan all TypeScript files in src/**/*.ts for these critical bug patterns:
+Scan all code files across the monorepo for these critical bug patterns:
+- TypeScript/JavaScript: packages/*/scripts/**/*.{mjs,mts}, packages/*/src/**/*.{mjs,mts}
+- C/C++: packages/*/src/**/*.{c,cc,cpp,h}
+- Focus on:
 
 <pattern name="null_undefined_access">
 - Property access without optional chaining when value might be null/undefined
 - Array access without length validation (arr[0], arr[arr.length-1])
 - JSON.parse() without try-catch
 - Object destructuring without null checks
-- URLSearchParams operations without validation
 </pattern>
 
 <pattern name="unhandled_promises">
@@ -37,6 +48,13 @@ Scan all TypeScript files in src/**/*.ts for these critical bug patterns:
 - Promise.then() chains without .catch() handlers
 - Fire-and-forget promises that could reject
 - Missing error handling in async/await blocks
+</pattern>
+
+<pattern name="race_conditions">
+- Concurrent file system operations without coordination
+- Parallel cache reads/writes without synchronization
+- Check-then-act patterns without atomic operations
+- Shared state modifications in Promise.all()
 </pattern>
 
 <pattern name="type_coercion">
@@ -47,24 +65,16 @@ Scan all TypeScript files in src/**/*.ts for these critical bug patterns:
 </pattern>
 
 <pattern name="resource_leaks">
+- File handles opened but not closed (missing .close() or using())
 - Timers created but not cleared (setTimeout/setInterval)
 - Event listeners added but not removed
-- Memory accumulation in memoization/caching
-- Circular references preventing GC
+- Memory accumulation in long-running processes
 </pattern>
 
 <pattern name="buffer_overflow">
 - String slicing without bounds validation
 - Array indexing beyond length
 - Buffer operations without size checks
-- Regex with unbounded quantifiers (ReDoS)
-</pattern>
-
-<pattern name="security">
-- Prototype pollution in Object.assign() or spread
-- Command injection in child_process
-- Path traversal in file operations
-- Insufficient input validation on untrusted data
 </pattern>
 
 For each bug found, think through:
@@ -76,7 +86,7 @@ For each bug found, think through:
 <output_format>
 For each finding, report:
 
-File: src/path/to/file.ts:lineNumber
+File: src/path/to/file.mts:lineNumber
 Issue: [One-line description of the bug]
 Severity: Critical
 Pattern: [The problematic code snippet]
@@ -85,108 +95,117 @@ Fix: [Specific code change to fix it]
 Impact: [What happens if this bug is triggered]
 
 Example:
-File: src/package-url.ts:145
-Issue: Unhandled URL parsing exception
+File: packages/node-smol-builder/scripts/binary-released/shared/apply-patches.mjs:145
+Issue: Unhandled promise rejection in patch application
 Severity: Critical
-Pattern: `new URL(purlStr)`
-Trigger: When purlStr contains invalid URL characters
-Fix: `try { new URL(purlStr) } catch (e) { throw new PurlError('invalid URL', { cause: e }) }`
-Impact: Uncaught exception crashes parsing process
+Pattern: `applyPatch(patchFile, targetPath)`
+Trigger: When patch file contains malformed unified diff format
+Fix: `await applyPatch(patchFile, targetPath).catch(err => { log.error(err); throw new Error(\`Patch failed: \${err.message}\`) })`
+Impact: Uncaught exception crashes build process, leaving Node.js source in inconsistent state
+
+Example (C/C++):
+File: packages/binject/src/socketsecurity/binject/binject.c:234
+Issue: Potential null pointer dereference after malloc
+Severity: Critical
+Pattern: `uint8_t* buffer = malloc(size); memcpy(buffer, data, size);`
+Trigger: When malloc fails due to insufficient memory
+Fix: `uint8_t* buffer = malloc(size); if (!buffer) return BINJECT_ERROR_MEMORY; memcpy(buffer, data, size);`
+Impact: Segmentation fault crashes binary injection process
 </output_format>
 
 <quality_guidelines>
 - Only report actual bugs, not style issues or minor improvements
 - Verify bugs are not already handled by surrounding code
-- Prioritize bugs affecting production reliability
+- Prioritize bugs affecting build reliability and binary correctness
+- For C/C++: Focus on memory safety, null checks, buffer overflows
+- For TypeScript: Focus on promise handling, type guards, external input validation
 - Skip false positives (TypeScript type guards are sufficient in many cases)
-- Focus on code paths processing external input
+- Scan across all packages: node-smol-builder, binject, bin-infra, build-infra, binsuite
 </quality_guidelines>
 
-Scan systematically through src/ and report all critical bugs found. If no critical bugs are found, state that explicitly.
+Scan systematically through all packages/ directories and report all critical bugs found. If no critical bugs are found, state that explicitly.
 ```
 
 ---
 
 ### Logic Scan Agent
 
-**Mission**: Detect logical errors in PURL parsing, encoding, normalization that could produce incorrect output.
+**Mission**: Detect logical errors in build scripts, patch algorithms, and binary manipulation that could produce incorrect builds or corrupted binaries.
 
-**Scan Targets**: `src/**/*.ts` with focus on `package-url.ts`, `purl-component.ts`, `purl-type.ts`
+**Scan Targets**: All packages in the monorepo
 
 **Prompt Template:**
 ```
-Your task is to detect logic errors in PURL parsing and construction that could produce incorrect Package URLs. Focus on algorithm correctness, edge case handling, and spec compliance.
+Your task is to detect logic errors in socket-btm's build scripts, patch application logic, and binary manipulation code that could produce incorrect builds or corrupted binaries. Focus on algorithm correctness, edge case handling, and data validation.
 
 <context>
-This PURL library:
-- Parses PURL strings: pkg:type/namespace/name@version?qualifiers#subpath
-- Constructs PURLs from components with validation and normalization
-- Supports 35+ package ecosystems (npm, pypi, maven, cargo, gem, nuget, etc.)
-- Each ecosystem has specific normalization rules (case, characters, encoding)
-- Must comply with PURL specification exactly
-- Used for security analysis where accuracy is critical
+socket-btm is a monorepo for Node.js binary tooling:
+- **node-smol-builder**: Build orchestration, patch application, checkpoint management
+- **binject**: Binary injection logic, ELF/Mach-O/PE format handling
+- **bin-infra**: Binary compression, format detection, segment management
+- **build-infra**: File I/O, tar creation, gzip compression
+
+Critical operations:
+- Patch parsing and application (unified diff format)
+- Binary format detection and manipulation (ELF/Mach-O/PE)
+- Checkpoint creation and restoration (tar.gz archives)
+- Cross-platform path handling and file operations
+- Version comparison and Node.js synchronization
 </context>
 
 <instructions>
-Analyze src/**/*.ts for these logic error patterns:
+Analyze all packages for these logic error patterns:
 
 <pattern name="off_by_one">
-Off-by-one errors in parsing and string operations:
-- Loop bounds: `i <= str.length` should be `i < str.length`
-- Slice operations: `str.slice(0, len-1)` when full string needed
+Off-by-one errors in loops and slicing:
+- Loop bounds: `i <= arr.length` should be `i < arr.length`
+- Slice operations: `arr.slice(0, len-1)` when full array needed
 - String indexing missing first/last character
-- indexOf/lastIndexOf checks that miss position 0
+- lastIndexOf() checks that miss position 0
 </pattern>
 
 <pattern name="type_guards">
 Insufficient type validation:
 - `if (obj)` allows 0, "", false - use `obj != null` or explicit checks
-- `if (str.length)` crashes if str is undefined - check existence first
+- `if (arr.length)` crashes if arr is undefined - check existence first
 - `typeof x === 'object'` true for null and arrays - use Array.isArray() or null check
 - Missing validation before destructuring or property access
 </pattern>
 
 <pattern name="edge_cases">
 Unhandled edge cases in string/array operations:
-- `str.split('@')[0]` when delimiter might not exist
-- `lastIndexOf('@')` returns -1 if not found, === 0 is valid (e.g., '@scope/package')
+- `str.split('.')[0]` when delimiter might not exist
+- `parseInt(str)` without NaN validation
+- `lastIndexOf('@')` returns -1 if not found, === 0 is valid (e.g., '@package')
 - Empty strings, empty arrays, single-element arrays
 - Malformed input handling (missing try-catch, no fallback)
-- Special characters in PURL components (%, @, /, #, ?, &, =)
 </pattern>
 
 <pattern name="algorithm_correctness">
 Algorithm implementation issues:
-- Incorrect URL encoding/decoding (percent-encoding rules)
-- Case normalization failing on edge cases (locale, unicode)
-- Qualifier sorting not alphabetical as per spec
-- Namespace handling for scoped packages (@scope/name)
-- Version string processing (stripping 'v' prefix, handling ranges)
+- Patch parsing: Hunk header line counts not validated, @@ parsing errors
+- Version comparison: Failing on semver edge cases (prerelease, build metadata)
+- Path resolution: Symlink handling, relative vs absolute path logic
+- File ordering: Incorrect dependency ordering in build sequences
+- Deduplication: Missing deduplication of duplicate files/patches
 </pattern>
 
-<pattern name="purl_generation">
-Package URL generation errors:
-- Namespace: empty strings, special characters not encoded, null handling
-- Version: missing URL encoding for special chars (+, @, /, %)
-- Qualifiers: not sorted alphabetically as per spec
-- Type: incorrect ecosystem mapping
-- Subpath: incorrect encoding, missing leading slash normalization
+<pattern name="patch_handling">
+Patch application logic errors:
+- Unified diff parsing: Line offset calculation errors, context matching failures
+- Hunk application: Off-by-one in line number calculations
+- Patch validation: Missing validation of patch format (malformed hunks)
+- Backup/restore: Not properly handling patch failures mid-application
+- Independent patches: Assumptions about patch ordering or dependencies
 </pattern>
 
-<pattern name="parser_robustness">
-Insufficient input validation:
-- Empty strings or whitespace-only strings
-- Missing required components (type, name)
-- Unexpected data types (number instead of string, null instead of object)
-- Malformed PURLs with incomplete structure
-- pkg:// with double slashes should strip slashes
-</pattern>
-
-<pattern name="comparison_logic">
-Comparison and equality errors:
-- equals() not handling all component differences
-- compare() not producing consistent ordering
-- Hash/identity not matching equality semantics
+<pattern name="binary_format">
+Binary format handling errors:
+- Format detection: Misidentifying ELF/Mach-O/PE headers
+- Section/segment: Off-by-one in offset calculations, size validation missing
+- Endianness: Not handling big-endian vs little-endian correctly
+- Alignment: Missing alignment requirements for injected data
+- Cross-platform: Windows vs Unix path separators, line endings
 </pattern>
 
 Before reporting, think through:
@@ -198,7 +217,7 @@ Before reporting, think through:
 <output_format>
 For each finding, report:
 
-File: src/path/to/file.ts:lineNumber
+File: src/path/to/file.mts:lineNumber
 Issue: [One-line description]
 Severity: High | Medium
 Edge Case: [Specific input that triggers the error]
@@ -207,174 +226,186 @@ Fix: [Corrected code]
 Impact: [What incorrect output is produced]
 
 Example:
-File: src/decode.ts:45
-Issue: Incorrect percent-decoding for plus signs in qualifiers
+File: packages/node-smol-builder/scripts/binary-released/shared/apply-patches.mjs:89
+Issue: Off-by-one in patch hunk line counting
 Severity: High
-Edge Case: PURL with qualifier value containing '+'
-Pattern: `decodeURIComponent(value)`
-Fix: `decodeURIComponent(value.replace(/\+/g, ' '))`
-Impact: Plus signs in qualifiers decoded incorrectly, violating spec
+Edge Case: When patch hunk has trailing context lines
+Pattern: `for (let i = 0; i < hunkLines.length - 1; i++)`
+Fix: `for (let i = 0; i < hunkLines.length; i++)`
+Impact: Last line of patch hunk is silently omitted, causing patch application to fail or produce incorrect output
+
+Example (C code):
+File: packages/binject/src/socketsecurity/binject/elf_inject.c:234
+Issue: Incorrect section size calculation with alignment
+Severity: High
+Edge Case: When injecting data into sections requiring alignment
+Pattern: `new_size = existing_size + data_size;`
+Fix: `new_size = ALIGN_UP(existing_size + data_size, section_alignment);`
+Impact: Injected data misaligned, causing segfault when binary loads section
 </output_format>
 
 <quality_guidelines>
-- Prioritize parsing/encoding logic that affects correctness
-- Focus on errors affecting output accuracy, not performance
+- Prioritize code handling external data (patches, binary files, build configs)
+- Focus on errors affecting build correctness and binary integrity
 - Verify logic errors aren't false alarms due to type narrowing
-- Consider real-world PURL patterns for each ecosystem
-- Check against PURL specification requirements
+- Consider real-world edge cases: malformed patches, unusual binary formats, cross-platform paths
+- Pay special attention to C/C++ pointer arithmetic and buffer calculations
 </quality_guidelines>
 
-Analyze systematically and report all logic errors found. If no errors are found, state that explicitly.
+Analyze systematically across all packages and report all logic errors found. If no errors are found, state that explicitly.
 ```
 
 ---
 
-### Spec Compliance Scan Agent
+### Cache Scan Agent
 
-**Mission**: Identify violations of the PURL specification (purl-spec) and ecosystem-specific requirements.
+**Mission**: Identify caching bugs that cause stale builds, checkpoint corruption, or incorrect behavior.
 
-**Scan Targets**: `src/purl-type.ts`, `src/purl-component.ts`, `src/normalize.ts`, `src/validate.ts`
+**Scan Targets**: Build checkpoint system and caching logic across all packages
 
 **Prompt Template:**
 ```
-Your task is to verify compliance with the Package URL specification (github.com/package-url/purl-spec) and identify spec violations in normalization, validation, and encoding logic.
+Your task is to analyze socket-btm's checkpoint and caching implementation for correctness, staleness bugs, and performance issues. Focus on checkpoint corruption, cache invalidation failures, and race conditions.
 
 <context>
-The PURL specification defines:
-- Component structure: scheme://type/namespace/name@version?qualifiers#subpath
-- Encoding rules: percent-encoding for special characters
-- Normalization rules: type-specific (npm lowercase, pypi dash conversion, etc.)
-- Qualifier ordering: alphabetical by key
-- Type-specific requirements: namespace rules, character restrictions
+socket-btm uses a multi-stage checkpoint system to speed up builds:
+- **Checkpoint stages**: source-copied, source-patched, configured, compiled, stripped, compressed, final
+- **Storage**: tar.gz archives stored in build/checkpoints/{platform}-{arch}/
+- **Invalidation**: Based on cache keys (hashes of patches, config, source version)
+- **Progressive builds**: Can restore from any checkpoint and continue
+- **Cross-platform**: Must work on Windows, macOS, Linux (ARM64, x64)
+- **Critical**: Stale checkpoints cause incorrect builds that are hard to debug
 
-This library must comply exactly with:
-- PURL-SPECIFICATION.rst for core format
-- types-doc/*.md for ecosystem-specific rules (cargo, gem, nuget, npm, pypi, maven, etc.)
+Caching locations:
+- packages/node-smol-builder/scripts/common/shared/checkpoints.mjs
+- packages/node-smol-builder/build/checkpoints/
+- Cache key generation and validation logic
 </context>
 
 <instructions>
-Analyze implementation for spec compliance in these areas:
+Analyze caching implementation for these issue categories:
 
-<pattern name="encoding_violations">
-Percent-encoding spec violations:
-- Special characters not encoded per RFC3986: !, *, ', (, ), ;, :, @, &, =, +, $, ,, /, ?, #, [, ], %
-- Over-encoding: encoding characters that shouldn't be encoded (a-z, A-Z, 0-9, -, ., _, ~)
-- Encoding in wrong components (e.g., encoding @ in version)
-- Double-encoding issues
+<pattern name="cache_invalidation">
+Stale checkpoints from incorrect invalidation:
+- Patch changes: Are patch file hashes included in cache key?
+- Source version: Is Node.js version properly included in cache key?
+- Config changes: Are build flags (debug/release, ICU settings) in cache key?
+- Cross-platform: Are platform/arch properly isolated (darwin-arm64 vs linux-x64)?
+- Restoration: Is checkpoint validated before restoration (corrupted archives)?
+- Race: Checkpoint modified/deleted between validation and restoration?
 </pattern>
 
-<pattern name="normalization_violations">
-Type-specific normalization errors:
-- **npm**: Should lowercase name (except legacy), lowercase namespace
-- **pypi**: Should lowercase name, convert underscores to dashes
-- **pub**: Should lowercase name, convert dashes to underscores
-- **cargo**: Case-sensitive, no normalization
-- **gem**: Case-sensitive, no normalization
-- **nuget**: Case-preserving, no normalization
-- **maven**: Case-sensitive, no normalization
-- **golang**: Case-sensitive (pending spec change)
+<pattern name="cache_keys">
+Checkpoint key generation correctness:
+- Hash collisions: Is hash function sufficient for patch content?
+- Patch ordering: Does key depend on patch application order?
+- Platform isolation: Are Windows/macOS/Linux checkpoints properly separated?
+- Arch isolation: Are ARM64/x64 checkpoints kept separate?
+- Additions: Are build-infra/binject changes invalidating checkpoints?
+- Environment: Are env vars (NODE_OPTIONS, etc.) affecting builds included?
 </pattern>
 
-<pattern name="validation_violations">
-Type-specific validation errors:
-- **cargo**: Must not have namespace
-- **gem**: Must not have namespace
-- **nuget**: Must not have namespace
-- **maven**: Must have namespace (groupId)
-- **swift**: Must have namespace and version
-- **npm**: Name restrictions (214 chars, URL-friendly, not node_modules)
-- **cocoapods**: Name cannot contain whitespace or + or start with .
-- **pub**: Name must match [a-z0-9_]+
-- **swid**: Must have tag_id qualifier
+<pattern name="checkpoint_corruption">
+Checkpoint archive corruption:
+- Partial writes: tar.gz creation interrupted, incomplete archive
+- Disk full: Archive truncated due to disk space issues
+- Extraction failures: Corrupted archive extracted partially
+- Overwrite races: Concurrent builds overwriting same checkpoint
+- Cleanup races: Checkpoint deleted while being restored
 </pattern>
 
-<pattern name="qualifier_violations">
-Qualifier spec violations:
-- Not sorted alphabetically by key
-- Keys not lowercase
-- Empty qualifier values when not allowed
-- Reserved qualifier names used incorrectly
-- Qualifier encoding incorrect
+<pattern name="concurrency">
+Race conditions in checkpoint operations:
+- Creation races: Multiple builds creating same checkpoint simultaneously
+- Restoration races: Checkpoint deleted/modified during restoration
+- Validation races: Checkpoint validated then corrupted before use
+- Directory conflicts: Concurrent builds using same build directory
+- Lock files: Missing lock files allowing concurrent checkpoint access
 </pattern>
 
-<pattern name="scheme_violations">
-Core format violations:
-- Accepting "pkg://" when spec says strip leading slashes
-- Not rejecting URLs with authority (user:pass@host:port)
-- Accepting invalid scheme (not "pkg:")
-- Missing required components (type, name)
+<pattern name="stale_checkpoints">
+Scenarios producing stale/incorrect checkpoints:
+- Patch modified but checkpoint not invalidated (hash not updated)
+- Platform mismatch: Restoring darwin checkpoint on linux
+- Arch mismatch: Restoring arm64 checkpoint for x64 build
+- Version mismatch: Node.js version changed but checkpoint reused
+- Additions changed: build-infra/binject updated but checkpoint not invalidated
+- Environment drift: Build flags changed but cache key unchanged
 </pattern>
 
-<pattern name="subpath_violations">
-Subpath handling errors:
-- Not normalizing leading slashes (should remove)
-- Not collapsing . and .. segments
-- Incorrect percent-encoding
-- Accepting absolute paths when relative required
+<pattern name="edge_cases">
+Uncommon scenarios:
+- Empty files (zero bytes) - cached correctly?
+- File deletion while cached - stale entry persists?
+- Rapid successive reads/writes (stress testing)
+- Very large files exceeding maxEntrySize
+- Permission changes during caching
 </pattern>
 
-Review each type definition in src/purl-type.ts against:
-- types-doc/{type}-definition.md from purl-spec
-- PURL-TYPES.rst from purl-spec
-
-For each violation, cite the spec section:
-1. Which spec document?
-2. What does spec require?
-3. What does code do instead?
+Think through each issue:
+1. Can this actually happen in production?
+2. What observable behavior results?
+3. How likely/severe is the impact?
 </instructions>
 
 <output_format>
 For each finding, report:
 
-File: src/path/to/file.ts:lineNumber
-Issue: [Spec violation description]
+File: packages/node-smol-builder/scripts/common/shared/checkpoints.mjs:lineNumber
+Issue: [One-line description]
 Severity: High | Medium
-Spec Reference: [purl-spec doc and section]
-Expected Behavior: [What spec requires]
-Actual Behavior: [What code does]
-Fix: [Code change to comply with spec]
+Scenario: [Step-by-step sequence showing how bug manifests]
+Pattern: [The problematic code snippet]
+Fix: [Specific code change]
+Impact: [Observable effect - wrong output, performance, crash]
 
 Example:
-File: src/purl-type.ts:234
-Issue: npm normalization not lowercasing namespace
+File: packages/node-smol-builder/scripts/common/shared/checkpoints.mjs:145
+Issue: Cache key missing patch content hashes
 Severity: High
-Spec Reference: types-doc/npm-definition.md section "Normalization"
-Expected Behavior: Namespace should be lowercased per spec
-Actual Behavior: Namespace is not normalized
-Fix: Add `lowerNamespace(purl)` to npm normalizer
+Scenario: 1) Build with patch v1, creates checkpoint. 2) Patch file modified to v2 (same filename). 3) Build restores v1 checkpoint. 4) Produces binary with v1 patches but v2 expected
+Pattern: `const cacheKey = \`\${nodeVersion}-\${platform}-\${arch}\``
+Fix: `const patchHashes = await hashAllPatches(); const cacheKey = \`\${nodeVersion}-\${platform}-\${arch}-\${patchHashes}\``
+Impact: Stale checkpoints produce incorrect Node.js binaries with wrong patches applied
 </output_format>
 
 <quality_guidelines>
-- Cross-reference all type implementations with types-doc/*.md
-- Verify encoding against RFC3986 and PURL spec
-- Check test files (test/purl-spec.test.mts) for spec test coverage
-- Cite specific spec sections for each violation
-- Distinguish between spec violations and implementation choices
+- Focus on correctness issues that produce wrong builds or corrupted checkpoints
+- Consider cross-platform differences (Windows, macOS, Linux)
+- Evaluate checkpoint invalidation scenarios (patches changed, additions changed)
+- Prioritize issues causing silent build incorrectness over performance
+- Verify issues aren't prevented by existing cache key generation
 </quality_guidelines>
 
-Analyze systematically and report all spec violations found. If implementation is fully compliant, state that explicitly.
+Analyze the checkpoint implementation thoroughly across all checkpoint stages and report all issues found. If the implementation is sound, state that explicitly.
 ```
 
 ---
 
 ### Workflow Scan Agent
 
-**Mission**: Detect problems in build scripts, CI configuration, git hooks, and developer workflows.
+**Mission**: Detect problems in build scripts, CI configuration, git hooks, and developer workflows across the socket-btm monorepo.
 
-**Scan Targets**: `scripts/*.mjs`, `package.json`, `.github/workflows/*`, CI configs
+**Scan Targets**: All `scripts/`, `package.json`, `.git-hooks/*`, `.github/workflows/*` across packages
 
 **Prompt Template:**
 ```
-Your task is to identify issues in development workflows, build scripts, and CI configuration that could cause build failures, test flakiness, or poor developer experience.
+Your task is to identify issues in socket-btm's development workflows, build scripts, and CI configuration that could cause build failures, test flakiness, or poor developer experience.
 
 <context>
-This project uses:
-- Build scripts: scripts/*.mjs (ESM, cross-platform Node.js)
-- Package manager: pnpm with scripts in package.json
-- Git hooks: Husky for pre-commit validation
-- CI: GitHub Actions (.github/workflows/)
-- Platforms: Must work on Windows, macOS, Linux
-- CLAUDE.md defines conventions (no process.exit(), colored output with yoctocolors-cjs, etc.)
+socket-btm is a pnpm monorepo with:
+- **Build scripts**: packages/*/scripts/**/*.{mjs,mts} (ESM, cross-platform Node.js)
+- **Package manager**: pnpm workspaces with scripts in each package.json
+- **Git hooks**: .git-hooks/* for pre-commit, pre-push validation
+- **CI**: GitHub Actions (.github/workflows/)
+- **Platforms**: Must work on Windows, macOS, Linux (ARM64, x64)
+- **CLAUDE.md**: Defines conventions (no process.exit(), no backward compat, etc.)
+- **Critical**: Build scripts compile C/C++ code and apply patches - must handle errors gracefully
+
+Packages:
+- node-smol-builder: Main build orchestration
+- binject: C/C++ binary injection library
+- bin-infra, build-infra: Utilities used by node-smol-builder
 </context>
 
 <instructions>
@@ -394,7 +425,7 @@ Error handling in scripts:
 - process.exit() usage: CLAUDE.md forbids this - should throw errors instead
 - Missing try-catch: Async operations without error handling
 - Exit codes: Non-zero exit on failure for CI detection
-- Error messages: Should use colored symbols (✓✗⚠ℹ→) from yoctocolors-cjs
+- Error messages: Are they helpful for debugging?
 - Dependency checks: Do scripts check for required tools before use?
 
 **Note on file existence checks**: existsSync() is ACCEPTABLE and actually PREFERRED over async fs.access() for synchronous file checks. Node.js has quirks where the synchronous check is more reliable for immediate validation. Do NOT flag existsSync() as an issue.
@@ -404,32 +435,37 @@ Error handling in scripts:
 package.json script correctness:
 - Script chaining: Use && (fail fast) not ; (continue on error) when errors matter
 - Platform-specific: Commands that don't work cross-platform (grep, find, etc.)
-- Convention compliance: Match patterns in CLAUDE.md (e.g., `pnpm run foo --flag`)
+- Convention compliance: Match patterns in CLAUDE.md (e.g., `pnpm run foo --flag` not `foo:bar`)
 - Missing scripts: Standard scripts like build, test, lint documented?
 </pattern>
 
-<pattern name="ci_configuration">
-CI pipeline issues (.github/workflows/):
-- Build order: Are steps in correct sequence (install → build → test)?
-- Test coverage: Is coverage collected and reported?
-- Matrix testing: Node.js versions, OS variations?
-- Caching: Are dependencies cached for speed?
-- Artifact generation: Are build artifacts uploaded?
-</pattern>
-
 <pattern name="git_hooks">
-Git hooks configuration (via Husky):
-- Pre-commit: Does it run formatting/linting? Is it fast (<10s)?
+Git hooks configuration:
+- Pre-commit: Does it run linting/formatting? Is it fast (<10s)?
 - Pre-push: Does it run tests to prevent broken pushes?
 - False positives: Do hooks block legitimate commits?
 - Error messages: Are hook failures clearly explained?
+- Hook installation: Is setup documented in README?
+</pattern>
+
+<pattern name="ci_configuration">
+CI pipeline issues:
+- Build order: Are steps in correct sequence (install → build → test)?
+- Cross-platform: Are Windows/macOS/Linux builds all tested?
+- C/C++ compilation: Are compiler toolchains (clang, gcc, MSVC) properly configured?
+- Build artifacts: Are Node.js binaries uploaded for each platform?
+- Checkpoint caching: Are build checkpoints cached across CI runs?
+- Failure notifications: Are build failures clearly visible?
+- Node.js versions: Are upstream Node.js version updates tested?
+- Patch validation: Are patch files validated before application?
 </pattern>
 
 <pattern name="developer_experience">
 Documentation and setup:
 - README: Setup instructions clear and complete?
-- CLAUDE.md: Conventions documented?
+- Common errors: Are frequent issues documented with solutions?
 - Required tools: List of prerequisites (Node.js version, pnpm, etc.)?
+- Environment variables: Are required env vars documented?
 - First-time setup: Can a new contributor get started easily?
 </pattern>
 
@@ -456,6 +492,14 @@ Severity: Medium
 Impact: Cannot be tested properly, unconventional error handling
 Pattern: `process.exit(1)`
 Fix: `throw new Error('Build failed: ...')`
+
+Example:
+File: package.json:scripts.test
+Issue: Script chaining uses semicolon instead of &&
+Severity: Medium
+Impact: Tests run even if build fails, masking build issues
+Pattern: `"test": "pnpm build ; pnpm vitest"`
+Fix: `"test": "pnpm build && pnpm vitest"`
 </output_format>
 
 <quality_guidelines>
@@ -477,23 +521,23 @@ Analyze workflow files systematically and report all issues found. If workflows 
 | Level | Description | Action Required |
 |-------|-------------|-----------------|
 | **Critical** | Crashes, security vulnerabilities, data corruption | Fix immediately |
-| **High** | Logic errors, spec violations, incorrect output | Fix before release |
-| **Medium** | Performance issues, edge case bugs, workflow problems | Fix in next sprint |
+| **High** | Logic errors, incorrect output, resource leaks | Fix before release |
+| **Medium** | Performance issues, edge case bugs | Fix in next sprint |
 | **Low** | Code smells, minor inconsistencies | Fix when convenient |
 
 ### Scan Priority Order
 
 1. **critical** - Most important, run first
-2. **logic** - Parser/builder correctness critical for accuracy
-3. **spec** - PURL specification compliance
+2. **logic** - Parser correctness critical for SBOM accuracy
+3. **cache** - Performance and correctness
 4. **workflow** - Developer experience
 
 ### Coverage Targets
 
 - **critical**: All src/ files
-- **logic**: src/package-url.ts, src/purl-component.ts, src/purl-type.ts, src/encode.ts, src/decode.ts
-- **spec**: src/purl-type.ts, src/purl-component.ts, src/normalize.ts, src/validate.ts
-- **workflow**: scripts/, package.json, .github/, .husky/
+- **logic**: src/parsers/ (19 ecosystems) + src/utils/
+- **cache**: src/utils/file-cache.mts + related
+- **workflow**: scripts/, package.json, .git-hooks/, CI
 
 ---
 
@@ -504,13 +548,13 @@ Analyze workflow files systematically and report all issues found. If workflows 
 Each finding should include:
 ```typescript
 {
-  file: "src/package-url.ts:89",
-  issue: "Potential null pointer access on URL parsing",
-  severity: "Critical",
-  scanType: "critical",
-  pattern: "new URL(str) without try-catch",
-  suggestion: "Wrap in try-catch and throw PurlError",
-  impact: "Crash on malformed input"
+  file: "src/utils/file-cache.mts:89",
+  issue: "Potential race condition in cache update",
+  severity: "High",
+  scanType: "cache",
+  pattern: "if (cached) { /* check-then-act */ }",
+  suggestion: "Use atomic operations or locking",
+  impact: "Could return stale data under concurrent access"
 }
 ```
 
@@ -519,39 +563,46 @@ Each finding should include:
 ```markdown
 # Quality Scan Report
 
-**Date:** 2026-02-06
-**Scans:** critical, logic, spec, workflow
-**Files Scanned:** 18
-**Findings:** 0 critical, 2 high, 3 medium, 1 low
+**Date:** 2026-02-05
+**Scans:** critical, logic, cache, workflow
+**Files Scanned:** 127
+**Findings:** 2 critical, 5 high, 8 medium, 3 low
 
-## High Issues (Priority 2) - 2 found
+## Critical Issues (Priority 1) - 2 found
 
-### src/purl-type.ts:145
-- **Issue**: Missing validation for ecosystem-specific constraints
-- **Pattern**: No check for namespace requirement
-- **Fix**: Add validateRequiredByType() check
-- **Impact**: Accepts invalid PURLs that violate spec
+### src/utils/file-cache.mts:89
+- **Issue**: Potential null pointer access on cache miss
+- **Pattern**: `const stats = await fs.stat(normalizedPath)`
+- **Fix**: Add try-catch or check file existence first
+- **Impact**: Crashes when file deleted between cache check and stat
 
-### src/package-url.ts:234
-- **Issue**: Edge case in version range handling
-- **Pattern**: Doesn't handle '||' or operator
-- **Fix**: Add OR operator handling in fromNPM()
-- **Impact**: Incorrect version extraction for complex ranges
+### src/parsers/npm/index.mts:234
+- **Issue**: Unhandled promise rejection
+- **Pattern**: `parsePackageJson(path)` without await or .catch()
+- **Fix**: Add await or .catch() handler
+- **Impact**: Uncaught exception crashes process
 
-## Medium Issues (Priority 3) - 3 found
+## High Issues (Priority 2) - 5 found
+
+### src/parsers/pypi/index.mts:512
+- **Issue**: Off-by-one error in bracket depth calculation
+- **Pattern**: `bracketDepth - 1` can go negative
+- **Fix**: Use `Math.max(0, bracketDepth - 1)`
+- **Impact**: Incorrect dependency parsing for malformed files
 
 ...
 
 ## Scan Coverage
-- **Critical scan**: 18 files analyzed in src/
-- **Logic scan**: 6 core files + 12 utils analyzed
-- **Spec scan**: 4 type definition files analyzed
-- **Workflow scan**: 8 scripts + package.json + CI config
+- **Critical scan**: 127 files analyzed in src/
+- **Logic scan**: 19 parsers + 15 utils analyzed
+- **Cache scan**: 1 file + related code paths
+- **Workflow scan**: 12 scripts + package.json + 3 hooks
 
 ## Recommendations
-1. Review 2 high-severity issues before next release
-2. Schedule medium issues for next sprint
-3. Low-priority items can be addressed during refactoring
+1. Address 2 critical issues immediately before next release
+2. Review 5 high-severity logic errors in parsers
+3. Schedule medium issues for next sprint
+4. Low-priority items can be addressed during refactoring
 ```
 
 ---
@@ -570,18 +621,184 @@ All scans completed successfully with no findings.
 
 - Critical scan: ✓ Clean
 - Logic scan: ✓ Clean
-- Spec scan: ✓ Clean
+- Cache scan: ✓ Clean
 - Workflow scan: ✓ Clean
 
 **Code quality**: Excellent
+```
+
+### Scan Failures
+
+If an agent fails or times out:
+```markdown
+## Scan Errors
+
+- **critical scan**: ✗ Failed (agent timeout)
+  - Retry recommended
+  - Check agent prompt size
+
+- **logic scan**: ✓ Completed
+- **cache scan**: ✓ Completed
+- **workflow scan**: ✓ Completed
 ```
 
 ### Partial Scans
 
 User can request specific scan types:
 ```bash
-# Only run critical and spec scans
-quality-scan --types critical,spec
+# Only run critical and logic scans
+quality-scan --types critical,logic
 ```
 
 Report only includes requested scan types and notes which were skipped.
+
+---
+
+## Security Scan Agent
+
+**Mission**: Scan GitHub Actions workflows for security vulnerabilities using zizmor.
+
+**Scan Targets**: All `.yml` files in `.github/workflows/`
+
+**Prompt Template:**
+```
+Your task is to run the zizmor security scanner on GitHub Actions workflows to identify security vulnerabilities such as template injection, cache poisoning, and other workflow security issues.
+
+<context>
+Zizmor is a GitHub Actions workflow security scanner that detects:
+- Template injection vulnerabilities (code injection via template expansion)
+- Cache poisoning attacks (artifacts vulnerable to cache poisoning)
+- Credential exposure in workflow logs
+- Dangerous workflow patterns and misconfigurations
+- OIDC token abuse risks
+- Artipacked vulnerabilities
+
+This repository uses GitHub Actions for CI/CD with workflows in `.github/workflows/`.
+
+**Installation:**
+Zizmor is not available via npm. Install zizmor v1.22.0 using one of these methods:
+
+**GitHub Releases (Recommended):**
+```bash
+# Download from https://github.com/zizmorcore/zizmor/releases/tag/v1.22.0
+# macOS ARM64:
+curl -L https://github.com/zizmorcore/zizmor/releases/download/v1.22.0/zizmor-aarch64-apple-darwin -o /usr/local/bin/zizmor
+chmod +x /usr/local/bin/zizmor
+
+# macOS x64:
+curl -L https://github.com/zizmorcore/zizmor/releases/download/v1.22.0/zizmor-x86_64-apple-darwin -o /usr/local/bin/zizmor
+chmod +x /usr/local/bin/zizmor
+
+# Linux x64:
+curl -L https://github.com/zizmorcore/zizmor/releases/download/v1.22.0/zizmor-x86_64-unknown-linux-musl -o /usr/local/bin/zizmor
+chmod +x /usr/local/bin/zizmor
+```
+
+**Alternative Methods:**
+- Homebrew: `brew install zizmor@1.22.0`
+- Cargo: `cargo install zizmor --version 1.22.0`
+- See https://docs.zizmor.sh/installation/ for all options
+</context>
+
+<instructions>
+1. Run zizmor on all GitHub Actions workflow files:
+   ```bash
+   zizmor .github/workflows/
+   ```
+
+2. Parse the zizmor output and identify all findings:
+   - Extract severity level (info, low, medium, high, error)
+   - Extract vulnerability type (template-injection, cache-poisoning, etc.)
+   - Extract file path and line numbers
+   - Extract audit confidence level
+   - Note if auto-fix is available
+
+3. For each finding, report:
+   - File and line number
+   - Vulnerability type and severity
+   - Description of the security issue
+   - Why it's a problem (security impact)
+   - Suggested fix (use zizmor's suggestions if available)
+   - Whether auto-fix is available (`zizmor --fix`)
+
+4. If zizmor reports no findings, state explicitly: "✓ No security issues found in GitHub Actions workflows"
+
+5. Note any suppressed findings (shown by zizmor but marked as suppressed)
+</instructions>
+
+<pattern name="template_injection">
+Look for findings like:
+- `info[template-injection]` or `error[template-injection]`
+- Code injection via template expansion in run blocks
+- Unsanitized use of `${{ }}` syntax in dangerous contexts
+- User-controlled input used in shell commands
+</pattern>
+
+<pattern name="cache_poisoning">
+Look for findings like:
+- `error[cache-poisoning]` or `warning[cache-poisoning]`
+- Caching enabled when publishing artifacts
+- Vulnerable to cache poisoning attacks in release workflows
+- actions/setup-node or actions/setup-python with cache enabled during artifact publishing
+</pattern>
+
+<pattern name="credential_exposure">
+Look for findings like:
+- Secrets logged to console
+- Credentials passed in insecure ways
+- Token leakage through workflow logs
+</pattern>
+
+<output_format>
+For each finding, output in this structured format:
+
+{
+  file: ".github/workflows/workflow-name.yml:123",
+  issue: "Template injection vulnerability in run block",
+  severity: "High",
+  scanType: "security",
+  pattern: "run: echo ${{ github.event.comment.body }}",
+  trigger: "Untrusted user input from PR comment",
+  fix: "Use environment variables: env: COMMENT: ${{ github.event.comment.body }} then echo \"$COMMENT\"",
+  impact: "Attacker can execute arbitrary code in CI environment",
+  autofix: true
+}
+
+Group findings by severity (Error → High → Medium → Low → Info)
+</output_format>
+
+<quality_guidelines>
+- Only report actual zizmor findings (don't invent issues)
+- Include all details from zizmor output
+- Note the audit confidence level for each finding
+- Indicate if auto-fix is available
+- If no findings, explicitly state the workflows are secure
+- Report suppressed findings separately
+</quality_guidelines>
+```
+
+### Example Security Scan Output
+
+```markdown
+## Security Issues - 2 found
+
+### .github/workflows/ci.yml:45
+- **Issue**: Template injection in run block
+- **Severity**: High
+- **Pattern**: `echo "User comment: ${{ github.event.comment.body }}"`
+- **Trigger**: Untrusted PR comment body injected into shell command
+- **Fix**: Use environment variable: `env: COMMENT: ${{ github.event.comment.body }}` then `echo "User comment: $COMMENT"`
+- **Impact**: Attacker can execute arbitrary commands in CI by crafting malicious PR comment
+- **Auto-fix**: Available (`zizmor --fix`)
+- **Confidence**: High
+
+### .github/workflows/release.yml:89
+- **Issue**: Cache poisoning vulnerability when publishing artifacts
+- **Severity**: Medium
+- **Pattern**: `actions/setup-node@v4` with `cache: 'npm'` in release workflow
+- **Trigger**: Dependency cache enabled in workflow that publishes release artifacts
+- **Fix**: Disable cache: `cache: ''` or remove cache parameter when publishing
+- **Impact**: Attacker could poison dependency cache and inject malicious code into releases
+- **Auto-fix**: Not available
+- **Confidence**: Low
+```
