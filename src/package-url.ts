@@ -605,11 +605,16 @@ class PackageURL {
       for (let i = 0, { length } = entries; i < length; i += 1) {
         const pairs = entries[i]?.split('=')
         if (pairs) {
+          const key = pairs[0]!
+          // Validate qualifier key is not empty (reject malformed PURLs like ?&key=val or ?key=val&)
+          if (key.length === 0) {
+            throw new PurlError('qualifier key must not be empty')
+          }
           const value = decodePurlComponent('qualifiers', pairs.at(1) ?? '')
           // Use URLSearchParams#append to preserve plus signs
           // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
           /* c8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */ searchParams.append(
-            pairs[0]!,
+            key,
             value,
           )
         }

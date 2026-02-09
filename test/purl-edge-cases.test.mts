@@ -404,6 +404,34 @@ describe('Edge cases and additional coverage', () => {
       expect(str).toContain('distro=ubuntu-20.04')
       expect(str).toContain('epoch=1')
     })
+
+    it('should reject PURL with empty qualifier key (leading ampersand)', () => {
+      // Tests that malformed PURLs with empty keys are rejected
+      expect(() => PackageURL.fromString('pkg:npm/foo?&bar=baz')).toThrow(
+        'qualifier key must not be empty',
+      )
+    })
+
+    it('should reject PURL with empty qualifier key (double ampersand)', () => {
+      // Tests that consecutive ampersands create empty keys which are rejected
+      expect(() =>
+        PackageURL.fromString('pkg:npm/foo?key=val&&bar=baz'),
+      ).toThrow('qualifier key must not be empty')
+    })
+
+    it('should reject PURL with empty qualifier key (equals without key)', () => {
+      // Tests that qualifiers starting with = are rejected
+      expect(() => PackageURL.fromString('pkg:npm/foo?=value')).toThrow(
+        'qualifier key must not be empty',
+      )
+    })
+
+    it('should reject PURL with trailing ampersand creating empty key', () => {
+      // Tests that trailing & doesn't create invalid empty key
+      expect(() => PackageURL.fromString('pkg:npm/foo?key=value&')).toThrow(
+        'qualifier key must not be empty',
+      )
+    })
   })
 
   describe('Type-specific normalizations', () => {

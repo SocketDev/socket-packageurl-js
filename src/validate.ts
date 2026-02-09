@@ -113,6 +113,13 @@ function validateQualifierKey(
   // Support both legacy boolean parameter and new options object for backward compatibility
   const opts = typeof options === 'boolean' ? { throws: options } : options
   const { throws = false } = opts ?? {}
+  // Qualifier keys must not be empty
+  if (key.length === 0) {
+    if (throws) {
+      throw new PurlError('qualifier key must not be empty')
+    }
+    return false
+  }
   // A key cannot start with a number
   if (!validateStartsWithoutNumber('qualifier', key, opts)) {
     return false

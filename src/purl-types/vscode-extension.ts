@@ -166,6 +166,12 @@ export async function vscodeExtensionExists(
       /* c8 ignore start */
       const error = e instanceof Error ? e.message : String(e)
       /* c8 ignore stop */
+      // IMPORTANT: httpJson() throws on non-2xx responses, so we cannot inspect
+      // response.status directly. We rely on the error message containing "404"
+      // to distinguish "not found" from other HTTP errors.
+      // This depends on @socketsecurity/lib's error message format:
+      // "HTTP 404: Not Found" or similar containing the status code.
+      // If upstream changes error format, this string matching may break.
       return {
         exists: false,
         error: error.includes('404') ? 'Extension not found' : error,

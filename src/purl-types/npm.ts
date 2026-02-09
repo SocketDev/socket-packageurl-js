@@ -284,7 +284,7 @@ export async function npmExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpJson always throws Error, String(e) is defensive but unreachable */
+      /* c8 ignore next - httpJson typically throws Error; String(e) is defensive programming */
       // httpJson throws on non-2xx status codes
       const error = e instanceof Error ? e.message : String(e)
       return {

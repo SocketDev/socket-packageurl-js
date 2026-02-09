@@ -59,6 +59,30 @@ describe('vscodeExtensionExists', () => {
       )
     })
 
+    it('should send POST request with correct headers', async () => {
+      // Verify that httpJson sends the correct Content-Type and Accept headers
+      nock('https://marketplace.visualstudio.com')
+        .post('/_apis/public/gallery/extensionquery')
+        .matchHeader('content-type', 'application/json')
+        .matchHeader('accept', 'application/json;api-version=7.1-preview.1')
+        .reply(200, {
+          results: [
+            {
+              extensions: [
+                {
+                  versions: [{ version: '2.4.2' }],
+                },
+              ],
+            },
+          ],
+        })
+
+      const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
+
+      expect(result.exists).toBe(true)
+      expect(result.latestVersion).toBe('2.4.2')
+    })
+
     it('should return exists=false for non-existent extension', async () => {
       nock('https://marketplace.visualstudio.com')
         .post('/_apis/public/gallery/extensionquery', body => {
