@@ -3,7 +3,7 @@
  * Implements npm package naming rules from the PURL specification.
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { encodeComponent } from '../encode.js'
 import { PurlError } from '../error.js'
@@ -255,7 +255,7 @@ export async function npmExists(
       const encodedName = encodeURIComponent(packageName)
       const url = `https://registry.npmjs.org/${encodedName}`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         'dist-tags'?: { latest?: string }
         versions?: Record<string, unknown>
       }>(url)
@@ -284,8 +284,8 @@ export async function npmExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
-      // httpGetJson throws on non-2xx status codes
+      /* c8 ignore next - httpJson always throws Error, String(e) is defensive but unreachable */
+      // httpJson throws on non-2xx status codes
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,

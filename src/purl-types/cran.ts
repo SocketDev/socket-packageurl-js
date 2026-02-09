@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#cran
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { validateRequiredByType } from '../validate.js'
 
@@ -65,7 +65,7 @@ export async function cranExists(
       // CRAN provides a JSON API via r-universe
       const url = `https://cran.r-universe.dev/api/packages/${encodeURIComponent(name)}`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         Version?: string
         versions?: Array<string>
       }>(url)
@@ -92,7 +92,7 @@ export async function cranExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
+      /* c8 ignore next - httpJson always throws Error, String(e) is defensive but unreachable */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,

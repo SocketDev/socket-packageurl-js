@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/types-doc/cocoapods-definition.md
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
 
@@ -63,7 +63,7 @@ export async function cocoapodsExists(
     try {
       const url = `https://trunk.cocoapods.org/api/v1/pods/${encodeURIComponent(name)}`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         versions?: Array<{ name?: string }>
       }>(url)
 
@@ -95,7 +95,7 @@ export async function cocoapodsExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
+      /* c8 ignore next - httpJson always throws Error, String(e) is defensive but unreachable */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,

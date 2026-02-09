@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#docker
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { lowerName } from '../strings.js'
 
@@ -92,7 +92,7 @@ export async function dockerExists(
       const encodedRepo = encodeURIComponent(repo)
       const url = `https://hub.docker.com/v2/repositories/${encodedRepo}`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         name?: string
       }>(url)
 
@@ -109,7 +109,7 @@ export async function dockerExists(
       if (version) {
         try {
           const tagUrl = `https://hub.docker.com/v2/repositories/${encodedRepo}/tags/${encodeURIComponent(version)}`
-          await httpGetJson(tagUrl)
+          await httpJson(tagUrl)
         } catch (e) {
           /* c8 ignore start */
           const error = e instanceof Error ? e.message : String(e)

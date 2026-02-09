@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/types-doc/cpan-definition.md
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
 
@@ -63,7 +63,7 @@ export async function cpanExists(
     try {
       const url = `https://fastapi.metacpan.org/v1/module/${encodeURIComponent(name)}`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         version?: string
       }>(url)
 
@@ -73,7 +73,7 @@ export async function cpanExists(
         // Check specific version
         const versionUrl = `https://fastapi.metacpan.org/v1/module/${encodeURIComponent(name)}/${encodeURIComponent(version)}`
         try {
-          await httpGetJson(versionUrl)
+          await httpJson(versionUrl)
         } catch {
           const result: ExistsResult = {
             exists: false,
@@ -92,7 +92,7 @@ export async function cpanExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
+      /* c8 ignore next - httpJson always throws Error, String(e) is defensive but unreachable */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,

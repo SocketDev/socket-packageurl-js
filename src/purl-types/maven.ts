@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/types-doc/maven-definition.md
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { validateRequiredByType } from '../validate.js'
 
@@ -72,7 +72,7 @@ export async function mavenExists(
       const a = encodeURIComponent(name)
       const url = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}&rows=1&wt=json`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         response?: {
           numFound?: number
           docs?: Array<{ latestVersion?: string; v?: string }>
@@ -89,7 +89,7 @@ export async function mavenExists(
 
       if (version) {
         const versionUrl = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}+AND+v:${encodeURIComponent(version)}&rows=1&wt=json`
-        const versionData = await httpGetJson<{
+        const versionData = await httpJson<{
           response?: { numFound?: number }
         }>(versionUrl)
 
@@ -112,7 +112,7 @@ export async function mavenExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
+      /* c8 ignore next - httpJson always throws Error, String(e) is defensive but unreachable */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,

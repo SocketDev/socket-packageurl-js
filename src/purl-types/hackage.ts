@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#hackage
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -52,7 +52,7 @@ export async function hackageExists(
     try {
       const url = `https://hackage.haskell.org/package/${encodeURIComponent(name)}/preferred`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         'normal-version'?: Array<string>
       }>(url)
 
@@ -83,7 +83,7 @@ export async function hackageExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
+      /* c8 ignore next - httpJson always throws Error, String(e) is defensive but unreachable */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,

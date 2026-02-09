@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#conda
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { lowerName } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
@@ -106,7 +106,7 @@ export async function condaExists(
       const encodedName = encodeURIComponent(name)
       const url = `https://api.anaconda.org/package/${channelName}/${encodedName}`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         latest_version?: string
         versions?: string[]
       }>(url)

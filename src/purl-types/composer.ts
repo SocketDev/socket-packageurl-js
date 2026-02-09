@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#composer
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { lowerName, lowerNamespace } from '../strings.js'
 
@@ -79,7 +79,7 @@ export async function packagistExists(
     try {
       const url = `https://repo.packagist.org/p2/${encodeURIComponent(packageName)}.json`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         packages?: {
           [key: string]: Array<{
             version?: string
@@ -125,7 +125,7 @@ export async function packagistExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
+      /* c8 ignore next - httpJson always throws Error, String(e) is defensive but unreachable */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,

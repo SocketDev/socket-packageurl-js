@@ -6,7 +6,7 @@
  * The namespace is the publisher name, and the name is the extension name.
  */
 
-import { httpRequest } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { lowerName, lowerNamespace } from '../strings.js'
 
@@ -112,31 +112,7 @@ export async function vscodeExtensionExists(
         flags: 914,
       }
 
-      const response = await httpRequest(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json;api-version=7.1-preview.1',
-        },
-        body: JSON.stringify(requestBody),
-      })
-
-      // Check HTTP status before parsing JSON
-      if (response.status === 404) {
-        return {
-          exists: false,
-          error: 'Extension not found',
-        }
-      }
-
-      if (!response.ok) {
-        return {
-          exists: false,
-          error: `HTTP ${response.status} error`,
-        }
-      }
-
-      const data = response.json<{
+      const data = await httpJson<{
         results?: Array<{
           extensions?: Array<{
             versions?: Array<{
@@ -144,7 +120,14 @@ export async function vscodeExtensionExists(
             }>
           }>
         }>
-      }>()
+      }>(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json;api-version=7.1-preview.1',
+        },
+        body: JSON.stringify(requestBody),
+      })
 
       const extensions = data.results?.[0]?.['extensions']
       if (!extensions || extensions.length === 0) {

@@ -28,7 +28,7 @@
  * See: https://go.dev/ref/mod#module-path
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
 import { isSemverString } from '../strings.js'
@@ -105,7 +105,7 @@ export async function golangExists(
 
       const url = `https://proxy.golang.org/${encodedPath}/@latest`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         Version?: string
         Time?: string
       }>(url)
@@ -115,7 +115,7 @@ export async function golangExists(
       if (version) {
         const versionUrl = `https://proxy.golang.org/${encodedPath}/@v/${version}.info`
         try {
-          await httpGetJson(versionUrl)
+          await httpJson(versionUrl)
         } catch {
           const result: ExistsResult = {
             exists: false,
@@ -134,7 +134,7 @@ export async function golangExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
+      /* c8 ignore next - httpJson always throws Error, String(e) is defensive but unreachable */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,

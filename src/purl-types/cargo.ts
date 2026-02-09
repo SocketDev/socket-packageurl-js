@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/types-doc/cargo-definition.md
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { validateEmptyByType } from '../validate.js'
 
@@ -74,7 +74,7 @@ export async function cargoExists(
     try {
       const url = `https://crates.io/api/v1/crates/${encodeURIComponent(name)}`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         crate?: { max_version?: string }
         versions?: Array<{ num?: string }>
       }>(url, {

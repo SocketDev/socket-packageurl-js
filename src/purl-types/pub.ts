@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pub
  */
 
-import { httpGetJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
 import { lowerName, replaceDashesWithUnderscores } from '../strings.js'
@@ -73,7 +73,7 @@ export async function pubExists(
     try {
       const url = `https://pub.dev/api/packages/${encodeURIComponent(name)}`
 
-      const data = await httpGetJson<{
+      const data = await httpJson<{
         latest?: {
           version?: string
         }
@@ -105,7 +105,7 @@ export async function pubExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpGetJson always throws Error, String(e) is defensive but unreachable */
+      /* c8 ignore next - httpJson always throws Error, String(e) is defensive but unreachable */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
