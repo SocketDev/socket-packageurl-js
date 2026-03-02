@@ -137,11 +137,11 @@ export class UrlConverter {
    * artifact (binary, archive, etc.) can be obtained. Requires a version
    * to be present in the PackageURL.
    */
-  static toDownloadUrl(purl: PackageURL): DownloadUrl | null {
+  static toDownloadUrl(purl: PackageURL): DownloadUrl | undefined {
     const { name, namespace, type, version } = purl
 
     if (!version) {
-      return null
+      return undefined
     }
 
     switch (type) {
@@ -161,7 +161,7 @@ export class UrlConverter {
 
       case 'maven': {
         if (!namespace) {
-          return null
+          return undefined
         }
         const groupPath = namespace.replace(/\./g, '/')
         return {
@@ -190,7 +190,7 @@ export class UrlConverter {
 
       case 'composer':
         if (!namespace) {
-          return null
+          return undefined
         }
         return {
           type: 'other',
@@ -211,7 +211,7 @@ export class UrlConverter {
 
       case 'golang':
         if (!namespace) {
-          return null
+          return undefined
         }
         return {
           type: 'zip',
@@ -219,7 +219,7 @@ export class UrlConverter {
         }
 
       default:
-        return null
+        return undefined
     }
   }
 
@@ -230,7 +230,7 @@ export class UrlConverter {
    * source code can be found. Different package types use different URL
    * patterns and repository hosting services.
    */
-  static toRepositoryUrl(purl: PackageURL): RepositoryUrl | null {
+  static toRepositoryUrl(purl: PackageURL): RepositoryUrl | undefined {
     const { name, namespace, type } = purl
 
     switch (type) {
@@ -248,7 +248,7 @@ export class UrlConverter {
 
       case 'maven': {
         if (!namespace) {
-          return null
+          return undefined
         }
         const groupPath = namespace.replace(/\./g, '/')
         return {
@@ -265,7 +265,7 @@ export class UrlConverter {
 
       case 'golang':
         if (!namespace) {
-          return null
+          return undefined
         }
         return {
           type: 'git',
@@ -292,7 +292,7 @@ export class UrlConverter {
 
       case 'github':
         if (!namespace) {
-          return null
+          return undefined
         }
         return {
           type: 'git',
@@ -301,7 +301,7 @@ export class UrlConverter {
 
       case 'gitlab':
         if (!namespace) {
-          return null
+          return undefined
         }
         return {
           type: 'git',
@@ -310,7 +310,7 @@ export class UrlConverter {
 
       case 'bitbucket':
         if (!namespace) {
-          return null
+          return undefined
         }
         return {
           type: 'git',
@@ -336,7 +336,7 @@ export class UrlConverter {
         }
 
       default:
-        return null
+        return undefined
     }
   }
 }

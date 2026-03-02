@@ -229,7 +229,7 @@ export const ResultUtils = {
    * Return the first Ok result or the last error.
    */
   any<T extends readonly Result<unknown, unknown>[]>(results: T): T[number] {
-    let lastError: Result<unknown, unknown> | null = null
+    let lastError: Result<unknown, unknown> | undefined
     for (const result of results) {
       if (result.isOk()) {
         return result

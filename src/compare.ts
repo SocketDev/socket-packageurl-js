@@ -32,7 +32,7 @@ function matchWildcard(pattern: string, value: string): boolean {
 function matchComponent(
   patternValue: string | null | undefined,
   actualValue: string | null | undefined,
-  matcher: ((_value: string) => boolean) | null = null,
+  matcher?: (_value: string) => boolean,
 ): boolean {
   // Handle ** (match any value including empty)
   if (patternValue === '**') {
@@ -56,7 +56,7 @@ function matchComponent(
   }
 
   // Use pre-compiled matcher if provided
-  if (matcher !== null) {
+  if (matcher) {
     return matcher(actualValue)
   }
 
@@ -324,7 +324,7 @@ export function createMatcher(pattern: string): (_purl: PackageURL) => boolean {
     patternType && (patternType.includes('*') || patternType.includes('?'))
   const typeMatcher = typeHasWildcard
     ? (value: string) => matchWildcard(patternType, value)
-    : null
+    : undefined
 
   const namespaceHasWildcard =
     patternNamespace &&
@@ -332,13 +332,13 @@ export function createMatcher(pattern: string): (_purl: PackageURL) => boolean {
   const namespaceMatcher =
     namespaceHasWildcard && patternNamespace
       ? (value: string) => matchWildcard(patternNamespace, value)
-      : null
+      : undefined
 
   const nameHasWildcard =
     patternName && (patternName.includes('*') || patternName.includes('?'))
   const nameMatcher = nameHasWildcard
     ? (value: string) => matchWildcard(patternName, value)
-    : null
+    : undefined
 
   const versionHasWildcard =
     patternVersion &&
@@ -346,7 +346,7 @@ export function createMatcher(pattern: string): (_purl: PackageURL) => boolean {
   const versionMatcher =
     versionHasWildcard && patternVersion
       ? (value: string) => matchWildcard(patternVersion, value)
-      : null
+      : undefined
 
   // Return optimized matcher function with pre-compiled matchers
   return (_purl: PackageURL): boolean => {
