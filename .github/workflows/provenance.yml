@@ -26,7 +26,7 @@ permissions:
 
 jobs:
   publish:
-    uses: SocketDev/socket-registry/.github/workflows/provenance.yml@0f9229dbc545a2de7b06024756e41fa5e0debc8b # main
+    uses: SocketDev/socket-registry/.github/workflows/provenance.yml@67a3db92603c23c58031586611c7cc852244c87c # main
     with:
       debug: ${{ inputs.debug }}
       dist-tag: ${{ inputs.dist-tag }}
