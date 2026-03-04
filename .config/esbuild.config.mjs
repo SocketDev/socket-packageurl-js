@@ -12,8 +12,78 @@ const srcPath = path.join(rootPath, 'src')
 const distPath = path.join(rootPath, 'dist')
 
 /**
+ * Extract package info from a pnpm node_modules path.
+ * @returns {{ packageName: string, version: string, subpath: string } | null}
+ */
+function extractPackageInfo(longPath) {
+  // Scoped: node_modules/.pnpm/@scope+pkg@version/node_modules/@scope/pkg/path
+  const scopedMatch = longPath.match(
+    /node_modules\/\.pnpm\/@[^+/]+\+[^@/]+@([^/]+)\/node_modules\/(@[^/]+\/[^/]+)\/(.+)/,
+  )
+  if (scopedMatch) {
+    const [, version, packageName, subpath] = scopedMatch
+    return { packageName, version, subpath }
+  }
+
+  // Non-scoped: node_modules/.pnpm/pkg@version/node_modules/pkg/path
+  const match = longPath.match(
+    /node_modules\/\.pnpm\/[^@/]+@([^/]+)\/node_modules\/([^/]+)\/(.+)/,
+  )
+  if (match) {
+    const [, version, packageName, subpath] = match
+    return { packageName, version, subpath }
+  }
+
+  return null
+}
+
+/**
+ * Build a map from original paths to shortened paths.
+ * When multiple versions of a package exist, includes version in path.
+ * @param {Set<string>} modulePaths
+ * @returns {Map<string, string>}
+ */
+function buildPathMap(modulePaths) {
+  // Group paths by their shortened form to detect conflicts
+  // Map<shortPath, Array<{longPath, info}>>
+  const shortPathGroups = new Map()
+
+  for (const longPath of modulePaths) {
+    const info = extractPackageInfo(longPath)
+    if (!info) continue
+
+    const shortPath = `${info.packageName}/${info.subpath}`
+    if (!shortPathGroups.has(shortPath)) {
+      shortPathGroups.set(shortPath, [])
+    }
+    shortPathGroups.get(shortPath).push({ longPath, info })
+  }
+
+  // Build final path map - include version only when there are conflicts
+  const pathMap = new Map()
+  for (const [shortPath, entries] of shortPathGroups) {
+    if (entries.length === 1) {
+      // No conflict - use clean short path
+      pathMap.set(entries[0].longPath, shortPath)
+    } else {
+      // Conflict - include version for all conflicting paths
+      for (const { longPath, info } of entries) {
+        const versionedPath = `${info.packageName}@${info.version}/${info.subpath}`
+        pathMap.set(longPath, versionedPath)
+      }
+    }
+  }
+
+  return pathMap
+}
+
+/**
  * Plugin to shorten module paths in bundled output with conflict detection.
  * Uses @babel/parser and magic-string for precise AST-based modifications.
+ *
+ * When multiple versions of a package exist, includes version in the path:
+ * - Single version: `lodash/lib/foo.js`
+ * - Multiple versions: `lodash@4.17.21/lib/foo.js`, `lodash@4.17.20/lib/foo.js`
  */
 function createPathShorteningPlugin() {
   return {
@@ -32,111 +102,81 @@ function createPathShorteningPlugin() {
 
           for (const outputPath of outputs) {
             const content = await fs.readFile(outputPath, 'utf8')
-            const magicString = new MagicString(content)
 
-            // Track module paths and their shortened versions
-            // Map<originalPath, shortenedPath>
-            const pathMap = new Map()
-            // Track shortened paths to detect conflicts
-            // Map<shortenedPath, originalPath>
-            const conflictDetector = new Map()
-
-            /**
-             * Shorten a module path and detect conflicts.
-             */
-            function shortenPath(longPath) {
-              if (pathMap.has(longPath)) {
-                return pathMap.get(longPath)
-              }
-
-              let shortPath = longPath
-
-              // Handle pnpm scoped packages
-              // node_modules/.pnpm/@scope+pkg@version/node_modules/@scope/pkg/dist/file.js
-              // -> @scope/pkg/dist/file.js
-              const scopedPnpmMatch = longPath.match(
-                /node_modules\/\.pnpm\/@([^+/]+)\+([^@/]+)@[^/]+\/node_modules\/(@[^/]+\/[^/]+)\/(.+)/,
-              )
-              if (scopedPnpmMatch) {
-                const [, _scope, _pkg, packageName, subpath] = scopedPnpmMatch
-                shortPath = `${packageName}/${subpath}`
-              } else {
-                // Handle pnpm non-scoped packages
-                // node_modules/.pnpm/pkg@version/node_modules/pkg/dist/file.js
-                // -> pkg/dist/file.js
-                const pnpmMatch = longPath.match(
-                  /node_modules\/\.pnpm\/([^@/]+)@[^/]+\/node_modules\/([^/]+)\/(.+)/,
-                )
-                if (pnpmMatch) {
-                  const [, _pkgName, packageName, subpath] = pnpmMatch
-                  shortPath = `${packageName}/${subpath}`
-                }
-              }
-
-              // Detect conflicts
-              if (conflictDetector.has(shortPath)) {
-                const existingPath = conflictDetector.get(shortPath)
-                if (existingPath !== longPath) {
-                  // Conflict detected - keep original path
-                  console.warn(
-                    `⚠ Path conflict detected:\n  "${shortPath}"\n  Maps to: "${existingPath}"\n  Also from: "${longPath}"\n  Keeping original paths to avoid conflict.`,
-                  )
-                  shortPath = longPath
-                }
-              } else {
-                conflictDetector.set(shortPath, longPath)
-              }
-
-              pathMap.set(longPath, shortPath)
-              return shortPath
-            }
-
-            // Parse AST to find all string literals containing module paths
             try {
               const ast = parse(content, {
                 sourceType: 'module',
                 plugins: [],
               })
 
-              // Walk through all comments (esbuild puts module paths in comments)
+              // Pass 1: Collect all module paths
+              const modulePaths = new Set()
+
+              for (const comment of ast.comments || []) {
+                if (
+                  comment.type === 'CommentLine' &&
+                  comment.value.includes('node_modules')
+                ) {
+                  modulePaths.add(comment.value.trim())
+                }
+              }
+
+              function collectPaths(node) {
+                if (!node || typeof node !== 'object') return
+
+                if (
+                  node.type === 'StringLiteral' &&
+                  node.value?.includes('node_modules')
+                ) {
+                  modulePaths.add(node.value)
+                }
+
+                for (const key of Object.keys(node)) {
+                  if (key === 'start' || key === 'end' || key === 'loc')
+                    continue
+                  const value = node[key]
+                  if (Array.isArray(value)) {
+                    for (const item of value) collectPaths(item)
+                  } else {
+                    collectPaths(value)
+                  }
+                }
+              }
+              collectPaths(ast.program)
+
+              // Pass 2: Build path map with conflict resolution
+              const pathMap = buildPathMap(modulePaths)
+
+              // Pass 3: Apply replacements
+              const magicString = new MagicString(content)
+
               for (const comment of ast.comments || []) {
                 if (
                   comment.type === 'CommentLine' &&
                   comment.value.includes('node_modules')
                 ) {
                   const originalPath = comment.value.trim()
-                  const shortPath = shortenPath(originalPath)
-
-                  if (shortPath !== originalPath) {
-                    // Replace in comment
-                    const commentStart = comment.start
-                    const commentEnd = comment.end
+                  const shortPath = pathMap.get(originalPath)
+                  if (shortPath && shortPath !== originalPath) {
                     magicString.overwrite(
-                      commentStart,
-                      commentEnd,
+                      comment.start,
+                      comment.end,
                       `// ${shortPath}`,
                     )
                   }
                 }
               }
 
-              // Walk through all string literals in __commonJS calls
-              function walk(node) {
-                if (!node || typeof node !== 'object') {
-                  return
-                }
+              function applyReplacements(node) {
+                if (!node || typeof node !== 'object') return
 
-                // Check for string literals containing node_modules paths
                 if (
                   node.type === 'StringLiteral' &&
-                  node.value &&
-                  node.value.includes('node_modules')
+                  node.value?.includes('node_modules')
                 ) {
                   const originalPath = node.value
-                  const shortPath = shortenPath(originalPath)
-
-                  if (shortPath !== originalPath) {
-                    // Replace the string content (keep quotes)
+                  const shortPath = pathMap.get(originalPath)
+                  if (shortPath && shortPath !== originalPath) {
                     magicString.overwrite(
                       node.start + 1,
                       node.end - 1,
@@ -145,30 +185,24 @@ function createPathShorteningPlugin() {
                   }
                 }
 
-                // Recursively walk all properties
                 for (const key of Object.keys(node)) {
-                  if (key === 'start' || key === 'end' || key === 'loc') {
+                  if (key === 'start' || key === 'end' || key === 'loc')
                     continue
-                  }
                   const value = node[key]
                   if (Array.isArray(value)) {
-                    for (const item of value) {
-                      walk(item)
-                    }
+                    for (const item of value) applyReplacements(item)
                   } else {
-                    walk(value)
+                    applyReplacements(value)
                   }
                 }
               }
+              applyReplacements(ast.program)
 
-              walk(ast.program)
-
-              // Write the modified content
               await fs.writeFile(outputPath, magicString.toString(), 'utf8')
-            } catch (error) {
+            } catch (e) {
               console.error(
                 `Failed to shorten paths in ${outputPath}:`,
-                error.message,
+                e.message,
               )
               // Continue without failing the build
             }

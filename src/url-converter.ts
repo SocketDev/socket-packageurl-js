@@ -73,8 +73,8 @@ export class UrlConverter {
    * in a single call, useful when you need to check all URL options.
    */
   static getAllUrls(purl: PackageURL): {
-    download: DownloadUrl | null
-    repository: RepositoryUrl | null
+    download: DownloadUrl | undefined
+    repository: RepositoryUrl | undefined
   } {
     return {
       download: UrlConverter.toDownloadUrl(purl),

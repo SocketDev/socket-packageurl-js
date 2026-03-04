@@ -251,6 +251,19 @@ class PackageURL {
   }
 
   /**
+   * Compare two PackageURLs for equality.
+   *
+   * Two PURLs are considered equal if their canonical string representations match.
+   *
+   * @param a - First PackageURL to compare
+   * @param b - Second PackageURL to compare
+   * @returns true if the PURLs are equal, false otherwise
+   */
+  static equals(a: PackageURL, b: PackageURL): boolean {
+    return equalsPurls(a, b)
+  }
+
+  /**
    * Compare this PackageURL with another for sorting.
    *
    * Returns a number indicating sort order:
@@ -263,19 +276,6 @@ class PackageURL {
    */
   compare(other: PackageURL): -1 | 0 | 1 {
     return comparePurls(this, other)
-  }
-
-  /**
-   * Compare two PackageURLs for equality.
-   *
-   * Two PURLs are considered equal if their canonical string representations match.
-   *
-   * @param a - First PackageURL to compare
-   * @param b - Second PackageURL to compare
-   * @returns true if the PURLs are equal, false otherwise
-   */
-  static equals(a: PackageURL, b: PackageURL): boolean {
-    return equalsPurls(a, b)
   }
 
   /**
