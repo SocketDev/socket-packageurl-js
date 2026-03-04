@@ -193,7 +193,7 @@ describe('UrlConverter', () => {
       ['gitlab', undefined, 'project', undefined, 'packages without namespace'],
       ['bitbucket', undefined, 'repo', undefined, 'packages without namespace'],
     ])(
-      'should return null for %s %s',
+      'should return undefined for %s %s',
       (type, namespace, name, version, _description) => {
         const purl = new PackageURL(
           type,
@@ -205,12 +205,12 @@ describe('UrlConverter', () => {
         )
         const result = UrlConverter.toRepositoryUrl(purl)
 
-        expect(result).toBeNull()
+        expect(result).toBeUndefined()
       },
     )
 
-    it('should return null for maven packages with empty namespace (defensive)', () => {
-      // Create a mock purl object with empty namespace to test defensive null check
+    it('should return undefined for maven packages with empty namespace (defensive)', () => {
+      // Create a mock purl object with empty namespace to test defensive undefined check
       const mockPurl = {
         type: 'maven',
         namespace: '',
@@ -219,10 +219,10 @@ describe('UrlConverter', () => {
       }
       const result = UrlConverter.toRepositoryUrl(mockPurl as any)
 
-      expect(result).toBeNull()
+      expect(result).toBeUndefined()
     })
 
-    it('should return null for unsupported package types', () => {
+    it('should return undefined for unsupported package types', () => {
       const purl = new PackageURL(
         'unknown',
         undefined,
@@ -233,7 +233,7 @@ describe('UrlConverter', () => {
       )
       const result = UrlConverter.toRepositoryUrl(purl)
 
-      expect(result).toBeNull()
+      expect(result).toBeUndefined()
     })
   })
 
@@ -352,7 +352,7 @@ describe('UrlConverter', () => {
       ['golang', undefined, 'gin', 'v1.8.1', 'packages without namespace'],
       ['npm', undefined, 'lodash', undefined, 'packages without version'],
     ])(
-      'should return null for %s %s',
+      'should return undefined for %s %s',
       (type, namespace, name, version, _description) => {
         const purl = new PackageURL(
           type,
@@ -364,12 +364,12 @@ describe('UrlConverter', () => {
         )
         const result = UrlConverter.toDownloadUrl(purl)
 
-        expect(result).toBeNull()
+        expect(result).toBeUndefined()
       },
     )
 
-    it('should return null for maven packages with empty namespace (defensive)', () => {
-      // Create a mock purl object with empty namespace to test defensive null check
+    it('should return undefined for maven packages with empty namespace (defensive)', () => {
+      // Create a mock purl object with empty namespace to test defensive undefined check
       const mockPurl = {
         type: 'maven',
         namespace: '',
@@ -378,10 +378,10 @@ describe('UrlConverter', () => {
       }
       const result = UrlConverter.toDownloadUrl(mockPurl as any)
 
-      expect(result).toBeNull()
+      expect(result).toBeUndefined()
     })
 
-    it('should return null for unsupported package types', () => {
+    it('should return undefined for unsupported package types', () => {
       const purl = new PackageURL(
         'unknown',
         undefined,
@@ -392,7 +392,7 @@ describe('UrlConverter', () => {
       )
       const result = UrlConverter.toDownloadUrl(purl)
 
-      expect(result).toBeNull()
+      expect(result).toBeUndefined()
     })
   })
 
@@ -420,7 +420,7 @@ describe('UrlConverter', () => {
       })
     })
 
-    it('should return null for unavailable URLs', () => {
+    it('should return undefined for unavailable URLs', () => {
       const purl = new PackageURL(
         'unknown',
         undefined,
@@ -432,8 +432,8 @@ describe('UrlConverter', () => {
       const result = UrlConverter.getAllUrls(purl)
 
       expect(result).toEqual({
-        repository: null,
-        download: null,
+        repository: undefined,
+        download: undefined,
       })
     })
   })
