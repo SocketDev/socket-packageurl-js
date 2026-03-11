@@ -1,6 +1,7 @@
 /**
- * @fileoverview Standardized publish runner for Socket projects.
- * Supports both simple single-package and complex multi-package publishing.
+ * @fileoverview Publish runner for Socket packageurl-js.
+ * Validates build artifacts exist, then publishes to npm.
+ * Build and checks should be run separately (e.g., via ci:validate).
  */
 
 import { existsSync, promises as fs } from 'node:fs'
@@ -23,8 +24,8 @@ const WIN32 = process.platform === 'win32'
 async function runCommand(command, args = [], options = {}) {
   try {
     const result = await spawn(command, args, {
-      stdio: 'inherit',
       cwd: rootPath,
+      stdio: 'inherit',
       ...(WIN32 && { shell: true }),
       ...options,
     })
@@ -81,37 +82,6 @@ async function readPackageJson(pkgPath = rootPath) {
 }
 
 /**
- * Check if the working directory is clean.
- */
-async function checkGitStatus() {
-  const result = await runCommandWithOutput('git', ['status', '--porcelain'])
-  if (result.stdout.trim()) {
-    logger.error('Working directory is not clean')
-    logger.info('Uncommitted changes:')
-    console.log(result.stdout)
-    return false
-  }
-  return true
-}
-
-/**
- * Check if we're on the main/master branch.
- */
-async function checkGitBranch() {
-  const result = await runCommandWithOutput('git', [
-    'rev-parse',
-    '--abbrev-ref',
-    'HEAD',
-  ])
-  const branch = result.stdout.trim()
-  if (branch !== 'main' && branch !== 'master') {
-    logger.warn(`Not on main/master branch (current: ${branch})`)
-    return false
-  }
-  return true
-}
-
-/**
  * Get the current version from package.json.
  */
 async function getCurrentVersion(pkgPath = rootPath) {
@@ -133,93 +103,58 @@ async function versionExists(packageName, version) {
 }
 
 /**
- * Check if this is the registry package.
- */
-function isRegistryPackage() {
-  // socket-registry has a registry subdirectory with hundreds of packages
-  return existsSync(path.join(rootPath, 'registry', 'package.json'))
-}
-
-/**
- * Run pre-publish checks.
- */
-async function runPrePublishChecks(options = {}) {
-  const { skipBranchCheck = false, skipGitCheck = false } = options
-
-  logger.step('Running pre-publish checks')
-
-  // Check git status
-  if (!skipGitCheck) {
-    logger.progress('Checking git status')
-    const gitClean = await checkGitStatus()
-    if (!gitClean) {
-      logger.failed('Git status check failed')
-      return false
-    }
-    logger.done('Git status clean')
-  }
-
-  // Check git branch
-  if (!skipBranchCheck) {
-    logger.progress('Checking git branch')
-    const onMainBranch = await checkGitBranch()
-    if (!onMainBranch && !options.force) {
-      logger.failed('Not on main/master branch')
-      return false
-    }
-    if (!onMainBranch) {
-      logger.done('Branch check skipped (forced)')
-    } else {
-      logger.done('On main/master branch')
-    }
-  }
-
-  // Run tests
-  logger.progress('Running tests')
-  const testCode = await runCommand('pnpm', ['test', '--all'], {
-    stdio: 'pipe',
-  })
-  if (testCode !== 0) {
-    logger.failed('Tests failed')
-    // Re-run with output
-    await runCommand('pnpm', ['test', '--all'])
-    return false
-  }
-  logger.done('Tests passed')
-
-  // Run checks
-  logger.progress('Running checks')
-  const checkCode = await runCommand('pnpm', ['check', '--all'], {
-    stdio: 'pipe',
-  })
-  if (checkCode !== 0) {
-    logger.failed('Checks failed')
-    // Re-run with output
-    await runCommand('pnpm', ['check', '--all'])
-    return false
-  }
-  logger.done('Checks passed')
-
-  return true
-}
-
-/**
- * Validate that build artifacts exist.
+ * Validate that build artifacts exist based on package.json exports.
  */
 async function validateBuildArtifacts() {
   logger.step('Validating build artifacts')
 
-  // Check for main entry point
-  const distIndex = path.join(rootPath, 'dist', 'index.js')
-  if (!existsSync(distIndex)) {
-    logger.error('Missing dist/index.js')
-    return false
+  const pkgJson = await readPackageJson()
+  const missing = []
+
+  // Check exports from package.json.
+  if (pkgJson.exports) {
+    for (const [exportPath, exportValue] of Object.entries(pkgJson.exports)) {
+      // Skip package.json export.
+      if (exportPath === './package.json') {
+        continue
+      }
+
+      // Handle both string and object export values.
+      const files =
+        typeof exportValue === 'string'
+          ? [exportValue]
+          : Object.values(exportValue).filter(v => typeof v === 'string')
+
+      for (const file of files) {
+        const filePath = path.join(rootPath, file)
+        if (!existsSync(filePath)) {
+          missing.push(file)
+        }
+      }
+    }
   }
 
-  // Check for type definitions
-  const distIndexDts = path.join(rootPath, 'dist', 'index.d.ts')
-  if (!existsSync(distIndexDts)) {
-    logger.error('Missing dist/index.d.ts')
+  // Check main entry point.
+  if (pkgJson.main) {
+    const mainPath = path.join(rootPath, pkgJson.main)
+    if (!existsSync(mainPath)) {
+      missing.push(pkgJson.main)
+    }
+  }
+
+  // Check types entry point.
+  if (pkgJson.types) {
+    const typesPath = path.join(rootPath, pkgJson.types)
+    if (!existsSync(typesPath)) {
+      missing.push(pkgJson.types)
+    }
+  }
+
+  if (missing.length > 0) {
+    logger.error('Missing build artifacts:')
+    for (const file of missing) {
+      logger.substep(`  ${file}`)
+    }
     return false
   }
 
@@ -228,38 +163,9 @@ async function validateBuildArtifacts() {
 }
 
 /**
- * Build the project.
+ * Publish a single package.
  */
-async function buildProject() {
-  logger.step('Building project')
-
-  logger.progress('Cleaning build directories')
-  const cleanCode = await runCommand('pnpm', ['clean', '--dist'], {
-    stdio: 'pipe',
-  })
-  if (cleanCode !== 0) {
-    logger.failed('Clean failed')
-    return false
-  }
-  logger.done('Build directories cleaned')
-
-  logger.progress('Building package')
-  const buildCode = await runCommand('pnpm', ['build'], { stdio: 'pipe' })
-  if (buildCode !== 0) {
-    logger.failed('Build failed')
-    // Re-run with output
-    await runCommand('pnpm', ['build'])
-    return false
-  }
-  logger.done('Build complete')
-
-  return true
-}
-
-/**
- * Publish a single package (simple flow).
- */
-async function publishSimple(options = {}) {
+async function publishPackage(options = {}) {
   const { access = 'public', dryRun = false, otp, tag = 'latest' } = options
 
   const pkgJson = await readPackageJson()
@@ -268,7 +174,7 @@ async function publishSimple(options = {}) {
 
   logger.step(`Publishing ${packageName}@${version}`)
 
-  // Check if version already exists
+  // Check if version already exists.
   logger.progress('Checking npm registry')
   const exists = await versionExists(packageName, version)
   if (exists) {
@@ -279,10 +185,10 @@ async function publishSimple(options = {}) {
   }
   logger.done('Version check complete')
 
-  // Prepare publish args
+  // Prepare publish args.
   const publishArgs = ['publish', '--access', access, '--tag', tag]
 
-  // Add provenance by default (works with trusted publishers)
+  // Add provenance by default (works with trusted publishers).
   if (!dryRun) {
     publishArgs.push('--provenance')
   }
@@ -295,7 +201,7 @@ async function publishSimple(options = {}) {
     publishArgs.push('--otp', otp)
   }
 
-  // Publish
+  // Publish.
   logger.progress(dryRun ? 'Running dry-run publish' : 'Publishing to npm')
   const publishCode = await runCommand('npm', publishArgs)
 
@@ -314,33 +220,6 @@ async function publishSimple(options = {}) {
 }
 
 /**
- * Publish multiple packages (complex flow).
- * This should be overridden by projects with specific needs.
- */
-async function publishComplex(options = {}) {
-  // Check for project-specific publish script
-  const projectPublishPath = path.join(
-    rootPath,
-    'scripts',
-    'publish-packages.mjs',
-  )
-  if (existsSync(projectPublishPath)) {
-    logger.step('Running project-specific publish script')
-    const exitCode = await runCommand('node', [projectPublishPath], {
-      env: {
-        ...process.env,
-        ...options.env,
-      },
-    })
-    return exitCode === 0
-  }
-
-  // Fall back to simple publish
-  logger.info('No project-specific publish script found, using simple flow')
-  return publishSimple(options)
-}
-
-/**
  * Push existing git tag if it exists locally but not remotely.
  * Tags should be created with version bump commits, not by this script.
  */
@@ -351,7 +230,7 @@ async function pushExistingTag(version, options = {}) {
 
   logger.step('Checking git tag')
 
-  // Check if tag exists locally
+  // Check if tag exists locally.
   logger.progress(`Checking for local tag ${tagName}`)
   const localTagResult = await runCommandWithOutput('git', [
     'tag',
@@ -364,7 +243,7 @@ async function pushExistingTag(version, options = {}) {
   }
   logger.done(`Local tag ${tagName} exists`)
 
-  // Check if tag exists on remote
+  // Check if tag exists on remote.
   logger.progress(`Checking remote for tag ${tagName}`)
   const remoteTagResult = await runCommandWithOutput('git', [
     'ls-remote',
@@ -377,7 +256,7 @@ async function pushExistingTag(version, options = {}) {
     return true
   }
 
-  // Push existing tag to remote
+  // Push existing tag to remote.
   logger.progress(`Pushing tag ${tagName} to remote`)
   const pushArgs = ['push', 'origin', tagName]
   if (force) {
@@ -396,50 +275,34 @@ async function pushExistingTag(version, options = {}) {
 
 async function main() {
   try {
-    // Parse arguments
+    // Parse arguments.
     const { values } = parseArgs({
       options: {
-        help: {
-          type: 'boolean',
-          default: false,
+        access: {
+          default: 'public',
+          type: 'string',
         },
         'dry-run': {
-          type: 'boolean',
           default: false,
+          type: 'boolean',
         },
         force: {
-          type: 'boolean',
           default: false,
-        },
-        'skip-checks': {
           type: 'boolean',
-          default: false,
         },
-        'skip-build': {
+        help: {
+          default: false,
           type: 'boolean',
-          default: false,
-        },
-        'skip-git': {
-          type: 'boolean',
-          default: false,
-        },
-        'skip-tag': {
-          type: 'boolean',
-          default: false,
-        },
-        complex: {
-          type: 'boolean',
-          default: false,
-        },
-        tag: {
-          type: 'string',
-          default: 'latest',
-        },
-        access: {
-          type: 'string',
-          default: 'public',
         },
         otp: {
+          type: 'string',
+        },
+        'skip-tag': {
+          default: false,
+          type: 'boolean',
+        },
+        tag: {
+          default: 'latest',
           type: 'string',
         },
       },
@@ -447,89 +310,47 @@ async function main() {
       strict: false,
     })
 
-    // Show help if requested
+    // Show help if requested.
     if (values.help) {
       console.log('\nUsage: pnpm publish [options]')
       console.log('\nOptions:')
       console.log('  --help         Show this help message')
       console.log('  --dry-run      Perform a dry-run without publishing')
       console.log('  --force        Force publish even with warnings')
-      console.log('  --skip-checks  Skip pre-publish checks')
-      console.log(
-        '  --skip-build   Skip build step (validates artifacts exist)',
-      )
-      console.log('  --skip-git     Skip git status checks')
       console.log('  --skip-tag     Skip git tag push')
-      console.log('  --complex      Use complex multi-package flow')
       console.log('  --tag <tag>    npm dist-tag (default: latest)')
       console.log('  --access <access>  Package access level (default: public)')
       console.log('  --otp <otp>    npm one-time password')
       console.log('\nExamples:')
-      console.log('  pnpm publish              # Standard publish flow')
+      console.log('  pnpm publish              # Validate artifacts and publish')
       console.log('  pnpm publish --dry-run    # Dry-run to test')
-      console.log('  pnpm publish --complex    # Multi-package publish')
       console.log('  pnpm publish --otp 123456 # Publish with OTP')
       process.exitCode = 0
       return
     }
 
-    printHeader('Publish Runner', { width: 56, borderChar: '=' })
+    printHeader('Publish Runner', { borderChar: '=', width: 56 })
 
-    // Get current version
+    // Get current version.
     const version = await getCurrentVersion()
     logger.info(`Current version: ${version}`)
 
-    // Run pre-publish checks unless skipped
-    if (!values['skip-checks']) {
-      const checksPass = await runPrePublishChecks({
-        skipGitCheck: values['skip-git'],
-        skipBranchCheck: values['skip-git'],
-        force: values.force,
-      })
-      if (!checksPass && !values.force) {
-        logger.error('Pre-publish checks failed')
-        process.exitCode = 1
-        return
-      }
+    // Validate that build artifacts exist.
+    const artifactsExist = await validateBuildArtifacts()
+    if (!artifactsExist && !values.force) {
+      logger.error('Build artifacts missing - run pnpm build first')
+      process.exitCode = 1
+      return
     }
 
-    // Build unless skipped
-    if (!values['skip-build']) {
-      const buildSuccess = await buildProject()
-      if (!buildSuccess && !values.force) {
-        logger.error('Build failed')
-        process.exitCode = 1
-        return
-      }
-    } else {
-      // Validate that build artifacts exist when skipping build
-      const artifactsExist = await validateBuildArtifacts()
-      if (!artifactsExist && !values.force) {
-        logger.error('Build artifacts missing - run pnpm build first')
-        process.exitCode = 1
-        return
-      }
-    }
-
-    // Publish
-    let publishSuccess = false
-    if (values.complex) {
-      publishSuccess = await publishComplex({
-        dryRun: values['dry-run'],
-        tag: values.tag,
-        access: values.access,
-        otp: values.otp,
-        force: values.force,
-      })
-    } else {
-      publishSuccess = await publishSimple({
-        dryRun: values['dry-run'],
-        tag: values.tag,
-        access: values.access,
-        otp: values.otp,
-        force: values.force,
-      })
-    }
+    // Publish.
+    const publishSuccess = await publishPackage({
+      access: values.access,
+      dryRun: values['dry-run'],
+      force: values.force,
+      otp: values.otp,
+      tag: values.tag,
+    })
 
     if (!publishSuccess && !values.force) {
       logger.error('Publish failed')
@@ -537,18 +358,18 @@ async function main() {
       return
     }
 
-    // Push git tag if it exists (but not for registry packages with hundreds of packages)
-    // Tags are created by version bump commits, not by this script
-    if (!values['skip-tag'] && !values['dry-run'] && !isRegistryPackage()) {
+    // Push git tag if it exists.
+    // Tags are created by version bump commits, not by this script.
+    if (!values['skip-tag'] && !values['dry-run']) {
       await pushExistingTag(version, {
         force: values.force,
       })
     }
 
     printFooter('Publish completed successfully!', {
-      width: 56,
       borderChar: '=',
       color: 'green',
+      width: 56,
     })
     process.exitCode = 0
   } catch (error) {
