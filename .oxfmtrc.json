@@ -1,5 +1,5 @@
 {
-  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxfmt/configuration_schema.json",
   "useTabs": false,
   "tabWidth": 2,
   "printWidth": 80,
@@ -21,12 +21,16 @@
     "**/.git",
     "**/.github",
     "**/.husky",
+    "**/.type-coverage",
     "**/.vscode",
-    "**/CHANGELOG.md",
     "**/coverage",
+    "**/coverage-isolated",
     "**/dist",
+    "**/external",
     "**/node_modules",
     "**/package.json",
-    "**/pnpm-lock.yaml"
+    "**/pnpm-lock.yaml",
+    "**/test/fixtures",
+    "**/test/packages"
   ]
 }
