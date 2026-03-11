@@ -2,12 +2,8 @@ import Module from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import allThePackageNamesData from 'all-the-package-names/names.json' with {
-  type: 'json',
-}
-import allThePackageNamesV1Data from 'all-the-package-names-v1.3905.0/names.json' with {
-  type: 'json',
-}
+import allThePackageNamesData from 'all-the-package-names/names.json' with { type: 'json' }
+import allThePackageNamesV1Data from 'all-the-package-names-v1.3905.0/names.json' with { type: 'json' }
 import pacote from 'pacote'
 import semver from 'semver'
 import validateNpmPackageName from 'validate-npm-package-name'
@@ -53,7 +49,7 @@ async function main() {
         // Node 23 introduces 'node:sea', 'node:sqlite', 'node:test', and 'node:test/reporters'
         // that have no unprefixed version so we skip them
         .filter(n => !n.startsWith('node:'))
-        .sort(naturalCompare)
+        .toSorted(naturalCompare)
       await writeJson(npmBuiltinNamesJsonPath, builtinNames, { spaces: 2 })
     } else {
       spinner.warn(`Skipping… (Running ${nodeVersion})`)
@@ -84,7 +80,7 @@ async function main() {
     // Instead let registry.npmjs.org be our source of truth to whether a
     // package exists or not
     .filter(n => !validateNpmPackageName(n).validForNewPackages)
-    .sort(naturalCompare)
+    .toSorted(naturalCompare)
   const seenNames = new Set()
   const invalidNames = new Set()
   const legacyNames =

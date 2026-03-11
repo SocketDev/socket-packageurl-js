@@ -12,9 +12,9 @@ import { runCommandQuiet } from './utils/run-command.mjs'
 const logger = getDefaultLogger()
 
 /**
- * Run ESLint check via lint script.
+ * Run oxlint check via lint script.
  */
-async function runEslintCheck(options = {}) {
+async function runOxlintCheck(options = {}) {
   const {
     all = false,
     changed = false,
@@ -23,7 +23,7 @@ async function runEslintCheck(options = {}) {
   } = options
 
   if (!quiet) {
-    logger.progress('Checking ESLint')
+    logger.progress('Checking oxlint')
   }
 
   const args = ['run', 'lint']
@@ -39,7 +39,7 @@ async function runEslintCheck(options = {}) {
 
   if (result.exitCode !== 0) {
     if (!quiet) {
-      logger.error('ESLint check failed')
+      logger.error('oxlint check failed')
     }
     if (result.stdout) {
       console.log(result.stdout)
@@ -51,7 +51,7 @@ async function runEslintCheck(options = {}) {
   }
 
   if (!quiet) {
-    logger.clearLine().done('ESLint check passed')
+    logger.clearLine().done('oxlint check passed')
     // Add newline after message (use error to write to same stream)
     logger.error('')
   }
@@ -145,7 +145,7 @@ async function main() {
       console.log('\nUsage: pnpm check [options]')
       console.log('\nOptions:')
       console.log('  --help         Show this help message')
-      console.log('  --lint         Run ESLint check only')
+      console.log('  --lint         Run oxlint check only')
       console.log('  --types        Run TypeScript check only')
       console.log('  --all          Check all files (passes to lint)')
       console.log('  --staged       Check staged files (passes to lint)')
@@ -154,9 +154,9 @@ async function main() {
       console.log('\nExamples:')
       console.log('  pnpm check             # Run all checks on changed files')
       console.log('  pnpm check --all       # Run all checks on all files')
-      console.log('  pnpm check --lint      # Run ESLint only')
+      console.log('  pnpm check --lint      # Run oxlint only')
       console.log('  pnpm check --types     # Run TypeScript only')
-      console.log('  pnpm check --lint --staged  # Run ESLint on staged files')
+      console.log('  pnpm check --lint --staged  # Run oxlint on staged files')
       process.exitCode = 0
       return
     }
@@ -171,9 +171,9 @@ async function main() {
 
     let exitCode = 0
 
-    // Run ESLint check if requested or running all
+    // Run oxlint check if requested or running all
     if (runAll || values.lint) {
-      exitCode = await runEslintCheck({
+      exitCode = await runOxlintCheck({
         all: values.all,
         changed: values.changed,
         quiet,

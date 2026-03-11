@@ -355,7 +355,7 @@ class ProgressTracker {
     const durations = similar
       .map(s => s.phases.find(p => p.name === phaseName)?.duration)
       .filter(d => d)
-      .sort((a, b) => a - b)
+      .toSorted((a, b) => a - b)
 
     if (durations.length === 0) {
       return null
@@ -1588,7 +1588,7 @@ async function getSmartContext(options = {}) {
 
   context.hotspots = Object.entries(frequency)
     .filter(([_, count]) => count > 1)
-    .sort(([_, a], [__, b]) => b - a)
+    .toSorted(([_, a], [__, b]) => b - a)
     .map(([file]) => file)
 
   // Get recent commit messages for intent inference
@@ -4923,7 +4923,7 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
 
             // Sort by priority - fix blocking issues first (build, typecheck, lint, tests)
             // Higher priority first
-            const sortedFailures = newFailures.sort((a, b) => {
+            const sortedFailures = newFailures.toSorted((a, b) => {
               const priorityA = getJobPriority(a.name)
               const priorityB = getJobPriority(b.name)
               return priorityB - priorityA

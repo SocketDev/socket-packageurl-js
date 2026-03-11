@@ -131,27 +131,27 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     const code = name.charCodeAt(i)
     // biome-ignore format: newlines
     if (
-        !(
-          (
-            // 0-9
-            (code >= 48 && code <= 57) ||
-            // a-z
-            (code >= 97 && code <= 122) ||
-            code === 95
-          // _
-          )
+      !(
+        // 0-9
+        (
+          (code >= 48 && code <= 57) ||
+          // a-z
+          (code >= 97 && code <= 122) ||
+          code === 95
         )
-      ) {
-        if (throws) {
-          // Tested: validation returns false in non-throw mode
-          // V8 coverage can't see both throw and return false paths in same test
-          /* c8 ignore next 3 -- Throw path tested separately from return false path. */
-          throw new PurlError(
-            'pub "name" component may only contain [a-z0-9_] characters'
-          )
-        }
-        return false
+        // _
+      )
+    ) {
+      if (throws) {
+        // Tested: validation returns false in non-throw mode
+        // V8 coverage can't see both throw and return false paths in same test
+        /* c8 ignore next 3 -- Throw path tested separately from return false path. */
+        throw new PurlError(
+          'pub "name" component may only contain [a-z0-9_] characters',
+        )
       }
+      return false
+    }
   }
   return true
 }

@@ -131,8 +131,8 @@ function validateQualifierKey(
     // biome-ignore format: newlines
     if (
       !(
+        // 0-9
         (
-          // 0-9
           (code >= 48 && code <= 57) ||
           // A-Z
           (code >= 65 && code <= 90) ||
@@ -143,8 +143,8 @@ function validateQualifierKey(
           // -
           code === 45 ||
           code === 95
-        // _
         )
+        // _
       )
     ) {
       if (throws) {
@@ -323,8 +323,8 @@ function validateType(
     // biome-ignore format: newlines
     if (
       !(
+        // 0-9
         (
-          // 0-9
           (code >= 48 && code <= 57) ||
           // A-Z
           (code >= 65 && code <= 90) ||
@@ -333,8 +333,8 @@ function validateType(
           // .
           code === 46 ||
           code === 45
-        // -
         )
+        // -
       )
     ) {
       if (throws) {

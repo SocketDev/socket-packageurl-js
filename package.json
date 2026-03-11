@@ -55,15 +55,13 @@
     "update:data:npm": "node scripts/update-data-npm.mjs"
   },
   "devDependencies": {
-    "@babel/parser": "^7.29.0",
-    "@biomejs/biome": "2.2.4",
+    "@babel/parser": "7.29.0",
     "@dotenvx/dotenvx": "1.52.0",
-    "@eslint/compat": "1.3.2",
-    "@eslint/js": "9.35.0",
+    "@oxlint/migrate": "1.51.0",
     "@socketsecurity/lib": "5.6.0",
     "@socketsecurity/registry": "2.0.2",
     "@types/node": "24.9.2",
-    "@types/picomatch": "^4.0.2",
+    "@types/picomatch": "4.0.2",
     "@typescript/native-preview": "7.0.0-dev.20250926.1",
     "@vitest/coverage-v8": "4.0.3",
     "all-the-package-names": "2.0.0",
@@ -71,22 +69,18 @@
     "del": "8.0.1",
     "dev-null-cli": "2.0.0",
     "esbuild": "0.25.11",
-    "eslint": "9.35.0",
-    "eslint-plugin-import-x": "4.16.1",
-    "eslint-plugin-n": "17.23.1",
-    "eslint-plugin-sort-destructure-keys": "2.0.0",
-    "eslint-plugin-unicorn": "56.0.1",
     "fast-glob": "3.3.3",
     "globals": "16.4.0",
     "husky": "9.1.7",
-    "magic-string": "^0.30.21",
+    "magic-string": "0.30.21",
     "nock": "14.0.10",
+    "oxfmt": "0.37.0",
+    "oxlint": "1.52.0",
     "pacote": "21.0.1",
     "semver": "7.7.2",
     "taze": "19.9.2",
     "type-coverage": "2.29.7",
     "typescript": "5.9.2",
-    "typescript-eslint": "8.44.1",
     "validate-npm-package-name": "6.0.2",
     "vitest": "4.0.3",
     "yoctocolors-cjs": "2.1.3"
@@ -117,6 +111,6 @@
     "strict": true
   },
   "dependencies": {
-    "picomatch": "^4.0.3"
+    "picomatch": "4.0.3"
   }
 }

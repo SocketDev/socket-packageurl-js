@@ -16,7 +16,7 @@ function createHelpersNamespaceObject(
   } as Record<string, unknown> & {
     comparator?: ((_a: string, _b: string) => number) | undefined
   }
-  const helperNames = Object.keys(helpers).sort()
+  const helperNames = Object.keys(helpers).toSorted()
   // Collect all unique property names from all helper objects
   const propNames = [
     ...new Set(
@@ -24,7 +24,7 @@ function createHelpersNamespaceObject(
         Object.keys(helper),
       ),
     ),
-  ].sort(comparator)
+  ].toSorted(comparator)
   const nsObject: Record<string, Record<string, unknown>> = Object.create(null)
   // Build inverted structure: property -> {helper1: value1, helper2: value2}
   for (let i = 0, { length } = propNames; i < length; i += 1) {

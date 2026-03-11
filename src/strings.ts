@@ -14,8 +14,8 @@ function isBlank(str: string): boolean {
       !(
         // Whitespace characters according to ECMAScript spec:
         // https://tc39.es/ecma262/#sec-white-space
+        // Space
         (
-          // Space
           code === 0x00_20 ||
           // Tab
           code === 0x00_09 ||
@@ -64,8 +64,8 @@ function isBlank(str: string): boolean {
           // Ideographic Space
           code === 0x30_00 ||
           code === 0xfe_ff
-        // Byte Order Mark
         )
+        // Byte Order Mark
       )
     ) {
       return false

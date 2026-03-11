@@ -22,18 +22,21 @@ Tree-shakeable functions for optimal bundle size.
 Parse npm package specifier into components.
 
 **Parameters:**
+
 - `specifier: unknown` - npm package specifier string
 
 **Returns:** `NpmPackageComponents`
+
 ```typescript
 {
-  namespace: string | undefined  // e.g., '@babel' for scoped packages
-  name: string                   // package name
-  version: string | undefined    // version without range prefixes
+  namespace: string | undefined // e.g., '@babel' for scoped packages
+  name: string // package name
+  version: string | undefined // version without range prefixes
 }
 ```
 
 **Example:**
+
 ```javascript
 import { parseNpmSpecifier } from '@socketregistry/packageurl-js'
 
@@ -45,6 +48,7 @@ parseNpmSpecifier('@babel/core@^7.0.0')
 ```
 
 **Features:**
+
 - Strips version range prefixes (`^`, `~`, `>=`, etc.)
 - Handles dist-tags (`latest`, `next`, `beta`)
 - Supports scoped packages
@@ -56,11 +60,13 @@ parseNpmSpecifier('@babel/core@^7.0.0')
 Convert PackageURL instance to canonical PURL string.
 
 **Parameters:**
+
 - `purl: PackageURL` - PackageURL instance
 
 **Returns:** `string` - Canonical PURL string
 
 **Example:**
+
 ```javascript
 import { stringify } from '@socketregistry/packageurl-js'
 
@@ -76,12 +82,14 @@ stringify(purl)
 Compare two PackageURLs for equality.
 
 **Parameters:**
+
 - `a: PackageURL` - First PURL
 - `b: PackageURL` - Second PURL
 
 **Returns:** `boolean` - true if equal
 
 **Example:**
+
 ```javascript
 import { equals } from '@socketregistry/packageurl-js'
 
@@ -97,12 +105,14 @@ equals(purl1, purl2) // -> true
 Compare two PackageURLs for sorting.
 
 **Parameters:**
+
 - `a: PackageURL` - First PURL
 - `b: PackageURL` - Second PURL
 
 **Returns:** `-1 | 0 | 1` - Sort order indicator
 
 **Example:**
+
 ```javascript
 import { compare } from '@socketregistry/packageurl-js'
 
@@ -123,6 +133,7 @@ new PackageURL(type, namespace, name, version, qualifiers, subpath)
 ```
 
 **Parameters:**
+
 - `type: unknown` - Package ecosystem type (e.g., 'npm', 'pypi')
 - `namespace: unknown` - Optional namespace/scope
 - `name: unknown` - Package name (required)
@@ -131,6 +142,7 @@ new PackageURL(type, namespace, name, version, qualifiers, subpath)
 - `subpath: unknown` - Optional subpath
 
 **Example:**
+
 ```javascript
 new PackageURL('npm', '@babel', 'core', '7.20.0', null, null)
 // -> 'pkg:npm/%40babel/core@7.20.0'
@@ -143,11 +155,13 @@ new PackageURL('npm', '@babel', 'core', '7.20.0', null, null)
 Parse PURL string into PackageURL instance.
 
 **Parameters:**
+
 - `purlStr: unknown` - PURL string
 
 **Returns:** `PackageURL`
 
 **Example:**
+
 ```javascript
 PackageURL.fromString('pkg:npm/lodash@4.17.21')
 ```
@@ -159,11 +173,13 @@ PackageURL.fromString('pkg:npm/lodash@4.17.21')
 Create PackageURL from npm package specifier.
 
 **Parameters:**
+
 - `specifier: unknown` - npm package specifier
 
 **Returns:** `PackageURL`
 
 **Example:**
+
 ```javascript
 PackageURL.fromNpm('lodash@4.17.21')
 PackageURL.fromNpm('@types/node@^18.0.0')
@@ -176,12 +192,14 @@ PackageURL.fromNpm('@types/node@^18.0.0')
 Create PackageURL from ecosystem-specific specifier.
 
 **Parameters:**
+
 - `type: string` - Package type ('npm', etc.)
 - `specifier: unknown` - Ecosystem-specific specifier
 
 **Returns:** `PackageURL`
 
 **Example:**
+
 ```javascript
 PackageURL.fromSpec('npm', 'lodash@4.17.21')
 ```
@@ -195,11 +213,13 @@ PackageURL.fromSpec('npm', 'lodash@4.17.21')
 Parse PackageURL from JSON string.
 
 **Parameters:**
+
 - `json: unknown` - JSON string
 
 **Returns:** `PackageURL`
 
 **Example:**
+
 ```javascript
 const json = '{"type":"npm","name":"lodash","version":"4.17.21"}'
 PackageURL.fromJSON(json)
@@ -212,11 +232,13 @@ PackageURL.fromJSON(json)
 Parse PURL string into component array.
 
 **Parameters:**
+
 - `purlStr: unknown` - PURL string
 
 **Returns:** `ParsedPurlComponents` - Tuple of components
 
 **Example:**
+
 ```javascript
 const [type, namespace, name, version, qualifiers, subpath] =
   PackageURL.parseString('pkg:npm/lodash@4.17.21')
@@ -253,6 +275,7 @@ Convert to plain object.
 Compare with another PackageURL.
 
 **Parameters:**
+
 - `other: PackageURL`
 
 **Returns:** `boolean`
@@ -264,6 +287,7 @@ Compare with another PackageURL.
 Compare for sorting.
 
 **Parameters:**
+
 - `other: PackageURL`
 
 **Returns:** `-1 | 0 | 1`
@@ -300,11 +324,9 @@ Create a new empty builder instance.
 **Returns:** `PurlBuilder`
 
 **Example:**
+
 ```javascript
-const builder = PurlBuilder.create()
-  .type('npm')
-  .name('lodash')
-  .build()
+const builder = PurlBuilder.create().type('npm').name('lodash').build()
 ```
 
 ---
@@ -314,11 +336,13 @@ const builder = PurlBuilder.create()
 Create a builder from an existing PackageURL instance.
 
 **Parameters:**
+
 - `purl: PackageURL` - Existing PackageURL to copy properties from
 
 **Returns:** `PurlBuilder` - Builder with all properties pre-populated
 
 **Example:**
+
 ```javascript
 const originalPurl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
 
@@ -332,6 +356,7 @@ console.log(modifiedPurl.toString())
 ```
 
 **Use cases:**
+
 - Modify existing PURLs while preserving most properties
 - Create variants of a PURL with different versions or qualifiers
 - Clone and customize PURLs
@@ -355,11 +380,9 @@ PurlBuilder.nuget()
 ```
 
 **Example:**
+
 ```javascript
-const purl = PurlBuilder.npm()
-  .name('lodash')
-  .version('4.17.21')
-  .build()
+const purl = PurlBuilder.npm().name('lodash').version('4.17.21').build()
 ```
 
 ### Builder Methods
@@ -419,8 +442,7 @@ Build and return PackageURL instance.
 ```javascript
 import { PurlBuilder } from '@socketregistry/packageurl-js'
 
-const purl = PurlBuilder
-  .maven()
+const purl = PurlBuilder.maven()
   .namespace('org.springframework')
   .name('spring-core')
   .version('5.3.21')
@@ -444,11 +466,13 @@ Convert PURLs to repository and download URLs.
 Convert to repository URL.
 
 **Parameters:**
+
 - `purl: PackageURL`
 
 **Returns:** `RepositoryUrl | null`
 
 **Example:**
+
 ```javascript
 import { UrlConverter } from '@socketregistry/packageurl-js'
 
@@ -464,11 +488,13 @@ UrlConverter.toRepositoryUrl(purl)
 Convert to download URL.
 
 **Parameters:**
+
 - `purl: PackageURL`
 
 **Returns:** `DownloadUrl | null`
 
 **Example:**
+
 ```javascript
 UrlConverter.toDownloadUrl(purl)
 // -> { type: 'tarball', url: 'https://registry.npmjs.org/...' }
@@ -485,11 +511,13 @@ Modular functions to verify package existence across 14 package registries. Each
 Generic wrapper that dispatches to type-specific existence checks based on the PackageURL type.
 
 **Parameters:**
+
 - `purl: PackageURL` - PackageURL instance to check
 - `options?: ExistsOptions` - Optional configuration
   - `cache?: TtlCache` - Optional TTL cache for caching responses
 
 **Returns:** `Promise<ExistsResult>`
+
 ```typescript
 {
   exists: boolean            // Whether the package exists
@@ -499,6 +527,7 @@ Generic wrapper that dispatches to type-specific existence checks based on the P
 ```
 
 **Example:**
+
 ```javascript
 import { purlExists, PackageURL } from '@socketregistry/packageurl-js'
 
@@ -525,16 +554,17 @@ All registry functions follow the same signature pattern and return `ExistsResul
 Check npm packages from registry.npmjs.org.
 
 **Example:**
+
 ```javascript
 import { npmExists } from '@socketregistry/packageurl-js'
 
 await npmExists('lodash')
 // -> { exists: true, latestVersion: '4.17.21' }
 
-await npmExists('core', '@babel')  // scoped package
+await npmExists('core', '@babel') // scoped package
 // -> { exists: true, latestVersion: '7.23.0' }
 
-await npmExists('lodash', undefined, '4.17.21')  // validate version
+await npmExists('lodash', undefined, '4.17.21') // validate version
 // -> { exists: true, latestVersion: '4.17.21' }
 ```
 
@@ -545,6 +575,7 @@ await npmExists('lodash', undefined, '4.17.21')  // validate version
 Check Python packages from pypi.org.
 
 **Example:**
+
 ```javascript
 import { pypiExists } from '@socketregistry/packageurl-js'
 
@@ -559,6 +590,7 @@ await pypiExists('requests')
 Check Rust crates from crates.io.
 
 **Example:**
+
 ```javascript
 import { cargoExists } from '@socketregistry/packageurl-js'
 
@@ -573,6 +605,7 @@ await cargoExists('serde')
 Check Ruby gems from rubygems.org.
 
 **Example:**
+
 ```javascript
 import { gemExists } from '@socketregistry/packageurl-js'
 
@@ -587,6 +620,7 @@ await gemExists('rails')
 Check Java packages from Maven Central. Requires namespace (group ID).
 
 **Example:**
+
 ```javascript
 import { mavenExists } from '@socketregistry/packageurl-js'
 
@@ -601,6 +635,7 @@ await mavenExists('commons-lang3', 'org.apache.commons')
 Check .NET packages from nuget.org.
 
 **Example:**
+
 ```javascript
 import { nugetExists } from '@socketregistry/packageurl-js'
 
@@ -615,13 +650,14 @@ await nugetExists('Newtonsoft.Json')
 Check Go modules from proxy.golang.org.
 
 **Example:**
+
 ```javascript
 import { golangExists } from '@socketregistry/packageurl-js'
 
 await golangExists('github.com/gorilla/mux')
 // -> { exists: true, latestVersion: 'v1.8.0' }
 
-await golangExists('mux', 'github.com/gorilla')  // with namespace
+await golangExists('mux', 'github.com/gorilla') // with namespace
 // -> { exists: true, latestVersion: 'v1.8.0' }
 ```
 
@@ -632,6 +668,7 @@ await golangExists('mux', 'github.com/gorilla')  // with namespace
 Check PHP/Composer packages from packagist.org. Requires namespace (vendor).
 
 **Example:**
+
 ```javascript
 import { packagistExists } from '@socketregistry/packageurl-js'
 
@@ -646,6 +683,7 @@ await packagistExists('http-foundation', 'symfony')
 Check iOS/macOS pods from trunk.cocoapods.org.
 
 **Example:**
+
 ```javascript
 import { cocoapodsExists } from '@socketregistry/packageurl-js'
 
@@ -660,6 +698,7 @@ await cocoapodsExists('Alamofire')
 Check Dart/Flutter packages from pub.dev.
 
 **Example:**
+
 ```javascript
 import { pubExists } from '@socketregistry/packageurl-js'
 
@@ -674,6 +713,7 @@ await pubExists('flutter_bloc')
 Check Elixir/Erlang packages from hex.pm.
 
 **Example:**
+
 ```javascript
 import { hexExists } from '@socketregistry/packageurl-js'
 
@@ -688,6 +728,7 @@ await hexExists('phoenix')
 Check Perl modules from metacpan.org.
 
 **Example:**
+
 ```javascript
 import { cpanExists } from '@socketregistry/packageurl-js'
 
@@ -702,6 +743,7 @@ await cpanExists('Moose')
 Check R packages from cran.r-universe.dev.
 
 **Example:**
+
 ```javascript
 import { cranExists } from '@socketregistry/packageurl-js'
 
@@ -716,6 +758,7 @@ await cranExists('ggplot2')
 Check Haskell packages from hackage.haskell.org.
 
 **Example:**
+
 ```javascript
 import { hackageExists } from '@socketregistry/packageurl-js'
 
@@ -734,10 +777,10 @@ Enum-like object with all supported PURL types:
 ```javascript
 import { PURL_Type } from '@socketregistry/packageurl-js'
 
-PURL_Type.NPM      // 'npm'
-PURL_Type.PYPI     // 'pypi'
-PURL_Type.MAVEN    // 'maven'
-PURL_Type.CARGO    // 'cargo'
+PURL_Type.NPM // 'npm'
+PURL_Type.PYPI // 'pypi'
+PURL_Type.MAVEN // 'maven'
+PURL_Type.CARGO // 'cargo'
 // ... 35+ types
 ```
 
@@ -750,14 +793,15 @@ Constants for standard PURL qualifier keys as defined in the [purl-spec](https:/
 ```javascript
 import { PurlQualifierNames } from '@socketregistry/packageurl-js'
 
-PurlQualifierNames.RepositoryUrl  // 'repository_url'
-PurlQualifierNames.DownloadUrl    // 'download_url'
-PurlQualifierNames.VcsUrl         // 'vcs_url'
-PurlQualifierNames.FileName       // 'file_name'
-PurlQualifierNames.Checksum       // 'checksum'
+PurlQualifierNames.RepositoryUrl // 'repository_url'
+PurlQualifierNames.DownloadUrl // 'download_url'
+PurlQualifierNames.VcsUrl // 'vcs_url'
+PurlQualifierNames.FileName // 'file_name'
+PurlQualifierNames.Checksum // 'checksum'
 ```
 
 **Usage:**
+
 ```javascript
 const purl = PurlBuilder.maven()
   .namespace('org.apache.commons')
@@ -769,6 +813,7 @@ const purl = PurlBuilder.maven()
 ```
 
 **Known qualifiers:**
+
 - `repository_url` - URL to package repository homepage
 - `download_url` - Direct download URL for the package artifact
 - `vcs_url` - Version control system URL (git, svn, etc.)
@@ -791,21 +836,25 @@ PurlType.npm.validate(purl)
 **Type-specific rules:**
 
 **npm:**
+
 - Name: Lowercased, namespace preserved with `@` prefix
 - Version: Requires valid semver format
 - Namespace: Used for scoped packages (e.g., `@types`)
 
 **pypi:**
+
 - Name: Lowercased, underscores replaced with dashes
 - Namespace: Must be empty
 - Version: Normalized according to PEP 440
 
 **maven:**
+
 - Name: Preserved as-is
 - Namespace: Required (groupId)
 - Case-sensitive
 
 **cargo:**
+
 - Name: Lowercased
 - Namespace: Must be empty
 - Version: Follows semver
@@ -824,6 +873,7 @@ PurlComponent.name.decode('my-package')
 ```
 
 **Available components:**
+
 - `type` - Package ecosystem type
 - `namespace` - Optional namespace/scope
 - `name` - Package name (required)
@@ -832,6 +882,7 @@ PurlComponent.name.decode('my-package')
 - `subpath` - Path within package
 
 **Encoding rules:**
+
 - UTF-8 characters are percent-encoded
 - Forward slashes in namespaces become encoded
 - `@` in npm scopes is encoded as `%40`
@@ -862,6 +913,7 @@ try {
 The library performs strict validation on all components:
 
 **Type validation:**
+
 - Required for all PURLs
 - Must be lowercase letters, numbers, `.`, `+`, or `-`
 - Cannot be empty
@@ -870,6 +922,7 @@ The library performs strict validation on all components:
   - `'type' component must be lowercase`
 
 **Name validation:**
+
 - Required for all PURLs
 - Cannot contain whitespace (some types)
 - Cannot be empty
@@ -879,6 +932,7 @@ The library performs strict validation on all components:
   - `npm 'name' component cannot contain whitespace`
 
 **Namespace validation:**
+
 - Optional for most types, required for some (e.g., maven)
 - Type-specific rules apply
 - Cannot contain whitespace (some types)
@@ -887,6 +941,7 @@ The library performs strict validation on all components:
   - `npm 'namespace' component cannot contain whitespace`
 
 **Version validation:**
+
 - Optional for most types
 - Type-specific format requirements (e.g., semver for npm)
 - Example errors:
@@ -894,6 +949,7 @@ The library performs strict validation on all components:
   - `'version' component cannot be empty`
 
 **Qualifiers validation:**
+
 - Keys must be lowercase alphanumeric with `.`, `-`, or `_`
 - Values must not be empty strings
 - Example errors:
@@ -901,6 +957,7 @@ The library performs strict validation on all components:
   - `qualifier 'os' must not be empty`
 
 **Subpath validation:**
+
 - Must not start with `/`
 - Cannot contain `..` segments
 - Example errors:
@@ -910,6 +967,7 @@ The library performs strict validation on all components:
 ### Common Error Scenarios
 
 **Invalid PURL string:**
+
 ```javascript
 // Missing 'pkg:' scheme
 PackageURL.fromString('npm/lodash')
@@ -925,6 +983,7 @@ PackageURL.fromString('pkg:npm/')
 ```
 
 **Type-specific violations:**
+
 ```javascript
 // npm requires valid semver
 new PackageURL('npm', undefined, 'lodash', 'latest')
@@ -936,10 +995,11 @@ new PackageURL('maven', undefined, 'commons-lang3', '3.12.0')
 ```
 
 **Invalid qualifiers:**
+
 ```javascript
 const purl = PurlBuilder.npm()
   .name('lodash')
-  .qualifier('Arch', 'x64')  // Uppercase not allowed
+  .qualifier('Arch', 'x64') // Uppercase not allowed
   .build()
 // -> PurlError: qualifier 'Arch' must be lowercase
 ```

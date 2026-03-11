@@ -146,14 +146,19 @@ async function runCheck() {
   spinner.stop()
   logger.success('Code formatted')
 
-  // Run ESLint to check for remaining issues
-  spinner.start('Running ESLint...')
+  // Run oxlint to check for remaining issues
+  spinner.start('Running oxlint...')
   exitCode = await runCommand(
-    'eslint',
+    'pnpm',
     [
+      'exec',
+      'oxlint',
       '--config',
-      '.config/eslint.config.mjs',
-      '--report-unused-disable-directives',
+      '.oxlintrc.json',
+      '--tsconfig',
+      '.config/tsconfig.check.json',
+      '--import-plugin',
+      '--node-plugin',
       '.',
     ],
     {
@@ -162,18 +167,23 @@ async function runCheck() {
   )
   if (exitCode !== 0) {
     spinner.stop()
-    logger.error('ESLint failed')
+    logger.error('oxlint failed')
     // Re-run with output to show errors
-    await runCommand('eslint', [
+    await runCommand('pnpm', [
+      'exec',
+      'oxlint',
       '--config',
-      '.config/eslint.config.mjs',
-      '--report-unused-disable-directives',
+      '.oxlintrc.json',
+      '--tsconfig',
+      '.config/tsconfig.check.json',
+      '--import-plugin',
+      '--node-plugin',
       '.',
     ])
     return exitCode
   }
   spinner.stop()
-  logger.success('ESLint passed')
+  logger.success('oxlint passed')
 
   // Run TypeScript check
   spinner.start('Checking TypeScript...')

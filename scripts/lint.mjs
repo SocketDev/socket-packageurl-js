@@ -3,7 +3,7 @@
  * Provides smart linting that can target affected files or lint everything.
  */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 
 import { isQuiet } from '@socketsecurity/lib/argv/flags'
@@ -34,59 +34,9 @@ const CONFIG_PATTERNS = [
   'scripts/utils/**',
   'pnpm-lock.yaml',
   'tsconfig*.json',
-  'eslint.config.*',
+  '.oxlintrc.json',
+  '.oxfmtrc.json',
 ]
-
-/**
- * Get Biome exclude patterns from biome.json.
- */
-function getBiomeExcludePatterns() {
-  try {
-    const biomeConfigPath = path.join(process.cwd(), 'biome.json')
-    if (!existsSync(biomeConfigPath)) {
-      return []
-    }
-
-    const biomeConfig = JSON.parse(readFileSync(biomeConfigPath, 'utf8'))
-    const includes = biomeConfig['files']?.['includes'] ?? []
-
-    // Extract patterns that start with '!' (exclude patterns)
-    return (
-      includes
-        .filter(
-          pattern => typeof pattern === 'string' && pattern.startsWith('!'),
-        )
-        // Remove the '!' prefix
-        .map(pattern => pattern.slice(1))
-    )
-  } catch {
-    // If we can't read biome.json, return empty array
-    return []
-  }
-}
-
-/**
- * Check if a file matches any of the exclude patterns.
- */
-function isExcludedByBiome(file, excludePatterns) {
-  for (const pattern of excludePatterns) {
-    // Convert glob pattern to regex-like matching
-    // Support **/ for directory wildcards and * for filename wildcards
-    const regexPattern = pattern
-      // **/ matches any directory
-      .replace(/\*\*\//g, '.*')
-      // * matches any characters except /
-      .replace(/\*/g, '[^/]*')
-      // Escape dots
-      .replace(/\./g, '\\.')
-
-    const regex = new RegExp(`^${regexPattern}$`)
-    if (regex.test(file)) {
-      return true
-    }
-  }
-  return false
-}
 
 /**
  * Check if we should run all linters based on changed files.
@@ -127,17 +77,10 @@ function filterLintableFiles(files) {
     '.yaml',
   ])
 
-  const biomeExcludePatterns = getBiomeExcludePatterns()
-
   return files.filter(file => {
     const ext = path.extname(file)
     // Only lint files that have lintable extensions AND still exist.
     if (!lintableExtensions.has(ext) || !existsSync(file)) {
-      return false
-    }
-
-    // Filter out files excluded by biome.json
-    if (isExcludedByBiome(file, biomeExcludePatterns)) {
       return false
     }
 
@@ -165,31 +108,34 @@ async function runLintOnFiles(files, options = {}) {
     {
       args: [
         'exec',
-        'biome',
-        'check',
-        '--log-level=none',
-        ...(fix ? ['--write', '--unsafe'] : []),
+        'oxfmt',
+        '--config',
+        '.oxfmtrc.json',
+        ...(fix ? ['--write'] : ['--check']),
         ...files,
       ],
-      name: 'biome',
+      name: 'oxfmt',
       enabled: true,
     },
     {
       args: [
         'exec',
-        'eslint',
-        '-c',
-        '.config/eslint.config.mjs',
-        '--report-unused-disable-directives',
+        'oxlint',
+        '--config',
+        '.oxlintrc.json',
+        '--tsconfig',
+        '.config/tsconfig.check.json',
+        '--import-plugin',
+        '--node-plugin',
         ...(fix ? ['--fix'] : []),
         ...files,
       ],
-      name: 'eslint',
+      name: 'oxlint',
       enabled: true,
     },
   ]
 
-  for (const { args, enabled } of linters) {
+  for (const { args, enabled, name } of linters) {
     if (!enabled) {
       continue
     }
@@ -197,20 +143,10 @@ async function runLintOnFiles(files, options = {}) {
     const result = await runCommandQuiet('pnpm', args)
 
     if (result.exitCode !== 0) {
-      // Check if Biome simply had no files to process (not an error)
-      const isBiomeNoFilesError = result.stderr?.includes(
-        'No files were processed in the specified paths',
-      )
-
-      if (isBiomeNoFilesError) {
-        // Biome had nothing to do - this is fine, continue to next linter
-        continue
-      }
-
       // When fixing, non-zero exit codes are normal if fixes were applied.
       if (!fix || (result.stderr && result.stderr.trim().length > 0)) {
         if (!quiet) {
-          logger.error('Linting failed')
+          logger.error(`${name} failed`)
         }
         if (result.stderr) {
           console.error(result.stderr)
@@ -246,45 +182,39 @@ async function runLintOnAll(options = {}) {
     {
       args: [
         'exec',
-        'biome',
-        'check',
-        ...(fix ? ['--write', '--unsafe'] : []),
+        'oxfmt',
+        '--config',
+        '.oxfmtrc.json',
+        ...(fix ? ['--write'] : ['--check']),
         '.',
       ],
-      name: 'biome',
+      name: 'oxfmt',
     },
     {
       args: [
         'exec',
-        'eslint',
-        '-c',
-        '.config/eslint.config.mjs',
-        '--report-unused-disable-directives',
+        'oxlint',
+        '--config',
+        '.oxlintrc.json',
+        '--tsconfig',
+        '.config/tsconfig.check.json',
+        '--import-plugin',
+        '--node-plugin',
         ...(fix ? ['--fix'] : []),
         '.',
       ],
-      name: 'eslint',
+      name: 'oxlint',
     },
   ]
 
-  for (const { args } of linters) {
+  for (const { args, name } of linters) {
     const result = await runCommandQuiet('pnpm', args)
 
     if (result.exitCode !== 0) {
-      // Check if Biome simply had no files to process (not an error)
-      const isBiomeNoFilesError = result.stderr?.includes(
-        'No files were processed in the specified paths',
-      )
-
-      if (isBiomeNoFilesError) {
-        // Biome had nothing to do - this is fine, continue to next linter
-        continue
-      }
-
       // When fixing, non-zero exit codes are normal if fixes were applied.
       if (!fix || (result.stderr && result.stderr.trim().length > 0)) {
         if (!quiet) {
-          logger.error('Linting failed')
+          logger.error(`${name} failed`)
         }
         if (result.stderr) {
           console.error(result.stderr)

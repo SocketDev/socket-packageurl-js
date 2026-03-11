@@ -61,7 +61,7 @@ function encodeQualifierParam(param: unknown): string {
 function encodeQualifiers(qualifiers: unknown): string {
   if (isObject(qualifiers)) {
     // Sort this list of qualifier strings lexicographically
-    const qualifiersKeys = Object.keys(qualifiers).sort()
+    const qualifiersKeys = Object.keys(qualifiers).toSorted()
     const searchParams = new URLSearchParams()
     for (let i = 0, { length } = qualifiersKeys; i < length; i += 1) {
       const key = qualifiersKeys[i]!

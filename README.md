@@ -7,7 +7,7 @@
 [![Follow @SocketSecurity](https://img.shields.io/twitter/follow/SocketSecurity?style=social)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](https://img.shields.io/badge/Follow-@socket.dev-1DA1F2?style=social&logo=bluesky)](https://bsky.app/profile/socket.dev)
 
-TypeScript Package URL (purl) parser and builder. 
+TypeScript Package URL (purl) parser and builder.
 Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) with full type safety, zero dependencies, and spec compliance with the [Package URL specification](https://github.com/package-url/purl-spec).
 
 ## What is a PURL?
@@ -21,6 +21,7 @@ pkg:maven/org.springframework/spring-core@5.3.21
 ```
 
 **Format breakdown**:
+
 ```
   pkg:type/namespace/name@version?qualifiers#subpath
   │   │    │         │    │       │          │
@@ -53,6 +54,7 @@ pnpm install @socketregistry/packageurl-js
 ```
 
 **Drop-in replacement** via package override:
+
 ```json
 {
   "pnpm": {
@@ -70,6 +72,7 @@ pnpm install @socketregistry/packageurl-js
 ### Modular Functions (Tree-shakeable)
 
 **Parse npm specifiers:**
+
 ```javascript
 import { parseNpmSpecifier } from '@socketregistry/packageurl-js'
 
@@ -81,6 +84,7 @@ parseNpmSpecifier('@babel/core@^7.0.0')
 ```
 
 **Stringify PURLs:**
+
 ```javascript
 import { stringify } from '@socketregistry/packageurl-js'
 
@@ -89,23 +93,25 @@ stringify(purl)
 ```
 
 **Compare PURLs:**
+
 ```javascript
 import { equals, compare } from '@socketregistry/packageurl-js'
 
-equals(purl1, purl2)  // -> boolean
+equals(purl1, purl2) // -> boolean
 compare(purl1, purl2) // -> -1 | 0 | 1
 ```
 
 ### Class API
 
 **Parse and build:**
+
 ```javascript
 import { PackageURL } from '@socketregistry/packageurl-js'
 
 // Parse strings
 const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
-console.log(purl.name)      // 'lodash'
-console.log(purl.version)   // '4.17.21'
+console.log(purl.name) // 'lodash'
+console.log(purl.version) // '4.17.21'
 
 // Parse npm specifiers
 PackageURL.fromNpm('lodash@4.17.21')
@@ -117,17 +123,16 @@ new PackageURL('npm', null, 'express', '4.18.2')
 ```
 
 **Builder pattern:**
+
 ```javascript
 import { PurlBuilder } from '@socketregistry/packageurl-js'
 
-PurlBuilder.npm()
-  .name('lodash')
-  .version('4.17.21')
-  .build()
+PurlBuilder.npm().name('lodash').version('4.17.21').build()
 // -> 'pkg:npm/lodash@4.17.21'
 ```
 
 **URL conversion:**
+
 ```javascript
 import { UrlConverter } from '@socketregistry/packageurl-js'
 
@@ -139,6 +144,7 @@ UrlConverter.toDownloadUrl(purl)
 ```
 
 **Registry existence checks:**
+
 ```javascript
 import { purlExists, npmExists } from '@socketregistry/packageurl-js'
 
@@ -148,8 +154,8 @@ await purlExists(purl)
 
 // Type-specific checks (modular)
 await npmExists('lodash')
-await npmExists('core', '@babel')  // scoped package
-await npmExists('lodash', undefined, '4.17.21')  // validate version
+await npmExists('core', '@babel') // scoped package
+await npmExists('lodash', undefined, '4.17.21') // validate version
 
 // Supported registries:
 // npmExists, pypiExists, cargoExists, gemExists,
@@ -181,16 +187,17 @@ const obj: PackageURLObject = purl.toObject()
 ```
 
 **Constants:**
+
 ```typescript
 import { PurlQualifierNames, PURL_Type } from '@socketregistry/packageurl-js'
 
 // Standard qualifier keys
-PurlQualifierNames.Checksum       // 'checksum'
-PurlQualifierNames.RepositoryUrl  // 'repository_url'
+PurlQualifierNames.Checksum // 'checksum'
+PurlQualifierNames.RepositoryUrl // 'repository_url'
 
 // Package types
-PURL_Type.NPM    // 'npm'
-PURL_Type.PYPI   // 'pypi'
+PURL_Type.NPM // 'npm'
+PURL_Type.PYPI // 'pypi'
 ```
 
 See [docs/types.md](docs/types.md) for complete type reference.
@@ -203,6 +210,7 @@ See [docs/types.md](docs/types.md) for complete type reference.
 ## Development
 
 **Quick commands:**
+
 ```bash
 pnpm install   # Install dependencies
 pnpm build     # Build

@@ -32,17 +32,19 @@ type PackageURLObject = {
 ```
 
 **Usage:**
+
 ```typescript
 import type { PackageURLObject } from '@socketregistry/packageurl-js'
 
 const obj: PackageURLObject = {
   type: 'npm',
   name: 'lodash',
-  version: '4.17.21'
+  version: '4.17.21',
 }
 ```
 
 **Returned by:**
+
 - `PackageURL.toObject()`
 - `JSON.parse(purl.toJSON())`
 
@@ -73,21 +75,24 @@ type ParsedPurlComponents = [
   name: string | undefined,
   version: string | undefined,
   qualifiers: URLSearchParams | undefined,
-  subpath: string | undefined
+  subpath: string | undefined,
 ]
 ```
 
 **Usage:**
+
 ```typescript
 import type { ParsedPurlComponents } from '@socketregistry/packageurl-js'
 
-const components: ParsedPurlComponents =
-  PackageURL.parseString('pkg:npm/lodash@4.17.21')
+const components: ParsedPurlComponents = PackageURL.parseString(
+  'pkg:npm/lodash@4.17.21',
+)
 
 const [type, namespace, name, version, qualifiers, subpath] = components
 ```
 
 **Returned by:**
+
 - `PackageURL.parseString()`
 
 ---
@@ -100,13 +105,14 @@ Components parsed from npm package specifier.
 
 ```typescript
 type NpmPackageComponents = {
-  namespace: string | undefined  // Scope for scoped packages (e.g., '@babel')
-  name: string                   // Package name (required)
-  version: string | undefined    // Version without range prefixes
+  namespace: string | undefined // Scope for scoped packages (e.g., '@babel')
+  name: string // Package name (required)
+  version: string | undefined // Version without range prefixes
 }
 ```
 
 **Usage:**
+
 ```typescript
 import { parseNpmSpecifier } from '@socketregistry/packageurl-js'
 import type { NpmPackageComponents } from '@socketregistry/packageurl-js'
@@ -116,11 +122,13 @@ const components: NpmPackageComponents = parseNpmSpecifier('lodash@4.17.21')
 ```
 
 **Features:**
+
 - `namespace` is populated for scoped packages (`@scope/package`)
 - `version` has range prefixes stripped (`^`, `~`, `>=`, etc.)
 - Dist-tags are preserved as-is (`latest`, `next`, `beta`)
 
 **Returned by:**
+
 - `parseNpmSpecifier()`
 
 ---
@@ -136,13 +144,14 @@ type QualifiersObject = Record<string, QualifiersValue>
 ```
 
 **Usage:**
+
 ```typescript
 import type { QualifiersObject } from '@socketregistry/packageurl-js'
 
 const qualifiers: QualifiersObject = {
   arch: 'x86_64',
   os: 'linux',
-  classifier: 'sources'
+  classifier: 'sources',
 }
 ```
 
@@ -157,13 +166,14 @@ type QualifiersValue = string | number | boolean | null | undefined
 ```
 
 **Usage:**
+
 ```typescript
 const qualifiers: QualifiersObject = {
-  debug: true,              // boolean
-  priority: 10,             // number
-  tag: 'stable',           // string
-  optional: null,          // null
-  missing: undefined       // undefined
+  debug: true, // boolean
+  priority: 10, // number
+  tag: 'stable', // string
+  optional: null, // null
+  missing: undefined, // undefined
 }
 ```
 
@@ -178,6 +188,7 @@ type ComponentEncoder = (value: unknown) => string
 ```
 
 **Usage:**
+
 ```typescript
 import { PurlComponent } from '@socketregistry/packageurl-js'
 import type { ComponentEncoder } from '@socketregistry/packageurl-js'
@@ -197,6 +208,7 @@ type ComponentNormalizer = (value: string) => string | undefined
 ```
 
 **Usage:**
+
 ```typescript
 import { PurlType } from '@socketregistry/packageurl-js'
 import type { ComponentNormalizer } from '@socketregistry/packageurl-js'
@@ -215,6 +227,7 @@ type ComponentValidator = (value: unknown, throws: boolean) => boolean
 ```
 
 **Usage:**
+
 ```typescript
 import type { ComponentValidator } from '@socketregistry/packageurl-js'
 
@@ -240,6 +253,7 @@ interface RepositoryUrl {
 ```
 
 **Usage:**
+
 ```typescript
 import { UrlConverter } from '@socketregistry/packageurl-js'
 import type { RepositoryUrl } from '@socketregistry/packageurl-js'
@@ -251,6 +265,7 @@ if (repo) {
 ```
 
 **Returned by:**
+
 - `UrlConverter.toRepositoryUrl()`
 
 ---
@@ -267,6 +282,7 @@ interface DownloadUrl {
 ```
 
 **Usage:**
+
 ```typescript
 import { UrlConverter } from '@socketregistry/packageurl-js'
 import type { DownloadUrl } from '@socketregistry/packageurl-js'
@@ -278,6 +294,7 @@ if (download) {
 ```
 
 **Returned by:**
+
 - `UrlConverter.toDownloadUrl()`
 
 ---
@@ -293,6 +310,7 @@ type Result<T, E = Error> = Ok<T> | Err<E>
 ```
 
 **Usage:**
+
 ```typescript
 import type { Result } from '@socketregistry/packageurl-js'
 
@@ -329,6 +347,7 @@ class Ok<T> {
 ```
 
 **Usage:**
+
 ```typescript
 import { ok } from '@socketregistry/packageurl-js'
 
@@ -358,6 +377,7 @@ class Err<E = Error> {
 ```
 
 **Usage:**
+
 ```typescript
 import { err } from '@socketregistry/packageurl-js'
 
@@ -379,11 +399,12 @@ import { PurlQualifierNames } from '@socketregistry/packageurl-js'
 
 const qualifiers = {
   [PurlQualifierNames.Checksum]: 'sha256:abc123',
-  [PurlQualifierNames.DownloadUrl]: 'https://example.com/package.tar.gz'
+  [PurlQualifierNames.DownloadUrl]: 'https://example.com/package.tar.gz',
 }
 ```
 
 **Available constants:**
+
 - `RepositoryUrl` = `'repository_url'`
 - `DownloadUrl` = `'download_url'`
 - `VcsUrl` = `'vcs_url'`
@@ -423,6 +444,7 @@ import type {
 ```
 
 **Constants (value imports):**
+
 ```typescript
 import {
   PurlQualifierNames,
@@ -469,7 +491,7 @@ function processResult<T, E>(result: Result<T, E>) {
 import type { PackageURLObject, Result } from '@socketregistry/packageurl-js'
 
 function validatePurl<T extends PackageURLObject>(
-  obj: T
+  obj: T,
 ): Result<T, ValidationError> {
   // ...
 }
