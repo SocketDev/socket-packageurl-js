@@ -76,7 +76,7 @@ describe('PackageURL type-specific tests', () => {
             const namespace = parts.length > 1 ? parts[0] : ''
             const name = parts.at(-1)
 
-            new PackageURL(
+            return new PackageURL(
               'npm',
               namespace,
               name,
@@ -123,7 +123,7 @@ describe('PackageURL type-specific tests', () => {
     it('should reject cargo packages with namespace', () => {
       // Cargo does not support namespace per spec
       expect(() => {
-        new PackageURL(
+        return new PackageURL(
           'cargo',
           'some-namespace',
           'rand',
@@ -165,7 +165,7 @@ describe('PackageURL type-specific tests', () => {
     it('should reject gem packages with namespace', () => {
       // RubyGems does not support namespace per spec
       expect(() => {
-        new PackageURL(
+        return new PackageURL(
           'gem',
           'some-namespace',
           'rails',
@@ -207,7 +207,7 @@ describe('PackageURL type-specific tests', () => {
     it('should reject nuget packages with namespace', () => {
       // NuGet does not support namespace per spec
       expect(() => {
-        new PackageURL(
+        return new PackageURL(
           'nuget',
           'some-namespace',
           'Newtonsoft.Json',
@@ -248,7 +248,7 @@ describe('PackageURL type-specific tests', () => {
   describe('bazel', () => {
     it('should require version for bazel packages', () => {
       expect(() => {
-        new PackageURL(
+        return new PackageURL(
           'bazel',
           undefined,
           'rules_go',
@@ -294,7 +294,7 @@ describe('PackageURL type-specific tests', () => {
   describe('conda', () => {
     it('should reject conda packages with namespace', () => {
       expect(() => {
-        new PackageURL(
+        return new PackageURL(
           'conda',
           'some-namespace',
           'numpy',
@@ -334,7 +334,7 @@ describe('PackageURL type-specific tests', () => {
   describe('julia', () => {
     it('should reject julia packages with namespace', () => {
       expect(() => {
-        new PackageURL(
+        return new PackageURL(
           'julia',
           'some-namespace',
           'DataFrames',
@@ -375,7 +375,7 @@ describe('PackageURL type-specific tests', () => {
   describe('opam', () => {
     it('should reject opam packages with namespace', () => {
       expect(() => {
-        new PackageURL(
+        return new PackageURL(
           'opam',
           'some-namespace',
           'ocaml',
@@ -402,7 +402,7 @@ describe('PackageURL type-specific tests', () => {
   describe('otp', () => {
     it('should reject otp packages with namespace', () => {
       expect(() => {
-        new PackageURL(
+        return new PackageURL(
           'otp',
           'some-namespace',
           'cowboy',
@@ -442,7 +442,7 @@ describe('PackageURL type-specific tests', () => {
   describe('yocto', () => {
     it('should reject yocto packages with namespace', () => {
       expect(() => {
-        new PackageURL(
+        return new PackageURL(
           'yocto',
           'some-namespace',
           'zlib',

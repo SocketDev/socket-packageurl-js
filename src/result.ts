@@ -203,7 +203,7 @@ export const ResultUtils = {
   /**
    * Convert all Results to Ok values or return first error.
    */
-  all<T extends readonly Result<unknown, unknown>[]>(
+  all<T extends ReadonlyArray<Result<unknown, unknown>>>(
     results: T,
   ): Result<
     { [K in keyof T]: T[K] extends Result<infer U, any> ? U : never },
@@ -228,7 +228,9 @@ export const ResultUtils = {
   /**
    * Return the first Ok result or the last error.
    */
-  any<T extends readonly Result<unknown, unknown>[]>(results: T): T[number] {
+  any<T extends ReadonlyArray<Result<unknown, unknown>>>(
+    results: T,
+  ): T[number] {
     let lastError: Result<unknown, unknown> | undefined
     for (const result of results) {
       if (result.isOk()) {

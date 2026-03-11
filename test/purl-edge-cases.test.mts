@@ -564,7 +564,8 @@ describe('Edge cases and additional coverage', () => {
     it('should handle __proto__ in qualifiers', () => {
       const purl = PackageURL.fromString('pkg:type/name?__proto__=polluted')
 
-      expect(purl.qualifiers?.__proto__).toBe('polluted')
+      // eslint-disable-next-line eslint/no-proto -- Testing prototype pollution prevention
+      expect(purl.qualifiers?.['__proto__']).toBe('polluted')
       expect((Object.prototype as any).polluted).toBe(undefined)
     })
 

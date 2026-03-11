@@ -53,7 +53,7 @@ export async function hackageExists(
       const url = `https://hackage.haskell.org/package/${encodeURIComponent(name)}/preferred`
 
       const data = await httpJson<{
-        'normal-version'?: Array<string>
+        'normal-version'?: string[]
       }>(url)
 
       const versions = data['normal-version'] || []

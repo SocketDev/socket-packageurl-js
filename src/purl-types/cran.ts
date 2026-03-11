@@ -67,7 +67,7 @@ export async function cranExists(
 
       const data = await httpJson<{
         Version?: string
-        versions?: Array<string>
+        versions?: string[]
       }>(url)
 
       const latestVersion = data.Version
