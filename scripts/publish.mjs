@@ -322,7 +322,9 @@ async function main() {
       console.log('  --access <access>  Package access level (default: public)')
       console.log('  --otp <otp>    npm one-time password')
       console.log('\nExamples:')
-      console.log('  pnpm publish              # Validate artifacts and publish')
+      console.log(
+        '  pnpm publish              # Validate artifacts and publish',
+      )
       console.log('  pnpm publish --dry-run    # Dry-run to test')
       console.log('  pnpm publish --otp 123456 # Publish with OTP')
       process.exitCode = 0
