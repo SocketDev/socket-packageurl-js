@@ -20,6 +20,8 @@
  * - Full process isolation between tests
  * - File naming: *.isolated.test.mts suffix
  */
+import process from 'node:process'
+
 import { defineConfig } from 'vitest/config'
 
 // Check if coverage is enabled via CLI flags or environment.

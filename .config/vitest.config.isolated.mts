@@ -21,6 +21,8 @@
  *
  * See main config (.config/vitest.config.mts) for standard concurrent tests.
  */
+import process from 'node:process'
+
 import { defineConfig } from 'vitest/config'
 
 // Check if coverage is enabled via CLI flags or environment.

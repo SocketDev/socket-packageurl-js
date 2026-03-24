@@ -1,5 +1,6 @@
 import Module from 'node:module'
 import path from 'node:path'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import allThePackageNamesData from 'all-the-package-names/names.json' with { type: 'json' }

@@ -3,6 +3,8 @@
  * Runs code quality checks: ESLint and TypeScript type checking.
  */
 
+import process from 'node:process'
+
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
