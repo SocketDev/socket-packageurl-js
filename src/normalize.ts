@@ -5,6 +5,8 @@
 import { isObject } from './objects.js'
 import { isBlank } from './strings.js'
 
+const EMPTY_ENTRIES: Iterable<[string, string]> = []
+
 import type { QualifiersObject } from './purl-component.js'
 
 /**
@@ -146,7 +148,7 @@ function qualifiersToEntries(
   }
   return typeof rawQualifiers === 'string'
     ? new URLSearchParams(rawQualifiers).entries()
-    : Object.entries({})
+    : EMPTY_ENTRIES
 }
 
 /**
