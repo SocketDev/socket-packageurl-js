@@ -301,11 +301,11 @@ describe('purlExists', () => {
 
   describe('unsupported types', () => {
     it('should return error for unsupported type', async () => {
-      const purl = PackageURL.fromString('pkg:docker/nginx@latest')
+      const purl = PackageURL.fromString('pkg:rpm/fedora/curl@7.50.3-1.fc25')
       const result = await purlExists(purl)
 
       expect(result.exists).toBe(false)
-      expect(result.error).toContain('Unsupported type: docker')
+      expect(result.error).toContain('Unsupported type: rpm')
     })
 
     it('should return error for oci type', async () => {

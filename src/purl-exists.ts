@@ -6,8 +6,10 @@
 import { cargoExists } from './purl-types/cargo.js'
 import { cocoapodsExists } from './purl-types/cocoapods.js'
 import { packagistExists } from './purl-types/composer.js'
+import { condaExists } from './purl-types/conda.js'
 import { cpanExists } from './purl-types/cpan.js'
 import { cranExists } from './purl-types/cran.js'
+import { dockerExists } from './purl-types/docker.js'
 import { gemExists } from './purl-types/gem.js'
 import { golangExists } from './purl-types/golang.js'
 import { hackageExists } from './purl-types/hackage.js'
@@ -38,6 +40,8 @@ import type { ExistsResult, ExistsOptions } from './purl-types/npm.js'
  * - `golang` - Go modules from proxy.golang.org
  * - `composer` - PHP packages from packagist.org
  * - `cocoapods` - iOS/macOS pods from trunk.cocoapods.org
+ * - `conda` - Conda packages from anaconda.org
+ * - `docker` - Docker images from Docker Hub
  * - `pub` - Dart/Flutter packages from pub.dev
  * - `hex` - Elixir/Erlang packages from hex.pm
  * - `cpan` - Perl modules from metacpan.org
@@ -117,6 +121,10 @@ export async function purlExists(
       return packagistExists(name, namespace, version, options)
     case 'cocoapods':
       return cocoapodsExists(name, version, options)
+    case 'conda':
+      return condaExists(name, version, namespace, options)
+    case 'docker':
+      return dockerExists(name, namespace, version, options)
     case 'pub':
       return pubExists(name, version, options)
     case 'hex':
