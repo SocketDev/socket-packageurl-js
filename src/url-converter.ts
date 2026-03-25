@@ -226,7 +226,7 @@ export class UrlConverter {
         }
 
       case 'conda': {
-        const channel = namespace ?? 'conda-forge'
+        const channel = purl['qualifiers']?.['channel'] ?? 'conda-forge'
         return {
           type: 'tarball',
           url: `https://anaconda.org/${channel}/${name}/${version}/download`,
@@ -313,11 +313,13 @@ export class UrlConverter {
           url: `https://conan.io/center/recipes/${name}`,
         }
 
-      case 'conda':
+      case 'conda': {
+        const channel = purl['qualifiers']?.['channel'] ?? 'conda-forge'
         return {
           type: 'web',
-          url: `https://anaconda.org/${namespace ?? 'conda-forge'}/${name}`,
+          url: `https://anaconda.org/${channel}/${name}`,
         }
+      }
 
       case 'cpan':
         return {
