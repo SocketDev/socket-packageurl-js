@@ -1,9 +1,23 @@
 /**
  * @fileoverview PURL comparison utilities.
- * Functions for comparing PackageURL instances.
+ * Functions for comparing PackageURL instances or PURL strings.
  */
 
 import type { PackageURL } from './package-url.js'
+
+export type PurlInput = PackageURL | string
+
+function toCanonicalString(input: PurlInput): string {
+  if (typeof input === 'string') {
+    // Dynamic import would be circular, so we normalize by round-tripping
+    // through the PackageURL constructor via a lazy require
+    const { PackageURL: PU } = require('./package-url.js') as {
+      PackageURL: typeof PackageURL
+    }
+    return PU.fromString(input).toString()
+  }
+  return input.toString()
+}
 
 /**
  * Simple wildcard matcher for PURL components.
@@ -75,22 +89,25 @@ function matchComponent(
  * Two PURLs are considered equal if their canonical string representations match.
  * This comparison is case-sensitive after normalization.
  *
- * @param a - First PackageURL to compare
- * @param b - Second PackageURL to compare
+ * Accepts both PackageURL instances and PURL strings. Strings are parsed and
+ * normalized before comparison.
+ *
+ * @param a - First PackageURL or PURL string to compare
+ * @param b - Second PackageURL or PURL string to compare
  * @returns true if the PURLs are equal, false otherwise
  *
  * @example
  * ```typescript
- * const purl1 = parse('pkg:npm/lodash@4.17.21')
- * const purl2 = parse('pkg:npm/lodash@4.17.21')
- * const purl3 = parse('pkg:npm/lodash@4.17.20')
+ * const purl1 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+ * const purl2 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
  *
  * equals(purl1, purl2) // -> true
- * equals(purl1, purl3) // -> false
+ * equals('pkg:npm/lodash@4.17.21', 'pkg:NPM/lodash@4.17.21') // -> true
+ * equals(purl1, 'pkg:npm/lodash@4.17.20') // -> false
  * ```
  */
-export function equals(a: PackageURL, b: PackageURL): boolean {
-  return a.toString() === b.toString()
+export function equals(a: PurlInput, b: PurlInput): boolean {
+  return toCanonicalString(a) === toCanonicalString(b)
 }
 
 /**
@@ -103,27 +120,26 @@ export function equals(a: PackageURL, b: PackageURL): boolean {
  *
  * Comparison is based on canonical string representation (lexicographic).
  *
- * @param a - First PackageURL to compare
- * @param b - Second PackageURL to compare
+ * Accepts both PackageURL instances and PURL strings. Strings are parsed and
+ * normalized before comparison.
+ *
+ * @param a - First PackageURL or PURL string to compare
+ * @param b - Second PackageURL or PURL string to compare
  * @returns -1, 0, or 1 for sort ordering
  *
  * @example
  * ```typescript
- * const purl1 = parse('pkg:npm/lodash@4.17.20')
- * const purl2 = parse('pkg:npm/lodash@4.17.21')
- *
- * compare(purl1, purl2) // -> -1 (purl1 < purl2)
- * compare(purl2, purl1) // -> 1  (purl2 > purl1)
- * compare(purl1, purl1) // -> 0  (equal)
+ * compare('pkg:npm/aaa', 'pkg:npm/bbb') // -> -1
+ * compare('pkg:npm/bbb', 'pkg:npm/aaa') // -> 1
  *
  * // Use with Array.sort
- * [purl2, purl1].sort(compare)
- * // -> [purl1, purl2]
+ * ['pkg:npm/bbb', 'pkg:npm/aaa'].sort(compare)
+ * // -> ['pkg:npm/aaa', 'pkg:npm/bbb']
  * ```
  */
-export function compare(a: PackageURL, b: PackageURL): -1 | 0 | 1 {
-  const aStr = a.toString()
-  const bStr = b.toString()
+export function compare(a: PurlInput, b: PurlInput): -1 | 0 | 1 {
+  const aStr = toCanonicalString(a)
+  const bStr = toCanonicalString(b)
   if (aStr < bStr) {
     return -1
   }

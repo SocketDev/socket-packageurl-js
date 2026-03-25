@@ -57,7 +57,7 @@ describe('Integration tests', () => {
     const purl = new PackageURL('npm', undefined, 'lodash', '4.17.21')
     const result = UrlConverter.toRepositoryUrl(purl)
     expect(result).toEqual({
-      url: 'https://npmjs.com/package/lodash',
+      url: 'https://www.npmjs.com/package/lodash/v/4.17.21',
       type: 'web',
     })
   })

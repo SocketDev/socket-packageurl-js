@@ -90,16 +90,17 @@ export class UrlConverter {
    */
   static supportsDownloadUrl(type: string): boolean {
     const supportedTypes = [
-      'npm',
-      'pypi',
-      'maven',
-      'gem',
       'cargo',
-      'nuget',
       'composer',
-      'hex',
-      'pub',
+      'conda',
+      'gem',
       'golang',
+      'hex',
+      'maven',
+      'npm',
+      'nuget',
+      'pub',
+      'pypi',
     ]
     return supportedTypes.includes(type)
   }
@@ -112,20 +113,35 @@ export class UrlConverter {
    */
   static supportsRepositoryUrl(type: string): boolean {
     const supportedTypes = [
-      'npm',
-      'pypi',
-      'maven',
-      'gem',
-      'golang',
+      'bioconductor',
+      'bitbucket',
       'cargo',
-      'nuget',
+      'chrome',
+      'clojars',
+      'cocoapods',
       'composer',
+      'conan',
+      'conda',
+      'cpan',
+      'deno',
+      'docker',
+      'elm',
+      'gem',
       'github',
       'gitlab',
-      'bitbucket',
+      'golang',
+      'hackage',
       'hex',
-      'pub',
+      'homebrew',
+      'huggingface',
       'luarocks',
+      'maven',
+      'npm',
+      'nuget',
+      'pub',
+      'pypi',
+      'swift',
+      'vscode',
     ]
     return supportedTypes.includes(type)
   }
@@ -209,6 +225,14 @@ export class UrlConverter {
           url: `https://pub.dev/packages/${name}/versions/${version}.tar.gz`,
         }
 
+      case 'conda': {
+        const channel = namespace ?? 'conda-forge'
+        return {
+          type: 'tarball',
+          url: `https://anaconda.org/${channel}/${name}/${version}/download`,
+        }
+      }
+
       case 'golang':
         if (!namespace) {
           return undefined
@@ -233,43 +257,24 @@ export class UrlConverter {
   static toRepositoryUrl(purl: PackageURL): RepositoryUrl | undefined {
     const { name, namespace, type } = purl
 
+    const { version } = purl
+
     switch (type) {
-      case 'npm':
+      case 'bioconductor':
         return {
           type: 'web',
-          url: `https://npmjs.com/package/${namespace ? `${namespace}/` : ''}${name}`,
+          url: `https://bioconductor.org/packages/${name}`,
         }
 
-      case 'pypi':
-        return {
-          type: 'web',
-          url: `https://pypi.org/project/${name}/`,
-        }
-
-      case 'maven': {
-        if (!namespace) {
-          return undefined
-        }
-        const groupPath = namespace.replace(/\./g, '/')
-        return {
-          type: 'web',
-          url: `https://repo1.maven.org/maven2/${groupPath}/${name}/`,
-        }
-      }
-
-      case 'gem':
-        return {
-          type: 'web',
-          url: `https://rubygems.org/gems/${name}`,
-        }
-
-      case 'golang':
+      case 'bitbucket':
         if (!namespace) {
           return undefined
         }
         return {
           type: 'git',
-          url: `https://${namespace}/${name}`,
+          url: version
+            ? `https://bitbucket.org/${namespace}/${name}/src/${version}`
+            : `https://bitbucket.org/${namespace}/${name}`,
         }
 
       case 'cargo':
@@ -278,10 +283,22 @@ export class UrlConverter {
           url: `https://crates.io/crates/${name}`,
         }
 
-      case 'nuget':
+      case 'chrome':
         return {
           type: 'web',
-          url: `https://nuget.org/packages/${name}/`,
+          url: `https://chromewebstore.google.com/detail/${name}`,
+        }
+
+      case 'clojars':
+        return {
+          type: 'web',
+          url: `https://clojars.org/${namespace ? `${namespace}/` : ''}${name}`,
+        }
+
+      case 'cocoapods':
+        return {
+          type: 'web',
+          url: `https://cocoapods.org/pods/${name}`,
         }
 
       case 'composer':
@@ -290,13 +307,72 @@ export class UrlConverter {
           url: `https://packagist.org/packages/${namespace ? `${namespace}/` : ''}${name}`,
         }
 
+      case 'conan':
+        return {
+          type: 'web',
+          url: `https://conan.io/center/recipes/${name}`,
+        }
+
+      case 'conda':
+        return {
+          type: 'web',
+          url: `https://anaconda.org/${namespace ?? 'conda-forge'}/${name}`,
+        }
+
+      case 'cpan':
+        return {
+          type: 'web',
+          url: `https://metacpan.org/${namespace ? `pod/${namespace}::` : 'pod/'}${name}`,
+        }
+
+      case 'deno':
+        return {
+          type: 'web',
+          url: version
+            ? `https://deno.land/x/${name}@${version}`
+            : `https://deno.land/x/${name}`,
+        }
+
+      case 'docker': {
+        const versionSuffix = version ? `?tab=tags&name=${version}` : ''
+        if (!namespace || namespace === 'library') {
+          return {
+            type: 'web',
+            url: `https://hub.docker.com/_/${name}${versionSuffix}`,
+          }
+        }
+        return {
+          type: 'web',
+          url: `https://hub.docker.com/r/${namespace}/${name}${versionSuffix}`,
+        }
+      }
+
+      case 'elm':
+        if (!namespace) {
+          return undefined
+        }
+        return {
+          type: 'web',
+          url: version
+            ? `https://package.elm-lang.org/packages/${namespace}/${name}/${version}`
+            : `https://package.elm-lang.org/packages/${namespace}/${name}/latest`,
+        }
+
+      case 'gem':
+        return {
+          type: 'web',
+          url: `https://rubygems.org/gems/${name}`,
+        }
+
       case 'github':
         if (!namespace) {
           return undefined
         }
         return {
           type: 'git',
-          url: `https://github.com/${namespace}/${name}`,
+          url: version
+            ? `https://github.com/${namespace}/${name}/tree/${version}`
+            : `https://github.com/${namespace}/${name}`,
         }
 
       case 'gitlab':
@@ -308,13 +384,23 @@ export class UrlConverter {
           url: `https://gitlab.com/${namespace}/${name}`,
         }
 
-      case 'bitbucket':
+      case 'golang':
         if (!namespace) {
           return undefined
         }
         return {
-          type: 'git',
-          url: `https://bitbucket.org/${namespace}/${name}`,
+          type: 'web',
+          url: version
+            ? `https://pkg.go.dev/${namespace}/${name}@${version}`
+            : `https://pkg.go.dev/${namespace}/${name}`,
+        }
+
+      case 'hackage':
+        return {
+          type: 'web',
+          url: version
+            ? `https://hackage.haskell.org/package/${name}-${version}`
+            : `https://hackage.haskell.org/package/${name}`,
         }
 
       case 'hex':
@@ -323,16 +409,75 @@ export class UrlConverter {
           url: `https://hex.pm/packages/${name}`,
         }
 
-      case 'pub':
+      case 'homebrew':
         return {
           type: 'web',
-          url: `https://pub.dev/packages/${name}`,
+          url: `https://formulae.brew.sh/formula/${name}`,
+        }
+
+      case 'huggingface':
+        return {
+          type: 'web',
+          url: `https://huggingface.co/${namespace ? `${namespace}/` : ''}${name}`,
         }
 
       case 'luarocks':
         return {
           type: 'web',
           url: `https://luarocks.org/modules/${namespace ? `${namespace}/` : ''}${name}`,
+        }
+
+      case 'maven': {
+        if (!namespace) {
+          return undefined
+        }
+        return {
+          type: 'web',
+          url: version
+            ? `https://search.maven.org/artifact/${namespace}/${name}/${version}/jar`
+            : `https://search.maven.org/artifact/${namespace}/${name}`,
+        }
+      }
+
+      case 'npm':
+        return {
+          type: 'web',
+          url: version
+            ? `https://www.npmjs.com/package/${namespace ? `${namespace}/` : ''}${name}/v/${version}`
+            : `https://www.npmjs.com/package/${namespace ? `${namespace}/` : ''}${name}`,
+        }
+
+      case 'nuget':
+        return {
+          type: 'web',
+          url: `https://nuget.org/packages/${name}/`,
+        }
+
+      case 'pub':
+        return {
+          type: 'web',
+          url: `https://pub.dev/packages/${name}`,
+        }
+
+      case 'pypi':
+        return {
+          type: 'web',
+          url: `https://pypi.org/project/${name}/`,
+        }
+
+      case 'swift':
+        if (!namespace) {
+          return undefined
+        }
+        return {
+          type: 'git',
+          url: `https://github.com/${namespace}/${name}`,
+        }
+
+      case 'vscode':
+        return {
+          type: 'web',
+          url: `https://marketplace.visualstudio.com/items?itemName=${namespace ? `${namespace}.` : ''}${name}`,
         }
 
       default:

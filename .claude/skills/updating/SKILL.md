@@ -1,22 +1,28 @@
 ---
 name: updating
-description: Updates all npm dependencies to their latest versions. Triggers when user asks to "update dependencies", "update packages", or prepare for a release.
+description: Coordinates all dependency updates (npm packages, upstream spec sync, and purl package feature parity). Triggers when user asks to "update everything", "update dependencies", or prepare for a release.
 user-invocable: true
-allowed-tools: Bash, Read, Grep, Glob, Edit
+allowed-tools: Task, Skill, Bash, Read, Grep, Glob, Edit
 ---
 
 # updating
 
 <task>
-Your task is to update all npm dependencies to their latest versions, ensuring all builds and tests pass.
+Your task is to update all dependencies in socket-packageurl-js: npm packages via `pnpm run update`, then sync upstream specs and check feature parity with the purl npm package, ensuring all builds and tests pass.
 </task>
 
 <context>
 **What is this?**
-This skill updates npm packages for security patches, bug fixes, and new features.
+This skill coordinates all update targets for socket-packageurl-js: npm packages, upstream spec compliance, and feature parity with the purl npm package.
+
+**Existing Skills:**
+- `updating-spec` - Syncs against purl-spec, vers-spec, TC54/ECMA-427 standards
+- `updating-npm-purl-package` - Checks feature parity with the purl npm package (URL types, registry validation, normalization)
 
 **Update Targets:**
-- npm packages via `pnpm run update`
+1. **npm packages** - Updated via `pnpm run update`
+2. **Upstream specs** - Updated via `updating-spec` skill
+3. **purl npm feature parity** - Updated via `updating-npm-purl-package` skill
 </context>
 
 <constraints>
@@ -92,7 +98,35 @@ fi
 
 ---
 
-### Phase 3: Final Validation
+### Phase 3: Sync Upstream Specs
+
+<action>
+Use the updating-spec skill to check for purl-spec, vers-spec, and TC54 changes:
+</action>
+
+```
+Skill({ skill: "updating-spec" })
+```
+
+Wait for skill completion before proceeding.
+
+---
+
+### Phase 4: Check purl npm Feature Parity
+
+<action>
+Use the updating-npm-purl-package skill to check for feature gaps:
+</action>
+
+```
+Skill({ skill: "updating-npm-purl-package" })
+```
+
+Wait for skill completion before proceeding.
+
+---
+
+### Phase 5: Final Validation
 
 <action>
 Run build and test suite (skip in CI mode):
@@ -112,7 +146,7 @@ fi
 
 ---
 
-### Phase 4: Report Summary
+### Phase 6: Report Summary
 
 <action>
 Generate update report:
@@ -126,6 +160,8 @@ Generate update report:
 | Category | Status |
 |----------|--------|
 | npm packages | Updated/Up to date |
+| Upstream specs | Synced/No changes |
+| purl npm parity | Synced/No changes |
 
 ### Commits Created:
 - [list commits if any]
@@ -150,8 +186,10 @@ Generate update report:
 ## Success Criteria
 
 - All npm packages checked for updates
+- Upstream specs synced (purl-spec, vers-spec, TC54)
+- Feature parity checked against purl npm package
 - Full build and tests pass (interactive mode)
-- Summary report generated
+- Comprehensive summary report generated
 
 ## Context
 
@@ -162,3 +200,7 @@ This skill is useful for:
 - Pre-release preparation
 
 **Safety:** Updates are validated before committing. Failures stop the process.
+
+**Skills Used:**
+- `updating-spec` - Upstream spec sync
+- `updating-npm-purl-package` - Feature parity with purl npm package

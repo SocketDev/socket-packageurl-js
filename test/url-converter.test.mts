@@ -36,7 +36,7 @@ describe('UrlConverter', () => {
         undefined,
         'lodash',
         '4.17.21',
-        'https://npmjs.com/package/lodash',
+        'https://www.npmjs.com/package/lodash/v/4.17.21',
         'web',
       ],
       [
@@ -44,7 +44,7 @@ describe('UrlConverter', () => {
         '@types',
         'node',
         '16.11.7',
-        'https://npmjs.com/package/@types/node',
+        'https://www.npmjs.com/package/@types/node/v/16.11.7',
         'web',
       ],
       [
@@ -60,7 +60,7 @@ describe('UrlConverter', () => {
         'org.apache.commons',
         'commons-lang3',
         '3.12.0',
-        'https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/',
+        'https://search.maven.org/artifact/org.apache.commons/commons-lang3/3.12.0/jar',
         'web',
       ],
       [
@@ -76,8 +76,8 @@ describe('UrlConverter', () => {
         'github.com/gin-gonic',
         'gin',
         'v1.8.1',
-        'https://github.com/gin-gonic/gin',
-        'git',
+        'https://pkg.go.dev/github.com/gin-gonic/gin@v1.8.1',
+        'web',
       ],
       [
         'cargo',
@@ -410,7 +410,7 @@ describe('UrlConverter', () => {
 
       expect(result).toEqual({
         repository: {
-          url: 'https://npmjs.com/package/lodash',
+          url: 'https://www.npmjs.com/package/lodash/v/4.17.21',
           type: 'web',
         },
         download: {
