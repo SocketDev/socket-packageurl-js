@@ -65,6 +65,52 @@ export interface DownloadUrl {
  * const downloadUrl = UrlConverter.toDownloadUrl(purl)
  * ```
  */
+const DOWNLOAD_URL_TYPES = new Set([
+  'cargo',
+  'composer',
+  'conda',
+  'gem',
+  'golang',
+  'hex',
+  'maven',
+  'npm',
+  'nuget',
+  'pub',
+  'pypi',
+])
+
+const REPOSITORY_URL_TYPES = new Set([
+  'bioconductor',
+  'bitbucket',
+  'cargo',
+  'chrome',
+  'clojars',
+  'cocoapods',
+  'composer',
+  'conan',
+  'conda',
+  'cpan',
+  'deno',
+  'docker',
+  'elm',
+  'gem',
+  'github',
+  'gitlab',
+  'golang',
+  'hackage',
+  'hex',
+  'homebrew',
+  'huggingface',
+  'luarocks',
+  'maven',
+  'npm',
+  'nuget',
+  'pub',
+  'pypi',
+  'swift',
+  'vscode',
+])
+
 export class UrlConverter {
   /**
    * Get all available URLs for a PackageURL.
@@ -89,20 +135,7 @@ export class UrlConverter {
    * conversion logic implemented.
    */
   static supportsDownloadUrl(type: string): boolean {
-    const supportedTypes = [
-      'cargo',
-      'composer',
-      'conda',
-      'gem',
-      'golang',
-      'hex',
-      'maven',
-      'npm',
-      'nuget',
-      'pub',
-      'pypi',
-    ]
-    return supportedTypes.includes(type)
+    return DOWNLOAD_URL_TYPES.has(type)
   }
 
   /**
@@ -112,38 +145,7 @@ export class UrlConverter {
    * conversion logic implemented.
    */
   static supportsRepositoryUrl(type: string): boolean {
-    const supportedTypes = [
-      'bioconductor',
-      'bitbucket',
-      'cargo',
-      'chrome',
-      'clojars',
-      'cocoapods',
-      'composer',
-      'conan',
-      'conda',
-      'cpan',
-      'deno',
-      'docker',
-      'elm',
-      'gem',
-      'github',
-      'gitlab',
-      'golang',
-      'hackage',
-      'hex',
-      'homebrew',
-      'huggingface',
-      'luarocks',
-      'maven',
-      'npm',
-      'nuget',
-      'pub',
-      'pypi',
-      'swift',
-      'vscode',
-    ]
-    return supportedTypes.includes(type)
+    return REPOSITORY_URL_TYPES.has(type)
   }
 
   /**

@@ -36,6 +36,14 @@ import {
 } from './compare.js'
 import { decodePurlComponent } from './decode.js'
 import { PurlError } from './error.js'
+import {
+  normalizeName,
+  normalizeNamespace,
+  normalizeQualifiers,
+  normalizeSubpath,
+  normalizeType,
+  normalizeVersion,
+} from './normalize.js'
 import { isObject, recursiveFreeze } from './objects.js'
 import { PurlComponent } from './purl-component.js'
 import { PurlQualifierNames } from './purl-qualifier-names.js'
@@ -45,12 +53,16 @@ import { Err, Ok, ResultUtils, err, ok } from './result.js'
 import { stringify } from './stringify.js'
 import { isBlank, isNonEmptyString, trimLeadingSlashes } from './strings.js'
 import { UrlConverter } from './url-converter.js'
+import {
+  validateName,
+  validateNamespace,
+  validateQualifiers,
+  validateSubpath,
+  validateType,
+  validateVersion,
+} from './validate.js'
 
-import type {
-  ComponentNormalizer,
-  ComponentValidator,
-  QualifiersObject,
-} from './purl-component.js'
+import type { QualifiersObject } from './purl-component.js'
 import type { Result } from './result.js'
 import type { DownloadUrl, RepositoryUrl } from './url-converter.js'
 
@@ -119,58 +131,32 @@ class PackageURL {
     rawQualifiers: unknown,
     rawSubpath: unknown,
   ) {
-    const type = isNonEmptyString(rawType)
-      ? (PurlComponent['type']?.['normalize'] as ComponentNormalizer)?.(rawType)
-      : rawType
-    ;(PurlComponent['type']?.['validate'] as ComponentValidator)?.(type, true)
+    const type = isNonEmptyString(rawType) ? normalizeType(rawType) : rawType
+    validateType(type, true)
 
     const namespace = isNonEmptyString(rawNamespace)
-      ? (PurlComponent['namespace']?.['normalize'] as ComponentNormalizer)?.(
-          rawNamespace,
-        )
+      ? normalizeNamespace(rawNamespace)
       : rawNamespace
-    ;(PurlComponent['namespace']?.['validate'] as ComponentValidator)?.(
-      namespace,
-      true,
-    )
+    validateNamespace(namespace, true)
 
-    const name = isNonEmptyString(rawName)
-      ? (PurlComponent['name']?.['normalize'] as ComponentNormalizer)?.(rawName)
-      : rawName
-    ;(PurlComponent['name']?.['validate'] as ComponentValidator)?.(name, true)
+    const name = isNonEmptyString(rawName) ? normalizeName(rawName) : rawName
+    validateName(name, true)
 
     const version = isNonEmptyString(rawVersion)
-      ? (PurlComponent['version']?.['normalize'] as ComponentNormalizer)?.(
-          rawVersion,
-        )
+      ? normalizeVersion(rawVersion)
       : rawVersion
-    ;(PurlComponent['version']?.['validate'] as ComponentValidator)?.(
-      version,
-      true,
-    )
+    validateVersion(version, true)
 
     const qualifiers =
       typeof rawQualifiers === 'string' || isObject(rawQualifiers)
-        ? (
-            PurlComponent['qualifiers']?.['normalize'] as (
-              _value: string | QualifiersObject,
-            ) => Record<string, string> | undefined
-          )?.(rawQualifiers as string | QualifiersObject)
+        ? normalizeQualifiers(rawQualifiers as string | QualifiersObject)
         : rawQualifiers
-    ;(PurlComponent['qualifiers']?.['validate'] as ComponentValidator)?.(
-      qualifiers,
-      true,
-    )
+    validateQualifiers(qualifiers, true)
 
     const subpath = isNonEmptyString(rawSubpath)
-      ? (PurlComponent['subpath']?.['normalize'] as ComponentNormalizer)?.(
-          rawSubpath,
-        )
+      ? normalizeSubpath(rawSubpath)
       : rawSubpath
-    ;(PurlComponent['subpath']?.['validate'] as ComponentValidator)?.(
-      subpath,
-      true,
-    )
+    validateSubpath(subpath, true)
 
     this.type = type as string
     this.name = name as string
@@ -505,7 +491,7 @@ class PackageURL {
     //   - Split the remainder once from right on '?'
     //   - Split the remainder once from left on ':'
     let url: URL | undefined
-    let maybeUrlWithAuth: URL | undefined
+    let hasAuth = false
     if (colonIndex !== -1) {
       try {
         // Since a purl never contains a URL Authority, its scheme
@@ -516,10 +502,21 @@ class PackageURL {
         const afterColon = purlStr.slice(colonIndex + 1)
         const trimmedAfterColon = trimLeadingSlashes(afterColon)
         url = new URL(`${beforeColon}:${trimmedAfterColon}`)
-        /* c8 ignore next 4 -- V8 coverage sees multiple branch paths in ternary that can't all be tested. */ maybeUrlWithAuth =
-          afterColon.length === trimmedAfterColon.length
-            ? url
-            : new URL(purlStr)
+        // Check for auth (user:pass@host) without creating a second URL.
+        // When leading slashes were trimmed, the original string had an authority
+        // section (e.g., pkg://user:pass@host/...). Detect `@` in the authority
+        // by checking between the `//` and the next `/`.
+        /* c8 ignore next 8 -- V8 coverage sees multiple branch paths that can't all be tested. */
+        if (afterColon.length !== trimmedAfterColon.length) {
+          // afterColon starts with slashes — find the authority section
+          const authorityStart = afterColon.indexOf('//') + 2
+          const authorityEnd = afterColon.indexOf('/', authorityStart)
+          const authority =
+            authorityEnd === -1
+              ? afterColon.slice(authorityStart)
+              : afterColon.slice(authorityStart, authorityEnd)
+          hasAuth = authority.includes('@')
+        }
       } catch (e) {
         throw new PurlError('failed to parse as URL', {
           cause: e,
@@ -535,10 +532,7 @@ class PackageURL {
     }
     // A purl must NOT contain a URL Authority i.e. there is no support for
     // username, password, host and port components
-    if (
-      maybeUrlWithAuth &&
-      (maybeUrlWithAuth.username !== '' || maybeUrlWithAuth.password !== '')
-    ) {
+    if (hasAuth) {
       throw new PurlError('cannot contain a "user:pass@host:port"')
     }
 

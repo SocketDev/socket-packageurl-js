@@ -112,10 +112,10 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should handle URL parsing failures gracefully', () => {
-      // Invalid URL with malformed brackets that causes URL constructor to throw
+      // Invalid URL with empty scheme that causes URL constructor to throw
       // This triggers the catch block in the URL parsing code
       // Tests c8 ignore branch in package-url.js for URL parsing failures
-      expect(() => PackageURL.fromString('pkg://[invalid')).toThrow(
+      expect(() => PackageURL.fromString('://[invalid')).toThrow(
         /failed to parse as URL/,
       )
     })

@@ -3,6 +3,7 @@
  * Provides special handling for names, namespaces, versions, qualifiers, and subpaths.
  */
 import {
+  REUSED_SEARCH_PARAMS,
   REUSED_SEARCH_PARAMS_KEY,
   REUSED_SEARCH_PARAMS_OFFSET,
 } from './constants.js'
@@ -41,13 +42,12 @@ function encodeQualifierParam(param: unknown): string {
     const value = prepareValueForSearchParams(param)
     // Use URLSearchParams#set to preserve plus signs
     // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
-    // Use a local instance to avoid mutation issues in concurrent scenarios
-    const searchParams = new URLSearchParams()
-    searchParams.set(REUSED_SEARCH_PARAMS_KEY, value)
+    // Reuse shared instance — JS is single-threaded so no concurrent mutation issues
+    REUSED_SEARCH_PARAMS.set(REUSED_SEARCH_PARAMS_KEY, value)
     // Param key and value are encoded with `percentEncodeSet` of
     // 'application/x-www-form-urlencoded' and `spaceAsPlus` of `true`
     // https://url.spec.whatwg.org/#urlencoded-serializing
-    const search = searchParams.toString()
+    const search = REUSED_SEARCH_PARAMS.toString()
     return normalizeSearchParamsEncoding(
       search.slice(REUSED_SEARCH_PARAMS_OFFSET),
     )

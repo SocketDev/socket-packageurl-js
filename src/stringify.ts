@@ -3,10 +3,18 @@
  * Converts PackageURL instances to canonical PURL string format.
  */
 
-import { PurlComponent } from './purl-component.js'
+import {
+  encodeComponent,
+  encodeName,
+  encodeNamespace,
+  encodeQualifiers,
+  encodeSubpath,
+  encodeVersion,
+} from './encode.js'
+import { isNonEmptyString } from './strings.js'
 
 import type { PackageURL } from './package-url.js'
-import type { ComponentEncoder, QualifiersObject } from './purl-component.js'
+import type { QualifiersObject } from './purl-component.js'
 
 /**
  * Convert PackageURL instance to canonical PURL string.
@@ -40,19 +48,19 @@ export function stringify(purl: PackageURL): string {
     type?: string | undefined
     version?: string | undefined
   } = purl
-  /* c8 ignore next - Type encoder uses default PurlComponentEncoder, never returns null/undefined. */ let purlStr = `pkg:${(PurlComponent['type']?.['encode'] as ComponentEncoder)?.(type) ?? ''}/`
+  let purlStr = `pkg:${isNonEmptyString(type) ? encodeComponent(type) : ''}/`
   if (namespace) {
-    /* c8 ignore next - Namespace encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent['namespace']?.['encode'] as ComponentEncoder)?.(namespace) ?? ''}/`
+    purlStr = `${purlStr}${encodeNamespace(namespace)}/`
   }
-  /* c8 ignore next - Name encoder always returns string, never null/undefined. */ purlStr = `${purlStr}${(PurlComponent['name']?.['encode'] as ComponentEncoder)?.(name) ?? ''}`
+  purlStr = `${purlStr}${encodeName(name)}`
   if (version) {
-    /* c8 ignore next - Version encoder always returns string, never null/undefined. */ purlStr = `${purlStr}@${(PurlComponent['version']?.['encode'] as ComponentEncoder)?.(version) ?? ''}`
+    purlStr = `${purlStr}@${encodeVersion(version)}`
   }
   if (qualifiers) {
-    /* c8 ignore next - Qualifiers encoder always returns string, never null/undefined. */ purlStr = `${purlStr}?${(PurlComponent['qualifiers']?.['encode'] as ComponentEncoder)?.(qualifiers) ?? ''}`
+    purlStr = `${purlStr}?${encodeQualifiers(qualifiers)}`
   }
   if (subpath) {
-    /* c8 ignore next - Subpath encoder always returns string, never null/undefined. */ purlStr = `${purlStr}#${(PurlComponent['subpath']?.['encode'] as ComponentEncoder)?.(subpath) ?? ''}`
+    purlStr = `${purlStr}#${encodeSubpath(subpath)}`
   }
   return purlStr
 }

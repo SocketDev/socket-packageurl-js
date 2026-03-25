@@ -29,22 +29,28 @@ function toCanonicalString(input: PurlInput): string {
 }
 
 /**
+ * Cache for compiled wildcard regexes to avoid recompilation on repeated calls.
+ */
+const wildcardRegexCache = new Map<string, RegExp>()
+
+/**
  * Simple wildcard matcher for PURL components.
  * Supports * (match any chars), ? (match single char), ** (match anything including empty).
  * Designed for version strings and package names, not file paths.
  */
 function matchWildcard(pattern: string, value: string): boolean {
-  // Convert glob pattern to regex
-  // Escape regex special chars except * and ?
-  let regexPattern = pattern
-    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-    .replace(/\*/g, '.*')
-    .replace(/\?/g, '.')
+  let regex = wildcardRegexCache.get(pattern)
+  if (regex === undefined) {
+    // Convert glob pattern to regex
+    // Escape regex special chars except * and ?
+    const regexPattern = pattern
+      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+      .replace(/\*/g, '.*')
+      .replace(/\?/g, '.')
 
-  // Anchor to start and end
-  regexPattern = `^${regexPattern}$`
-
-  const regex = new RegExp(regexPattern)
+    regex = new RegExp(`^${regexPattern}$`)
+    wildcardRegexCache.set(pattern, regex)
+  }
   return regex.test(value)
 }
 

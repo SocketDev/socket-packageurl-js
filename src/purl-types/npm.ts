@@ -60,12 +60,13 @@ export type NpmPackageComponents = {
 }
 
 /**
- * Get list of Node.js built-in module names.
+ * Get Set of Node.js built-in module names for O(1) lookups.
  */
-const getNpmBuiltinNames = (() => {
-  let builtinNames: string[] | undefined
+const getNpmBuiltinSet = (() => {
+  let builtinSet: Set<string> | undefined
   return () => {
-    if (builtinNames === undefined) {
+    if (builtinSet === undefined) {
+      let builtinNames: string[] | undefined
       /* c8 ignore start - Error handling for module access. */
       try {
         // Try to use Node.js builtinModules first
@@ -120,8 +121,9 @@ const getNpmBuiltinNames = (() => {
           'zlib',
         ]
       }
+      builtinSet = new Set(builtinNames)
     }
-    return builtinNames
+    return builtinSet
   }
 })()
 
@@ -134,13 +136,14 @@ function getNpmId(purl: PurlObject): string {
 }
 
 /**
- * Get list of npm legacy package names.
+ * Get Set of npm legacy package names for O(1) lookups.
  */
-const getNpmLegacyNames = (() => {
-  let fullLegacyNames: string[] | undefined
+const getNpmLegacySet = (() => {
+  let legacySet: Set<string> | undefined
 
-  return (): string[] => {
-    if (fullLegacyNames === undefined) {
+  return (): Set<string> => {
+    if (legacySet === undefined) {
+      let fullLegacyNames: string[]
       /* c8 ignore start - Fallback path only used if JSON file fails to load. */
       try {
         // Try to load the full list from JSON file
@@ -161,8 +164,9 @@ const getNpmLegacyNames = (() => {
         ]
       }
       /* c8 ignore stop */
+      legacySet = new Set(fullLegacyNames)
     }
-    return fullLegacyNames!
+    return legacySet
   }
 })()
 
@@ -170,13 +174,12 @@ const getNpmLegacyNames = (() => {
  * Check if npm identifier is a Node.js built-in module name.
  */
 const isNpmBuiltinName = (id: string): boolean =>
-  getNpmBuiltinNames().includes(id.toLowerCase())
+  getNpmBuiltinSet().has(id.toLowerCase())
 
 /**
  * Check if npm identifier is a legacy package name.
  */
-const isNpmLegacyName = (id: string): boolean =>
-  getNpmLegacyNames().includes(id)
+const isNpmLegacyName = (id: string): boolean => getNpmLegacySet().has(id)
 
 /**
  * Normalize npm package URL.
