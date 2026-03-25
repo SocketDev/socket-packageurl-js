@@ -88,6 +88,32 @@ describe('hexExists', () => {
       expect(result.error).toContain('Version 999.0.0 not found')
       expect(result.latestVersion).toBe('1.7.10')
     })
+
+    it('should return version not found without latestVersion when latest_version field is missing', async () => {
+      nock('https://hex.pm')
+        .get('/api/packages/phoenix')
+        .reply(200, {
+          releases: [{ version: '1.7.10' }],
+        })
+
+      const result = await hexExists('phoenix', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
+
+    it('should handle version check when releases array is missing', async () => {
+      nock('https://hex.pm').get('/api/packages/phoenix').reply(200, {
+        latest_version: '1.7.10',
+      })
+
+      const result = await hexExists('phoenix', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBe('1.7.10')
+    })
   })
 
   describe('error handling', () => {

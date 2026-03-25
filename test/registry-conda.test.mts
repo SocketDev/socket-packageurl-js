@@ -121,6 +121,33 @@ describe('condaExists', () => {
       expect(result.latestVersion).toBe('1.26.3')
     })
 
+    it('should return version not found without latestVersion when latest_version is missing', async () => {
+      nock('https://api.anaconda.org')
+        .get('/package/conda-forge/numpy')
+        .reply(200, {
+          versions: ['1.26.3', '1.26.2'],
+        })
+
+      const result = await condaExists('numpy', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
+
+    it('should return exists=true without latestVersion when latest_version is missing', async () => {
+      nock('https://api.anaconda.org')
+        .get('/package/conda-forge/numpy')
+        .reply(200, {
+          versions: ['1.26.3'],
+        })
+
+      const result = await condaExists('numpy', '1.26.3')
+
+      expect(result.exists).toBe(true)
+      expect(result.latestVersion).toBeUndefined()
+    })
+
     it('should validate version in custom channel', async () => {
       nock('https://api.anaconda.org')
         .get('/package/anaconda/scipy')

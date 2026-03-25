@@ -53,6 +53,17 @@ describe('gemExists', () => {
       expect(result.error).toContain('No versions found')
     })
 
+    it('should return exists=true without latestVersion when number field is missing', async () => {
+      nock('https://rubygems.org')
+        .get('/api/v1/versions/test-gem.json')
+        .reply(200, [{}])
+
+      const result = await gemExists('test-gem')
+
+      expect(result.exists).toBe(true)
+      expect(result.latestVersion).toBeUndefined()
+    })
+
     it('should handle gem with single version', async () => {
       nock('https://rubygems.org')
         .get('/api/v1/versions/new-gem.json')

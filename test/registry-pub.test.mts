@@ -88,6 +88,34 @@ describe('pubExists', () => {
       expect(result.error).toContain('Version 999.0.0 not found')
       expect(result.latestVersion).toBe('8.1.3')
     })
+
+    it('should return version not found without latestVersion when latest field is missing', async () => {
+      nock('https://pub.dev')
+        .get('/api/packages/flutter_bloc')
+        .reply(200, {
+          versions: [{ version: '8.1.3' }],
+        })
+
+      const result = await pubExists('flutter_bloc', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
+
+    it('should handle version check when versions array is missing', async () => {
+      nock('https://pub.dev')
+        .get('/api/packages/flutter_bloc')
+        .reply(200, {
+          latest: { version: '8.1.3' },
+        })
+
+      const result = await pubExists('flutter_bloc', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBe('8.1.3')
+    })
   })
 
   describe('error handling', () => {

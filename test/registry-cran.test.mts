@@ -90,6 +90,34 @@ describe('cranExists', () => {
       expect(result.error).toContain('Version 999.0.0 not found')
       expect(result.latestVersion).toBe('3.4.4')
     })
+
+    it('should return version not found without latestVersion when Version field is missing', async () => {
+      nock('https://cran.r-universe.dev')
+        .get('/api/packages/ggplot2')
+        .reply(200, {
+          versions: ['3.4.4'],
+        })
+
+      const result = await cranExists('ggplot2', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
+
+    it('should handle version check when versions array is missing', async () => {
+      nock('https://cran.r-universe.dev')
+        .get('/api/packages/ggplot2')
+        .reply(200, {
+          Version: '3.4.4',
+        })
+
+      const result = await cranExists('ggplot2', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBe('3.4.4')
+    })
   })
 
   describe('error handling', () => {

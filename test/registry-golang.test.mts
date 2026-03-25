@@ -121,6 +121,39 @@ describe('golangExists', () => {
       expect(result.error).toContain('Version v999.0.0 not found')
       expect(result.latestVersion).toBe('v1.8.0')
     })
+
+    it('should return version not found without latestVersion when Version field is missing', async () => {
+      nock('https://proxy.golang.org')
+        .get('/github.com/gorilla/mux/@latest')
+        .reply(200, {
+          Time: '2022-01-01T00:00:00Z',
+        })
+        .get('/github.com/gorilla/mux/@v/v999.0.0.info')
+        .reply(404)
+
+      const result = await golangExists(
+        'github.com/gorilla/mux',
+        undefined,
+        'v999.0.0',
+      )
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version v999.0.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
+
+    it('should return exists=true without latestVersion when Version field is missing', async () => {
+      nock('https://proxy.golang.org')
+        .get('/github.com/gorilla/mux/@latest')
+        .reply(200, {
+          Time: '2022-01-01T00:00:00Z',
+        })
+
+      const result = await golangExists('github.com/gorilla/mux')
+
+      expect(result.exists).toBe(true)
+      expect(result.latestVersion).toBeUndefined()
+    })
   })
 
   describe('error handling', () => {

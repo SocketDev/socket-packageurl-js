@@ -89,6 +89,20 @@ describe('cpanExists', () => {
       expect(result.error).toContain('Version 999.0 not found')
       expect(result.latestVersion).toBe('2.2206')
     })
+
+    it('should return version not found without latestVersion when version field is missing', async () => {
+      nock('https://fastapi.metacpan.org')
+        .get('/v1/module/Moose')
+        .reply(200, {})
+        .get('/v1/module/Moose/999.0')
+        .reply(404)
+
+      const result = await cpanExists('Moose', '999.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
   })
 
   describe('error handling', () => {

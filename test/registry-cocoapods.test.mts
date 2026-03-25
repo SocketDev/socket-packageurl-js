@@ -107,6 +107,20 @@ describe('cocoapodsExists', () => {
       expect(result.error).toContain('Version 999.0.0 not found')
       expect(result.latestVersion).toBe('5.8.1')
     })
+
+    it('should return version not found without latestVersion when name is missing', async () => {
+      nock('https://trunk.cocoapods.org')
+        .get('/api/v1/pods/Alamofire')
+        .reply(200, {
+          versions: [{}],
+        })
+
+      const result = await cocoapodsExists('Alamofire', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
   })
 
   describe('error handling', () => {

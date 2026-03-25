@@ -74,6 +74,24 @@ describe('nugetExists', () => {
       expect(result.exists).toBe(false)
       expect(result.error).toContain('No versions found')
     })
+
+    it('should skip pages without items property', async () => {
+      nock('https://api.nuget.org')
+        .get('/v3/registration5-semver1/test/index.json')
+        .reply(200, {
+          items: [
+            {},
+            {
+              items: [{ catalogEntry: { version: '1.0.0' } }],
+            },
+          ],
+        })
+
+      const result = await nugetExists('test')
+
+      expect(result.exists).toBe(true)
+      expect(result.latestVersion).toBe('1.0.0')
+    })
   })
 
   describe('version validation', () => {

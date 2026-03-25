@@ -120,6 +120,21 @@ describe('packagistExists', () => {
     })
   })
 
+  describe('empty packages', () => {
+    it('should return exists=false when API returns empty packages object', async () => {
+      nock('https://repo.packagist.org')
+        .get('/p2/vendor%2Fpackage.json')
+        .reply(200, {
+          packages: {},
+        })
+
+      const result = await packagistExists('package', 'vendor')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Package not found')
+    })
+  })
+
   describe('error handling', () => {
     it('should handle network errors', async () => {
       nock('https://repo.packagist.org')

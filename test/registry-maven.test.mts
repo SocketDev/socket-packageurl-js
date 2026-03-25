@@ -145,6 +145,47 @@ describe('mavenExists', () => {
       expect(result.error).toContain('Version 999.0.0 not found')
       expect(result.latestVersion).toBe('3.12.0')
     })
+
+    it('should return version not found without latestVersion when docs have no version fields', async () => {
+      nock('https://search.maven.org')
+        .get('/solrsearch/select?q=g:com.test+AND+a:test&rows=1&wt=json')
+        .reply(200, {
+          response: {
+            numFound: 1,
+            docs: [{}],
+          },
+        })
+        .get(
+          '/solrsearch/select?q=g:com.test+AND+a:test+AND+v:999.0.0&rows=1&wt=json',
+        )
+        .reply(200, {
+          response: {
+            numFound: 0,
+          },
+        })
+
+      const result = await mavenExists('test', 'com.test', '999.0.0')
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
+
+    it('should return exists=true without latestVersion when docs have no version fields', async () => {
+      nock('https://search.maven.org')
+        .get('/solrsearch/select?q=g:com.test+AND+a:test&rows=1&wt=json')
+        .reply(200, {
+          response: {
+            numFound: 1,
+            docs: [{}],
+          },
+        })
+
+      const result = await mavenExists('test', 'com.test')
+
+      expect(result.exists).toBe(true)
+      expect(result.latestVersion).toBeUndefined()
+    })
   })
 
   describe('error handling', () => {

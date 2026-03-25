@@ -223,6 +223,63 @@ describe('vscodeExtensionExists', () => {
       expect(result.latestVersion).toBe('2.4.2')
     })
 
+    it('should return version not found without latestVersion when version field is missing', async () => {
+      nock('https://marketplace.visualstudio.com')
+        .post('/_apis/public/gallery/extensionquery', body => {
+          return (
+            body.filters &&
+            body.filters[0]?.criteria[0]?.value === 'dbaeumer.vscode-eslint'
+          )
+        })
+        .reply(200, {
+          results: [
+            {
+              extensions: [
+                {
+                  versions: [{}],
+                },
+              ],
+            },
+          ],
+        })
+
+      const result = await vscodeExtensionExists(
+        'vscode-eslint',
+        'dbaeumer',
+        '999.0.0',
+      )
+
+      expect(result.exists).toBe(false)
+      expect(result.error).toContain('Version 999.0.0 not found')
+      expect(result.latestVersion).toBeUndefined()
+    })
+
+    it('should return exists=true without latestVersion when version field is missing in versions', async () => {
+      nock('https://marketplace.visualstudio.com')
+        .post('/_apis/public/gallery/extensionquery', body => {
+          return (
+            body.filters &&
+            body.filters[0]?.criteria[0]?.value === 'publisher.test-extension'
+          )
+        })
+        .reply(200, {
+          results: [
+            {
+              extensions: [
+                {
+                  versions: [{}],
+                },
+              ],
+            },
+          ],
+        })
+
+      const result = await vscodeExtensionExists('test-extension', 'publisher')
+
+      expect(result.exists).toBe(true)
+      expect(result.latestVersion).toBeUndefined()
+    })
+
     it('should handle version check without versions array', async () => {
       nock('https://marketplace.visualstudio.com')
         .post('/_apis/public/gallery/extensionquery', body => {
