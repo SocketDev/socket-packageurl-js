@@ -29,7 +29,11 @@ SOFTWARE.
  * See package-url-builder.ts for detailed explanation and workarounds.
  */
 
-import { compare as comparePurls, equals as equalsPurls } from './compare.js'
+import {
+  _registerPackageURL,
+  compare as comparePurls,
+  equals as equalsPurls,
+} from './compare.js'
 import { decodePurlComponent } from './decode.js'
 import { PurlError } from './error.js'
 import { isObject, recursiveFreeze } from './objects.js'
@@ -665,6 +669,9 @@ for (const staticProp of ['Component', 'KnownQualifierNames', 'Type']) {
 }
 
 Reflect.setPrototypeOf(PackageURL.prototype, null)
+
+// Register PackageURL with compare module for string-based comparison support.
+_registerPackageURL(PackageURL)
 
 export {
   Err,

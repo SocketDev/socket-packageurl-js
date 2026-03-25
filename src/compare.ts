@@ -7,14 +7,23 @@ import type { PackageURL } from './package-url.js'
 
 export type PurlInput = PackageURL | string
 
+// Lazy reference to PackageURL, set by package-url.ts at module load time
+// to avoid circular import issues.
+let _PackageURL: typeof PackageURL | undefined
+
+/** @internal Register the PackageURL class for string parsing in compare functions. */
+export function _registerPackageURL(ctor: typeof PackageURL): void {
+  _PackageURL = ctor
+}
+
 function toCanonicalString(input: PurlInput): string {
   if (typeof input === 'string') {
-    // Dynamic import would be circular, so we normalize by round-tripping
-    // through the PackageURL constructor via a lazy require
-    const { PackageURL: PU } = require('./package-url.js') as {
-      PackageURL: typeof PackageURL
+    if (!_PackageURL) {
+      throw new Error(
+        'PackageURL not registered. Import PackageURL before using string comparison.',
+      )
     }
-    return PU.fromString(input).toString()
+    return _PackageURL.fromString(input).toString()
   }
   return input.toString()
 }
