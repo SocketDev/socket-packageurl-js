@@ -300,6 +300,16 @@ See file for usage examples.
 - **Test edge cases**: Include edge cases in `purl-edge-cases.test.mts`
 - **Performance**: Benchmark performance-sensitive changes
 
+### Test Style — Functional Over Source Scanning
+
+**NEVER write source-code-scanning tests**
+
+Do not read source files and assert on their contents (`.toContain('pattern')`). These tests are brittle and break on any refactor.
+
+- Write functional tests that verify **behavior**, not string patterns
+- For modules requiring a built binary: use integration tests
+- For pure logic: use unit tests with real function calls
+
 ### CI Testing
 
 - **🚨 MANDATORY**: `SocketDev/socket-registry/.github/workflows/ci.yml@<SHA>` with full SHA
