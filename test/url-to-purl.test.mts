@@ -907,6 +907,34 @@ describe('UrlConverter.fromUrl', () => {
       )
       expect(purl?.toString()).toBe('pkg:golang/github.com/gorilla/mux')
     })
+
+    it('should return undefined for cargo non-crates non-api path', () => {
+      expect(
+        UrlConverter.fromUrl('https://crates.io/teams/foo'),
+      ).toBeUndefined()
+    })
+
+    it('should return undefined for nuget root path', () => {
+      expect(UrlConverter.fromUrl('https://www.nuget.org/')).toBeUndefined()
+    })
+
+    it('should return undefined for golang trailing slash (empty name)', () => {
+      expect(
+        UrlConverter.fromUrl('https://pkg.go.dev/github.com/'),
+      ).toBeUndefined()
+    })
+
+    it('should return undefined for vscode marketplace non-items path', () => {
+      expect(
+        UrlConverter.fromUrl('https://marketplace.visualstudio.com/publishers'),
+      ).toBeUndefined()
+    })
+
+    it('should return undefined for npmjs.com /package/@scope only', () => {
+      expect(
+        UrlConverter.fromUrl('https://www.npmjs.com/package/@scope'),
+      ).toBeUndefined()
+    })
   })
 })
 
