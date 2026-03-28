@@ -196,23 +196,66 @@ export class PurlBuilder {
   }
 
   /**
+   * Create a builder with the bitbucket package type preset.
+   *
+   * @example `PurlBuilder.bitbucket().namespace('owner').name('repo').build()`
+   */
+  static bitbucket(): PurlBuilder {
+    return new PurlBuilder().type('bitbucket')
+  }
+
+  /**
    * Create a builder with the cargo package type preset.
    *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'cargo', ready for building Rust crate URLs.
+   * @example `PurlBuilder.cargo().name('serde').version('1.0.0').build()`
    */
   static cargo(): PurlBuilder {
     return new PurlBuilder().type('cargo')
   }
 
   /**
+   * Create a builder with the cocoapods package type preset.
+   *
+   * @example `PurlBuilder.cocoapods().name('Alamofire').version('5.9.1').build()`
+   */
+  static cocoapods(): PurlBuilder {
+    return new PurlBuilder().type('cocoapods')
+  }
+
+  /**
    * Create a builder with the composer package type preset.
    *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'composer', ready for building Composer package URLs.
+   * @example `PurlBuilder.composer().namespace('laravel').name('framework').build()`
    */
   static composer(): PurlBuilder {
     return new PurlBuilder().type('composer')
+  }
+
+  /**
+   * Create a builder with the conan package type preset.
+   *
+   * @example `PurlBuilder.conan().name('zlib').version('1.3.1').build()`
+   */
+  static conan(): PurlBuilder {
+    return new PurlBuilder().type('conan')
+  }
+
+  /**
+   * Create a builder with the conda package type preset.
+   *
+   * @example `PurlBuilder.conda().name('numpy').version('1.26.4').build()`
+   */
+  static conda(): PurlBuilder {
+    return new PurlBuilder().type('conda')
+  }
+
+  /**
+   * Create a builder with the cran package type preset.
+   *
+   * @example `PurlBuilder.cran().name('ggplot2').version('3.5.0').build()`
+   */
+  static cran(): PurlBuilder {
+    return new PurlBuilder().type('cran')
   }
 
   /**
@@ -223,6 +266,24 @@ export class PurlBuilder {
    */
   static create(): PurlBuilder {
     return new PurlBuilder()
+  }
+
+  /**
+   * Create a builder with the deb package type preset.
+   *
+   * @example `PurlBuilder.deb().namespace('debian').name('curl').version('8.5.0').build()`
+   */
+  static deb(): PurlBuilder {
+    return new PurlBuilder().type('deb')
+  }
+
+  /**
+   * Create a builder with the docker package type preset.
+   *
+   * @example `PurlBuilder.docker().namespace('library').name('nginx').version('latest').build()`
+   */
+  static docker(): PurlBuilder {
+    return new PurlBuilder().type('docker')
   }
 
   /**
@@ -263,37 +324,79 @@ export class PurlBuilder {
   /**
    * Create a builder with the gem package type preset.
    *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'gem', ready for building Ruby gem URLs.
-   *
-   * @example
-   * ```typescript
-   * PurlBuilder.gem()
-   *   .name('rails')
-   *   .version('7.0.0')
-   *   .build()
-   * // -> pkg:gem/rails@7.0.0
-   * ```
+   * @example `PurlBuilder.gem().name('rails').version('7.0.0').build()`
    */
   static gem(): PurlBuilder {
     return new PurlBuilder().type('gem')
   }
 
   /**
+   * Create a builder with the github package type preset.
+   *
+   * @example `PurlBuilder.github().namespace('socketdev').name('socket-cli').build()`
+   */
+  static github(): PurlBuilder {
+    return new PurlBuilder().type('github')
+  }
+
+  /**
+   * Create a builder with the gitlab package type preset.
+   *
+   * @example `PurlBuilder.gitlab().namespace('owner').name('project').build()`
+   */
+  static gitlab(): PurlBuilder {
+    return new PurlBuilder().type('gitlab')
+  }
+
+  /**
    * Create a builder with the golang package type preset.
    *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'golang', ready for building Go package URLs.
+   * @example `PurlBuilder.golang().namespace('github.com/go').name('text').build()`
    */
   static golang(): PurlBuilder {
     return new PurlBuilder().type('golang')
   }
 
   /**
+   * Create a builder with the hackage package type preset.
+   *
+   * @example `PurlBuilder.hackage().name('aeson').version('2.2.1.0').build()`
+   */
+  static hackage(): PurlBuilder {
+    return new PurlBuilder().type('hackage')
+  }
+
+  /**
+   * Create a builder with the hex package type preset.
+   *
+   * @example `PurlBuilder.hex().name('phoenix').version('1.7.12').build()`
+   */
+  static hex(): PurlBuilder {
+    return new PurlBuilder().type('hex')
+  }
+
+  /**
+   * Create a builder with the huggingface package type preset.
+   *
+   * @example `PurlBuilder.huggingface().name('bert-base-uncased').build()`
+   */
+  static huggingface(): PurlBuilder {
+    return new PurlBuilder().type('huggingface')
+  }
+
+  /**
+   * Create a builder with the luarocks package type preset.
+   *
+   * @example `PurlBuilder.luarocks().name('luasocket').version('3.1.0').build()`
+   */
+  static luarocks(): PurlBuilder {
+    return new PurlBuilder().type('luarocks')
+  }
+
+  /**
    * Create a builder with the maven package type preset.
    *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'maven', ready for building Maven package URLs.
+   * @example `PurlBuilder.maven().namespace('org.apache').name('commons-lang3').build()`
    */
   static maven(): PurlBuilder {
     return new PurlBuilder().type('maven')
@@ -302,8 +405,7 @@ export class PurlBuilder {
   /**
    * Create a builder with the npm package type preset.
    *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'npm', ready for building npm package URLs.
+   * @example `PurlBuilder.npm().name('lodash').version('4.17.21').build()`
    */
   static npm(): PurlBuilder {
     return new PurlBuilder().type('npm')
@@ -312,20 +414,54 @@ export class PurlBuilder {
   /**
    * Create a builder with the nuget package type preset.
    *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'nuget', ready for building NuGet package URLs.
+   * @example `PurlBuilder.nuget().name('Newtonsoft.Json').version('13.0.3').build()`
    */
   static nuget(): PurlBuilder {
     return new PurlBuilder().type('nuget')
   }
 
   /**
+   * Create a builder with the oci package type preset.
+   *
+   * @example `PurlBuilder.oci().name('nginx').version('sha256:abc123').build()`
+   */
+  static oci(): PurlBuilder {
+    return new PurlBuilder().type('oci')
+  }
+
+  /**
+   * Create a builder with the pub package type preset.
+   *
+   * @example `PurlBuilder.pub().name('flutter').version('3.19.0').build()`
+   */
+  static pub(): PurlBuilder {
+    return new PurlBuilder().type('pub')
+  }
+
+  /**
    * Create a builder with the pypi package type preset.
    *
-   * This convenience method creates a new builder instance with the type
-   * already set to 'pypi', ready for building Python package URLs.
+   * @example `PurlBuilder.pypi().name('requests').version('2.31.0').build()`
    */
   static pypi(): PurlBuilder {
     return new PurlBuilder().type('pypi')
+  }
+
+  /**
+   * Create a builder with the rpm package type preset.
+   *
+   * @example `PurlBuilder.rpm().namespace('fedora').name('curl').version('8.5.0').build()`
+   */
+  static rpm(): PurlBuilder {
+    return new PurlBuilder().type('rpm')
+  }
+
+  /**
+   * Create a builder with the swift package type preset.
+   *
+   * @example `PurlBuilder.swift().namespace('apple').name('swift-nio').version('2.64.0').build()`
+   */
+  static swift(): PurlBuilder {
+    return new PurlBuilder().type('swift')
   }
 }

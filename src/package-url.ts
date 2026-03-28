@@ -263,6 +263,101 @@ class PackageURL {
   }
 
   /**
+   * Create a new PackageURL with a different version.
+   * Returns a new instance — the original is unchanged.
+   *
+   * @param version - New version string
+   * @returns New PackageURL with the updated version
+   */
+  withVersion(version: string | undefined): PackageURL {
+    return new PackageURL(
+      this.type,
+      this.namespace,
+      this.name,
+      version,
+      this.qualifiers,
+      this.subpath,
+    )
+  }
+
+  /**
+   * Create a new PackageURL with a different namespace.
+   * Returns a new instance — the original is unchanged.
+   *
+   * @param namespace - New namespace string
+   * @returns New PackageURL with the updated namespace
+   */
+  withNamespace(namespace: string | undefined): PackageURL {
+    return new PackageURL(
+      this.type,
+      namespace,
+      this.name,
+      this.version,
+      this.qualifiers,
+      this.subpath,
+    )
+  }
+
+  /**
+   * Create a new PackageURL with a single qualifier added or updated.
+   * Returns a new instance — the original is unchanged.
+   *
+   * @param key - Qualifier key
+   * @param value - Qualifier value
+   * @returns New PackageURL with the qualifier set
+   */
+  withQualifier(key: string, value: string): PackageURL {
+    return new PackageURL(
+      this.type,
+      this.namespace,
+      this.name,
+      this.version,
+      {
+        __proto__: null,
+        ...this.qualifiers,
+        [key]: value,
+      } as unknown as Record<string, string>,
+      this.subpath,
+    )
+  }
+
+  /**
+   * Create a new PackageURL with all qualifiers replaced.
+   * Returns a new instance — the original is unchanged.
+   *
+   * @param qualifiers - New qualifiers object (or undefined to remove all)
+   * @returns New PackageURL with the updated qualifiers
+   */
+  withQualifiers(qualifiers: Record<string, string> | undefined): PackageURL {
+    return new PackageURL(
+      this.type,
+      this.namespace,
+      this.name,
+      this.version,
+      qualifiers,
+      this.subpath,
+    )
+  }
+
+  /**
+   * Create a new PackageURL with a different subpath.
+   * Returns a new instance — the original is unchanged.
+   *
+   * @param subpath - New subpath string
+   * @returns New PackageURL with the updated subpath
+   */
+  withSubpath(subpath: string | undefined): PackageURL {
+    return new PackageURL(
+      this.type,
+      this.namespace,
+      this.name,
+      this.version,
+      this.qualifiers,
+      subpath,
+    )
+  }
+
+  /**
    * Compare this PackageURL with another for equality.
    *
    * Two PURLs are considered equal if their canonical string representations match.
@@ -681,6 +776,44 @@ class PackageURL {
       rawQualifiers,
       rawSubpath,
     ]
+  }
+
+  /**
+   * Check if a string is a valid PURL without throwing.
+   *
+   * @param purlStr - String to validate
+   * @returns true if the string is a valid PURL
+   *
+   * @example
+   * ```typescript
+   * PackageURL.isValid('pkg:npm/lodash@4.17.21') // true
+   * PackageURL.isValid('not a purl')              // false
+   * ```
+   */
+  static isValid(purlStr: unknown): boolean {
+    return PackageURL.tryFromString(purlStr).isOk()
+  }
+
+  /**
+   * Create PackageURL from a registry or repository URL.
+   *
+   * Convenience wrapper for UrlConverter.fromUrl(). Supports 27 hostnames
+   * across 17 package types including npm, pypi, maven, github, and more.
+   *
+   * @param urlStr - Registry or repository URL
+   * @returns PackageURL instance or undefined if URL is not recognized
+   *
+   * @example
+   * ```typescript
+   * PackageURL.fromUrl('https://www.npmjs.com/package/lodash')
+   * // -> pkg:npm/lodash
+   *
+   * PackageURL.fromUrl('https://github.com/lodash/lodash')
+   * // -> pkg:github/lodash/lodash
+   * ```
+   */
+  static fromUrl(urlStr: string): PackageURL | undefined {
+    return UrlConverter.fromUrl(urlStr)
   }
 
   static tryFromJSON(json: unknown): Result<PackageURL, Error> {

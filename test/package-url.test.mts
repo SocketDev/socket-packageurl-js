@@ -74,6 +74,90 @@ describe('PackageURL', () => {
     })
   })
 
+  describe('isValid', () => {
+    it('should return true for valid PURLs', () => {
+      expect(PackageURL.isValid('pkg:npm/lodash@4.17.21')).toBe(true)
+      expect(PackageURL.isValid('pkg:maven/org.apache/commons@1.0')).toBe(true)
+    })
+
+    it('should return false for invalid PURLs', () => {
+      expect(PackageURL.isValid('not a purl')).toBe(false)
+      expect(PackageURL.isValid('')).toBe(false)
+      expect(PackageURL.isValid(null)).toBe(false)
+      expect(PackageURL.isValid(123)).toBe(false)
+    })
+  })
+
+  describe('fromUrl', () => {
+    it('should convert registry URLs to PackageURLs', () => {
+      const purl = PackageURL.fromUrl('https://www.npmjs.com/package/lodash')
+      expect(purl?.type).toBe('npm')
+      expect(purl?.name).toBe('lodash')
+    })
+
+    it('should return undefined for unrecognized URLs', () => {
+      expect(PackageURL.fromUrl('https://example.com/foo')).toBeUndefined()
+    })
+  })
+
+  describe('with* immutable copy methods', () => {
+    const purl = PackageURL.fromString('pkg:npm/%40babel/core@7.0.0')
+
+    it('withVersion should return new instance with different version', () => {
+      const updated = purl.withVersion('8.0.0')
+      expect(updated.version).toBe('8.0.0')
+      expect(purl.version).toBe('7.0.0') // original unchanged
+      expect(updated.name).toBe('core')
+      expect(updated.namespace).toBe('@babel')
+    })
+
+    it('withVersion(undefined) should remove version', () => {
+      const updated = purl.withVersion(undefined)
+      expect(updated.version).toBeUndefined()
+    })
+
+    it('withNamespace should return new instance', () => {
+      const updated = purl.withNamespace('@scope')
+      expect(updated.namespace).toBe('@scope')
+      expect(purl.namespace).toBe('@babel')
+    })
+
+    it('withQualifier should add a qualifier', () => {
+      const updated = purl.withQualifier('arch', 'x86_64')
+      expect(updated.qualifiers).toEqual({ arch: 'x86_64' })
+      expect(purl.qualifiers).toBeUndefined()
+    })
+
+    it('withQualifier should preserve existing qualifiers', () => {
+      const p = PackageURL.fromString('pkg:npm/foo@1.0?a=1')
+      const updated = p.withQualifier('b', '2')
+      expect(updated.qualifiers).toEqual({ a: '1', b: '2' })
+    })
+
+    it('withQualifiers should replace all qualifiers', () => {
+      const updated = purl.withQualifiers({ platform: 'linux-x64' })
+      expect(updated.qualifiers).toEqual({ platform: 'linux-x64' })
+    })
+
+    it('withQualifiers(undefined) should remove all qualifiers', () => {
+      const p = PackageURL.fromString('pkg:npm/foo@1.0?a=1')
+      const updated = p.withQualifiers(undefined)
+      expect(updated.qualifiers).toBeUndefined()
+    })
+
+    it('withSubpath should set subpath', () => {
+      const updated = purl.withSubpath('dist/index.js')
+      expect(updated.subpath).toBe('dist/index.js')
+      expect(purl.subpath).toBeUndefined()
+    })
+
+    it('withSubpath(undefined) should remove subpath', () => {
+      const p = PackageURL.fromString('pkg:npm/foo@1.0#dist')
+      const updated = p.withSubpath(undefined)
+      expect(updated.subpath).toBeUndefined()
+    })
+  })
+
   describe('toSpec', () => {
     it('should return name only for simple packages', () => {
       const purl = PackageURL.fromString('pkg:npm/express')
