@@ -114,6 +114,16 @@ describe('Vers', () => {
       const v = Vers.parse('vers:semver/>=1.0.0')
       expect(() => v.contains('not-semver')).toThrow(PurlError)
     })
+
+    it('should reject version components exceeding MAX_SAFE_INTEGER', () => {
+      const v = Vers.parse('vers:semver/>=99999999999999999.0.0')
+      expect(() => v.contains('1.0.0')).toThrow(PurlError)
+    })
+
+    it('should reject too many constraints', () => {
+      const many = Array(1001).fill('>=1.0.0').join('|')
+      expect(() => Vers.parse(`vers:semver/${many}`)).toThrow(PurlError)
+    })
   })
 
   describe('toString', () => {

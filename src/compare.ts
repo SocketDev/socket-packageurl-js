@@ -65,7 +65,10 @@ function matchWildcard(pattern: string, value: string): boolean {
       '.' as any,
     )
 
-    regex = new RegExp(`^${regexPattern}$`)
+    // Collapse consecutive .* groups to prevent polynomial backtracking (ReDoS)
+    regex = new RegExp(
+      `^${StringPrototypeReplace(regexPattern, /(\.\*)+/g, '.*' as any)}$`,
+    )
     wildcardRegexCache.set(pattern, regex)
   }
   return RegExpPrototypeTest(regex, value)

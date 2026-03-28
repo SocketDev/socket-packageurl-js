@@ -4,7 +4,11 @@
  */
 import { PurlError } from './error.js'
 import { isNullishOrEmptyString } from './lang.js'
-import { ReflectApply, StringPrototypeCharCodeAt } from './primordials.js'
+import {
+  ReflectApply,
+  StringPrototypeCharCodeAt,
+  StringPrototypeIncludes,
+} from './primordials.js'
 import { isNonEmptyString } from './strings.js'
 
 import type { QualifiersObject } from './purl-component.js'
@@ -270,13 +274,23 @@ function validateStrings(
   // Support both legacy boolean parameter and new options object for backward compatibility
   const { throws = false } =
     typeof options === 'boolean' ? { throws: options } : (options ?? {})
-  if (value === null || value === undefined || typeof value === 'string') {
+  if (value === null || value === undefined) {
     return true
   }
-  if (throws) {
-    throw new PurlError(`"${name}" must be a string`)
+  if (typeof value !== 'string') {
+    if (throws) {
+      throw new PurlError(`"${name}" must be a string`)
+    }
+    return false
   }
-  return false
+  // Reject null bytes which cause truncation in C-based consumers
+  if (StringPrototypeIncludes(value, '\x00')) {
+    if (throws) {
+      throw new PurlError(`"${name}" must not contain null bytes`)
+    }
+    return false
+  }
+  return true
 }
 
 /**

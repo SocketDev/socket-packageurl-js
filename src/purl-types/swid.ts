@@ -5,10 +5,15 @@
 
 import { PurlError } from '../error.js'
 import {
+  ObjectFreeze,
   RegExpPrototypeTest,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
 } from '../primordials.js'
+
+const GUID_PATTERN = ObjectFreeze(
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+)
 
 interface PurlObject {
   name: string
@@ -44,9 +49,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     return false
   }
   // If tag_id is a GUID, it must be lowercase
-  const guidPattern =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  if (RegExpPrototypeTest(guidPattern, tagIdStr)) {
+  if (RegExpPrototypeTest(GUID_PATTERN, tagIdStr)) {
     if (tagIdStr !== StringPrototypeToLowerCase(tagIdStr)) {
       if (throws) {
         throw new PurlError(

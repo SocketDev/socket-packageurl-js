@@ -82,6 +82,8 @@ const COMPARATORS: readonly string[] = ObjectFreeze([
   '=',
 ])
 
+const DIGITS_ONLY = ObjectFreeze(/^\d+$/)
+
 const regexSemverNumberedGroups = ObjectFreeze(
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/,
 )
@@ -94,10 +96,23 @@ function parseSemver(version: string): SemverParts {
   if (!match) {
     throw new PurlError(`invalid semver version "${version}"`)
   }
+  const major = Number(match[1])
+  const minor = Number(match[2])
+  const patch = Number(match[3])
+  // Guard against precision loss with numbers above MAX_SAFE_INTEGER
+  if (
+    major > Number.MAX_SAFE_INTEGER ||
+    minor > Number.MAX_SAFE_INTEGER ||
+    patch > Number.MAX_SAFE_INTEGER
+  ) {
+    throw new PurlError(
+      `version component exceeds maximum safe integer in "${version}"`,
+    )
+  }
   return {
-    major: Number(match[1]),
-    minor: Number(match[2]),
-    patch: Number(match[3]),
+    major,
+    minor,
+    patch,
     prerelease: match[4] ? StringPrototypeSplit(match[4], '.' as any) : [],
   }
 }
@@ -117,8 +132,8 @@ function comparePrereleases(a: string[], b: string[]): number {
     const ai = a[i]!
     const bi = b[i]!
     if (ai === bi) continue
-    const aNum = RegExpPrototypeTest(/^\d+$/, ai)
-    const bNum = RegExpPrototypeTest(/^\d+$/, bi)
+    const aNum = RegExpPrototypeTest(DIGITS_ONLY, ai)
+    const bNum = RegExpPrototypeTest(DIGITS_ONLY, bi)
     // Numeric identifiers always have lower precedence than alphanumeric
     if (aNum && bNum) {
       const diff = Number(ai) - Number(bi)
@@ -270,6 +285,15 @@ class Vers {
 
     // Parse constraints
     const rawConstraints = StringPrototypeSplit(constraintsStr, '|' as any)
+
+    // Limit constraint count to prevent resource exhaustion
+    const MAX_CONSTRAINTS = 1000
+    if (rawConstraints.length > MAX_CONSTRAINTS) {
+      throw new PurlError(
+        `VERS exceeds maximum of ${MAX_CONSTRAINTS} constraints`,
+      )
+    }
+
     const constraints: VersConstraint[] = []
 
     for (let i = 0, { length } = rawConstraints; i < length; i += 1) {
