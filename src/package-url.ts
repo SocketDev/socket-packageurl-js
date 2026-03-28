@@ -49,6 +49,7 @@ import {
   ArrayIsArray,
   ArrayPrototypeAt,
   JSONParse,
+  MapCtor,
   ObjectFreeze,
   JSONStringify,
   ReflectDefineProperty,
@@ -122,6 +123,11 @@ export type ParsedPurlComponents = [
   subpath: string | undefined,
 ]
 
+// LRU flyweight cache for fromString — avoids re-parsing identical PURL strings.
+// Bounded to prevent memory leaks. Uses a Map for O(1) lookup with LRU eviction.
+const FLYWEIGHT_CACHE_MAX = 1024
+const flyweightCache = new MapCtor<string, PackageURL>()
+
 // Pattern to match URLs with schemes other than "pkg"
 // Limited to 256 chars for scheme to prevent ReDoS
 const OTHER_SCHEME_PATTERN = ObjectFreeze(/^[a-zA-Z][a-zA-Z0-9+.-]{0,255}:\/\//)
@@ -138,6 +144,9 @@ class PackageURL {
   static Component = recursiveFreeze(PurlComponent)
   static KnownQualifierNames = recursiveFreeze(PurlQualifierNames)
   static Type = recursiveFreeze(PurlType)
+
+  /** @internal Cached canonical string representation. */
+  _cachedString?: string | undefined
 
   name?: string | undefined
   namespace?: string | undefined
@@ -259,7 +268,12 @@ class PackageURL {
   }
 
   toString() {
-    return stringify(this)
+    let cached = this._cachedString
+    if (cached === undefined) {
+      cached = stringify(this)
+      this._cachedString = cached
+    }
+    return cached
   }
 
   /**
@@ -486,7 +500,26 @@ class PackageURL {
   }
 
   static fromString(purlStr: unknown): PackageURL {
-    return new PackageURL(...PackageURL.parseString(purlStr))
+    // Flyweight: return cached instance for identical strings
+    if (typeof purlStr === 'string') {
+      const cached = flyweightCache.get(purlStr)
+      if (cached !== undefined) {
+        return cached
+      }
+    }
+    const purl = new PackageURL(...PackageURL.parseString(purlStr))
+    // Cache the result for future lookups
+    if (typeof purlStr === 'string') {
+      if (flyweightCache.size >= FLYWEIGHT_CACHE_MAX) {
+        // Evict oldest entry (first key in Map iteration order)
+        const oldest = flyweightCache.keys().next().value
+        if (oldest !== undefined) {
+          flyweightCache.delete(oldest)
+        }
+      }
+      flyweightCache.set(purlStr, purl)
+    }
+    return purl
   }
 
   /**
