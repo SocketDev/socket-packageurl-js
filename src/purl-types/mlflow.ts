@@ -3,6 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
  */
 
+import { StringPrototypeIncludes } from '../primordials.js'
 import { lowerName } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
@@ -20,7 +21,8 @@ interface PurlObject {
  * Lowercases name only if repository_url qualifier contains 'databricks'.
  */
 export function normalize(purl: PurlObject): PurlObject {
-  if (purl.qualifiers?.['repository_url']?.includes('databricks')) {
+  const repoUrl = purl.qualifiers?.['repository_url']
+  if (repoUrl !== undefined && StringPrototypeIncludes(repoUrl, 'databricks')) {
     lowerName(purl)
   }
   return purl

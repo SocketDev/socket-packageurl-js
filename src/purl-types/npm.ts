@@ -7,6 +7,17 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { encodeComponent } from '../encode.js'
 import { PurlError } from '../error.js'
+import {
+  RegExpPrototypeTest,
+  StringPrototypeCharCodeAt,
+  StringPrototypeIncludes,
+  StringPrototypeIndexOf,
+  StringPrototypeReplace,
+  StringPrototypeSlice,
+  StringPrototypeStartsWith,
+  StringPrototypeToLowerCase,
+  StringPrototypeTrim,
+} from '../primordials.js'
 import { isBlank, lowerName, lowerNamespace } from '../strings.js'
 
 import type { TtlCache } from '@socketsecurity/lib/cache-with-ttl'
@@ -174,7 +185,7 @@ const getNpmLegacySet = (() => {
  * Check if npm identifier is a Node.js built-in module name.
  */
 const isNpmBuiltinName = (id: string): boolean =>
-  getNpmBuiltinSet().has(id.toLowerCase())
+  getNpmBuiltinSet().has(StringPrototypeToLowerCase(id))
 
 /**
  * Check if npm identifier is a legacy package name.
@@ -292,7 +303,9 @@ export async function npmExists(
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
-        error: error.includes('404') ? 'Package not found' : error,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Package not found'
+          : error,
       }
     }
   }
@@ -367,44 +380,44 @@ export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
   let version: string | undefined
 
   // Check if it's a scoped package
-  if (specifier.startsWith('@')) {
+  if (StringPrototypeStartsWith(specifier, '@')) {
     // Find the second slash (after @scope/)
-    const slashIndex = specifier.indexOf('/')
+    const slashIndex = StringPrototypeIndexOf(specifier, '/')
     if (slashIndex === -1) {
       throw new Error('Invalid scoped package specifier.')
     }
 
     // Find the @ after the scope
-    const atIndex = specifier.indexOf('@', slashIndex)
+    const atIndex = StringPrototypeIndexOf(specifier, '@', slashIndex)
     if (atIndex === -1) {
       // No version specified
-      namespace = specifier.slice(0, slashIndex)
-      name = specifier.slice(slashIndex + 1)
+      namespace = StringPrototypeSlice(specifier, 0, slashIndex)
+      name = StringPrototypeSlice(specifier, slashIndex + 1)
     } else {
-      namespace = specifier.slice(0, slashIndex)
-      name = specifier.slice(slashIndex + 1, atIndex)
-      version = specifier.slice(atIndex + 1)
+      namespace = StringPrototypeSlice(specifier, 0, slashIndex)
+      name = StringPrototypeSlice(specifier, slashIndex + 1, atIndex)
+      version = StringPrototypeSlice(specifier, atIndex + 1)
     }
   } else {
     // Non-scoped package: name@version
-    const atIndex = specifier.indexOf('@')
+    const atIndex = StringPrototypeIndexOf(specifier, '@')
     if (atIndex === -1) {
       // No version specified
       name = specifier
     } else {
-      name = specifier.slice(0, atIndex)
-      version = specifier.slice(atIndex + 1)
+      name = StringPrototypeSlice(specifier, 0, atIndex)
+      version = StringPrototypeSlice(specifier, atIndex + 1)
     }
   }
 
   // Clean up version - remove common npm range prefixes
   if (version) {
     // Remove leading ^, ~, >=, <=, >, <, =
-    version = version.replace(/^[\^~>=<]+/, '')
+    version = StringPrototypeReplace(version, /^[\^~>=<]+/, '' as any)
     // Handle version ranges like "1.0.0 - 2.0.0" by taking first version
-    const spaceIndex = version.indexOf(' ')
+    const spaceIndex = StringPrototypeIndexOf(version, ' ')
     if (spaceIndex !== -1) {
-      version = version.slice(0, spaceIndex)
+      version = StringPrototypeSlice(version, 0, spaceIndex)
     }
   }
 
@@ -421,7 +434,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name, namespace } = purl
   const hasNs = namespace && namespace.length > 0
   const id = getNpmId(purl)
-  const code0 = id.charCodeAt(0)
+  const code0 = StringPrototypeCharCodeAt(id, 0)
   const compName = hasNs ? 'namespace' : 'name'
   if (code0 === 46 /*'.'*/) {
     if (throws) {
@@ -439,7 +452,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
     return false
   }
-  if (name.trim() !== name) {
+  if (StringPrototypeTrim(name) !== name) {
     if (throws) {
       throw new PurlError(
         'npm "name" component cannot contain leading or trailing spaces',
@@ -456,7 +469,10 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     return false
   }
   if (hasNs) {
-    if (namespace?.trim() !== namespace) {
+    if (
+      (namespace !== undefined ? StringPrototypeTrim(namespace) : namespace) !==
+      namespace
+    ) {
       if (throws) {
         throw new PurlError(
           'npm "namespace" component cannot contain leading or trailing spaces',
@@ -472,7 +488,8 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       }
       return false
     }
-    const namespaceWithoutAtSign = namespace?.slice(1)
+    const namespaceWithoutAtSign =
+      namespace !== undefined ? StringPrototypeSlice(namespace, 1) : namespace
     if (encodeComponent(namespaceWithoutAtSign) !== namespaceWithoutAtSign) {
       if (throws) {
         throw new PurlError(
@@ -482,7 +499,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       return false
     }
   }
-  const loweredId = id.toLowerCase()
+  const loweredId = StringPrototypeToLowerCase(id)
   if (loweredId === 'node_modules' || loweredId === 'favicon.ico') {
     if (throws) {
       throw new PurlError(
@@ -513,7 +530,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       }
       return false
     }
-    if (/[~'!()*]/.test(name)) {
+    if (RegExpPrototypeTest(/[~'!()*]/, name)) {
       if (throws) {
         throw new PurlError(
           `npm "name" component can not contain special characters ("~'!()*")`,

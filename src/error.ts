@@ -1,3 +1,9 @@
+import {
+  StringPrototypeCharCodeAt,
+  StringPrototypeSlice,
+  StringPrototypeToLowerCase,
+} from './primordials.js'
+
 /**
  * @fileoverview Custom PurlError class for Package URL parsing and validation errors.
  * Provides consistent error message formatting for PURL-related exceptions.
@@ -11,18 +17,18 @@ function formatPurlErrorMessage(message = ''): string {
   let formatted = ''
   if (length) {
     // Lower case start of message
-    const code0 = message.charCodeAt(0)
+    const code0 = StringPrototypeCharCodeAt(message, 0)
     formatted =
       code0 >= 65 /*'A'*/ && code0 <= 90 /*'Z'*/
-        ? `${message[0]?.toLowerCase()}${message.slice(1)}`
+        ? `${StringPrototypeToLowerCase(message[0]!)}${StringPrototypeSlice(message, 1)}`
         : message
     // Remove period from end of message
     if (
       length > 1 &&
-      message.charCodeAt(length - 1) === 46 /*'.'*/ &&
-      message.charCodeAt(length - 2) !== 46
+      StringPrototypeCharCodeAt(message, length - 1) === 46 /*'.'*/ &&
+      StringPrototypeCharCodeAt(message, length - 2) !== 46
     ) {
-      formatted = formatted.slice(0, -1)
+      formatted = StringPrototypeSlice(formatted, 0, -1)
     }
   }
   return `Invalid purl: ${formatted}`

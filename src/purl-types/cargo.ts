@@ -5,6 +5,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
 import { validateEmptyByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -88,7 +89,10 @@ export async function cargoExists(
 
       // If specific version requested, validate it exists
       if (version && data.versions) {
-        const versionExists = data.versions.some(v => v.num === version)
+        const versionExists = ArrayPrototypeSome(
+          data.versions,
+          v => v.num === version,
+        )
         if (!versionExists) {
           const result: ExistsResult = {
             exists: false,
@@ -114,7 +118,9 @@ export async function cargoExists(
       /* c8 ignore stop */
       return {
         exists: false,
-        error: error.includes('404') ? 'Crate not found' : error,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Crate not found'
+          : error,
       }
     }
   }

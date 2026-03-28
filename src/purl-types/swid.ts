@@ -4,6 +4,11 @@
  */
 
 import { PurlError } from '../error.js'
+import {
+  RegExpPrototypeTest,
+  StringPrototypeToLowerCase,
+  StringPrototypeTrim,
+} from '../primordials.js'
 
 interface PurlObject {
   name: string
@@ -30,7 +35,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     return false
   }
   // tag_id must not be empty after trimming
-  const tagIdStr = String(tagId).trim()
+  const tagIdStr = StringPrototypeTrim(String(tagId))
   if (tagIdStr.length === 0) {
     /* c8 ignore next 3 -- Throw path tested separately from return false path. */
     if (throws) {
@@ -41,8 +46,8 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   // If tag_id is a GUID, it must be lowercase
   const guidPattern =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  if (guidPattern.test(tagIdStr)) {
-    if (tagIdStr !== tagIdStr.toLowerCase()) {
+  if (RegExpPrototypeTest(guidPattern, tagIdStr)) {
+    if (tagIdStr !== StringPrototypeToLowerCase(tagIdStr)) {
       if (throws) {
         throw new PurlError(
           'swid "tag_id" qualifier must be lowercase when it is a GUID',

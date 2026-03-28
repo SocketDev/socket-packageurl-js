@@ -24,6 +24,7 @@ SOFTWARE.
  * @fileoverview Builder pattern implementation for PackageURL construction with fluent API.
  */
 import { PackageURL } from './package-url.js'
+import { ArrayPrototypeMap, ObjectEntries } from './primordials.js'
 
 import type { QualifiersObject } from './purl-component.js'
 
@@ -138,7 +139,10 @@ export class PurlBuilder {
    */
   qualifier(key: string, value: string): this {
     if (!this._qualifiers) {
-      this._qualifiers = {}
+      this._qualifiers = { __proto__: null } as unknown as Record<
+        string,
+        string
+      >
     }
     this._qualifiers[key] = value
     return this
@@ -153,7 +157,10 @@ export class PurlBuilder {
    * - classifier: additional classifier for the package
    */
   qualifiers(qualifiers: Record<string, string>): this {
-    this._qualifiers = { ...qualifiers }
+    this._qualifiers = { __proto__: null, ...qualifiers } as unknown as Record<
+      string,
+      string
+    >
     return this
   }
 
@@ -241,11 +248,11 @@ export class PurlBuilder {
     if (purl.qualifiers !== undefined) {
       const qualifiersObj = purl.qualifiers as QualifiersObject
       builder._qualifiers = Object.fromEntries(
-        Object.entries(qualifiersObj).map(([key, value]) => [
+        ArrayPrototypeMap(ObjectEntries(qualifiersObj), ([key, value]) => [
           key,
           String(value),
         ]),
-      )
+      ) as Record<string, string>
     }
     if (purl.subpath !== undefined) {
       builder._subpath = purl.subpath

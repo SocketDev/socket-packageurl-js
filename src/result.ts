@@ -20,6 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+import { ArrayPrototypePush } from './primordials.js'
+
 /**
  * @fileoverview Result type for functional error handling without exceptions.
  */
@@ -220,7 +222,7 @@ export const ResultUtils = {
       if (result.isErr()) {
         return result as unknown as Result<ExtractedValues, ExtractedError>
       }
-      values.push((result as Ok<ExtractedValue>).value)
+      ArrayPrototypePush(values, (result as Ok<ExtractedValue>).value)
     }
     return ok(values as ExtractedValues)
   },

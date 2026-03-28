@@ -6,6 +6,10 @@
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
+import {
+  StringPrototypeIncludes,
+  StringPrototypeToUpperCase,
+} from '../primordials.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -96,7 +100,9 @@ export async function cpanExists(
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
-        error: error.includes('404') ? 'Module not found' : error,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Module not found'
+          : error,
       }
     }
   }
@@ -117,7 +123,7 @@ export async function cpanExists(
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { namespace } = purl
-  if (namespace && namespace !== namespace.toUpperCase()) {
+  if (namespace && namespace !== StringPrototypeToUpperCase(namespace)) {
     if (throws) {
       throw new PurlError('cpan "namespace" component must be UPPERCASE')
     }

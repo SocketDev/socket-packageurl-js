@@ -4,15 +4,10 @@
  */
 import { PurlError } from './error.js'
 import { isNullishOrEmptyString } from './lang.js'
+import { ReflectApply, StringPrototypeCharCodeAt } from './primordials.js'
 import { isNonEmptyString } from './strings.js'
 
 import type { QualifiersObject } from './purl-component.js'
-
-// IMPORTANT: Do not use destructuring here - use direct assignment instead
-// tsgo has a bug that incorrectly transpiles destructured exports, resulting in
-// `exports.ReflectApply = void 0;` which causes runtime errors
-// See: https://github.com/SocketDev/socket-packageurl-js/issues/3
-const ReflectApply = Reflect.apply
 
 /**
  * Validate that component is empty for specific package type.
@@ -127,7 +122,7 @@ function validateQualifierKey(
   // The key must be composed only of ASCII letters and numbers,
   // '.', '-' and '_' (period, dash and underscore)
   for (let i = 0, { length } = key as string; i < length; i += 1) {
-    const code = (key as string).charCodeAt(i)
+    const code = StringPrototypeCharCodeAt(key as string, i)
     // biome-ignore format: newlines
     if (
       !(
@@ -252,7 +247,7 @@ function validateStartsWithoutNumber(
   const { throws = false } =
     typeof options === 'boolean' ? { throws: options } : (options ?? {})
   if (isNonEmptyString(value)) {
-    const code = value.charCodeAt(0)
+    const code = StringPrototypeCharCodeAt(value, 0)
     if (code >= 48 /*'0'*/ && code <= 57 /*'9'*/) {
       if (throws) {
         throw new PurlError(`${name} "${value}" cannot start with a number`)
@@ -319,7 +314,7 @@ function validateType(
   // The package type is composed only of ASCII letters and numbers,
   // '.' (period), and '-' (dash)
   for (let i = 0, { length } = type as string; i < length; i += 1) {
-    const code = (type as string).charCodeAt(i)
+    const code = StringPrototypeCharCodeAt(type as string, i)
     // biome-ignore format: newlines
     if (
       !(
