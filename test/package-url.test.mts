@@ -40,11 +40,12 @@ import { createTestPurl } from './utils/test-helpers.mjs'
 describe('PackageURL', () => {
   describe('KnownQualifierNames', () => {
     it.each([
-      ['RepositoryUrl', 'repository_url'],
-      ['DownloadUrl', 'download_url'],
-      ['VcsUrl', 'vcs_url'],
-      ['FileName', 'file_name'],
       ['Checksum', 'checksum'],
+      ['DownloadUrl', 'download_url'],
+      ['FileName', 'file_name'],
+      ['RepositoryUrl', 'repository_url'],
+      ['VcsUrl', 'vcs_url'],
+      ['Vers', 'vers'],
     ])('maps: %s => %s', (name, expectedValue) => {
       expect(
         PackageURL.KnownQualifierNames[
@@ -70,6 +71,51 @@ describe('PackageURL', () => {
       }).toThrow(TypeError)
       // @ts-expect-error Testing runtime immutability.
       expect(PackageURL.KnownQualifierNames.foo).toBe(undefined)
+    })
+  })
+
+  describe('toSpec', () => {
+    it('should return name only for simple packages', () => {
+      const purl = PackageURL.fromString('pkg:npm/express')
+      expect(purl.toSpec()).toBe('express')
+    })
+
+    it('should return name@version', () => {
+      const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+      expect(purl.toSpec()).toBe('lodash@4.17.21')
+    })
+
+    it('should include namespace with slash separator', () => {
+      const purl = PackageURL.fromString('pkg:npm/%40babel/core@7.0.0')
+      expect(purl.toSpec()).toBe('%40babel/core@7.0.0')
+    })
+
+    it('should include qualifiers', () => {
+      const purl = PackageURL.fromString(
+        'pkg:npm/lodash@4.17.21?repository_url=https://example.com',
+      )
+      expect(purl.toSpec()).toBe(
+        'lodash@4.17.21?repository_url=https%3A%2F%2Fexample.com',
+      )
+    })
+
+    it('should include subpath', () => {
+      const purl = PackageURL.fromString(
+        'pkg:npm/lodash@4.17.21#dist/lodash.js',
+      )
+      expect(purl.toSpec()).toBe('lodash@4.17.21#dist/lodash.js')
+    })
+
+    it('should handle maven namespace', () => {
+      const purl = PackageURL.fromString(
+        'pkg:maven/org.apache.commons/commons-lang3@3.12.0',
+      )
+      expect(purl.toSpec()).toBe('org.apache.commons/commons-lang3@3.12.0')
+    })
+
+    it('should handle package with no version', () => {
+      const purl = PackageURL.fromString('pkg:github/lodash/lodash')
+      expect(purl.toSpec()).toBe('lodash/lodash')
     })
   })
 

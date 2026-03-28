@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
  */
 
-import { lowerName } from '../strings.js'
+import { lowerName, lowerVersion } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 interface PurlObject {
@@ -17,10 +17,11 @@ interface PurlObject {
 
 /**
  * Normalize OCI package URL.
- * Lowercases name only.
+ * Lowercases name and version per spec.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
+  lowerVersion(purl)
   return purl
 }
 
