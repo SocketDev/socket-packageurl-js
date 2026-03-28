@@ -111,6 +111,9 @@ export { purlExists } from './purl-exists.js'
 export { pypiExists } from './purl-types/pypi.js'
 export { vscodeExtensionExists } from './purl-types/vscode-extension.js'
 export type { ExistsOptions, ExistsResult } from './purl-types/npm.js'
-export { stringify } from './stringify.js'
+export { containsInjectionCharacters } from './strings.js'
+export { stringify, stringifySpec } from './stringify.js'
+export { Vers } from './vers.js'
+export type { VersComparator, VersConstraint, VersWildcard } from './vers.js'
 
 /* c8 ignore stop */
