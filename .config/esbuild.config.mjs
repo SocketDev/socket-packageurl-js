@@ -216,7 +216,7 @@ function createPathShorteningPlugin() {
 
 // Build configuration for CommonJS output
 export const buildConfig = {
-  entryPoints: [`${srcPath}/index.ts`],
+  entryPoints: [`${srcPath}/index.ts`, `${srcPath}/exists.ts`],
   outdir: distPath,
   outbase: srcPath,
   bundle: true,

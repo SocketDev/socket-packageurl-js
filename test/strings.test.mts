@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  containsInjectionCharacters,
   isBlank,
   isNonEmptyString,
   isSemverString,
@@ -19,6 +20,44 @@ import {
 } from '../src/strings.js'
 
 describe('String utilities', () => {
+  describe('containsInjectionCharacters', () => {
+    it('should return false for valid package identifier characters', () => {
+      expect(containsInjectionCharacters('ms-python')).toBe(false)
+      expect(containsInjectionCharacters('python')).toBe(false)
+      expect(containsInjectionCharacters('1.0.0')).toBe(false)
+      expect(containsInjectionCharacters('1.0.0-alpha.1+build.2')).toBe(false)
+      expect(containsInjectionCharacters('linux-x64')).toBe(false)
+      expect(containsInjectionCharacters('@scope/name')).toBe(false)
+      expect(containsInjectionCharacters('my_package')).toBe(false)
+      expect(containsInjectionCharacters('')).toBe(false)
+    })
+
+    it('should detect illegal special characters', () => {
+      // Pipe, ampersand, semicolon
+      expect(containsInjectionCharacters('a|b')).toBe(true)
+      expect(containsInjectionCharacters('a&b')).toBe(true)
+      expect(containsInjectionCharacters('a;b')).toBe(true)
+      // Backtick, dollar
+      expect(containsInjectionCharacters('a`b`')).toBe(true)
+      expect(containsInjectionCharacters('a$(b)')).toBe(true)
+      // Angle brackets, braces
+      expect(containsInjectionCharacters('a<b')).toBe(true)
+      expect(containsInjectionCharacters('a>b')).toBe(true)
+      expect(containsInjectionCharacters('a{b}')).toBe(true)
+      // Hash, backslash, parentheses
+      expect(containsInjectionCharacters('a#b')).toBe(true)
+      expect(containsInjectionCharacters('a\\b')).toBe(true)
+      expect(containsInjectionCharacters('a(b)')).toBe(true)
+    })
+
+    it('should detect embedded whitespace', () => {
+      expect(containsInjectionCharacters('a b')).toBe(true)
+      expect(containsInjectionCharacters('a\tb')).toBe(true)
+      expect(containsInjectionCharacters('a\nb')).toBe(true)
+      expect(containsInjectionCharacters('a\rb')).toBe(true)
+    })
+  })
+
   describe('isBlank', () => {
     it('should return true for whitespace-only strings', () => {
       expect(isBlank('')).toBe(true)

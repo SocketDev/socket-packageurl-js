@@ -5,6 +5,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
 import { lowerName, lowerNamespace } from '../strings.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -97,14 +98,15 @@ export async function packagistExists(
       let latestVersion: string | undefined
       for (const pkg of packageVersions) {
         const ver = pkg.version
-        if (ver && !ver.includes('dev-')) {
+        if (ver && !StringPrototypeIncludes(ver, 'dev-')) {
           latestVersion = ver
           break
         }
       }
 
       if (version) {
-        const versionExists = packageVersions.some(
+        const versionExists = ArrayPrototypeSome(
+          packageVersions,
           pkg => pkg.version === version,
         )
         if (!versionExists) {
@@ -129,7 +131,9 @@ export async function packagistExists(
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
-        error: error.includes('404') ? 'Package not found' : error,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Package not found'
+          : error,
       }
     }
   }

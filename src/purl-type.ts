@@ -69,7 +69,10 @@ import { normalize as socketNormalize } from './purl-types/socket.js'
 import { validate as swidValidate } from './purl-types/swid.js'
 import { validate as swiftValidate } from './purl-types/swift.js'
 import { normalize as unknownNormalize } from './purl-types/unknown.js'
-import { normalize as vscodeExtensionNormalize } from './purl-types/vscode-extension.js'
+import {
+  normalize as vscodeExtensionNormalize,
+  validate as vscodeExtensionValidate,
+} from './purl-types/vscode-extension.js'
 import {
   normalize as yoctoNormalize,
   validate as yoctoValidate,
@@ -149,6 +152,7 @@ const PurlType = createHelpersNamespaceObject(
       pub: pubValidate,
       swift: swiftValidate,
       swid: swidValidate,
+      'vscode-extension': vscodeExtensionValidate,
       yocto: yoctoValidate,
     },
   },

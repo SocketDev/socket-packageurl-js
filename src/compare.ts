@@ -3,6 +3,17 @@
  * Functions for comparing PackageURL instances or PURL strings.
  */
 
+import {
+  MapCtor,
+  RegExpPrototypeTest,
+  StringPrototypeIncludes,
+  StringPrototypeIndexOf,
+  StringPrototypeReplace,
+  StringPrototypeSlice,
+  StringPrototypeStartsWith,
+  StringPrototypeToLowerCase,
+} from './primordials.js'
+
 import type { PackageURL } from './package-url.js'
 
 export type PurlInput = PackageURL | string
@@ -18,6 +29,7 @@ export function _registerPackageURL(ctor: typeof PackageURL): void {
 
 function toCanonicalString(input: PurlInput): string {
   if (typeof input === 'string') {
+    /* c8 ignore next 5 -- PackageURL is always registered at module load time. */
     if (!_PackageURL) {
       throw new Error(
         'PackageURL not registered. Import PackageURL before using string comparison.',
@@ -31,7 +43,7 @@ function toCanonicalString(input: PurlInput): string {
 /**
  * Cache for compiled wildcard regexes to avoid recompilation on repeated calls.
  */
-const wildcardRegexCache = new Map<string, RegExp>()
+const wildcardRegexCache = new MapCtor<string, RegExp>()
 
 /**
  * Simple wildcard matcher for PURL components.
@@ -43,15 +55,23 @@ function matchWildcard(pattern: string, value: string): boolean {
   if (regex === undefined) {
     // Convert glob pattern to regex
     // Escape regex special chars except * and ?
-    const regexPattern = pattern
-      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-      .replace(/\*/g, '.*')
-      .replace(/\?/g, '.')
+    const regexPattern = StringPrototypeReplace(
+      StringPrototypeReplace(
+        StringPrototypeReplace(pattern, /[.+^${}()|[\]\\]/g, '\\$&' as any),
+        /\*/g,
+        '.*' as any,
+      ),
+      /\?/g,
+      '.' as any,
+    )
 
-    regex = new RegExp(`^${regexPattern}$`)
+    // Collapse consecutive .* groups to prevent polynomial backtracking (ReDoS)
+    regex = new RegExp(
+      `^${StringPrototypeReplace(regexPattern, /(\.\*)+/g, '.*' as any)}$`,
+    )
     wildcardRegexCache.set(pattern, regex)
   }
-  return regex.test(value)
+  return RegExpPrototypeTest(regex, value)
 }
 
 /**
@@ -90,7 +110,10 @@ function matchComponent(
   }
 
   // Check if pattern contains wildcards (when no pre-compiled matcher)
-  if (patternValue.includes('*') || patternValue.includes('?')) {
+  if (
+    StringPrototypeIncludes(patternValue, '*') ||
+    StringPrototypeIncludes(patternValue, '?')
+  ) {
     return matchWildcard(patternValue, actualValue)
   }
 
@@ -164,6 +187,100 @@ export function compare(a: PurlInput, b: PurlInput): -1 | 0 | 1 {
   return 0
 }
 
+type ParsedPattern = {
+  typePattern: string
+  namespacePattern: string | undefined
+  namePattern: string
+  versionPattern: string | undefined
+}
+
+/**
+ * Parse a PURL pattern string into its individual components.
+ * Strips the `pkg:` prefix, extracts type/namespace/name/version,
+ * handles scoped `@` prefixes, and applies type-specific normalization
+ * (npm lowercase, pypi underscore-to-hyphen).
+ *
+ * Returns undefined if the pattern is not a valid PURL pattern shape.
+ */
+function parsePattern(pattern: string): ParsedPattern | undefined {
+  if (!StringPrototypeStartsWith(pattern, 'pkg:')) {
+    return undefined
+  }
+
+  // Remove 'pkg:' prefix
+  const patternWithoutScheme = StringPrototypeSlice(pattern, 4)
+
+  // Extract type
+  const typeEndIndex = StringPrototypeIndexOf(patternWithoutScheme, '/')
+  if (typeEndIndex === -1) {
+    return undefined
+  }
+  let typePattern = StringPrototypeSlice(patternWithoutScheme, 0, typeEndIndex)
+
+  // Extract remaining parts
+  const remaining = StringPrototypeSlice(patternWithoutScheme, typeEndIndex + 1)
+
+  // Parse namespace and name
+  // Format: [namespace/]name[@version][?qualifiers][#subpath]
+  // Namespace is optional and ends at the first '/'
+  let namespacePattern: string | undefined
+  let namePattern: string
+  let versionPattern: string | undefined
+
+  // Check if there's a namespace (indicated by presence of '/')
+  const firstSlashIndex = StringPrototypeIndexOf(remaining, '/')
+  let nameAndVersion: string
+
+  if (firstSlashIndex !== -1) {
+    // Has namespace
+    namespacePattern = StringPrototypeSlice(remaining, 0, firstSlashIndex)
+    nameAndVersion = StringPrototypeSlice(remaining, firstSlashIndex + 1)
+  } else {
+    // No namespace
+    nameAndVersion = remaining
+  }
+
+  // Extract version from name (version starts with '@')
+  // For scoped packages without namespace (e.g., '@foo' as name), skip first '@'
+  const versionSeparatorIndex = StringPrototypeStartsWith(nameAndVersion, '@')
+    ? StringPrototypeIndexOf(nameAndVersion, '@', 1)
+    : StringPrototypeIndexOf(nameAndVersion, '@')
+
+  if (versionSeparatorIndex !== -1) {
+    namePattern = StringPrototypeSlice(nameAndVersion, 0, versionSeparatorIndex)
+    // Version is everything after @ (qualifiers/subpath not supported in patterns v1)
+    versionPattern = StringPrototypeSlice(
+      nameAndVersion,
+      versionSeparatorIndex + 1,
+    )
+  } else {
+    namePattern = nameAndVersion
+  }
+
+  // Apply type-specific normalization to pattern components
+  // Types are case-insensitive, so normalize to lowercase
+  typePattern = StringPrototypeToLowerCase(typePattern)
+
+  // For npm: lowercase namespace and name (ignoring legacy names for simplicity)
+  if (typePattern === 'npm') {
+    if (namespacePattern) {
+      namespacePattern = StringPrototypeToLowerCase(namespacePattern)
+    }
+    namePattern = StringPrototypeToLowerCase(namePattern)
+  }
+
+  // For pypi: lowercase name and replace underscores with hyphens
+  if (typePattern === 'pypi') {
+    namePattern = StringPrototypeReplace(
+      StringPrototypeToLowerCase(namePattern),
+      /_/g,
+      '-' as any,
+    )
+  }
+
+  return { typePattern, namespacePattern, namePattern, versionPattern }
+}
+
 /**
  * Check if a PackageURL matches a pattern with wildcards.
  *
@@ -189,82 +306,18 @@ export function compare(a: PurlInput, b: PurlInput): -1 | 0 | 1 {
  * See test/pattern-matching.test.mts for comprehensive examples.
  */
 export function matches(pattern: string, purl: PackageURL): boolean {
-  // Parse pattern string manually to extract components (without validation)
-  // Pattern format: pkg:type/namespace/name@version?qualifiers#subpath
-  if (!pattern.startsWith('pkg:')) {
+  const parsed = parsePattern(pattern)
+  if (!parsed) {
     return false
   }
-
-  // Remove 'pkg:' prefix
-  const patternWithoutScheme = pattern.slice(4)
-
-  // Extract type
-  const typeEndIndex = patternWithoutScheme.indexOf('/')
-  if (typeEndIndex === -1) {
-    return false
-  }
-  let patternType = patternWithoutScheme.slice(0, typeEndIndex)
-
-  // Extract remaining parts
-  const remaining = patternWithoutScheme.slice(typeEndIndex + 1)
-
-  // Parse namespace and name
-  // Format: [namespace/]name[@version][?qualifiers][#subpath]
-  // Namespace is optional and ends at the first '/'
-  let patternNamespace: string | undefined
-  let patternName: string
-  let patternVersion: string | undefined
-
-  // Check if there's a namespace (indicated by presence of '/')
-  const firstSlashIndex = remaining.indexOf('/')
-  let nameAndVersion: string
-
-  if (firstSlashIndex !== -1) {
-    // Has namespace
-    patternNamespace = remaining.slice(0, firstSlashIndex)
-    nameAndVersion = remaining.slice(firstSlashIndex + 1)
-  } else {
-    // No namespace
-    nameAndVersion = remaining
-  }
-
-  // Extract version from name (version starts with '@')
-  // For scoped packages without namespace (e.g., '@foo' as name), skip first '@'
-  const versionSeparatorIndex = nameAndVersion.startsWith('@')
-    ? nameAndVersion.indexOf('@', 1)
-    : nameAndVersion.indexOf('@')
-
-  if (versionSeparatorIndex !== -1) {
-    patternName = nameAndVersion.slice(0, versionSeparatorIndex)
-    // Version is everything after @ (qualifiers/subpath not supported in patterns v1)
-    patternVersion = nameAndVersion.slice(versionSeparatorIndex + 1)
-  } else {
-    patternName = nameAndVersion
-  }
-
-  // Apply type-specific normalization to pattern components
-  // Types are case-insensitive, so normalize to lowercase
-  patternType = patternType.toLowerCase()
-
-  // For npm: lowercase namespace and name (ignoring legacy names for simplicity)
-  if (patternType === 'npm') {
-    if (patternNamespace) {
-      patternNamespace = patternNamespace.toLowerCase()
-    }
-    patternName = patternName.toLowerCase()
-  }
-
-  // For pypi: lowercase name and replace underscores with hyphens
-  if (patternType === 'pypi') {
-    patternName = patternName.toLowerCase().replace(/_/g, '-')
-  }
+  const { typePattern, namespacePattern, namePattern, versionPattern } = parsed
 
   // Match each component (always use component matching to properly ignore qualifiers/subpath)
   return (
-    matchComponent(patternType, purl.type) &&
-    matchComponent(patternNamespace, purl.namespace) &&
-    matchComponent(patternName, purl.name) &&
-    matchComponent(patternVersion, purl.version)
+    matchComponent(typePattern, purl.type) &&
+    matchComponent(namespacePattern, purl.namespace) &&
+    matchComponent(namePattern, purl.name) &&
+    matchComponent(versionPattern, purl.version)
   )
 }
 
@@ -285,107 +338,54 @@ export function matches(pattern: string, purl: PackageURL): boolean {
  * See test/pattern-matching.test.mts for comprehensive examples.
  */
 export function createMatcher(pattern: string): (_purl: PackageURL) => boolean {
-  // Parse pattern string manually (without validation)
-  if (!pattern.startsWith('pkg:')) {
+  const parsed = parsePattern(pattern)
+  if (!parsed) {
     return () => false
   }
-
-  const patternWithoutScheme = pattern.slice(4)
-  const typeEndIndex = patternWithoutScheme.indexOf('/')
-  if (typeEndIndex === -1) {
-    return () => false
-  }
-
-  let patternType = patternWithoutScheme.slice(0, typeEndIndex)
-  const remaining = patternWithoutScheme.slice(typeEndIndex + 1)
-
-  // Parse namespace and name
-  // Format: [namespace/]name[@version][?qualifiers][#subpath]
-  // Namespace is optional and ends at the first '/'
-  let patternNamespace: string | undefined
-  let patternName: string
-  let patternVersion: string | undefined
-
-  // Check if there's a namespace (indicated by presence of '/')
-  const firstSlashIndex = remaining.indexOf('/')
-  let nameAndVersion: string
-
-  if (firstSlashIndex !== -1) {
-    // Has namespace
-    patternNamespace = remaining.slice(0, firstSlashIndex)
-    nameAndVersion = remaining.slice(firstSlashIndex + 1)
-  } else {
-    // No namespace
-    nameAndVersion = remaining
-  }
-
-  // Extract version from name (version starts with '@')
-  // For scoped packages without namespace (e.g., '@foo' as name), skip first '@'
-  const versionSeparatorIndex = nameAndVersion.startsWith('@')
-    ? nameAndVersion.indexOf('@', 1)
-    : nameAndVersion.indexOf('@')
-
-  if (versionSeparatorIndex !== -1) {
-    patternName = nameAndVersion.slice(0, versionSeparatorIndex)
-    // Version is everything after @ (qualifiers/subpath not supported in patterns v1)
-    patternVersion = nameAndVersion.slice(versionSeparatorIndex + 1)
-  } else {
-    patternName = nameAndVersion
-  }
-
-  // Apply type-specific normalization to pattern components
-  // Types are case-insensitive, so normalize to lowercase
-  patternType = patternType.toLowerCase()
-
-  // For npm: lowercase namespace and name (ignoring legacy names for simplicity)
-  if (patternType === 'npm') {
-    if (patternNamespace) {
-      patternNamespace = patternNamespace.toLowerCase()
-    }
-    patternName = patternName.toLowerCase()
-  }
-
-  // For pypi: lowercase name and replace underscores with hyphens
-  if (patternType === 'pypi') {
-    patternName = patternName.toLowerCase().replace(/_/g, '-')
-  }
+  const { typePattern, namespacePattern, namePattern, versionPattern } = parsed
 
   // Pre-compile wildcard matchers for components with wildcards
   const typeHasWildcard =
-    patternType && (patternType.includes('*') || patternType.includes('?'))
+    typePattern &&
+    (StringPrototypeIncludes(typePattern, '*') ||
+      StringPrototypeIncludes(typePattern, '?'))
   const typeMatcher = typeHasWildcard
-    ? (value: string) => matchWildcard(patternType, value)
+    ? (value: string) => matchWildcard(typePattern, value)
     : undefined
 
   const namespaceHasWildcard =
-    patternNamespace &&
-    (patternNamespace.includes('*') || patternNamespace.includes('?'))
+    namespacePattern &&
+    (StringPrototypeIncludes(namespacePattern, '*') ||
+      StringPrototypeIncludes(namespacePattern, '?'))
   const namespaceMatcher =
-    namespaceHasWildcard && patternNamespace
-      ? (value: string) => matchWildcard(patternNamespace, value)
+    namespaceHasWildcard && namespacePattern
+      ? (value: string) => matchWildcard(namespacePattern, value)
       : undefined
 
   const nameHasWildcard =
-    patternName && (patternName.includes('*') || patternName.includes('?'))
+    namePattern &&
+    (StringPrototypeIncludes(namePattern, '*') ||
+      StringPrototypeIncludes(namePattern, '?'))
   const nameMatcher = nameHasWildcard
-    ? (value: string) => matchWildcard(patternName, value)
+    ? (value: string) => matchWildcard(namePattern, value)
     : undefined
 
   const versionHasWildcard =
-    patternVersion &&
-    (patternVersion.includes('*') || patternVersion.includes('?'))
+    versionPattern &&
+    (StringPrototypeIncludes(versionPattern, '*') ||
+      StringPrototypeIncludes(versionPattern, '?'))
   const versionMatcher =
-    versionHasWildcard && patternVersion
-      ? (value: string) => matchWildcard(patternVersion, value)
+    versionHasWildcard && versionPattern
+      ? (value: string) => matchWildcard(versionPattern, value)
       : undefined
 
   // Return optimized matcher function with pre-compiled matchers
   return (_purl: PackageURL): boolean => {
     return (
-      matchComponent(patternType, _purl.type, typeMatcher) &&
-      matchComponent(patternNamespace, _purl.namespace, namespaceMatcher) &&
-      matchComponent(patternName, _purl.name, nameMatcher) &&
-      matchComponent(patternVersion, _purl.version, versionMatcher)
+      matchComponent(typePattern, _purl.type, typeMatcher) &&
+      matchComponent(namespacePattern, _purl.namespace, namespaceMatcher) &&
+      matchComponent(namePattern, _purl.name, nameMatcher) &&
+      matchComponent(versionPattern, _purl.version, versionMatcher)
     )
   }
 }

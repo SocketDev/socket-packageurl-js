@@ -45,14 +45,38 @@ import {
   normalizeVersion,
 } from './normalize.js'
 import { isObject, recursiveFreeze } from './objects.js'
+import {
+  ArrayIsArray,
+  ArrayPrototypeAt,
+  JSONParse,
+  MapCtor,
+  ObjectFreeze,
+  JSONStringify,
+  ReflectDefineProperty,
+  ReflectGetOwnPropertyDescriptor,
+  ReflectSetPrototypeOf,
+  RegExpPrototypeTest,
+  StringPrototypeCharCodeAt,
+  StringPrototypeIncludes,
+  StringPrototypeIndexOf,
+  StringPrototypeLastIndexOf,
+  StringPrototypeSlice,
+  StringPrototypeSplit,
+  StringPrototypeStartsWith,
+  URLCtor,
+  URLSearchParamsCtor,
+} from './primordials.js'
 import { PurlComponent } from './purl-component.js'
 import { PurlQualifierNames } from './purl-qualifier-names.js'
 import { PurlType } from './purl-type.js'
 import { parseNpmSpecifier } from './purl-types/npm.js'
 import { Err, Ok, ResultUtils, err, ok } from './result.js'
-import { stringify } from './stringify.js'
+import { stringify, stringifySpec } from './stringify.js'
 import { isBlank, isNonEmptyString, trimLeadingSlashes } from './strings.js'
-import { UrlConverter } from './url-converter.js'
+import {
+  UrlConverter,
+  _registerPackageURLForUrlConverter,
+} from './url-converter.js'
 import {
   validateName,
   validateNamespace,
@@ -99,13 +123,18 @@ export type ParsedPurlComponents = [
   subpath: string | undefined,
 ]
 
+// LRU flyweight cache for fromString — avoids re-parsing identical PURL strings.
+// Bounded to prevent memory leaks. Uses a Map for O(1) lookup with LRU eviction.
+const FLYWEIGHT_CACHE_MAX = 1024
+const flyweightCache = new MapCtor<string, PackageURL>()
+
 // Pattern to match URLs with schemes other than "pkg"
 // Limited to 256 chars for scheme to prevent ReDoS
-const OTHER_SCHEME_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]{0,255}:\/\//
+const OTHER_SCHEME_PATTERN = ObjectFreeze(/^[a-zA-Z][a-zA-Z0-9+.-]{0,255}:\/\//)
 
 // Pattern to match purl-like strings with type/name format
 // Limited to 256 chars for type to prevent ReDoS
-const PURL_LIKE_PATTERN = /^[a-zA-Z0-9+.-]{1,256}\//
+const PURL_LIKE_PATTERN = ObjectFreeze(/^[a-zA-Z0-9+.-]{1,256}\//)
 
 /**
  * Package URL parser and constructor implementing the PURL specification.
@@ -115,6 +144,9 @@ class PackageURL {
   static Component = recursiveFreeze(PurlComponent)
   static KnownQualifierNames = recursiveFreeze(PurlQualifierNames)
   static Type = recursiveFreeze(PurlType)
+
+  /** @internal Cached canonical string representation. */
+  _cachedString?: string | undefined
 
   name?: string | undefined
   namespace?: string | undefined
@@ -184,7 +216,7 @@ class PackageURL {
   }
 
   /**
-   * Convert PackageURL to object for JSON.stringify compatibility.
+   * Convert PackageURL to object for JSONStringify compatibility.
    */
   toJSON(): PackageURLObject {
     return this.toObject()
@@ -194,14 +226,14 @@ class PackageURL {
    * Convert PackageURL to JSON string representation.
    */
   toJSONString(): string {
-    return JSON.stringify(this.toObject())
+    return JSONStringify(this.toObject())
   }
 
   /**
    * Convert PackageURL to a plain object representation.
    */
   toObject(): PackageURLObject {
-    const result: PackageURLObject = {}
+    const result: PackageURLObject = { __proto__: null } as PackageURLObject
     if (this.type !== undefined) {
       result.type = this.type
     }
@@ -223,8 +255,120 @@ class PackageURL {
     return result
   }
 
+  /**
+   * Get the package specifier string without the scheme and type prefix.
+   *
+   * Returns `namespace/name@version?qualifiers#subpath` — the package identity
+   * without the `pkg:type/` prefix.
+   *
+   * @returns Spec string (e.g., '@babel/core@7.0.0' for pkg:npm/%40babel/core@7.0.0)
+   */
+  toSpec() {
+    return stringifySpec(this)
+  }
+
   toString() {
-    return stringify(this)
+    let cached = this._cachedString
+    if (cached === undefined) {
+      cached = stringify(this)
+      this._cachedString = cached
+    }
+    return cached
+  }
+
+  /**
+   * Create a new PackageURL with a different version.
+   * Returns a new instance — the original is unchanged.
+   *
+   * @param version - New version string
+   * @returns New PackageURL with the updated version
+   */
+  withVersion(version: string | undefined): PackageURL {
+    return new PackageURL(
+      this.type,
+      this.namespace,
+      this.name,
+      version,
+      this.qualifiers,
+      this.subpath,
+    )
+  }
+
+  /**
+   * Create a new PackageURL with a different namespace.
+   * Returns a new instance — the original is unchanged.
+   *
+   * @param namespace - New namespace string
+   * @returns New PackageURL with the updated namespace
+   */
+  withNamespace(namespace: string | undefined): PackageURL {
+    return new PackageURL(
+      this.type,
+      namespace,
+      this.name,
+      this.version,
+      this.qualifiers,
+      this.subpath,
+    )
+  }
+
+  /**
+   * Create a new PackageURL with a single qualifier added or updated.
+   * Returns a new instance — the original is unchanged.
+   *
+   * @param key - Qualifier key
+   * @param value - Qualifier value
+   * @returns New PackageURL with the qualifier set
+   */
+  withQualifier(key: string, value: string): PackageURL {
+    return new PackageURL(
+      this.type,
+      this.namespace,
+      this.name,
+      this.version,
+      {
+        __proto__: null,
+        ...this.qualifiers,
+        [key]: value,
+      } as unknown as Record<string, string>,
+      this.subpath,
+    )
+  }
+
+  /**
+   * Create a new PackageURL with all qualifiers replaced.
+   * Returns a new instance — the original is unchanged.
+   *
+   * @param qualifiers - New qualifiers object (or undefined to remove all)
+   * @returns New PackageURL with the updated qualifiers
+   */
+  withQualifiers(qualifiers: Record<string, string> | undefined): PackageURL {
+    return new PackageURL(
+      this.type,
+      this.namespace,
+      this.name,
+      this.version,
+      qualifiers,
+      this.subpath,
+    )
+  }
+
+  /**
+   * Create a new PackageURL with a different subpath.
+   * Returns a new instance — the original is unchanged.
+   *
+   * @param subpath - New subpath string
+   * @returns New PackageURL with the updated subpath
+   */
+  withSubpath(subpath: string | undefined): PackageURL {
+    return new PackageURL(
+      this.type,
+      this.namespace,
+      this.name,
+      this.version,
+      this.qualifiers,
+      subpath,
+    )
   }
 
   /**
@@ -305,7 +449,7 @@ class PackageURL {
 
     let parsed: unknown
     try {
-      parsed = JSON.parse(json)
+      parsed = JSONParse(json)
     } catch (e) {
       // For JSON parsing errors, throw a SyntaxError with the expected message
       throw new SyntaxError('Failed to parse PackageURL from JSON', {
@@ -314,7 +458,7 @@ class PackageURL {
     }
 
     // Validate parsed result is an object
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    if (!parsed || typeof parsed !== 'object' || ArrayIsArray(parsed)) {
       throw new Error('JSON must parse to an object.')
     }
 
@@ -356,7 +500,26 @@ class PackageURL {
   }
 
   static fromString(purlStr: unknown): PackageURL {
-    return new PackageURL(...PackageURL.parseString(purlStr))
+    // Flyweight: return cached instance for identical strings
+    if (typeof purlStr === 'string') {
+      const cached = flyweightCache.get(purlStr)
+      if (cached !== undefined) {
+        return cached
+      }
+    }
+    const purl = new PackageURL(...PackageURL.parseString(purlStr))
+    // Cache the result for future lookups
+    if (typeof purlStr === 'string') {
+      if (flyweightCache.size >= FLYWEIGHT_CACHE_MAX) {
+        // Evict oldest entry (first key in Map iteration order)
+        const oldest = flyweightCache.keys().next().value
+        if (oldest !== undefined) {
+          flyweightCache.delete(oldest)
+        }
+      }
+      flyweightCache.set(purlStr, purl)
+    }
+    return purl
   }
 
   /**
@@ -472,11 +635,11 @@ class PackageURL {
     }
 
     // If the string doesn't start with "pkg:" but looks like a purl format, prepend "pkg:" and try parsing
-    if (!purlStr.startsWith('pkg:')) {
+    if (!StringPrototypeStartsWith(purlStr, 'pkg:')) {
       // Only auto-prepend "pkg:" if the string looks like a purl (contains a type/name pattern)
       // and doesn't look like a URL with a different scheme
-      const hasOtherScheme = OTHER_SCHEME_PATTERN.test(purlStr)
-      const looksLikePurl = PURL_LIKE_PATTERN.test(purlStr)
+      const hasOtherScheme = RegExpPrototypeTest(OTHER_SCHEME_PATTERN, purlStr)
+      const looksLikePurl = RegExpPrototypeTest(PURL_LIKE_PATTERN, purlStr)
 
       if (!hasOtherScheme && looksLikePurl) {
         return PackageURL.parseString(`pkg:${purlStr}`)
@@ -484,7 +647,7 @@ class PackageURL {
     }
 
     // Split the remainder once from left on ':'
-    const colonIndex = purlStr.indexOf(':')
+    const colonIndex = StringPrototypeIndexOf(purlStr, ':')
     // Use WHATWG URL to split up the purl string
     /* c8 ignore next 3 -- Comment lines don't need coverage. */
     //   - Split the purl string once from right on '#'
@@ -498,10 +661,10 @@ class PackageURL {
         // must not be suffixed with double slash as in 'pkg://'
         // and should use instead 'pkg:'. Purl parsers must accept
         // URLs such as 'pkg://' and must ignore the '//'
-        const beforeColon = purlStr.slice(0, colonIndex)
-        const afterColon = purlStr.slice(colonIndex + 1)
+        const beforeColon = StringPrototypeSlice(purlStr, 0, colonIndex)
+        const afterColon = StringPrototypeSlice(purlStr, colonIndex + 1)
         const trimmedAfterColon = trimLeadingSlashes(afterColon)
-        url = new URL(`${beforeColon}:${trimmedAfterColon}`)
+        url = new URLCtor(`${beforeColon}:${trimmedAfterColon}`)
         // Check for auth (user:pass@host) without creating a second URL.
         // When leading slashes were trimmed, the original string had an authority
         // section (e.g., pkg://user:pass@host/...). Detect `@` in the authority
@@ -509,13 +672,17 @@ class PackageURL {
         /* c8 ignore next 8 -- V8 coverage sees multiple branch paths that can't all be tested. */
         if (afterColon.length !== trimmedAfterColon.length) {
           // afterColon starts with slashes — find the authority section
-          const authorityStart = afterColon.indexOf('//') + 2
-          const authorityEnd = afterColon.indexOf('/', authorityStart)
+          const authorityStart = StringPrototypeIndexOf(afterColon, '//') + 2
+          const authorityEnd = StringPrototypeIndexOf(
+            afterColon,
+            '/',
+            authorityStart,
+          )
           const authority =
             authorityEnd === -1
-              ? afterColon.slice(authorityStart)
-              : afterColon.slice(authorityStart, authorityEnd)
-          hasAuth = authority.includes('@')
+              ? StringPrototypeSlice(afterColon, authorityStart)
+              : StringPrototypeSlice(afterColon, authorityStart, authorityEnd)
+          hasAuth = StringPrototypeIncludes(authority, '@')
         }
       } catch (e) {
         throw new PurlError('failed to parse as URL', {
@@ -537,10 +704,12 @@ class PackageURL {
     }
 
     const { pathname } = url
-    const firstSlashIndex = pathname.indexOf('/')
+    const firstSlashIndex = StringPrototypeIndexOf(pathname, '/')
     const rawType = decodePurlComponent(
       'type',
-      firstSlashIndex === -1 ? pathname : pathname.slice(0, firstSlashIndex),
+      firstSlashIndex === -1
+        ? pathname
+        : StringPrototypeSlice(pathname, 0, firstSlashIndex),
     )
     if (firstSlashIndex < 1) {
       return [rawType, undefined, undefined, undefined, undefined, undefined]
@@ -553,18 +722,19 @@ class PackageURL {
     // pnpm ids such as 'pkg:npm/next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)'
     let atSignIndex =
       rawType === 'npm'
-        ? pathname.indexOf('@', firstSlashIndex + 2)
-        : pathname.lastIndexOf('@')
+        ? StringPrototypeIndexOf(pathname, '@', firstSlashIndex + 2)
+        : StringPrototypeLastIndexOf(pathname, '@')
     /* c8 ignore stop */
     // When a forward slash ('/') is directly preceding an '@' symbol,
     // then the '@' symbol is NOT considered a version separator
     if (
       atSignIndex > 0 &&
-      pathname.charCodeAt(atSignIndex - 1) === 47 /*'/'*/
+      StringPrototypeCharCodeAt(pathname, atSignIndex - 1) === 47 /*'/'*/
     ) {
       atSignIndex = -1
     }
-    const beforeVersion = pathname.slice(
+    const beforeVersion = StringPrototypeSlice(
+      pathname,
       rawType.length + 1,
       atSignIndex === -1 ? pathname.length : atSignIndex,
     )
@@ -572,13 +742,13 @@ class PackageURL {
       // Split the remainder once from right on '@'
       rawVersion = decodePurlComponent(
         'version',
-        pathname.slice(atSignIndex + 1),
+        StringPrototypeSlice(pathname, atSignIndex + 1),
       )
     }
 
     let rawNamespace: string | undefined
     let rawName: string
-    const lastSlashIndex = beforeVersion.lastIndexOf('/')
+    const lastSlashIndex = StringPrototypeLastIndexOf(beforeVersion, '/')
     if (lastSlashIndex === -1) {
       // Split the remainder once from right on '/'
       rawName = decodePurlComponent('name', beforeVersion)
@@ -586,29 +756,32 @@ class PackageURL {
       // Split the remainder once from right on '/'
       rawName = decodePurlComponent(
         'name',
-        beforeVersion.slice(lastSlashIndex + 1),
+        StringPrototypeSlice(beforeVersion, lastSlashIndex + 1),
       )
       // Split the remainder on '/'
       rawNamespace = decodePurlComponent(
         'namespace',
-        beforeVersion.slice(0, lastSlashIndex),
+        StringPrototypeSlice(beforeVersion, 0, lastSlashIndex),
       )
     }
 
     let rawQualifiers: URLSearchParams | undefined
     if (url.searchParams.size !== 0) {
-      const search = url.search.slice(1)
-      const searchParams = new URLSearchParams()
-      const entries = search.split('&')
+      const search = StringPrototypeSlice(url.search, 1)
+      const searchParams = new URLSearchParamsCtor()
+      const entries = StringPrototypeSplit(search, '&' as any)
       for (let i = 0, { length } = entries; i < length; i += 1) {
-        const pairs = entries[i]?.split('=')
+        const pairs = StringPrototypeSplit(entries[i]!, '=' as any)
         if (pairs) {
           const key = pairs[0]!
           // Validate qualifier key is not empty (reject malformed PURLs like ?&key=val or ?key=val&)
           if (key.length === 0) {
             throw new PurlError('qualifier key must not be empty')
           }
-          const value = decodePurlComponent('qualifiers', pairs.at(1) ?? '')
+          const value = decodePurlComponent(
+            'qualifiers',
+            ArrayPrototypeAt(pairs, 1) ?? '',
+          )
           // Use URLSearchParams#append to preserve plus signs
           // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
           /* c8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */ searchParams.append(
@@ -625,7 +798,7 @@ class PackageURL {
     const { hash } = url
     if (hash.length !== 0) {
       // Split the purl string once from right on '#'
-      rawSubpath = decodePurlComponent('subpath', hash.slice(1))
+      rawSubpath = decodePurlComponent('subpath', StringPrototypeSlice(hash, 1))
     }
 
     return [
@@ -636,6 +809,44 @@ class PackageURL {
       rawQualifiers,
       rawSubpath,
     ]
+  }
+
+  /**
+   * Check if a string is a valid PURL without throwing.
+   *
+   * @param purlStr - String to validate
+   * @returns true if the string is a valid PURL
+   *
+   * @example
+   * ```typescript
+   * PackageURL.isValid('pkg:npm/lodash@4.17.21') // true
+   * PackageURL.isValid('not a purl')              // false
+   * ```
+   */
+  static isValid(purlStr: unknown): boolean {
+    return PackageURL.tryFromString(purlStr).isOk()
+  }
+
+  /**
+   * Create PackageURL from a registry or repository URL.
+   *
+   * Convenience wrapper for UrlConverter.fromUrl(). Supports 27 hostnames
+   * across 17 package types including npm, pypi, maven, github, and more.
+   *
+   * @param urlStr - Registry or repository URL
+   * @returns PackageURL instance or undefined if URL is not recognized
+   *
+   * @example
+   * ```typescript
+   * PackageURL.fromUrl('https://www.npmjs.com/package/lodash')
+   * // -> pkg:npm/lodash
+   *
+   * PackageURL.fromUrl('https://github.com/lodash/lodash')
+   * // -> pkg:github/lodash/lodash
+   * ```
+   */
+  static fromUrl(urlStr: string): PackageURL | undefined {
+    return UrlConverter.fromUrl(urlStr)
   }
 
   static tryFromJSON(json: unknown): Result<PackageURL, Error> {
@@ -656,16 +867,19 @@ class PackageURL {
 }
 
 for (const staticProp of ['Component', 'KnownQualifierNames', 'Type']) {
-  Reflect.defineProperty(PackageURL, staticProp, {
-    ...Reflect.getOwnPropertyDescriptor(PackageURL, staticProp),
+  ReflectDefineProperty(PackageURL, staticProp, {
+    ...ReflectGetOwnPropertyDescriptor(PackageURL, staticProp),
     writable: false,
   })
 }
 
-Reflect.setPrototypeOf(PackageURL.prototype, null)
+ReflectSetPrototypeOf(PackageURL.prototype, null)
 
 // Register PackageURL with compare module for string-based comparison support.
 _registerPackageURL(PackageURL)
+
+// Register PackageURL with url-converter module for fromUrl construction.
+_registerPackageURLForUrlConverter(PackageURL)
 
 export {
   Err,

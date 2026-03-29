@@ -5,9 +5,11 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { StringPrototypeIncludes } from '../primordials.js'
 import {
   lowerName,
   lowerNamespace,
+  lowerVersion,
   replaceUnderscoresWithDashes,
 } from '../strings.js'
 
@@ -24,11 +26,13 @@ interface PurlObject {
 
 /**
  * Normalize PyPI package URL.
- * Lowercases namespace and name, replaces underscores with dashes in name.
+ * Lowercases namespace, name, and version, replaces underscores with dashes in name.
+ * Spec: namespace, name, and version are all case-insensitive.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
   lowerName(purl)
+  lowerVersion(purl)
   purl.name = replaceUnderscoresWithDashes(purl.name)
   return purl
 }
@@ -120,7 +124,9 @@ export async function pypiExists(
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
-        error: error.includes('404') ? 'Package not found' : error,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Package not found'
+          : error,
       }
     }
   }

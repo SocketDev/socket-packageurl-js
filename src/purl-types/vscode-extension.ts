@@ -8,7 +8,16 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { lowerName, lowerNamespace } from '../strings.js'
+import { PurlError } from '../error.js'
+import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
+import {
+  containsInjectionCharacters,
+  isSemverString,
+  lowerName,
+  lowerNamespace,
+  lowerVersion,
+} from '../strings.js'
+import { validateRequiredByType } from '../validate.js'
 
 import type { ExistsOptions, ExistsResult } from './npm.js'
 
@@ -23,12 +32,73 @@ interface PurlObject {
 
 /**
  * Normalize VSCode extension package URL.
- * Lowercases both namespace (publisher) and name (extension).
+ * Lowercases namespace (publisher), name (extension), and version per spec.
+ * Spec: namespace, name, and version are all case-insensitive.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
   lowerName(purl)
+  lowerVersion(purl)
   return purl
+}
+
+/**
+ * Validate VSCode extension package URL.
+ * Checks namespace (publisher) and name (extension) for injection characters,
+ * and validates version as semver when present.
+ */
+export function validate(purl: PurlObject, throws: boolean): boolean {
+  const { name, namespace, version, qualifiers } = purl
+  // VSCode extensions require a namespace (publisher)
+  if (
+    !validateRequiredByType('vscode-extension', 'namespace', namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  // Namespace must not contain injection characters
+  if (typeof namespace === 'string' && containsInjectionCharacters(namespace)) {
+    if (throws) {
+      throw new PurlError(
+        'vscode-extension "namespace" component contains illegal characters',
+      )
+    }
+    return false
+  }
+  // Name must not contain injection characters
+  if (containsInjectionCharacters(name)) {
+    if (throws) {
+      throw new PurlError(
+        'vscode-extension "name" component contains illegal characters',
+      )
+    }
+    return false
+  }
+  // Version must be valid semver when present
+  if (
+    typeof version === 'string' &&
+    version.length > 0 &&
+    !isSemverString(version)
+  ) {
+    if (throws) {
+      throw new PurlError(
+        'vscode-extension "version" component must be a valid semver version',
+      )
+    }
+    return false
+  }
+  // Platform qualifier must not contain injection characters
+  const platform = qualifiers?.['platform']
+  if (typeof platform === 'string' && containsInjectionCharacters(platform)) {
+    if (throws) {
+      throw new PurlError(
+        'vscode-extension qualifier "platform" contains illegal characters',
+      )
+    }
+    return false
+  }
+  return true
 }
 
 /**
@@ -142,7 +212,10 @@ export async function vscodeExtensionExists(
 
       // If specific version requested, validate it exists
       if (version && versions) {
-        const versionExists = versions.some(v => v.version === version)
+        const versionExists = ArrayPrototypeSome(
+          versions,
+          v => v.version === version,
+        )
         if (!versionExists) {
           const result: ExistsResult = {
             exists: false,
@@ -174,7 +247,9 @@ export async function vscodeExtensionExists(
       // If upstream changes error format, this string matching may break.
       return {
         exists: false,
-        error: error.includes('404') ? 'Extension not found' : error,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Extension not found'
+          : error,
       }
     }
   }

@@ -2,6 +2,14 @@
  * @fileoverview Helper function for creating namespace objects.
  * Organizes helper functions by property names with configurable defaults and sorting.
  */
+import {
+  ArrayPrototypeFlatMap,
+  ArrayPrototypeToSorted,
+  ObjectCreate,
+  ObjectKeys,
+  ObjectValues,
+  SetCtor,
+} from './primordials.js'
 
 /**
  * Create namespace object organizing helpers by property names.
@@ -16,20 +24,24 @@ function createHelpersNamespaceObject(
   } as Record<string, unknown> & {
     comparator?: ((_a: string, _b: string) => number) | undefined
   }
-  const helperNames = Object.keys(helpers).toSorted()
+  const helperNames = ArrayPrototypeToSorted(ObjectKeys(helpers))
   // Collect all unique property names from all helper objects
-  const propNames = [
-    ...new Set(
-      Object.values(helpers).flatMap((helper: Record<string, unknown>) =>
-        Object.keys(helper),
+  const propNames = ArrayPrototypeToSorted(
+    [
+      ...new SetCtor(
+        ArrayPrototypeFlatMap(
+          ObjectValues(helpers),
+          (helper: Record<string, unknown>) => ObjectKeys(helper),
+        ),
       ),
-    ),
-  ].toSorted(comparator)
-  const nsObject: Record<string, Record<string, unknown>> = Object.create(null)
+    ],
+    comparator,
+  )
+  const nsObject: Record<string, Record<string, unknown>> = ObjectCreate(null)
   // Build inverted structure: property -> {helper1: value1, helper2: value2}
   for (let i = 0, { length } = propNames; i < length; i += 1) {
     const propName = propNames[i]!
-    const helpersForProp: Record<string, unknown> = Object.create(null)
+    const helpersForProp: Record<string, unknown> = ObjectCreate(null)
     for (
       let j = 0, { length: helperNamesLength } = helperNames;
       j < helperNamesLength;

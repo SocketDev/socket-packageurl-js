@@ -8,20 +8,22 @@ import {
   REUSED_SEARCH_PARAMS_OFFSET,
 } from './constants.js'
 import { isObject } from './objects.js'
+import {
+  ArrayPrototypeToSorted,
+  ObjectKeys,
+  StringPrototypeReplaceAll,
+  StringPrototypeSlice,
+  URLSearchParamsCtor,
+  encodeComponent,
+} from './primordials.js'
 import { isNonEmptyString } from './strings.js'
-
-// IMPORTANT: Do not use destructuring here (e.g., const { encodeURIComponent } = globalThis)
-// tsgo has a bug that incorrectly transpiles destructured exports, resulting in
-// `exports.encodeComponent = void 0;` which causes runtime errors
-// See: https://github.com/SocketDev/socket-packageurl-js/issues/3
-const encodeComponent = globalThis.encodeURIComponent
 
 /**
  * Encode package name component for URL.
  */
 function encodeName(name: unknown): string {
   return isNonEmptyString(name)
-    ? encodeComponent(name).replaceAll('%3A', ':')
+    ? StringPrototypeReplaceAll(encodeComponent(name), '%3A', ':')
     : ''
 }
 
@@ -30,7 +32,11 @@ function encodeName(name: unknown): string {
  */
 function encodeNamespace(namespace: unknown): string {
   return isNonEmptyString(namespace)
-    ? encodeComponent(namespace).replaceAll('%3A', ':').replaceAll('%2F', '/')
+    ? StringPrototypeReplaceAll(
+        StringPrototypeReplaceAll(encodeComponent(namespace), '%3A', ':'),
+        '%2F',
+        '/',
+      )
     : ''
 }
 
@@ -49,7 +55,7 @@ function encodeQualifierParam(param: unknown): string {
     // https://url.spec.whatwg.org/#urlencoded-serializing
     const search = REUSED_SEARCH_PARAMS.toString()
     return normalizeSearchParamsEncoding(
-      search.slice(REUSED_SEARCH_PARAMS_OFFSET),
+      StringPrototypeSlice(search, REUSED_SEARCH_PARAMS_OFFSET),
     )
   }
   return ''
@@ -61,8 +67,8 @@ function encodeQualifierParam(param: unknown): string {
 function encodeQualifiers(qualifiers: unknown): string {
   if (isObject(qualifiers)) {
     // Sort this list of qualifier strings lexicographically
-    const qualifiersKeys = Object.keys(qualifiers).toSorted()
-    const searchParams = new URLSearchParams()
+    const qualifiersKeys = ArrayPrototypeToSorted(ObjectKeys(qualifiers))
+    const searchParams = new URLSearchParamsCtor()
     for (let i = 0, { length } = qualifiersKeys; i < length; i += 1) {
       const key = qualifiersKeys[i]!
       const value = prepareValueForSearchParams(
@@ -82,7 +88,7 @@ function encodeQualifiers(qualifiers: unknown): string {
  */
 function encodeSubpath(subpath: unknown): string {
   return isNonEmptyString(subpath)
-    ? encodeComponent(subpath).replaceAll('%2F', '/')
+    ? StringPrototypeReplaceAll(encodeComponent(subpath), '%2F', '/')
     : ''
 }
 
@@ -91,7 +97,7 @@ function encodeSubpath(subpath: unknown): string {
  */
 function encodeVersion(version: unknown): string {
   return isNonEmptyString(version)
-    ? encodeComponent(version).replaceAll('%3A', ':')
+    ? StringPrototypeReplaceAll(encodeComponent(version), '%3A', ':')
     : ''
 }
 
@@ -99,7 +105,11 @@ function encodeVersion(version: unknown): string {
  * Normalize URLSearchParams output for qualifier encoding.
  */
 function normalizeSearchParamsEncoding(encoded: string): string {
-  return encoded.replaceAll('%2520', '%20').replaceAll('+', '%2B')
+  return StringPrototypeReplaceAll(
+    StringPrototypeReplaceAll(encoded, '%2520', '%20'),
+    '+',
+    '%2B',
+  )
 }
 
 /**
@@ -107,7 +117,7 @@ function normalizeSearchParamsEncoding(encoded: string): string {
  */
 function prepareValueForSearchParams(value: unknown): string {
   // Replace spaces with %20's so they don't get converted to plus signs
-  return String(value).replaceAll(' ', '%20')
+  return StringPrototypeReplaceAll(String(value), ' ', '%20')
 }
 
 export {

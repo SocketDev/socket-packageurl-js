@@ -6,6 +6,11 @@
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
+import {
+  StringPrototypeCharCodeAt,
+  StringPrototypeIncludes,
+  ArrayPrototypeSome,
+} from '../primordials.js'
 import { lowerName, replaceDashesWithUnderscores } from '../strings.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -86,7 +91,10 @@ export async function pubExists(
 
       if (version) {
         const versions = data.versions || []
-        const versionExists = versions.some(v => v.version === version)
+        const versionExists = ArrayPrototypeSome(
+          versions,
+          v => v.version === version,
+        )
         if (!versionExists) {
           const result: ExistsResult = {
             exists: false,
@@ -109,7 +117,9 @@ export async function pubExists(
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
-        error: error.includes('404') ? 'Package not found' : error,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Package not found'
+          : error,
       }
     }
   }
@@ -128,7 +138,7 @@ export async function pubExists(
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name } = purl
   for (let i = 0, { length } = name; i < length; i += 1) {
-    const code = name.charCodeAt(i)
+    const code = StringPrototypeCharCodeAt(name, i)
     // biome-ignore format: newlines
     if (
       !(

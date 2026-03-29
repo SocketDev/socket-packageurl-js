@@ -5,6 +5,10 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import {
+  ArrayPrototypeIncludes,
+  StringPrototypeIncludes,
+} from '../primordials.js'
 import { lowerName } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
@@ -115,7 +119,7 @@ export async function condaExists(
 
       // If specific version requested, validate it exists
       if (version) {
-        if (!data.versions || !data.versions.includes(version)) {
+        if (!data.versions || !ArrayPrototypeIncludes(data.versions, version)) {
           const result: ExistsResult = {
             exists: false,
             error: `Version ${version} not found`,
@@ -140,7 +144,9 @@ export async function condaExists(
       /* c8 ignore stop */
       return {
         exists: false,
-        error: error.includes('404') ? 'Package not found' : error,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Package not found'
+          : error,
       }
     }
   }

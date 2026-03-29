@@ -31,6 +31,15 @@
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
+import {
+  ArrayPrototypeJoin,
+  StringPrototypeCharCodeAt,
+  StringPrototypeIncludes,
+  StringPrototypeReplace,
+  StringPrototypeSlice,
+  StringPrototypeSplit,
+  StringPrototypeToLowerCase,
+} from '../primordials.js'
 import { isSemverString } from '../strings.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -96,12 +105,15 @@ export async function golangExists(
     try {
       // Encode the module path for the URL
       // Go proxy uses case-encoded paths where uppercase letters are !lowercase
-      const encodedPath = modulePath
-        .split('/')
-        .map(part => {
-          return part.replace(/[A-Z]/g, letter => `!${letter.toLowerCase()}`)
-        })
-        .join('/')
+      const parts = StringPrototypeSplit(modulePath, '/' as any)
+      for (let i = 0; i < parts.length; i++) {
+        parts[i] = StringPrototypeReplace(
+          parts[i]!,
+          /[A-Z]/g,
+          letter => `!${StringPrototypeToLowerCase(letter)}`,
+        )
+      }
+      const encodedPath = ArrayPrototypeJoin(parts, '/')
 
       const url = `https://proxy.golang.org/${encodedPath}/@latest`
 
@@ -139,7 +151,8 @@ export async function golangExists(
       return {
         exists: false,
         error:
-          error.includes('404') || error.includes('410')
+          StringPrototypeIncludes(error, '404') ||
+          StringPrototypeIncludes(error, '410')
             ? 'Module not found'
             : error,
       }
@@ -167,8 +180,8 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   // https://go.dev/doc/modules/version-numbers#pseudo-version-number
   if (
     length &&
-    version?.charCodeAt(0) === 118 /*'v'*/ &&
-    !isSemverString(version?.slice(1))
+    StringPrototypeCharCodeAt(version!, 0) === 118 /*'v'*/ &&
+    !isSemverString(StringPrototypeSlice(version!, 1))
   ) {
     if (throws) {
       throw new PurlError(

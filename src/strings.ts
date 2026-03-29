@@ -2,13 +2,21 @@
  * @fileoverview String utility functions for PURL processing.
  * Includes whitespace detection, semver validation, locale comparison, and character replacement.
  */
+import {
+  ObjectFreeze,
+  RegExpPrototypeTest,
+  StringPrototypeCharCodeAt,
+  StringPrototypeIndexOf,
+  StringPrototypeSlice,
+  StringPrototypeToLowerCase,
+} from './primordials.js'
 
 /**
  * Check if string contains only whitespace characters.
  */
 function isBlank(str: string): boolean {
   for (let i = 0, { length } = str; i < length; i += 1) {
-    const code = str.charCodeAt(i)
+    const code = StringPrototypeCharCodeAt(str, i)
     // biome-ignore format: newlines
     if (
       !(
@@ -83,14 +91,18 @@ function isNonEmptyString(value: unknown): value is string {
 
 // This regexp is valid as of 2024-08-01
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
-const regexSemverNumberedGroups =
-  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+const regexSemverNumberedGroups = ObjectFreeze(
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/,
+)
 
 /**
  * Check if value is a valid semantic version string.
  */
 function isSemverString(value: unknown): value is string {
-  return typeof value === 'string' && regexSemverNumberedGroups.test(value)
+  return (
+    typeof value === 'string' &&
+    RegExpPrototypeTest(regexSemverNumberedGroups, value)
+  )
 }
 
 // Intl.Collator is faster than String#localeCompare
@@ -115,7 +127,7 @@ function localeCompare(x: string, y: string): number {
  * Convert package name to lowercase.
  */
 function lowerName(purl: { name: string }): void {
-  purl.name = purl.name.toLowerCase()
+  purl.name = StringPrototypeToLowerCase(purl.name)
 }
 
 /**
@@ -124,7 +136,7 @@ function lowerName(purl: { name: string }): void {
 function lowerNamespace(purl: { namespace?: string | undefined }): void {
   const { namespace } = purl
   if (typeof namespace === 'string') {
-    purl.namespace = namespace.toLowerCase()
+    purl.namespace = StringPrototypeToLowerCase(namespace)
   }
 }
 
@@ -134,7 +146,7 @@ function lowerNamespace(purl: { namespace?: string | undefined }): void {
 function lowerVersion(purl: { version?: string | undefined }): void {
   const { version } = purl
   if (typeof version === 'string') {
-    purl.version = version.toLowerCase()
+    purl.version = StringPrototypeToLowerCase(version)
   }
 }
 
@@ -146,11 +158,11 @@ function replaceDashesWithUnderscores(str: string): string {
   let result = ''
   let fromIndex = 0
   let index = 0
-  while ((index = str.indexOf('-', fromIndex)) !== -1) {
-    result = `${result + str.slice(fromIndex, index)}_`
+  while ((index = StringPrototypeIndexOf(str, '-', fromIndex)) !== -1) {
+    result = `${result + StringPrototypeSlice(str, fromIndex, index)}_`
     fromIndex = index + 1
   }
-  return fromIndex ? result + str.slice(fromIndex) : str
+  return fromIndex ? result + StringPrototypeSlice(str, fromIndex) : str
 }
 
 /**
@@ -161,11 +173,63 @@ function replaceUnderscoresWithDashes(str: string): string {
   let result = ''
   let fromIndex = 0
   let index = 0
-  while ((index = str.indexOf('_', fromIndex)) !== -1) {
-    result = `${result + str.slice(fromIndex, index)}-`
+  while ((index = StringPrototypeIndexOf(str, '_', fromIndex)) !== -1) {
+    result = `${result + StringPrototypeSlice(str, fromIndex, index)}-`
     fromIndex = index + 1
   }
-  return fromIndex ? result + str.slice(fromIndex) : str
+  return fromIndex ? result + StringPrototypeSlice(str, fromIndex) : str
+}
+
+/**
+ * Check if string contains characters commonly used in shell/URL injection attacks.
+ * Detects shell metacharacters (|, &, ;, `, $, <, >, {, }, #, \, newlines)
+ * and whitespace that could be used to break out of command or URL contexts.
+ * Uses charCode scanning for performance in hot paths.
+ */
+function containsInjectionCharacters(str: string): boolean {
+  for (let i = 0, { length } = str; i < length; i += 1) {
+    const code = StringPrototypeCharCodeAt(str, i)
+    // biome-ignore format: newlines
+    if (
+      // |
+      code === 0x7c ||
+      // &
+      code === 0x26 ||
+      // ;
+      code === 0x3b ||
+      // `
+      code === 0x60 ||
+      // $
+      code === 0x24 ||
+      // <
+      code === 0x3c ||
+      // >
+      code === 0x3e ||
+      // (
+      code === 0x28 ||
+      // )
+      code === 0x29 ||
+      // {
+      code === 0x7b ||
+      // }
+      code === 0x7d ||
+      // #
+      code === 0x23 ||
+      // \
+      code === 0x5c ||
+      // space
+      code === 0x20 ||
+      // tab
+      code === 0x09 ||
+      // newline
+      code === 0x0a ||
+      // carriage return
+      code === 0x0d
+    ) {
+      return true
+    }
+  }
+  return false
 }
 
 /**
@@ -173,13 +237,14 @@ function replaceUnderscoresWithDashes(str: string): string {
  */
 function trimLeadingSlashes(str: string): string {
   let start = 0
-  while (str.charCodeAt(start) === 47 /*'/'*/) {
+  while (StringPrototypeCharCodeAt(str, start) === 47 /*'/'*/) {
     start += 1
   }
-  return start === 0 ? str : str.slice(start)
+  return start === 0 ? str : StringPrototypeSlice(str, start)
 }
 
 export {
+  containsInjectionCharacters,
   isBlank,
   isNonEmptyString,
   isSemverString,

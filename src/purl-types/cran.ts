@@ -5,6 +5,10 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import {
+  ArrayPrototypeIncludes,
+  StringPrototypeIncludes,
+} from '../primordials.js'
 import { validateRequiredByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -74,7 +78,7 @@ export async function cranExists(
 
       if (version) {
         const versions = data.versions || []
-        if (!versions.includes(version)) {
+        if (!ArrayPrototypeIncludes(versions, version)) {
           const result: ExistsResult = {
             exists: false,
             error: `Version ${version} not found`,
@@ -96,7 +100,9 @@ export async function cranExists(
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
-        error: error.includes('404') ? 'Package not found' : error,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Package not found'
+          : error,
       }
     }
   }
