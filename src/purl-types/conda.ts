@@ -10,7 +10,7 @@ import {
   StringPrototypeIncludes,
 } from '../primordials.js'
 import { lowerName } from '../strings.js'
-import { validateEmptyByType } from '../validate.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsOptions, ExistsResult } from './npm.js'
 
@@ -34,12 +34,20 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate Conda package URL.
- * Conda packages must not have a namespace.
+ * Conda packages must not have a namespace. Name must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('conda', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('conda', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('conda', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }
 
 /**

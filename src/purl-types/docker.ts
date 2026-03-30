@@ -7,6 +7,7 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { StringPrototypeIncludes } from '../primordials.js'
 import { lowerName } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsOptions, ExistsResult } from './npm.js'
 
@@ -26,6 +27,22 @@ interface PurlObject {
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
   return purl
+}
+
+/**
+ * Validate Docker package URL.
+ * Name and namespace must not contain injection characters.
+ */
+export function validate(purl: PurlObject, throws: boolean): boolean {
+  if (
+    !validateNoInjectionByType('docker', 'namespace', purl.namespace, throws)
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('docker', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }
 
 /**

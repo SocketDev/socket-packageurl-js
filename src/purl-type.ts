@@ -6,14 +6,19 @@
  * module in the purl-types/ directory with specific rules for namespace, name, version
  * normalization and validation.
  */
+import { PurlInjectionError } from './error.js'
 import { createHelpersNamespaceObject } from './helpers.js'
+import { findInjectionCharCode, formatInjectionChar } from './strings.js'
 import { normalize as alpmNormalize } from './purl-types/alpm.js'
 import { normalize as apkNormalize } from './purl-types/apk.js'
 import {
   normalize as bazelNormalize,
   validate as bazelValidate,
 } from './purl-types/bazel.js'
-import { normalize as bitbucketNormalize } from './purl-types/bitbucket.js'
+import {
+  normalize as bitbucketNormalize,
+  validate as bitbucketValidate,
+} from './purl-types/bitbucket.js'
 import { normalize as bitnamiNormalize } from './purl-types/bitnami.js'
 import { validate as cargoValidate } from './purl-types/cargo.js'
 import { validate as cocoaodsValidate } from './purl-types/cocoapods.js'
@@ -26,13 +31,25 @@ import {
 import { validate as cpanValidate } from './purl-types/cpan.js'
 import { validate as cranValidate } from './purl-types/cran.js'
 import { normalize as debNormalize } from './purl-types/deb.js'
-import { normalize as dockerNormalize } from './purl-types/docker.js'
+import {
+  normalize as dockerNormalize,
+  validate as dockerValidate,
+} from './purl-types/docker.js'
 import { validate as gemValidate } from './purl-types/gem.js'
 import { normalize as genericNormalize } from './purl-types/generic.js'
-import { normalize as githubNormalize } from './purl-types/github.js'
-import { normalize as gitlabNormalize } from './purl-types/gitlab.js'
+import {
+  normalize as githubNormalize,
+  validate as githubValidate,
+} from './purl-types/github.js'
+import {
+  normalize as gitlabNormalize,
+  validate as gitlabValidate,
+} from './purl-types/gitlab.js'
 import { validate as golangValidate } from './purl-types/golang.js'
-import { normalize as hexNormalize } from './purl-types/hex.js'
+import {
+  normalize as hexNormalize,
+  validate as hexValidate,
+} from './purl-types/hex.js'
 import { normalize as huggingfaceNormalize } from './purl-types/huggingface.js'
 import {
   normalize as juliaNormalize,
@@ -62,7 +79,10 @@ import {
   normalize as pubNormalize,
   validate as pubValidate,
 } from './purl-types/pub.js'
-import { normalize as pypiNormalize } from './purl-types/pypi.js'
+import {
+  normalize as pypiNormalize,
+  validate as pypiValidate,
+} from './purl-types/pypi.js'
 import { normalize as qpkgNormalize } from './purl-types/qpkg.js'
 import { normalize as rpmNormalize } from './purl-types/rpm.js'
 import { normalize as socketNormalize } from './purl-types/socket.js'
@@ -94,8 +114,40 @@ const PurlTypNormalizer = (purl: PurlObject): PurlObject => purl
 
 /**
  * Default validator for PURL types without specific validation rules.
+ * Rejects injection characters in name and namespace components.
+ * This ensures all types (including newly added ones) get injection
+ * protection by default — security is opt-out, not opt-in.
  */
-const PurlTypeValidator = (_purl: PurlObject, _throws: boolean): boolean => true
+function PurlTypeValidator(purl: PurlObject, throws: boolean): boolean {
+  const type = purl.type ?? 'unknown'
+  if (typeof purl.namespace === 'string') {
+    const nsCode = findInjectionCharCode(purl.namespace)
+    if (nsCode !== -1) {
+      if (throws) {
+        throw new PurlInjectionError(
+          type,
+          'namespace',
+          nsCode,
+          formatInjectionChar(nsCode),
+        )
+      }
+      return false
+    }
+  }
+  const nameCode = findInjectionCharCode(purl.name)
+  if (nameCode !== -1) {
+    if (throws) {
+      throw new PurlInjectionError(
+        type,
+        'name',
+        nameCode,
+        formatInjectionChar(nameCode),
+      )
+    }
+    return false
+  }
+  return true
+}
 
 // PURL types:
 // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
@@ -133,14 +185,19 @@ const PurlType = createHelpersNamespaceObject(
     },
     validate: {
       bazel: bazelValidate,
+      bitbucket: bitbucketValidate,
       cargo: cargoValidate,
       cocoapods: cocoaodsValidate,
       conda: condaValidate,
       conan: conanValidate,
       cpan: cpanValidate,
       cran: cranValidate,
+      docker: dockerValidate,
       gem: gemValidate,
+      github: githubValidate,
+      gitlab: gitlabValidate,
       golang: golangValidate,
+      hex: hexValidate,
       julia: juliaValidate,
       maven: mavenValidate,
       mlflow: mlflowValidate,
@@ -150,6 +207,7 @@ const PurlType = createHelpersNamespaceObject(
       opam: opamValidate,
       otp: otpValidate,
       pub: pubValidate,
+      pypi: pypiValidate,
       swift: swiftValidate,
       swid: swidValidate,
       'vscode-extension': vscodeExtensionValidate,

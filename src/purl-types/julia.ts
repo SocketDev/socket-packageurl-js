@@ -6,7 +6,7 @@
  * Package names are case-sensitive and typically CamelCase.
  */
 
-import { validateEmptyByType } from '../validate.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -30,7 +30,15 @@ export function normalize(purl: PurlObject): PurlObject {
  * Julia packages must not have a namespace.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('julia', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('julia', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('julia', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

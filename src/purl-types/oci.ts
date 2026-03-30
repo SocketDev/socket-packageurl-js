@@ -4,7 +4,7 @@
  */
 
 import { lowerName, lowerVersion } from '../strings.js'
-import { validateEmptyByType } from '../validate.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -30,7 +30,15 @@ export function normalize(purl: PurlObject): PurlObject {
  * OCI packages must not have a namespace.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('oci', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('oci', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('oci', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

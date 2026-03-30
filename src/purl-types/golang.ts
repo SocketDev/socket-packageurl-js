@@ -41,6 +41,7 @@ import {
   StringPrototypeToLowerCase,
 } from '../primordials.js'
 import { isSemverString } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -168,9 +169,18 @@ export async function golangExists(
 
 /**
  * Validate Golang package URL.
+ * Name and namespace must not contain injection characters.
  * If version starts with "v", it must be followed by a valid semver version.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
+  if (
+    !validateNoInjectionByType('golang', 'namespace', purl.namespace, throws)
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('golang', 'name', purl.name, throws)) {
+    return false
+  }
   // Still being lenient here since the standard changes aren't official
   // Pending spec change: https://github.com/package-url/purl-spec/pull/196
   const { version } = purl

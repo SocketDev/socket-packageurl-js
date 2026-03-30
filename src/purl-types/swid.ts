@@ -10,6 +10,7 @@ import {
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
 } from '../primordials.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 const GUID_PATTERN = ObjectFreeze(
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
@@ -58,6 +59,9 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       }
       return false
     }
+  }
+  if (!validateNoInjectionByType('swid', 'name', purl.name, throws)) {
+    return false
   }
   return true
 }

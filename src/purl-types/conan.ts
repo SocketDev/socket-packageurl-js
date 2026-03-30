@@ -5,6 +5,7 @@
 
 import { PurlError } from '../error.js'
 import { isNullishOrEmptyString } from '../lang.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -36,6 +37,14 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
         'conan requires a "qualifiers" component when a namespace is present',
       )
     }
+    return false
+  }
+  if (
+    !validateNoInjectionByType('conan', 'namespace', purl.namespace, throws)
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('conan', 'name', purl.name, throws)) {
     return false
   }
   return true

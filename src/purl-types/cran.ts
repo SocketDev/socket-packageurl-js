@@ -9,7 +9,10 @@ import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
 } from '../primordials.js'
-import { validateRequiredByType } from '../validate.js'
+import {
+  validateNoInjectionByType,
+  validateRequiredByType,
+} from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -119,10 +122,18 @@ export async function cranExists(
 
 /**
  * Validate CRAN package URL.
- * CRAN packages require a version.
+ * CRAN packages require a version. Name must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateRequiredByType('cran', 'version', purl.version, {
-    throws,
-  })
+  if (
+    !validateRequiredByType('cran', 'version', purl.version, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('cran', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

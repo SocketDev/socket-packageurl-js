@@ -2,14 +2,20 @@
  * @fileoverview Validation functions for PURL components.
  * Ensures compliance with Package URL specification requirements and constraints.
  */
-import { PurlError } from './error.js'
+import { PurlError, PurlInjectionError } from './error.js'
 import { isNullishOrEmptyString } from './lang.js'
 import {
+  ArrayIsArray,
+  ObjectKeys,
   ReflectApply,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
 } from './primordials.js'
-import { isNonEmptyString } from './strings.js'
+import {
+  findInjectionCharCode,
+  formatInjectionChar,
+  isNonEmptyString,
+} from './strings.js'
 
 import type { QualifiersObject } from './purl-component.js'
 
@@ -30,6 +36,37 @@ function validateEmptyByType(
       throw new PurlError(`${type} "${name}" component must be empty`)
     }
     return false
+  }
+  return true
+}
+
+/**
+ * Validate that a component does not contain injection characters.
+ * Shared helper to eliminate boilerplate across per-type validators.
+ * @throws {PurlInjectionError} When validation fails and throws is true.
+ *   The error includes the specific character code, component name, and
+ *   package type so callers can log, alert, or handle injection attempts
+ *   at an elevated level.
+ */
+function validateNoInjectionByType(
+  type: string,
+  component: string,
+  value: string | undefined,
+  throws: boolean,
+): boolean {
+  if (typeof value === 'string') {
+    const code = findInjectionCharCode(value)
+    if (code !== -1) {
+      if (throws) {
+        throw new PurlInjectionError(
+          type,
+          component,
+          code,
+          formatInjectionChar(code),
+        )
+      }
+      return false
+    }
   }
   return true
 }
@@ -169,7 +206,7 @@ function validateQualifiers(
   if (qualifiers === null || qualifiers === undefined) {
     return true
   }
-  if (typeof qualifiers !== 'object' || Array.isArray(qualifiers)) {
+  if (typeof qualifiers !== 'object' || ArrayIsArray(qualifiers)) {
     if (throws) {
       throw new PurlError('"qualifiers" must be a plain object')
     }
@@ -183,7 +220,7 @@ function validateQualifiers(
     (
       typeof keysProperty === 'function'
         ? ReflectApply(keysProperty, qualifiersObj, [])
-        : Object.keys(qualifiers as QualifiersObject)
+        : ObjectKeys(qualifiers as QualifiersObject)
     ) as Iterable<string>
   // Use for-of to work with URLSearchParams#keys iterators
   // type-coverage:ignore-next-line -- TypeScript correctly infers the iteration type
@@ -390,6 +427,7 @@ export {
   validateEmptyByType,
   validateName,
   validateNamespace,
+  validateNoInjectionByType,
   validateQualifiers,
   validateQualifierKey,
   validateRequired,

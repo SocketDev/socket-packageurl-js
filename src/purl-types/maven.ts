@@ -6,7 +6,10 @@
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { StringPrototypeIncludes } from '../primordials.js'
-import { validateRequiredByType } from '../validate.js'
+import {
+  validateNoInjectionByType,
+  validateRequiredByType,
+} from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -133,10 +136,24 @@ export async function mavenExists(
 
 /**
  * Validate Maven package URL.
- * Maven packages require a namespace (groupId).
+ * Maven packages require a namespace (groupId). Name and namespace must not
+ * contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateRequiredByType('maven', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateRequiredByType('maven', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (
+    !validateNoInjectionByType('maven', 'namespace', purl.namespace, throws)
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('maven', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

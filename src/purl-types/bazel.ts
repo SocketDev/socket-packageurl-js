@@ -8,6 +8,7 @@
 
 import { PurlError } from '../error.js'
 import { lowerName } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -29,13 +30,17 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate Bazel package URL.
- * Bazel packages must have a version (for reproducible builds).
+ * Bazel packages must have a version (for reproducible builds). Name must not
+ * contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (!purl.version || purl.version.length === 0) {
     if (throws) {
       throw new PurlError('bazel requires a "version" component')
     }
+    return false
+  }
+  if (!validateNoInjectionByType('bazel', 'name', purl.name, throws)) {
     return false
   }
   return true

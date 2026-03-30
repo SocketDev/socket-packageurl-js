@@ -9,6 +9,7 @@ import { encodeComponent } from '../encode.js'
 import { PurlError } from '../error.js'
 import {
   RegExpPrototypeTest,
+  SetCtor,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   StringPrototypeIndexOf,
@@ -132,7 +133,7 @@ const getNpmBuiltinSet = (() => {
           'zlib',
         ]
       }
-      builtinSet = new Set(builtinNames)
+      builtinSet = new SetCtor(builtinNames)
     }
     return builtinSet
   }
@@ -175,7 +176,7 @@ const getNpmLegacySet = (() => {
         ]
       }
       /* c8 ignore stop */
-      legacySet = new Set(fullLegacyNames)
+      legacySet = new SetCtor(fullLegacyNames)
     }
     return legacySet
   }

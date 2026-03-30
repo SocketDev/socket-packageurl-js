@@ -10,6 +10,7 @@ import {
   StringPrototypeIncludes,
   StringPrototypeToUpperCase,
 } from '../primordials.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -127,6 +128,12 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     if (throws) {
       throw new PurlError('cpan "namespace" component must be UPPERCASE')
     }
+    return false
+  }
+  if (!validateNoInjectionByType('cpan', 'namespace', namespace, throws)) {
+    return false
+  }
+  if (!validateNoInjectionByType('cpan', 'name', purl.name, throws)) {
     return false
   }
   return true

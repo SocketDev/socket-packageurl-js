@@ -5,7 +5,7 @@
 
 import { StringPrototypeIncludes } from '../primordials.js'
 import { lowerName } from '../strings.js'
-import { validateEmptyByType } from '../validate.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -33,7 +33,15 @@ export function normalize(purl: PurlObject): PurlObject {
  * MLflow packages must not have a namespace.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('mlflow', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('mlflow', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('mlflow', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

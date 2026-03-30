@@ -7,6 +7,7 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
 import { lowerName, lowerNamespace } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -122,4 +123,18 @@ export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
   lowerName(purl)
   return purl
+}
+
+/**
+ * Validate Hex package URL.
+ * Name and namespace must not contain injection characters.
+ */
+export function validate(purl: PurlObject, throws: boolean): boolean {
+  if (!validateNoInjectionByType('hex', 'namespace', purl.namespace, throws)) {
+    return false
+  }
+  if (!validateNoInjectionByType('hex', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

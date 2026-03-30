@@ -11,7 +11,7 @@ import {
   StringPrototypeIncludes,
   StringPrototypeToLowerCase,
 } from '../primordials.js'
-import { validateEmptyByType } from '../validate.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -143,10 +143,18 @@ export async function nugetExists(
 
 /**
  * Validate NuGet package URL.
- * NuGet packages must not have a namespace.
+ * NuGet packages must not have a namespace. Name must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('nuget', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('nuget', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('nuget', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

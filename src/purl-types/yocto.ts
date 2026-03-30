@@ -7,7 +7,7 @@
  */
 
 import { lowerName } from '../strings.js'
-import { validateEmptyByType } from '../validate.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -32,7 +32,15 @@ export function normalize(purl: PurlObject): PurlObject {
  * Yocto packages must not have a namespace.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('yocto', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('yocto', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('yocto', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

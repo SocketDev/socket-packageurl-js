@@ -12,6 +12,7 @@ import {
   lowerVersion,
   replaceUnderscoresWithDashes,
 } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -35,6 +36,17 @@ export function normalize(purl: PurlObject): PurlObject {
   lowerVersion(purl)
   purl.name = replaceUnderscoresWithDashes(purl.name)
   return purl
+}
+
+/**
+ * Validate PyPI package URL.
+ * Name must not contain injection characters.
+ */
+export function validate(purl: PurlObject, throws: boolean): boolean {
+  if (!validateNoInjectionByType('pypi', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }
 
 /**

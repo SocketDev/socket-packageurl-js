@@ -3,7 +3,10 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#swift
  */
 
-import { validateRequiredByType } from '../validate.js'
+import {
+  validateNoInjectionByType,
+  validateRequiredByType,
+} from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -16,12 +19,27 @@ interface PurlObject {
 
 /**
  * Validate Swift package URL.
- * Swift packages require both namespace and version.
+ * Swift packages require both namespace and version. Name and namespace must
+ * not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return (
-    validateRequiredByType('swift', 'namespace', purl.namespace, {
+  if (
+    !validateRequiredByType('swift', 'namespace', purl.namespace, {
       throws,
-    }) && validateRequiredByType('swift', 'version', purl.version, { throws })
-  )
+    })
+  ) {
+    return false
+  }
+  if (!validateRequiredByType('swift', 'version', purl.version, { throws })) {
+    return false
+  }
+  if (
+    !validateNoInjectionByType('swift', 'namespace', purl.namespace, throws)
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('swift', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }
