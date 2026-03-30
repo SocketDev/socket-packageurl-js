@@ -461,6 +461,52 @@ describe('Per-type injection character validation', () => {
       expect(err.charCode).toBe(0x1b) // ESC
       expect(err.message).toContain('0x1b')
     })
+
+    it('should have a frozen instance (properties cannot be tampered)', () => {
+      const err = getInjectionError(
+        () =>
+          new PackageURL(
+            'cargo',
+            undefined,
+            'pkg|evil',
+            '1.0.0',
+            undefined,
+            undefined,
+          ),
+      )
+      expect(Object.isFrozen(err)).toBe(true)
+      // Properties should not be writable
+      expect(() => {
+        ;(err as unknown as Record<string, unknown>)['charCode'] = 0
+      }).toThrow()
+      expect(() => {
+        ;(err as unknown as Record<string, unknown>)['purlType'] = 'hacked'
+      }).toThrow()
+      expect(() => {
+        ;(err as unknown as Record<string, unknown>)['component'] = 'hacked'
+      }).toThrow()
+    })
+
+    it('should have a frozen prototype', () => {
+      expect(Object.isFrozen(PurlInjectionError.prototype)).toBe(true)
+    })
+
+    it('should not allow adding new properties to instances', () => {
+      const err = getInjectionError(
+        () =>
+          new PackageURL(
+            'cargo',
+            undefined,
+            'pkg|evil',
+            '1.0.0',
+            undefined,
+            undefined,
+          ),
+      )
+      expect(() => {
+        ;(err as unknown as Record<string, unknown>)['newProp'] = 'value'
+      }).toThrow()
+    })
   })
 
   describe('Hardened scanner - newly detected characters', () => {

@@ -3,10 +3,13 @@
  * Includes whitespace detection, semver validation, locale comparison, and character replacement.
  */
 import {
+  NumberPrototypeToString,
   ObjectFreeze,
   RegExpPrototypeTest,
+  StringFromCharCode,
   StringPrototypeCharCodeAt,
   StringPrototypeIndexOf,
+  StringPrototypePadStart,
   StringPrototypeSlice,
   StringPrototypeToLowerCase,
 } from './primordials.js'
@@ -287,10 +290,11 @@ function containsInjectionCharacters(str: string): boolean {
  * Returns a string like `"|" (0x7c)` for printable chars or `0x1b` for control chars.
  */
 function formatInjectionChar(code: number): string {
+  const hex = NumberPrototypeToString(code, 16)
   if (code >= 0x20 && code <= 0x7e) {
-    return `"${String.fromCharCode(code)}" (0x${code.toString(16)})`
+    return `"${StringFromCharCode(code)}" (0x${hex})`
   }
-  return `0x${code.toString(16).padStart(2, '0')}`
+  return `0x${StringPrototypePadStart(hex, 2, '0')}`
 }
 
 /**

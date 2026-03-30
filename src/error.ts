@@ -1,4 +1,5 @@
 import {
+  ObjectFreeze,
   StringPrototypeCharCodeAt,
   StringPrototypeSlice,
   StringPrototypeToLowerCase,
@@ -74,7 +75,9 @@ class PurlInjectionError extends PurlError {
     this.charCode = charCode
     this.component = component
     this.purlType = purlType
+    ObjectFreeze(this)
   }
 }
+ObjectFreeze(PurlInjectionError.prototype)
 
 export { formatPurlErrorMessage, PurlError, PurlInjectionError }

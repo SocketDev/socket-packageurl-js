@@ -80,11 +80,15 @@ const ReflectGetOwnPropertyDescriptor = Reflect.getOwnPropertyDescriptor
 const ReflectOwnKeys = Reflect.ownKeys
 const ReflectSetPrototypeOf = Reflect.setPrototypeOf
 
+// ─── Number ───────────────────────────────────────────────────────────
+const NumberPrototypeToString = uncurryThis(Number.prototype.toString)
+
 // ─── RegExp ────────────────────────────────────────────────────────────
 const RegExpPrototypeExec = uncurryThis(RegExp.prototype.exec)
 const RegExpPrototypeTest = uncurryThis(RegExp.prototype.test)
 
 // ─── String ────────────────────────────────────────────────────────────
+const StringFromCharCode = String.fromCharCode
 const StringPrototypeCharCodeAt = uncurryThis(String.prototype.charCodeAt)
 const StringPrototypeEndsWith = uncurryThis(String.prototype.endsWith)
 const StringPrototypeIncludes = uncurryThis(String.prototype.includes)
@@ -98,6 +102,7 @@ const StringPrototypeReplaceAll = uncurryThis(
     replaceValue: string,
   ) => string,
 )
+const StringPrototypePadStart = uncurryThis(String.prototype.padStart)
 const StringPrototypeSlice = uncurryThis(String.prototype.slice)
 const StringPrototypeSplit = uncurryThis(String.prototype.split)
 const StringPrototypeStartsWith = uncurryThis(String.prototype.startsWith)
@@ -125,6 +130,7 @@ export {
   MapCtor,
   ObjectCreate,
   ObjectEntries,
+  NumberPrototypeToString,
   ObjectFreeze,
   ObjectIsFrozen,
   ObjectKeys,
@@ -137,6 +143,7 @@ export {
   RegExpPrototypeExec,
   RegExpPrototypeTest,
   SetCtor,
+  StringFromCharCode,
   StringPrototypeCharCodeAt,
   StringPrototypeEndsWith,
   StringPrototypeIncludes,
@@ -144,6 +151,7 @@ export {
   StringPrototypeLastIndexOf,
   StringPrototypeReplace,
   StringPrototypeReplaceAll,
+  StringPrototypePadStart,
   StringPrototypeSlice,
   StringPrototypeSplit,
   StringPrototypeStartsWith,
