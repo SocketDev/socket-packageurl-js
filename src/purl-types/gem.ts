@@ -5,7 +5,11 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
+import {
+  ArrayIsArray,
+  ArrayPrototypeSome,
+  StringPrototypeIncludes,
+} from '../primordials.js'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -75,7 +79,7 @@ export async function gemExists(
 
       const data = await httpJson<Array<{ number?: string }>>(url)
 
-      if (!Array.isArray(data) || data.length === 0) {
+      if (!ArrayIsArray(data) || data.length === 0) {
         return {
           exists: false,
           error: 'No versions found',

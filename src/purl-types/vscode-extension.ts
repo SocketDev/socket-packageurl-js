@@ -9,7 +9,11 @@
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
-import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
+import {
+  ArrayPrototypeSome,
+  JSONStringify,
+  StringPrototypeIncludes,
+} from '../primordials.js'
 import {
   isSemverString,
   lowerName,
@@ -196,7 +200,7 @@ export async function vscodeExtensionExists(
           'Content-Type': 'application/json',
           Accept: 'application/json;api-version=7.1-preview.1',
         },
-        body: JSON.stringify(requestBody),
+        body: JSONStringify(requestBody),
       })
 
       const extensions = data.results?.[0]?.['extensions']

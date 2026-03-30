@@ -5,6 +5,7 @@
 import { isObject } from './objects.js'
 import {
   ObjectCreate,
+  ObjectEntries,
   ObjectFreeze,
   ReflectApply,
   StringPrototypeCharCodeAt,
@@ -152,7 +153,7 @@ function qualifiersToEntries(
       ? (ReflectApply(entriesProperty, rawQualifiersObj, []) as Iterable<
           [string, string]
         >)
-      : (Object.entries(rawQualifiers as Record<string, string>) as Iterable<
+      : (ObjectEntries(rawQualifiers as Record<string, string>) as Iterable<
           [string, string]
         >)
   }

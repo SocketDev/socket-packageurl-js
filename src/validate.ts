@@ -5,6 +5,8 @@
 import { PurlError, PurlInjectionError } from './error.js'
 import { isNullishOrEmptyString } from './lang.js'
 import {
+  ArrayIsArray,
+  ObjectKeys,
   ReflectApply,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
@@ -204,7 +206,7 @@ function validateQualifiers(
   if (qualifiers === null || qualifiers === undefined) {
     return true
   }
-  if (typeof qualifiers !== 'object' || Array.isArray(qualifiers)) {
+  if (typeof qualifiers !== 'object' || ArrayIsArray(qualifiers)) {
     if (throws) {
       throw new PurlError('"qualifiers" must be a plain object')
     }
@@ -218,7 +220,7 @@ function validateQualifiers(
     (
       typeof keysProperty === 'function'
         ? ReflectApply(keysProperty, qualifiersObj, [])
-        : Object.keys(qualifiers as QualifiersObject)
+        : ObjectKeys(qualifiers as QualifiersObject)
     ) as Iterable<string>
   // Use for-of to work with URLSearchParams#keys iterators
   // type-coverage:ignore-next-line -- TypeScript correctly infers the iteration type
