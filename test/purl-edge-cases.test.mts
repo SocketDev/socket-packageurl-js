@@ -32,6 +32,7 @@ import { describe, expect, it } from 'vitest'
 import {
   encodeComponent,
   encodeNamespace,
+  encodeQualifierParam,
   encodeSubpath,
   encodeVersion,
 } from '../src/encode.js'
@@ -601,6 +602,78 @@ describe('Edge cases and additional coverage', () => {
       const str1 = purl1.toString()
       expect(str1).toContain('key-with-spaces=value%20with%20spaces')
       expect(str1).toContain('key-with-plus=value%2Bplus')
+    })
+
+    it('should reject null bytes in name', () => {
+      expect(
+        () =>
+          new PackageURL(
+            'npm',
+            undefined,
+            'foo\x00bar',
+            '1.0.0',
+            undefined,
+            undefined,
+          ),
+      ).toThrow('must not contain null bytes')
+    })
+
+    it('should reject null bytes in namespace', () => {
+      expect(
+        () =>
+          new PackageURL(
+            'npm',
+            '@scope\x00evil',
+            'name',
+            '1.0.0',
+            undefined,
+            undefined,
+          ),
+      ).toThrow('must not contain null bytes')
+    })
+
+    it('should reject null bytes in version', () => {
+      expect(
+        () =>
+          new PackageURL(
+            'npm',
+            undefined,
+            'name',
+            '1.0.0\x00evil',
+            undefined,
+            undefined,
+          ),
+      ).toThrow('must not contain null bytes')
+    })
+
+    it('should reject null bytes in subpath', () => {
+      expect(
+        () =>
+          new PackageURL(
+            'npm',
+            undefined,
+            'name',
+            '1.0.0',
+            undefined,
+            'path\x00evil',
+          ),
+      ).toThrow('must not contain null bytes')
+    })
+
+    it('should test encodeQualifierParam directly', () => {
+      // Test with non-empty string value
+      expect(encodeQualifierParam('hello world')).toBe('hello%20world')
+      expect(encodeQualifierParam('value+plus')).toBe('value%2Bplus')
+      // Test with empty/non-string returns empty
+      expect(encodeQualifierParam('')).toBe('')
+      expect(encodeQualifierParam(null)).toBe('')
+      expect(encodeQualifierParam(undefined)).toBe('')
+    })
+
+    it('should test encodeSubpath with empty values', () => {
+      expect(encodeSubpath('')).toBe('')
+      expect(encodeSubpath(null)).toBe('')
+      expect(encodeSubpath(undefined)).toBe('')
     })
 
     // Test objects module - recursiveFreeze edge cases

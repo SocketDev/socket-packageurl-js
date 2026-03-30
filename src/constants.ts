@@ -3,9 +3,11 @@
  * Includes loop sentinels and reusable URL search parameter utilities.
  */
 
+import { URLSearchParamsCtor } from './primordials.js'
+
 const LOOP_SENTINEL = 1_000_000
 
-const REUSED_SEARCH_PARAMS = new URLSearchParams()
+const REUSED_SEARCH_PARAMS = new URLSearchParamsCtor()
 
 const REUSED_SEARCH_PARAMS_KEY = '_'
 

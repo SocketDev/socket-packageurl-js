@@ -6,6 +6,12 @@
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
+import {
+  RegExpPrototypeTest,
+  StringPrototypeCharCodeAt,
+  StringPrototypeIncludes,
+  ArrayPrototypeSome,
+} from '../primordials.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -76,7 +82,10 @@ export async function cocoapodsExists(
       const latestVersion = versions[0]?.['name']
 
       if (version) {
-        const versionExists = versions.some(v => v.name === version)
+        const versionExists = ArrayPrototypeSome(
+          versions,
+          v => v.name === version,
+        )
         if (!versionExists) {
           const result: ExistsResult = {
             exists: false,
@@ -99,7 +108,7 @@ export async function cocoapodsExists(
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
-        error: error.includes('404') ? 'Pod not found' : error,
+        error: StringPrototypeIncludes(error, '404') ? 'Pod not found' : error,
       }
     }
   }
@@ -121,7 +130,7 @@ export async function cocoapodsExists(
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name } = purl
   // Name cannot contain whitespace
-  if (/\s/.test(name)) {
+  if (RegExpPrototypeTest(/\s/, name)) {
     if (throws) {
       throw new PurlError(
         'cocoapods "name" component cannot contain whitespace',
@@ -130,7 +139,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     return false
   }
   // Name cannot contain a plus (+) character
-  if (name.includes('+')) {
+  if (StringPrototypeIncludes(name, '+')) {
     if (throws) {
       throw new PurlError(
         'cocoapods "name" component cannot contain a plus (+) character',
@@ -139,7 +148,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     return false
   }
   // Name cannot begin with a period (.)
-  if (name.charCodeAt(0) === 46 /*'.'*/) {
+  if (StringPrototypeCharCodeAt(name, 0) === 46 /*'.'*/) {
     if (throws) {
       throw new PurlError(
         'cocoapods "name" component cannot begin with a period',

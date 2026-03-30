@@ -5,6 +5,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
 import { validateEmptyByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -85,7 +86,10 @@ export async function gemExists(
 
       // If specific version requested, validate it exists
       if (version) {
-        const versionExists = data.some(v => v.number === version)
+        const versionExists = ArrayPrototypeSome(
+          data,
+          v => v.number === version,
+        )
         if (!versionExists) {
           const result: ExistsResult = {
             exists: false,
@@ -110,7 +114,7 @@ export async function gemExists(
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
-        error: error.includes('404') ? 'Gem not found' : error,
+        error: StringPrototypeIncludes(error, '404') ? 'Gem not found' : error,
       }
     }
   }

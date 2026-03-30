@@ -3,9 +3,14 @@
  * Provides object validation and recursive freezing utilities.
  */
 
-import { isObject } from '@socketsecurity/lib/objects'
-
 import { LOOP_SENTINEL } from './constants.js'
+import {
+  ArrayIsArray,
+  ObjectFreeze,
+  ObjectIsFrozen,
+  ReflectOwnKeys,
+  WeakSetCtor,
+} from './primordials.js'
 
 /**
  * Recursively freeze an object and all nested objects.
@@ -16,13 +21,13 @@ function recursiveFreeze<T>(value_: T): T {
   if (
     value_ === null ||
     !(typeof value_ === 'object' || typeof value_ === 'function') ||
-    Object.isFrozen(value_)
+    ObjectIsFrozen(value_)
   ) {
     return value_
   }
   // Use breadth-first traversal to avoid stack overflow on deep objects
   const queue = [value_ as T & object]
-  const visited = new WeakSet<object>()
+  const visited = new WeakSetCtor<object>()
   visited.add(value_ as T & object)
   let { length: queueLength } = queue
   let pos = 0
@@ -32,15 +37,15 @@ function recursiveFreeze<T>(value_: T): T {
       throw new Error('Object graph too large (exceeds 1,000,000 items).')
     }
     const obj = queue[pos++]!
-    Object.freeze(obj)
-    if (Array.isArray(obj)) {
+    ObjectFreeze(obj)
+    if (ArrayIsArray(obj)) {
       // Queue unfrozen array items for processing
       for (let i = 0, { length } = obj; i < length; i += 1) {
         const item: unknown = obj[i]
         if (
           item !== null &&
           (typeof item === 'object' || typeof item === 'function') &&
-          !Object.isFrozen(item) &&
+          !ObjectIsFrozen(item) &&
           !visited.has(item as object)
         ) {
           visited.add(item as object)
@@ -49,7 +54,7 @@ function recursiveFreeze<T>(value_: T): T {
       }
     } else {
       // Queue unfrozen object properties for processing
-      const keys = Reflect.ownKeys(obj)
+      const keys = ReflectOwnKeys(obj)
       for (let i = 0, { length } = keys; i < length; i += 1) {
         const propValue: unknown = (obj as Record<PropertyKey, unknown>)[
           keys[i]!
@@ -57,7 +62,7 @@ function recursiveFreeze<T>(value_: T): T {
         if (
           propValue !== null &&
           (typeof propValue === 'object' || typeof propValue === 'function') &&
-          !Object.isFrozen(propValue) &&
+          !ObjectIsFrozen(propValue) &&
           !visited.has(propValue as object)
         ) {
           visited.add(propValue as object)
@@ -67,6 +72,15 @@ function recursiveFreeze<T>(value_: T): T {
     }
   }
   return value_
+}
+
+/**
+ * Check if value is a non-null object.
+ * Inlined to avoid importing @socketsecurity/lib/objects which transitively
+ * pulls in sorts → semver → npm-pack (2.5 MB).
+ */
+function isObject(value: unknown): value is { [key: PropertyKey]: unknown } {
+  return value !== null && typeof value === 'object'
 }
 
 export { isObject, recursiveFreeze }

@@ -5,6 +5,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { StringPrototypeIncludes } from '../primordials.js'
 import { lowerName } from '../strings.js'
 
 import type { ExistsOptions, ExistsResult } from './npm.js'
@@ -116,7 +117,9 @@ export async function dockerExists(
           /* c8 ignore stop */
           return {
             exists: false,
-            error: error.includes('404') ? `Tag ${version} not found` : error,
+            error: StringPrototypeIncludes(error, '404')
+              ? `Tag ${version} not found`
+              : error,
           }
         }
       }
@@ -131,7 +134,9 @@ export async function dockerExists(
       /* c8 ignore stop */
       return {
         exists: false,
-        error: error.includes('404') ? 'Image not found' : error,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Image not found'
+          : error,
       }
     }
   }

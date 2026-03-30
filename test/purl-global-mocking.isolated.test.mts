@@ -38,30 +38,26 @@ import { describe, expect, it } from 'vitest'
 import { PackageURL } from '../src/package-url.js'
 
 describe('Global object mocking tests', () => {
-  describe('URL constructor error handling', () => {
-    it('should handle URL parsing error when URL constructor throws', () => {
-      // Test package-url.js lines 144-148 - URL parsing failure path
-      // We need to mock URL constructor to throw an error
+  describe('Primordials protect against global tampering', () => {
+    it('should use captured URL constructor even when global.URL is replaced', () => {
+      // Primordials capture built-in references at module load time.
+      // Replacing global.URL after import should NOT affect PackageURL.
       const originalURL = global.URL
-      let callCount = 0
 
-      // Mock URL to throw error
       global.URL = class MockURL {
         constructor(_url: string) {
-          callCount++
-          // Always throw to trigger the catch block
-          throw new Error('Mocked URL error')
+          throw new Error('Mocked URL error - should not be called')
         }
       } as any
 
       try {
-        expect(() => PackageURL.fromString('pkg:type/name')).toThrow(
-          'failed to parse as URL',
-        )
-        // Make sure our mock was actually called
-        expect(callCount).toBeGreaterThan(0)
+        // PackageURL uses the captured URL constructor from primordials,
+        // so it should still work correctly despite global.URL being tampered.
+        const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+        expect(purl.type).toBe('npm')
+        expect(purl.name).toBe('lodash')
+        expect(purl.version).toBe('4.17.21')
       } finally {
-        // Critical: restore original URL in finally block
         global.URL = originalURL
       }
     })

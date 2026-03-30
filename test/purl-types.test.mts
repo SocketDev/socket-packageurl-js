@@ -29,8 +29,10 @@ import { describe, expect, it } from 'vitest'
 
 import npmBuiltinNames from '../data/npm/builtin-names.json'
 import npmLegacyNames from '../data/npm/legacy-names.json'
+import { PurlError } from '../src/error.js'
 import { PackageURL } from '../src/package-url.js'
 import { validate as validateBazel } from '../src/purl-types/bazel.js'
+import { validate as validateVscodeExtension } from '../src/purl-types/vscode-extension.js'
 
 function getNpmId(purl: any) {
   const { name, namespace } = purl
@@ -601,6 +603,304 @@ describe('PackageURL type-specific tests', () => {
         undefined,
       )
       expect(purl.name).toBe('MyPackage')
+    })
+  })
+
+  describe('oci', () => {
+    it('should lowercase version per spec', () => {
+      const purl = PackageURL.fromString(
+        'pkg:oci/myimage@SHA256:ABCDEF1234567890',
+      )
+      expect(purl.name).toBe('myimage')
+      expect(purl.version).toBe('sha256:abcdef1234567890')
+    })
+  })
+
+  describe('pypi', () => {
+    it('should lowercase version per spec', () => {
+      const purl = PackageURL.fromString('pkg:pypi/Django@3.0.0RC1')
+      expect(purl.name).toBe('django')
+      expect(purl.version).toBe('3.0.0rc1')
+    })
+  })
+
+  describe('vscode-extension', () => {
+    describe('validate', () => {
+      // Spec examples from purl-spec PR #673
+      it('should accept spec-compliant PURLs', () => {
+        expect(
+          validateVscodeExtension(
+            {
+              name: 'python',
+              namespace: 'ms-python',
+              version: '2023.25.10292213',
+            },
+            false,
+          ),
+        ).toBe(true)
+        expect(
+          validateVscodeExtension(
+            { name: 'java', namespace: 'redhat', version: '1.46.2025091308' },
+            false,
+          ),
+        ).toBe(true)
+        expect(
+          validateVscodeExtension(
+            { name: 'go', namespace: 'golang', version: '0.39.1' },
+            false,
+          ),
+        ).toBe(true)
+      })
+
+      it('should accept PURLs without version', () => {
+        expect(
+          validateVscodeExtension({ name: 'java', namespace: 'redhat' }, false),
+        ).toBe(true)
+      })
+
+      it('should accept valid platform qualifiers', () => {
+        const platforms = [
+          'universal',
+          'linux-x64',
+          'linux-arm64',
+          'darwin-x64',
+          'darwin-arm64',
+          'win32-x64',
+          'win32-arm64',
+        ]
+        for (const platform of platforms) {
+          expect(
+            validateVscodeExtension(
+              {
+                name: 'python',
+                namespace: 'ms-python',
+                qualifiers: { platform },
+              },
+              false,
+            ),
+          ).toBe(true)
+        }
+      })
+
+      it('should accept valid semver versions', () => {
+        expect(
+          validateVscodeExtension(
+            { name: 'python', namespace: 'ms-python', version: '1.0.0' },
+            false,
+          ),
+        ).toBe(true)
+        expect(
+          validateVscodeExtension(
+            { name: 'python', namespace: 'ms-python', version: '0.3.0-beta.1' },
+            false,
+          ),
+        ).toBe(true)
+        expect(
+          validateVscodeExtension(
+            {
+              name: 'python',
+              namespace: 'ms-python',
+              version: '1.0.0+build123',
+            },
+            false,
+          ),
+        ).toBe(true)
+      })
+
+      it('should require namespace (publisher)', () => {
+        expect(validateVscodeExtension({ name: 'python' }, false)).toBe(false)
+        expect(() => validateVscodeExtension({ name: 'python' }, true)).toThrow(
+          PurlError,
+        )
+      })
+
+      it('should reject illegal characters in namespace', () => {
+        const illegal = ['ns|x', 'ns&x', 'ns;x', 'ns`x`', 'ns$(x)', 'ns x']
+        for (const namespace of illegal) {
+          expect(
+            validateVscodeExtension({ name: 'ext', namespace }, false),
+          ).toBe(false)
+        }
+        expect(() =>
+          validateVscodeExtension({ name: 'ext', namespace: 'ns|x' }, true),
+        ).toThrow(PurlError)
+      })
+
+      it('should reject illegal characters in name', () => {
+        const illegal = ['ext|x', 'ext&x', 'ext;x', 'ext<x>', 'ext{x}']
+        for (const name of illegal) {
+          expect(
+            validateVscodeExtension({ name, namespace: 'ms-python' }, false),
+          ).toBe(false)
+        }
+        expect(() =>
+          validateVscodeExtension(
+            { name: 'ext|x', namespace: 'ms-python' },
+            true,
+          ),
+        ).toThrow(PurlError)
+      })
+
+      it('should reject non-semver version strings', () => {
+        const invalid = ['not-semver', 'latest', '1.0', '1']
+        for (const version of invalid) {
+          expect(
+            validateVscodeExtension(
+              { name: 'python', namespace: 'ms-python', version },
+              false,
+            ),
+          ).toBe(false)
+        }
+        expect(() =>
+          validateVscodeExtension(
+            { name: 'python', namespace: 'ms-python', version: 'latest' },
+            true,
+          ),
+        ).toThrow(PurlError)
+      })
+
+      it('should reject illegal characters in platform qualifier', () => {
+        const illegal = ['linux x64', 'linux|x64', 'linux&x64', 'linux;x64']
+        for (const platform of illegal) {
+          expect(
+            validateVscodeExtension(
+              {
+                name: 'python',
+                namespace: 'ms-python',
+                qualifiers: { platform },
+              },
+              false,
+            ),
+          ).toBe(false)
+        }
+        expect(() =>
+          validateVscodeExtension(
+            {
+              name: 'python',
+              namespace: 'ms-python',
+              qualifiers: { platform: 'linux|x64' },
+            },
+            true,
+          ),
+        ).toThrow(PurlError)
+      })
+    })
+
+    describe('normalize', () => {
+      it('should lowercase namespace, name, and version per spec', () => {
+        const purl = PackageURL.fromString(
+          'pkg:vscode-extension/MS-Python/Python@1.0.0-BETA',
+        )
+        expect(purl.namespace).toBe('ms-python')
+        expect(purl.name).toBe('python')
+        expect(purl.version).toBe('1.0.0-beta')
+      })
+    })
+
+    describe('PackageURL construction', () => {
+      it('should construct valid vscode-extension PURLs', () => {
+        const purl = new PackageURL(
+          'vscode-extension',
+          'ms-python',
+          'python',
+          '1.0.0',
+          undefined,
+          undefined,
+        )
+        expect(purl.type).toBe('vscode-extension')
+        expect(purl.namespace).toBe('ms-python')
+        expect(purl.name).toBe('python')
+        expect(purl.version).toBe('1.0.0')
+      })
+
+      it('should reject illegal characters in namespace during construction', () => {
+        expect(
+          () =>
+            new PackageURL(
+              'vscode-extension',
+              'pub|x',
+              'ext',
+              '1.0.0',
+              undefined,
+              undefined,
+            ),
+        ).toThrow(PurlError)
+      })
+
+      it('should reject illegal characters in name during construction', () => {
+        expect(
+          () =>
+            new PackageURL(
+              'vscode-extension',
+              'publisher',
+              'ext&x',
+              '1.0.0',
+              undefined,
+              undefined,
+            ),
+        ).toThrow(PurlError)
+      })
+
+      it('should reject non-semver version during construction', () => {
+        expect(
+          () =>
+            new PackageURL(
+              'vscode-extension',
+              'publisher',
+              'ext',
+              'not-a-version',
+              undefined,
+              undefined,
+            ),
+        ).toThrow(PurlError)
+      })
+
+      it('should reject illegal characters in platform qualifier during construction', () => {
+        expect(
+          () =>
+            new PackageURL(
+              'vscode-extension',
+              'publisher',
+              'ext',
+              '1.0.0',
+              { platform: 'linux|x64' },
+              undefined,
+            ),
+        ).toThrow(PurlError)
+      })
+    })
+
+    describe('PackageURL.fromString', () => {
+      it('should parse spec-compliant PURL strings', () => {
+        const purl = PackageURL.fromString(
+          'pkg:vscode-extension/ms-python/python@2023.25.10292213',
+        )
+        expect(purl.type).toBe('vscode-extension')
+        expect(purl.namespace).toBe('ms-python')
+        expect(purl.name).toBe('python')
+        expect(purl.version).toBe('2023.25.10292213')
+      })
+
+      it('should parse PURL with platform qualifier', () => {
+        const purl = PackageURL.fromString(
+          'pkg:vscode-extension/golang/go@0.39.1?platform=win32-x64',
+        )
+        expect(purl.qualifiers).toEqual({ platform: 'win32-x64' })
+      })
+
+      it('should reject encoded illegal characters in version', () => {
+        // %26 decodes to &, which is not valid in a semver version
+        expect(() =>
+          PackageURL.fromString('pkg:vscode-extension/publisher/ext@1.0.0%26x'),
+        ).toThrow(PurlError)
+      })
+
+      it('should reject encoded illegal characters in namespace', () => {
+        // %7C decodes to |, which is not a valid publisher character
+        expect(() =>
+          PackageURL.fromString('pkg:vscode-extension/%7Cx/ext@1.0.0'),
+        ).toThrow(PurlError)
+      })
     })
   })
 })

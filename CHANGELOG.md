@@ -4,6 +4,43 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.0) - 2026-03-28
+
+### Added
+
+- **VERS parser**: First JavaScript implementation of the VERS (VErsion Range Specifier) companion spec to PURL. Supports parsing, serialization, and containment checking for semver-based schemes (npm, cargo, golang, gem, hex, pub, cran, swift)
+- **URL-to-PURL conversion**: `UrlConverter.fromUrl()` converts registry URLs to PackageURLs across 27 hostnames and 17 purl types (npm, pypi, maven, cargo, nuget, github, gitlab, bitbucket, docker, hex, pub, cocoapods, hackage, conda, cpan, luarocks, huggingface, swift, cran, vscode)
+- **`toSpec()` method**: Returns the package identity without the `pkg:type/` prefix (the npm "spec" equivalent)
+- **`isValid()` static method**: Quick validation without throwing
+- **`fromUrl()` static method**: Convenience wrapper for `UrlConverter.fromUrl()`
+- **Immutable copy methods**: `withVersion()`, `withNamespace()`, `withQualifier()`, `withQualifiers()`, `withSubpath()` return new instances
+- **PurlBuilder factories**: Added 18 new type factories (bitbucket, cocoapods, conan, conda, cran, deb, docker, github, gitlab, hackage, hex, huggingface, luarocks, oci, pub, rpm, swift, vscode-extension)
+- **Injection character detection**: `containsInjectionCharacters()` utility for shell metacharacter detection
+- **`vers` qualifier**: Added 6th standard qualifier per purl spec
+- **`./exists` entry point**: Registry existence checks available via `@socketregistry/packageurl-js/exists`
+
+### Changed
+
+- **Bundle size reduced 95%**: Core bundle is 178 KB (was 3.3 MB). Exists functions moved to separate entry point to avoid bundling HTTP dependencies
+- **Primordials module**: All 43 built-in references captured at module load time via `uncurryThis` pattern (mirrors Node.js internals). Zero raw prototype method calls remain
+- **Frozen constants**: Module-level Maps, Sets, regex patterns, and arrays are frozen
+- **Null prototype objects**: All user-facing object literals use `__proto__: null`
+- **Flyweight cache**: `fromString()` caches up to 1024 instances; `toString()` memoized
+- **Version lowercasing**: Added for oci, pypi, and vscode-extension per upstream spec
+
+### Fixed
+
+- **ReDoS prevention**: Consecutive `.*` groups collapsed in wildcard regex
+- **Null byte rejection**: All string components reject `\x00` to prevent truncation in C-based consumers
+- **VERS resource limits**: 1000 constraint maximum, MAX_SAFE_INTEGER validation
+- **vscode-extension validation**: Rejects illegal characters in namespace, name, version, and platform qualifier
+
+### Security
+
+- Prototype pollution resilience via primordials (captured String, Array, RegExp, Object, Reflect methods)
+- Global tampering protection verified (replacing `global.URL` after import has no effect)
+- Inline regex patterns hoisted to frozen module-scope constants
+
 ## [1.3.5](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.3.5) - 2025-11-02
 
 ### Changed
