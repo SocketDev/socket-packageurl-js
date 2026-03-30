@@ -7,7 +7,8 @@
  */
 
 import { PurlError } from '../error.js'
-import { containsInjectionCharacters, lowerName } from '../strings.js'
+import { lowerName } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -39,10 +40,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('bazel "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('bazel', 'name', purl.name, throws)) {
     return false
   }
   return true

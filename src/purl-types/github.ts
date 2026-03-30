@@ -3,12 +3,8 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#github
  */
 
-import { PurlError } from '../error.js'
-import {
-  containsInjectionCharacters,
-  lowerName,
-  lowerNamespace,
-} from '../strings.js'
+import { lowerName, lowerNamespace } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -35,20 +31,11 @@ export function normalize(purl: PurlObject): PurlObject {
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (
-    typeof purl.namespace === 'string' &&
-    containsInjectionCharacters(purl.namespace)
+    !validateNoInjectionByType('github', 'namespace', purl.namespace, throws)
   ) {
-    if (throws) {
-      throw new PurlError(
-        'github "namespace" component contains illegal characters',
-      )
-    }
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('github "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('github', 'name', purl.name, throws)) {
     return false
   }
   return true

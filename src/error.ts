@@ -46,4 +46,35 @@ class PurlError extends Error {
   }
 }
 
-export { formatPurlErrorMessage, PurlError }
+/**
+ * Specialized error for injection character detection.
+ * Developers can catch this specifically to distinguish injection rejections
+ * from other PURL validation errors and handle them at an elevated level
+ * (e.g., logging, alerting, blocking).
+ *
+ * Properties:
+ * - `component` — which PURL component was rejected ("name", "namespace")
+ * - `charCode` — the character code of the injection character found
+ * - `purlType` — the package type (e.g., "npm", "maven")
+ */
+class PurlInjectionError extends PurlError {
+  readonly charCode: number
+  readonly component: string
+  readonly purlType: string
+
+  constructor(
+    purlType: string,
+    component: string,
+    charCode: number,
+    charLabel: string,
+  ) {
+    super(
+      `${purlType} "${component}" component contains injection character ${charLabel}`,
+    )
+    this.charCode = charCode
+    this.component = component
+    this.purlType = purlType
+  }
+}
+
+export { formatPurlErrorMessage, PurlError, PurlInjectionError }

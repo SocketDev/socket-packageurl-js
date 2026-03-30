@@ -5,13 +5,9 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { PurlError } from '../error.js'
 import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
-import {
-  containsInjectionCharacters,
-  lowerName,
-  lowerNamespace,
-} from '../strings.js'
+import { lowerName, lowerNamespace } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -134,21 +130,10 @@ export function normalize(purl: PurlObject): PurlObject {
  * Name and namespace must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  if (
-    typeof purl.namespace === 'string' &&
-    containsInjectionCharacters(purl.namespace)
-  ) {
-    if (throws) {
-      throw new PurlError(
-        'hex "namespace" component contains illegal characters',
-      )
-    }
+  if (!validateNoInjectionByType('hex', 'namespace', purl.namespace, throws)) {
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('hex "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('hex', 'name', purl.name, throws)) {
     return false
   }
   return true

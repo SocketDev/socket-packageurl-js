@@ -5,13 +5,12 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { PurlError } from '../error.js'
 import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
 } from '../primordials.js'
-import { containsInjectionCharacters, lowerName } from '../strings.js'
-import { validateEmptyByType } from '../validate.js'
+import { lowerName } from '../strings.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsOptions, ExistsResult } from './npm.js'
 
@@ -45,10 +44,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   ) {
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('conda "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('conda', 'name', purl.name, throws)) {
     return false
   }
   return true

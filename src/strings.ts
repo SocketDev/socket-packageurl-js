@@ -181,55 +181,116 @@ function replaceUnderscoresWithDashes(str: string): string {
 }
 
 /**
- * Check if string contains characters commonly used in shell/URL injection attacks.
- * Detects shell metacharacters (|, &, ;, `, $, <, >, {, }, #, \, newlines)
- * and whitespace that could be used to break out of command or URL contexts.
- * Uses charCode scanning for performance in hot paths.
+ * Test whether a character code is an injection-dangerous character.
+ *
+ * Detects four classes of dangerous characters:
+ *
+ * 1. **Shell metacharacters** — command execution, piping, redirection, expansion:
+ *    |, &, ;, `, $, <, >, (, ), {, }, \
+ *
+ * 2. **Quote characters** — break out of quoted contexts in shell, SQL, URLs:
+ *    ', "
+ *
+ * 3. **URL/path delimiters** — fragment injection, comment injection:
+ *    #
+ *
+ * 4. **Whitespace & control characters** — argument splitting, log injection,
+ *    terminal escape sequences, null-byte truncation:
+ *    0x00-0x1f (all C0 controls including NUL, tab, newline, CR, ESC, etc.)
+ *    space (0x20), DEL (0x7f)
  */
-function containsInjectionCharacters(str: string): boolean {
-  for (let i = 0, { length } = str; i < length; i += 1) {
-    const code = StringPrototypeCharCodeAt(str, i)
-    // biome-ignore format: newlines
-    if (
-      // |
-      code === 0x7c ||
-      // &
-      code === 0x26 ||
-      // ;
-      code === 0x3b ||
-      // `
-      code === 0x60 ||
-      // $
-      code === 0x24 ||
-      // <
-      code === 0x3c ||
-      // >
-      code === 0x3e ||
-      // (
-      code === 0x28 ||
-      // )
-      code === 0x29 ||
-      // {
-      code === 0x7b ||
-      // }
-      code === 0x7d ||
-      // #
-      code === 0x23 ||
-      // \
-      code === 0x5c ||
-      // space
-      code === 0x20 ||
-      // tab
-      code === 0x09 ||
-      // newline
-      code === 0x0a ||
-      // carriage return
-      code === 0x0d
-    ) {
-      return true
-    }
+function isInjectionCharCode(code: number): boolean {
+  // C0 control characters (0x00-0x1f) — includes NUL, tab, newline, CR,
+  // ESC (0x1b, terminal escape sequences), and all other control chars.
+  // Also catches vertical tab (0x0b), form feed (0x0c), and bell (0x07)
+  // which can be used for log injection and terminal manipulation.
+  if (code <= 0x1f) {
+    return true
+  }
+  // biome-ignore format: newlines
+  if (
+    // space — argument splitting in shell contexts
+    code === 0x20 ||
+    // " — breaks double-quoted shell/SQL/URL contexts
+    code === 0x22 ||
+    // # — URL fragment injection, shell comments
+    code === 0x23 ||
+    // $ — shell variable expansion, command substitution $()
+    code === 0x24 ||
+    // & — shell background execution, URL parameter delimiter
+    code === 0x26 ||
+    // ' — breaks single-quoted shell/SQL contexts
+    code === 0x27 ||
+    // ( — shell subshell, command grouping
+    code === 0x28 ||
+    // ) — shell subshell, command grouping
+    code === 0x29 ||
+    // ; — shell command separator
+    code === 0x3b ||
+    // < — shell input redirection, XML/HTML injection
+    code === 0x3c ||
+    // > — shell output redirection, XML/HTML injection
+    code === 0x3e ||
+    // \ — shell escape character, path traversal on Windows
+    code === 0x5c ||
+    // ` — shell command substitution (legacy backtick form)
+    code === 0x60 ||
+    // { — shell brace expansion
+    code === 0x7b ||
+    // | — shell pipe
+    code === 0x7c ||
+    // } — shell brace expansion
+    code === 0x7d ||
+    // DEL (0x7f) — control character, terminal manipulation
+    code === 0x7f
+  ) {
+    return true
   }
   return false
+}
+
+/**
+ * Find the first injection character in a string.
+ * Returns the character code of the first dangerous character found, or -1.
+ *
+ * Uses charCode scanning for performance in hot paths. The check is a
+ * single pass with no allocation, no regex, and no prototype method calls
+ * beyond the captured StringPrototypeCharCodeAt primordial.
+ *
+ * Null bytes (0x00) are also caught by validateStrings() in validate.ts,
+ * but we include them here for defense-in-depth so callers who skip the
+ * base validators still get protection.
+ */
+function findInjectionCharCode(str: string): number {
+  for (let i = 0, { length } = str; i < length; i += 1) {
+    const code = StringPrototypeCharCodeAt(str, i)
+    if (isInjectionCharCode(code)) {
+      return code
+    }
+  }
+  return -1
+}
+
+/**
+ * Check if string contains characters commonly used in injection attacks.
+ * Returns true if any dangerous character is found.
+ *
+ * For detailed information about which character was found, use
+ * {@link findInjectionCharCode} instead.
+ */
+function containsInjectionCharacters(str: string): boolean {
+  return findInjectionCharCode(str) !== -1
+}
+
+/**
+ * Format an injection character code as a human-readable label for error messages.
+ * Returns a string like `"|" (0x7c)` for printable chars or `0x1b` for control chars.
+ */
+function formatInjectionChar(code: number): string {
+  if (code >= 0x20 && code <= 0x7e) {
+    return `"${String.fromCharCode(code)}" (0x${code.toString(16)})`
+  }
+  return `0x${code.toString(16).padStart(2, '0')}`
 }
 
 /**
@@ -245,6 +306,8 @@ function trimLeadingSlashes(str: string): string {
 
 export {
   containsInjectionCharacters,
+  findInjectionCharCode,
+  formatInjectionChar,
   isBlank,
   isNonEmptyString,
   isSemverString,

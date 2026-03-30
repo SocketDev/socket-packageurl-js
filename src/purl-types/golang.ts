@@ -40,7 +40,8 @@ import {
   StringPrototypeSplit,
   StringPrototypeToLowerCase,
 } from '../primordials.js'
-import { containsInjectionCharacters, isSemverString } from '../strings.js'
+import { isSemverString } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -173,20 +174,11 @@ export async function golangExists(
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (
-    typeof purl.namespace === 'string' &&
-    containsInjectionCharacters(purl.namespace)
+    !validateNoInjectionByType('golang', 'namespace', purl.namespace, throws)
   ) {
-    if (throws) {
-      throw new PurlError(
-        'golang "namespace" component contains illegal characters',
-      )
-    }
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('golang "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('golang', 'name', purl.name, throws)) {
     return false
   }
   // Still being lenient here since the standard changes aren't official

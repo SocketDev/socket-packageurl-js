@@ -5,15 +5,13 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { PurlError } from '../error.js'
 import {
   ArrayPrototypeIncludes,
   ArrayPrototypePush,
   StringPrototypeIncludes,
   StringPrototypeToLowerCase,
 } from '../primordials.js'
-import { containsInjectionCharacters } from '../strings.js'
-import { validateEmptyByType } from '../validate.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -155,10 +153,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   ) {
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('nuget "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('nuget', 'name', purl.name, throws)) {
     return false
   }
   return true

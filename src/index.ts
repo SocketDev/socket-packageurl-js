@@ -86,7 +86,7 @@ export {
   UrlConverter,
 } from './package-url.js'
 export { PurlBuilder } from './package-url-builder.js'
-export { PurlError } from './error.js'
+export { PurlError, PurlInjectionError } from './error.js'
 // ============================================================================
 // Modular Utilities
 // ============================================================================
@@ -96,7 +96,11 @@ export { parseNpmSpecifier } from './purl-types/npm.js'
 // separate entry point: import { npmExists } from '@socketregistry/packageurl-js/exists'
 // This keeps the core bundle lean (~200 KB vs 3.3 MB with HTTP deps).
 export type { ExistsOptions, ExistsResult } from './purl-types/npm.js'
-export { containsInjectionCharacters } from './strings.js'
+export {
+  containsInjectionCharacters,
+  findInjectionCharCode,
+  formatInjectionChar,
+} from './strings.js'
 export { stringify, stringifySpec } from './stringify.js'
 export { Vers } from './vers.js'
 export type { VersComparator, VersConstraint, VersWildcard } from './vers.js'

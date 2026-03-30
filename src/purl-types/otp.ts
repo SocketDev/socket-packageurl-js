@@ -6,9 +6,8 @@
  * Package names are typically lowercase.
  */
 
-import { PurlError } from '../error.js'
-import { containsInjectionCharacters, lowerName } from '../strings.js'
-import { validateEmptyByType } from '../validate.js'
+import { lowerName } from '../strings.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -40,10 +39,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   ) {
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('otp "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('otp', 'name', purl.name, throws)) {
     return false
   }
   return true

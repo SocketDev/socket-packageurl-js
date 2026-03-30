@@ -6,7 +6,9 @@
  * module in the purl-types/ directory with specific rules for namespace, name, version
  * normalization and validation.
  */
+import { PurlInjectionError } from './error.js'
 import { createHelpersNamespaceObject } from './helpers.js'
+import { findInjectionCharCode, formatInjectionChar } from './strings.js'
 import { normalize as alpmNormalize } from './purl-types/alpm.js'
 import { normalize as apkNormalize } from './purl-types/apk.js'
 import {
@@ -112,8 +114,40 @@ const PurlTypNormalizer = (purl: PurlObject): PurlObject => purl
 
 /**
  * Default validator for PURL types without specific validation rules.
+ * Rejects injection characters in name and namespace components.
+ * This ensures all types (including newly added ones) get injection
+ * protection by default — security is opt-out, not opt-in.
  */
-const PurlTypeValidator = (_purl: PurlObject, _throws: boolean): boolean => true
+function PurlTypeValidator(purl: PurlObject, throws: boolean): boolean {
+  const type = purl.type ?? 'unknown'
+  if (typeof purl.namespace === 'string') {
+    const nsCode = findInjectionCharCode(purl.namespace)
+    if (nsCode !== -1) {
+      if (throws) {
+        throw new PurlInjectionError(
+          type,
+          'namespace',
+          nsCode,
+          formatInjectionChar(nsCode),
+        )
+      }
+      return false
+    }
+  }
+  const nameCode = findInjectionCharCode(purl.name)
+  if (nameCode !== -1) {
+    if (throws) {
+      throw new PurlInjectionError(
+        type,
+        'name',
+        nameCode,
+        formatInjectionChar(nameCode),
+      )
+    }
+    return false
+  }
+  return true
+}
 
 // PURL types:
 // https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst

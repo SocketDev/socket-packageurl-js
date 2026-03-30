@@ -3,13 +3,8 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
  */
 
-import { PurlError } from '../error.js'
-import {
-  containsInjectionCharacters,
-  lowerName,
-  lowerVersion,
-} from '../strings.js'
-import { validateEmptyByType } from '../validate.js'
+import { lowerName, lowerVersion } from '../strings.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -42,10 +37,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   ) {
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('oci "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('oci', 'name', purl.name, throws)) {
     return false
   }
   return true

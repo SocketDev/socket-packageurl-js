@@ -10,7 +10,7 @@ import {
   StringPrototypeIncludes,
   StringPrototypeToUpperCase,
 } from '../primordials.js'
-import { containsInjectionCharacters } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -130,18 +130,10 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
     return false
   }
-  if (typeof namespace === 'string' && containsInjectionCharacters(namespace)) {
-    if (throws) {
-      throw new PurlError(
-        'cpan "namespace" component contains illegal characters',
-      )
-    }
+  if (!validateNoInjectionByType('cpan', 'namespace', namespace, throws)) {
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('cpan "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('cpan', 'name', purl.name, throws)) {
     return false
   }
   return true

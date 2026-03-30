@@ -5,10 +5,8 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { PurlError } from '../error.js'
 import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
-import { containsInjectionCharacters } from '../strings.js'
-import { validateEmptyByType } from '../validate.js'
+import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -143,10 +141,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   ) {
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('gem "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('gem', 'name', purl.name, throws)) {
     return false
   }
   return true

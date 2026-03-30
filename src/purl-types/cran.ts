@@ -5,13 +5,14 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { PurlError } from '../error.js'
 import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
 } from '../primordials.js'
-import { containsInjectionCharacters } from '../strings.js'
-import { validateRequiredByType } from '../validate.js'
+import {
+  validateNoInjectionByType,
+  validateRequiredByType,
+} from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -131,10 +132,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   ) {
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('cran "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('cran', 'name', purl.name, throws)) {
     return false
   }
   return true

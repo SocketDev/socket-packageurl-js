@@ -5,8 +5,25 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { PurlError } from '../src/error.js'
+import { PurlError, PurlInjectionError } from '../src/error.js'
 import { PackageURL } from '../src/package-url.js'
+import {
+  containsInjectionCharacters,
+  findInjectionCharCode,
+  formatInjectionChar,
+} from '../src/strings.js'
+
+/** Helper to catch and return a PurlInjectionError for property inspection. */
+function getInjectionError(fn: () => unknown): PurlInjectionError {
+  let caught: unknown
+  try {
+    fn()
+  } catch (e) {
+    caught = e
+  }
+  expect(caught).toBeInstanceOf(PurlInjectionError)
+  return caught as PurlInjectionError
+}
 
 // Representative injection characters (subset of what containsInjectionCharacters catches)
 const INJECTION_CHARS = ['|', '&', ';', '`', '$']
@@ -365,6 +382,139 @@ describe('Per-type injection character validation', () => {
             undefined,
           ),
       ).toThrow(PurlError)
+    })
+  })
+
+  describe('PurlInjectionError', () => {
+    it('should be an instance of both PurlInjectionError and PurlError', () => {
+      expect(
+        () =>
+          new PackageURL(
+            'cargo',
+            undefined,
+            'pkg|evil',
+            '1.0.0',
+            undefined,
+            undefined,
+          ),
+      ).toThrow(PurlInjectionError)
+    })
+
+    it('should be catchable as PurlError (superclass)', () => {
+      expect(
+        () =>
+          new PackageURL(
+            'cargo',
+            undefined,
+            'pkg|evil',
+            '1.0.0',
+            undefined,
+            undefined,
+          ),
+      ).toThrow(PurlError)
+    })
+
+    it('should expose charCode, component, and purlType properties', () => {
+      const err = getInjectionError(
+        () =>
+          new PackageURL(
+            'maven',
+            'org;evil',
+            'artifact',
+            '1.0.0',
+            undefined,
+            undefined,
+          ),
+      )
+      expect(err.purlType).toBe('maven')
+      expect(err.component).toBe('namespace')
+      expect(err.charCode).toBe(0x3b) // semicolon
+    })
+
+    it('should include the specific character in the error message', () => {
+      const err = getInjectionError(
+        () =>
+          new PackageURL(
+            'cargo',
+            undefined,
+            'pkg$name',
+            '1.0.0',
+            undefined,
+            undefined,
+          ),
+      )
+      expect(err.message).toContain('"$" (0x24)')
+    })
+
+    it('should format control characters as hex codes', () => {
+      const err = getInjectionError(
+        () =>
+          new PackageURL(
+            'gem',
+            undefined,
+            'pkg\x1bname',
+            '1.0.0',
+            undefined,
+            undefined,
+          ),
+      )
+      expect(err.charCode).toBe(0x1b) // ESC
+      expect(err.message).toContain('0x1b')
+    })
+  })
+
+  describe('Hardened scanner - newly detected characters', () => {
+    it('should detect single and double quotes', () => {
+      expect(containsInjectionCharacters("pkg'name")).toBe(true)
+      expect(containsInjectionCharacters('pkg"name')).toBe(true)
+    })
+
+    it('should detect control characters (C0 range)', () => {
+      // ESC (terminal escape sequences)
+      expect(containsInjectionCharacters('pkg\x1bname')).toBe(true)
+      // NUL
+      expect(containsInjectionCharacters('pkg\x00name')).toBe(true)
+      // BEL (terminal bell)
+      expect(containsInjectionCharacters('pkg\x07name')).toBe(true)
+      // Vertical tab
+      expect(containsInjectionCharacters('pkg\x0bname')).toBe(true)
+      // Form feed
+      expect(containsInjectionCharacters('pkg\x0cname')).toBe(true)
+    })
+
+    it('should detect DEL character', () => {
+      expect(containsInjectionCharacters('pkg\x7fname')).toBe(true)
+    })
+  })
+
+  describe('findInjectionCharCode', () => {
+    it('should return -1 for clean strings', () => {
+      expect(findInjectionCharCode('valid-name')).toBe(-1)
+      expect(findInjectionCharCode('my_package.v2')).toBe(-1)
+    })
+
+    it('should return the char code of the first injection character', () => {
+      expect(findInjectionCharCode('pkg|name')).toBe(0x7c)
+      expect(findInjectionCharCode('pkg$name')).toBe(0x24)
+      expect(findInjectionCharCode('pkg\x1bname')).toBe(0x1b)
+    })
+  })
+
+  describe('formatInjectionChar', () => {
+    it('should format printable characters with quotes and hex', () => {
+      expect(formatInjectionChar(0x7c)).toBe('"|" (0x7c)')
+      expect(formatInjectionChar(0x24)).toBe('"$" (0x24)')
+      expect(formatInjectionChar(0x20)).toBe('" " (0x20)')
+    })
+
+    it('should format control characters as hex only', () => {
+      expect(formatInjectionChar(0x00)).toBe('0x00')
+      expect(formatInjectionChar(0x1b)).toBe('0x1b')
+      expect(formatInjectionChar(0x0a)).toBe('0x0a')
+    })
+
+    it('should format DEL as hex only', () => {
+      expect(formatInjectionChar(0x7f)).toBe('0x7f')
     })
   })
 })

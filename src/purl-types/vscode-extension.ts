@@ -11,13 +11,15 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 import { PurlError } from '../error.js'
 import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
 import {
-  containsInjectionCharacters,
   isSemverString,
   lowerName,
   lowerNamespace,
   lowerVersion,
 } from '../strings.js'
-import { validateRequiredByType } from '../validate.js'
+import {
+  validateNoInjectionByType,
+  validateRequiredByType,
+} from '../validate.js'
 
 import type { ExistsOptions, ExistsResult } from './npm.js'
 
@@ -58,21 +60,18 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     return false
   }
   // Namespace must not contain injection characters
-  if (typeof namespace === 'string' && containsInjectionCharacters(namespace)) {
-    if (throws) {
-      throw new PurlError(
-        'vscode-extension "namespace" component contains illegal characters',
-      )
-    }
+  if (
+    !validateNoInjectionByType(
+      'vscode-extension',
+      'namespace',
+      namespace,
+      throws,
+    )
+  ) {
     return false
   }
   // Name must not contain injection characters
-  if (containsInjectionCharacters(name)) {
-    if (throws) {
-      throw new PurlError(
-        'vscode-extension "name" component contains illegal characters',
-      )
-    }
+  if (!validateNoInjectionByType('vscode-extension', 'name', name, throws)) {
     return false
   }
   // Version must be valid semver when present
@@ -89,13 +88,14 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     return false
   }
   // Platform qualifier must not contain injection characters
-  const platform = qualifiers?.['platform']
-  if (typeof platform === 'string' && containsInjectionCharacters(platform)) {
-    if (throws) {
-      throw new PurlError(
-        'vscode-extension qualifier "platform" contains illegal characters',
-      )
-    }
+  if (
+    !validateNoInjectionByType(
+      'vscode-extension',
+      'platform',
+      qualifiers?.['platform'],
+      throws,
+    )
+  ) {
     return false
   }
   return true

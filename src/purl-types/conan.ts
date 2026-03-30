@@ -5,7 +5,7 @@
 
 import { PurlError } from '../error.js'
 import { isNullishOrEmptyString } from '../lang.js'
-import { containsInjectionCharacters } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 interface PurlObject {
   name: string
@@ -40,20 +40,11 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     return false
   }
   if (
-    typeof purl.namespace === 'string' &&
-    containsInjectionCharacters(purl.namespace)
+    !validateNoInjectionByType('conan', 'namespace', purl.namespace, throws)
   ) {
-    if (throws) {
-      throw new PurlError(
-        'conan "namespace" component contains illegal characters',
-      )
-    }
     return false
   }
-  if (containsInjectionCharacters(purl.name)) {
-    if (throws) {
-      throw new PurlError('conan "name" component contains illegal characters')
-    }
+  if (!validateNoInjectionByType('conan', 'name', purl.name, throws)) {
     return false
   }
   return true

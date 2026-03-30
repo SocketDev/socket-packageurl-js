@@ -56,6 +56,22 @@ describe('String utilities', () => {
       expect(containsInjectionCharacters('a\nb')).toBe(true)
       expect(containsInjectionCharacters('a\rb')).toBe(true)
     })
+
+    it('should detect quote characters', () => {
+      expect(containsInjectionCharacters("a'b")).toBe(true)
+      expect(containsInjectionCharacters('a"b')).toBe(true)
+    })
+
+    it('should detect control characters', () => {
+      // NUL
+      expect(containsInjectionCharacters('a\x00b')).toBe(true)
+      // ESC (terminal escape sequences)
+      expect(containsInjectionCharacters('a\x1bb')).toBe(true)
+      // BEL
+      expect(containsInjectionCharacters('a\x07b')).toBe(true)
+      // DEL
+      expect(containsInjectionCharacters('a\x7fb')).toBe(true)
+    })
   })
 
   describe('isBlank', () => {

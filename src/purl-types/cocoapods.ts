@@ -11,7 +11,7 @@ import {
   StringPrototypeIncludes,
   ArrayPrototypeSome,
 } from '../primordials.js'
-import { containsInjectionCharacters } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -131,12 +131,7 @@ export async function cocoapodsExists(
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name } = purl
   // Name must not contain injection characters
-  if (containsInjectionCharacters(name)) {
-    if (throws) {
-      throw new PurlError(
-        'cocoapods "name" component contains illegal characters',
-      )
-    }
+  if (!validateNoInjectionByType('cocoapods', 'name', name, throws)) {
     return false
   }
   // Name cannot contain a plus (+) character
