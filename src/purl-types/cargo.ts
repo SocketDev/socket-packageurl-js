@@ -5,7 +5,11 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
+import {
+  ArrayPrototypeSome,
+  StringPrototypeIncludes,
+  encodeComponent,
+} from '../primordials.js'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -73,7 +77,7 @@ export async function cargoExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://crates.io/api/v1/crates/${encodeURIComponent(name)}`
+      const url = `https://crates.io/api/v1/crates/${encodeComponent(name)}`
 
       const data = await httpJson<{
         crate?: { max_version?: string }
@@ -127,8 +131,9 @@ export async function cargoExists(
 
   const result = await fetchResult()
 
-  // Cache result if cache provided
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
 

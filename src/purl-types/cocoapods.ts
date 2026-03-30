@@ -7,9 +7,10 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
 import {
+  ArrayPrototypeSome,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
-  ArrayPrototypeSome,
+  encodeComponent,
 } from '../primordials.js'
 import { validateNoInjectionByType } from '../validate.js'
 
@@ -67,7 +68,7 @@ export async function cocoapodsExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://trunk.cocoapods.org/api/v1/pods/${encodeURIComponent(name)}`
+      const url = `https://trunk.cocoapods.org/api/v1/pods/${encodeComponent(name)}`
 
       const data = await httpJson<{
         versions?: Array<{ name?: string }>
@@ -115,8 +116,9 @@ export async function cocoapodsExists(
 
   const result = await fetchResult()
 
-  // Cache result if cache provided
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
 

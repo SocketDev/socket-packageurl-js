@@ -20,7 +20,7 @@ import {
   normalizeType,
   normalizeVersion,
 } from './normalize.js'
-import { isNonEmptyString, localeCompare } from './strings.js'
+import { isNonEmptyString } from './strings.js'
 import {
   validateName,
   validateNamespace,
@@ -56,19 +56,17 @@ const componentSortOrderLookup = {
  * Compare two component names for sorting.
  */
 function componentComparator(compA: string, compB: string): number {
-  return localeCompare(
-    String(componentSortOrder(compA)),
-    String(componentSortOrder(compB)),
-  )
+  return componentSortOrder(compA) - componentSortOrder(compB)
 }
 
 /**
- * Get sort order for component name.
+ * Get numeric sort order for component name.
  */
-function componentSortOrder(comp: string): string | number {
+function componentSortOrder(comp: string): number {
   return (
     (componentSortOrderLookup as unknown as Record<string, number>)[comp] ??
-    comp
+    // Unknown components sort after all known ones
+    8
   )
 }
 

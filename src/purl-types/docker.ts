@@ -5,7 +5,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { StringPrototypeIncludes } from '../primordials.js'
+import { StringPrototypeIncludes, encodeComponent } from '../primordials.js'
 import { lowerName } from '../strings.js'
 import { validateNoInjectionByType } from '../validate.js'
 
@@ -107,7 +107,7 @@ export async function dockerExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const encodedRepo = encodeURIComponent(repo)
+      const encodedRepo = encodeComponent(repo)
       const url = `https://hub.docker.com/v2/repositories/${encodedRepo}`
 
       const data = await httpJson<{
@@ -126,7 +126,7 @@ export async function dockerExists(
       // If specific tag requested, verify it exists
       if (version) {
         try {
-          const tagUrl = `https://hub.docker.com/v2/repositories/${encodedRepo}/tags/${encodeURIComponent(version)}`
+          const tagUrl = `https://hub.docker.com/v2/repositories/${encodedRepo}/tags/${encodeComponent(version)}`
           await httpJson(tagUrl)
         } catch (e) {
           /* c8 ignore start */
@@ -160,8 +160,9 @@ export async function dockerExists(
 
   const result = await fetchResult()
 
-  // Cache result if cache provided
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
 

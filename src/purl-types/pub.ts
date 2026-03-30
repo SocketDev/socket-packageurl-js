@@ -7,9 +7,10 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
 import {
+  ArrayPrototypeSome,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
-  ArrayPrototypeSome,
+  encodeComponent,
 } from '../primordials.js'
 import { lowerName, replaceDashesWithUnderscores } from '../strings.js'
 
@@ -76,7 +77,7 @@ export async function pubExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://pub.dev/api/packages/${encodeURIComponent(name)}`
+      const url = `https://pub.dev/api/packages/${encodeComponent(name)}`
 
       const data = await httpJson<{
         latest?: {
@@ -125,7 +126,9 @@ export async function pubExists(
   }
 
   const result = await fetchResult()
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
   return result

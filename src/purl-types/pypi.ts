@@ -5,7 +5,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { StringPrototypeIncludes } from '../primordials.js'
+import { StringPrototypeIncludes, encodeComponent } from '../primordials.js'
 import {
   lowerName,
   lowerNamespace,
@@ -101,7 +101,7 @@ export async function pypiExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://pypi.org/pypi/${encodeURIComponent(name)}/json`
+      const url = `https://pypi.org/pypi/${encodeComponent(name)}/json`
 
       const data = await httpJson<{
         info?: { version?: string }
@@ -145,8 +145,9 @@ export async function pypiExists(
 
   const result = await fetchResult()
 
-  // Cache result if cache provided
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
 

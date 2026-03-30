@@ -267,7 +267,7 @@ export async function npmExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const encodedName = encodeURIComponent(packageName)
+      const encodedName = encodeComponent(packageName)
       const url = `https://registry.npmjs.org/${encodedName}`
 
       const data = await httpJson<{
@@ -313,8 +313,9 @@ export async function npmExists(
 
   const result = await fetchResult()
 
-  // Cache result if cache provided
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
 

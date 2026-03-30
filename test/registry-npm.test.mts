@@ -214,7 +214,7 @@ describe('npmExists', () => {
       expect(await mockCache.get('lodash@4.17.20')).toBeDefined()
     })
 
-    it('should cache error results', async () => {
+    it('should not cache error results (prevents negative cache poisoning)', async () => {
       const mockCache = createMockCache()
 
       nock('https://registry.npmjs.org').get('/nonexistent').reply(404)
@@ -224,7 +224,7 @@ describe('npmExists', () => {
       })
 
       expect(result.exists).toBe(false)
-      expect(await mockCache.get('nonexistent')).toEqual(result)
+      expect(await mockCache.get('nonexistent')).toBeUndefined()
     })
   })
 })

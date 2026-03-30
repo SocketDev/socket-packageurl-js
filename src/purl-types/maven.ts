@@ -5,7 +5,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { StringPrototypeIncludes } from '../primordials.js'
+import { StringPrototypeIncludes, encodeComponent } from '../primordials.js'
 import {
   validateNoInjectionByType,
   validateRequiredByType,
@@ -72,8 +72,8 @@ export async function mavenExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const g = encodeURIComponent(namespace)
-      const a = encodeURIComponent(name)
+      const g = encodeComponent(namespace)
+      const a = encodeComponent(name)
       const url = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}&rows=1&wt=json`
 
       const data = await httpJson<{
@@ -92,7 +92,7 @@ export async function mavenExists(
       const latestVersion = doc?.['latestVersion'] || doc?.['v']
 
       if (version) {
-        const versionUrl = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}+AND+v:${encodeURIComponent(version)}&rows=1&wt=json`
+        const versionUrl = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}+AND+v:${encodeComponent(version)}&rows=1&wt=json`
         const versionData = await httpJson<{
           response?: { numFound?: number }
         }>(versionUrl)
@@ -128,7 +128,9 @@ export async function mavenExists(
   }
 
   const result = await fetchResult()
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
   return result

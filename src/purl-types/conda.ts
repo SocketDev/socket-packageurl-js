@@ -8,6 +8,7 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
+  encodeComponent,
 } from '../primordials.js'
 import { lowerName } from '../strings.js'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
@@ -115,7 +116,7 @@ export async function condaExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const encodedName = encodeURIComponent(name)
+      const encodedName = encodeComponent(name)
       const url = `https://api.anaconda.org/package/${channelName}/${encodedName}`
 
       const data = await httpJson<{
@@ -161,8 +162,9 @@ export async function condaExists(
 
   const result = await fetchResult()
 
-  // Cache result if cache provided
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
 

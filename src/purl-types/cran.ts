@@ -8,6 +8,7 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
+  encodeComponent,
 } from '../primordials.js'
 import {
   validateNoInjectionByType,
@@ -70,7 +71,7 @@ export async function cranExists(
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
       // CRAN provides a JSON API via r-universe
-      const url = `https://cran.r-universe.dev/api/packages/${encodeURIComponent(name)}`
+      const url = `https://cran.r-universe.dev/api/packages/${encodeComponent(name)}`
 
       const data = await httpJson<{
         Version?: string
@@ -112,8 +113,9 @@ export async function cranExists(
 
   const result = await fetchResult()
 
-  // Cache result if cache provided
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
 

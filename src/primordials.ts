@@ -52,6 +52,7 @@ const JSONStringify = JSON.stringify
 // ─── Object ────────────────────────────────────────────────────────────
 const ObjectCreate = Object.create
 const ObjectEntries = Object.entries
+const ObjectFromEntries = Object.fromEntries
 const ObjectFreeze = Object.freeze
 const ObjectIsFrozen = Object.isFrozen
 const ObjectKeys = Object.keys
@@ -131,6 +132,7 @@ export {
   ObjectCreate,
   ObjectEntries,
   NumberPrototypeToString,
+  ObjectFromEntries,
   ObjectFreeze,
   ObjectIsFrozen,
   ObjectKeys,

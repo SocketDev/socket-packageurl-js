@@ -348,14 +348,19 @@ class Vers {
       return true
     }
 
-    // Check equals and not-equals first
+    // Check not-equals first — a != exclusion takes priority over = inclusion
+    // to prevent short-circuiting on = before a conflicting != is evaluated.
     for (let i = 0, { length } = constraints; i < length; i += 1) {
       const c = constraints[i]!
-      const cmp = compareSemver(version, c.version)
-      if (c.comparator === '!=') {
-        if (cmp === 0) return false
-      } else if (c.comparator === '=') {
-        if (cmp === 0) return true
+      if (c.comparator === '!=' && compareSemver(version, c.version) === 0) {
+        return false
+      }
+    }
+    // Then check equals
+    for (let i = 0, { length } = constraints; i < length; i += 1) {
+      const c = constraints[i]!
+      if (c.comparator === '=' && compareSemver(version, c.version) === 0) {
+        return true
       }
     }
 

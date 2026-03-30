@@ -8,6 +8,7 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
+  encodeComponent,
 } from '../primordials.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -55,7 +56,7 @@ export async function hackageExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://hackage.haskell.org/package/${encodeURIComponent(name)}/preferred`
+      const url = `https://hackage.haskell.org/package/${encodeComponent(name)}/preferred`
 
       const data = await httpJson<{
         'normal-version'?: string[]
@@ -101,8 +102,9 @@ export async function hackageExists(
 
   const result = await fetchResult()
 
-  // Cache result if cache provided
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
 

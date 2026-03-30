@@ -48,17 +48,17 @@ export function stringifySpec(purl: PackageURL): string {
     version?: string | undefined
   } = purl
   let specStr = ''
-  if (namespace) {
+  if (isNonEmptyString(namespace)) {
     specStr = `${encodeNamespace(namespace)}/`
   }
   specStr = `${specStr}${encodeName(name)}`
-  if (version) {
+  if (isNonEmptyString(version)) {
     specStr = `${specStr}@${encodeVersion(version)}`
   }
   if (qualifiers) {
     specStr = `${specStr}?${encodeQualifiers(qualifiers)}`
   }
-  if (subpath) {
+  if (isNonEmptyString(subpath)) {
     specStr = `${specStr}#${encodeSubpath(subpath)}`
   }
   return specStr

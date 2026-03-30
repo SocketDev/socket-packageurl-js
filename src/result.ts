@@ -229,11 +229,14 @@ export const ResultUtils = {
 
   /**
    * Return the first Ok result or the last error.
+   * Returns an error result if the input array is empty.
    */
   any<T extends ReadonlyArray<Result<unknown, unknown>>>(
     results: T,
   ): T[number] {
-    let lastError: Result<unknown, unknown> | undefined
+    let lastError: Result<unknown, unknown> = err(
+      new Error('No results provided'),
+    )
     for (const result of results) {
       if (result.isOk()) {
         return result
