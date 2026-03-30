@@ -7,11 +7,11 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError } from '../error.js'
 import {
-  RegExpPrototypeTest,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   ArrayPrototypeSome,
 } from '../primordials.js'
+import { containsInjectionCharacters } from '../strings.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -125,15 +125,16 @@ export async function cocoapodsExists(
 
 /**
  * Validate CocoaPods package URL.
- * Name cannot contain whitespace, plus (+) character, or begin with a period (.).
+ * Name cannot contain injection or whitespace characters, plus (+) character,
+ * or begin with a period (.).
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name } = purl
-  // Name cannot contain whitespace
-  if (RegExpPrototypeTest(/\s/, name)) {
+  // Name must not contain injection characters
+  if (containsInjectionCharacters(name)) {
     if (throws) {
       throw new PurlError(
-        'cocoapods "name" component cannot contain whitespace',
+        'cocoapods "name" component contains illegal characters',
       )
     }
     return false

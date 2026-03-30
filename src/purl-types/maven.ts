@@ -5,7 +5,9 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { PurlError } from '../error.js'
 import { StringPrototypeIncludes } from '../primordials.js'
+import { containsInjectionCharacters } from '../strings.js'
 import { validateRequiredByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -133,10 +135,33 @@ export async function mavenExists(
 
 /**
  * Validate Maven package URL.
- * Maven packages require a namespace (groupId).
+ * Maven packages require a namespace (groupId). Name and namespace must not
+ * contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateRequiredByType('maven', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateRequiredByType('maven', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (
+    typeof purl.namespace === 'string' &&
+    containsInjectionCharacters(purl.namespace)
+  ) {
+    if (throws) {
+      throw new PurlError(
+        'maven "namespace" component contains illegal characters',
+      )
+    }
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('maven "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }

@@ -6,7 +6,8 @@
  * Package names are typically lowercase.
  */
 
-import { lowerName } from '../strings.js'
+import { PurlError } from '../error.js'
+import { containsInjectionCharacters, lowerName } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 interface PurlObject {
@@ -32,7 +33,18 @@ export function normalize(purl: PurlObject): PurlObject {
  * OTP packages must not have a namespace.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('otp', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('otp', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('otp "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }

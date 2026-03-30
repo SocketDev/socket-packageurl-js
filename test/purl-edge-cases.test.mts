@@ -1966,7 +1966,7 @@ describe('Edge cases and additional coverage', () => {
       // Test name with whitespace
       expect(
         () => new PackageURL('cocoapods', null, 'Pod Name', null, null, null),
-      ).toThrow('cocoapods "name" component cannot contain whitespace')
+      ).toThrow('cocoapods "name" component contains illegal characters')
 
       // Test name with plus character
       expect(

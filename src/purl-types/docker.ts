@@ -5,8 +5,9 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { PurlError } from '../error.js'
 import { StringPrototypeIncludes } from '../primordials.js'
-import { lowerName } from '../strings.js'
+import { containsInjectionCharacters, lowerName } from '../strings.js'
 
 import type { ExistsOptions, ExistsResult } from './npm.js'
 
@@ -26,6 +27,31 @@ interface PurlObject {
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
   return purl
+}
+
+/**
+ * Validate Docker package URL.
+ * Name and namespace must not contain injection characters.
+ */
+export function validate(purl: PurlObject, throws: boolean): boolean {
+  if (
+    typeof purl.namespace === 'string' &&
+    containsInjectionCharacters(purl.namespace)
+  ) {
+    if (throws) {
+      throw new PurlError(
+        'docker "namespace" component contains illegal characters',
+      )
+    }
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('docker "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }
 
 /**

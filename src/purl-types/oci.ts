@@ -3,7 +3,12 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
  */
 
-import { lowerName, lowerVersion } from '../strings.js'
+import { PurlError } from '../error.js'
+import {
+  containsInjectionCharacters,
+  lowerName,
+  lowerVersion,
+} from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 interface PurlObject {
@@ -30,7 +35,18 @@ export function normalize(purl: PurlObject): PurlObject {
  * OCI packages must not have a namespace.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('oci', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('oci', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('oci "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }

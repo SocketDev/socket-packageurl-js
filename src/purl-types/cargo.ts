@@ -5,7 +5,9 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { PurlError } from '../error.js'
 import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
+import { containsInjectionCharacters } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -137,10 +139,21 @@ export async function cargoExists(
 
 /**
  * Validate Cargo package URL.
- * Cargo packages must not have a namespace.
+ * Cargo packages must not have a namespace. Name must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('cargo', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('cargo', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('cargo "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }

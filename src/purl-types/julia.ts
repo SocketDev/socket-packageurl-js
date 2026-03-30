@@ -6,6 +6,8 @@
  * Package names are case-sensitive and typically CamelCase.
  */
 
+import { PurlError } from '../error.js'
+import { containsInjectionCharacters } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 interface PurlObject {
@@ -30,7 +32,18 @@ export function normalize(purl: PurlObject): PurlObject {
  * Julia packages must not have a namespace.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('julia', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('julia', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('julia "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }

@@ -40,7 +40,7 @@ import {
   StringPrototypeSplit,
   StringPrototypeToLowerCase,
 } from '../primordials.js'
-import { isSemverString } from '../strings.js'
+import { containsInjectionCharacters, isSemverString } from '../strings.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -168,9 +168,27 @@ export async function golangExists(
 
 /**
  * Validate Golang package URL.
+ * Name and namespace must not contain injection characters.
  * If version starts with "v", it must be followed by a valid semver version.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
+  if (
+    typeof purl.namespace === 'string' &&
+    containsInjectionCharacters(purl.namespace)
+  ) {
+    if (throws) {
+      throw new PurlError(
+        'golang "namespace" component contains illegal characters',
+      )
+    }
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('golang "name" component contains illegal characters')
+    }
+    return false
+  }
   // Still being lenient here since the standard changes aren't official
   // Pending spec change: https://github.com/package-url/purl-spec/pull/196
   const { version } = purl

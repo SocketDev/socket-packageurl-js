@@ -5,6 +5,8 @@
  * OPAM is the OCaml package manager. Package names are lowercase.
  */
 
+import { PurlError } from '../error.js'
+import { containsInjectionCharacters } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 interface PurlObject {
@@ -21,7 +23,18 @@ interface PurlObject {
  * OPAM packages must not have a namespace.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('opam', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('opam', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('opam "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }

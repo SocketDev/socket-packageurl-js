@@ -5,11 +5,12 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { PurlError } from '../error.js'
 import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
 } from '../primordials.js'
-import { lowerName } from '../strings.js'
+import { containsInjectionCharacters, lowerName } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 import type { ExistsOptions, ExistsResult } from './npm.js'
@@ -34,12 +35,23 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate Conda package URL.
- * Conda packages must not have a namespace.
+ * Conda packages must not have a namespace. Name must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('conda', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('conda', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('conda "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }
 
 /**

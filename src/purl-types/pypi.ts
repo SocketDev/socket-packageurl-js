@@ -5,8 +5,10 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { PurlError } from '../error.js'
 import { StringPrototypeIncludes } from '../primordials.js'
 import {
+  containsInjectionCharacters,
   lowerName,
   lowerNamespace,
   lowerVersion,
@@ -35,6 +37,20 @@ export function normalize(purl: PurlObject): PurlObject {
   lowerVersion(purl)
   purl.name = replaceUnderscoresWithDashes(purl.name)
   return purl
+}
+
+/**
+ * Validate PyPI package URL.
+ * Name must not contain injection characters.
+ */
+export function validate(purl: PurlObject, throws: boolean): boolean {
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('pypi "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }
 
 /**

@@ -5,10 +5,12 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { PurlError } from '../error.js'
 import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
 } from '../primordials.js'
+import { containsInjectionCharacters } from '../strings.js'
 import { validateRequiredByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -119,10 +121,21 @@ export async function cranExists(
 
 /**
  * Validate CRAN package URL.
- * CRAN packages require a version.
+ * CRAN packages require a version. Name must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateRequiredByType('cran', 'version', purl.version, {
-    throws,
-  })
+  if (
+    !validateRequiredByType('cran', 'version', purl.version, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('cran "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }

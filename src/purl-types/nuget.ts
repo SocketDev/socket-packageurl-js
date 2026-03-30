@@ -5,12 +5,14 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { PurlError } from '../error.js'
 import {
   ArrayPrototypeIncludes,
   ArrayPrototypePush,
   StringPrototypeIncludes,
   StringPrototypeToLowerCase,
 } from '../primordials.js'
+import { containsInjectionCharacters } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -143,10 +145,21 @@ export async function nugetExists(
 
 /**
  * Validate NuGet package URL.
- * NuGet packages must not have a namespace.
+ * NuGet packages must not have a namespace. Name must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('nuget', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('nuget', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('nuget "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }

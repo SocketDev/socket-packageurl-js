@@ -6,7 +6,8 @@
  * Package names are typically lowercase with hyphens.
  */
 
-import { lowerName } from '../strings.js'
+import { PurlError } from '../error.js'
+import { containsInjectionCharacters, lowerName } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 interface PurlObject {
@@ -32,7 +33,18 @@ export function normalize(purl: PurlObject): PurlObject {
  * Yocto packages must not have a namespace.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('yocto', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('yocto', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('yocto "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }

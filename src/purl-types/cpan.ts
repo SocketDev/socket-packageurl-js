@@ -10,6 +10,7 @@ import {
   StringPrototypeIncludes,
   StringPrototypeToUpperCase,
 } from '../primordials.js'
+import { containsInjectionCharacters } from '../strings.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
 
@@ -126,6 +127,20 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   if (namespace && namespace !== StringPrototypeToUpperCase(namespace)) {
     if (throws) {
       throw new PurlError('cpan "namespace" component must be UPPERCASE')
+    }
+    return false
+  }
+  if (typeof namespace === 'string' && containsInjectionCharacters(namespace)) {
+    if (throws) {
+      throw new PurlError(
+        'cpan "namespace" component contains illegal characters',
+      )
+    }
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('cpan "name" component contains illegal characters')
     }
     return false
   }

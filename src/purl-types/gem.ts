@@ -5,7 +5,9 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { PurlError } from '../error.js'
 import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
+import { containsInjectionCharacters } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -131,10 +133,21 @@ export async function gemExists(
 
 /**
  * Validate RubyGem package URL.
- * Gem packages must not have a namespace.
+ * Gem packages must not have a namespace. Name must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('gem', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('gem', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('gem "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }

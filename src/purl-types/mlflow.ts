@@ -3,8 +3,9 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
  */
 
+import { PurlError } from '../error.js'
 import { StringPrototypeIncludes } from '../primordials.js'
-import { lowerName } from '../strings.js'
+import { containsInjectionCharacters, lowerName } from '../strings.js'
 import { validateEmptyByType } from '../validate.js'
 
 interface PurlObject {
@@ -33,7 +34,18 @@ export function normalize(purl: PurlObject): PurlObject {
  * MLflow packages must not have a namespace.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
-  return validateEmptyByType('mlflow', 'namespace', purl.namespace, {
-    throws,
-  })
+  if (
+    !validateEmptyByType('mlflow', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (containsInjectionCharacters(purl.name)) {
+    if (throws) {
+      throw new PurlError('mlflow "name" component contains illegal characters')
+    }
+    return false
+  }
+  return true
 }
