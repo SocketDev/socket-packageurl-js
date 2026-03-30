@@ -378,39 +378,55 @@ class Vers {
     }
 
     // Evaluate range constraints
-    // Per the VERS spec, constraints are sorted and form alternating intervals
+    // Per the VERS spec, constraints are sorted and form alternating intervals.
+    // Multiple disjoint ranges are possible (e.g., >=1.0.0|<2.0.0|>=3.0.0|<4.0.0),
+    // so we must check ALL range pairs — not return on the first mismatch.
     for (let i = 0, { length } = ranges; i < length; i += 1) {
       const c = ranges[i]!
       const cmp = compareSemver(version, c.version)
 
       if (c.comparator === '>=') {
-        if (cmp < 0) return false
-        // Check if next constraint bounds the range
+        if (cmp < 0) {
+          // Below this lower bound — skip to next range pair
+          const next = ranges[i + 1]
+          if (next && (next.comparator === '<' || next.comparator === '<=')) {
+            i += 1
+          }
+          continue
+        }
+        // Version >= lower bound — check upper bound
         const next = ranges[i + 1]
         if (!next) return true
         const cmpNext = compareSemver(version, next.version)
-        if (next.comparator === '<') return cmpNext < 0
-        if (next.comparator === '<=') return cmpNext <= 0
-        /* c8 ignore next -- Defensive: next is not < or <=, skip it. */
+        if (next.comparator === '<' && cmpNext < 0) return true
+        if (next.comparator === '<=' && cmpNext <= 0) return true
+        // Outside this range's upper bound — advance past it and try next range
         i += 1
       } else if (c.comparator === '>') {
-        if (cmp <= 0) return false
+        if (cmp <= 0) {
+          // At or below this lower bound — skip to next range pair
+          const next = ranges[i + 1]
+          if (next && (next.comparator === '<' || next.comparator === '<=')) {
+            i += 1
+          }
+          continue
+        }
+        // Version > lower bound — check upper bound
         const next = ranges[i + 1]
         if (!next) return true
         const cmpNext = compareSemver(version, next.version)
-        if (next.comparator === '<') return cmpNext < 0
-        if (next.comparator === '<=') return cmpNext <= 0
-        /* c8 ignore next -- Defensive: next is not < or <=, skip it. */
+        if (next.comparator === '<' && cmpNext < 0) return true
+        if (next.comparator === '<=' && cmpNext <= 0) return true
+        // Outside this range's upper bound — advance past it and try next range
         i += 1
       } else if (c.comparator === '<' || c.comparator === '<=') {
-        // Leading less-than: version must be below this bound
+        // Leading less-than without a preceding lower bound
         const cmpVal = compareSemver(version, c.version)
         if (c.comparator === '<' && cmpVal < 0) return true
         if (c.comparator === '<=' && cmpVal <= 0) return true
-        return false
+        // Not in this range — continue to next
       }
     }
-    /* c8 ignore next -- Defensive: all constraint paths return above. */
     return false
   }
 

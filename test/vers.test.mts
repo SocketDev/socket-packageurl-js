@@ -239,6 +239,50 @@ describe('Vers', () => {
         expect(v.contains('2.0.0')).toBe(true)
         expect(v.contains('2.0.1')).toBe(false)
       })
+
+      it('should handle multiple disjoint ranges', () => {
+        // Vulnerability reintroduced in a later version range
+        const v = Vers.parse('vers:npm/>=1.0.0|<2.0.0|>=3.0.0|<4.0.0')
+        // First range
+        expect(v.contains('1.0.0')).toBe(true)
+        expect(v.contains('1.5.0')).toBe(true)
+        expect(v.contains('1.9.9')).toBe(true)
+        // Gap between ranges
+        expect(v.contains('2.0.0')).toBe(false)
+        expect(v.contains('2.5.0')).toBe(false)
+        expect(v.contains('2.9.9')).toBe(false)
+        // Second range
+        expect(v.contains('3.0.0')).toBe(true)
+        expect(v.contains('3.5.0')).toBe(true)
+        expect(v.contains('3.9.9')).toBe(true)
+        // Beyond all ranges
+        expect(v.contains('4.0.0')).toBe(false)
+        expect(v.contains('0.9.9')).toBe(false)
+      })
+
+      it('should handle three disjoint ranges', () => {
+        const v = Vers.parse(
+          'vers:npm/>=1.0.0|<2.0.0|>=3.0.0|<4.0.0|>=5.0.0|<6.0.0',
+        )
+        expect(v.contains('1.5.0')).toBe(true)
+        expect(v.contains('2.5.0')).toBe(false)
+        expect(v.contains('3.5.0')).toBe(true)
+        expect(v.contains('4.5.0')).toBe(false)
+        expect(v.contains('5.5.0')).toBe(true)
+        expect(v.contains('6.0.0')).toBe(false)
+      })
+
+      it('should handle disjoint ranges with > and <=', () => {
+        const v = Vers.parse('vers:npm/>1.0.0|<=2.0.0|>3.0.0|<=4.0.0')
+        expect(v.contains('1.0.0')).toBe(false)
+        expect(v.contains('1.0.1')).toBe(true)
+        expect(v.contains('2.0.0')).toBe(true)
+        expect(v.contains('2.5.0')).toBe(false)
+        expect(v.contains('3.0.0')).toBe(false)
+        expect(v.contains('3.0.1')).toBe(true)
+        expect(v.contains('4.0.0')).toBe(true)
+        expect(v.contains('4.0.1')).toBe(false)
+      })
     })
 
     describe('prerelease', () => {

@@ -13,6 +13,7 @@ import {
   StringPrototypeSlice,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
+  URLSearchParamsCtor,
 } from './primordials.js'
 import { isBlank } from './strings.js'
 
@@ -158,7 +159,7 @@ function qualifiersToEntries(
         >)
   }
   return typeof rawQualifiers === 'string'
-    ? new URLSearchParams(rawQualifiers).entries()
+    ? new URLSearchParamsCtor(rawQualifiers).entries()
     : EMPTY_ENTRIES
 }
 
