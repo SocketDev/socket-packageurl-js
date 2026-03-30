@@ -24,7 +24,11 @@ SOFTWARE.
  * @fileoverview Builder pattern implementation for PackageURL construction with fluent API.
  */
 import { PackageURL } from './package-url.js'
-import { ArrayPrototypeMap, ObjectEntries } from './primordials.js'
+import {
+  ArrayPrototypeMap,
+  ObjectEntries,
+  ObjectFromEntries,
+} from './primordials.js'
 
 import type { QualifiersObject } from './purl-component.js'
 
@@ -308,7 +312,7 @@ export class PurlBuilder {
     }
     if (purl.qualifiers !== undefined) {
       const qualifiersObj = purl.qualifiers as QualifiersObject
-      builder._qualifiers = Object.fromEntries(
+      builder._qualifiers = ObjectFromEntries(
         ArrayPrototypeMap(ObjectEntries(qualifiersObj), ([key, value]) => [
           key,
           String(value),

@@ -42,8 +42,10 @@ function toCanonicalString(input: PurlInput): string {
 
 /**
  * Cache for compiled wildcard regexes to avoid recompilation on repeated calls.
+ * Bounded to 1024 entries with LRU eviction (same strategy as flyweight cache).
  */
 const wildcardRegexCache = new MapCtor<string, RegExp>()
+const WILDCARD_CACHE_MAX = 1024
 
 /**
  * Simple wildcard matcher for PURL components.
@@ -69,6 +71,13 @@ function matchWildcard(pattern: string, value: string): boolean {
     regex = new RegExp(
       `^${StringPrototypeReplace(regexPattern, /(\.\*)+/g, '.*' as any)}$`,
     )
+    if (wildcardRegexCache.size >= WILDCARD_CACHE_MAX) {
+      // Evict oldest entry (Map iteration order is insertion order)
+      const oldest = wildcardRegexCache.keys().next().value
+      if (oldest !== undefined) {
+        wildcardRegexCache.delete(oldest)
+      }
+    }
     wildcardRegexCache.set(pattern, regex)
   }
   return RegExpPrototypeTest(regex, value)

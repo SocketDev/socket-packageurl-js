@@ -5,7 +5,11 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
+import {
+  ArrayPrototypeSome,
+  StringPrototypeIncludes,
+  encodeComponent,
+} from '../primordials.js'
 import { lowerName, lowerNamespace } from '../strings.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'
@@ -78,7 +82,7 @@ export async function packagistExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://repo.packagist.org/p2/${encodeURIComponent(packageName)}.json`
+      const url = `https://repo.packagist.org/p2/${encodeComponent(packageName)}.json`
 
       const data = await httpJson<{
         packages?: {
@@ -139,7 +143,9 @@ export async function packagistExists(
   }
 
   const result = await fetchResult()
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
   return result

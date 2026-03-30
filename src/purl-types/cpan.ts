@@ -9,6 +9,7 @@ import { PurlError } from '../error.js'
 import {
   StringPrototypeIncludes,
   StringPrototypeToUpperCase,
+  encodeComponent,
 } from '../primordials.js'
 import { validateNoInjectionByType } from '../validate.js'
 
@@ -66,7 +67,7 @@ export async function cpanExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://fastapi.metacpan.org/v1/module/${encodeURIComponent(name)}`
+      const url = `https://fastapi.metacpan.org/v1/module/${encodeComponent(name)}`
 
       const data = await httpJson<{
         version?: string
@@ -76,7 +77,7 @@ export async function cpanExists(
 
       if (version) {
         // Check specific version
-        const versionUrl = `https://fastapi.metacpan.org/v1/module/${encodeURIComponent(name)}/${encodeURIComponent(version)}`
+        const versionUrl = `https://fastapi.metacpan.org/v1/module/${encodeComponent(name)}/${encodeComponent(version)}`
         try {
           await httpJson(versionUrl)
         } catch {
@@ -110,8 +111,9 @@ export async function cpanExists(
 
   const result = await fetchResult()
 
-  // Cache result if cache provided
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
 

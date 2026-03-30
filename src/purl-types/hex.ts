@@ -5,7 +5,11 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { ArrayPrototypeSome, StringPrototypeIncludes } from '../primordials.js'
+import {
+  ArrayPrototypeSome,
+  StringPrototypeIncludes,
+  encodeComponent,
+} from '../primordials.js'
 import { lowerName, lowerNamespace } from '../strings.js'
 import { validateNoInjectionByType } from '../validate.js'
 
@@ -62,7 +66,7 @@ export async function hexExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://hex.pm/api/packages/${encodeURIComponent(name)}`
+      const url = `https://hex.pm/api/packages/${encodeComponent(name)}`
 
       const data = await httpJson<{
         latest_version?: string
@@ -109,7 +113,9 @@ export async function hexExists(
   }
 
   const result = await fetchResult()
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
   return result

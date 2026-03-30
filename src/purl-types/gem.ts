@@ -9,6 +9,7 @@ import {
   ArrayIsArray,
   ArrayPrototypeSome,
   StringPrototypeIncludes,
+  encodeComponent,
 } from '../primordials.js'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
@@ -75,7 +76,7 @@ export async function gemExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://rubygems.org/api/v1/versions/${encodeURIComponent(name)}.json`
+      const url = `https://rubygems.org/api/v1/versions/${encodeComponent(name)}.json`
 
       const data = await httpJson<Array<{ number?: string }>>(url)
 
@@ -125,8 +126,9 @@ export async function gemExists(
 
   const result = await fetchResult()
 
-  // Cache result if cache provided
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
 

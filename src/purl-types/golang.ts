@@ -161,7 +161,9 @@ export async function golangExists(
   }
 
   const result = await fetchResult()
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
   return result

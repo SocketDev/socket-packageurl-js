@@ -473,7 +473,7 @@ describe('vscodeExtensionExists', () => {
       expect(await mockCache.get('dbaeumer.vscode-eslint@2.4.1')).toBeDefined()
     })
 
-    it('should cache error results', async () => {
+    it('should not cache error results (prevents negative cache poisoning)', async () => {
       const mockCache = createMockCache()
 
       nock('https://marketplace.visualstudio.com')
@@ -501,7 +501,7 @@ describe('vscodeExtensionExists', () => {
       )
 
       expect(result.exists).toBe(false)
-      expect(await mockCache.get('publisher.non-existent')).toBeDefined()
+      expect(await mockCache.get('publisher.non-existent')).toBeUndefined()
     })
   })
 })

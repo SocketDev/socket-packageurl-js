@@ -1510,9 +1510,9 @@ describe('Edge cases and additional coverage', () => {
       const order = componentComparator('unknown1', 'unknown2')
       expect(typeof order).toBe('number')
 
-      // Test componentSortOrder directly - line 53
+      // Test componentSortOrder directly - unknown components sort after known ones
       const sortOrder = componentSortOrder('unknownComponent')
-      expect(sortOrder).toBe('unknownComponent')
+      expect(sortOrder).toBe(8)
     })
 
     // Test purl-type.js lines 291-294 - npm namespace with trailing spaces

@@ -10,6 +10,7 @@ import {
   ArrayPrototypePush,
   StringPrototypeIncludes,
   StringPrototypeToLowerCase,
+  encodeComponent,
 } from '../primordials.js'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
@@ -67,7 +68,7 @@ export async function nugetExists(
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
       const lowerName = StringPrototypeToLowerCase(name)
-      const url = `https://api.nuget.org/v3/registration5-semver1/${encodeURIComponent(lowerName)}/index.json`
+      const url = `https://api.nuget.org/v3/registration5-semver1/${encodeComponent(lowerName)}/index.json`
 
       const data = await httpJson<{
         items?: Array<{
@@ -135,7 +136,9 @@ export async function nugetExists(
   }
 
   const result = await fetchResult()
-  if (options?.cache) {
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (options?.cache && result.exists) {
     await options.cache.set(cacheKey, result)
   }
   return result
