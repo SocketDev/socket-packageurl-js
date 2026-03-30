@@ -2221,13 +2221,13 @@ describe('Edge cases and additional coverage', () => {
       const result = await purlExists(purl)
       // Network call may succeed or fail, but it should not return "Unsupported type"
       expect(result.error).not.toBe('Unsupported type: conda')
-    }, 30_000)
+    }, 15_000)
 
     it('should dispatch docker type', async () => {
       const purl = PackageURL.fromString('pkg:docker/nginx@latest')
       const result = await purlExists(purl)
       expect(result.error).not.toBe('Unsupported type: docker')
-    }, 30_000)
+    }, 15_000)
   })
 
   describe('UrlConverter edge cases', () => {
