@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.1](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.1) - 2026-03-30
+
+### Changed
+
+- Bounded internal caches and string processing
+- Freeze cached instances for immutability
+- Improved primordial coverage for consistency
+- Tidied up validation helpers and consolidated shared patterns
+
+### Fixed
+
+- Component comparator uses numeric comparison
+- Stringify edge case with `"0"` as a valid component value
+- VERS containment for compound range expressions
+
 ## [1.4.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.0) - 2026-03-28
 
 ### Added
