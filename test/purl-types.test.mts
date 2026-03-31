@@ -43,12 +43,34 @@ describe('PackageURL type-specific tests', () => {
   describe('npm', () => {
     it("should allow legacy names to be mixed case, match a builtin, or contain ~'!()* characters", () => {
       // Tests npm legacy package exceptions (historical packages with special names)
+      // Some legacy names contain injection characters (!, *, ~) that are now
+      // caught by the injection scanner before reaching npm-specific validation.
+      const injectionCharPattern = /[!*~]/
       for (const legacyName of npmLegacyNames) {
+        const parts = legacyName.split('/')
+        const namespace = parts.length > 1 ? parts[0] : ''
+        const name = parts.at(-1)
+
+        if (injectionCharPattern.test(legacyName)) {
+          // Legacy names with injection characters are now rejected by
+          // the injection scanner before npm validation runs
+          expect(
+            () =>
+              new PackageURL(
+                'npm',
+                namespace,
+                name,
+                undefined,
+                undefined,
+                undefined,
+              ),
+            `assert injection rejection for ${legacyName}`,
+          ).toThrow(PurlError)
+          continue
+        }
+
         let purl: PackageURL | undefined
         expect(() => {
-          const parts = legacyName.split('/')
-          const namespace = parts.length > 1 ? parts[0] : ''
-          const name = parts.at(-1)
           purl = new PackageURL(
             'npm',
             namespace,
@@ -61,11 +83,7 @@ describe('PackageURL type-specific tests', () => {
         const id = purl ? getNpmId(purl) : ''
         const isBuiltin = npmBuiltinNames.includes(id)
         const isMixedCased = /[A-Z]/.test(id)
-        const containsIllegalCharacters = /[~'!()*]/.test(id)
-        expect(
-          isBuiltin || isMixedCased || containsIllegalCharacters,
-          `assert for ${legacyName}`,
-        ).toBe(true)
+        expect(isBuiltin || isMixedCased, `assert for ${legacyName}`).toBe(true)
       }
     })
 

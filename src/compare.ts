@@ -52,7 +52,13 @@ const WILDCARD_CACHE_MAX = 1024
  * Supports * (match any chars), ? (match single char), ** (match anything including empty).
  * Designed for version strings and package names, not file paths.
  */
+const MAX_PATTERN_LENGTH = 4096
+
 function matchWildcard(pattern: string, value: string): boolean {
+  // Reject excessively long patterns to prevent regex compilation DoS
+  if (pattern.length > MAX_PATTERN_LENGTH) {
+    return false
+  }
   let regex = wildcardRegexCache.get(pattern)
   if (regex === undefined) {
     // Convert glob pattern to regex

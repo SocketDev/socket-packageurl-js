@@ -20,6 +20,7 @@ import {
   StringPrototypeTrim,
 } from '../primordials.js'
 import { isBlank, lowerName, lowerNamespace } from '../strings.js'
+import { validateNoInjectionByType } from '../validate.js'
 
 import type { TtlCache } from '@socketsecurity/lib/cache-with-ttl'
 
@@ -434,6 +435,13 @@ export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name, namespace } = purl
+  // Validate name and namespace for injection characters
+  if (!validateNoInjectionByType('npm', 'name', name, throws)) {
+    return false
+  }
+  if (!validateNoInjectionByType('npm', 'namespace', namespace, throws)) {
+    return false
+  }
   const hasNs = namespace && namespace.length > 0
   const id = getNpmId(purl)
   const code0 = StringPrototypeCharCodeAt(id, 0)

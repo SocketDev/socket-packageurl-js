@@ -45,21 +45,14 @@ describe('PackageURL.fromJSON security features', () => {
     })
 
     it('should handle JSON exactly at 1MB limit', () => {
-      // Create a JSON string that's exactly at the 1MB limit efficiently
+      // Create a JSON string that's near the 1MB limit using many qualifiers
+      // (each value is within the 64KB per-value limit)
       const targetSize = 1024 * 1024
-
-      // Calculate size of base JSON structure:
-      // '{"type":"npm","name":"test","qualifiers":{"bigQualifier":"..."}}'
-      // The key "bigQualifier" takes: "bigQualifier":"" = 17 bytes
-      const baseOverhead =
-        '{"type":"npm","name":"test","qualifiers":{}}'.length + 17
-
-      // Calculate the value length needed (with small buffer)
-      const valueLength = targetSize - baseOverhead - 50
-
-      // Create one large qualifier
-      const qualifiers: Record<string, string> = {
-        bigQualifier: 'x'.repeat(valueLength),
+      const qualifiers: Record<string, string> = {}
+      const valueSize = 60000 // just under 64KB limit
+      const numQualifiers = Math.floor(targetSize / (valueSize + 20))
+      for (let i = 0; i < numQualifiers; i++) {
+        qualifiers[`q${i}`] = 'x'.repeat(valueSize)
       }
 
       const finalJson = JSON.stringify({
@@ -69,7 +62,7 @@ describe('PackageURL.fromJSON security features', () => {
       })
 
       expect(finalJson.length).toBeLessThanOrEqual(targetSize)
-      expect(finalJson.length).toBeGreaterThan(targetSize - 1000)
+      expect(finalJson.length).toBeGreaterThan(targetSize - valueSize - 100)
 
       // Should work when under the limit
       const result = PackageURL.fromJSON(finalJson)

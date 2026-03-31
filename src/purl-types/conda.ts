@@ -116,8 +116,9 @@ export async function condaExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
+      const encodedChannel = encodeComponent(channelName)
       const encodedName = encodeComponent(name)
-      const url = `https://api.anaconda.org/package/${channelName}/${encodedName}`
+      const url = `https://api.anaconda.org/package/${encodedChannel}/${encodedName}`
 
       const data = await httpJson<{
         latest_version?: string
