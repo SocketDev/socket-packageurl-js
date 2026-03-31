@@ -107,7 +107,10 @@ export async function dockerExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const encodedRepo = encodeComponent(repo)
+      // Encode each path segment separately to preserve the / delimiter
+      const encodedRepo = namespace
+        ? `${encodeComponent(namespace)}/${encodeComponent(name)}`
+        : encodeComponent(name)
       const url = `https://hub.docker.com/v2/repositories/${encodedRepo}`
 
       const data = await httpJson<{

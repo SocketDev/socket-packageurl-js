@@ -33,6 +33,7 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 import { PurlError } from '../error.js'
 import {
   ArrayPrototypeJoin,
+  encodeComponent,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   StringPrototypeReplace,
@@ -108,10 +109,12 @@ export async function golangExists(
       // Go proxy uses case-encoded paths where uppercase letters are !lowercase
       const parts = StringPrototypeSplit(modulePath, '/' as any)
       for (let i = 0; i < parts.length; i++) {
-        parts[i] = StringPrototypeReplace(
-          parts[i]!,
-          /[A-Z]/g,
-          letter => `!${StringPrototypeToLowerCase(letter)}`,
+        parts[i] = encodeComponent(
+          StringPrototypeReplace(
+            parts[i]!,
+            /[A-Z]/g,
+            letter => `!${StringPrototypeToLowerCase(letter)}`,
+          ),
         )
       }
       const encodedPath = ArrayPrototypeJoin(parts, '/')
@@ -126,7 +129,7 @@ export async function golangExists(
       const latestVersion = data.Version
 
       if (version) {
-        const versionUrl = `https://proxy.golang.org/${encodedPath}/@v/${version}.info`
+        const versionUrl = `https://proxy.golang.org/${encodedPath}/@v/${encodeComponent(version)}.info`
         try {
           await httpJson(versionUrl)
         } catch {

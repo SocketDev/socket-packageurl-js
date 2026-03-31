@@ -20,7 +20,7 @@ describe('dockerExists', () => {
   describe('image existence', () => {
     it('should return exists=true for existing image with namespace', async () => {
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Fnginx')
+        .get('/v2/repositories/library/nginx')
         .reply(200, {
           name: 'nginx',
           namespace: 'library',
@@ -51,7 +51,7 @@ describe('dockerExists', () => {
 
     it('should return exists=false for non-existent image', async () => {
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Fthis-image-does-not-exist')
+        .get('/v2/repositories/library/this-image-does-not-exist')
         .reply(404)
 
       const result = await dockerExists('this-image-does-not-exist', 'library')
@@ -62,7 +62,7 @@ describe('dockerExists', () => {
 
     it('should handle image without name property', async () => {
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Ftest-image')
+        .get('/v2/repositories/library/test-image')
         .reply(200, {
           // No name property
         })
@@ -77,11 +77,11 @@ describe('dockerExists', () => {
   describe('tag validation', () => {
     it('should validate specific tag exists', async () => {
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Fnginx')
+        .get('/v2/repositories/library/nginx')
         .reply(200, {
           name: 'nginx',
         })
-        .get('/v2/repositories/library%2Fnginx/tags/1.25.3')
+        .get('/v2/repositories/library/nginx/tags/1.25.3')
         .reply(200, {
           name: '1.25.3',
         })
@@ -96,11 +96,11 @@ describe('dockerExists', () => {
 
     it('should return error when tag does not exist', async () => {
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Fnginx')
+        .get('/v2/repositories/library/nginx')
         .reply(200, {
           name: 'nginx',
         })
-        .get('/v2/repositories/library%2Fnginx/tags/999.0.0')
+        .get('/v2/repositories/library/nginx/tags/999.0.0')
         .reply(404)
 
       const result = await dockerExists('nginx', 'library', '999.0.0')
@@ -111,11 +111,11 @@ describe('dockerExists', () => {
 
     it('should validate tag for image without namespace', async () => {
       nock('https://hub.docker.com')
-        .get('/v2/repositories/myuser%2Fmyimage')
+        .get('/v2/repositories/myuser/myimage')
         .reply(200, {
           name: 'myimage',
         })
-        .get('/v2/repositories/myuser%2Fmyimage/tags/v1.0.0')
+        .get('/v2/repositories/myuser/myimage/tags/v1.0.0')
         .reply(200, {
           name: 'v1.0.0',
         })
@@ -130,7 +130,7 @@ describe('dockerExists', () => {
   describe('error handling', () => {
     it('should handle network errors', async () => {
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Ftest-image')
+        .get('/v2/repositories/library/test-image')
         .replyWithError('Network error')
 
       const result = await dockerExists('test-image', 'library')
@@ -141,7 +141,7 @@ describe('dockerExists', () => {
 
     it('should handle 500 errors', async () => {
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Ftest-image')
+        .get('/v2/repositories/library/test-image')
         .reply(500, 'Internal Server Error')
 
       const result = await dockerExists('test-image', 'library')
@@ -152,11 +152,11 @@ describe('dockerExists', () => {
 
     it('should handle tag validation network errors', async () => {
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Fnginx')
+        .get('/v2/repositories/library/nginx')
         .reply(200, {
           name: 'nginx',
         })
-        .get('/v2/repositories/library%2Fnginx/tags/test')
+        .get('/v2/repositories/library/nginx/tags/test')
         .replyWithError('Network error')
 
       const result = await dockerExists('nginx', 'library', 'test')
@@ -169,7 +169,7 @@ describe('dockerExists', () => {
   describe('caching', () => {
     it('should work without cache option', async () => {
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Fnginx')
+        .get('/v2/repositories/library/nginx')
         .reply(200, {
           name: 'nginx',
         })
@@ -198,7 +198,7 @@ describe('dockerExists', () => {
       const mockCache = createMockCache()
 
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Fredis')
+        .get('/v2/repositories/library/redis')
         .reply(200, {
           name: 'redis',
         })
@@ -217,11 +217,11 @@ describe('dockerExists', () => {
       const mockCache = createMockCache()
 
       nock('https://hub.docker.com')
-        .get('/v2/repositories/library%2Fnginx')
+        .get('/v2/repositories/library/nginx')
         .reply(200, {
           name: 'nginx',
         })
-        .get('/v2/repositories/library%2Fnginx/tags/1.25.3')
+        .get('/v2/repositories/library/nginx/tags/1.25.3')
         .reply(200, {
           name: '1.25.3',
         })

@@ -203,53 +203,185 @@ function replaceUnderscoresWithDashes(str: string): string {
  *    space (0x20), DEL (0x7f)
  */
 function isInjectionCharCode(code: number): boolean {
-  // C0 control characters (0x00-0x1f) — includes NUL, tab, newline, CR,
-  // ESC (0x1b, terminal escape sequences), and all other control chars.
-  // Also catches vertical tab (0x0b), form feed (0x0c), and bell (0x07)
-  // which can be used for log injection and terminal manipulation.
+  // C0 control characters (0x00-0x1f)
   if (code <= 0x1f) {
     return true
   }
   // biome-ignore format: newlines
   if (
-    // space — argument splitting in shell contexts
+    // space
     code === 0x20 ||
-    // " — breaks double-quoted shell/SQL/URL contexts
+    // !
+    code === 0x21 ||
+    // "
     code === 0x22 ||
-    // # — URL fragment injection, shell comments
+    // #
     code === 0x23 ||
-    // $ — shell variable expansion, command substitution $()
+    // $
     code === 0x24 ||
-    // & — shell background execution, URL parameter delimiter
+    // %
+    code === 0x25 ||
+    // &
     code === 0x26 ||
-    // ' — breaks single-quoted shell/SQL contexts
+    // '
     code === 0x27 ||
-    // ( — shell subshell, command grouping
+    // (
     code === 0x28 ||
-    // ) — shell subshell, command grouping
+    // )
     code === 0x29 ||
-    // ; — shell command separator
+    // *
+    code === 0x2a ||
+    // ;
     code === 0x3b ||
-    // < — shell input redirection, XML/HTML injection
+    // <
     code === 0x3c ||
-    // > — shell output redirection, XML/HTML injection
+    // =
+    code === 0x3d ||
+    // >
     code === 0x3e ||
-    // \ — shell escape character, path traversal on Windows
+    // ?
+    code === 0x3f ||
+    // [
+    code === 0x5b ||
+    // \
     code === 0x5c ||
-    // ` — shell command substitution (legacy backtick form)
+    // ]
+    code === 0x5d ||
+    // `
     code === 0x60 ||
-    // { — shell brace expansion
+    // {
     code === 0x7b ||
-    // | — shell pipe
+    // |
     code === 0x7c ||
-    // } — shell brace expansion
+    // }
     code === 0x7d ||
-    // DEL (0x7f) — control character, terminal manipulation
+    // ~
+    code === 0x7e ||
+    // DEL
     code === 0x7f
   ) {
     return true
   }
+  // C1 control characters (0x80-0x9f)
+  if (code >= 0x80 && code <= 0x9f) {
+    return true
+  }
+  // Unicode dangerous characters
+  // biome-ignore format: newlines
+  if (
+    // Zero-width space
+    code === 0x200b ||
+    // Zero-width non-joiner
+    code === 0x200c ||
+    // Zero-width joiner
+    code === 0x200d ||
+    // Left-to-right mark
+    code === 0x200e ||
+    // Right-to-left mark
+    code === 0x200f ||
+    // Left-to-right embedding
+    code === 0x202a ||
+    // Right-to-left embedding
+    code === 0x202b ||
+    // Pop directional formatting
+    code === 0x202c ||
+    // Left-to-right override
+    code === 0x202d ||
+    // Right-to-left override
+    code === 0x202e ||
+    // Word joiner
+    code === 0x2060 ||
+    // BOM / zero-width no-break space
+    code === 0xfeff ||
+    // Object replacement character
+    code === 0xfffc ||
+    // Replacement character
+    code === 0xfffd
+  ) {
+    return true
+  }
   return false
+}
+
+/**
+ * Test whether a character code enables command execution.
+ *
+ * A narrower scanner than isInjectionCharCode, targeting characters that
+ * enable shell command execution and code injection. Allows characters
+ * that are legitimate in version strings and URL-based qualifier values
+ * (like !, +, ?, &, =, %, :, /, #, space) while still blocking the
+ * most dangerous execution vectors.
+ *
+ * Used for version, subpath, and qualifier value validation where the
+ * full injection scanner would cause false positives.
+ */
+function isCommandInjectionCharCode(code: number): boolean {
+  // C0 control characters except tab (0x09) — tab is used in some
+  // version metadata but other controls are never legitimate
+  if (code <= 0x1f && code !== 0x09) {
+    return true
+  }
+  // biome-ignore format: newlines
+  if (
+    // $ — command substitution $()
+    code === 0x24 ||
+    // ; — command separator
+    code === 0x3b ||
+    // < — input redirection
+    code === 0x3c ||
+    // > — output redirection
+    code === 0x3e ||
+    // \ — escape character
+    code === 0x5c ||
+    // ` — command substitution (backtick form)
+    code === 0x60 ||
+    // | — pipe
+    code === 0x7c ||
+    // DEL
+    code === 0x7f
+  ) {
+    return true
+  }
+  // C1 control characters
+  if (code >= 0x80 && code <= 0x9f) {
+    return true
+  }
+  // Unicode dangerous characters (same set as isInjectionCharCode)
+  // biome-ignore format: newlines
+  if (
+    code === 0x200b ||
+    code === 0x200c ||
+    code === 0x200d ||
+    code === 0x200e ||
+    code === 0x200f ||
+    code === 0x202a ||
+    code === 0x202b ||
+    code === 0x202c ||
+    code === 0x202d ||
+    code === 0x202e ||
+    code === 0x2060 ||
+    code === 0xfeff ||
+    code === 0xfffc ||
+    code === 0xfffd
+  ) {
+    return true
+  }
+  return false
+}
+
+/**
+ * Find the first command injection character in a string.
+ * Like findInjectionCharCode but uses the narrower command injection set.
+ * Returns the character code found, or -1.
+ */
+function findCommandInjectionCharCode(str: string): number {
+  for (let i = 0, { length } = str; i < length; i += 1) {
+    const code = StringPrototypeCharCodeAt(str, i)
+    if (isCommandInjectionCharCode(code)) {
+      return code
+    }
+  }
+  return -1
 }
 
 /**
@@ -310,6 +442,7 @@ function trimLeadingSlashes(str: string): string {
 
 export {
   containsInjectionCharacters,
+  findCommandInjectionCharCode,
   findInjectionCharCode,
   formatInjectionChar,
   isBlank,

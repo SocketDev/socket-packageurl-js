@@ -12,6 +12,7 @@ import {
   StringPrototypeIncludes,
 } from './primordials.js'
 import {
+  findCommandInjectionCharCode,
   findInjectionCharCode,
   formatInjectionChar,
   isNonEmptyString,
@@ -156,6 +157,16 @@ function validateQualifierKey(
     }
     return false
   }
+  // Qualifier keys must not exceed reasonable length
+  const MAX_QUALIFIER_KEY_LENGTH = 256
+  if (key.length > MAX_QUALIFIER_KEY_LENGTH) {
+    if (throws) {
+      throw new PurlError(
+        `qualifier key exceeds maximum length of ${MAX_QUALIFIER_KEY_LENGTH} characters`,
+      )
+    }
+    return false
+  }
   // A key cannot start with a number
   if (!validateStartsWithoutNumber('qualifier', key, opts)) {
     return false
@@ -227,6 +238,38 @@ function validateQualifiers(
   for (const key of keysIterable) {
     if (!validateQualifierKey(key, opts)) {
       return false
+    }
+    // Validate qualifier values for command injection characters.
+    // Uses the narrower command injection scanner to allow URL-safe characters
+    // (?, &, =, :, /, #) that are legitimate in qualifier values like
+    // download_url, repository_url, and vcs_url.
+    const value =
+      typeof (qualifiersObj as QualifiersObject)[key] === 'string'
+        ? ((qualifiersObj as QualifiersObject)[key] as string)
+        : undefined
+    if (value !== undefined) {
+      // Qualifier values must not exceed reasonable length
+      const MAX_QUALIFIER_VALUE_LENGTH = 65536
+      if (value.length > MAX_QUALIFIER_VALUE_LENGTH) {
+        if (throws) {
+          throw new PurlError(
+            `qualifier "${key}" value exceeds maximum length of ${MAX_QUALIFIER_VALUE_LENGTH} characters`,
+          )
+        }
+        return false
+      }
+      const code = findCommandInjectionCharCode(value)
+      if (code !== -1) {
+        if (throws) {
+          throw new PurlInjectionError(
+            'purl',
+            `qualifier "${key}"`,
+            code,
+            formatInjectionChar(code),
+          )
+        }
+        return false
+      }
     }
   }
   return true
@@ -332,6 +375,10 @@ function validateStrings(
 
 /**
  * Validate subpath component.
+ * Rejects command injection characters (|, ;, `, $, <, >, \) while allowing
+ * characters that are legitimate in decoded subpaths (?, #, space, etc. which
+ * get percent-encoded in the PURL string representation).
+ * @throws {PurlInjectionError} When command injection characters found and options.throws is true.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 function validateSubpath(
@@ -340,7 +387,25 @@ function validateSubpath(
 ): boolean {
   // Support both legacy boolean parameter and new options object for backward compatibility
   const opts = typeof options === 'boolean' ? { throws: options } : options
-  return validateStrings('subpath', subpath, opts)
+  const { throws = false } = opts ?? {}
+  if (!validateStrings('subpath', subpath, opts)) {
+    return false
+  }
+  if (typeof subpath === 'string') {
+    const code = findCommandInjectionCharCode(subpath)
+    if (code !== -1) {
+      if (throws) {
+        throw new PurlInjectionError(
+          'purl',
+          'subpath',
+          code,
+          formatInjectionChar(code),
+        )
+      }
+      return false
+    }
+  }
+  return true
 }
 
 /**
@@ -395,6 +460,9 @@ function validateType(
 
 /**
  * Validate package version component.
+ * Rejects command injection characters (|, ;, `, $, <, >, \) while allowing
+ * characters legitimate in version strings (!, +, -, ., _, ~, space, %, ?, #).
+ * @throws {PurlInjectionError} When command injection characters found and options.throws is true.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 function validateVersion(
@@ -418,6 +486,22 @@ function validateVersion(
       )
     }
     return false
+  }
+
+  // Reject command injection characters
+  if (typeof version === 'string') {
+    const code = findCommandInjectionCharCode(version)
+    if (code !== -1) {
+      if (throws) {
+        throw new PurlInjectionError(
+          'purl',
+          'version',
+          code,
+          formatInjectionChar(code),
+        )
+      }
+      return false
+    }
   }
 
   return true

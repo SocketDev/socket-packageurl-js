@@ -95,7 +95,14 @@ function normalizeQualifiers(
   let qualifiers: Record<string, string> | undefined
   // Use for-of to work with entries iterators
   for (const { 0: key, 1: value } of qualifiersToEntries(rawQualifiers)) {
-    const strValue = typeof value === 'string' ? value : String(value)
+    // Only coerce primitive types — reject objects/functions that could
+    // execute arbitrary code via toString() during coercion.
+    const strValue =
+      typeof value === 'string'
+        ? value
+        : typeof value === 'number' || typeof value === 'boolean'
+          ? `${value}`
+          : ''
     const trimmed = StringPrototypeTrim(strValue)
     // A key=value pair with an empty value is the same as no key/value
     // at all for this key

@@ -508,7 +508,13 @@ class PackageURL {
       }
     }
     const purl = new PackageURL(...PackageURL.parseString(purlStr))
-    // Cache the result for future lookups
+    // Eagerly populate the toString cache before freezing
+    purl.toString()
+    // Deep freeze the instance and its nested qualifiers object to prevent
+    // cache poisoning via mutation of shared cached instances.
+    recursiveFreeze(purl)
+    // Cache the frozen result for future lookups — freezing prevents
+    // cache poisoning via property mutation on shared instances.
     if (typeof purlStr === 'string') {
       if (flyweightCache.size >= FLYWEIGHT_CACHE_MAX) {
         // Evict oldest entry (first key in Map iteration order)

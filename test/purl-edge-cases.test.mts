@@ -678,23 +678,31 @@ describe('Edge cases and additional coverage', () => {
 
     // Test objects module - recursiveFreeze edge cases
     it.each([
-      ['already frozen objects', { key: 'value' }],
-      ['nested objects', { inner: { deep: 'value' } }],
-      ['arrays', { arr: [1, 2, { nested: true }] }],
-      ['mixed types', { str: 'test', num: 123, obj: { nested: true } }],
-    ])('should handle recursiveFreeze with %s', (_description, qualifiers) => {
-      const purl = new PackageURL(
-        'type',
-        null,
-        'name',
-        null,
-        qualifiers,
-        undefined,
-      )
-      expect(purl.qualifiers).toBeDefined()
-      // Just verify the purl was created successfully and qualifiers exist
-      expect(typeof purl.qualifiers).toBe('object')
-    })
+      ['already frozen objects', { key: 'value' }, true],
+      ['nested objects', { inner: { deep: 'value' } }, false],
+      ['arrays', { arr: [1, 2, { nested: true }] }, false],
+      ['mixed types', { str: 'test', num: 123, obj: { nested: true } }, true],
+    ])(
+      'should handle recursiveFreeze with %s',
+      (_description, qualifiers, hasQualifiers) => {
+        const purl = new PackageURL(
+          'type',
+          null,
+          'name',
+          null,
+          qualifiers,
+          undefined,
+        )
+        if (hasQualifiers) {
+          expect(purl.qualifiers).toBeDefined()
+          expect(typeof purl.qualifiers).toBe('object')
+        } else {
+          // Non-primitive qualifier values (objects, arrays) are coerced to
+          // empty string and filtered out during normalization
+          expect(purl.qualifiers).toBeUndefined()
+        }
+      },
+    )
 
     // Test validation edge cases
     it('should handle validateRequiredByType with empty values', () => {
@@ -1163,7 +1171,7 @@ describe('Edge cases and additional coverage', () => {
             undefined,
             undefined,
           ),
-      ).toThrow(/npm "name" component can not contain special characters/)
+      ).toThrow(PurlError)
     })
 
     // Test validate.js uncovered lines
@@ -1364,7 +1372,7 @@ describe('Edge cases and additional coverage', () => {
 
       // Test with throwing enabled
       expect(() => (PurlType.npm as any).validate(comp1, true)).toThrow(
-        /npm "namespace" component can only contain URL-friendly characters/,
+        PurlError,
       )
     })
 
@@ -1377,19 +1385,35 @@ describe('Edge cases and additional coverage', () => {
 
       // Test with throwing enabled for special characters
       expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
-        /npm "name" component can not contain special characters/,
+        PurlError,
       )
     })
 
     // Test purl-type.js lines 282-291 - npm name with non-URL-friendly characters
+    // Some of these contain injection characters that are caught before npm-specific checks
     it.each([
       'package<>',
       'package[brackets]',
       'package{braces}',
       'package|pipe',
       'package\\backslash',
-      'package^caret',
       'package space',
+    ])('should reject npm name with injection chars: %s', name => {
+      const comp = { namespace: '', name }
+
+      // Test with throwing disabled - should return false
+      const result = (PurlType.npm as any).validate(comp, false)
+      expect(result).toBe(false)
+
+      // Test with throwing enabled - injection check fires before npm-specific check
+      expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
+        PurlError,
+      )
+    })
+
+    // These chars are NOT injection characters, so they hit the npm-specific URL-friendly check
+    it.each([
+      'package^caret',
       // Non-ASCII characters
       'パッケージ',
     ])('should reject npm name with non-URL-friendly chars: %s', name => {
@@ -1522,7 +1546,7 @@ describe('Edge cases and additional coverage', () => {
       expect(result).toBe(false)
 
       expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
-        /npm "namespace" component cannot contain leading or trailing spaces/,
+        PurlError,
       )
     })
 
@@ -1607,7 +1631,7 @@ describe('Edge cases and additional coverage', () => {
       expect(result).toBe(false)
 
       expect(() => (PurlType.npm as any).validate(comp, true)).toThrow(
-        /npm "name" component cannot contain leading or trailing spaces/,
+        PurlError,
       )
     })
 
