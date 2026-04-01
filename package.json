@@ -59,6 +59,7 @@
     "update:data:npm": "node scripts/update-data-npm.mjs"
   },
   "devDependencies": {
+    "@anthropic-ai/claude-code": "2.1.89",
     "@babel/parser": "7.29.0",
     "@dotenvx/dotenvx": "1.52.0",
     "@oxlint/migrate": "1.51.0",
