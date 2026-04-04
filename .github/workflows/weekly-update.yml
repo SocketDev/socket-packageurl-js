@@ -214,16 +214,16 @@ jobs:
       - name: Set final status
         id: final
         if: always()
+        env:
+          UPDATE_SUCCESS: ${{ steps.update.outputs.success }}
+          TESTS_SUCCESS: ${{ steps.tests.outputs.success }}
+          FIX_SUCCESS: ${{ steps.claude.outputs.success }}
         run: |
-          UPDATE="${{ steps.update.outputs.success }}"
-          TESTS="${{ steps.tests.outputs.success }}"
-          FIX="${{ steps.claude.outputs.success }}"
-
-          if [ "$UPDATE" != "true" ]; then
+          if [ "$UPDATE_SUCCESS" != "true" ]; then
             echo "success=false" >> $GITHUB_OUTPUT
-          elif [ "$TESTS" = "true" ]; then
+          elif [ "$TESTS_SUCCESS" = "true" ]; then
             echo "success=true" >> $GITHUB_OUTPUT
-          elif [ "$FIX" = "true" ]; then
+          elif [ "$FIX_SUCCESS" = "true" ]; then
             echo "success=true" >> $GITHUB_OUTPUT
           else
             echo "success=false" >> $GITHUB_OUTPUT
