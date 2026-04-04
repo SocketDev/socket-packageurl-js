@@ -46,6 +46,8 @@
     "clean": "node scripts/clean.mjs",
     "cover": "node scripts/cover.mjs",
     "fix": "node scripts/fix.mjs",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
     "lint": "node scripts/lint.mjs",
     "precommit": "pnpm run check --lint --staged",
     "prepare": "husky",
