@@ -325,7 +325,7 @@ describe('vscodeExtensionExists', () => {
       const result = await vscodeExtensionExists('test-extension', 'publisher')
 
       expect(result.exists).toBe(false)
-      expect(result.error).toContain('Network error')
+      expect(result.error).toContain('request failed')
     })
 
     it('should handle 500 errors', async () => {

@@ -165,7 +165,7 @@ describe('golangExists', () => {
       const result = await golangExists('github.com/test/module')
 
       expect(result.exists).toBe(false)
-      expect(result.error).toContain('Network error')
+      expect(result.error).toContain('request failed')
     })
 
     it('should handle 410 errors as not found', async () => {

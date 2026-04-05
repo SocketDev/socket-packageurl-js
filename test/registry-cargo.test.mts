@@ -139,7 +139,7 @@ describe('cargoExists', () => {
       const result = await cargoExists('test-crate')
 
       expect(result.exists).toBe(false)
-      expect(result.error).toContain('Network error')
+      expect(result.error).toContain('request failed')
     })
 
     it('should handle 500 errors', async () => {

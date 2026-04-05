@@ -172,7 +172,7 @@ describe('condaExists', () => {
       const result = await condaExists('test-package')
 
       expect(result.exists).toBe(false)
-      expect(result.error).toContain('Network error')
+      expect(result.error).toContain('request failed')
     })
 
     it('should handle 500 errors', async () => {

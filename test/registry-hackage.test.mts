@@ -109,7 +109,7 @@ describe('hackageExists', () => {
       const result = await hackageExists('test-package')
 
       expect(result.exists).toBe(false)
-      expect(result.error).toContain('Network error')
+      expect(result.error).toContain('request failed')
     })
 
     it('should handle 500 errors', async () => {
