@@ -136,7 +136,7 @@ describe('dockerExists', () => {
       const result = await dockerExists('test-image', 'library')
 
       expect(result.exists).toBe(false)
-      expect(result.error).toContain('Network error')
+      expect(result.error).toContain('request failed')
     })
 
     it('should handle 500 errors', async () => {
@@ -162,7 +162,7 @@ describe('dockerExists', () => {
       const result = await dockerExists('nginx', 'library', 'test')
 
       expect(result.exists).toBe(false)
-      expect(result.error).toContain('Network error')
+      expect(result.error).toContain('request failed')
     })
   })
 

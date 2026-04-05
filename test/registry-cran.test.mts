@@ -129,7 +129,7 @@ describe('cranExists', () => {
       const result = await cranExists('TestPackage')
 
       expect(result.exists).toBe(false)
-      expect(result.error).toContain('Network error')
+      expect(result.error).toContain('request failed')
     })
 
     it('should handle 500 errors', async () => {
