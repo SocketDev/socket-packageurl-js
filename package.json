@@ -65,7 +65,7 @@
     "@babel/parser": "7.29.0",
     "@dotenvx/dotenvx": "1.52.0",
     "@oxlint/migrate": "1.51.0",
-    "@socketsecurity/lib": "5.14.0",
+    "@socketsecurity/lib": "5.15.0",
     "@socketsecurity/registry": "2.0.2",
     "@types/node": "24.9.2",
     "@types/picomatch": "4.0.2",
