@@ -98,7 +98,7 @@
       "unrs-resolver"
     ],
     "overrides": {
-      "vite": "7.1.11"
+      "vite": "7.3.2"
     }
   },
   "socket": {
