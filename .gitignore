@@ -5,8 +5,10 @@ Thumbs.db
 
 # Environment & config
 /.claude/*
-!/.claude/skills/
+!/.claude/agents/
 !/.claude/commands/
+!/.claude/ops/
+!/.claude/skills/
 /.env
 /.env.local
 /.env.*.local
