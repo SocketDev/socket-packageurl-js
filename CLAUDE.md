@@ -93,6 +93,7 @@ The file system is working memory. Use it actively:
 - Always prefer editing existing files
 - Forbidden to create docs unless requested
 - Required to do exactly what was asked
+- 🚨 **NEVER use `npx`, `pnpm dlx`, or `yarn dlx`** — use `pnpm exec <package>` for devDep binaries, or `pnpm run <script>` for package.json scripts. If a tool is needed, add it as a pinned devDependency first.
 
 ## ROLE
 
@@ -194,6 +195,15 @@ TypeScript implementation of [Package URL specification](https://github.com/pack
 - **Coverage**: `pnpm cover`
 
 **Development tip:** Use `pnpm build --watch` for 68% faster rebuilds (9ms vs 27ms). Incremental builds use esbuild's context API for in-memory caching.
+
+## Agents & Skills
+
+- `/security-scan` — runs AgentShield + zizmor security audit
+- `/quality-scan` — comprehensive code quality analysis
+- `/quality-loop` — scan and fix iteratively
+- Agents: `code-reviewer`, `security-reviewer`, `refactor-cleaner` (in `.claude/agents/`)
+- Shared subskills in `.claude/skills/_shared/`
+- Pipeline state tracked in `.claude/ops/queue.yaml`
 
 ### PURL Standards
 

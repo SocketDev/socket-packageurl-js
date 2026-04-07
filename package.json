@@ -49,6 +49,7 @@
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "lint": "node scripts/lint.mjs",
+    "security": "agentshield scan && { command -v zizmor >/dev/null && zizmor .github/ || echo 'zizmor not installed — run pnpm run setup to install'; }",
     "precommit": "pnpm run check --lint --staged",
     "prepare": "husky",
     "prepublishOnly": "echo 'ERROR: Use GitHub Actions workflow for publishing' && exit 1",
@@ -63,6 +64,7 @@
   "devDependencies": {
     "@anthropic-ai/claude-code": "2.1.92",
     "@babel/parser": "7.29.0",
+    "ecc-agentshield": "1.4.0",
     "@dotenvx/dotenvx": "1.52.0",
     "@oxlint/migrate": "1.51.0",
     "@socketsecurity/lib": "5.15.0",
