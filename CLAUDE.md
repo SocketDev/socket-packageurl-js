@@ -118,11 +118,13 @@ TypeScript implementation of [Package URL spec](https://github.com/package-url/p
 ### Error Handling — PurlError Patterns
 
 **PurlError** (parser errors): no period, lowercase start (unless proper noun)
+
 - Pattern: `{type} "{component}" component {violation}`
 - Required: `"{component}" is a required component`
 - Qualifier: `qualifier "{key}" {violation}`
 
 **Error** (argument validation): period, sentence case
+
 - Example: `throw new Error('JSON string argument is required.')`
 
 **Rules**: Never throw on valid purls. Include `{ cause: e }` when wrapping. No `process.exit()` in library code (OK in `scripts/`). Use `catch (e)` not `catch (error)`.
