@@ -19,6 +19,11 @@ on:
         options:
           - '0'
           - '1'
+      publish-without-sfw:
+        description: 'Publish directly to npm, bypassing Socket firewall shims'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -33,5 +38,8 @@ jobs:
       dist-tag: ${{ inputs.dist-tag }}
       package-name: '@socketregistry/packageurl-js'
       publish-script: 'publish:ci'
+      publish-without-sfw: ${{ inputs.publish-without-sfw }}
       setup-script: 'ci:validate'
       use-trusted-publishing: true
+    secrets:
+      SOCKET_API_KEY: ${{ secrets.SOCKET_API_KEY }}
