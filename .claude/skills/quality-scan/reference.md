@@ -1615,3 +1615,104 @@ Scan all README.md files in the repository and report all documentation inaccura
 - **Impact**: Users expect automatic behavior that doesn't exist
 ```
 
+
+---
+
+## Report Template
+
+Use this format when generating the Phase 8 quality scan report:
+
+```markdown
+# Quality Scan Report
+
+**Date:** YYYY-MM-DD
+**Repository:** [repository name]
+**Scans:** [list of scan types run]
+**Files Scanned:** N
+**Findings:** N critical, N high, N medium, N low
+
+## Dependency Updates
+
+**Status:** N packages updated
+**Result:** Success/Failed
+
+## Structural Validation
+
+**Consistency Checker Results:**
+- Errors: N (reported as Critical below)
+- Warnings: N (reported as Low below)
+- Info: N observations
+
+## Critical Issues (Priority 1) - N found
+
+### src/path/to/file.mts:89
+- **Issue**: [Description of critical issue]
+- **Pattern**: [Problematic code snippet]
+- **Trigger**: [What triggers this issue]
+- **Fix**: [Suggested fix]
+- **Impact**: [Impact description]
+- **Scan**: critical
+
+## High Issues (Priority 2) - N found
+
+[Same format as Critical]
+
+## Medium Issues (Priority 3) - N found
+
+[Same format as Critical]
+
+## Low Issues (Priority 4) - N found
+
+[Same format as Critical]
+
+## Scan Coverage
+
+- **Dependency updates**: N packages updated
+- **Structural validation**: N architectural patterns checked
+- **Critical scan**: N files analyzed
+- **Logic scan**: N files analyzed
+- **Cache scan**: N files analyzed (if applicable)
+- **Workflow scan**: N files analyzed (package.json, scripts/, .github/)
+
+## Recommendations
+
+1. Address N critical issues immediately before next release
+2. Review N high-severity logic errors
+3. Schedule N medium issues for next sprint
+4. Low-priority items can be addressed during refactoring
+
+## No Findings
+
+[If a scan found no issues, list it here:]
+- Critical scan: Clean
+- Logic scan: Clean
+```
+
+---
+
+## Completion Summary
+
+Report these final metrics when Phase 9 completes:
+
+```
+Quality Scan Complete
+========================
+- Dependency updates: N packages updated
+- Structural validation: N errors, N warnings
+- Repository cleanup: N junk files removed
+- Scans completed: [list of scan types]
+- Total findings: N (N critical, N high, N medium, N low)
+- Files scanned: N
+- Report generated: Yes
+- Scan duration: [calculated from start to end]
+
+Critical Issues Requiring Immediate Attention:
+- N critical issues found
+- Review report above for details and fixes
+
+Next Steps:
+1. Address critical issues immediately
+2. Review high-severity findings
+3. Schedule medium/low issues appropriately
+4. Re-run scans after fixes to verify
+```
