@@ -8,7 +8,7 @@ allowed-tools: Task, Skill, Bash, Read, Grep, Glob, Edit
 # updating
 
 <task>
-Your task is to update all dependencies in socket-packageurl-js: npm packages via `pnpm run update`, then sync upstream specs and check feature parity with the purl npm package, ensuring all builds and tests pass.
+Update all dependencies in socket-packageurl-js: npm packages via `pnpm run update`, then sync upstream specs and check feature parity with the purl npm package, ensuring all builds and tests pass.
 </task>
 
 <context>
