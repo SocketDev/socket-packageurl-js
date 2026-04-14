@@ -66,7 +66,7 @@
     "@babel/parser": "7.29.0",
     "@dotenvx/dotenvx": "1.52.0",
     "@oxlint/migrate": "1.51.0",
-    "@socketsecurity/lib": "5.18.1",
+    "@socketsecurity/lib": "5.18.2",
     "@socketsecurity/registry": "2.0.2",
     "@types/node": "24.9.2",
     "@typescript/native-preview": "7.0.0-dev.20250926.1",
