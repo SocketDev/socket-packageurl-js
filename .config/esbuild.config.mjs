@@ -214,6 +214,48 @@ function createPathShorteningPlugin() {
   }
 }
 
+/**
+ * Plugin to stub heavy @socketsecurity/lib internals that are never reached
+ * by our runtime code paths, preventing them from being bundled.
+ *
+ * Problem:
+ *   exists.js imports httpJson from @socketsecurity/lib/http-request, which
+ *   imports @socketsecurity/lib/fs (for safeDelete), which statically or
+ *   lazily imports:
+ *     - sorts.js → external/semver.js → external/npm-pack.js (2.5MB)
+ *     - globs.js → external/picomatch.js → external/pico-pack.js (260KB)
+ *
+ *   esbuild follows require() calls even inside lazy/conditional branches
+ *   when bundle:true, so the entire transitive tree gets bundled.
+ *
+ * Why this is safe:
+ *   - sorts.js is only used by innerReadDirNames() (for naturalCompare)
+ *   - globs.js is only used by isDirEmptySync() (for getGlobMatcher)
+ *   - Neither function is reachable from the httpJson → safeDelete path
+ *     that exists.js actually exercises
+ *   - safeDelete only needs: del (separate lazy require), pRetry, path utils
+ *
+ * Impact:
+ *   exists.js: ~3,300KB → ~470KB (85% reduction)
+ */
+function createLibStubPlugin() {
+  // Matches the resolved absolute paths to sorts.js and globs.js inside
+  // the @socketsecurity/lib dist directory in node_modules.
+  const stubPattern = /@socketsecurity\/lib\/dist\/(sorts|globs)\.js$/
+
+  return {
+    name: 'stub-unused-lib-internals',
+    setup(build) {
+      // onLoad (not onResolve) so we intercept after esbuild resolves the
+      // relative require("./sorts") in fs.js to its full filesystem path.
+      build.onLoad({ filter: stubPattern }, () => ({
+        contents: 'module.exports = {}',
+        loader: 'js',
+      }))
+    },
+  }
+}
+
 // Build configuration for CommonJS output
 export const buildConfig = {
   entryPoints: [`${srcPath}/index.ts`, `${srcPath}/exists.ts`],
@@ -234,8 +276,8 @@ export const buildConfig = {
   // Preserve module structure for better tree-shaking
   splitting: false,
 
-  // Use plugins for path shortening
-  plugins: [createPathShorteningPlugin()],
+  // Use plugins for path shortening and stubbing unused lib internals
+  plugins: [createLibStubPlugin(), createPathShorteningPlugin()],
 
   // External dependencies
   external: [

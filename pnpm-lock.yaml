@@ -191,10 +191,6 @@ overrides:
 importers:
 
   .:
-    dependencies:
-      picomatch:
-        specifier: 4.0.3
-        version: 4.0.3
     devDependencies:
       '@anthropic-ai/claude-code':
         specifier: 2.1.92
@@ -217,9 +213,6 @@ importers:
       '@types/node':
         specifier: 24.9.2
         version: 24.9.2
-      '@types/picomatch':
-        specifier: 4.0.2
-        version: 4.0.2
       '@typescript/native-preview':
         specifier: 7.0.0-dev.20250926.1
         version: 7.0.0-dev.20250926.1
@@ -1472,9 +1465,6 @@ packages:
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
-
-  '@types/picomatch@4.0.2':
-    resolution: {integrity: sha512-qHHxQ+P9PysNEGbALT8f8YOSHW0KJu6l2xU8DYY0fu/EmGxXdVnuTLvFUvBgPJMSqXq29SYHveejeAha+4AYgA==}
 
   '@typescript/native-preview-darwin-arm64@7.0.0-dev.20250926.1':
     resolution: {integrity: sha512-gnfz/RY+akGaZER1M9h+k8VW3wO4RRBeDHbC7NrDzEDmynOWN5clIBNXew3vMiyPJ31hMh4DdkEk5uXiQCkM4A==}
@@ -3588,8 +3578,6 @@ snapshots:
       undici-types: 7.16.0
 
   '@types/normalize-package-data@2.4.4': {}
-
-  '@types/picomatch@4.0.2': {}
 
   '@typescript/native-preview-darwin-arm64@7.0.0-dev.20250926.1':
     optional: true

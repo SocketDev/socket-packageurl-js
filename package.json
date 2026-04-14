@@ -69,7 +69,6 @@
     "@socketsecurity/lib": "5.18.0",
     "@socketsecurity/registry": "2.0.2",
     "@types/node": "24.9.2",
-    "@types/picomatch": "4.0.2",
     "@typescript/native-preview": "7.0.0-dev.20250926.1",
     "@vitest/coverage-v8": "4.0.3",
     "all-the-package-names": "2.0.0",
@@ -109,8 +108,5 @@
     "ignore-type-assertion": true,
     "ignore-files": "test/*",
     "strict": true
-  },
-  "dependencies": {
-    "picomatch": "4.0.3"
   }
 }
