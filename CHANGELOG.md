@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.2](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.2) - 2026-04-14
+
+### Changed
+
+- Reduce `exists.js` bundle from 3,300KB to 470KB by stubbing unused `@socketsecurity/lib` internals (sorts.js, globs.js) that were dragged in via lazy require chains but never called at runtime
+- Remove unused `picomatch` runtime dependency and `@types/picomatch` — already bundled by esbuild via `@socketsecurity/lib`'s internal pico-pack
+
 ## [1.4.1](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.1) - 2026-03-30
 
 ### Changed
