@@ -241,7 +241,7 @@ function createPathShorteningPlugin() {
 function createLibStubPlugin() {
   // Matches the resolved absolute paths to sorts.js and globs.js inside
   // the @socketsecurity/lib dist directory in node_modules.
-  const stubPattern = /@socketsecurity\/lib\/dist\/(sorts|globs)\.js$/
+  const stubPattern = /@socketsecurity\/lib\/dist\/(globs|sorts)\.js$/
 
   return {
     name: 'stub-unused-lib-internals',
