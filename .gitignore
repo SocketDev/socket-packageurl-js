@@ -9,6 +9,8 @@ Thumbs.db
 !/.claude/commands/
 !/.claude/ops/
 !/.claude/skills/
+!/.claude/hooks/
+!/.claude/settings.json
 /.env
 /.env.local
 /.env.*.local
