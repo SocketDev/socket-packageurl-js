@@ -64,7 +64,6 @@
   "devDependencies": {
     "@anthropic-ai/claude-code": "2.1.92",
     "@babel/parser": "7.29.0",
-    "@dotenvx/dotenvx": "1.52.0",
     "@oxlint/migrate": "1.51.0",
     "@socketsecurity/lib": "5.18.2",
     "@socketsecurity/registry": "2.0.2",
