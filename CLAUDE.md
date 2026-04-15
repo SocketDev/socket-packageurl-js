@@ -69,7 +69,6 @@
 
 ## 📚 SHARED STANDARDS
 
-**Canonical reference**: `../socket-registry/CLAUDE.md`
 
 - Commits: [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) `<type>(<scope>): <description>` — NO AI attribution
 - Scripts: Prefer `pnpm run foo --flag` over `foo:bar` scripts
