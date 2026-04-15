@@ -21,13 +21,145 @@ import colors from 'yoctocolors-cjs'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { LOG_SYMBOLS } from '@socketsecurity/lib/logger'
+import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const rootPath = path.join(__dirname, '..')
-const parentPath = path.join(rootPath, '..')
-const claudeDir = path.join(rootPath, '.claude')
-const WIN32 = process.platform === 'win32'
+type CommandResult = {
+  exitCode: number
+  stderr: string
+  stdout: string
+}
+
+type ClaudeOptions = SpawnOptions & {
+  _selectedMode?: string
+  _selectedModel?: string
+  cache?: boolean
+  'cross-repo'?: boolean
+  cwd?: string
+  'dry-run'?: boolean
+  input?: string
+  interactive?: boolean
+  lastError?: string
+  'no-darkwing'?: boolean
+  pinky?: boolean
+  prompt?: string
+  command?: string
+  push?: boolean
+  seq?: boolean
+  showProgress?: boolean
+  silent?: boolean
+  smartContext?: boolean
+  'skip-commit'?: boolean
+  'the-brain'?: boolean
+  timeout?: number
+}
+
+type ScanResult = {
+  issues: Array<{
+    confidence: number
+    description: string
+    file: string
+    severity: string
+    type: string
+  }>
+  safe: boolean
+}
+
+type RootCauseAnalysis = {
+  category: string
+  confidence: number
+  environmentalFactors: string[]
+  explanation: string
+  isEnvironmental: boolean
+  rootCause: string
+  strategies: Array<{
+    description: string
+    name: string
+    probability: number
+    reasoning: string
+  }>
+}
+
+type ErrorHistoryEntry = {
+  description: string
+  errorHash: string
+  outcome: string
+  strategy: string
+  timestamp: number
+}
+
+type SmartContext = {
+  commitMessages: string[]
+  hotspots: string[]
+  intent: string[]
+  priority: string[]
+  recent: string[]
+  uncommitted: string[]
+  ciErrors?: string[]
+  projectName?: string
+  projectType?: string
+  targetFiles?: string[]
+  testFramework?: string
+}
+
+type SocketProject = {
+  claudeMdPath: string
+  name: string
+  path: string
+}
+
+type Snapshot = {
+  diff: string
+  label: string
+  sha: string
+  timestamp: number
+}
+
+type PhaseRecord = {
+  duration?: number
+  name: string
+  start: number
+}
+
+type MonthlyStats = {
+  cost: number
+  fixes: number
+  month: string
+  sessions: number
+}
+
+type SessionStats = {
+  cacheRead: number
+  cacheWrite: number
+  cost: number
+  input: number
+  output: number
+}
+
+type UsageData = {
+  cache_creation_input_tokens?: number
+  cache_read_input_tokens?: number
+  input_tokens?: number
+  output_tokens?: number
+}
+
+type ModelPricing = {
+  cache_read: number
+  cache_write: number
+  input: number
+  output: number
+}
+
+type SelectModeOptions = {
+  forceModel?: string | null
+  lastError?: string
+}
+
+const __dirname: string = path.dirname(fileURLToPath(import.meta.url))
+const rootPath: string = path.join(__dirname, '..')
+const parentPath: string = path.join(rootPath, '..')
+const claudeDir: string = path.join(rootPath, '.claude')
+const WIN32: boolean = process.platform === 'win32'
 
 // Socket project names.
 const SOCKET_PROJECTS = [
@@ -113,13 +245,13 @@ const log = {
   warn: msg => console.log(`${colors.yellow('⚠')} ${msg}`),
 }
 
-function printHeader(title) {
+function printHeader(title: string): void {
   console.log(`\n${'─'.repeat(60)}`)
   console.log(`  ${title}`)
   console.log(`${'─'.repeat(60)}`)
 }
 
-function printFooter(message) {
+function printFooter(message?: string): void {
   console.log(`\n${'─'.repeat(60)}`)
   if (message) {
     console.log(`  ${colors.green('✓')} ${message}`)
@@ -129,7 +261,7 @@ function printFooter(message) {
 /**
  * Initialize storage directories.
  */
-async function initStorage() {
+async function initStorage(): Promise<void> {
   await fs.mkdir(CLAUDE_HOME, { recursive: true })
   await fs.mkdir(STORAGE_PATHS.cache, { recursive: true })
   await fs.mkdir(REPO_STORAGE.snapshots, { recursive: true })
@@ -139,7 +271,7 @@ async function initStorage() {
 /**
  * Clean up old data using del package.
  */
-async function cleanupOldData() {
+async function cleanupOldData(): Promise<void> {
   const now = Date.now()
 
   // Clean old snapshots in current repo.
@@ -185,14 +317,19 @@ async function cleanupOldData() {
  * Cost tracking with budget controls.
  */
 class CostTracker {
-  constructor(model = 'claude-sonnet-4-5') {
+  model: string
+  monthly: MonthlyStats
+  session: SessionStats
+  startTime: number
+
+  constructor(model: string = 'claude-sonnet-4-5') {
     this.model = model
     this.session = { input: 0, output: 0, cacheWrite: 0, cacheRead: 0, cost: 0 }
     this.monthly = this.loadMonthlyStats()
     this.startTime = Date.now()
   }
 
-  loadMonthlyStats() {
+  loadMonthlyStats(): MonthlyStats {
     try {
       if (existsSync(STORAGE_PATHS.stats)) {
         const data = JSON.parse(readFileSync(STORAGE_PATHS.stats, 'utf8'))
@@ -213,7 +350,7 @@ class CostTracker {
     }
   }
 
-  saveMonthlyStats() {
+  saveMonthlyStats(): void {
     try {
       writeFileSync(STORAGE_PATHS.stats, JSON.stringify(this.monthly, null, 2))
     } catch {
@@ -221,8 +358,9 @@ class CostTracker {
     }
   }
 
-  track(usage) {
-    const pricing = PRICING[this.model]
+  track(usage: UsageData): void {
+    const pricing: ModelPricing | undefined =
+      PRICING[this.model as keyof typeof PRICING]
     if (!pricing) {
       return
     }
@@ -248,7 +386,7 @@ class CostTracker {
     this.saveMonthlyStats()
   }
 
-  showSessionSummary() {
+  showSessionSummary(): void {
     const duration = Date.now() - this.startTime
     console.log(colors.cyan('\n💰 Cost Summary:'))
     console.log(`  Input tokens: ${this.session.input.toLocaleString()}`)
@@ -272,7 +410,7 @@ class CostTracker {
 /**
  * Format duration in human-readable form.
  */
-function formatDuration(ms) {
+function formatDuration(ms: number): string {
   const seconds = Math.floor(ms / 1000)
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
@@ -290,6 +428,11 @@ function formatDuration(ms) {
  * Progress tracking with ETA estimation.
  */
 class ProgressTracker {
+  currentPhase: PhaseRecord | null
+  history: Array<{ phases: PhaseRecord[]; timestamp: number }>
+  phases: PhaseRecord[]
+  startTime: number
+
   constructor() {
     this.phases = []
     this.currentPhase = null
@@ -297,7 +440,7 @@ class ProgressTracker {
     this.history = this.loadHistory()
   }
 
-  loadHistory() {
+  loadHistory(): Array<{ phases: PhaseRecord[]; timestamp: number }> {
     try {
       if (existsSync(STORAGE_PATHS.history)) {
         const data = JSON.parse(readFileSync(STORAGE_PATHS.history, 'utf8'))
@@ -310,7 +453,7 @@ class ProgressTracker {
     return []
   }
 
-  saveHistory() {
+  saveHistory(): void {
     try {
       const data = {
         sessions: [
@@ -328,14 +471,14 @@ class ProgressTracker {
     }
   }
 
-  startPhase(name) {
+  startPhase(name: string): void {
     if (this.currentPhase) {
       this.endPhase()
     }
     this.currentPhase = { name, start: Date.now() }
   }
 
-  endPhase() {
+  endPhase(): void {
     if (this.currentPhase) {
       this.currentPhase.duration = Date.now() - this.currentPhase.start
       this.phases.push(this.currentPhase)
@@ -343,7 +486,7 @@ class ProgressTracker {
     }
   }
 
-  estimateETA(phaseName) {
+  estimateETA(phaseName: string): number | null {
     // Find similar past sessions.
     const similar = this.history.filter(s =>
       s.phases.some(p => p.name === phaseName),
@@ -366,7 +509,7 @@ class ProgressTracker {
     return median
   }
 
-  getTotalETA() {
+  getTotalETA(): number | null {
     // Sum up remaining phases based on historical data.
     const remaining = ['local-checks', 'commit', 'ci-monitor'].filter(
       p => !this.phases.some(ph => ph.name === p),
@@ -392,7 +535,7 @@ class ProgressTracker {
     return total > 0 ? total : null
   }
 
-  showProgress() {
+  showProgress(): void {
     const totalElapsed = Date.now() - this.startTime
     const eta = this.getTotalETA()
 
@@ -424,7 +567,7 @@ class ProgressTracker {
     }
   }
 
-  complete() {
+  complete(): void {
     this.endPhase()
     this.saveHistory()
   }
@@ -434,11 +577,13 @@ class ProgressTracker {
  * Snapshot system for smart rollback.
  */
 class SnapshotManager {
+  snapshots: Snapshot[]
+
   constructor() {
     this.snapshots = []
   }
 
-  async createSnapshot(label) {
+  async createSnapshot(label: string): Promise<Snapshot> {
     const sha = await runCommandWithOutput('git', ['rev-parse', 'HEAD'], {
       cwd: rootPath,
     })
@@ -465,7 +610,7 @@ class SnapshotManager {
     return snapshot
   }
 
-  async rollback(steps = 1) {
+  async rollback(steps: number = 1): Promise<boolean> {
     if (this.snapshots.length < steps) {
       log.warn(`Only ${this.snapshots.length} snapshot(s) available`)
       return false
@@ -488,7 +633,7 @@ class SnapshotManager {
     return true
   }
 
-  listSnapshots() {
+  listSnapshots(): void {
     console.log(colors.cyan('\n📸 Available Snapshots:'))
     this.snapshots.forEach((snap, i) => {
       const age = formatDuration(Date.now() - snap.timestamp)
@@ -502,7 +647,7 @@ class SnapshotManager {
 /**
  * Proactive pre-commit detection.
  */
-async function runPreCommitScan(claudeCmd) {
+async function runPreCommitScan(claudeCmd: string): Promise<ScanResult> {
   log.step('Running proactive pre-commit scan')
 
   const staged = await runCommandWithOutput(
@@ -599,7 +744,10 @@ ${diff.stdout}
 /**
  * Success celebration with stats.
  */
-async function celebrateSuccess(costTracker, stats = {}) {
+async function celebrateSuccess(
+  costTracker: CostTracker | null,
+  stats: { fixCount?: number; retries?: number } = {},
+): Promise<void> {
   const messages = [
     "🎉 CI is green! You're a legend!",
     "✨ All tests passed! Claude's got your back!",
@@ -658,7 +806,11 @@ async function celebrateSuccess(costTracker, stats = {}) {
 /**
  * Analyze error to identify root cause and suggest fix strategies.
  */
-async function analyzeRootCause(claudeCmd, error, context = {}) {
+async function analyzeRootCause(
+  claudeCmd: string,
+  error: string,
+  context: Record<string, unknown> = {},
+): Promise<RootCauseAnalysis | null> {
   const ctx = { __proto__: null, ...context }
   const errorHash = hashError(error)
 
@@ -790,7 +942,7 @@ ${similarErrors.length > 0 ? `**Similar Past Errors:**\n${similarErrors.map(e =>
 /**
  * Load error history from storage.
  */
-async function loadErrorHistory() {
+async function loadErrorHistory(): Promise<ErrorHistoryEntry[]> {
   const historyPath = path.join(CLAUDE_HOME, 'error-history.json')
   try {
     if (existsSync(historyPath)) {
@@ -807,7 +959,12 @@ async function loadErrorHistory() {
 /**
  * Save error outcome to history for learning.
  */
-async function saveErrorHistory(errorHash, outcome, strategy, description) {
+async function saveErrorHistory(
+  errorHash: string,
+  outcome: string,
+  strategy: string,
+  description: string,
+): Promise<void> {
   const historyPath = path.join(CLAUDE_HOME, 'error-history.json')
   try {
     let data = { errors: [] }
@@ -838,7 +995,10 @@ async function saveErrorHistory(errorHash, outcome, strategy, description) {
 /**
  * Find similar errors from history.
  */
-function findSimilarErrors(errorHash, history) {
+function findSimilarErrors(
+  errorHash: string,
+  history: ErrorHistoryEntry[],
+): ErrorHistoryEntry[] {
   return history
     .filter(e => e.errorHash === errorHash && e.outcome === 'success')
     .slice(-3)
@@ -847,7 +1007,7 @@ function findSimilarErrors(errorHash, history) {
 /**
  * Display root cause analysis to user.
  */
-function displayAnalysis(analysis) {
+function displayAnalysis(analysis: RootCauseAnalysis | null): void {
   if (!analysis) {
     return
   }
@@ -891,10 +1051,14 @@ function displayAnalysis(analysis) {
   }
 }
 
-async function runCommand(command, args = [], options = {}) {
-  const opts = { __proto__: null, ...options }
-  return new Promise((resolve, reject) => {
-    const spawnPromise = spawn(command, args, {
+async function runCommand(
+  command: string,
+  args: string[] = [],
+  options: ClaudeOptions = {},
+): Promise<number> {
+  const opts: ClaudeOptions = { __proto__: null, ...options }
+  return new Promise<number>((resolve, reject) => {
+    const spawnPromise: SpawnResult = spawn(command, args, {
       stdio: 'inherit',
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
@@ -913,15 +1077,19 @@ async function runCommand(command, args = [], options = {}) {
   })
 }
 
-async function runCommandWithOutput(command, args = [], options = {}) {
-  const opts = { __proto__: null, ...options }
+async function runCommandWithOutput(
+  command: string,
+  args: string[] = [],
+  options: ClaudeOptions = {},
+): Promise<CommandResult> {
+  const opts: ClaudeOptions = { __proto__: null, ...options }
   const { input, ...spawnOpts } = opts
 
-  return new Promise((resolve, reject) => {
-    let stdout = ''
-    let stderr = ''
+  return new Promise<CommandResult>((resolve, reject) => {
+    let stdout: string = ''
+    let stderr: string = ''
 
-    const spawnPromise = spawn(command, args, {
+    const spawnPromise: SpawnResult = spawn(command, args, {
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
       ...spawnOpts,
@@ -977,7 +1145,11 @@ setInterval(() => {
  * Run Claude Code with a prompt.
  * Handles caching, model tracking, and retry logic.
  */
-async function runClaude(claudeCmd, prompt, options = {}) {
+async function runClaude(
+  claudeCmd: string,
+  prompt: string,
+  options: ClaudeOptions = {},
+): Promise<CommandResult | number> {
   const opts = { __proto__: null, ...options }
   const args = prepareClaudeArgs([], opts)
 
@@ -1152,7 +1324,7 @@ async function runClaude(claudeCmd, prompt, options = {}) {
 /**
  * Check if Claude Code CLI is available.
  */
-async function checkClaude() {
+async function checkClaude(): Promise<string | false> {
   const checkCommand = WIN32 ? 'where' : 'which'
 
   log.progress('Checking for Claude Code CLI')
@@ -1180,7 +1352,7 @@ async function checkClaude() {
  * Ensure Claude Code is authenticated, prompting for authentication if needed.
  * Returns true if authenticated, false if unable to authenticate.
  */
-async function ensureClaudeAuthenticated(claudeCmd) {
+async function ensureClaudeAuthenticated(claudeCmd: string): Promise<boolean> {
   let attempts = 0
   const maxAttempts = 3
 
@@ -1280,7 +1452,7 @@ async function ensureClaudeAuthenticated(claudeCmd) {
  * Ensure GitHub CLI is authenticated, prompting for login if needed.
  * Returns true if authenticated, false if unable to authenticate.
  */
-async function ensureGitHubAuthenticated() {
+async function ensureGitHubAuthenticated(): Promise<boolean> {
   let attempts = 0
   const maxAttempts = 3
 
@@ -1340,7 +1512,16 @@ async function ensureGitHubAuthenticated() {
  * @param {string} repo - The repository name
  * @returns {Promise<{isPR: boolean, prNumber?: number, prTitle?: string}>}
  */
-async function checkIfCommitIsPartOfPR(sha, owner, repo) {
+async function checkIfCommitIsPartOfPR(
+  sha: string,
+  owner: string,
+  repo: string,
+): Promise<{
+  isPR: boolean
+  prNumber?: number
+  prTitle?: string
+  prState?: string
+}> {
   try {
     const result = await runCommandWithOutput('gh', [
       'pr',
@@ -1382,7 +1563,7 @@ async function checkIfCommitIsPartOfPR(sha, owner, repo) {
  * @param {string} errorOutput - The error output to hash
  * @returns {string} A hex hash of the normalized error
  */
-function hashError(errorOutput) {
+function hashError(errorOutput: string): string {
   // Normalize error for semantic comparison
   const normalized = errorOutput
     .trim()
@@ -1416,6 +1597,12 @@ function hashError(errorOutput) {
  * "The same thing we do every night, Pinky - try to take over the world!"
  */
 class ModelStrategy {
+  attempts: Map<string, number>
+  brainActivatedAt: number | null
+  brainTimeout: number
+  escalationThreshold: number
+  lastTaskComplexity: Map<string, number>
+
   constructor() {
     this.attempts = new Map()
     this.escalationThreshold = 2
@@ -1425,7 +1612,7 @@ class ModelStrategy {
     this.lastTaskComplexity = new Map()
   }
 
-  selectMode(task, options = {}) {
+  selectMode(task: string, options: SelectModeOptions = {}): string {
     const { forceModel = null } = options
 
     // Honor explicit flags.
@@ -1469,7 +1656,7 @@ class ModelStrategy {
     return 'pinky'
   }
 
-  selectModel(task, options = {}) {
+  selectModel(task: string, options: SelectModeOptions = {}): string {
     const mode = this.selectMode(task, options)
 
     // Map mode to model.
@@ -1481,7 +1668,7 @@ class ModelStrategy {
     return 'claude-3-5-sonnet-20241022'
   }
 
-  recordAttempt(task, success) {
+  recordAttempt(task: string, success: boolean): void {
     const taskKey = this.getTaskKey(task)
     if (success) {
       this.attempts.delete(taskKey)
@@ -1494,12 +1681,12 @@ class ModelStrategy {
     }
   }
 
-  activateBrain(duration = this.brainTimeout) {
+  activateBrain(duration: number = this.brainTimeout): void {
     this.brainActivatedAt = Date.now()
     log.substep(`🧠 The Brain activated for ${duration / 1000} seconds`)
   }
 
-  assessComplexity(task) {
+  assessComplexity(task: string): number {
     const taskLower = task.toLowerCase()
     const complexPatterns = {
       architecture: 0.9,
@@ -1520,7 +1707,7 @@ class ModelStrategy {
     return maxScore
   }
 
-  getTaskKey(task) {
+  getTaskKey(task: string): string {
     return task.slice(0, 100).replace(/\s+/g, '_').toLowerCase()
   }
 }
@@ -1531,7 +1718,9 @@ const modelStrategy = new ModelStrategy()
  * Smart context loading - focus on recently changed files for efficiency.
  * Reduces context by 90% while catching 95% of issues.
  */
-async function getSmartContext(options = {}) {
+async function getSmartContext(
+  options: ClaudeOptions = {},
+): Promise<SmartContext> {
   const {
     commits = 5,
     fileTypes = null,

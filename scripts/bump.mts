@@ -150,7 +150,7 @@ async function runCommand(
 async function runCommandWithOutput(
   command: string,
   args: string[] = [],
-  options: SpawnOptions = {},
+  options: SpawnOptions & { input?: string } = {},
 ): Promise<CommandResult> {
   return new Promise<CommandResult>((resolve, reject) => {
     let stdout: string = ''
@@ -189,13 +189,18 @@ async function runCommandWithOutput(
 /**
  * Check if claude-console is available.
  */
-async function checkClaude() {
-  const checkCommand = WIN32 ? 'where' : 'which'
-  const result = await runCommandWithOutput(checkCommand, ['claude-console'])
+async function checkClaude(): Promise<string | false> {
+  const checkCommand: string = WIN32 ? 'where' : 'which'
+  const result: CommandResult = await runCommandWithOutput(checkCommand, [
+    'claude-console',
+  ])
 
   if (result.exitCode !== 0) {
     // Also check common aliases
-    const aliasResult = await runCommandWithOutput(checkCommand, ['claude'])
+    const aliasResult: CommandResult = await runCommandWithOutput(
+      checkCommand,
+      ['claude'],
+    )
     if (aliasResult.exitCode !== 0) {
       return false
     }
@@ -207,39 +212,49 @@ async function checkClaude() {
 /**
  * Read package.json from the project.
  */
-async function readPackageJson(pkgPath = rootPath) {
-  const packageJsonPath = path.join(pkgPath, 'package.json')
-  const content = await fs.readFile(packageJsonPath, 'utf8')
-  return JSON.parse(content)
+async function readPackageJson(
+  pkgPath: string = rootPath,
+): Promise<PackageJson> {
+  const packageJsonPath: string = path.join(pkgPath, 'package.json')
+  const content: string = await fs.readFile(packageJsonPath, 'utf8')
+  return JSON.parse(content) as PackageJson
 }
 
 /**
  * Write package.json to the project.
  */
-async function writePackageJson(pkgJson, pkgPath = rootPath) {
-  const packageJsonPath = path.join(pkgPath, 'package.json')
+async function writePackageJson(
+  pkgJson: PackageJson,
+  pkgPath: string = rootPath,
+): Promise<void> {
+  const packageJsonPath: string = path.join(pkgPath, 'package.json')
   await fs.writeFile(packageJsonPath, `${JSON.stringify(pkgJson, null, 2)}\n`)
 }
 
 /**
  * Get the current version from package.json.
  */
-async function getCurrentVersion(pkgPath = rootPath) {
-  const pkgJson = await readPackageJson(pkgPath)
+async function getCurrentVersion(
+  pkgPath: string = rootPath,
+): Promise<string | undefined> {
+  const pkgJson: PackageJson = await readPackageJson(pkgPath)
   return pkgJson.version
 }
 
 /**
  * Determine the new version based on bump type.
  */
-function getNewVersion(currentVersion, bumpType) {
+function getNewVersion(
+  currentVersion: string,
+  bumpType: string,
+): string | null {
   // Check if bumpType is a valid semver version
   if (semver.valid(bumpType)) {
     return bumpType
   }
 
   // Otherwise treat as release type
-  const validTypes = [
+  const validTypes: string[] = [
     'major',
     'minor',
     'patch',
@@ -254,13 +269,13 @@ function getNewVersion(currentVersion, bumpType) {
     )
   }
 
-  return semver.inc(currentVersion, bumpType)
+  return semver.inc(currentVersion, bumpType as semver.ReleaseType)
 }
 
 /**
  * Check if the working directory is clean.
  */
-async function checkGitStatus() {
+async function checkGitStatus(): Promise<boolean> {
   const result = await runCommandWithOutput('git', ['status', '--porcelain'])
   if (result.stdout.trim()) {
     logger.error('Working directory is not clean')
@@ -274,7 +289,7 @@ async function checkGitStatus() {
 /**
  * Check if we're on the main/master branch.
  */
-async function checkGitBranch() {
+async function checkGitBranch(): Promise<boolean> {
   const result = await runCommandWithOutput('git', [
     'rev-parse',
     '--abbrev-ref',
@@ -291,7 +306,7 @@ async function checkGitBranch() {
 /**
  * Get the last few commits for context.
  */
-async function getRecentCommits(count = 20) {
+async function getRecentCommits(count: number = 20): Promise<string> {
   const result = await runCommandWithOutput('git', [
     'log',
     '--oneline',
@@ -304,14 +319,14 @@ async function getRecentCommits(count = 20) {
 /**
  * Check if this is the registry package.
  */
-function isRegistryPackage() {
+function isRegistryPackage(): boolean {
   return existsSync(path.join(rootPath, 'registry', 'package.json'))
 }
 
 /**
  * Get package name for commit message.
  */
-async function getPackageName() {
+async function getPackageName(): Promise<string> {
   if (isRegistryPackage()) {
     return 'registry package'
   }
@@ -322,7 +337,11 @@ async function getPackageName() {
 /**
  * Generate changelog using Claude.
  */
-async function generateChangelog(claudeCmd, currentVersion, newVersion) {
+async function generateChangelog(
+  claudeCmd: string,
+  currentVersion: string,
+  newVersion: string,
+): Promise<string> {
   logger.step('Generating changelog with Claude')
 
   // Get recent commits for context
@@ -387,7 +406,7 @@ Be concise but informative. Group related changes together.`
 /**
  * Update CHANGELOG.md with new entry.
  */
-async function updateChangelog(changelogEntry) {
+async function updateChangelog(changelogEntry: string): Promise<void> {
   const changelogPath = path.join(rootPath, 'CHANGELOG.md')
 
   let existingContent = ''
@@ -422,7 +441,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
  * Review and refine changelog with user feedback.
  * Uses interactive prompts if available, falls back to basic readline prompts.
  */
-async function reviewChangelog(claudeCmd, changelogEntry, interactive = false) {
+async function reviewChangelog(
+  claudeCmd: string,
+  changelogEntry: string,
+  interactive: boolean = false,
+): Promise<string> {
   console.log(`\n${colors.blue('━'.repeat(60))}`)
   console.log(colors.blue('Proposed Changelog Entry:'))
   console.log(colors.blue('━'.repeat(60)))
@@ -497,9 +520,12 @@ Provide the refined changelog entry in the same format.`
  * Interactive review using advanced prompts.
  * Provides a better user experience with select menus and structured feedback.
  */
-async function interactiveReviewChangelog(claudeCmd, changelogEntry) {
-  let currentEntry = changelogEntry
-  let regenerateCount = 0
+async function interactiveReviewChangelog(
+  claudeCmd: string,
+  changelogEntry: string,
+): Promise<string> {
+  let currentEntry: string = changelogEntry
+  let regenerateCount: number = 0
 
   while (true) {
     // Show the current changelog
@@ -649,7 +675,7 @@ Add technical details, specific file changes, implementation details, and any br
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
     // Parse arguments
     const { values } = parseArgs({
@@ -765,7 +791,7 @@ async function main() {
     }
 
     // Check for Claude if not skipping changelog
-    let claudeCmd = null
+    let claudeCmd: string | false | null = null
     if (!values['skip-changelog']) {
       logger.progress('Checking for Claude CLI')
       claudeCmd = await checkClaude()
@@ -897,13 +923,14 @@ async function main() {
     logger.substep('2. Create GitHub release if needed')
 
     process.exitCode = 0
-  } catch (error) {
-    logger.error(`Version bump failed: ${error.message}`)
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    logger.error(`Version bump failed: ${message}`)
     process.exitCode = 1
   }
 }
 
-main().catch(e => {
+main().catch((e: unknown) => {
   logger.error(e)
   process.exitCode = 1
 })
