@@ -114,7 +114,7 @@ export async function pubExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpJson typically throws Error; String(e) is defensive programming */
+      /* v8 ignore next - httpJson typically throws Error; String(e) is defensive programming */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
@@ -158,7 +158,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       if (throws) {
         // Tested: validation returns false in non-throw mode
         // V8 coverage can't see both throw and return false paths in same test
-        /* c8 ignore next 3 -- Throw path tested separately from return false path. */
+        /* v8 ignore next 3 -- Throw path tested separately from return false path. */
         throw new PurlError(
           'pub "name" component may only contain [a-z0-9_] characters',
         )

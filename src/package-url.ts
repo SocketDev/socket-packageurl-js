@@ -655,7 +655,7 @@ class PackageURL {
     // Split the remainder once from left on ':'
     const colonIndex = StringPrototypeIndexOf(purlStr, ':')
     // Use WHATWG URL to split up the purl string
-    /* c8 ignore next 3 -- Comment lines don't need coverage. */
+    /* v8 ignore next 3 -- Comment lines don't need coverage. */
     //   - Split the purl string once from right on '#'
     //   - Split the remainder once from right on '?'
     //   - Split the remainder once from left on ':'
@@ -675,7 +675,7 @@ class PackageURL {
         // When leading slashes were trimmed, the original string had an authority
         // section (e.g., pkg://user:pass@host/...). Detect `@` in the authority
         // by checking between the `//` and the next `/`.
-        /* c8 ignore next 8 -- V8 coverage sees multiple branch paths that can't all be tested. */
+        /* v8 ignore next 8 -- V8 coverage sees multiple branch paths that can't all be tested. */
         if (afterColon.length !== trimmedAfterColon.length) {
           // afterColon starts with slashes — find the authority section
           const authorityStart = StringPrototypeIndexOf(afterColon, '//') + 2
@@ -697,11 +697,11 @@ class PackageURL {
       }
     }
     // The scheme is a constant with the value "pkg"
-    /* c8 ignore next -- Tested: colonIndex === -1 (url undefined) case, but V8 can't see both branches. */ if (
+    /* v8 ignore next -- Tested: colonIndex === -1 (url undefined) case, but V8 can't see both branches. */ if (
       url?.protocol !== 'pkg:'
     ) {
       throw new PurlError('missing required "pkg" scheme component')
-      /* c8 ignore next -- Unreachable code after throw. */
+      /* v8 ignore next -- Unreachable code after throw. */
     }
     // A purl must NOT contain a URL Authority i.e. there is no support for
     // username, password, host and port components
@@ -723,14 +723,14 @@ class PackageURL {
 
     let rawVersion: string | undefined
     // Both branches of this ternary are tested, but V8 reports phantom branch combinations
-    /* c8 ignore start -- npm vs non-npm path logic both tested but V8 sees extra branches. */
+    /* v8 ignore start -- npm vs non-npm path logic both tested but V8 sees extra branches. */
     // Deviate from the specification to handle a special npm purl type case for
     // pnpm ids such as 'pkg:npm/next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)'
     let atSignIndex =
       rawType === 'npm'
         ? StringPrototypeIndexOf(pathname, '@', firstSlashIndex + 2)
         : StringPrototypeLastIndexOf(pathname, '@')
-    /* c8 ignore stop */
+    /* v8 ignore stop */
     // When a forward slash ('/') is directly preceding an '@' symbol,
     // then the '@' symbol is NOT considered a version separator
     if (
@@ -790,7 +790,7 @@ class PackageURL {
           )
           // Use URLSearchParams#append to preserve plus signs
           // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
-          /* c8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */ searchParams.append(
+          /* v8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */ searchParams.append(
             key,
             value,
           )

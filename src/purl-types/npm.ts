@@ -80,13 +80,13 @@ const getNpmBuiltinSet = (() => {
   return () => {
     if (builtinSet === undefined) {
       let builtinNames: string[] | undefined
-      /* c8 ignore start - Error handling for module access. */
+      /* v8 ignore start - Error handling for module access. */
       try {
         // Try to use Node.js builtinModules first
         builtinNames = (module.constructor as { builtinModules?: string[] })
           ?.builtinModules
       } catch {}
-      /* c8 ignore stop */
+      /* v8 ignore stop */
       if (!builtinNames) {
         // Fallback to hardcoded list
         builtinNames = [
@@ -157,7 +157,7 @@ const getNpmLegacySet = (() => {
   return (): Set<string> => {
     if (legacySet === undefined) {
       let fullLegacyNames: string[]
-      /* c8 ignore start - Fallback path only used if JSON file fails to load. */
+      /* v8 ignore start - Fallback path only used if JSON file fails to load. */
       try {
         // Try to load the full list from JSON file
         fullLegacyNames = require('../../data/npm/legacy-names.json')
@@ -176,7 +176,7 @@ const getNpmLegacySet = (() => {
           'util',
         ]
       }
-      /* c8 ignore stop */
+      /* v8 ignore stop */
       legacySet = new SetCtor(fullLegacyNames)
     }
     return legacySet
@@ -300,7 +300,7 @@ export async function npmExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore next - httpJson typically throws Error; String(e) is defensive programming */
+      /* v8 ignore next - httpJson typically throws Error; String(e) is defensive programming */
       // httpJson throws on non-2xx status codes
       const error = e instanceof Error ? e.message : String(e)
       return {
@@ -462,6 +462,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
     return false
   }
+  /* v8 ignore next 7 -- Unreachable: space chars are caught by injection validator above. */
   if (StringPrototypeTrim(name) !== name) {
     if (throws) {
       throw new PurlError(
@@ -479,6 +480,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     return false
   }
   if (hasNs) {
+    /* v8 ignore next 10 -- Unreachable: space chars are caught by injection validator above. */
     if (
       (namespace !== undefined ? StringPrototypeTrim(namespace) : namespace) !==
       namespace
@@ -525,7 +527,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       if (throws) {
         // Tested: validation returns false in non-throw mode
         // V8 coverage can't see both throw and return false paths in same test
-        /* c8 ignore next 3 -- Throw path tested separately from return false path. */
+        /* v8 ignore next 3 -- Throw path tested separately from return false path. */
         throw new PurlError(
           `npm "namespace" and "name" components can not collectively be more than 214 characters`,
         )
@@ -540,6 +542,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       }
       return false
     }
+    /* v8 ignore next 7 -- Unreachable: ~'!()* are all injection chars caught by validator above. */
     if (RegExpPrototypeTest(/[~'!()*]/, name)) {
       if (throws) {
         throw new PurlError(
@@ -552,7 +555,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       if (throws) {
         // Tested: validation returns false in non-throw mode
         // V8 coverage can't see both throw and return false paths in same test
-        /* c8 ignore next 3 -- Throw path tested separately from return false path. */
+        /* v8 ignore next 3 -- Throw path tested separately from return false path. */
         throw new PurlError(
           'npm "name" component can not be a core module name',
         )

@@ -11,7 +11,7 @@
  * ```
  */
 
-/* c8 ignore start - Re-export only file, no logic to test */
+/* v8 ignore start - Re-export only file, no logic to test */
 
 export { cargoExists } from './purl-types/cargo.js'
 export { cocoapodsExists } from './purl-types/cocoapods.js'
@@ -33,4 +33,4 @@ export { pypiExists } from './purl-types/pypi.js'
 export { vscodeExtensionExists } from './purl-types/vscode-extension.js'
 export type { ExistsOptions, ExistsResult } from './purl-types/npm.js'
 
-/* c8 ignore stop */
+/* v8 ignore stop */

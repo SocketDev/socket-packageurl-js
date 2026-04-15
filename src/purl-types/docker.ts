@@ -132,9 +132,9 @@ export async function dockerExists(
           const tagUrl = `https://hub.docker.com/v2/repositories/${encodedRepo}/tags/${encodeComponent(version)}`
           await httpJson(tagUrl)
         } catch (e) {
-          /* c8 ignore start */
+          /* v8 ignore start */
           const error = e instanceof Error ? e.message : String(e)
-          /* c8 ignore stop */
+          /* v8 ignore stop */
           return {
             exists: false,
             error: StringPrototypeIncludes(error, '404')
@@ -149,9 +149,9 @@ export async function dockerExists(
         latestVersion: version || 'latest',
       }
     } catch (e) {
-      /* c8 ignore start */
+      /* v8 ignore start */
       const error = e instanceof Error ? e.message : String(e)
-      /* c8 ignore stop */
+      /* v8 ignore stop */
       return {
         exists: false,
         error: StringPrototypeIncludes(error, '404')

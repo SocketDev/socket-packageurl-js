@@ -240,9 +240,9 @@ export async function vscodeExtensionExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore start */
+      /* v8 ignore start */
       const error = e instanceof Error ? e.message : String(e)
-      /* c8 ignore stop */
+      /* v8 ignore stop */
       // IMPORTANT: httpJson() throws on non-2xx responses, so we cannot inspect
       // response.status directly. We rely on the error message containing "404"
       // to distinguish "not found" from other HTTP errors.

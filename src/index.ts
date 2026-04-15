@@ -40,7 +40,7 @@ SOFTWARE.
  * - Parsers: Modular parsers for ecosystem-specific package specifiers
  */
 
-/* c8 ignore start - Re-export only file, no logic to test */
+/* v8 ignore start - Re-export only file, no logic to test */
 
 export type { PURLString } from '@socketsecurity/lib/types'
 // ============================================================================
@@ -105,4 +105,4 @@ export { stringify, stringifySpec } from './stringify.js'
 export { Vers } from './vers.js'
 export type { VersComparator, VersConstraint, VersWildcard } from './vers.js'
 
-/* c8 ignore stop */
+/* v8 ignore stop */

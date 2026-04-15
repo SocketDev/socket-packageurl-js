@@ -29,7 +29,7 @@ export function _registerPackageURL(ctor: typeof PackageURL): void {
 
 function toCanonicalString(input: PurlInput): string {
   if (typeof input === 'string') {
-    /* c8 ignore next 5 -- PackageURL is always registered at module load time. */
+    /* v8 ignore next 5 -- PackageURL is always registered at module load time. */
     if (!_PackageURL) {
       throw new Error(
         'PackageURL not registered. Import PackageURL before using string comparison.',

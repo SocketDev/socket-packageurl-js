@@ -117,9 +117,9 @@ export async function cargoExists(
       }
       return result
     } catch (e) {
-      /* c8 ignore start */
+      /* v8 ignore start */
       const error = e instanceof Error ? e.message : String(e)
-      /* c8 ignore stop */
+      /* v8 ignore stop */
       return {
         exists: false,
         error: StringPrototypeIncludes(error, '404')

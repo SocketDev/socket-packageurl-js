@@ -12,6 +12,7 @@ import {
   containsInjectionCharacters,
   findCommandInjectionCharCode,
 } from '../src/strings.js'
+import { encodeQualifiers } from '../src/encode.js'
 import { UrlConverter } from '../src/url-converter.js'
 import {
   validateQualifierKey,
@@ -442,6 +443,35 @@ describe('encode edge cases', () => {
     )
     const str = purl.toString()
     expect(str).not.toContain('?')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// url-converter.ts — unrecognized URL path patterns
+// ---------------------------------------------------------------------------
+describe('UrlConverter unrecognized paths', () => {
+  it('Docker Hub unrecognized path returns undefined', () => {
+    // Path is not /_/ or /r/ — hits the return undefined at end of parseDocker
+    const result = UrlConverter.fromUrl(
+      'https://hub.docker.com/v2/repositories/library/nginx',
+    )
+    expect(result).toBeUndefined()
+  })
+
+  it('MetaCPAN unrecognized path returns undefined', () => {
+    // Path first segment is not "pod" or "dist" — hits return undefined at end of parseCpan
+    const result = UrlConverter.fromUrl('https://metacpan.org/author/ETHER')
+    expect(result).toBeUndefined()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// encode.ts — encodeQualifiers returns '' for non-object via PurlComponent
+// ---------------------------------------------------------------------------
+describe('encodeQualifiers edge case', () => {
+  it('returns empty string for non-object input', () => {
+    const result = encodeQualifiers(null)
+    expect(result).toBe('')
   })
 })
 

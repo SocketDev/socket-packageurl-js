@@ -76,14 +76,14 @@ function tryCreatePurl(
   name: string,
   version: string | undefined,
 ): PackageURL | undefined {
-  /* c8 ignore next 3 -- PackageURL is always registered at module load time. */
+  /* v8 ignore next 3 -- PackageURL is always registered at module load time. */
   if (!_PackageURL) {
     return undefined
   }
   try {
     return new _PackageURL(type, namespace, name, version, undefined, undefined)
   } catch {
-    /* c8 ignore next -- Defensive: validation error in PackageURL constructor. */
+    /* v8 ignore next -- Defensive: validation error in PackageURL constructor. */
     return undefined
   }
 }
@@ -129,7 +129,7 @@ function parseNpmRegistry(url: URL): PackageURL | undefined {
     }
   } else {
     name = segments[0]
-    /* c8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
+    /* v8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
     if (!name) {
       return undefined
     }
@@ -202,7 +202,7 @@ function parsePypi(url: URL): PackageURL | undefined {
   }
 
   const name = segments[1]
-  /* c8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
+  /* v8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
   if (!name) {
     return undefined
   }
@@ -228,7 +228,7 @@ function parseMaven(url: URL): PackageURL | undefined {
   const parts = ArrayPrototypeSlice(segments, 1)
   // Last segment is version, second-to-last is artifact, rest is group path
   if (parts.length < 3) {
-    /* c8 ignore next -- Defensive: filterSegments ensures non-empty. */
+    /* v8 ignore next -- Defensive: filterSegments ensures non-empty. */
     return undefined
   }
   const version = parts[parts.length - 1]!
@@ -237,7 +237,7 @@ function parseMaven(url: URL): PackageURL | undefined {
   const namespace = ArrayPrototypeJoin(groupParts, '.')
 
   if (!namespace || !name) {
-    /* c8 ignore next -- Defensive: filterSegments ensures non-empty. */
+    /* v8 ignore next -- Defensive: filterSegments ensures non-empty. */
     return undefined
   }
 
@@ -256,7 +256,7 @@ function parseGem(url: URL): PackageURL | undefined {
   }
 
   const name = segments[1]
-  /* c8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
+  /* v8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
   if (!name) {
     return undefined
   }
@@ -300,7 +300,7 @@ function parseCargo(url: URL): PackageURL | undefined {
   }
 
   const name = segments[1]
-  /* c8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
+  /* v8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
   if (!name) {
     return undefined
   }
@@ -338,7 +338,7 @@ function parseNuget(url: URL): PackageURL | undefined {
   }
 
   const name = segments[1]
-  /* c8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
+  /* v8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
   if (!name) {
     return undefined
   }
@@ -413,7 +413,7 @@ function parseGolang(url: URL): PackageURL | undefined {
   const namespace = StringPrototypeSlice(path, 0, lastSlash)
   const name = StringPrototypeSlice(path, lastSlash + 1)
   if (!namespace || !name) {
-    /* c8 ignore next -- Defensive: filterSegments ensures non-empty. */
+    /* v8 ignore next -- Defensive: filterSegments ensures non-empty. */
     return undefined
   }
 

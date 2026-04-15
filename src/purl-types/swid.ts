@@ -43,7 +43,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   // tag_id must not be empty after trimming
   const tagIdStr = StringPrototypeTrim(String(tagId))
   if (tagIdStr.length === 0) {
-    /* c8 ignore next 3 -- Throw path tested separately from return false path. */
+    /* v8 ignore next 3 -- Throw path tested separately from return false path. */
     if (throws) {
       throw new PurlError('swid "tag_id" qualifier must not be empty')
     }
