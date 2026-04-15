@@ -123,29 +123,43 @@ function parseSemver(version: string): SemverParts {
  */
 function comparePrereleases(a: string[], b: string[]): number {
   // No prerelease has higher precedence than any prerelease
-  if (a.length === 0 && b.length === 0) return 0
-  if (a.length === 0) return 1
-  if (b.length === 0) return -1
+  if (a.length === 0 && b.length === 0) {
+    return 0
+  }
+  if (a.length === 0) {
+    return 1
+  }
+  if (b.length === 0) {
+    return -1
+  }
 
   const len = Math.min(a.length, b.length)
   for (let i = 0; i < len; i += 1) {
     const ai = a[i]!
     const bi = b[i]!
-    if (ai === bi) continue
+    if (ai === bi) {
+      continue
+    }
     const aNum = RegExpPrototypeTest(DIGITS_ONLY, ai)
     const bNum = RegExpPrototypeTest(DIGITS_ONLY, bi)
     // Numeric identifiers always have lower precedence than alphanumeric
     if (aNum && bNum) {
       const diff = Number(ai) - Number(bi)
-      if (diff !== 0) return diff < 0 ? -1 : 1
+      if (diff !== 0) {
+        return diff < 0 ? -1 : 1
+      }
     } else if (aNum) {
       return -1
     } else if (bNum) {
       return 1
     } else {
       // Alphanumeric: lexicographic comparison
-      if (ai < bi) return -1
-      if (ai > bi) return 1
+      if (ai < bi) {
+        return -1
+      }
+      if (ai > bi) {
+        return 1
+      }
     }
   }
   // Larger set of pre-release fields has higher precedence
@@ -164,12 +178,20 @@ function compareSemver(a: string, b: string): -1 | 0 | 1 {
   const pa = parseSemver(a)
   const pb = parseSemver(b)
   // Compare major.minor.patch
-  if (pa.major !== pb.major) return pa.major < pb.major ? -1 : 1
-  if (pa.minor !== pb.minor) return pa.minor < pb.minor ? -1 : 1
-  if (pa.patch !== pb.patch) return pa.patch < pb.patch ? -1 : 1
+  if (pa.major !== pb.major) {
+    return pa.major < pb.major ? -1 : 1
+  }
+  if (pa.minor !== pb.minor) {
+    return pa.minor < pb.minor ? -1 : 1
+  }
+  if (pa.patch !== pb.patch) {
+    return pa.patch < pb.patch ? -1 : 1
+  }
   // Compare prerelease
   const pre = comparePrereleases(pa.prerelease, pb.prerelease)
-  if (pre !== 0) return pre < 0 ? -1 : 1
+  if (pre !== 0) {
+    return pre < 0 ? -1 : 1
+  }
   return 0
 }
 
@@ -396,10 +418,16 @@ class Vers {
         }
         // Version >= lower bound — check upper bound
         const next = ranges[i + 1]
-        if (!next) return true
+        if (!next) {
+          return true
+        }
         const cmpNext = compareSemver(version, next.version)
-        if (next.comparator === '<' && cmpNext < 0) return true
-        if (next.comparator === '<=' && cmpNext <= 0) return true
+        if (next.comparator === '<' && cmpNext < 0) {
+          return true
+        }
+        if (next.comparator === '<=' && cmpNext <= 0) {
+          return true
+        }
         // Outside this range's upper bound — advance past it and try next range
         i += 1
       } else if (c.comparator === '>') {
@@ -413,17 +441,27 @@ class Vers {
         }
         // Version > lower bound — check upper bound
         const next = ranges[i + 1]
-        if (!next) return true
+        if (!next) {
+          return true
+        }
         const cmpNext = compareSemver(version, next.version)
-        if (next.comparator === '<' && cmpNext < 0) return true
-        if (next.comparator === '<=' && cmpNext <= 0) return true
+        if (next.comparator === '<' && cmpNext < 0) {
+          return true
+        }
+        if (next.comparator === '<=' && cmpNext <= 0) {
+          return true
+        }
         // Outside this range's upper bound — advance past it and try next range
         i += 1
       } else if (c.comparator === '<' || c.comparator === '<=') {
         // Leading less-than without a preceding lower bound
         const cmpVal = compareSemver(version, c.version)
-        if (c.comparator === '<' && cmpVal < 0) return true
-        if (c.comparator === '<=' && cmpVal <= 0) return true
+        if (c.comparator === '<' && cmpVal < 0) {
+          return true
+        }
+        if (c.comparator === '<=' && cmpVal <= 0) {
+          return true
+        }
         // Not in this range — continue to next
       }
     }

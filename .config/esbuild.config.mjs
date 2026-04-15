@@ -51,7 +51,9 @@ function buildPathMap(modulePaths) {
 
   for (const longPath of modulePaths) {
     const info = extractPackageInfo(longPath)
-    if (!info) continue
+    if (!info) {
+      continue
+    }
 
     const shortPath = `${info.packageName}/${info.subpath}`
     if (!shortPathGroups.has(shortPath)) {
@@ -123,7 +125,9 @@ function createPathShorteningPlugin() {
               }
 
               function collectPaths(node) {
-                if (!node || typeof node !== 'object') return
+                if (!node || typeof node !== 'object') {
+                  return
+                }
 
                 if (
                   node.type === 'StringLiteral' &&
@@ -133,11 +137,14 @@ function createPathShorteningPlugin() {
                 }
 
                 for (const key of Object.keys(node)) {
-                  if (key === 'start' || key === 'end' || key === 'loc')
+                  if (key === 'start' || key === 'end' || key === 'loc') {
                     continue
+                  }
                   const value = node[key]
                   if (Array.isArray(value)) {
-                    for (const item of value) collectPaths(item)
+                    for (const item of value) {
+                      collectPaths(item)
+                    }
                   } else {
                     collectPaths(value)
                   }
@@ -169,7 +176,9 @@ function createPathShorteningPlugin() {
               }
 
               function applyReplacements(node) {
-                if (!node || typeof node !== 'object') return
+                if (!node || typeof node !== 'object') {
+                  return
+                }
 
                 if (
                   node.type === 'StringLiteral' &&
@@ -187,11 +196,14 @@ function createPathShorteningPlugin() {
                 }
 
                 for (const key of Object.keys(node)) {
-                  if (key === 'start' || key === 'end' || key === 'loc')
+                  if (key === 'start' || key === 'end' || key === 'loc') {
                     continue
+                  }
                   const value = node[key]
                   if (Array.isArray(value)) {
-                    for (const item of value) applyReplacements(item)
+                    for (const item of value) {
+                      applyReplacements(item)
+                    }
                   } else {
                     applyReplacements(value)
                   }
