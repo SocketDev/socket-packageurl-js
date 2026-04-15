@@ -38,6 +38,9 @@ if (isCoverageEnabled) {
 export default defineConfig({
   cacheDir: './.cache/vitest',
   test: {
+    deps: {
+      interopDefault: false,
+    },
     globals: false,
     environment: 'node',
     include: ['test/**/*.test.mts'],

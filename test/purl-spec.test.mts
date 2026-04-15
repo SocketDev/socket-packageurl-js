@@ -28,7 +28,7 @@ SOFTWARE.
  */
 import path from 'node:path'
 
-import { glob } from 'fast-glob'
+import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 
 import { readJson } from '@socketsecurity/lib/fs'
@@ -54,7 +54,7 @@ describe('PackageURL purl-spec test suite', async () => {
   // Tests from the official purl-spec test suite (data/*.json files)
   const settled = await Promise.allSettled(
     (
-      await glob(['**/**.json'], {
+      await fastGlob.glob(['**/**.json'], {
         absolute: true,
         cwd: path.join(__dirname, 'data'),
       })
