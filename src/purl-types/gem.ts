@@ -115,12 +115,13 @@ export async function gemExists(
       }
       return result
     } catch (e) {
-      /* v8 ignore next - httpJson typically throws Error; String(e) is defensive programming */
+      /* v8 ignore start - httpJson typically throws Error; String(e) is defensive programming */
       const error = e instanceof Error ? e.message : String(e)
       return {
         exists: false,
         error: StringPrototypeIncludes(error, '404') ? 'Gem not found' : error,
       }
+      /* v8 ignore stop */
     }
   }
 

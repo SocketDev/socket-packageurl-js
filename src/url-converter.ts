@@ -76,15 +76,17 @@ function tryCreatePurl(
   name: string,
   version: string | undefined,
 ): PackageURL | undefined {
-  /* v8 ignore next 3 -- PackageURL is always registered at module load time. */
+  /* v8 ignore start -- PackageURL is always registered at module load time. */
   if (!_PackageURL) {
     return undefined
   }
+  /* v8 ignore stop */
   try {
     return new _PackageURL(type, namespace, name, version, undefined, undefined)
   } catch {
-    /* v8 ignore next -- Defensive: validation error in PackageURL constructor. */
+    /* v8 ignore start -- Defensive: validation error in PackageURL constructor. */
     return undefined
+    /* v8 ignore stop */
   }
 }
 
@@ -129,10 +131,11 @@ function parseNpmRegistry(url: URL): PackageURL | undefined {
     }
   } else {
     name = segments[0]
-    /* v8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
+    /* v8 ignore start -- Defensive: filterSegments ensures non-empty. */
     if (!name) {
       return undefined
     }
+    /* v8 ignore stop */
     // Download tarball: /name/-/name-version.tgz
     if (segments[1] === '-' && segments[2]) {
       const tgz = segments[2]
@@ -202,10 +205,11 @@ function parsePypi(url: URL): PackageURL | undefined {
   }
 
   const name = segments[1]
-  /* v8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
+  /* v8 ignore start -- Defensive: filterSegments ensures non-empty. */
   if (!name) {
     return undefined
   }
+  /* v8 ignore stop */
   const version = segments[2]
 
   return tryCreatePurl('pypi', undefined, name, version)
@@ -228,8 +232,9 @@ function parseMaven(url: URL): PackageURL | undefined {
   const parts = ArrayPrototypeSlice(segments, 1)
   // Last segment is version, second-to-last is artifact, rest is group path
   if (parts.length < 3) {
-    /* v8 ignore next -- Defensive: filterSegments ensures non-empty. */
+    /* v8 ignore start -- Defensive: filterSegments ensures non-empty. */
     return undefined
+    /* v8 ignore stop */
   }
   const version = parts[parts.length - 1]!
   const name = parts[parts.length - 2]!
@@ -237,8 +242,9 @@ function parseMaven(url: URL): PackageURL | undefined {
   const namespace = ArrayPrototypeJoin(groupParts, '.')
 
   if (!namespace || !name) {
-    /* v8 ignore next -- Defensive: filterSegments ensures non-empty. */
+    /* v8 ignore start -- Defensive: filterSegments ensures non-empty. */
     return undefined
+    /* v8 ignore stop */
   }
 
   return tryCreatePurl('maven', namespace, name, version)
@@ -256,10 +262,11 @@ function parseGem(url: URL): PackageURL | undefined {
   }
 
   const name = segments[1]
-  /* v8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
+  /* v8 ignore start -- Defensive: filterSegments ensures non-empty. */
   if (!name) {
     return undefined
   }
+  /* v8 ignore stop */
 
   let version: string | undefined
   if (segments[2] === 'versions' && segments[3]) {
@@ -300,10 +307,11 @@ function parseCargo(url: URL): PackageURL | undefined {
   }
 
   const name = segments[1]
-  /* v8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
+  /* v8 ignore start -- Defensive: filterSegments ensures non-empty. */
   if (!name) {
     return undefined
   }
+  /* v8 ignore stop */
   const version = segments[2]
 
   return tryCreatePurl('cargo', undefined, name, version)
@@ -338,10 +346,11 @@ function parseNuget(url: URL): PackageURL | undefined {
   }
 
   const name = segments[1]
-  /* v8 ignore next 3 -- Defensive: filterSegments ensures non-empty. */
+  /* v8 ignore start -- Defensive: filterSegments ensures non-empty. */
   if (!name) {
     return undefined
   }
+  /* v8 ignore stop */
   const version = segments[2]
 
   return tryCreatePurl('nuget', undefined, name, version)
@@ -413,8 +422,9 @@ function parseGolang(url: URL): PackageURL | undefined {
   const namespace = StringPrototypeSlice(path, 0, lastSlash)
   const name = StringPrototypeSlice(path, lastSlash + 1)
   if (!namespace || !name) {
-    /* v8 ignore next -- Defensive: filterSegments ensures non-empty. */
+    /* v8 ignore start -- Defensive: filterSegments ensures non-empty. */
     return undefined
+    /* v8 ignore stop */
   }
 
   return tryCreatePurl('golang', namespace, name, version)

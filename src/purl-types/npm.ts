@@ -300,7 +300,7 @@ export async function npmExists(
       }
       return result
     } catch (e) {
-      /* v8 ignore next - httpJson typically throws Error; String(e) is defensive programming */
+      /* v8 ignore start - httpJson typically throws Error; String(e) is defensive programming */
       // httpJson throws on non-2xx status codes
       const error = e instanceof Error ? e.message : String(e)
       return {
@@ -309,6 +309,7 @@ export async function npmExists(
           ? 'Package not found'
           : error,
       }
+      /* v8 ignore stop */
     }
   }
 
@@ -462,7 +463,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
     return false
   }
-  /* v8 ignore next 7 -- Unreachable: space chars are caught by injection validator above. */
+  /* v8 ignore start -- Unreachable: space chars are caught by injection validator above. */
   if (StringPrototypeTrim(name) !== name) {
     if (throws) {
       throw new PurlError(
@@ -471,6 +472,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
     return false
   }
+  /* v8 ignore stop */
   if (encodeComponent(name) !== name) {
     if (throws) {
       throw new PurlError(
@@ -480,7 +482,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     return false
   }
   if (hasNs) {
-    /* v8 ignore next 10 -- Unreachable: space chars are caught by injection validator above. */
+    /* v8 ignore start -- Unreachable: space chars are caught by injection validator above. */
     if (
       (namespace !== undefined ? StringPrototypeTrim(namespace) : namespace) !==
       namespace
@@ -492,6 +494,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       }
       return false
     }
+    /* v8 ignore stop */
     if (code0 !== 64 /*'@'*/) {
       if (throws) {
         throw new PurlError(
@@ -527,10 +530,11 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       if (throws) {
         // Tested: validation returns false in non-throw mode
         // V8 coverage can't see both throw and return false paths in same test
-        /* v8 ignore next 3 -- Throw path tested separately from return false path. */
+        /* v8 ignore start -- Throw path tested separately from return false path. */
         throw new PurlError(
           `npm "namespace" and "name" components can not collectively be more than 214 characters`,
         )
+        /* v8 ignore stop */
       }
       return false
     }
@@ -542,7 +546,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       }
       return false
     }
-    /* v8 ignore next 7 -- Unreachable: ~'!()* are all injection chars caught by validator above. */
+    /* v8 ignore start -- Unreachable: ~'!()* are all injection chars caught by validator above. */
     if (RegExpPrototypeTest(/[~'!()*]/, name)) {
       if (throws) {
         throw new PurlError(
@@ -551,14 +555,16 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
       }
       return false
     }
+    /* v8 ignore stop */
     if (isNpmBuiltinName(id)) {
       if (throws) {
         // Tested: validation returns false in non-throw mode
         // V8 coverage can't see both throw and return false paths in same test
-        /* v8 ignore next 3 -- Throw path tested separately from return false path. */
+        /* v8 ignore start -- Throw path tested separately from return false path. */
         throw new PurlError(
           'npm "name" component can not be a core module name',
         )
+        /* v8 ignore stop */
       }
       return false
     }

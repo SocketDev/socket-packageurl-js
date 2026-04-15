@@ -5,14 +5,16 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { matches } from '../src/compare.js'
+import { createMatcher, matches } from '../src/compare.js'
 import { PurlError, PurlInjectionError } from '../src/error.js'
 import { PackageURL } from '../src/package-url.js'
+import { PurlType } from '../src/purl-type.js'
 import {
   containsInjectionCharacters,
   findCommandInjectionCharCode,
 } from '../src/strings.js'
 import { encodeQualifiers } from '../src/encode.js'
+import { stringify } from '../src/stringify.js'
 import { UrlConverter } from '../src/url-converter.js'
 import {
   validateQualifierKey,
@@ -21,6 +23,7 @@ import {
   validateType,
   validateVersion,
 } from '../src/validate.js'
+import { Vers } from '../src/vers.js'
 
 // ---------------------------------------------------------------------------
 // validate.ts
@@ -393,6 +396,21 @@ describe('UrlConverter.fromUrl edge cases', () => {
 // compare.ts
 // ---------------------------------------------------------------------------
 describe('compare edge cases', () => {
+  describe('scoped name parsing in patterns without namespace', () => {
+    it('treats the second @ as the version separator', () => {
+      const purl = new PackageURL(
+        'generic',
+        undefined,
+        '@scope',
+        '1.2.3',
+        undefined,
+        undefined,
+      )
+
+      expect(matches('pkg:generic/@scope@1.2.3', purl)).toBe(true)
+    })
+  })
+
   describe('matchWildcard pattern length rejection', () => {
     it('returns false for excessively long pattern (>4096 chars)', () => {
       const longPattern = `pkg:npm/${'*'.repeat(4097)}`
@@ -426,6 +444,45 @@ describe('compare edge cases', () => {
       expect(matches('pkg:npm/lodash@4.17.21', purl)).toBe(true)
     })
   })
+
+  describe('createMatcher exact version patterns', () => {
+    it('matches exact versions without precompiling a wildcard matcher', () => {
+      const matcher = createMatcher('pkg:npm/lodash@4.17.21')
+      const exact = new PackageURL(
+        'npm',
+        undefined,
+        'lodash',
+        '4.17.21',
+        undefined,
+        undefined,
+      )
+      const other = new PackageURL(
+        'npm',
+        undefined,
+        'lodash',
+        '4.17.20',
+        undefined,
+        undefined,
+      )
+
+      expect(matcher(exact)).toBe(true)
+      expect(matcher(other)).toBe(false)
+    })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// purl-type.ts
+// ---------------------------------------------------------------------------
+describe('purl-type edge cases', () => {
+  it('accepts fallback types when type and namespace are undefined', () => {
+    const validate = (PurlType as any).alpm.validate as (
+      purl: Record<string, unknown>,
+      throws: boolean,
+    ) => boolean
+
+    expect(validate({ name: 'pacman' }, false)).toBe(true)
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -443,6 +500,73 @@ describe('encode edge cases', () => {
     )
     const str = purl.toString()
     expect(str).not.toContain('?')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// stringify.ts
+// ---------------------------------------------------------------------------
+describe('stringify edge cases', () => {
+  it('omits the type segment when type is empty', () => {
+    const purl = {
+      type: '',
+      name: 'lodash',
+      namespace: undefined,
+      version: '1.0.0',
+      qualifiers: undefined,
+      subpath: undefined,
+    } as PackageURL
+
+    expect(stringify(purl)).toBe('pkg:/lodash@1.0.0')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// vers.ts
+// ---------------------------------------------------------------------------
+describe('vers edge cases', () => {
+  it('compares differing numeric prerelease identifiers', () => {
+    const vers = Vers.parse('vers:semver/>=1.0.0-1')
+
+    expect(vers.contains('1.0.0-2')).toBe(true)
+    expect(vers.contains('1.0.0-0')).toBe(false)
+  })
+
+  it('orders numeric prerelease identifiers before alphanumeric ones', () => {
+    const vers = Vers.parse('vers:semver/>=1.0.0-alpha.1')
+
+    expect(vers.contains('1.0.0-alpha.beta')).toBe(true)
+    expect(vers.contains('1.0.0-alpha.0')).toBe(false)
+  })
+
+  it('compares alphanumeric prerelease identifiers lexicographically', () => {
+    const vers = Vers.parse('vers:semver/>=1.0.0-alpha.beta')
+
+    expect(vers.contains('1.0.0-alpha.gamma')).toBe(true)
+    expect(vers.contains('1.0.0-alpha.alpha')).toBe(false)
+  })
+
+  it('uses patch comparison before prerelease comparison', () => {
+    const vers = Vers.parse('vers:semver/<1.0.1-alpha')
+
+    expect(vers.contains('1.0.0-zeta')).toBe(true)
+    expect(vers.contains('1.0.1-0')).toBe(true)
+    expect(vers.contains('1.0.1-alpha')).toBe(false)
+  })
+
+  it('skips a non-matching lower bound and continues to the next range pair', () => {
+    const vers = Vers.parse('vers:semver/>=2.0.0|<3.0.0|>=4.0.0|<5.0.0')
+
+    expect(vers.contains('4.5.0')).toBe(true)
+    expect(vers.contains('3.5.0')).toBe(false)
+  })
+
+  it('handles a leading upper-bound range without a preceding lower bound', () => {
+    const vers = Vers.parse('vers:semver/<2.0.0|>=3.0.0')
+
+    expect(vers.contains('1.5.0')).toBe(true)
+    expect(vers.contains('2.5.0')).toBe(false)
+    expect(vers.contains('3.1.0')).toBe(true)
   })
 })
 
