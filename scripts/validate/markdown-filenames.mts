@@ -306,7 +306,7 @@ async function main(): Promise<void> {
     logger.log('')
 
     process.exitCode = 1
-  } catch (e: unknown) {
+  } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     logger.fail(`Validation failed: ${message}`)
     process.exitCode = 1

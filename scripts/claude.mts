@@ -1305,7 +1305,7 @@ async function runClaude(
     modelStrategy.recordAttempt(task, true)
 
     return result
-  } catch (e: unknown) {
+  } catch (e) {
     // Record failure for potential escalation
     modelStrategy.recordAttempt(task, false)
 
@@ -5033,7 +5033,7 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
           if (exitCode !== 0) {
             log.warn(`Claude fix exited with code ${exitCode}`)
           }
-        } catch (e: unknown) {
+        } catch (e) {
           const message = e instanceof Error ? e.message : String(e)
           log.warn(`Claude fix error: ${message}`)
         } finally {
@@ -5356,7 +5356,7 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
                 if (exitCode !== 0) {
                   log.warn(`Claude fix exited with code ${exitCode}`)
                 }
-              } catch (e: unknown) {
+              } catch (e) {
                 const message = e instanceof Error ? e.message : String(e)
                 log.warn(`Claude fix error: ${message}`)
               } finally {
@@ -5562,7 +5562,7 @@ async function runWatchMode(
           } else {
             log.done('No issues found')
           }
-        } catch (e: unknown) {
+        } catch (e) {
           const message = e instanceof Error ? e.message : String(e)
           log.failed(`Error scanning ${project.name}: ${message}`)
         }
@@ -5596,7 +5596,7 @@ async function runWatchMode(
               },
             )
           }
-        } catch (e: unknown) {
+        } catch (e) {
           const message = e instanceof Error ? e.message : String(e)
           log.failed(`Full scan error in ${project.name}: ${message}`)
         }
@@ -6005,7 +6005,7 @@ async function main(): Promise<void> {
     }
 
     process.exitCode = success ? 0 : 1
-  } catch (e: unknown) {
+  } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     log.error(`Operation failed: ${message}`)
     process.exitCode = 1

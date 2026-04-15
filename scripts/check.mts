@@ -402,7 +402,7 @@ async function main(): Promise<void> {
       logger.success('All checks passed')
       printFooter()
     }
-  } catch (error: unknown) {
+  } catch (error) {
     logger.error(
       `Check runner failed: ${error instanceof Error ? error.message : String(error)}`,
     )

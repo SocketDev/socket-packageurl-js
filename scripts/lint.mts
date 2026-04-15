@@ -462,7 +462,7 @@ async function main(): Promise<void> {
         logger.success('All lint checks passed!')
       }
     }
-  } catch (error: unknown) {
+  } catch (error) {
     logger.error(
       `Lint runner failed: ${error instanceof Error ? error.message : String(error)}`,
     )

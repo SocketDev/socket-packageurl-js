@@ -136,7 +136,7 @@ async function buildSource(
     const buildTime = Date.now() - startTime
 
     return { exitCode: 0, buildTime, result }
-  } catch (error: unknown) {
+  } catch (error) {
     if (!quiet) {
       logger.error('Source build failed')
       console.error(error)
@@ -245,7 +245,7 @@ async function watchBuild(options: WatchBuildOptions = {}): Promise<number> {
 
     // Wait indefinitely
     await new Promise<never>(() => {})
-  } catch (error: unknown) {
+  } catch (error) {
     if (!quiet) {
       logger.error('Watch mode failed:', error)
     }
@@ -473,7 +473,7 @@ async function main(): Promise<void> {
     if (exitCode !== 0) {
       process.exitCode = exitCode
     }
-  } catch (error: unknown) {
+  } catch (error) {
     logger.error(`Build runner failed: ${getErrorMessage(error)}`)
     process.exitCode = 1
   }

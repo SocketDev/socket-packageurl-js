@@ -923,7 +923,7 @@ async function main(): Promise<void> {
     logger.substep('2. Create GitHub release if needed')
 
     process.exitCode = 0
-  } catch (e: unknown) {
+  } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     logger.error(`Version bump failed: ${message}`)
     process.exitCode = 1

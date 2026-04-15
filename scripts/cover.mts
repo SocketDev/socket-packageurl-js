@@ -235,7 +235,7 @@ try {
   }
 
   process.exitCode = exitCode
-} catch (e: unknown) {
+} catch (e) {
   const message = e instanceof Error ? e.message : String(e)
   logger.error(`Coverage script failed: ${message}`)
   process.exitCode = 1

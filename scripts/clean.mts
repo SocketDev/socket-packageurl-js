@@ -83,7 +83,7 @@ async function cleanDirectories(
           logger.done(`Cleaned ${name} (already clean)`)
         }
       }
-    } catch (e: unknown) {
+    } catch (e) {
       if (!quiet) {
         logger.error(`Failed to clean ${name}`)
         const message = e instanceof Error ? e.message : String(e)
@@ -234,7 +234,7 @@ async function main(): Promise<void> {
         logger.success('Clean completed successfully!')
       }
     }
-  } catch (e: unknown) {
+  } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     logger.error(`Clean runner failed: ${message}`)
     process.exitCode = 1

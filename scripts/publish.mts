@@ -81,7 +81,7 @@ async function runCommand(
       ...options,
     })
     return result.code
-  } catch (e: unknown) {
+  } catch (e) {
     // spawn() throws on non-zero exit
     if (e && typeof e === 'object' && 'code' in e) {
       return (e as SpawnError).code
@@ -108,7 +108,7 @@ async function runCommandWithOutput(
       stderr: result.stderr,
       stdout: result.stdout,
     }
-  } catch (e: unknown) {
+  } catch (e) {
     // spawn() throws on non-zero exit
     if (
       e &&
@@ -442,7 +442,7 @@ async function main(): Promise<void> {
       width: 56,
     })
     process.exitCode = 0
-  } catch (e: unknown) {
+  } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     logger.error(`Publish runner failed: ${message}`)
     process.exitCode = 1

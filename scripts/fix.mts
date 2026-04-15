@@ -47,7 +47,7 @@ async function run(
       logger.warn(`${label || cmd}: exited ${result.code} (non-blocking)`)
     }
     return 0
-  } catch (error: unknown) {
+  } catch (error) {
     if (!required) {
       logger.warn(`${label || cmd}: ${getErrorMessage(error)} (non-blocking)`)
       return 0

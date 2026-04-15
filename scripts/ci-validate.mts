@@ -75,7 +75,7 @@ async function main(): Promise<void> {
     logger.success('Build completed')
 
     logger.success('CI validation completed successfully!')
-  } catch (e: unknown) {
+  } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
     logger.error(`CI validation failed: ${message}`)
     process.exitCode = 1
