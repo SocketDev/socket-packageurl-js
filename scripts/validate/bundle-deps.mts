@@ -24,11 +24,29 @@ const BUILTIN_MODULES = new Set([
   ...builtinModules.map(m => `node:${m}`),
 ])
 
+type PackageJsonLike = {
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+  peerDependencies?: Record<string, string>
+}
+
+type BundleDependencyMessage = {
+  type: 'bundled-in-deps' | 'bundled-not-declared' | 'external-not-in-deps'
+  package: string
+  message: string
+  fix: string
+}
+
+type BundleDependencyResult = {
+  violations: BundleDependencyMessage[]
+  warnings: BundleDependencyMessage[]
+}
+
 /**
  * Find all JavaScript files in dist directory.
  */
-async function findDistFiles(distPath) {
-  const files = []
+async function findDistFiles(distPath: string): Promise<string[]> {
+  const files: string[] = []
 
   try {
     const entries = await fs.readdir(distPath, { withFileTypes: true })
@@ -57,7 +75,7 @@ async function findDistFiles(distPath) {
 /**
  * Check if a string is a valid package specifier.
  */
-function isValidPackageSpecifier(specifier) {
+function isValidPackageSpecifier(specifier: string): boolean {
   // Relative imports
   if (specifier.startsWith('.') || specifier.startsWith('/')) {
     return false
@@ -101,9 +119,9 @@ function isValidPackageSpecifier(specifier) {
 /**
  * Extract external package names from require() and import statements in built files.
  */
-async function extractExternalPackages(filePath) {
+async function extractExternalPackages(filePath: string): Promise<Set<string>> {
   const content = await fs.readFile(filePath, 'utf8')
-  const externals = new Set()
+  const externals = new Set<string>()
 
   // Match require('package') or require("package")
   const requirePattern = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g
@@ -156,9 +174,9 @@ async function extractExternalPackages(filePath) {
 /**
  * Extract bundled package names from node_modules paths in comments and code.
  */
-async function extractBundledPackages(filePath) {
+async function extractBundledPackages(filePath: string): Promise<Set<string>> {
   const content = await fs.readFile(filePath, 'utf8')
-  const bundled = new Set()
+  const bundled = new Set<string>()
 
   // Match node_modules paths in comments: node_modules/.pnpm/@scope+package@version/...
   // or node_modules/@scope/package/...
@@ -218,7 +236,7 @@ async function extractBundledPackages(filePath) {
 /**
  * Get package name from a module specifier (strip subpaths).
  */
-function getPackageName(specifier) {
+function getPackageName(specifier: string): string | null {
   // Relative imports are not packages
   if (specifier.startsWith('.') || specifier.startsWith('/')) {
     return null
@@ -271,7 +289,7 @@ function getPackageName(specifier) {
 /**
  * Read and parse package.json.
  */
-async function readPackageJson() {
+async function readPackageJson(): Promise<PackageJsonLike> {
   const packageJsonPath = path.join(rootPath, 'package.json')
   const content = await fs.readFile(packageJsonPath, 'utf8')
   return JSON.parse(content)
@@ -280,7 +298,7 @@ async function readPackageJson() {
 /**
  * Validate bundle dependencies.
  */
-async function validateBundleDeps() {
+async function validateBundleDeps(): Promise<BundleDependencyResult> {
   const distPath = path.join(rootPath, 'dist')
   const pkg = await readPackageJson()
 
@@ -297,8 +315,8 @@ async function validateBundleDeps() {
   }
 
   // Collect all external and bundled packages
-  const allExternals = new Set()
-  const allBundled = new Set()
+  const allExternals = new Set<string>()
+  const allBundled = new Set<string>()
 
   for (const file of distFiles) {
     const externals = await extractExternalPackages(file)
@@ -316,8 +334,8 @@ async function validateBundleDeps() {
     }
   }
 
-  const violations = []
-  const warnings = []
+  const violations: BundleDependencyMessage[] = []
+  const warnings: BundleDependencyMessage[] = []
 
   // Validate external packages are in dependencies or peerDependencies
   for (const packageName of allExternals) {
@@ -357,7 +375,7 @@ async function validateBundleDeps() {
   return { violations, warnings }
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
     const { violations, warnings } = await validateBundleDeps()
 
@@ -388,8 +406,9 @@ async function main() {
 
     // Only fail on violations, not warnings
     process.exitCode = violations.length > 0 ? 1 : 0
-  } catch (error) {
-    console.error('Validation failed:', error.message)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('Validation failed:', message)
     process.exitCode = 1
   }
 }

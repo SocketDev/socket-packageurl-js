@@ -13,15 +13,23 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
 
+import type { CommandResult } from './utils/run-command.mts'
 import { runCommandQuiet } from './utils/run-command.mts'
 
-const logger = getDefaultLogger()
+const logger: Logger = getDefaultLogger()
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const rootPath = path.join(__dirname, '..')
+const __dirname: string = path.dirname(fileURLToPath(import.meta.url))
+const rootPath: string = path.join(__dirname, '..')
+
+type CoverValues = {
+  'code-only': boolean
+  summary: boolean
+  'type-only': boolean
+}
 
 // Parse custom flags
 const { values } = parseArgs({
@@ -32,15 +40,15 @@ const { values } = parseArgs({
   },
   strict: false,
   allowPositionals: true,
-})
+}) as { values: CoverValues }
 
 printHeader('Test Coverage')
 console.log('')
 
 // Run vitest with coverage enabled, capturing output
 // Filter out custom flags that vitest doesn't understand
-const customFlags = ['--code-only', '--type-only', '--summary']
-const vitestArgs = [
+const customFlags: string[] = ['--code-only', '--type-only', '--summary']
+const vitestArgs: string[] = [
   'vitest',
   '--config',
   '.config/vitest.config.mts',
@@ -48,15 +56,15 @@ const vitestArgs = [
   '--coverage',
   ...process.argv.slice(2).filter(arg => !customFlags.includes(arg)),
 ]
-const typeCoverageArgs = ['exec', 'type-coverage']
+const typeCoverageArgs: string[] = ['exec', 'type-coverage']
 
 try {
   // Build first
   await runCommandQuiet('pnpm', ['run', 'build'], { cwd: rootPath })
 
-  let exitCode = 0
-  let codeCoverageResult
-  let typeCoverageResult
+  let exitCode: number = 0
+  let codeCoverageResult: CommandResult | undefined
+  let typeCoverageResult: CommandResult | undefined
 
   // Handle --type-only flag
   if (values['type-only']) {
@@ -227,7 +235,8 @@ try {
   }
 
   process.exitCode = exitCode
-} catch (error) {
-  logger.error(`Coverage script failed: ${error.message}`)
+} catch (e: unknown) {
+  const message = e instanceof Error ? e.message : String(e)
+  logger.error(`Coverage script failed: ${message}`)
   process.exitCode = 1
 }

@@ -11,11 +11,31 @@ import { fileURLToPath } from 'node:url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.join(__dirname, '..', '..')
 
+type DependencyField =
+  | 'dependencies'
+  | 'devDependencies'
+  | 'peerDependencies'
+  | 'optionalDependencies'
+
+type PackageJsonLike = {
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+  peerDependencies?: Record<string, string>
+  optionalDependencies?: Record<string, string>
+}
+
+type LinkDependencyViolation = {
+  file: string
+  field: DependencyField
+  package: string
+  value: string
+}
+
 /**
  * Find all package.json files in the repository.
  */
-async function findPackageJsonFiles(dir) {
-  const files = []
+async function findPackageJsonFiles(dir: string): Promise<string[]> {
+  const files: string[] = []
   const entries = await fs.readdir(dir, { withFileTypes: true })
 
   for (const entry of entries) {
@@ -44,11 +64,13 @@ async function findPackageJsonFiles(dir) {
 /**
  * Check if a package.json contains link: dependencies.
  */
-async function checkPackageJson(filePath) {
+async function checkPackageJson(
+  filePath: string,
+): Promise<LinkDependencyViolation[]> {
   const content = await fs.readFile(filePath, 'utf8')
-  const pkg = JSON.parse(content)
+  const pkg = JSON.parse(content) as PackageJsonLike
 
-  const violations = []
+  const violations: LinkDependencyViolation[] = []
 
   // Check dependencies.
   if (pkg.dependencies) {
@@ -109,9 +131,9 @@ async function checkPackageJson(filePath) {
   return violations
 }
 
-async function main() {
+async function main(): Promise<void> {
   const packageJsonFiles = await findPackageJsonFiles(rootPath)
-  const allViolations = []
+  const allViolations: LinkDependencyViolation[] = []
 
   for (const file of packageJsonFiles) {
     const violations = await checkPackageJson(file)
@@ -146,7 +168,7 @@ async function main() {
   }
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
   console.error('Validation failed:', error)
   process.exitCode = 1
 })

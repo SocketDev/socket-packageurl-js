@@ -32,13 +32,13 @@ const npmDataPath = path.join(dataPath, 'npm')
 const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')
 const npmLegacyNamesJsonPath = path.join(npmDataPath, 'legacy-names.json')
 
-async function main() {
+async function main(): Promise<void> {
   const spinner = getDefaultSpinner()
   spinner.start()
 
   const { next } = getMaintainedNodeVersions()
-  const nodeVersion = process.version.slice(1)
-  const isGteNext = semver.gte(nodeVersion, next)
+  const nodeVersion: string = process.version.slice(1)
+  const isGteNext: boolean = semver.gte(nodeVersion, next)
   if (
     await confirm({
       message: `Update builtin package names?${isGteNext ? '' : ` (Requires Node >=${next})`}`,
@@ -46,7 +46,7 @@ async function main() {
     })
   ) {
     if (isGteNext) {
-      const builtinNames = Module.builtinModules
+      const builtinNames: string[] = Module.builtinModules
         // Node 23 introduces 'node:sea', 'node:sqlite', 'node:test', and 'node:test/reporters'
         // that have no unprefixed version so we skip them
         .filter(n => !n.startsWith('node:'))
@@ -66,7 +66,7 @@ async function main() {
     spinner.stop()
     return
   }
-  const allThePackageNames = arrayUnique([
+  const allThePackageNames: string[] = arrayUnique([
     // Load the 43.1MB names.json file of 'all-the-package-names@2.0.0'
     // which keeps the json file smaller while still covering the changes from:
     // https://blog.npmjs.org/post/168978377570/new-package-moniker-rules.html
@@ -76,15 +76,15 @@ async function main() {
     // npm's replicate.npmjs.com service
     ...allThePackageNamesV1Data,
   ])
-  const rawLegacyNames = allThePackageNames
+  const rawLegacyNames: string[] = allThePackageNames
     // Don't simply check validateNpmPackageName(n).validForOldPackages
     // Instead let registry.npmjs.org be our source of truth to whether a
     // package exists or not
     .filter(n => !validateNpmPackageName(n).validForNewPackages)
     .toSorted(naturalCompare)
-  const seenNames = new Set()
-  const invalidNames = new Set()
-  const legacyNames =
+  const seenNames = new Set<string>()
+  const invalidNames = new Set<string>()
+  const legacyNames: string[] =
     // Chunk package names to process them in parallel 3 at a time
     await pFilter(
       rawLegacyNames,
@@ -111,7 +111,7 @@ async function main() {
   }
 }
 
-main().catch(e => {
+main().catch((e: unknown) => {
   logger.error(e)
   process.exitCode = 1
 })

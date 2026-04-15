@@ -2,19 +2,40 @@
 
 import process from 'node:process'
 
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import type {
+  SpawnErrorWithOutputString,
+  SpawnOptions,
+  SpawnSyncOptions,
+  SpawnSyncReturns,
+} from '@socketsecurity/lib/spawn'
 import { spawn, spawnSync } from '@socketsecurity/lib/spawn'
 
-const logger = getDefaultLogger()
+const logger: Logger = getDefaultLogger()
+
+export type CommandOptions = SpawnOptions
+
+export type CommandResult = {
+  exitCode: number
+  stderr: string
+  stdout: string
+}
+
+export type SequenceEntry = {
+  args?: string[]
+  command: string
+  options?: CommandOptions
+}
 
 /**
  * Run a command and return a promise that resolves with the exit code.
- * @param {string} command - The command to run
- * @param {string[]} args - Arguments to pass to the command
- * @param {object} options - Spawn options
- * @returns {Promise<number>} Exit code
  */
-export async function runCommand(command, args = [], options = {}) {
+export async function runCommand(
+  command: string,
+  args: string[] = [],
+  options: CommandOptions = {},
+): Promise<number> {
   try {
     const result = await spawn(command, args, {
       stdio: 'inherit',
@@ -22,25 +43,25 @@ export async function runCommand(command, args = [], options = {}) {
       ...options,
     })
     return result.code
-  } catch (error) {
+  } catch (e: unknown) {
     // spawn() from @socketsecurity/lib throws on non-zero exit
     // Return the exit code from the error
-    if (error && typeof error === 'object' && 'code' in error) {
-      return error.code
+    if (e && typeof e === 'object' && 'code' in e) {
+      return e.code as number
     }
-    throw error
+    throw e
   }
 }
 
 /**
  * Run a command synchronously.
- * @param {string} command - The command to run
- * @param {string[]} args - Arguments to pass to the command
- * @param {object} options - Spawn options
- * @returns {number} Exit code
  */
-export function runCommandSync(command, args = [], options = {}) {
-  const result = spawnSync(command, args, {
+export function runCommandSync(
+  command: string,
+  args: string[] = [],
+  options: SpawnSyncOptions = {},
+): number {
+  const result: SpawnSyncReturns<string | Buffer> = spawnSync(command, args, {
     stdio: 'inherit',
     ...(process.platform === 'win32' && { shell: true }),
     ...options,
@@ -51,23 +72,21 @@ export function runCommandSync(command, args = [], options = {}) {
 
 /**
  * Run a pnpm script.
- * @param {string} scriptName - The pnpm script to run
- * @param {string[]} extraArgs - Additional arguments
- * @param {object} options - Spawn options
- * @returns {Promise<number>} Exit code
  */
-export async function runPnpmScript(scriptName, extraArgs = [], options = {}) {
+export async function runPnpmScript(
+  scriptName: string,
+  extraArgs: string[] = [],
+  options: CommandOptions = {},
+): Promise<number> {
   return runCommand('pnpm', ['run', scriptName, ...extraArgs], options)
 }
 
 /**
  * Run multiple commands in sequence, stopping on first failure.
- * @param {Array<{command: string, args?: string[], options?: object}>} commands
- * @returns {Promise<number>} Exit code of first failing command, or 0 if all succeed
  */
-export async function runSequence(commands) {
+export async function runSequence(commands: SequenceEntry[]): Promise<number> {
   for (const { args = [], command, options = {} } of commands) {
-    const exitCode = await runCommand(command, args, options)
+    const exitCode: number = await runCommand(command, args, options)
     if (exitCode !== 0) {
       return exitCode
     }
@@ -77,25 +96,27 @@ export async function runSequence(commands) {
 
 /**
  * Run multiple commands in parallel.
- * @param {Array<{command: string, args?: string[], options?: object}>} commands
- * @returns {Promise<number[]>} Array of exit codes
  */
-export async function runParallel(commands) {
-  const promises = commands.map(({ args = [], command, options = {} }) =>
-    runCommand(command, args, options),
+export async function runParallel(
+  commands: SequenceEntry[],
+): Promise<number[]> {
+  const promises: Array<Promise<number>> = commands.map(
+    ({ args = [], command, options = {} }) =>
+      runCommand(command, args, options),
   )
-  const results = await Promise.allSettled(promises)
+  const results: Array<PromiseSettledResult<number>> =
+    await Promise.allSettled(promises)
   return results.map(r => (r.status === 'fulfilled' ? r.value : 1))
 }
 
 /**
  * Run a command and suppress output.
- * @param {string} command - The command to run
- * @param {string[]} args - Arguments to pass to the command
- * @param {object} options - Spawn options
- * @returns {Promise<{exitCode: number, stdout: string, stderr: string}>}
  */
-export async function runCommandQuiet(command, args = [], options = {}) {
+export async function runCommandQuiet(
+  command: string,
+  args: string[] = [],
+  options: CommandOptions = {},
+): Promise<CommandResult> {
   try {
     const result = await spawn(command, args, {
       ...options,
@@ -106,38 +127,39 @@ export async function runCommandQuiet(command, args = [], options = {}) {
 
     return {
       exitCode: result.code,
-      stderr: result.stderr,
-      stdout: result.stdout,
+      stderr: result.stderr as string,
+      stdout: result.stdout as string,
     }
-  } catch (error) {
+  } catch (e: unknown) {
     // spawn() from @socketsecurity/lib throws on non-zero exit
     // Return the exit code and output from the error
     if (
-      error &&
-      typeof error === 'object' &&
-      'code' in error &&
-      'stdout' in error &&
-      'stderr' in error
+      e &&
+      typeof e === 'object' &&
+      'code' in e &&
+      'stdout' in e &&
+      'stderr' in e
     ) {
+      const spawnError: SpawnErrorWithOutputString = e
       return {
-        exitCode: error.code,
-        stderr: error.stderr,
-        stdout: error.stdout,
+        exitCode: spawnError.code,
+        stderr: spawnError.stderr,
+        stdout: spawnError.stdout,
       }
     }
-    throw error
+    throw e
   }
 }
 
 /**
  * Log and run a command.
- * @param {string} description - Description of what the command does
- * @param {string} command - The command to run
- * @param {string[]} args - Arguments
- * @param {object} options - Spawn options
- * @returns {Promise<number>} Exit code
  */
-export async function logAndRun(description, command, args = [], options = {}) {
+export async function logAndRun(
+  description: string,
+  command: string,
+  args: string[] = [],
+  options: CommandOptions = {},
+): Promise<number> {
   logger.log(description)
   return runCommand(command, args, options)
 }

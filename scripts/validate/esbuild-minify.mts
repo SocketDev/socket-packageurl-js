@@ -7,20 +7,36 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
+type EsbuildConfigModule = {
+  buildConfig?: {
+    minify?: boolean
+  }
+  watchConfig?: {
+    minify?: boolean
+  }
+}
+
+type EsbuildMinifyViolation = {
+  config: 'buildConfig' | 'watchConfig'
+  value: boolean | undefined
+  message: string
+  location: string
+}
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.join(__dirname, '..', '..')
 
 /**
  * Validate esbuild configuration has minify: false.
  */
-async function validateEsbuildMinify() {
+async function validateEsbuildMinify(): Promise<EsbuildMinifyViolation[]> {
   const configPath = path.join(rootPath, '.config/esbuild.config.mjs')
 
   try {
     // Dynamic import of the esbuild config
-    const config = await import(configPath)
+    const config = (await import(configPath)) as EsbuildConfigModule
 
-    const violations = []
+    const violations: EsbuildMinifyViolation[] = []
 
     // Check buildConfig
     if (config.buildConfig) {
@@ -47,14 +63,15 @@ async function validateEsbuildMinify() {
     }
 
     return violations
-  } catch (error) {
-    console.error(`Failed to load esbuild config: ${error.message}`)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error(`Failed to load esbuild config: ${message}`)
     process.exitCode = 1
     return []
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
   const violations = await validateEsbuildMinify()
 
   if (violations.length === 0) {
@@ -81,7 +98,7 @@ async function main() {
   process.exitCode = 1
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
   console.error('Validation failed:', error)
   process.exitCode = 1
 })

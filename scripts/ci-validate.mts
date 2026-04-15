@@ -7,41 +7,46 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import type { SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
 
-const logger = getDefaultLogger()
+const logger: Logger = getDefaultLogger()
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const rootPath = path.resolve(__dirname, '..')
+const __dirname: string = path.dirname(fileURLToPath(import.meta.url))
+const rootPath: string = path.resolve(__dirname, '..')
 
-async function runCommand(command, args = []) {
-  return new Promise((resolve, reject) => {
-    const spawnPromise = spawn(command, args, {
+async function runCommand(
+  command: string,
+  args: string[] = [],
+): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    const spawnPromise: SpawnResult = spawn(command, args, {
       cwd: rootPath,
       stdio: 'inherit',
     })
 
     const child = spawnPromise.process
 
-    child.on('exit', code => {
+    child.on('exit', (code: number | null) => {
       resolve(code || 0)
     })
 
-    child.on('error', error => {
-      reject(error)
+    child.on('error', (e: unknown) => {
+      reject(e)
     })
   })
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
     printHeader('CI Validation')
 
     // Run tests
     logger.step('Running tests')
-    let exitCode = await runCommand('pnpm', ['test', '--all'])
+    let exitCode: number = await runCommand('pnpm', ['test', '--all'])
     if (exitCode !== 0) {
       logger.error('Tests failed')
       process.exitCode = exitCode
@@ -70,8 +75,9 @@ async function main() {
     logger.success('Build completed')
 
     logger.success('CI validation completed successfully!')
-  } catch (error) {
-    logger.error(`CI validation failed: ${error.message}`)
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    logger.error(`CI validation failed: ${message}`)
     process.exitCode = 1
   }
 }

@@ -11,11 +11,35 @@ import { deleteAsync } from 'del'
 import fastGlob from 'fast-glob'
 
 import { isQuiet } from '@socketsecurity/lib/argv/flags'
+import type { FlagValues } from '@socketsecurity/lib/argv/flags'
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { createSectionHeader } from '@socketsecurity/lib/stdio/header'
 
-const logger = getDefaultLogger()
+const logger: Logger = getDefaultLogger()
+
+type CleanTask = {
+  name: string
+  pattern?: string
+  patterns?: string[]
+}
+
+type CleanOptions = {
+  quiet?: boolean
+}
+
+type CleanScriptValues = FlagValues & {
+  all: boolean
+  cache: boolean
+  coverage: boolean
+  dist: boolean
+  help: boolean
+  modules: boolean
+  quiet: boolean
+  silent: boolean
+  types: boolean
+}
 
 const rootPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -25,12 +49,15 @@ const rootPath = path.resolve(
 /**
  * Clean specific directories.
  */
-async function cleanDirectories(tasks, options = {}) {
+async function cleanDirectories(
+  tasks: CleanTask[],
+  options: CleanOptions = {},
+): Promise<number> {
   const { quiet = false } = options
 
   for (const task of tasks) {
     const { name, pattern, patterns } = task
-    const patternsToDelete = patterns || [pattern]
+    const patternsToDelete: string[] = patterns || [pattern!]
 
     if (!quiet) {
       logger.progress(`Cleaning ${name}`)
@@ -38,7 +65,7 @@ async function cleanDirectories(tasks, options = {}) {
 
     try {
       // Find all files/dirs matching the patterns
-      const files = await fastGlob(patternsToDelete, {
+      const files: string[] = await fastGlob(patternsToDelete, {
         cwd: rootPath,
         absolute: true,
         dot: true,
@@ -56,10 +83,11 @@ async function cleanDirectories(tasks, options = {}) {
           logger.done(`Cleaned ${name} (already clean)`)
         }
       }
-    } catch (error) {
+    } catch (e: unknown) {
       if (!quiet) {
         logger.error(`Failed to clean ${name}`)
-        console.error(error.message)
+        const message = e instanceof Error ? e.message : String(e)
+        console.error(message)
       }
       return 1
     }
@@ -68,7 +96,7 @@ async function cleanDirectories(tasks, options = {}) {
   return 0
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
     // Parse arguments
     const { values } = parseArgs({
@@ -142,10 +170,10 @@ async function main() {
       return
     }
 
-    const quiet = isQuiet(values)
+    const quiet: boolean = isQuiet(values as CleanScriptValues)
 
     // Determine what to clean
-    const cleanAll =
+    const cleanAll: boolean =
       values.all ||
       (!values.cache &&
         !values.coverage &&
@@ -153,7 +181,7 @@ async function main() {
         !values.types &&
         !values.modules)
 
-    const tasks = []
+    const tasks: CleanTask[] = []
 
     // Build task list
     if (cleanAll || values.cache) {
@@ -194,7 +222,7 @@ async function main() {
     }
 
     // Clean directories
-    const exitCode = await cleanDirectories(tasks, { quiet })
+    const exitCode: number = await cleanDirectories(tasks, { quiet })
 
     if (exitCode !== 0) {
       if (!quiet) {
@@ -206,13 +234,14 @@ async function main() {
         logger.success('Clean completed successfully!')
       }
     }
-  } catch (error) {
-    logger.error(`Clean runner failed: ${error.message}`)
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    logger.error(`Clean runner failed: ${message}`)
     process.exitCode = 1
   }
 }
 
-main().catch(e => {
+main().catch((e: unknown) => {
   logger.error(e)
   process.exitCode = 1
 })

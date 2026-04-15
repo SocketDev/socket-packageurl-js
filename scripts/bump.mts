@@ -14,17 +14,30 @@ import semver from 'semver'
 import colors from 'yoctocolors-cjs'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
-const logger = getDefaultLogger()
+type CommandResult = {
+  exitCode: number
+  stderr: string
+  stdout: string
+}
 
-const rootPath = path.resolve(
+type PackageJson = Record<string, unknown> & {
+  name?: string
+  version?: string
+}
+
+const logger: Logger = getDefaultLogger()
+
+const rootPath: string = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
 )
-const WIN32 = process.platform === 'win32'
+const WIN32: boolean = process.platform === 'win32'
 
 // Check if prompts are available for interactive mode
 // First check for local registry build, then check for installed package
@@ -47,20 +60,21 @@ const packagePromptsPath = path.join(
   'prompts.js',
 )
 
-let promptsPath = null
+let promptsPath: string | null = null
 if (existsSync(localPromptsPath)) {
   promptsPath = localPromptsPath
 } else if (existsSync(packagePromptsPath)) {
   promptsPath = packagePromptsPath
 }
 
-const hasInteractivePrompts = !!promptsPath
+const hasInteractivePrompts: boolean = !!promptsPath
 
 // Conditionally import interactive prompts
-let prompts = null
+let prompts: Record<string, (...args: unknown[]) => Promise<unknown>> | null =
+  null
 if (hasInteractivePrompts) {
   try {
-    prompts = await import(promptsPath)
+    prompts = (await import(promptsPath!)) as typeof prompts
   } catch {
     // Fall back to basic prompts if import fails
   }
@@ -69,7 +83,7 @@ if (hasInteractivePrompts) {
 /**
  * Create readline interface for user input.
  */
-function createReadline() {
+function createReadline(): readline.Interface {
   return readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -79,11 +93,14 @@ function createReadline() {
 /**
  * Prompt user for input.
  */
-async function prompt(question, defaultValue = '') {
-  const rl = createReadline()
-  return new Promise(resolve => {
-    const displayDefault = defaultValue ? ` (${defaultValue})` : ''
-    rl.question(`${question}${displayDefault}: `, answer => {
+async function prompt(
+  question: string,
+  defaultValue: string = '',
+): Promise<string> {
+  const rl: readline.Interface = createReadline()
+  return new Promise<string>(resolve => {
+    const displayDefault: string = defaultValue ? ` (${defaultValue})` : ''
+    rl.question(`${question}${displayDefault}: `, (answer: string) => {
       rl.close()
       resolve(answer.trim() || defaultValue)
     })
@@ -93,18 +110,25 @@ async function prompt(question, defaultValue = '') {
 /**
  * Prompt user for yes/no confirmation.
  */
-async function confirm(question, defaultYes = true) {
-  const defaultHint = defaultYes ? 'Y/n' : 'y/N'
-  const answer = await prompt(
+async function confirm(
+  question: string,
+  defaultYes: boolean = true,
+): Promise<boolean> {
+  const defaultHint: string = defaultYes ? 'Y/n' : 'y/N'
+  const answer: string = await prompt(
     `${question} [${defaultHint}]`,
     defaultYes ? 'y' : 'n',
   )
   return answer.toLowerCase().startsWith('y')
 }
 
-async function runCommand(command, args = [], options = {}) {
-  return new Promise((resolve, reject) => {
-    const spawnPromise = spawn(command, args, {
+async function runCommand(
+  command: string,
+  args: string[] = [],
+  options: SpawnOptions = {},
+): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    const spawnPromise: SpawnResult = spawn(command, args, {
       stdio: 'inherit',
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
@@ -113,22 +137,26 @@ async function runCommand(command, args = [], options = {}) {
 
     const child = spawnPromise.process
 
-    child.on('exit', code => {
+    child.on('exit', (code: number | null) => {
       resolve(code || 0)
     })
 
-    child.on('error', error => {
-      reject(error)
+    child.on('error', (e: unknown) => {
+      reject(e)
     })
   })
 }
 
-async function runCommandWithOutput(command, args = [], options = {}) {
-  return new Promise((resolve, reject) => {
-    let stdout = ''
-    let stderr = ''
+async function runCommandWithOutput(
+  command: string,
+  args: string[] = [],
+  options: SpawnOptions = {},
+): Promise<CommandResult> {
+  return new Promise<CommandResult>((resolve, reject) => {
+    let stdout: string = ''
+    let stderr: string = ''
 
-    const spawnPromise = spawn(command, args, {
+    const spawnPromise: SpawnResult = spawn(command, args, {
       cwd: rootPath,
       ...(WIN32 && { shell: true }),
       ...options,

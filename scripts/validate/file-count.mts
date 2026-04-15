@@ -24,10 +24,16 @@ const rootPath = path.join(__dirname, '..', '..')
 // Maximum number of files in a single commit
 const MAX_FILES_PER_COMMIT = 50
 
+type StagedFileCountViolation = {
+  count: number
+  files: string[]
+  limit: number
+}
+
 /**
  * Check if too many files are staged for commit.
  */
-async function validateStagedFileCount() {
+async function validateStagedFileCount(): Promise<StagedFileCountViolation | null> {
   try {
     // Check if we're in a git repository
     const { stdout: gitRoot } = await execAsync(
@@ -67,7 +73,7 @@ async function validateStagedFileCount() {
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
     const violation = await validateStagedFileCount()
 
@@ -102,13 +108,14 @@ async function main() {
     logger.log('')
 
     process.exitCode = 1
-  } catch (error) {
-    logger.fail(`Validation failed: ${error.message}`)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error)
+    logger.fail(`Validation failed: ${message}`)
     process.exitCode = 1
   }
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
   logger.fail(`Validation failed: ${error}`)
   process.exitCode = 1
 })

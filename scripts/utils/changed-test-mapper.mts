@@ -13,7 +13,18 @@ import {
 } from '@socketsecurity/lib/git'
 import { normalizePath } from '@socketsecurity/lib/paths/normalize'
 
-const rootPath = path.resolve(process.cwd())
+type TestsToRunOptions = {
+  all?: boolean
+  staged?: boolean
+}
+
+type TestsToRunResult = {
+  mode?: string
+  reason?: string
+  tests: string[] | 'all' | null
+}
+
+const rootPath: string = path.resolve(process.cwd())
 
 /**
  * Core files that require running all tests when changed.
@@ -33,15 +44,21 @@ const CORE_FILES = [
 
 /**
  * Map source files to their corresponding test files.
- * @param {string} filepath - Path to source file
- * @returns {string[]} Array of test file paths
  */
-function mapSourceToTests(filepath) {
-  const normalized = normalizePath(filepath)
+function mapSourceToTests(filepath: string): string[] {
+  const normalized: string = normalizePath(filepath)
 
   // Skip non-code files
-  const ext = path.extname(normalized)
-  const codeExtensions = ['.js', '.mjs', '.cjs', '.ts', '.cts', '.mts', '.json']
+  const ext: string = path.extname(normalized)
+  const codeExtensions: string[] = [
+    '.js',
+    '.mjs',
+    '.cjs',
+    '.ts',
+    '.cts',
+    '.mts',
+    '.json',
+  ]
   if (!codeExtensions.includes(ext)) {
     return []
   }
@@ -52,8 +69,8 @@ function mapSourceToTests(filepath) {
   }
 
   // Map specific files to their test files
-  const basename = path.basename(normalized, path.extname(normalized))
-  const testFile = `test/${basename}.test.mts`
+  const basename: string = path.basename(normalized, path.extname(normalized))
+  const testFile: string = `test/${basename}.test.mts`
 
   // Check if corresponding test exists
   if (existsSync(path.join(rootPath, testFile))) {
@@ -85,7 +102,9 @@ function mapSourceToTests(filepath) {
  * @param {boolean} options.all - Run all tests
  * @returns {{tests: string[] | 'all' | null, reason?: string, mode?: string}} Object with test patterns, reason, and mode
  */
-export function getTestsToRun(options = {}) {
+export function getTestsToRun(
+  options: TestsToRunOptions = {},
+): TestsToRunResult {
   const { all = false, staged = false } = options
 
   // All mode runs all tests
@@ -107,7 +126,7 @@ export function getTestsToRun(options = {}) {
     return { tests: null, mode }
   }
 
-  const testFiles = new Set()
+  const testFiles = new Set<string>()
   let runAllTests = false
   let runAllReason = ''
 
