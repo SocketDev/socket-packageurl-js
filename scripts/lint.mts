@@ -8,14 +8,62 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { isQuiet } from '@socketsecurity/lib/argv/flags'
+import type { FlagValues } from '@socketsecurity/lib/argv/flags'
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { getChangedFiles, getStagedFiles } from '@socketsecurity/lib/git'
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
 
 import { runCommandQuiet } from './utils/run-command.mts'
 
-const logger = getDefaultLogger()
+type LintResult = {
+  exitCode: number
+  stderr: string
+  stdout: string
+}
+
+type RunAllLintResult =
+  | {
+      reason: 'core files changed' | 'config files changed'
+      runAll: true
+    }
+  | {
+      reason?: never
+      runAll: false
+    }
+
+type LintTarget =
+  | {
+      files: 'all'
+      mode: 'all'
+      reason: string
+    }
+  | {
+      files: null
+      mode: 'changed' | 'staged'
+      reason: string
+    }
+  | {
+      files: string[]
+      mode: 'changed' | 'staged'
+      reason: null
+    }
+
+type LintRunOptions = {
+  fix?: boolean
+  quiet?: boolean
+}
+
+type LintScriptValues = FlagValues & {
+  all: boolean
+  changed: boolean
+  fix: boolean
+  help: boolean
+  staged: boolean
+}
+
+const logger: Logger = getDefaultLogger()
 
 // Files that trigger a full lint when changed
 const CORE_FILES = new Set([
@@ -42,7 +90,9 @@ const CONFIG_PATTERNS = [
 /**
  * Check if we should run all linters based on changed files.
  */
-function shouldRunAllLinters(changedFiles) {
+function shouldRunAllLinters(
+  changedFiles: readonly string[],
+): RunAllLintResult {
   for (const file of changedFiles) {
     // Core library files
     if (CORE_FILES.has(file)) {
@@ -63,7 +113,7 @@ function shouldRunAllLinters(changedFiles) {
 /**
  * Filter files to only those that should be linted.
  */
-function filterLintableFiles(files) {
+function filterLintableFiles(files: readonly string[]): string[] {
   // Only include extensions actually supported by oxfmt/oxlint
   const lintableExtensions = new Set([
     '.js',
@@ -74,7 +124,7 @@ function filterLintableFiles(files) {
     '.mts',
   ])
 
-  return files.filter(file => {
+  return files.filter((file: string): boolean => {
     const ext = path.extname(file)
     // Only lint files that have lintable extensions AND still exist.
     if (!lintableExtensions.has(ext) || !existsSync(file)) {
@@ -88,7 +138,10 @@ function filterLintableFiles(files) {
 /**
  * Run linters on specific files.
  */
-async function runLintOnFiles(files, options = {}) {
+async function runLintOnFiles(
+  files: readonly string[],
+  options: LintRunOptions = {},
+): Promise<number> {
   const { fix = false, quiet = false } = options
 
   if (!files.length) {
@@ -137,7 +190,7 @@ async function runLintOnFiles(files, options = {}) {
       continue
     }
 
-    const result = await runCommandQuiet('pnpm', args)
+    const result: LintResult = await runCommandQuiet('pnpm', args)
 
     if (result.exitCode !== 0) {
       // When fixing, non-zero exit codes are normal if fixes were applied.
@@ -168,7 +221,7 @@ async function runLintOnFiles(files, options = {}) {
 /**
  * Run linters on all files.
  */
-async function runLintOnAll(options = {}) {
+async function runLintOnAll(options: LintRunOptions = {}): Promise<number> {
   const { fix = false, quiet = false } = options
 
   if (!quiet) {
@@ -205,7 +258,7 @@ async function runLintOnAll(options = {}) {
   ]
 
   for (const { args, name } of linters) {
-    const result = await runCommandQuiet('pnpm', args)
+    const result: LintResult = await runCommandQuiet('pnpm', args)
 
     if (result.exitCode !== 0) {
       // When fixing, non-zero exit codes are normal if fixes were applied.
@@ -236,7 +289,9 @@ async function runLintOnAll(options = {}) {
 /**
  * Get files to lint based on options.
  */
-async function getFilesToLint(options) {
+async function getFilesToLint(
+  options: Pick<LintScriptValues, 'all' | 'changed' | 'staged'>,
+): Promise<LintTarget> {
   const { all, changed, staged } = options
 
   // If --all, return early
@@ -245,7 +300,7 @@ async function getFilesToLint(options) {
   }
 
   // Get changed files
-  let changedFiles = []
+  let changedFiles: string[] = []
   // Track what mode we're in
   let mode = 'changed'
 
@@ -285,10 +340,10 @@ async function getFilesToLint(options) {
   return { files: lintableFiles, reason: null, mode }
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
     // Parse arguments
-    const { positionals, values } = parseArgs({
+    const { positionals, values } = parseArgs<LintScriptValues>({
       options: {
         help: {
           type: 'boolean',
@@ -407,13 +462,15 @@ async function main() {
         logger.success('All lint checks passed!')
       }
     }
-  } catch (error) {
-    logger.error(`Lint runner failed: ${error.message}`)
+  } catch (error: unknown) {
+    logger.error(
+      `Lint runner failed: ${error instanceof Error ? error.message : String(error)}`,
+    )
     process.exitCode = 1
   }
 }
 
-main().catch(e => {
-  logger.error(e)
+main().catch((error: unknown) => {
+  logger.error(error)
   process.exitCode = 1
 })

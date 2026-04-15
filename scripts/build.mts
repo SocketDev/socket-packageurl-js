@@ -8,32 +8,102 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import { build, context } from 'esbuild'
+import type { BuildOptions, BuildResult, LogLevel, Metafile } from 'esbuild'
 import colors from 'yoctocolors-cjs'
 
 import { isQuiet } from '@socketsecurity/lib/argv/flags'
+import type { FlagValues } from '@socketsecurity/lib/argv/flags'
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
-const logger = getDefaultLogger()
+const logger: Logger = getDefaultLogger()
 
 import {
   analyzeMetafile,
   buildConfig,
   watchConfig,
-} from '../.config/esbuild.config.mts'
+} from '../.config/esbuild.config.mjs'
 import { runSequence } from './utils/run-command.mts'
+
+type BuildAnalysis = {
+  files: Array<{
+    name: string
+    size: string
+  }>
+  totalSize: string
+}
+
+type BuildScriptValues = FlagValues & {
+  analyze: boolean
+  help: boolean
+  needed: boolean
+  src: boolean
+  types: boolean
+  verbose: boolean
+}
+
+type BuildSourceOptions = {
+  analyze?: boolean
+  quiet?: boolean
+  skipClean?: boolean
+  verbose?: boolean
+}
+
+type BuildTypesOptions = {
+  quiet?: boolean
+  skipClean?: boolean
+  verbose?: boolean
+}
+
+type WatchBuildOptions = {
+  quiet?: boolean
+  verbose?: boolean
+}
+
+type BuildSourceResult = {
+  buildTime: number
+  exitCode: number
+  result: BuildResult | null
+}
+
+type WatchConfig = BuildOptions & {
+  watch?: Record<string, never>
+}
+
+type SequenceCommand = {
+  args?: string[]
+  command: string
+  options?: {
+    shell?: boolean
+  }
+}
 
 const rootPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
 )
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+function getLogLevel(quiet: boolean, verbose: boolean): LogLevel {
+  return quiet ? 'silent' : verbose ? 'info' : 'warning'
+}
+
+function getBuildAnalysis(metafile: Metafile): BuildAnalysis {
+  return analyzeMetafile(metafile) as BuildAnalysis
+}
+
 /**
  * Build source code with esbuild.
  * Returns { exitCode, buildTime, result } for external logging.
  */
-async function buildSource(options = {}) {
+async function buildSource(
+  options: BuildSourceOptions = {},
+): Promise<BuildSourceResult> {
   const { quiet = false, skipClean = false, verbose = false } = options
 
   if (!quiet) {
@@ -44,7 +114,7 @@ async function buildSource(options = {}) {
   if (!skipClean) {
     const exitCode = await runSequence([
       {
-        args: ['scripts/clean.mjs', '--dist', '--quiet'],
+        args: ['scripts/clean.mts', '--dist', '--quiet'],
         command: 'node',
       },
     ])
@@ -58,16 +128,15 @@ async function buildSource(options = {}) {
 
   try {
     const startTime = Date.now()
-    // Determine log level based on verbosity
-    const logLevel = quiet ? 'silent' : verbose ? 'info' : 'warning'
+    const logLevel = getLogLevel(quiet, verbose)
     const result = await build({
-      ...buildConfig,
+      ...(buildConfig as BuildOptions),
       logLevel,
     })
     const buildTime = Date.now() - startTime
 
     return { exitCode: 0, buildTime, result }
-  } catch (error) {
+  } catch (error: unknown) {
     if (!quiet) {
       logger.error('Source build failed')
       console.error(error)
@@ -80,7 +149,7 @@ async function buildSource(options = {}) {
  * Build TypeScript declarations.
  * Returns exitCode for external logging.
  */
-async function buildTypes(options = {}) {
+async function buildTypes(options: BuildTypesOptions = {}): Promise<number> {
   const {
     quiet = false,
     skipClean = false,
@@ -91,11 +160,11 @@ async function buildTypes(options = {}) {
     logger.substep('Building TypeScript declarations')
   }
 
-  const commands = []
+  const commands: SequenceCommand[] = []
 
   if (!skipClean) {
     commands.push({
-      args: ['scripts/clean.mjs', '--types', '--quiet'],
+      args: ['scripts/clean.mts', '--types', '--quiet'],
       command: 'node',
     })
   }
@@ -122,7 +191,7 @@ async function buildTypes(options = {}) {
 /**
  * Watch mode for development with incremental builds (68% faster rebuilds).
  */
-async function watchBuild(options = {}) {
+async function watchBuild(options: WatchBuildOptions = {}): Promise<number> {
   const { quiet = false, verbose = false } = options
 
   if (!quiet) {
@@ -131,12 +200,11 @@ async function watchBuild(options = {}) {
   }
 
   try {
-    // Determine log level based on verbosity
-    const logLevel = quiet ? 'silent' : verbose ? 'debug' : 'warning'
+    const logLevel: LogLevel = quiet ? 'silent' : verbose ? 'debug' : 'warning'
 
     // Use context API for incremental builds (68% faster rebuilds)
     // Extract watch option from watchConfig as it's not valid for context()
-    const { watch: _watchOpts, ...contextConfig } = watchConfig
+    const { watch: _watchOpts, ...contextConfig } = watchConfig as WatchConfig
     const ctx = await context({
       ...contextConfig,
       logLevel,
@@ -144,8 +212,8 @@ async function watchBuild(options = {}) {
         ...(contextConfig.plugins || []),
         {
           name: 'rebuild-logger',
-          setup(build) {
-            build.onEnd(result => {
+          setup(pluginBuild): void {
+            pluginBuild.onEnd((result): void => {
               if (result.errors.length > 0) {
                 if (!quiet) {
                   logger.error('Rebuild failed')
@@ -154,7 +222,7 @@ async function watchBuild(options = {}) {
                 if (!quiet) {
                   logger.success('Rebuild succeeded')
                   if (result?.metafile && verbose) {
-                    const analysis = analyzeMetafile(result.metafile)
+                    const analysis = getBuildAnalysis(result.metafile)
                     logger.info(`Bundle size: ${analysis.totalSize}`)
                   }
                 }
@@ -169,15 +237,15 @@ async function watchBuild(options = {}) {
     await ctx.watch()
 
     // Keep the process alive
-    process.on('SIGINT', async () => {
+    process.on('SIGINT', async (): Promise<never> => {
       await ctx.dispose()
       process.exitCode = 0
       throw new Error('Watch mode interrupted')
     })
 
     // Wait indefinitely
-    await new Promise(() => {})
-  } catch (error) {
+    await new Promise<never>(() => {})
+  } catch (error: unknown) {
     if (!quiet) {
       logger.error('Watch mode failed:', error)
     }
@@ -188,17 +256,17 @@ async function watchBuild(options = {}) {
 /**
  * Check if build is needed.
  */
-function isBuildNeeded() {
+function isBuildNeeded(): boolean {
   const distPath = path.join(rootPath, 'dist', 'index.js')
   const distTypesPath = path.join(rootPath, 'dist', 'types', 'index.d.ts')
 
   return !existsSync(distPath) || !existsSync(distTypesPath)
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
     // Parse arguments
-    const { values } = parseArgs({
+    const { values } = parseArgs<BuildScriptValues>({
       options: {
         help: {
           type: 'boolean',
@@ -318,7 +386,7 @@ async function main() {
         logger.substep(`Source build complete in ${buildTime}ms`)
 
         if (values.analyze && result?.metafile) {
-          const analysis = analyzeMetafile(result.metafile)
+          const analysis = getBuildAnalysis(result.metafile)
           logger.info('Build output:')
           for (const file of analysis.files) {
             logger.substep(`${file.name}: ${file.size}`)
@@ -339,7 +407,7 @@ async function main() {
       }
       exitCode = await runSequence([
         {
-          args: ['scripts/clean.mjs', '--dist', '--types', '--quiet'],
+          args: ['scripts/clean.mts', '--dist', '--types', '--quiet'],
           command: 'node',
         },
       ])
@@ -375,7 +443,7 @@ async function main() {
           logger.substep(`Source build complete in ${srcResult.buildTime}ms`)
 
           if (values.analyze && srcResult.result?.metafile) {
-            const analysis = analyzeMetafile(srcResult.result.metafile)
+            const analysis = getBuildAnalysis(srcResult.result.metafile)
             logger.info('Build output:')
             for (const file of analysis.files) {
               logger.substep(`${file.name}: ${file.size}`)
@@ -405,13 +473,13 @@ async function main() {
     if (exitCode !== 0) {
       process.exitCode = exitCode
     }
-  } catch (error) {
-    logger.error(`Build runner failed: ${error.message}`)
+  } catch (error: unknown) {
+    logger.error(`Build runner failed: ${getErrorMessage(error)}`)
     process.exitCode = 1
   }
 }
 
-main().catch(e => {
-  logger.error(e)
+main().catch((error: unknown) => {
+  logger.error(error)
   process.exitCode = 1
 })

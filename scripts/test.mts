@@ -9,66 +9,124 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import glob from 'fast-glob'
+import type { Options as FastGlobOptions } from 'fast-glob'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { onExit } from '@socketsecurity/lib/signal-exit'
+import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
+import type { Spinner } from '@socketsecurity/lib/spinner'
 import { getDefaultSpinner } from '@socketsecurity/lib/spinner'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
 
 import { getTestsToRun } from './utils/changed-test-mapper.mts'
 
-const logger = getDefaultLogger()
-const spinner = getDefaultSpinner()
+type RunningProcess = SpawnResult['process']
+
+type CommandOptions = SpawnOptions
+
+type CommandOutput = {
+  code: number
+  stderr: string
+  stdout: string
+}
+
+type TestSelectionOptions = {
+  all: boolean
+  coverage: boolean
+  force: boolean
+  staged: boolean
+  update: boolean
+}
+
+type TestScriptValues = {
+  all: boolean
+  cover: boolean
+  coverage: boolean
+  fast: boolean
+  force: boolean
+  help: boolean
+  quick: boolean
+  staged: boolean
+  'skip-build': boolean
+  update: boolean
+}
+
+type InteractiveRunnerModule = {
+  runTests: (
+    command: string,
+    args: string[],
+    options?: {
+      cwd?: string
+      env?: NodeJS.ProcessEnv
+      verbose?: boolean
+    },
+  ) => Promise<number>
+}
+
+const logger: Logger = getDefaultLogger()
+const spinner: Spinner = getDefaultSpinner()
 
 const WIN32 = process.platform === 'win32'
 
 // Suppress non-fatal worker termination unhandled rejections
-process.on('unhandledRejection', (reason, _promise) => {
-  const errorMessage = String(reason?.message || reason || '')
-  // Filter out known non-fatal worker termination errors
-  if (
-    errorMessage.includes('Terminating worker thread') ||
-    errorMessage.includes('ThreadTermination')
-  ) {
-    // Ignore these - they're cleanup messages from vitest worker threads
-    return
-  }
-  // Re-throw other unhandled rejections
-  throw reason
-})
+process.on(
+  'unhandledRejection',
+  (reason: unknown, _promise: Promise<unknown>): void => {
+    const errorMessage = String(
+      reason instanceof Error ? reason.message : (reason ?? ''),
+    )
+    // Filter out known non-fatal worker termination errors
+    if (
+      errorMessage.includes('Terminating worker thread') ||
+      errorMessage.includes('ThreadTermination')
+    ) {
+      // Ignore these - they're cleanup messages from vitest worker threads
+      return
+    }
+    // Re-throw other unhandled rejections
+    throw reason
+  },
+)
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.resolve(__dirname, '..')
 const nodeModulesBinPath = path.join(rootPath, 'node_modules', '.bin')
 
 // Track running processes for cleanup
-const runningProcesses = new Set()
+const runningProcesses: Set<RunningProcess> = new Set()
 
 // Setup exit handler
-const removeExitHandler = onExit((_code, signal) => {
-  // Stop spinner first
-  try {
-    spinner.stop()
-  } catch {}
-
-  // Kill all running processes
-  for (const child of runningProcesses) {
+const removeExitHandler = onExit(
+  (_code: number | null, signal: string | null): void => {
+    // Stop spinner first
     try {
-      child.kill('SIGTERM')
+      spinner.stop()
     } catch {}
-  }
 
-  if (signal) {
-    console.log(`\nReceived ${signal}, cleaning up...`)
-    // Let onExit handle the exit with proper code
-    process.exitCode = 128 + (signal === 'SIGINT' ? 2 : 15)
-  }
-})
+    // Kill all running processes
+    for (const child of runningProcesses) {
+      try {
+        child.kill('SIGTERM')
+      } catch {}
+    }
 
-async function runCommand(command, args = [], options = {}) {
-  return new Promise((resolve, reject) => {
+    if (signal) {
+      console.log(`\nReceived ${signal}, cleaning up...`)
+      // Let onExit handle the exit with proper code
+      process.exitCode = 128 + (signal === 'SIGINT' ? 2 : 15)
+    }
+  },
+)
+
+async function runCommand(
+  command: string,
+  args: string[] = [],
+  options: CommandOptions = {},
+): Promise<number> {
+  return new Promise<number>((resolve, reject): void => {
     const spawnPromise = spawn(command, args, {
       stdio: 'inherit',
       ...(process.platform === 'win32' && { shell: true }),
@@ -79,20 +137,24 @@ async function runCommand(command, args = [], options = {}) {
 
     runningProcesses.add(child)
 
-    child.on('exit', code => {
+    child.on('exit', (code: number | null): void => {
       runningProcesses.delete(child)
       resolve(code || 0)
     })
 
-    child.on('error', error => {
+    child.on('error', (error: Error): void => {
       runningProcesses.delete(child)
       reject(error)
     })
   })
 }
 
-async function runCommandWithOutput(command, args = [], options = {}) {
-  return new Promise((resolve, reject) => {
+async function runCommandWithOutput(
+  command: string,
+  args: string[] = [],
+  options: CommandOptions = {},
+): Promise<CommandOutput> {
+  return new Promise<CommandOutput>((resolve, reject): void => {
     let stdout = ''
     let stderr = ''
 
@@ -106,30 +168,30 @@ async function runCommandWithOutput(command, args = [], options = {}) {
     runningProcesses.add(child)
 
     if (child.stdout) {
-      child.stdout.on('data', data => {
+      child.stdout.on('data', (data: Buffer | string): void => {
         stdout += data.toString()
       })
     }
 
     if (child.stderr) {
-      child.stderr.on('data', data => {
+      child.stderr.on('data', (data: Buffer | string): void => {
         stderr += data.toString()
       })
     }
 
-    child.on('exit', code => {
+    child.on('exit', (code: number | null): void => {
       runningProcesses.delete(child)
       resolve({ code: code || 0, stdout, stderr })
     })
 
-    child.on('error', error => {
+    child.on('error', (error: Error): void => {
       runningProcesses.delete(child)
       reject(error)
     })
   })
 }
 
-async function runCheck() {
+async function runCheck(): Promise<number> {
   logger.step('Running checks')
 
   // Run fix (auto-format) quietly since it has its own output
@@ -208,7 +270,7 @@ async function runCheck() {
   return exitCode
 }
 
-async function runBuild() {
+async function runBuild(): Promise<number> {
   const distIndexPath = path.join(rootPath, 'dist', 'index.js')
   if (!existsSync(distIndexPath)) {
     logger.step('Building project')
@@ -217,7 +279,10 @@ async function runBuild() {
   return 0
 }
 
-async function runTests(options, positionals = []) {
+async function runTests(
+  options: TestSelectionOptions,
+  positionals: string[] = [],
+): Promise<number> {
   const { all, coverage, force, staged, update } = options
   const runAll = all || force
 
@@ -258,7 +323,7 @@ async function runTests(options, positionals = []) {
   } else {
     const modeText = mode === 'staged' ? 'staged' : 'changed'
     logger.step(`Running tests for ${modeText} files:`)
-    testsToRun.forEach(test => logger.substep(test))
+    testsToRun.forEach((test: string): void => logger.substep(test))
     vitestArgs.push(...testsToRun)
   }
 
@@ -267,12 +332,12 @@ async function runTests(options, positionals = []) {
     vitestArgs.push(...positionals)
   }
 
-  const spawnOptions = {
+  const spawnOptions: SpawnOptions = {
     cwd: rootPath,
     env: {
       ...process.env,
       NODE_OPTIONS:
-        `${process.env.NODE_OPTIONS || ''} --max-old-space-size=${process.env.CI ? 8192 : 4096} --max-semi-space-size=512 --unhandled-rejections=warn`.trim(),
+        `${process.env['NODE_OPTIONS'] || ''} --max-old-space-size=${process.env['CI'] ? 8192 : 4096} --max-semi-space-size=512 --unhandled-rejections=warn`.trim(),
       VITEST: '1',
     },
     stdio: 'inherit',
@@ -280,10 +345,11 @@ async function runTests(options, positionals = []) {
 
   // Use interactive runner for interactive Ctrl+O experience when appropriate
   if (process.stdout.isTTY) {
-    const { runTests } = await import('./utils/interactive-runner.mjs')
-    return runTests(vitestPath, vitestArgs, {
+    const { runTests: runInteractiveTests } =
+      (await import('./utils/interactive-runner.mts')) as InteractiveRunnerModule
+    return runInteractiveTests(vitestPath, vitestArgs, {
       env: spawnOptions.env,
-      cwd: spawnOptions.cwd,
+      cwd: typeof spawnOptions.cwd === 'string' ? spawnOptions.cwd : rootPath,
       verbose: false,
     })
   }
@@ -321,28 +387,28 @@ async function runTests(options, positionals = []) {
   return result.code
 }
 
-async function runIsolatedTests() {
+async function runIsolatedTests(): Promise<number> {
   // Check if there are any isolated tests
   const isolatedTests = await glob('test/**/*.isolated.test.mts', {
     cwd: rootPath,
-  })
+  } satisfies FastGlobOptions)
 
   if (isolatedTests.length === 0) {
     return 0
   }
 
   logger.step(`Running ${isolatedTests.length} isolated test file(s)`)
-  isolatedTests.forEach(test => logger.substep(test))
+  isolatedTests.forEach((test: string): void => logger.substep(test))
 
   const vitestCmd = WIN32 ? 'vitest.cmd' : 'vitest'
   const vitestPath = path.join(nodeModulesBinPath, vitestCmd)
 
-  const spawnOptions = {
+  const spawnOptions: SpawnOptions = {
     cwd: rootPath,
     env: {
       ...process.env,
       NODE_OPTIONS:
-        `${process.env.NODE_OPTIONS || ''} --max-old-space-size=${process.env.CI ? 8192 : 4096} --max-semi-space-size=512 --unhandled-rejections=warn`.trim(),
+        `${process.env['NODE_OPTIONS'] || ''} --max-old-space-size=${process.env['CI'] ? 8192 : 4096} --max-semi-space-size=512 --unhandled-rejections=warn`.trim(),
       VITEST: '1',
     },
     stdio: 'inherit',
@@ -355,10 +421,10 @@ async function runIsolatedTests() {
   )
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
     // Parse arguments
-    const { positionals, values } = parseArgs({
+    const { positionals, values } = parseArgs<TestScriptValues>({
       options: {
         help: {
           type: 'boolean',
@@ -485,12 +551,14 @@ async function main() {
     } else {
       logger.success('All tests passed!')
     }
-  } catch (error) {
+  } catch (error: unknown) {
     // Ensure spinner is stopped
     try {
       spinner.stop()
     } catch {}
-    logger.error(`Test runner failed: ${error.message}`)
+    logger.error(
+      `Test runner failed: ${error instanceof Error ? error.message : String(error)}`,
+    )
     process.exitCode = 1
   } finally {
     // Ensure spinner is stopped
@@ -502,7 +570,7 @@ async function main() {
   }
 }
 
-main().catch(error => {
+main().catch((error: unknown) => {
   console.error(error)
   process.exit(1)
 })

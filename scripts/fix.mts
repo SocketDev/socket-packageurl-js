@@ -11,15 +11,30 @@
 import { existsSync } from 'node:fs'
 import process from 'node:process'
 
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import type { SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
 
 const WIN32 = process.platform === 'win32'
-const logger = getDefaultLogger()
+const logger: Logger = getDefaultLogger()
 
-async function run(cmd, args, { label, required = true } = {}) {
+type RunOptions = {
+  label?: string
+  required?: boolean
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+async function run(
+  cmd: string,
+  args: string[],
+  { label, required = true }: RunOptions = {},
+): Promise<number> {
   try {
-    const result = await spawn(cmd, args, {
+    const result: Awaited<SpawnResult> = await spawn(cmd, args, {
       shell: WIN32,
       stdio: 'inherit',
     })
@@ -32,22 +47,22 @@ async function run(cmd, args, { label, required = true } = {}) {
       logger.warn(`${label || cmd}: exited ${result.code} (non-blocking)`)
     }
     return 0
-  } catch (e) {
+  } catch (error: unknown) {
     if (!required) {
-      logger.warn(`${label || cmd}: ${e.message} (non-blocking)`)
+      logger.warn(`${label || cmd}: ${getErrorMessage(error)} (non-blocking)`)
       return 0
     }
-    throw e
+    throw error
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
+  const extraArgs: string[] = process.argv.slice(2)
+
   // Step 1: Lint fix — delegates to per-package lint scripts.
-  const lintExit = await run(
-    'pnpm',
-    ['run', 'lint', '--fix', ...process.argv.slice(2)],
-    { label: 'lint --fix' },
-  )
+  const lintExit = await run('pnpm', ['run', 'lint', '--fix', ...extraArgs], {
+    label: 'lint --fix',
+  })
   if (lintExit) {
     process.exitCode = lintExit
   }
@@ -71,7 +86,7 @@ async function main() {
   }
 }
 
-main().catch(e => {
-  logger.error(e)
+main().catch((error: unknown) => {
+  logger.error(error)
   process.exitCode = 1
 })

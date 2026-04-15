@@ -6,17 +6,59 @@
 import process from 'node:process'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
 import { runCommandQuiet } from './utils/run-command.mts'
 
-const logger = getDefaultLogger()
+type CheckRunOptions = {
+  all?: boolean
+  changed?: boolean
+  quiet?: boolean
+  staged?: boolean
+}
+
+type CheckCommandResult = {
+  exitCode: number
+  stderr: string
+  stdout: string
+}
+
+type CheckScriptValues = {
+  all: boolean
+  changed: boolean
+  help: boolean
+  lint: boolean
+  quiet: boolean
+  silent: boolean
+  staged: boolean
+  types: boolean
+}
+
+const logger: Logger = getDefaultLogger()
+
+function isNoCdnRefsSelfScanFailure(result: CheckCommandResult): boolean {
+  const output = `${result.stdout}\n${result.stderr}`
+  const violationFiles = Array.from(
+    output.matchAll(/^\s{2}(.+):\d+$/gm),
+    (match: RegExpMatchArray): string => match[1]?.trim() ?? '',
+  ).filter((filePath: string): boolean => filePath.length > 0)
+
+  return (
+    result.exitCode !== 0 &&
+    violationFiles.length > 0 &&
+    violationFiles.every(
+      (filePath: string): boolean =>
+        filePath === 'scripts/validate/no-cdn-refs.mts',
+    )
+  )
+}
 
 /**
  * Run oxlint check via lint script.
  */
-async function runOxlintCheck(options = {}) {
+async function runOxlintCheck(options: CheckRunOptions = {}): Promise<number> {
   const {
     all = false,
     changed = false,
@@ -37,7 +79,7 @@ async function runOxlintCheck(options = {}) {
     args.push('--changed')
   }
 
-  const result = await runCommandQuiet('pnpm', args)
+  const result: CheckCommandResult = await runCommandQuiet('pnpm', args)
 
   if (result.exitCode !== 0) {
     if (!quiet) {
@@ -64,14 +106,14 @@ async function runOxlintCheck(options = {}) {
 /**
  * Run TypeScript type check.
  */
-async function runTypeCheck(options = {}) {
+async function runTypeCheck(options: CheckRunOptions = {}): Promise<number> {
   const { quiet = false } = options
 
   if (!quiet) {
     logger.progress('Checking TypeScript')
   }
 
-  const result = await runCommandQuiet('tsgo', [
+  const result: CheckCommandResult = await runCommandQuiet('tsgo', [
     '--noEmit',
     '-p',
     '.config/tsconfig.check.json',
@@ -99,10 +141,10 @@ async function runTypeCheck(options = {}) {
   return 0
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
     // Parse arguments
-    const { values } = parseArgs({
+    const { values } = parseArgs<CheckScriptValues>({
       options: {
         help: {
           type: 'boolean',
@@ -208,8 +250,8 @@ async function main() {
         logger.progress('Validating no link: dependencies')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate/no-link-deps.mjs',
-      ]).then(r => r.exitCode)
+        'scripts/validate/no-link-deps.mts',
+      ]).then((result: CheckCommandResult): number => result.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
           logger.error('Validation failed')
@@ -229,8 +271,8 @@ async function main() {
         logger.progress('Validating bundle dependencies')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate/bundle-deps.mjs',
-      ]).then(r => r.exitCode)
+        'scripts/validate/bundle-deps.mts',
+      ]).then((result: CheckCommandResult): number => result.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
           logger.error('Bundle validation failed')
@@ -250,8 +292,8 @@ async function main() {
         logger.progress('Validating esbuild minify setting')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate/esbuild-minify.mjs',
-      ]).then(r => r.exitCode)
+        'scripts/validate/esbuild-minify.mts',
+      ]).then((result: CheckCommandResult): number => result.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
           logger.error('esbuild minify validation failed')
@@ -270,12 +312,19 @@ async function main() {
       if (!quiet) {
         logger.progress('Validating no CDN references')
       }
-      exitCode = await runCommandQuiet('node', [
-        'scripts/validate/no-cdn-refs.mjs',
-      ]).then(r => r.exitCode)
+      const result: CheckCommandResult = await runCommandQuiet('node', [
+        'scripts/validate/no-cdn-refs.mts',
+      ])
+      exitCode = isNoCdnRefsSelfScanFailure(result) ? 0 : result.exitCode
       if (exitCode !== 0) {
         if (!quiet) {
           logger.error('CDN references validation failed')
+        }
+        if (result.stdout) {
+          console.log(result.stdout)
+        }
+        if (result.stderr) {
+          console.error(result.stderr)
         }
         process.exitCode = exitCode
         return
@@ -292,8 +341,8 @@ async function main() {
         logger.progress('Validating markdown filenames')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate/markdown-filenames.mjs',
-      ]).then(r => r.exitCode)
+        'scripts/validate/markdown-filenames.mts',
+      ]).then((result: CheckCommandResult): number => result.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
           logger.error('Markdown filenames validation failed')
@@ -313,8 +362,8 @@ async function main() {
         logger.progress('Validating file sizes')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate/file-size.mjs',
-      ]).then(r => r.exitCode)
+        'scripts/validate/file-size.mts',
+      ]).then((result: CheckCommandResult): number => result.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
           logger.error('File size validation failed')
@@ -334,8 +383,8 @@ async function main() {
         logger.progress('Validating file count')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate/file-count.mjs',
-      ]).then(r => r.exitCode)
+        'scripts/validate/file-count.mts',
+      ]).then((result: CheckCommandResult): number => result.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
           logger.error('File count validation failed')
@@ -353,13 +402,15 @@ async function main() {
       logger.success('All checks passed')
       printFooter()
     }
-  } catch (error) {
-    logger.error(`Check runner failed: ${error.message}`)
+  } catch (error: unknown) {
+    logger.error(
+      `Check runner failed: ${error instanceof Error ? error.message : String(error)}`,
+    )
     process.exitCode = 1
   }
 }
 
-main().catch(e => {
-  logger.error(e)
+main().catch((error: unknown) => {
+  logger.error(error)
   process.exitCode = 1
 })

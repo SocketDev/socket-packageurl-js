@@ -3,7 +3,7 @@
  * Uses taze to update dependencies across all packages in the monorepo.
  *
  * Usage:
- *   node scripts/update.mjs [options]
+ *   node scripts/update.mts [options]
  *
  * Options:
  *   --quiet    Suppress progress output
@@ -14,13 +14,19 @@ import process from 'node:process'
 
 import { isQuiet, isVerbose } from '@socketsecurity/lib/argv/flags'
 import { WIN32 } from '@socketsecurity/lib/constants/platform'
+import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import type { SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
 
-async function main() {
-  const quiet = isQuiet()
-  const verbose = isVerbose()
-  const logger = getDefaultLogger()
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
+async function main(): Promise<void> {
+  const quiet: boolean = isQuiet()
+  const verbose: boolean = isVerbose()
+  const logger: Logger = getDefaultLogger()
 
   try {
     if (!quiet) {
@@ -28,14 +34,14 @@ async function main() {
     }
 
     // Build taze command with appropriate flags for monorepo
-    const tazeArgs = ['exec', 'taze', '-r', '-w']
+    const tazeArgs: string[] = ['exec', 'taze', '-r', '-w']
 
     if (!quiet) {
       logger.progress('Updating dependencies...')
     }
 
     // Run taze at root level (recursive flag will check all packages).
-    const result = await spawn('pnpm', tazeArgs, {
+    const result: Awaited<SpawnResult> = await spawn('pnpm', tazeArgs, {
       shell: WIN32,
       stdio: quiet ? 'pipe' : 'inherit',
     })
@@ -50,7 +56,7 @@ async function main() {
       logger.progress('Updating Socket packages...')
     }
 
-    const socketResult = await spawn(
+    const socketResult: Awaited<SpawnResult> = await spawn(
       'pnpm',
       [
         'update',
@@ -90,9 +96,9 @@ async function main() {
         logger.log('')
       }
     }
-  } catch (error) {
+  } catch (error: unknown) {
     if (!quiet) {
-      logger.fail(`Update failed: ${error.message}`)
+      logger.fail(`Update failed: ${getErrorMessage(error)}`)
     }
     if (verbose) {
       logger.error(error)
@@ -101,8 +107,8 @@ async function main() {
   }
 }
 
-main().catch(e => {
-  const logger = getDefaultLogger()
-  logger.error(e)
+main().catch((error: unknown) => {
+  const logger: Logger = getDefaultLogger()
+  logger.error(error)
   process.exitCode = 1
 })
