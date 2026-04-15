@@ -13,7 +13,7 @@ import { getChangedFiles, getStagedFiles } from '@socketsecurity/lib/git'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
 
-import { runCommandQuiet } from './utils/run-command.mjs'
+import { runCommandQuiet } from './utils/run-command.mts'
 
 const logger = getDefaultLogger()
 

@@ -9,7 +9,7 @@ import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
 
-import { runCommandQuiet } from './utils/run-command.mjs'
+import { runCommandQuiet } from './utils/run-command.mts'
 
 const logger = getDefaultLogger()
 

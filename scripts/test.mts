@@ -17,7 +17,7 @@ import { spawn } from '@socketsecurity/lib/spawn'
 import { getDefaultSpinner } from '@socketsecurity/lib/spinner'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
 
-import { getTestsToRun } from './utils/changed-test-mapper.mjs'
+import { getTestsToRun } from './utils/changed-test-mapper.mts'
 
 const logger = getDefaultLogger()
 const spinner = getDefaultSpinner()

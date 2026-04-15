@@ -21,8 +21,8 @@ import {
   analyzeMetafile,
   buildConfig,
   watchConfig,
-} from '../.config/esbuild.config.mjs'
-import { runSequence } from './utils/run-command.mjs'
+} from '../.config/esbuild.config.mts'
+import { runSequence } from './utils/run-command.mts'
 
 const rootPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
