@@ -1305,7 +1305,7 @@ async function runClaude(
     modelStrategy.recordAttempt(task, true)
 
     return result
-  } catch (error) {
+  } catch (e: unknown) {
     // Record failure for potential escalation
     modelStrategy.recordAttempt(task, false)
 
@@ -1317,7 +1317,7 @@ async function runClaude(
       return runClaude(claudeCmd, prompt, opts)
     }
 
-    throw error
+    throw e
   }
 }
 
@@ -1818,8 +1818,8 @@ async function getSmartContext(
 /**
  * Infer what the developer is working on from commit messages.
  */
-function inferIntent(messages) {
-  const patterns = {
+function inferIntent(messages: string[]): string[] {
+  const patterns: Record<string, RegExp> = {
     bugfix: /fix|bug|issue|error|crash/i,
     feature: /add|implement|feature|new/i,
     refactor: /refactor|clean|improve|optimize/i,
@@ -1936,7 +1936,11 @@ Improvements:
 /**
  * Build enhanced prompt with context.
  */
-async function buildEnhancedPrompt(template, basePrompt, options = {}) {
+async function buildEnhancedPrompt(
+  template: string,
+  basePrompt: string,
+  options: ClaudeOptions = {},
+): Promise<string> {
   const context = await getSmartContext(options)
 
   // Add project info
@@ -1976,7 +1980,7 @@ async function buildEnhancedPrompt(template, basePrompt, options = {}) {
  * Filter CI logs to extract only relevant failure information
  * Removes runner setup noise and focuses on actual errors
  */
-function filterCILogs(rawLogs) {
+function filterCILogs(rawLogs: string): string {
   const lines = rawLogs.split('\n')
   const relevantLines = []
   let inErrorSection = false
@@ -2037,7 +2041,10 @@ function filterCILogs(rawLogs) {
  * Claude Code uses natural language prompts, not the same flags.
  * We'll translate our flags into appropriate context.
  */
-function prepareClaudeArgs(args = [], options = {}) {
+function prepareClaudeArgs(
+  args: string[] = [],
+  options: ClaudeOptions = {},
+): string[] {
   const _opts = { __proto__: null, ...options }
   const claudeArgs = [...args]
 
@@ -2076,7 +2083,10 @@ function prepareClaudeArgs(args = [], options = {}) {
  * Execute tasks in parallel with multiple workers.
  * Default: 3 workers (balanced performance without overwhelming system)
  */
-async function executeParallel(tasks, workers = 3) {
+async function executeParallel(
+  tasks: Array<() => Promise<unknown>>,
+  workers: number = 3,
+): Promise<unknown[]> {
   if (workers === 1 || tasks.length === 1) {
     // Sequential execution
     const results = []
@@ -2112,7 +2122,7 @@ async function executeParallel(tasks, workers = 3) {
 /**
  * Determine if parallel execution should be used.
  */
-function shouldRunParallel(options = {}) {
+function shouldRunParallel(options: ClaudeOptions = {}): boolean {
   const opts = { __proto__: null, ...options }
   // Parallel is only used when:
   // 1. --cross-repo is specified (multi-repo mode)
@@ -2129,7 +2139,11 @@ function shouldRunParallel(options = {}) {
  * conflicting interactive prompts. If agents need user interaction, they would queue
  * and block each other. Use --seq flag for sequential execution with full interactivity.
  */
-async function runParallel(tasks, description = 'tasks', taskNames = []) {
+async function runParallel(
+  tasks: Array<Promise<unknown>>,
+  description: string = 'tasks',
+  taskNames: string[] = [],
+): Promise<Array<PromiseSettledResult<unknown>>> {
   log.info(`Running ${tasks.length} ${description} in parallel...`)
 
   const startTime = Date.now()
@@ -2202,7 +2216,7 @@ async function runParallel(tasks, description = 'tasks', taskNames = []) {
 /**
  * Ensure .claude directory is in .gitignore.
  */
-async function ensureClaudeInGitignore() {
+async function ensureClaudeInGitignore(): Promise<void> {
   const gitignorePath = path.join(rootPath, '.gitignore')
 
   try {
@@ -2243,7 +2257,7 @@ async function ensureClaudeInGitignore() {
 /**
  * Find Socket projects in parent directory.
  */
-async function findSocketProjects() {
+async function findSocketProjects(): Promise<SocketProject[]> {
   const projects = []
 
   for (const projectName of SOCKET_PROJECTS) {
@@ -2265,7 +2279,10 @@ async function findSocketProjects() {
 /**
  * Create a Claude prompt for syncing CLAUDE.md files.
  */
-function createSyncPrompt(projectName, isRegistry = false) {
+function createSyncPrompt(
+  projectName: string,
+  isRegistry: boolean = false,
+): string {
   if (isRegistry) {
     return `You are updating the CLAUDE.md file in the socket-registry project, which is the CANONICAL source for all cross-project Socket standards.
 
@@ -2321,7 +2338,11 @@ Output ONLY the updated CLAUDE.md content, nothing else.`
 /**
  * Update a project's CLAUDE.md using Claude.
  */
-async function updateProjectClaudeMd(claudeCmd, project, options = {}) {
+async function updateProjectClaudeMd(
+  claudeCmd: string,
+  project: SocketProject,
+  options: ClaudeOptions = {},
+): Promise<boolean> {
   const _opts = { __proto__: null, ...options }
   const { claudeMdPath, name } = project
   const isRegistry = name === 'socket-registry'
@@ -2386,7 +2407,7 @@ ${currentContent}
 /**
  * Commit changes in a project.
  */
-async function commitChanges(project) {
+async function commitChanges(project: SocketProject): Promise<boolean> {
   const { name, path: projectPath } = project
 
   log.progress(`Committing changes in ${name}`)
@@ -2437,7 +2458,10 @@ async function commitChanges(project) {
 /**
  * Sync CLAUDE.md files across Socket projects.
  */
-async function syncClaudeMd(claudeCmd, options = {}) {
+async function syncClaudeMd(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<boolean> {
   const opts = { __proto__: null, ...options }
   printHeader('CLAUDE.md Synchronization')
 
@@ -2588,7 +2612,11 @@ async function syncClaudeMd(claudeCmd, options = {}) {
 /**
  * Scan a project for issues and generate a report.
  */
-async function scanProjectForIssues(claudeCmd, project, options = {}) {
+async function scanProjectForIssues(
+  claudeCmd: string,
+  project: SocketProject,
+  options: ClaudeOptions = {},
+): Promise<unknown> {
   const _opts = { __proto__: null, ...options }
   const { name, path: projectPath } = project
 
@@ -2598,7 +2626,7 @@ async function scanProjectForIssues(claudeCmd, project, options = {}) {
   const extensions = ['.js', '.mjs', '.ts', '.mts', '.jsx', '.tsx']
   const allFiles = []
 
-  async function findFiles(dir, depth = 0) {
+  async function findFiles(dir: string, depth: number = 0): Promise<void> {
     // Limit depth to avoid excessive scanning
     if (depth > 5) {
       return
@@ -2767,11 +2795,11 @@ Provide ONLY the JSON array, nothing else.`
  * Autonomous fix session - auto-fixes high-confidence issues.
  */
 async function autonomousFixSession(
-  claudeCmd,
-  scanResults,
-  projects,
-  options = {},
-) {
+  claudeCmd: string,
+  scanResults: unknown[],
+  projects: SocketProject[],
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Auto-Fix Mode')
 
@@ -2893,11 +2921,11 @@ Apply the fix and return ONLY the fixed code snippet.`
  * Interactive fix session with Claude.
  */
 async function interactiveFixSession(
-  claudeCmd,
-  scanResults,
-  _projects,
-  options = {},
-) {
+  claudeCmd: string,
+  scanResults: unknown[],
+  _projects: SocketProject[],
+  options: ClaudeOptions = {},
+): Promise<void> {
   const _opts = { __proto__: null, ...options }
   printHeader('Interactive Fix Session')
 
@@ -2983,7 +3011,10 @@ Start by recommending which issues to fix first.`
 /**
  * Run security and quality scan on Socket projects.
  */
-async function runSecurityScan(claudeCmd, options = {}) {
+async function runSecurityScan(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Security & Quality Scanner')
 
@@ -3081,7 +3112,10 @@ async function runSecurityScan(claudeCmd, options = {}) {
  * Interactive prompts would conflict if multiple agents needed user input simultaneously.
  * Use --seq flag if you need interactive debugging across multiple repos.
  */
-async function runClaudeCommit(claudeCmd, options = {}) {
+async function runClaudeCommit(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Claude-Assisted Commit')
 
@@ -3313,7 +3347,10 @@ Remember: small commits, follow project standards, no AI attribution.`
 /**
  * Review code changes before committing.
  */
-async function runCodeReview(claudeCmd, options = {}) {
+async function runCodeReview(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Code Review')
 
@@ -3350,7 +3387,10 @@ Also check for CLAUDE.md compliance and cross-platform compatibility.`
 /**
  * Analyze and manage dependencies.
  */
-async function runDependencyAnalysis(claudeCmd, options = {}) {
+async function runDependencyAnalysis(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Dependency Analysis')
 
@@ -3409,7 +3449,10 @@ Focus on actionable recommendations. Always recommend exact versions when sugges
 /**
  * Generate test cases for existing code.
  */
-async function runTestGeneration(claudeCmd, options = {}) {
+async function runTestGeneration(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Test Generation')
 
@@ -3478,7 +3521,10 @@ Output the complete test file content.`
 /**
  * Generate or update documentation.
  */
-async function runDocumentation(claudeCmd, options = {}) {
+async function runDocumentation(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Documentation Generation')
 
@@ -3510,7 +3556,10 @@ Output the documentation updates or new content.`
 /**
  * Suggest code refactoring improvements.
  */
-async function runRefactor(claudeCmd, options = {}) {
+async function runRefactor(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Code Refactoring Analysis')
 
@@ -3557,7 +3606,10 @@ Provide the refactored code with explanations.`
 /**
  * Optimize code for performance.
  */
-async function runOptimization(claudeCmd, options = {}) {
+async function runOptimization(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Performance Optimization')
 
@@ -3605,7 +3657,10 @@ Provide optimized code with benchmarks/explanations.`
 /**
  * Comprehensive security and quality audit.
  */
-async function runAudit(claudeCmd, options = {}) {
+async function runAudit(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Security & Quality Audit')
 
@@ -3656,7 +3711,10 @@ Provide actionable recommendations with priorities.`
 /**
  * Explain code or concepts.
  */
-async function runExplain(claudeCmd, options = {}) {
+async function runExplain(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Code Explanation')
 
@@ -3715,7 +3773,10 @@ Focus on practical understanding for developers.`
 /**
  * Help with migrations.
  */
-async function runMigration(claudeCmd, options = {}) {
+async function runMigration(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Migration Assistant')
 
@@ -3760,7 +3821,10 @@ Be specific and actionable.`
 /**
  * Clean up code by removing unused elements.
  */
-async function runCleanup(claudeCmd, options = {}) {
+async function runCleanup(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const _opts = { __proto__: null, ...options }
   printHeader('Code Cleanup')
 
@@ -3796,7 +3860,10 @@ Format as actionable tasks.`
 /**
  * Help with debugging issues.
  */
-async function runDebug(claudeCmd, options = {}) {
+async function runDebug(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Debugging Assistant')
 
@@ -3846,7 +3913,11 @@ Be specific and actionable.`
  * @param {object} options - Options from parent command
  * @returns {Promise<string>} Generated commit message
  */
-async function generateCommitMessage(claudeCmd, cwd, options = {}) {
+async function generateCommitMessage(
+  claudeCmd: string,
+  cwd: string,
+  options: ClaudeOptions = {},
+): Promise<string> {
   const opts = { __proto__: null, ...options }
 
   // Get git diff of staged changes
@@ -3950,7 +4021,11 @@ Commit message:`
  * Calculate adaptive poll delay based on CI state.
  * Polls faster when jobs are running, slower when queued.
  */
-function calculatePollDelay(status, attempt, hasActiveJobs = false) {
+function calculatePollDelay(
+  status: string,
+  attempt: number,
+  hasActiveJobs: boolean = false,
+): number {
   // If jobs are actively running, poll more frequently
   if (hasActiveJobs || status === 'in_progress') {
     // Start at 5s, gradually increase to 15s max
@@ -3995,7 +4070,7 @@ const JOB_PRIORITIES = {
  * @param {string} jobName - The name of the CI job
  * @returns {number} Priority level (higher = more important)
  */
-function getJobPriority(jobName) {
+function getJobPriority(jobName: string): number {
   const lowerName = jobName.toLowerCase()
 
   // Check for exact or partial matches
@@ -4014,7 +4089,7 @@ function getJobPriority(jobName) {
  * @param {string} cwd - Working directory
  * @returns {Promise<{valid: boolean, warnings: string[]}>} Validation result
  */
-async function validateBeforePush(cwd) {
+async function validateBeforePush(cwd: string): Promise<boolean> {
   const warnings = []
 
   // Check for common issues in staged changes
@@ -4067,7 +4142,10 @@ async function validateBeforePush(cwd) {
  * NOTE: This operates on the current repo by default. Use --cross-repo for all Socket projects.
  * Multi-repo parallel execution would conflict with interactive prompts if fixes fail.
  */
-async function runGreen(claudeCmd, options = {}) {
+async function runGreen(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   const maxRetries = Number.parseInt(opts['max-retries'] || '3', 10)
   const isDryRun = opts['dry-run']
@@ -4955,8 +5033,9 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
           if (exitCode !== 0) {
             log.warn(`Claude fix exited with code ${exitCode}`)
           }
-        } catch (error) {
-          log.warn(`Claude fix error: ${error.message}`)
+        } catch (e: unknown) {
+          const message = e instanceof Error ? e.message : String(e)
+          log.warn(`Claude fix error: ${message}`)
         } finally {
           clearInterval(progressInterval)
           log.done('Claude fix attempt completed')
@@ -5277,8 +5356,9 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
                 if (exitCode !== 0) {
                   log.warn(`Claude fix exited with code ${exitCode}`)
                 }
-              } catch (error) {
-                log.warn(`Claude fix error: ${error.message}`)
+              } catch (e: unknown) {
+                const message = e instanceof Error ? e.message : String(e)
+                log.warn(`Claude fix error: ${message}`)
               } finally {
                 clearInterval(progressInterval)
                 log.done(`Fix attempt for ${job.name} completed`)
@@ -5397,7 +5477,10 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
 /**
  * Continuous monitoring mode - watches for changes and auto-fixes issues.
  */
-async function runWatchMode(claudeCmd, options = {}) {
+async function runWatchMode(
+  claudeCmd: string,
+  options: ClaudeOptions = {},
+): Promise<void> {
   const opts = { __proto__: null, ...options }
   printHeader('Watch Mode - Continuous Monitoring')
 
@@ -5479,8 +5562,9 @@ async function runWatchMode(claudeCmd, options = {}) {
           } else {
             log.done('No issues found')
           }
-        } catch (error) {
-          log.failed(`Error scanning ${project.name}: ${error.message}`)
+        } catch (e: unknown) {
+          const message = e instanceof Error ? e.message : String(e)
+          log.failed(`Error scanning ${project.name}: ${message}`)
         }
       },
     )
@@ -5512,8 +5596,9 @@ async function runWatchMode(claudeCmd, options = {}) {
               },
             )
           }
-        } catch (error) {
-          log.failed(`Full scan error in ${project.name}: ${error.message}`)
+        } catch (e: unknown) {
+          const message = e instanceof Error ? e.message : String(e)
+          log.failed(`Full scan error in ${project.name}: ${message}`)
         }
       }
       // 30 minutes
@@ -5548,7 +5633,7 @@ async function runWatchMode(claudeCmd, options = {}) {
 /**
  * Show available Claude operations.
  */
-function showOperations() {
+function showOperations(): void {
   console.log('\nCore operations:')
   console.log('  --commit       Create commits with Claude assistance')
   console.log(
@@ -5577,7 +5662,7 @@ function showOperations() {
   console.log('  --help         Show this help message')
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
     // Parse arguments.
     const { positionals, values } = parseArgs({
@@ -5920,8 +6005,9 @@ async function main() {
     }
 
     process.exitCode = success ? 0 : 1
-  } catch (error) {
-    log.error(`Operation failed: ${error.message}`)
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e)
+    log.error(`Operation failed: ${message}`)
     process.exitCode = 1
   }
 }
