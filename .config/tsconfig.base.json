@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowImportingTsExtensions": false,
     "allowJs": false,
+    "allowSyntheticDefaultImports": true,
     "composite": false,
     "declaration": true,
     "declarationMap": false,
@@ -28,7 +29,6 @@
     "strictNullChecks": true,
     "target": "ES2024",
     "useUnknownInCatchVariables": true,
-    "verbatimModuleSyntax": true,
-    "allowSyntheticDefaultImports": true
+    "verbatimModuleSyntax": true
   }
 }

@@ -1,17 +1,17 @@
 {
   "extends": "./.config/tsconfig.base.json",
   "compilerOptions": {
+    "declarationMap": false,
     "module": "commonjs",
     "moduleResolution": "bundler",
-    "outDir": "dist",
-    "rootDir": "src",
-    "types": ["node"],
-    "verbatimModuleSyntax": false,
     "noEmit": false,
     "noEmitOnError": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "skipLibCheck": true,
     "sourceMap": false,
-    "declarationMap": false,
-    "skipLibCheck": true
+    "types": ["node"],
+    "verbatimModuleSyntax": false
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "coverage", "test"]

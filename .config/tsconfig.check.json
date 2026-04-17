@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "declarationMap": false,
     "module": "esnext",
     "moduleResolution": "bundler",
     "noEmit": true,
@@ -15,6 +16,7 @@
       "@socketsecurity/registry/*": ["../../socket-registry/registry/dist/*"]
     },
     "skipLibCheck": true,
+    "sourceMap": false,
     "types": ["vitest/globals", "node"],
     "verbatimModuleSyntax": false
   },
