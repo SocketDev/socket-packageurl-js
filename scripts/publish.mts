@@ -341,6 +341,22 @@ async function pushExistingTag(
   return true
 }
 
+/**
+ * Check if the git working tree is clean (no uncommitted changes).
+ */
+async function checkGitStatus(): Promise<boolean> {
+  const result = await runCommandWithOutput('git', ['status', '--porcelain'])
+  const stdout =
+    typeof result.stdout === 'string' ? result.stdout : result.stdout.toString()
+  if (stdout.trim()) {
+    logger.error('Working directory is not clean')
+    logger.info('Uncommitted changes:')
+    console.log(stdout)
+    return false
+  }
+  return true
+}
+
 async function main(): Promise<void> {
   try {
     // Parse arguments.
@@ -400,6 +416,16 @@ async function main(): Promise<void> {
     }
 
     printHeader('Publish Runner', { borderChar: '=', width: 56 })
+
+    // Refuse to publish from a dirty working tree — would ship uncommitted
+    // changes to npm. --force overrides for emergency republishes.
+    const gitClean: boolean = await checkGitStatus()
+    if (!gitClean && !values.force) {
+      logger.error('Refusing to publish with uncommitted changes')
+      logger.info('Commit or stash changes, or pass --force to override.')
+      process.exitCode = 1
+      return
+    }
 
     // Get current version.
     const version: string | undefined = await getCurrentVersion()
