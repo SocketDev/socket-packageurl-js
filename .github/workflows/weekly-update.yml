@@ -154,21 +154,19 @@ jobs:
           TEST_LOG: ${{ steps.tests.outputs.TEST_LOG }}
         run: |
           set +e
-          claude --print \
-            --allowedTools "Bash(pnpm:*)" "Bash(git add:*)" "Bash(git commit:*)" "Bash(git status:*)" "Bash(git diff:*)" "Bash(git log:*)" "Bash(git rev-parse:*)" "Read" "Write" "Edit" "Glob" "Grep" \
-            --model sonnet \
-            --max-turns 25 \
-            "$(cat <<PROMPT
-          Dependency updates were applied but tests are failing. Fix the failures.
+          # Assemble prompt via Node so log contents with shell metacharacters
+          # ($(...), backticks) cannot be interpreted by the shell.
+          PROMPT_BODY=$(node -e '
+            const tmpl = `Dependency updates were applied but tests are failing. Fix the failures.
           Git is configured with GPG signing.
           The pnpm binary is on PATH (wrapped through Socket firewall).
 
           <build_output>
-          $BUILD_LOG
+          ${process.env.BUILD_LOG ?? ""}
           </build_output>
 
           <test_output>
-          $TEST_LOG
+          ${process.env.TEST_LOG ?? ""}
           </test_output>
 
           <instructions>
@@ -176,9 +174,14 @@ jobs:
           2. Fix the source code so tests pass (pnpm build && pnpm test).
           3. Commit each fix with a conventional commit message.
           4. Leave all changes local — the workflow handles pushing.
-          </instructions>
-          PROMPT
-          )" \
+          </instructions>`;
+            process.stdout.write(tmpl);
+          ')
+          claude --print \
+            --allowedTools "Bash(pnpm:*)" "Bash(git add:*)" "Bash(git commit:*)" "Bash(git status:*)" "Bash(git diff:*)" "Bash(git log:*)" "Bash(git rev-parse:*)" "Read" "Write" "Edit" "Glob" "Grep" \
+            --model sonnet \
+            --max-turns 25 \
+            "$PROMPT_BODY" \
             2>&1 | tee claude-fix.log
           CLAUDE_EXIT=${PIPESTATUS[0]}
           set -e
