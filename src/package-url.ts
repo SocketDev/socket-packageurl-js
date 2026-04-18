@@ -50,7 +50,9 @@ import {
   ArrayPrototypeAt,
   JSONParse,
   MapCtor,
+  ObjectCreate,
   ObjectFreeze,
+  ObjectKeys,
   JSONStringify,
   ReflectDefineProperty,
   ReflectGetOwnPropertyDescriptor,
@@ -247,7 +249,11 @@ class PackageURL {
       result.version = this.version
     }
     if (this.qualifiers !== undefined) {
-      result.qualifiers = this.qualifiers
+      const qualifiersCopy = ObjectCreate(null) as QualifiersObject
+      for (const key of ObjectKeys(this.qualifiers)) {
+        qualifiersCopy[key] = this.qualifiers[key]!
+      }
+      result.qualifiers = qualifiersCopy
     }
     if (this.subpath !== undefined) {
       result.subpath = this.subpath
@@ -504,6 +510,9 @@ class PackageURL {
     if (typeof purlStr === 'string') {
       const cached = flyweightCache.get(purlStr)
       if (cached !== undefined) {
+        // Promote to most-recently-used by re-inserting.
+        flyweightCache.delete(purlStr)
+        flyweightCache.set(purlStr, cached)
         return cached
       }
     }
