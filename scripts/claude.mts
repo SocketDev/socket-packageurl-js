@@ -814,14 +814,16 @@ async function analyzeRootCause(
   const ctx = { __proto__: null, ...context }
   const errorHash = hashError(error)
 
-  // Check cache first.
+  // Check cache first. Bump ANALYSIS_CACHE_VERSION when the analysis shape or
+  // prompt changes so stale entries are treated as misses.
+  const ANALYSIS_CACHE_VERSION = 1
   const cachePath = path.join(STORAGE_PATHS.cache, `analysis-${errorHash}.json`)
   try {
     if (existsSync(cachePath)) {
       const cached = JSON.parse(await fs.readFile(cachePath, 'utf8'))
       const age = Date.now() - cached.timestamp
-      // Cache valid for 1 hour.
-      if (age < 60 * 60 * 1000) {
+      // Cache valid for 1 hour and schema version must match.
+      if (cached.version === ANALYSIS_CACHE_VERSION && age < 60 * 60 * 1000) {
         log.substep(colors.gray('Using cached analysis'))
         return cached.analysis
       }
@@ -923,6 +925,7 @@ ${similarErrors.length > 0 ? `**Similar Past Errors:**\n${similarErrors.map(e =>
             analysis,
             errorHash,
             timestamp: Date.now(),
+            version: ANALYSIS_CACHE_VERSION,
           },
           null,
           2,
@@ -1130,6 +1133,17 @@ const claudeCache = new Map()
 // 5 minutes
 const CACHE_TTL = 5 * 60 * 1000
 
+// Build a stable cache key from the full prompt (not a 100-char truncation,
+// which collides when two prompts share their first 100 chars).
+function buildClaudeCacheKey(prompt: string, variant: string): string {
+  const digest = crypto
+    .createHash('sha256')
+    .update(prompt)
+    .digest('hex')
+    .slice(0, 16)
+  return `${digest}_${variant}`
+}
+
 // Clean up expired cache entries periodically
 setInterval(() => {
   const now = Date.now()
@@ -1177,7 +1191,7 @@ async function runClaude(
 
   // Check cache for non-interactive requests
   if (opts.interactive === false && opts.cache !== false) {
-    const cacheKey = `${enhancedPrompt.slice(0, 100)}_${mode}`
+    const cacheKey = buildClaudeCacheKey(enhancedPrompt, mode)
     const cached = claudeCache.get(cacheKey)
 
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -1291,9 +1305,10 @@ async function runClaude(
         }
       }
 
-      // Cache the result
+      // Cache the result. Must use the same key format as the read site above
+      // (enhancedPrompt + mode) so writes match subsequent reads.
       if (opts.cache !== false && result.exitCode === 0 && !timedOut) {
-        const cacheKey = `${prompt.slice(0, 100)}_${opts._selectedModel || 'default'}`
+        const cacheKey = buildClaudeCacheKey(enhancedPrompt, mode)
         claudeCache.set(cacheKey, {
           result,
           timestamp: Date.now(),
