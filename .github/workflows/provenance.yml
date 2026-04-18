@@ -15,7 +15,7 @@ on:
         description: 'Enable debug output'
         required: false
         default: '0'
-        type: string
+        type: choice
         options:
           - '0'
           - '1'

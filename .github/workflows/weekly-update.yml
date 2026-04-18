@@ -30,6 +30,7 @@ jobs:
         id: check
         shell: bash
         run: |
+          set -euo pipefail
           echo "Checking for npm package updates..."
           HAS_UPDATES=false
           NPM_UPDATES=$(pnpm outdated 2>/dev/null || true)
@@ -37,7 +38,7 @@ jobs:
             echo "npm packages have updates available"
             HAS_UPDATES=true
           fi
-          echo "has-updates=$HAS_UPDATES" >> $GITHUB_OUTPUT
+          echo "has-updates=$HAS_UPDATES" >> "$GITHUB_OUTPUT"
 
   apply-updates:
     name: Apply updates with Claude Code
@@ -55,10 +56,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           BRANCH_NAME="weekly-update-$(date +%Y%m%d)"
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
           git checkout -b "$BRANCH_NAME"
-          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "branch=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
       - uses: SocketDev/socket-registry/.github/actions/setup-git-signing@34fef52be917f89dbbeb464860f2aaf0f3812c40 # main
         with:
@@ -71,9 +73,10 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_ACTIONS: 'true'
         run: |
+          set -euo pipefail
           if [ -z "$ANTHROPIC_API_KEY" ]; then
             echo "ANTHROPIC_API_KEY not set - skipping automated update"
-            echo "success=false" >> $GITHUB_OUTPUT
+            echo "success=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -110,15 +113,16 @@ jobs:
           set -e
 
           if [ "$CLAUDE_EXIT" -eq 0 ]; then
-            echo "success=true" >> $GITHUB_OUTPUT
+            echo "success=true" >> "$GITHUB_OUTPUT"
           else
-            echo "success=false" >> $GITHUB_OUTPUT
+            echo "success=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run tests
         id: tests
         if: steps.update.outputs.success == 'true'
         run: |
+          set -euo pipefail
           set +e
           pnpm build 2>&1 | tee build-output.log
           BUILD_EXIT=${PIPESTATUS[0]}
@@ -128,19 +132,17 @@ jobs:
           set -e
 
           if [ "$BUILD_EXIT" -eq 0 ] && [ "$TEST_EXIT" -eq 0 ]; then
-            echo "success=true" >> $GITHUB_OUTPUT
+            echo "success=true" >> "$GITHUB_OUTPUT"
           else
-            echo "success=false" >> $GITHUB_OUTPUT
             {
+              echo "success=false"
               echo "BUILD_LOG<<GHEOF"
               tail -50 build-output.log
               echo "GHEOF"
-            } >> $GITHUB_OUTPUT
-            {
               echo "TEST_LOG<<GHEOF"
               tail -50 test-output.log
               echo "GHEOF"
-            } >> $GITHUB_OUTPUT
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Fix test failures (sonnet)
@@ -153,6 +155,7 @@ jobs:
           BUILD_LOG: ${{ steps.tests.outputs.BUILD_LOG }}
           TEST_LOG: ${{ steps.tests.outputs.TEST_LOG }}
         run: |
+          set -euo pipefail
           set +e
           # Assemble prompt via Node so log contents with shell metacharacters
           # ($(...), backticks) cannot be interpreted by the shell.
@@ -187,9 +190,9 @@ jobs:
           set -e
 
           if [ "$CLAUDE_EXIT" -eq 0 ]; then
-            echo "success=true" >> $GITHUB_OUTPUT
+            echo "success=true" >> "$GITHUB_OUTPUT"
           else
-            echo "success=false" >> $GITHUB_OUTPUT
+            echo "success=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set final status
@@ -200,20 +203,22 @@ jobs:
           TESTS_SUCCESS: ${{ steps.tests.outputs.success }}
           FIX_SUCCESS: ${{ steps.claude.outputs.success }}
         run: |
+          set -euo pipefail
           if [ "$UPDATE_SUCCESS" != "true" ]; then
-            echo "success=false" >> $GITHUB_OUTPUT
+            echo "success=false" >> "$GITHUB_OUTPUT"
           elif [ "$TESTS_SUCCESS" = "true" ]; then
-            echo "success=true" >> $GITHUB_OUTPUT
+            echo "success=true" >> "$GITHUB_OUTPUT"
           elif [ "$FIX_SUCCESS" = "true" ]; then
-            echo "success=true" >> $GITHUB_OUTPUT
+            echo "success=true" >> "$GITHUB_OUTPUT"
           else
-            echo "success=false" >> $GITHUB_OUTPUT
+            echo "success=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Validate changes
         id: validate
         if: steps.final.outputs.success == 'true'
         run: |
+          set -euo pipefail
           UNEXPECTED=""
           for file in $(git diff --name-only origin/main..HEAD); do
             case "$file" in
@@ -224,15 +229,16 @@ jobs:
           if [ -n "$UNEXPECTED" ]; then
             echo "::warning::Non-dependency files modified:$UNEXPECTED"
           fi
-          echo "valid=true" >> $GITHUB_OUTPUT
+          echo "valid=true" >> "$GITHUB_OUTPUT"
 
       - name: Check for changes
         id: changes
         run: |
+          set -euo pipefail
           if [ -n "$(git status --porcelain)" ] || [ "$(git rev-list --count HEAD ^origin/main)" -gt 0 ]; then
-            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "has-changes=true" >> "$GITHUB_OUTPUT"
           else
-            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "has-changes=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Push branch
@@ -247,6 +253,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           BRANCH_NAME: ${{ steps.branch.outputs.branch }}
         run: |
+          set -euo pipefail
           COMMITS=$(git log --oneline origin/main..HEAD)
           COMMIT_COUNT=$(git rev-list --count origin/main..HEAD)
 
@@ -275,11 +282,14 @@ jobs:
         env:
           BRANCH_NAME: ${{ steps.branch.outputs.branch }}
         run: |
+          set -euo pipefail
           COMMIT_COUNT=$(git rev-list --count origin/main..HEAD)
-          echo "## Weekly Update Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Branch:** \`${BRANCH_NAME}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Commits:** ${COMMIT_COUNT}" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Weekly Update Complete"
+            echo ""
+            echo "**Branch:** \`${BRANCH_NAME}\`"
+            echo "**Commits:** ${COMMIT_COUNT}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Claude output
         if: always()
@@ -309,6 +319,7 @@ jobs:
           HAS_UPDATES: ${{ needs.check-updates.outputs.has-updates }}
           DRY_RUN: ${{ inputs.dry-run }}
         run: |
+          set -euo pipefail
           if [ "$HAS_UPDATES" = "true" ]; then
             if [ "$DRY_RUN" = "true" ]; then
               echo "Updates available (dry-run mode - no PR created)"
