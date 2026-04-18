@@ -13,7 +13,7 @@
 
 - Before ANY structural refactor on a file >300 LOC: remove dead code first, commit separately
 - Multi-file changes: phases of ≤5 files, verify each before the next
-- Study existing code before building — working code is a better spec than any description
+- Study existing code before building
 - Work from raw error data, not theories
 - On "yes", "do it", or "go": execute immediately, no plan recap
 
@@ -31,7 +31,7 @@
 - Read files >500 LOC in chunks
 - Before every edit: re-read. After every edit: re-read to confirm
 - When renaming: search direct calls, type refs, string literals, dynamic imports, re-exports, tests
-- Tool results over 50K chars are silently truncated — narrow scope and re-run if results seem incomplete
+- Tool results over 50K chars are silently truncated — narrow scope and re-run if incomplete
 - For tasks touching >5 files: use sub-agents with worktree isolation
 
 ## JUDGMENT PROTOCOL
@@ -72,7 +72,7 @@
 ## 📚 SHARED STANDARDS
 
 - Commits: [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) `<type>(<scope>): <description>` — NO AI attribution
-- Scripts: Prefer `pnpm run foo --flag` over `foo:bar` scripts
+- Scripts: Prefer `pnpm run foo --flag` over `foo:bar` variants
 - Dependencies: After `package.json` edits, run `pnpm install`
 - Backward Compatibility: 🚨 FORBIDDEN to maintain — actively remove when encountered
 - Work Safeguards: MANDATORY commit + backup branch before bulk changes
@@ -80,11 +80,9 @@
 - HTTP Requests: NEVER use `fetch()` — use `httpJson`/`httpText`/`httpRequest` from `@socketsecurity/lib/http-request`
 - File existence: ALWAYS `existsSync` from `node:fs`. NEVER `fs.access`, `fs.stat`-for-existence, or an async `fileExists` wrapper. Import form: `import { existsSync, promises as fs } from 'node:fs'`.
 
----
-
 ## EMOJI & OUTPUT STYLE
 
-**Terminal symbols** (from `@socketsecurity/lib/logger` LOG_SYMBOLS): ✓ (green), ✗ (red), ⚠ (yellow), ℹ (blue), → (cyan). Color the icon only, not the message. Use `yoctocolors-cjs` (not ESM `yoctocolors`). Avoid emoji overload.
+Terminal symbols (from `@socketsecurity/lib/logger` LOG_SYMBOLS): ✓ (green), ✗ (red), ⚠ (yellow), ℹ (blue), → (cyan). Color the icon only. Use `yoctocolors-cjs` (not ESM `yoctocolors`). Avoid emoji overload.
 
 ---
 
@@ -101,15 +99,16 @@ TypeScript implementation of [Package URL spec](https://github.com/package-url/p
 
 ### Commands
 
-- **Build**: `pnpm build` (`pnpm build --watch` for dev)
-- **Test**: `pnpm test`
-- **Type check**: `pnpm type`
-- **Lint**: `pnpm lint`
-- **Check all**: `pnpm check`
-- **Fix**: `pnpm fix`
-- **Coverage**: `pnpm cover` (must maintain 100%)
+- Build: `pnpm build` (`pnpm build --watch` for dev)
+- Test: `pnpm test` (specific file: `pnpm test:unit path/to/file.test.mts`)
+- Type check: `pnpm type`
+- Lint: `pnpm lint`
+- Check all: `pnpm check`
+- Fix: `pnpm fix`
+- Coverage: `pnpm cover` (must maintain 100%)
+- Update snapshots: `pnpm testu`
 
-## Agents & Skills
+### Agents & Skills
 
 - `/security-scan` — AgentShield + zizmor security audit
 - `/quality-scan` — code quality analysis with specialized agents
@@ -140,17 +139,12 @@ TypeScript implementation of [Package URL spec](https://github.com/package-url/p
 
 ### Testing
 
-**Vitest configs**: `.config/vitest.config.mts` (threads, shared) and `.config/vitest.config.isolated.mts` (forks, full isolation).
+Vitest configs: `.config/vitest.config.mts` (threads, shared) and `.config/vitest.config.isolated.mts` (forks, full isolation).
 
-**File naming**: `*.test.mts` for standard tests; `*.isolated.test.mts` for tests that mock globals or use `vi.doMock()`.
+File naming: `*.test.mts` for standard tests; `*.isolated.test.mts` for tests that mock globals or use `vi.doMock()`.
 
-- `pnpm test` — all tests
-- `pnpm test:unit path/to/file.test.mts` — specific file
 - 🚨 **NEVER use `--` before test paths** — runs ALL tests
-- `pnpm testu` — update snapshots
-- `pnpm cover` — must maintain 100%
-
-**Test style**: Functional tests over source scanning. Never read source files and assert on contents.
+- Test style: functional tests over source scanning. Never read source files and assert on contents.
 
 ### CI
 
