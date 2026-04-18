@@ -86,6 +86,10 @@ function matchWildcard(pattern: string, value: string): boolean {
       }
     }
     wildcardRegexCache.set(pattern, regex)
+  } else {
+    // Promote to most-recently-used by re-inserting.
+    wildcardRegexCache.delete(pattern)
+    wildcardRegexCache.set(pattern, regex)
   }
   return RegExpPrototypeTest(regex, value)
 }
