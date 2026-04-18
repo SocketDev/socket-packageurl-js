@@ -4996,28 +4996,41 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
             ? `${claudeCmd} ${claudeArgs}`
             : claudeCmd
 
-          // Use script command to create pseudo-TTY for Ink compatibility
-          // Platform-specific script command syntax
-          let scriptCmd
+          // Use script command to create pseudo-TTY for Ink compatibility.
+          // Pass the inner command and tmp file to sh -c via environment
+          // variables so spaces / special chars in either cannot inject into
+          // the shell. Outer spawn uses shell: false.
+          let cmdBin: string
+          let cmdArgs: string[]
           if (WIN32) {
-            // Try winpty (comes with Git for Windows)
             const winptyCheck = await runCommandWithOutput('where', ['winpty'])
             if (winptyCheck.exitCode === 0) {
-              scriptCmd = `winpty ${claudeCommand} < "${tmpFile}"`
+              cmdBin = 'winpty'
+              cmdArgs = ['sh', '-c', '"$CLAUDE_CMD" < "$CLAUDE_TMP"']
             } else {
-              // No winpty, try direct (may fail with raw mode error)
-              scriptCmd = `${claudeCommand} < "${tmpFile}"`
+              cmdBin = 'sh'
+              cmdArgs = ['-c', '"$CLAUDE_CMD" < "$CLAUDE_TMP"']
             }
           } else {
-            // Unix/macOS: use script command with quoted command
-            scriptCmd = `script -q /dev/null sh -c '${claudeCommand} < "${tmpFile}"'`
+            cmdBin = 'script'
+            cmdArgs = [
+              '-q',
+              '/dev/null',
+              'sh',
+              '-c',
+              '"$CLAUDE_CMD" < "$CLAUDE_TMP"',
+            ]
           }
 
           const exitCode = await new Promise((resolve, _reject) => {
-            const spawnPromise = spawn(scriptCmd, [], {
+            const spawnPromise = spawn(cmdBin, cmdArgs, {
               stdio: 'inherit',
               cwd: rootPath,
-              shell: true,
+              env: {
+                ...process.env,
+                CLAUDE_CMD: claudeCommand,
+                CLAUDE_TMP: tmpFile,
+              },
             })
 
             const child = spawnPromise.process
@@ -5317,30 +5330,42 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
                   log.substep(`Running: claude ${claudeArgs}`)
                 }
 
-                // Use script command to create pseudo-TTY for Ink compatibility
-                // Platform-specific script command syntax
-                let scriptCmd
+                // Use script command to create pseudo-TTY for Ink compatibility.
+                // Pass CLAUDE_CMD / CLAUDE_TMP via env so special chars in
+                // either cannot inject into the shell.
+                let cmdBin: string
+                let cmdArgs: string[]
                 if (WIN32) {
-                  // Try winpty (comes with Git for Windows)
                   const winptyCheck = await runCommandWithOutput('where', [
                     'winpty',
                   ])
                   if (winptyCheck.exitCode === 0) {
-                    scriptCmd = `winpty ${claudeCommand} < "${tmpFile}"`
+                    cmdBin = 'winpty'
+                    cmdArgs = ['sh', '-c', '"$CLAUDE_CMD" < "$CLAUDE_TMP"']
                   } else {
-                    // No winpty, try direct (may fail with raw mode error)
-                    scriptCmd = `${claudeCommand} < "${tmpFile}"`
+                    cmdBin = 'sh'
+                    cmdArgs = ['-c', '"$CLAUDE_CMD" < "$CLAUDE_TMP"']
                   }
                 } else {
-                  // Unix/macOS: use script command with quoted command
-                  scriptCmd = `script -q /dev/null sh -c '${claudeCommand} < "${tmpFile}"'`
+                  cmdBin = 'script'
+                  cmdArgs = [
+                    '-q',
+                    '/dev/null',
+                    'sh',
+                    '-c',
+                    '"$CLAUDE_CMD" < "$CLAUDE_TMP"',
+                  ]
                 }
 
                 const exitCode = await new Promise((resolve, _reject) => {
-                  const spawnPromise = spawn(scriptCmd, [], {
+                  const spawnPromise = spawn(cmdBin, cmdArgs, {
                     stdio: 'inherit',
                     cwd: rootPath,
-                    shell: true,
+                    env: {
+                      ...process.env,
+                      CLAUDE_CMD: claudeCommand,
+                      CLAUDE_TMP: tmpFile,
+                    },
                   })
 
                   const child = spawnPromise.process
