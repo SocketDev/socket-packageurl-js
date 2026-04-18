@@ -542,7 +542,7 @@ const cache = createTtlCache({ ttl: 5 * 60 * 1000 })
 await purlExists(purl, { cache })
 ```
 
-**Supported types:** npm, pypi, cargo, gem, maven, nuget, golang, composer, cocoapods, pub, hex, cpan, cran, hackage
+**Supported types:** npm, pypi, cargo, gem, maven, nuget, golang, composer, cocoapods, pub, hex, cpan, cran, hackage, conda, docker, vscode-extension
 
 ---
 
@@ -769,6 +769,59 @@ await hackageExists('aeson')
 
 ---
 
+#### `condaExists(name, version?, channel?, options?)`
+
+Check Conda packages from an Anaconda channel (defaults to `conda-forge`).
+
+**Example:**
+
+```javascript
+import { condaExists } from '@socketregistry/packageurl-js/exists'
+
+await condaExists('numpy')
+// -> { exists: true, latestVersion: '1.26.0' }
+
+await condaExists('pytorch', undefined, 'pytorch')
+// -> { exists: true, latestVersion: '2.1.0' }
+```
+
+---
+
+#### `dockerExists(name, namespace?, version?, options?)`
+
+Check Docker images from Docker Hub. Omit `namespace` for official images
+(resolves to `library/<name>`); `version` is the tag.
+
+**Example:**
+
+```javascript
+import { dockerExists } from '@socketregistry/packageurl-js/exists'
+
+await dockerExists('nginx')
+// -> { exists: true, latestVersion: 'latest' }
+
+await dockerExists('postgres', undefined, '16')
+// -> { exists: true, latestVersion: '16' }
+```
+
+---
+
+#### `vscodeExtensionExists(name, namespace, version?, options?)`
+
+Check Visual Studio Code extensions from the VS Code Marketplace. `namespace`
+(publisher) is required.
+
+**Example:**
+
+```javascript
+import { vscodeExtensionExists } from '@socketregistry/packageurl-js/exists'
+
+await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
+// -> { exists: true, latestVersion: '3.0.10' }
+```
+
+---
+
 ## Type Constants
 
 ### `PURL_Type`
@@ -782,7 +835,7 @@ PURL_Type.NPM // 'npm'
 PURL_Type.PYPI // 'pypi'
 PURL_Type.MAVEN // 'maven'
 PURL_Type.CARGO // 'cargo'
-// ... 35+ types
+// ... 40+ types
 ```
 
 ---

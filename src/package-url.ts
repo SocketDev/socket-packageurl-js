@@ -322,8 +322,11 @@ class PackageURL {
    * Create a new PackageURL with a single qualifier added or updated.
    * Returns a new instance — the original is unchanged.
    *
-   * @param key - Qualifier key
-   * @param value - Qualifier value
+   * Keys are lowercased per the PURL spec. Values are trimmed, and a value
+   * that is empty after trimming drops the qualifier entirely.
+   *
+   * @param key - Qualifier key (will be lowercased)
+   * @param value - Qualifier value (trimmed; empty-after-trim drops the key)
    * @returns New PackageURL with the qualifier set
    */
   withQualifier(key: string, value: string): PackageURL {
