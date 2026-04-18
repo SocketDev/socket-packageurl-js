@@ -529,7 +529,8 @@ Generic wrapper that dispatches to type-specific existence checks based on the P
 **Example:**
 
 ```javascript
-import { purlExists, PackageURL } from '@socketregistry/packageurl-js'
+import { purlExists } from '@socketregistry/packageurl-js/exists'
+import { PackageURL } from '@socketregistry/packageurl-js'
 
 const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
 const result = await purlExists(purl)
@@ -556,7 +557,7 @@ Check npm packages from registry.npmjs.org.
 **Example:**
 
 ```javascript
-import { npmExists } from '@socketregistry/packageurl-js'
+import { npmExists } from '@socketregistry/packageurl-js/exists'
 
 await npmExists('lodash')
 // -> { exists: true, latestVersion: '4.17.21' }
@@ -577,7 +578,7 @@ Check Python packages from pypi.org.
 **Example:**
 
 ```javascript
-import { pypiExists } from '@socketregistry/packageurl-js'
+import { pypiExists } from '@socketregistry/packageurl-js/exists'
 
 await pypiExists('requests')
 // -> { exists: true, latestVersion: '2.31.0' }
@@ -592,7 +593,7 @@ Check Rust crates from crates.io.
 **Example:**
 
 ```javascript
-import { cargoExists } from '@socketregistry/packageurl-js'
+import { cargoExists } from '@socketregistry/packageurl-js/exists'
 
 await cargoExists('serde')
 // -> { exists: true, latestVersion: '1.0.197' }
@@ -607,7 +608,7 @@ Check Ruby gems from rubygems.org.
 **Example:**
 
 ```javascript
-import { gemExists } from '@socketregistry/packageurl-js'
+import { gemExists } from '@socketregistry/packageurl-js/exists'
 
 await gemExists('rails')
 // -> { exists: true, latestVersion: '7.1.3' }
@@ -622,7 +623,7 @@ Check Java packages from Maven Central. Requires namespace (group ID).
 **Example:**
 
 ```javascript
-import { mavenExists } from '@socketregistry/packageurl-js'
+import { mavenExists } from '@socketregistry/packageurl-js/exists'
 
 await mavenExists('commons-lang3', 'org.apache.commons')
 // -> { exists: true, latestVersion: '3.12.0' }
@@ -637,7 +638,7 @@ Check .NET packages from nuget.org.
 **Example:**
 
 ```javascript
-import { nugetExists } from '@socketregistry/packageurl-js'
+import { nugetExists } from '@socketregistry/packageurl-js/exists'
 
 await nugetExists('Newtonsoft.Json')
 // -> { exists: true, latestVersion: '13.0.3' }
@@ -652,7 +653,7 @@ Check Go modules from proxy.golang.org.
 **Example:**
 
 ```javascript
-import { golangExists } from '@socketregistry/packageurl-js'
+import { golangExists } from '@socketregistry/packageurl-js/exists'
 
 await golangExists('github.com/gorilla/mux')
 // -> { exists: true, latestVersion: 'v1.8.0' }
@@ -670,7 +671,7 @@ Check PHP/Composer packages from packagist.org. Requires namespace (vendor).
 **Example:**
 
 ```javascript
-import { packagistExists } from '@socketregistry/packageurl-js'
+import { packagistExists } from '@socketregistry/packageurl-js/exists'
 
 await packagistExists('http-foundation', 'symfony')
 // -> { exists: true, latestVersion: 'v6.3.0' }
@@ -685,7 +686,7 @@ Check iOS/macOS pods from trunk.cocoapods.org.
 **Example:**
 
 ```javascript
-import { cocoapodsExists } from '@socketregistry/packageurl-js'
+import { cocoapodsExists } from '@socketregistry/packageurl-js/exists'
 
 await cocoapodsExists('Alamofire')
 // -> { exists: true, latestVersion: '5.8.1' }
@@ -700,7 +701,7 @@ Check Dart/Flutter packages from pub.dev.
 **Example:**
 
 ```javascript
-import { pubExists } from '@socketregistry/packageurl-js'
+import { pubExists } from '@socketregistry/packageurl-js/exists'
 
 await pubExists('flutter_bloc')
 // -> { exists: true, latestVersion: '8.1.3' }
@@ -715,7 +716,7 @@ Check Elixir/Erlang packages from hex.pm.
 **Example:**
 
 ```javascript
-import { hexExists } from '@socketregistry/packageurl-js'
+import { hexExists } from '@socketregistry/packageurl-js/exists'
 
 await hexExists('phoenix')
 // -> { exists: true, latestVersion: '1.7.10' }
@@ -730,7 +731,7 @@ Check Perl modules from metacpan.org.
 **Example:**
 
 ```javascript
-import { cpanExists } from '@socketregistry/packageurl-js'
+import { cpanExists } from '@socketregistry/packageurl-js/exists'
 
 await cpanExists('Moose')
 // -> { exists: true, latestVersion: '2.2206' }
@@ -745,7 +746,7 @@ Check R packages from cran.r-universe.dev.
 **Example:**
 
 ```javascript
-import { cranExists } from '@socketregistry/packageurl-js'
+import { cranExists } from '@socketregistry/packageurl-js/exists'
 
 await cranExists('ggplot2')
 // -> { exists: true, latestVersion: '3.4.4' }
@@ -760,7 +761,7 @@ Check Haskell packages from hackage.haskell.org.
 **Example:**
 
 ```javascript
-import { hackageExists } from '@socketregistry/packageurl-js'
+import { hackageExists } from '@socketregistry/packageurl-js/exists'
 
 await hackageExists('aeson')
 // -> { exists: true, latestVersion: '2.2.0.0' }

@@ -34,7 +34,7 @@ pkg:maven/org.springframework/spring-core@5.3.21
   └──────────────────────────────────────────── Scheme (always "pkg:")
 ```
 
-**Supports 35+ ecosystems**: npm, pypi, maven, gem, cargo, nuget, composer, golang, docker, and more.
+**Supports 40+ ecosystems**: npm, pypi, maven, gem, cargo, nuget, composer, golang, docker, and more.
 
 ## Features
 
@@ -65,7 +65,7 @@ pnpm install @socketregistry/packageurl-js
 }
 ```
 
-**Requirements**: Node >= 18.20.4
+**Requirements**: Node >= 18.20.8
 
 ## Usage
 
@@ -146,7 +146,7 @@ UrlConverter.toDownloadUrl(purl)
 **Registry existence checks:**
 
 ```javascript
-import { purlExists, npmExists } from '@socketregistry/packageurl-js'
+import { purlExists, npmExists } from '@socketregistry/packageurl-js/exists'
 
 // Check if package exists in its registry
 await purlExists(purl)
