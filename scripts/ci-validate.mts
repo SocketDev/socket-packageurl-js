@@ -82,4 +82,8 @@ async function main(): Promise<void> {
   }
 }
 
-main()
+main().catch((e: unknown) => {
+  const message = e instanceof Error ? e.message : String(e)
+  logger.error(`CI validation crashed: ${message}`)
+  process.exitCode = 1
+})
