@@ -32,12 +32,12 @@ permissions:
 
 jobs:
   publish:
-    uses: SocketDev/socket-registry/.github/workflows/provenance.yml@34fef52be917f89dbbeb464860f2aaf0f3812c40 # main
+    uses: SocketDev/socket-registry/.github/workflows/provenance.yml@d54c36d0bed05ffffbe8b14e7663927eaa19d5df # main
     with:
       debug: ${{ inputs.debug }}
       dist-tag: ${{ inputs.dist-tag }}
       package-name: '@socketregistry/packageurl-js'
-      publish-script: 'publish:ci'
+      publish-script: 'release:ci'
       publish-without-sfw: ${{ inputs.publish-without-sfw }}
       setup-script: 'ci:validate'
       use-trusted-publishing: true
