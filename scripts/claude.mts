@@ -1132,6 +1132,8 @@ async function runCommandWithOutput(
 const claudeCache = new Map()
 // 5 minutes
 const CACHE_TTL = 5 * 60 * 1000
+// Cap size to prevent unbounded growth between TTL sweeps.
+const CLAUDE_CACHE_MAX_SIZE = 500
 
 // Build a stable cache key from the full prompt (not a 100-char truncation,
 // which collides when two prompts share their first 100 chars).
@@ -1309,6 +1311,13 @@ async function runClaude(
       // (enhancedPrompt + mode) so writes match subsequent reads.
       if (opts.cache !== false && result.exitCode === 0 && !timedOut) {
         const cacheKey = buildClaudeCacheKey(enhancedPrompt, mode)
+        // Evict oldest (FIFO) when at capacity.
+        if (claudeCache.size >= CLAUDE_CACHE_MAX_SIZE) {
+          const oldest = claudeCache.keys().next().value
+          if (oldest !== undefined) {
+            claudeCache.delete(oldest)
+          }
+        }
         claudeCache.set(cacheKey, {
           result,
           timestamp: Date.now(),
@@ -2111,23 +2120,47 @@ async function executeParallel(
     return results
   }
 
-  // Parallel execution with worker limit
+  // Parallel execution with worker limit.
+  // A single-waiter "slot available" signal wakes this loop whenever any
+  // in-flight task settles, instead of re-racing the whole executing[] array
+  // on every iteration (that stacks .then handlers on still-pending promises
+  // — see https://github.com/nodejs/node/issues/17469).
   log.substep(`🚀 Executing ${tasks.length} tasks with ${workers} workers`)
-  const results = []
-  const executing = []
+  const results: Array<Promise<unknown>> = []
+  let inFlight = 0
+  let slotWaiter: (() => void) | null = null
+
+  const releaseSlot = () => {
+    inFlight--
+    if (slotWaiter) {
+      const resolve = slotWaiter
+      slotWaiter = null
+      resolve()
+    }
+  }
+  const waitForSlot = (): Promise<void> => {
+    if (inFlight < workers) {
+      return Promise.resolve()
+    }
+    return new Promise(resolve => {
+      slotWaiter = resolve
+    })
+  }
 
   for (const task of tasks) {
-    const promise = task().then(result => {
-      executing.splice(executing.indexOf(promise), 1)
-      return result
-    })
-
+    await waitForSlot()
+    inFlight++
+    const promise = task().then(
+      result => {
+        releaseSlot()
+        return result
+      },
+      err => {
+        releaseSlot()
+        throw err
+      },
+    )
     results.push(promise)
-    executing.push(promise)
-
-    if (executing.length >= workers) {
-      await Promise.race(executing)
-    }
   }
 
   const settled = await Promise.allSettled(results)
