@@ -253,8 +253,12 @@ async function publishPackage(options: PublishOptions = {}): Promise<boolean> {
   // Prepare publish args.
   const publishArgs: string[] = ['publish', '--access', access, '--tag', tag]
 
-  // Add provenance by default (works with trusted publishers).
-  if (!dryRun) {
+  // Add provenance attestation in CI only. `npm publish --provenance`
+  // requires the GitHub Actions OIDC id-token endpoint; running locally
+  // fails with "Provenance generation in GitHub Actions requires
+  // 'id-token: write' permission". Gated so local non-dry-run publishes
+  // (emergency cases) still work.
+  if (!dryRun && process.env['GITHUB_ACTIONS'] === 'true') {
     publishArgs.push('--provenance')
   }
 
@@ -396,7 +400,7 @@ async function main(): Promise<void> {
 
     // Show help if requested.
     if (values.help) {
-      console.log('\nUsage: pnpm publish [options]')
+      console.log('\nUsage: pnpm release [options]')
       console.log('\nOptions:')
       console.log('  --help         Show this help message')
       console.log('  --dry-run      Perform a dry-run without publishing')
@@ -407,10 +411,10 @@ async function main(): Promise<void> {
       console.log('  --otp <otp>    npm one-time password')
       console.log('\nExamples:')
       console.log(
-        '  pnpm publish              # Validate artifacts and publish',
+        '  pnpm release              # Validate artifacts and publish',
       )
-      console.log('  pnpm publish --dry-run    # Dry-run to test')
-      console.log('  pnpm publish --otp 123456 # Publish with OTP')
+      console.log('  pnpm release --dry-run    # Dry-run to test')
+      console.log('  pnpm release --otp 123456 # Publish with OTP')
       process.exitCode = 0
       return
     }
