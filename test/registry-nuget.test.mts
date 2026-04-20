@@ -165,7 +165,7 @@ describe('nugetExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '13.0.3' }
-      await mockCache.set('Newtonsoft.Json', cachedResult)
+      await mockCache.set('nuget:Newtonsoft.Json', cachedResult)
 
       const result = await nugetExists('Newtonsoft.Json', undefined, {
         cache: mockCache,
@@ -192,7 +192,7 @@ describe('nugetExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('Newtonsoft.Json')).toEqual(result)
+      expect(await mockCache.get('nuget:Newtonsoft.Json')).toEqual(result)
     })
   })
 })

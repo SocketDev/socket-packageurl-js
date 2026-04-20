@@ -185,7 +185,7 @@ describe('golangExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: 'v1.8.0' }
-      await mockCache.set('github.com/gorilla/mux', cachedResult)
+      await mockCache.set('golang:github.com/gorilla/mux', cachedResult)
 
       const result = await golangExists(
         'mux',
@@ -214,7 +214,9 @@ describe('golangExists', () => {
       )
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('github.com/gorilla/mux')).toEqual(result)
+      expect(await mockCache.get('golang:github.com/gorilla/mux')).toEqual(
+        result,
+      )
     })
   })
 })

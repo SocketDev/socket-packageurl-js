@@ -152,7 +152,7 @@ describe('cocoapodsExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '5.8.1' }
-      await mockCache.set('Alamofire', cachedResult)
+      await mockCache.set('cocoapods:Alamofire', cachedResult)
 
       const result = await cocoapodsExists('Alamofire', undefined, {
         cache: mockCache,
@@ -175,7 +175,7 @@ describe('cocoapodsExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('Alamofire')).toEqual(result)
+      expect(await mockCache.get('cocoapods:Alamofire')).toEqual(result)
     })
   })
 })

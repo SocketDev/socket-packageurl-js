@@ -134,7 +134,7 @@ describe('cpanExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '2.2206' }
-      await mockCache.set('Moose', cachedResult)
+      await mockCache.set('cpan:Moose', cachedResult)
 
       const result = await cpanExists('Moose', undefined, {
         cache: mockCache,
@@ -155,7 +155,7 @@ describe('cpanExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('Moose')).toEqual(result)
+      expect(await mockCache.get('cpan:Moose')).toEqual(result)
     })
   })
 })

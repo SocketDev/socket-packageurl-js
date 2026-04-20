@@ -217,7 +217,10 @@ describe('mavenExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '3.12.0' }
-      await mockCache.set('org.apache.commons:commons-lang3', cachedResult)
+      await mockCache.set(
+        'maven:org.apache.commons:commons-lang3',
+        cachedResult,
+      )
 
       const result = await mavenExists(
         'commons-lang3',
@@ -251,9 +254,9 @@ describe('mavenExists', () => {
       )
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('org.apache.commons:commons-lang3')).toEqual(
-        result,
-      )
+      expect(
+        await mockCache.get('maven:org.apache.commons:commons-lang3'),
+      ).toEqual(result)
     })
   })
 })

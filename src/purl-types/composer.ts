@@ -71,7 +71,9 @@ export async function packagistExists(
   }
 
   const packageName = `${namespace}/${name}`
-  const cacheKey = version ? `${packageName}@${version}` : packageName
+  const cacheKey = version
+    ? `composer:${packageName}@${version}`
+    : `composer:${packageName}`
 
   if (options?.cache) {
     const cached = await options.cache.get<ExistsResult>(cacheKey)
@@ -147,7 +149,7 @@ export async function packagistExists(
   // Only cache successful results to avoid negative cache poisoning
   // from transient failures (network errors, 5xx responses)
   if (options?.cache && result.exists) {
-    await options.cache.set(cacheKey, result)
+    await options.cache.set(cacheKey, Object.freeze(result))
   }
   return result
 }

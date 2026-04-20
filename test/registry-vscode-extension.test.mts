@@ -392,7 +392,10 @@ describe('vscodeExtensionExists', () => {
 
       // Pre-populate cache
       const cachedResult = { exists: true, latestVersion: '2.4.2' }
-      await mockCache.set('dbaeumer.vscode-eslint', cachedResult)
+      await mockCache.set(
+        'vscode-extension:dbaeumer.vscode-eslint',
+        cachedResult,
+      )
 
       // Should not make HTTP request
       const result = await vscodeExtensionExists(
@@ -441,7 +444,9 @@ describe('vscodeExtensionExists', () => {
       expect(result.exists).toBe(true)
 
       // Verify cached
-      expect(await mockCache.get('publisher.test-extension')).toBeDefined()
+      expect(
+        await mockCache.get('vscode-extension:publisher.test-extension'),
+      ).toBeDefined()
     })
 
     it('should include version in cache key', async () => {
@@ -470,7 +475,9 @@ describe('vscodeExtensionExists', () => {
         cache: mockCache,
       })
 
-      expect(await mockCache.get('dbaeumer.vscode-eslint@2.4.1')).toBeDefined()
+      expect(
+        await mockCache.get('vscode-extension:dbaeumer.vscode-eslint@2.4.1'),
+      ).toBeDefined()
     })
 
     it('should not cache error results (prevents negative cache poisoning)', async () => {
@@ -501,7 +508,9 @@ describe('vscodeExtensionExists', () => {
       )
 
       expect(result.exists).toBe(false)
-      expect(await mockCache.get('publisher.non-existent')).toBeUndefined()
+      expect(
+        await mockCache.get('vscode-extension:publisher.non-existent'),
+      ).toBeUndefined()
     })
   })
 })

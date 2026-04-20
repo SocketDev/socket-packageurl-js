@@ -149,7 +149,7 @@ describe('cranExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '3.4.4' }
-      await mockCache.set('ggplot2', cachedResult)
+      await mockCache.set('cran:ggplot2', cachedResult)
 
       const result = await cranExists('ggplot2', undefined, {
         cache: mockCache,
@@ -173,7 +173,7 @@ describe('cranExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('ggplot2')).toEqual(result)
+      expect(await mockCache.get('cran:ggplot2')).toEqual(result)
     })
   })
 })

@@ -159,7 +159,7 @@ describe('cargoExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '1.0.197' }
-      await mockCache.set('serde', cachedResult)
+      await mockCache.set('cargo:serde', cachedResult)
 
       const result = await cargoExists('serde', undefined, { cache: mockCache })
 
@@ -179,7 +179,7 @@ describe('cargoExists', () => {
       const result = await cargoExists('serde', undefined, { cache: mockCache })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('serde')).toEqual(result)
+      expect(await mockCache.get('cargo:serde')).toEqual(result)
     })
   })
 })

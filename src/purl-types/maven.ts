@@ -5,6 +5,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { PurlError } from '../error.js'
 import { StringPrototypeIncludes, encodeComponent } from '../primordials.js'
 import {
   validateNoInjectionByType,
@@ -61,7 +62,9 @@ export async function mavenExists(
   }
 
   const packageId = `${namespace}:${name}`
-  const cacheKey = version ? `${packageId}@${version}` : packageId
+  const cacheKey = version
+    ? `maven:${packageId}@${version}`
+    : `maven:${packageId}`
 
   if (options?.cache) {
     const cached = await options.cache.get<ExistsResult>(cacheKey)
@@ -132,7 +135,7 @@ export async function mavenExists(
   // Only cache successful results to avoid negative cache poisoning
   // from transient failures (network errors, 5xx responses)
   if (options?.cache && result.exists) {
-    await options.cache.set(cacheKey, result)
+    await options.cache.set(cacheKey, Object.freeze(result))
   }
   return result
 }
@@ -153,6 +156,19 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   if (
     !validateNoInjectionByType('maven', 'namespace', purl.namespace, throws)
   ) {
+    return false
+  }
+  // Maven groupId uses dots as separators; a literal '/' in the namespace is
+  // not a valid groupId and corrupts downstream URL construction.
+  if (
+    typeof purl.namespace === 'string' &&
+    StringPrototypeIncludes(purl.namespace, '/')
+  ) {
+    if (throws) {
+      throw new PurlError(
+        'maven "namespace" component must not contain a slash',
+      )
+    }
     return false
   }
   if (!validateNoInjectionByType('maven', 'name', purl.name, throws)) {

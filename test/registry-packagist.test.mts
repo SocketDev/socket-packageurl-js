@@ -164,7 +164,7 @@ describe('packagistExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: 'v6.3.0' }
-      await mockCache.set('symfony/http-foundation', cachedResult)
+      await mockCache.set('composer:symfony/http-foundation', cachedResult)
 
       const result = await packagistExists(
         'http-foundation',
@@ -195,7 +195,9 @@ describe('packagistExists', () => {
       )
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('symfony/http-foundation')).toEqual(result)
+      expect(await mockCache.get('composer:symfony/http-foundation')).toEqual(
+        result,
+      )
     })
   })
 })

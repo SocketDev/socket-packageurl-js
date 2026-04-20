@@ -184,7 +184,7 @@ describe('dockerExists', () => {
 
       // Pre-populate cache
       const cachedResult = { exists: true, latestVersion: 'latest' }
-      await mockCache.set('library/nginx', cachedResult)
+      await mockCache.set('docker:library/nginx', cachedResult)
 
       // Should not make HTTP request
       const result = await dockerExists('nginx', 'library', undefined, {
@@ -210,7 +210,7 @@ describe('dockerExists', () => {
       expect(result.exists).toBe(true)
 
       // Verify cached
-      expect(await mockCache.get('library/redis')).toBeDefined()
+      expect(await mockCache.get('docker:library/redis')).toBeDefined()
     })
 
     it('should include tag in cache key', async () => {
@@ -228,7 +228,7 @@ describe('dockerExists', () => {
 
       await dockerExists('nginx', 'library', '1.25.3', { cache: mockCache })
 
-      expect(await mockCache.get('library/nginx:1.25.3')).toBeDefined()
+      expect(await mockCache.get('docker:library/nginx:1.25.3')).toBeDefined()
     })
 
     it('should use correct cache key without namespace', async () => {
@@ -242,7 +242,7 @@ describe('dockerExists', () => {
 
       await dockerExists('myimage', undefined, undefined, { cache: mockCache })
 
-      expect(await mockCache.get('myimage')).toBeDefined()
+      expect(await mockCache.get('docker:myimage')).toBeDefined()
     })
   })
 })

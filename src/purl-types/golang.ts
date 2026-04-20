@@ -94,7 +94,9 @@ export async function golangExists(
   options?: ExistsOptions,
 ): Promise<ExistsResult> {
   const modulePath = namespace ? `${namespace}/${name}` : name
-  const cacheKey = version ? `${modulePath}@${version}` : modulePath
+  const cacheKey = version
+    ? `golang:${modulePath}@${version}`
+    : `golang:${modulePath}`
 
   if (options?.cache) {
     const cached = await options.cache.get<ExistsResult>(cacheKey)
@@ -168,7 +170,7 @@ export async function golangExists(
   // Only cache successful results to avoid negative cache poisoning
   // from transient failures (network errors, 5xx responses)
   if (options?.cache && result.exists) {
-    await options.cache.set(cacheKey, result)
+    await options.cache.set(cacheKey, Object.freeze(result))
   }
   return result
 }

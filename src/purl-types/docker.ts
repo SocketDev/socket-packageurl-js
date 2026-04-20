@@ -95,7 +95,7 @@ export async function dockerExists(
 ): Promise<ExistsResult> {
   // Default namespace to 'library' for official images if not specified
   const repo = namespace ? `${namespace}/${name}` : name
-  const cacheKey = version ? `${repo}:${version}` : repo
+  const cacheKey = version ? `docker:${repo}:${version}` : `docker:${repo}`
 
   // Try cache first if provided
   if (options?.cache) {
@@ -166,7 +166,7 @@ export async function dockerExists(
   // Only cache successful results to avoid negative cache poisoning
   // from transient failures (network errors, 5xx responses)
   if (options?.cache && result.exists) {
-    await options.cache.set(cacheKey, result)
+    await options.cache.set(cacheKey, Object.freeze(result))
   }
 
   return result

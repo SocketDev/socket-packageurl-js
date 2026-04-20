@@ -147,7 +147,7 @@ describe('pubExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '8.1.3' }
-      await mockCache.set('flutter_bloc', cachedResult)
+      await mockCache.set('pub:flutter_bloc', cachedResult)
 
       const result = await pubExists('flutter_bloc', undefined, {
         cache: mockCache,
@@ -171,7 +171,7 @@ describe('pubExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('flutter_bloc')).toEqual(result)
+      expect(await mockCache.get('pub:flutter_bloc')).toEqual(result)
     })
   })
 })

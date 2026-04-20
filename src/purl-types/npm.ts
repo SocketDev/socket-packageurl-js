@@ -256,7 +256,9 @@ export async function npmExists(
 ): Promise<ExistsResult> {
   // Build cache key
   const packageName = namespace ? `${namespace}/${name}` : name
-  const cacheKey = version ? `${packageName}@${version}` : packageName
+  const cacheKey = version
+    ? `npm:${packageName}@${version}`
+    : `npm:${packageName}`
 
   // Try cache first if provided
   if (options?.cache) {
@@ -318,7 +320,7 @@ export async function npmExists(
   // Only cache successful results to avoid negative cache poisoning
   // from transient failures (network errors, 5xx responses)
   if (options?.cache && result.exists) {
-    await options.cache.set(cacheKey, result)
+    await options.cache.set(cacheKey, Object.freeze(result))
   }
 
   return result

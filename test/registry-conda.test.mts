@@ -219,7 +219,7 @@ describe('condaExists', () => {
 
       // Pre-populate cache
       const cachedResult = { exists: true, latestVersion: '1.26.3' }
-      await mockCache.set('conda-forge/numpy', cachedResult)
+      await mockCache.set('conda:conda-forge/numpy', cachedResult)
 
       // Should not make HTTP request
       const result = await condaExists('numpy', undefined, undefined, {
@@ -246,7 +246,7 @@ describe('condaExists', () => {
       expect(result.exists).toBe(true)
 
       // Verify cached
-      const cached = await mockCache.get('conda-forge/pandas')
+      const cached = await mockCache.get('conda:conda-forge/pandas')
       expect(cached).toEqual(result)
     })
 
@@ -262,7 +262,9 @@ describe('condaExists', () => {
 
       await condaExists('numpy', '1.26.2', undefined, { cache: mockCache })
 
-      expect(await mockCache.get('conda-forge/numpy@1.26.2')).toBeDefined()
+      expect(
+        await mockCache.get('conda:conda-forge/numpy@1.26.2'),
+      ).toBeDefined()
     })
 
     it('should include channel in cache key', async () => {
@@ -277,7 +279,7 @@ describe('condaExists', () => {
 
       await condaExists('python', undefined, 'defaults', { cache: mockCache })
 
-      expect(await mockCache.get('defaults/python')).toBeDefined()
+      expect(await mockCache.get('conda:defaults/python')).toBeDefined()
     })
   })
 })

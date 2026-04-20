@@ -156,7 +156,7 @@ describe('npmExists', () => {
 
       // Pre-populate cache
       const cachedResult = { exists: true, latestVersion: '4.17.21' }
-      await mockCache.set('lodash', cachedResult)
+      await mockCache.set('npm:lodash', cachedResult)
 
       // Should NOT make HTTP request
       const result = await npmExists('lodash', undefined, undefined, {
@@ -181,7 +181,7 @@ describe('npmExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('lodash')).toEqual(result)
+      expect(await mockCache.get('npm:lodash')).toEqual(result)
     })
 
     it('should use correct cache key for scoped packages', async () => {
@@ -196,7 +196,7 @@ describe('npmExists', () => {
 
       await npmExists('core', '@babel', undefined, { cache: mockCache })
 
-      expect(await mockCache.get('@babel/core')).toBeDefined()
+      expect(await mockCache.get('npm:@babel/core')).toBeDefined()
     })
 
     it('should use correct cache key with version', async () => {
@@ -211,7 +211,7 @@ describe('npmExists', () => {
 
       await npmExists('lodash', undefined, '4.17.20', { cache: mockCache })
 
-      expect(await mockCache.get('lodash@4.17.20')).toBeDefined()
+      expect(await mockCache.get('npm:lodash@4.17.20')).toBeDefined()
     })
 
     it('should not cache error results (prevents negative cache poisoning)', async () => {
@@ -224,7 +224,7 @@ describe('npmExists', () => {
       })
 
       expect(result.exists).toBe(false)
-      expect(await mockCache.get('nonexistent')).toBeUndefined()
+      expect(await mockCache.get('npm:nonexistent')).toBeUndefined()
     })
   })
 })

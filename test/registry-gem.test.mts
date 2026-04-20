@@ -162,7 +162,7 @@ describe('gemExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '7.1.3' }
-      await mockCache.set('rails', cachedResult)
+      await mockCache.set('gem:rails', cachedResult)
 
       const result = await gemExists('rails', undefined, { cache: mockCache })
 
@@ -179,7 +179,7 @@ describe('gemExists', () => {
       const result = await gemExists('rails', undefined, { cache: mockCache })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('rails')).toEqual(result)
+      expect(await mockCache.get('gem:rails')).toEqual(result)
     })
   })
 })

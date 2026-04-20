@@ -156,7 +156,9 @@ export async function vscodeExtensionExists(
   }
 
   const extensionId = `${namespace}.${name}`
-  const cacheKey = version ? `${extensionId}@${version}` : extensionId
+  const cacheKey = version
+    ? `vscode-extension:${extensionId}@${version}`
+    : `vscode-extension:${extensionId}`
 
   // Try cache first if provided
   if (options?.cache) {
@@ -263,7 +265,7 @@ export async function vscodeExtensionExists(
   // Only cache successful results to avoid negative cache poisoning
   // from transient failures (network errors, 5xx responses)
   if (options?.cache && result.exists) {
-    await options.cache.set(cacheKey, result)
+    await options.cache.set(cacheKey, Object.freeze(result))
   }
 
   return result

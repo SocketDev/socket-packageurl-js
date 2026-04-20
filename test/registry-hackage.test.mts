@@ -129,7 +129,7 @@ describe('hackageExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '2.2.0.0' }
-      await mockCache.set('aeson', cachedResult)
+      await mockCache.set('hackage:aeson', cachedResult)
 
       const result = await hackageExists('aeson', undefined, {
         cache: mockCache,
@@ -152,7 +152,7 @@ describe('hackageExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('aeson')).toEqual(result)
+      expect(await mockCache.get('hackage:aeson')).toEqual(result)
     })
   })
 })

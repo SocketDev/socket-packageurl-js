@@ -103,8 +103,8 @@ export async function condaExists(
   // Use provided channel or default to conda-forge (most popular community channel)
   const channelName = channel || 'conda-forge'
   const cacheKey = version
-    ? `${channelName}/${name}@${version}`
-    : `${channelName}/${name}`
+    ? `conda:${channelName}/${name}@${version}`
+    : `conda:${channelName}/${name}`
 
   // Try cache first if provided
   if (options?.cache) {
@@ -166,7 +166,7 @@ export async function condaExists(
   // Only cache successful results to avoid negative cache poisoning
   // from transient failures (network errors, 5xx responses)
   if (options?.cache && result.exists) {
-    await options.cache.set(cacheKey, result)
+    await options.cache.set(cacheKey, Object.freeze(result))
   }
 
   return result

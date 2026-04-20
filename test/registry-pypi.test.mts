@@ -142,7 +142,7 @@ describe('pypiExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '2.31.0' }
-      await mockCache.set('requests', cachedResult)
+      await mockCache.set('pypi:requests', cachedResult)
 
       const result = await pypiExists('requests', undefined, {
         cache: mockCache,
@@ -166,7 +166,7 @@ describe('pypiExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('requests')).toEqual(result)
+      expect(await mockCache.get('pypi:requests')).toEqual(result)
     })
   })
 })

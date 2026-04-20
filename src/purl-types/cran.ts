@@ -58,7 +58,7 @@ export async function cranExists(
   version?: string,
   options?: ExistsOptions,
 ): Promise<ExistsResult> {
-  const cacheKey = version ? `${name}@${version}` : name
+  const cacheKey = version ? `cran:${name}@${version}` : `cran:${name}`
 
   // Try cache first if provided
   if (options?.cache) {
@@ -117,7 +117,7 @@ export async function cranExists(
   // Only cache successful results to avoid negative cache poisoning
   // from transient failures (network errors, 5xx responses)
   if (options?.cache && result.exists) {
-    await options.cache.set(cacheKey, result)
+    await options.cache.set(cacheKey, Object.freeze(result))
   }
 
   return result

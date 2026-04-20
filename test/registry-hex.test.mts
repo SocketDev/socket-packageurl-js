@@ -145,7 +145,7 @@ describe('hexExists', () => {
       const mockCache = createMockCache()
 
       const cachedResult = { exists: true, latestVersion: '1.7.10' }
-      await mockCache.set('phoenix', cachedResult)
+      await mockCache.set('hex:phoenix', cachedResult)
 
       const result = await hexExists('phoenix', undefined, {
         cache: mockCache,
@@ -169,7 +169,7 @@ describe('hexExists', () => {
       })
 
       expect(result.exists).toBe(true)
-      expect(await mockCache.get('phoenix')).toEqual(result)
+      expect(await mockCache.get('hex:phoenix')).toEqual(result)
     })
   })
 })
