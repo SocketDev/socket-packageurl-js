@@ -45,7 +45,10 @@ pkg:maven/org.springframework/spring-core@5.3.21
 - ✅ **100% test coverage** - Over 1,000 passing tests
 - ✅ **Multiple APIs** - Functional, class-based, and builder patterns
 - ✅ **URL conversion** - Convert to repository and download URLs
-- ✅ **Registry checks** - Verify package existence across 14 registries
+- ✅ **Registry checks** - Verify package existence across 17 registries
+- ✅ **VERS support** - First-class implementation of the VERS companion spec (`Vers`, `VersConstraint`, `VersWildcard`)
+- ✅ **Immutable updates** - `withVersion`, `withNamespace`, `withQualifier`, `withQualifiers`, `withSubpath`
+- ✅ **Result-based parsing** - `tryFromString`, `tryFromJSON`, `tryFromObject`, `isValid`, `fromUrl`
 
 ## Install
 
@@ -161,7 +164,48 @@ await npmExists('lodash', undefined, '4.17.21') // validate version
 // npmExists, pypiExists, cargoExists, gemExists,
 // mavenExists, nugetExists, golangExists, packagistExists,
 // cocoapodsExists, pubExists, hexExists, cpanExists,
-// cranExists, hackageExists
+// cranExists, hackageExists, condaExists, dockerExists,
+// vscodeExtensionExists
+```
+
+### VERS (Version Range Specifier)
+
+First-class implementation of the [VERS companion spec](https://github.com/package-url/purl-spec/blob/main/VERSION-RANGE-SPEC.rst):
+
+```javascript
+import { Vers } from '@socketregistry/packageurl-js'
+
+const range = Vers.parse('vers:npm/>=1.0.0|<2.0.0')
+range.contains('1.5.0') // -> true
+range.contains('2.0.0') // -> false
+```
+
+### Immutable updates
+
+`PackageURL` instances are immutable; `with*` methods return a new instance:
+
+```javascript
+const next = purl
+  .withVersion('5.0.0')
+  .withQualifier('repository_url', 'https://github.com/lodash/lodash')
+```
+
+### Result-based parsing
+
+Parse untrusted input without try/catch:
+
+```javascript
+import { PackageURL } from '@socketregistry/packageurl-js'
+
+const result = PackageURL.tryFromString(userInput)
+if (result.isOk()) {
+  use(result.value)
+} else {
+  log(result.error)
+}
+
+PackageURL.isValid(userInput) // -> boolean
+PackageURL.fromUrl('https://github.com/lodash/lodash') // infers purl from URL
 ```
 
 ### TypeScript Types
