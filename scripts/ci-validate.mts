@@ -44,17 +44,17 @@ async function main(): Promise<void> {
   try {
     printHeader('CI Validation')
 
-    // Run tests
-    logger.step('Running tests')
-    let exitCode: number = await runCommand('pnpm', ['test', '--all'])
+    // Run build first so test/check operate on fresh artifacts.
+    logger.step('Building project')
+    let exitCode: number = await runCommand('pnpm', ['build'])
     if (exitCode !== 0) {
-      logger.error('Tests failed')
+      logger.error('Build failed')
       process.exitCode = exitCode
       return
     }
-    logger.success('Tests passed')
+    logger.success('Build completed')
 
-    // Run checks
+    // Run checks against the built artifacts.
     logger.step('Running checks')
     exitCode = await runCommand('pnpm', ['check', '--all'])
     if (exitCode !== 0) {
@@ -64,15 +64,15 @@ async function main(): Promise<void> {
     }
     logger.success('Checks passed')
 
-    // Run build
-    logger.step('Building project')
-    exitCode = await runCommand('pnpm', ['build'])
+    // Run tests last; skip redundant build since we already built above.
+    logger.step('Running tests')
+    exitCode = await runCommand('pnpm', ['test', '--all', '--skip-build'])
     if (exitCode !== 0) {
-      logger.error('Build failed')
+      logger.error('Tests failed')
       process.exitCode = exitCode
       return
     }
-    logger.success('Build completed')
+    logger.success('Tests passed')
 
     logger.success('CI validation completed successfully!')
   } catch (e) {

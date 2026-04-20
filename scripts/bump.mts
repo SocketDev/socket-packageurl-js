@@ -18,7 +18,8 @@ import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
-import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
+import { printFooter } from '@socketsecurity/lib/stdio/footer'
+import { printHeader } from '@socketsecurity/lib/stdio/header'
 
 type CommandResult = {
   exitCode: number
@@ -919,7 +920,7 @@ async function main(): Promise<void> {
     printFooter(`Version bumped to ${newVersion}!`)
 
     logger.info('\nNext steps:')
-    logger.substep('1. Run `pnpm publish` to publish to npm')
+    logger.substep('1. Run `pnpm release` to publish to npm')
     logger.substep('2. Create GitHub release if needed')
 
     process.exitCode = 0
