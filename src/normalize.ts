@@ -95,6 +95,10 @@ function normalizeQualifiers(
   let qualifiers: Record<string, string> | undefined
   // Use for-of to work with entries iterators
   for (const { 0: key, 1: value } of qualifiersToEntries(rawQualifiers)) {
+    // Skip non-string keys — validateQualifiers rejects these with PurlError.
+    if (typeof key !== 'string') {
+      continue
+    }
     // Only coerce primitive types — reject objects/functions that could
     // execute arbitrary code via toString() during coercion.
     const strValue =

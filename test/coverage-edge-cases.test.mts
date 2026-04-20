@@ -14,6 +14,7 @@ import {
   findCommandInjectionCharCode,
 } from '../src/strings.js'
 import { encodeQualifiers } from '../src/encode.js'
+import { normalizeQualifiers } from '../src/normalize.js'
 import { stringify } from '../src/stringify.js'
 import { UrlConverter } from '../src/url-converter.js'
 import {
@@ -88,6 +89,28 @@ describe('validate edge cases', () => {
       expect(
         validateQualifiers({ cmd: 'foo$(whoami)' }, { throws: false }),
       ).toBe(false)
+    })
+  })
+
+  describe('validateQualifiers non-string key via custom keys iterator', () => {
+    it('returns false for non-string key (non-throwing)', () => {
+      const qualifiers = {
+        keys() {
+          return [42 as unknown as string][Symbol.iterator]()
+        },
+      }
+      expect(validateQualifiers(qualifiers, { throws: false })).toBe(false)
+    })
+
+    it('throws PurlError for non-string key (throwing)', () => {
+      const qualifiers = {
+        keys() {
+          return [42 as unknown as string][Symbol.iterator]()
+        },
+      }
+      expect(() => validateQualifiers(qualifiers, { throws: true })).toThrow(
+        PurlError,
+      )
     })
   })
 
@@ -424,6 +447,21 @@ describe('compare edge cases', () => {
       )
       expect(matches(longPattern, purl)).toBe(false)
     })
+
+    it('returns false when pattern exceeds max wildcards (>32)', () => {
+      // 33 wildcards in the name component — over MAX_WILDCARDS_PER_PATTERN (32)
+      const manyWildcardsName = 'a*'.repeat(33)
+      const pattern = `pkg:npm/${manyWildcardsName}`
+      const purl = new PackageURL(
+        'npm',
+        undefined,
+        'lodash',
+        '4.17.21',
+        undefined,
+        undefined,
+      )
+      expect(matches(pattern, purl)).toBe(false)
+    })
   })
 
   describe('wildcard cache eviction', () => {
@@ -596,6 +634,71 @@ describe('encodeQualifiers edge case', () => {
   it('returns empty string for non-object input', () => {
     const result = encodeQualifiers(null)
     expect(result).toBe('')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// normalize.ts — non-string key branch in normalizeQualifiers
+// ---------------------------------------------------------------------------
+describe('normalizeQualifiers non-string key handling', () => {
+  it('skips non-string keys surfaced by a custom entries iterator', () => {
+    const rawQualifiers = {
+      entries() {
+        return (
+          [
+            [42, 'ignored'],
+            ['real', 'kept'],
+          ] as unknown as Array<[string, string]>
+        )[Symbol.iterator]()
+      },
+    }
+    const result = normalizeQualifiers(rawQualifiers)
+    expect(result).toEqual({ real: 'kept' })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// purl-types/maven.ts — namespace must not contain a slash
+// ---------------------------------------------------------------------------
+describe('maven namespace slash validation', () => {
+  it('returns false (non-throwing) when maven namespace contains a slash', () => {
+    const validate = (PurlType as any).maven.validate as (
+      purl: Record<string, unknown>,
+      throws: boolean,
+    ) => boolean
+    expect(
+      validate(
+        {
+          type: 'maven',
+          namespace: 'org.apache/commons',
+          name: 'commons-lang3',
+          version: '3.12.0',
+          qualifiers: undefined,
+          subpath: undefined,
+        },
+        false,
+      ),
+    ).toBe(false)
+  })
+
+  it('throws PurlError when validating maven namespace with slash directly', () => {
+    const validate = (PurlType as any).maven.validate as (
+      purl: Record<string, unknown>,
+      throws: boolean,
+    ) => boolean
+    expect(() =>
+      validate(
+        {
+          type: 'maven',
+          namespace: 'org.apache/commons',
+          name: 'commons-lang3',
+          version: '3.12.0',
+          qualifiers: undefined,
+          subpath: undefined,
+        },
+        true,
+      ),
+    ).toThrow(PurlError)
   })
 })
 

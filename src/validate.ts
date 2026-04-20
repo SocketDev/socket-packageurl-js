@@ -236,6 +236,12 @@ function validateQualifiers(
   // Use for-of to work with URLSearchParams#keys iterators
   // type-coverage:ignore-next-line -- TypeScript correctly infers the iteration type
   for (const key of keysIterable) {
+    if (typeof key !== 'string') {
+      if (throws) {
+        throw new PurlError('qualifier key must be a string')
+      }
+      return false
+    }
     if (!validateQualifierKey(key, opts)) {
       return false
     }

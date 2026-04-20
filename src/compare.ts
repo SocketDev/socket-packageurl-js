@@ -54,10 +54,28 @@ const WILDCARD_CACHE_MAX = 1024
  * Designed for version strings and package names, not file paths.
  */
 const MAX_PATTERN_LENGTH = 4096
+// Cap wildcards to prevent backtracking DoS via many alternating `*` even
+// under the overall length limit (e.g., `a*b*c*…*z` on a long non-match).
+const MAX_WILDCARDS_PER_PATTERN = 32
+
+function countWildcards(pattern: string): number {
+  let count = 0
+  for (let i = 0, { length } = pattern; i < length; i += 1) {
+    const code = pattern.charCodeAt(i)
+    if (code === 42 /*'*'*/ || code === 63 /*'?'*/) {
+      count += 1
+    }
+  }
+  return count
+}
 
 function matchWildcard(pattern: string, value: string): boolean {
   // Reject excessively long patterns to prevent regex compilation DoS
   if (pattern.length > MAX_PATTERN_LENGTH) {
+    return false
+  }
+  // Reject patterns with too many wildcards to prevent polynomial backtracking.
+  if (countWildcards(pattern) > MAX_WILDCARDS_PER_PATTERN) {
     return false
   }
   let regex = wildcardRegexCache.get(pattern)
