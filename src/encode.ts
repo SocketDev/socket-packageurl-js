@@ -2,11 +2,6 @@
  * @fileoverview URL encoding functions for PURL components.
  * Provides special handling for names, namespaces, versions, qualifiers, and subpaths.
  */
-import {
-  REUSED_SEARCH_PARAMS,
-  REUSED_SEARCH_PARAMS_KEY,
-  REUSED_SEARCH_PARAMS_OFFSET,
-} from './constants.js'
 import { isObject } from './objects.js'
 import {
   ArrayPrototypeToSorted,
@@ -17,6 +12,13 @@ import {
   encodeComponent,
 } from './primordials.js'
 import { isNonEmptyString } from './strings.js'
+
+// Module-private reusable URLSearchParams for encodeQualifierParam. Kept
+// private here so mutation side-effects can't leak to other modules.
+const REUSED_SEARCH_PARAMS = new URLSearchParamsCtor()
+const REUSED_SEARCH_PARAMS_KEY = '_'
+// '_='.length
+const REUSED_SEARCH_PARAMS_OFFSET = 2
 
 /**
  * Encode package name component for URL.
