@@ -1,6 +1,9 @@
 # Optional checks - can be bypassed with --no-verify for fast local commits.
 # Mandatory security checks run in pre-push hook.
 
+# Run Socket security pre-commit checks (API keys, .DS_Store, etc.).
+.git-hooks/pre-commit "$@"
+
 if [ -z "${DISABLE_PRECOMMIT_LINT}" ]; then
   pnpm lint --staged
 else
@@ -8,7 +11,7 @@ else
 fi
 
 if [ -z "${DISABLE_PRECOMMIT_TEST}" ]; then
-  pnpm test --staged
+  pnpm test --staged --fast --skip-build
 else
   printf "Skipping testing due to DISABLE_PRECOMMIT_TEST env var\n"
 fi
