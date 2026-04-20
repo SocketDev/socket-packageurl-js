@@ -65,7 +65,7 @@
     "@anthropic-ai/claude-code": "2.1.92",
     "@babel/parser": "7.29.0",
     "@oxlint/migrate": "1.51.0",
-    "@socketsecurity/lib": "5.19.1",
+    "@socketsecurity/lib": "5.20.1",
     "@socketsecurity/registry": "2.0.2",
     "@types/node": "24.9.2",
     "@typescript/native-preview": "7.0.0-dev.20260415.1",
