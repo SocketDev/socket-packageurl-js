@@ -19,7 +19,8 @@ import type {
   SpawnOptions,
 } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
-import { printFooter, printHeader } from '@socketsecurity/lib/stdio/header'
+import { printFooter } from '@socketsecurity/lib/stdio/footer'
+import { printHeader } from '@socketsecurity/lib/stdio/header'
 
 const logger: Logger = getDefaultLogger()
 
