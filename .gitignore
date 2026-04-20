@@ -22,6 +22,7 @@ Thumbs.db
 /.tap
 /.type-coverage
 /coverage
+/reports
 *.log
 *.pid
 *.seed

@@ -60,6 +60,7 @@ const SKIP_DIRS = new Set([
   '.next',
   '.nuxt',
   '.output',
+  'reports',
 ])
 
 type MarkdownFilenameViolation = {
