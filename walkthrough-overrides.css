@@ -203,7 +203,9 @@ body.wt-ready .file-block {
 .file-grid > .code-section {
   border: 0 !important;
   background: var(--code-bg) !important;
-  padding-left: 8px;
+  /* Breathing room between the splitter rule and the line-number
+   * column so the code doesn't read as "welded to the divider". */
+  padding-left: 16px;
 }
 
 /* ── Section beats ─────────────────────────────────────────────────
