@@ -59,7 +59,8 @@
     "test": "node scripts/test.mts",
     "type": "tsgo --noEmit -p .config/tsconfig.check.json",
     "update": "node scripts/update.mts",
-    "update:data:npm": "node scripts/update-data-npm.mts"
+    "update:data:npm": "node scripts/update-data-npm.mts",
+    "walkthrough": "node scripts/walkthrough.mts"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "2.1.92",

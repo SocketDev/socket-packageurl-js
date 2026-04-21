@@ -1,0 +1,17 @@
+{
+  "slug": "socket-packageurl-js",
+  "title": "Socket PackageURL.js Walkthrough",
+  "parts": [
+    {
+      "id": 1,
+      "title": "Anatomy of a PURL",
+      "objective": "Understand the pkg:type/ns/name@version?q#sub shape and how it maps to the PackageURL class.",
+      "keywords": ["purl", "package-url", "anatomy", "components"],
+      "files": [
+        "src/package-url.ts",
+        "src/purl-component.ts",
+        "src/constants.ts"
+      ]
+    }
+  ]
+}

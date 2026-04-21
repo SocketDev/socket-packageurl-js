@@ -1,0 +1,354 @@
+/* ------------------------------------------------------------------
+ * Socket override layer for meander's default walkthrough.css.
+ *
+ * Appended to the emitted walkthrough.css by scripts/walkthrough.mts
+ * after `meander generate` runs. Targets six issues:
+ *   1. No alignment affordance between prose and its paired code.
+ *   2. Prose body at 14px with no max-width (cramped + loose).
+ *   3. Flat heading hierarchy (h3 smaller than body).
+ *   4. Code-favored 34/66 column ratio inherited from Val Town's own
+ *      walkthrough, wrong for a library reference.
+ *   5. Split-palette (white prose / near-black code) reads as two
+ *      welded-together websites.
+ *   6. No visual beats between sections.
+ *
+ * Plus an interactive: draggable column splitter (--col-split),
+ * persisted by walkthrough-drag.js.
+ *
+ * CSS-only layer — meander's HTML is unchanged.
+ * ------------------------------------------------------------------ */
+
+:root {
+  /* Light theme (default). Both surfaces share a hue family,
+   * differentiated by luminance. GitHub Light-inspired. */
+  --prose-bg: #ffffff;
+  --prose-text: #1f2328;
+  --code-bg: #f6f8fa;
+  --code-text: #1f2328;
+  --rule: #d0d7de;
+  --eyebrow: #57606a;
+  --accent: #0969da;
+  --page-bg: #ffffff;
+
+  /* hljs tokens, light. */
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-title: #6639ba;
+  --hl-comment: #6e7781;
+  --hl-type: #953800;
+  --hl-linenum: #8c959f;
+
+  /* Prose column width as a percentage. walkthrough-drag.js rewrites
+   * this on drag and persists to localStorage. */
+  --col-split: 50;
+}
+
+/* Dark theme. Applied by walkthrough-drag.js via `data-theme="dark"`
+ * on <html>, auto-selected from prefers-color-scheme on first load
+ * and togglable via the button injected in the topbar. */
+html[data-theme='dark'] {
+  --prose-bg: #0d1117;
+  --prose-text: #e6edf3;
+  --code-bg: #010409;
+  --code-text: #e6edf3;
+  --rule: #30363d;
+  --eyebrow: #8b949e;
+  --accent: #539bf5;
+  --page-bg: #0d1117;
+
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-title: #d2a8ff;
+  --hl-comment: #8b949e;
+  --hl-type: #ffa657;
+  --hl-linenum: #6e7681;
+
+  /* Retarget meander's own tokens so its un-overridden rules
+   * (topbar, file-head, part-nav, comment widgets, etc.) pick up
+   * dark values without having to enumerate them all. */
+  --bg: #0d1117;
+  --bg-elev: #161b22;
+  --bg-card: #0d1117;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --border: #30363d;
+}
+
+/* Apply the page-level background on the root so the sticky topbar's
+ * color-mix blur has the correct base to tint. */
+html,
+body {
+  background: var(--page-bg) !important;
+  color: var(--prose-text);
+}
+
+/* ── Layout: two-column grid with no gap ──────────────────────────
+ * Collapse meander's 12px column-gap so the per-cell section rules
+ * on either side meet at the split line. Cell padding below gives
+ * prose and line-numbers their breathing room. */
+.pair-grid,
+.file-grid {
+  grid-template-columns: calc(var(--col-split) * 1%) calc(
+      (100 - var(--col-split)) * 1%
+    ) !important;
+  column-gap: 0 !important;
+  /* Zero meander's 12px wrapper padding — it shifts grid tracks inward
+   * while the splitter (parented to .file-block) sits at the outer
+   * edge, so the two misalign. Cell padding below restores breathing
+   * room. Also kill meander's hardcoded `34% + 12px` gradient — with
+   * a draggable split, a painted background at a fixed % is always
+   * wrong; the per-cell backgrounds (annotation-card, code-section)
+   * already handle the left/right surface colors. */
+  padding: 0 !important;
+  background: none !important;
+}
+.layout {
+  grid-template-columns: 22% 78%;
+}
+
+/* ── Cells ─────────────────────────────────────────────────────────
+ * Both sides stretch to the grid row height so hover fills, section
+ * rules, and the splitter all span the full cell. */
+.pair-grid > .annotation-card,
+.file-grid > .annotation-card,
+.pair-grid > .code-section,
+.file-grid > .code-section {
+  align-self: stretch;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  transition: background 120ms ease;
+}
+
+.pair-grid > .annotation-card,
+.file-grid > .annotation-card {
+  position: relative;
+  padding: 20px 20px 12px 16px !important;
+  background: var(--prose-bg);
+}
+
+.pair-grid > .code-section,
+.file-grid > .code-section {
+  border: 0 !important;
+  background: var(--code-bg) !important;
+  padding-left: 8px;
+}
+
+/* ── Section beats ─────────────────────────────────────────────────
+ * A single 1px rule runs across the top of each row. We draw it on
+ * both cells (annotation-card::before + code-section border-top) so
+ * the rule appears continuous through the splitter. The first row in
+ * a file block suppresses it — file-head serves as that beat. */
+.pair-grid > .annotation-card::before,
+.file-grid > .annotation-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  border-top: 1px solid var(--rule);
+}
+.file-grid > .code-section {
+  border-top: 1px solid var(--rule) !important;
+}
+.file-block .file-grid > .annotation-card:first-of-type {
+  padding-top: 14px !important;
+}
+.file-block .file-grid > .annotation-card:first-of-type::before,
+.file-block .file-grid > .code-section:first-of-type {
+  border-top: 0 !important;
+}
+.file-block .file-grid > .annotation-card:first-of-type::before {
+  display: none;
+}
+
+/* ── Row hover ─────────────────────────────────────────────────────
+ * Only the hovered cell tints. Tinting both halves read as one merged
+ * block because the divider between them became low-contrast on the
+ * tinted surface. Keeping the highlight local preserves the divider
+ * and still communicates focus. */
+.pair-grid > .annotation-card:hover,
+.file-grid > .annotation-card:hover {
+  background: color-mix(in srgb, var(--accent) 7%, var(--prose-bg));
+}
+.pair-grid > .code-section:hover,
+.file-grid > .code-section:hover {
+  background: color-mix(in srgb, var(--accent) 7%, var(--code-bg)) !important;
+}
+
+/* ── Prose typography ──────────────────────────────────────────────
+ * Meander nests rendered markdown in .annotation-md; direct <p>
+ * children of the card are used when there's no markdown wrapper.
+ * Both get the same scale. */
+.annotation-md,
+.annotation-card > p {
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  letter-spacing: 0.003em;
+  max-width: 68ch;
+  color: var(--prose-text);
+}
+
+.annotation-card h3 {
+  font-size: 11px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--eyebrow);
+  margin: 0 0 6px 0;
+}
+
+/* ── Code surface ──────────────────────────────────────────────────
+ * Recolor meander's dark #0d1117 to the light --code-bg. The hljs CDN
+ * ships a dark theme; token colors are remapped to the GitHub Light
+ * palette so they read on --code-bg. */
+.file-block pre,
+pre {
+  background: var(--code-bg) !important;
+  color: var(--code-text);
+}
+.code-table .line-num {
+  color: var(--hl-linenum) !important;
+  border-right: 1px solid var(--rule);
+}
+.code-table tr.selected .line-code {
+  background: color-mix(in srgb, var(--accent) 10%, transparent) !important;
+}
+
+.hljs {
+  background: var(--code-bg) !important;
+  color: var(--code-text) !important;
+}
+.hljs-keyword,
+.hljs-built_in,
+.hljs-literal {
+  color: var(--hl-keyword) !important;
+}
+.hljs-string,
+.hljs-attr,
+.hljs-number {
+  color: var(--hl-string) !important;
+}
+.hljs-title,
+.hljs-class .hljs-title,
+.hljs-function .hljs-title {
+  color: var(--hl-title) !important;
+}
+.hljs-params,
+.hljs-variable {
+  color: var(--code-text) !important;
+}
+.hljs-comment,
+.hljs-quote {
+  color: var(--hl-comment) !important;
+  font-style: italic;
+}
+.hljs-type,
+.hljs-selector-tag,
+.hljs-tag {
+  color: var(--hl-type) !important;
+}
+
+/* ── Draggable column splitter ─────────────────────────────────────
+ * Injected into each .file-block by walkthrough-drag.js. The handle
+ * is a 12px invisible hit zone centered on the split line; a 1px
+ * rule is always visible (this IS the divider), brightens and
+ * thickens on hover / drag. */
+.file-block {
+  position: relative;
+}
+.col-splitter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  margin-left: -6px;
+  left: calc(var(--col-split) * 1%);
+  cursor: col-resize;
+  z-index: 5;
+  background: transparent;
+}
+.col-splitter::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--rule);
+  transition:
+    background 120ms ease,
+    width 120ms ease,
+    margin-left 120ms ease;
+}
+.col-splitter:hover::before,
+.col-splitter.dragging::before,
+.col-splitter:focus-visible::before {
+  background: var(--accent);
+  width: 2px;
+  margin-left: -1px;
+}
+.col-splitter:focus-visible {
+  outline: none;
+}
+body.col-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* ── Topbar action group ───────────────────────────────────────────
+ * Three peer buttons (dark mode, download comments, show comments)
+ * live in meander's .topbar-actions as a horizontal row. We don't
+ * restructure the DOM here — meander's own scripts rely on sibling
+ * lookups. Just ensure consistent gap and size. */
+.topbar-actions {
+  gap: 6px;
+}
+
+/* Theme toggle styled to match meander's .export-btn exactly — same
+ * border, radius, padding, hover treatment. Sizing is driven by the
+ * inner SVG so it matches the download / comments icons visually. */
+.theme-toggle {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.theme-toggle svg {
+  display: block;
+}
+
+/* ── Misc polish ───────────────────────────────────────────────────*/
+.topbar {
+  /* Reserve space on the right for the three peer action buttons
+   * (theme toggle, download, show comments). */
+  padding-right: 160px !important;
+}
+.topbar h1 {
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+.file-head .path {
+  color: var(--code-text);
+  font-weight: 500;
+}
+.left-pane {
+  background: transparent;
+  border-right: 1px solid var(--rule);
+}
