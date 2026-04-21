@@ -459,8 +459,14 @@ app.post('/auth/request', async c => {
       args: { email: rawEmail, codeHash, ip, expiresAt },
     })
     try {
+      // Val Town limits the `from.email` to
+      // `<username>.<valname>@valtown.email`; we can control the
+      // display name and replyTo. Setting replyTo to security@socket.dev
+      // routes "I didn't request this" replies to Socket's security team.
       await sendEmail({
         to: rawEmail,
+        from: { name: 'Socket Walkthroughs' },
+        replyTo: 'security@socket.dev',
         subject: 'Your Socket walkthrough login code',
         html: renderLoginEmail(code),
         text: renderLoginEmailText(code),

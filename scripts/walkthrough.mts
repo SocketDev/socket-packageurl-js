@@ -111,6 +111,23 @@ function generate(refresh: boolean, rest: readonly string[]): void {
     copyFileSync(dragSrc, path.join(walkthroughDir, 'walkthrough-drag.js'))
   }
 
+  // Ship favicons (self-hosted copy of socket.dev's icons). Walkthrough
+  // HTML doesn't currently carry <link rel="icon"> tags from meander,
+  // so we inject them in the post-processor below.
+  const faviconSrc = path.join(repoRoot, 'assets', 'favicon')
+  const faviconFiles = [
+    'favicon.ico',
+    'favicon-32x32.png',
+    'favicon-16x16.png',
+    'apple-touch-icon.png',
+  ] as const
+  for (const f of faviconFiles) {
+    const src = path.join(faviconSrc, f)
+    if (existsSync(src)) {
+      copyFileSync(src, path.join(walkthroughDir, f))
+    }
+  }
+
   // Ship the comment-UI replacement (optional — only when a commentBackend
   // is configured). The shim is loaded instead of meander's inlined comment
   // scripts, which the rewrite below strips.
@@ -142,6 +159,12 @@ function generate(refresh: boolean, rest: readonly string[]): void {
   const configTag = commentBackend
     ? `<script>window.socketWalkthrough=${JSON.stringify({ backend: commentBackend })}</script>`
     : ''
+  const faviconTags = [
+    '<link rel="icon" type="image/x-icon" href="/favicon.ico" />',
+    '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />',
+    '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />',
+    '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
+  ].join('\n  ')
 
   for (const entry of readdirSync(walkthroughDir)) {
     if (!entry.endsWith('.html')) {
@@ -153,6 +176,11 @@ function generate(refresh: boolean, rest: readonly string[]): void {
     // Strip meander's inlined comment scripts when replacing with ours.
     if (commentBackend) {
       html = stripInlinedCommentScripts(html, COMMENT_SCRIPT_MARKERS)
+    }
+
+    // Inject favicons in <head>. Idempotent via marker check.
+    if (!html.includes('apple-touch-icon.png')) {
+      html = html.replace('</head>', `  ${faviconTags}\n</head>`)
     }
 
     // Inject our scripts once (idempotent).
@@ -340,9 +368,7 @@ async function deployVal(args: readonly string[]): Promise<void> {
   }
 
   const nameArg = args.find(a => a.startsWith('--name='))
-  const valName = nameArg
-    ? nameArg.slice('--name='.length)
-    : 'socketWalkthrough'
+  const valName = nameArg ? nameArg.slice('--name='.length) : 'walkthrough'
 
   const API = 'https://api.val.town'
   const authHeader = { Authorization: `Bearer ${token}` }

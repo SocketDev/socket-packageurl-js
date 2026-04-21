@@ -135,7 +135,8 @@
         <p class="wt-modal-sub">Enter your Socket email to get a 6-digit login code.</p>
         <form class="wt-form" data-step="email">
           <label class="wt-label">Email
-            <input type="email" name="email" required autocomplete="email"
+            <input type="email" name="email" required autocomplete="username"
+              data-1p-ignore data-lpignore="true" data-form-type="other"
               placeholder="you@socket.dev" class="wt-input" value="${state.email ? state.email.replace(/"/g, '&quot;') : ''}"/>
           </label>
           <button type="submit" class="wt-primary">Send code</button>
@@ -155,6 +156,7 @@
           <label class="wt-label">Code
             <input type="text" name="code" required inputmode="numeric"
               pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code"
+              data-1p-ignore data-lpignore="true" data-form-type="other"
               class="wt-input wt-code" placeholder="123456"/>
           </label>
           <button type="submit" class="wt-primary">Verify</button>
@@ -836,19 +838,20 @@
     installTopbarButtons()
 
     // Silent auth check — if JWT is stale/expired, we clear it silently.
-    // User will be prompted next time they try to comment.
+    // User will be prompted next time they try to comment. Skip entirely
+    // when no JWT is present so we don't emit a gratuitous 401 in the
+    // browser console on every page load for anonymous visitors.
     if (state.jwt) {
-      await silentCheck()
-    }
-
-    // Try to load comments. If unauthorized, silently drop — user can still
-    // read the walkthrough; auth prompt appears on first interaction.
-    try {
-      state.comments = await apiJson(`/${slug}/api/comments?part=${partId}`)
-      renderAll()
-      refreshUnresolvedCount()
-    } catch {
-      /* unauthorized or network — fine, carry on */
+      const ok = await silentCheck()
+      if (ok) {
+        try {
+          state.comments = await apiJson(`/${slug}/api/comments?part=${partId}`)
+          renderAll()
+          refreshUnresolvedCount()
+        } catch {
+          /* network blip or just-expired token — carry on */
+        }
+      }
     }
   }
 
