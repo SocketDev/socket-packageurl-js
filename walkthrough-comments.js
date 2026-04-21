@@ -112,19 +112,22 @@
       </div>
     `
     document.body.appendChild(overlay)
-    const close = () => overlay.remove()
+    const escHandler = e => {
+      if (e.key === 'Escape') {
+        close()
+      }
+    }
+    const close = () => {
+      overlay.remove()
+      document.removeEventListener('keydown', escHandler)
+    }
     overlay.querySelector('.wt-modal-close').addEventListener('click', close)
     overlay.addEventListener('click', e => {
       if (e.target === overlay) {
         close()
       }
     })
-    document.addEventListener('keydown', function esc(e) {
-      if (e.key === 'Escape') {
-        close()
-        document.removeEventListener('keydown', esc)
-      }
-    })
+    document.addEventListener('keydown', escHandler)
     return { overlay, close }
   }
 
@@ -137,7 +140,7 @@
           <label class="wt-label">Email
             <input type="email" name="email" required autocomplete="username"
               data-1p-ignore data-lpignore="true" data-form-type="other"
-              placeholder="you@socket.dev" class="wt-input" value="${state.email ? state.email.replace(/"/g, '&quot;') : ''}"/>
+              placeholder="you@socket.dev" class="wt-input"/>
           </label>
           <button type="submit" class="wt-primary">Send code</button>
           <p class="wt-error" aria-live="polite"></p>
@@ -145,6 +148,12 @@
       `)
       const form = overlay.querySelector('.wt-form')
       const errEl = overlay.querySelector('.wt-error')
+      // Set prefill via the DOM API, never string interpolation — cheap
+      // defense-in-depth against a poisoned localStorage value.
+      const emailInput = form.querySelector('input[name="email"]')
+      if (state.email) {
+        emailInput.value = state.email
+      }
       let pendingEmail = ''
 
       const showStep2 = email => {
@@ -152,7 +161,7 @@
         form.setAttribute('data-step', 'code')
         form.innerHTML = `
           <p class="wt-modal-sub">Check your inbox for a 6-digit code sent to
-            <strong>${email.replace(/</g, '&lt;')}</strong>.</p>
+            <strong class="wt-code-target"></strong>.</p>
           <label class="wt-label">Code
             <input type="text" name="code" required inputmode="numeric"
               pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code"
@@ -163,6 +172,11 @@
           <button type="button" class="wt-secondary wt-back">Back</button>
           <p class="wt-error" aria-live="polite"></p>
         `
+        // Set the email display via textContent, not string interp.
+        const target = form.querySelector('.wt-code-target')
+        if (target) {
+          target.textContent = email
+        }
         const codeInput = form.querySelector('.wt-code')
         codeInput.focus()
         // Auto-submit as soon as 6 digits land (paste or typing). Success
@@ -276,11 +290,21 @@
     if (!BACKEND) {
       return false
     }
+    // 2-second cap so a cold-starting val doesn't keep the page
+    // invisible forever; we'll treat a timeout as "offline" and
+    // gracefully degrade comments UI.
+    const ctrl = new AbortController()
+    const timer = setTimeout(() => ctrl.abort(), 2000)
     try {
-      const res = await fetch(BACKEND + '/health', { method: 'GET' })
+      const res = await fetch(BACKEND + '/health', {
+        method: 'GET',
+        signal: ctrl.signal,
+      })
       return res.ok
     } catch {
       return false
+    } finally {
+      clearTimeout(timer)
     }
   }
 
@@ -594,32 +618,48 @@
     )
 
   const renderCommentCard = (c, isReply) => {
+    // Build with DOM APIs so author/body/timestamp flow through
+    // textContent, not innerHTML — defense in depth against anything
+    // slipping past the server-side sanitizer.
     const el = document.createElement('div')
     el.className = 'wt-comment' + (isReply ? ' wt-reply' : '')
     if (c.resolved) {
       el.classList.add('wt-resolved')
     }
-    const author = esc(c.author || 'anonymous')
-    const body = esc(c.body || '')
-    const when = new Date(c.createdAt).toLocaleString()
+    const meta = document.createElement('div')
+    meta.className = 'wt-comment-meta'
+    const who = document.createElement('strong')
+    who.textContent = c.author || 'anonymous'
+    const when = document.createElement('time')
+    when.textContent = new Date(c.createdAt).toLocaleString()
+    meta.append(who, when)
+    if (c.resolved) {
+      const badge = document.createElement('span')
+      badge.className = 'wt-badge'
+      badge.textContent = 'resolved'
+      meta.append(badge)
+    }
+    const bodyEl = document.createElement('div')
+    bodyEl.className = 'wt-comment-body'
+    bodyEl.textContent = c.body || ''
+    el.append(meta, bodyEl)
+
     const isAuthor = state.email && c.author === state.email
-    el.innerHTML = `
-      <div class="wt-comment-meta">
-        <strong>${author}</strong>
-        <time>${when}</time>
-        ${c.resolved ? '<span class="wt-badge">resolved</span>' : ''}
-      </div>
-      <div class="wt-comment-body">${body}</div>
-      ${
-        isAuthor && !isReply
-          ? `
-        <div class="wt-actions">
-          <button type="button" class="wt-secondary wt-resolve">${c.resolved ? 'Unresolve' : 'Resolve'}</button>
-          <button type="button" class="wt-danger wt-delete">Delete</button>
-        </div>`
-          : ''
-      }
-    `
+    if (isAuthor && !isReply) {
+      const actions = document.createElement('div')
+      actions.className = 'wt-actions'
+      const resolveBtn = document.createElement('button')
+      resolveBtn.type = 'button'
+      resolveBtn.className = 'wt-secondary wt-resolve'
+      resolveBtn.textContent = c.resolved ? 'Unresolve' : 'Resolve'
+      const deleteBtn = document.createElement('button')
+      deleteBtn.type = 'button'
+      deleteBtn.className = 'wt-danger wt-delete'
+      deleteBtn.textContent = 'Delete'
+      actions.append(resolveBtn, deleteBtn)
+      el.append(actions)
+    }
+
     if (isAuthor) {
       el.querySelector('.wt-resolve')?.addEventListener('click', async () => {
         try {
@@ -667,15 +707,17 @@
     }
   }
 
-  const showUnresolvedDropdown = async () => {
+  const showUnresolvedDropdown = async (retry = 0) => {
     document.querySelector('.wt-dropdown')?.remove()
     let list = []
     try {
       list = await apiJson(`/${slug}/api/comments/unresolved`)
     } catch (err) {
-      if (err.message === 'unauthorized') {
+      // Single retry on auth failure — prevents infinite recursion if
+      // the freshly-issued token also gets 401'd.
+      if (err.message === 'unauthorized' && retry < 1) {
         if (await ensureAuth()) {
-          return showUnresolvedDropdown()
+          return showUnresolvedDropdown(retry + 1)
         }
       }
       return

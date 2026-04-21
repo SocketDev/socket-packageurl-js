@@ -22,7 +22,6 @@ import {
   CODE_TTL_SECONDS,
   EMAIL_FROM,
   EMAIL_REPLY_TO,
-  JWT_SIGNING_KEY,
   MAX_BODY_BYTES_AUTH,
   SESSION_TTL_SECONDS,
   VERIFY_RATE_LIMIT_PER_EMAIL,
@@ -187,35 +186,5 @@ export const registerAuthRoutes = (
     })
     await audit(c, 'logout', { actor: auth.email, success: true })
     return c.json({ ok: true })
-  })
-
-  // TEMPORARY diagnostic — DELETE before real users. Gated on a
-  // shared-secret query param (first 16 chars of JWT_SIGNING_KEY) so
-  // outsiders can't probe it.
-  app.get('/debug/email', async c => {
-    const secret = c.req.query('s')
-    if (secret !== JWT_SIGNING_KEY.slice(0, 16)) {
-      return c.json({ error: 'forbidden' }, 403)
-    }
-    const to = c.req.query('to') || ''
-    if (!to) {
-      return c.json({ error: 'pass ?to=' }, 400)
-    }
-    try {
-      const result = await sendEmail({
-        to,
-        from: EMAIL_FROM,
-        replyTo: EMAIL_REPLY_TO,
-        subject: 'diagnostic',
-        text: 'This is a diagnostic email from the Socket walkthrough val.',
-      })
-      return c.json({ ok: true, result })
-    } catch (err) {
-      return c.json({
-        ok: false,
-        error: err instanceof Error ? err.message : String(err),
-        stack: err instanceof Error ? err.stack : undefined,
-      })
-    }
   })
 }
