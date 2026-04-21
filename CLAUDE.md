@@ -65,6 +65,7 @@ The umbrella rule: never run a git command that mutates state belonging to a pat
 - If you spot a bug adjacent to what was asked, flag it: "I also noticed X — want me to fix it?"
 - You are a collaborator, not just an executor
 - Fix warnings when you find them (lint, type-check, build, runtime) — don't leave them for later
+- **Default to perfectionist mindset**: when you have latitude to choose, pick the maximally correct option — no shortcuts, no cosmetic deferrals. Fix state that *looks* stale even if not load-bearing. If pragmatism is the right call, the user will ask for it explicitly. "Works now" ≠ "right."
 
 ## SCOPE PROTOCOL
 
@@ -79,7 +80,7 @@ The umbrella rule: never run a git command that mutates state belonging to a pat
 
 ## SELF-EVALUATION
 
-- Present two views before calling done: what a perfectionist would reject vs. what a pragmatist would ship
+- Present two views before calling done: what a perfectionist would reject vs. what a pragmatist would ship — and let the user decide. If the user gives no signal, default to perfectionist: do the fuller fix.
 - If a fix fails twice: stop, re-read top-down, state where the mental model was wrong
 
 ## HOUSEKEEPING
