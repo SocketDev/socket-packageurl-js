@@ -19,11 +19,6 @@ on:
         options:
           - '0'
           - '1'
-      publish-without-sfw:
-        description: 'Publish directly to npm, bypassing Socket firewall shims'
-        required: false
-        default: false
-        type: boolean
 
 permissions:
   contents: write
@@ -32,13 +27,12 @@ permissions:
 
 jobs:
   publish:
-    uses: SocketDev/socket-registry/.github/workflows/provenance.yml@a5923566cd8bcf70aefa1eefacf21f96e328be45 # main
+    uses: SocketDev/socket-registry/.github/workflows/provenance.yml@d638c11f4bc7ac637e0f61f05729a54d68af40e0 # main
     with:
       debug: ${{ inputs.debug }}
       dist-tag: ${{ inputs.dist-tag }}
       package-name: '@socketregistry/packageurl-js'
       publish-script: 'release:ci'
-      publish-without-sfw: ${{ inputs.publish-without-sfw }}
       setup-script: 'ci:validate'
       use-trusted-publishing: true
     secrets:
