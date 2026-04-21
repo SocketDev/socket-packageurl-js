@@ -1509,7 +1509,9 @@
     exportBtn.className = 'wt-export-btn'
     exportBtn.setAttribute('aria-label', 'Export comments')
     exportBtn.title = 'Export comments'
-    exportBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 11.5a.5.5 0 0 1-.5-.5V2.707L5.854 4.354a.5.5 0 1 1-.708-.708l2.5-2.5a.5.5 0 0 1 .708 0l2.5 2.5a.5.5 0 0 1-.708.708L8.5 2.707V11a.5.5 0 0 1-.5.5zM2 14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-4a.5.5 0 0 0-1 0v4H3v-4a.5.5 0 0 0-1 0v4z"/></svg>`
+    // Icon path pre-optimized via svgo — closing Z on the vertical
+    // stroke is implicit (move-to closes the subpath automatically).
+    exportBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 11.5a.5.5 0 0 1-.5-.5V2.707L5.854 4.354a.5.5 0 1 1-.708-.708l2.5-2.5a.5.5 0 0 1 .708 0l2.5 2.5a.5.5 0 0 1-.708.708L8.5 2.707V11a.5.5 0 0 1-.5.5M2 14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-4a.5.5 0 0 0-1 0v4H3v-4a.5.5 0 0 0-1 0z"/></svg>`
     exportBtn.addEventListener('click', async () => {
       if (!(await ensureAuth())) {
         return
@@ -1532,13 +1534,16 @@
     // 18×18 (up from 16) with the dots spread to cx 7/12/17 — leaves
     // more breathing room inside the bubble and makes the hit target
     // meatier in the topbar row.
+    // Fill/stroke hoisted to the <g> parent so each circle is attr-free
+    // (svgo "collapseGroups"). Saves bytes and keeps the dots visually
+    // identical — CSS reads the class names for the drop-in animation.
     unresolvedBtn.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        <g class="wt-bubble-dots">
-          <circle class="wt-dot wt-dot-1" cx="7"  cy="10" r="1.15" fill="currentColor" stroke="none"/>
-          <circle class="wt-dot wt-dot-2" cx="12" cy="10" r="1.15" fill="currentColor" stroke="none"/>
-          <circle class="wt-dot wt-dot-3" cx="17" cy="10" r="1.15" fill="currentColor" stroke="none"/>
+        <g class="wt-bubble-dots" fill="currentColor" stroke="none">
+          <circle class="wt-dot wt-dot-1" cx="7"  cy="10" r="1.15"/>
+          <circle class="wt-dot wt-dot-2" cx="12" cy="10" r="1.15"/>
+          <circle class="wt-dot wt-dot-3" cx="17" cy="10" r="1.15"/>
         </g>
       </svg>
       <span class="wt-unresolved-badge"></span>

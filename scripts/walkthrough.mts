@@ -26,6 +26,9 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
+import { transform as esbuildTransform } from 'esbuild'
+import { transform as lightningTransform } from 'lightningcss'
+
 const MEANDER_PATH = 'upstream/meander'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -78,10 +81,14 @@ function ensureMeander(refresh: boolean): void {
   }
 }
 
-function generate(refresh: boolean, rest: readonly string[]): void {
+async function generate(
+  refresh: boolean,
+  minify: boolean,
+  rest: readonly string[],
+): Promise<void> {
   if (rest.length === 0) {
     console.error(
-      'Usage: pnpm walkthrough [--refresh] generate <walkthrough.json>',
+      'Usage: pnpm walkthrough [--refresh] [--minify] generate <walkthrough.json>',
     )
     process.exit(1)
   }
@@ -211,6 +218,64 @@ function generate(refresh: boolean, rest: readonly string[]): void {
 
     writeFileSync(htmlPath, html)
   }
+
+  if (minify) {
+    await minifyEmittedAssets()
+  }
+}
+
+/**
+ * Minify the JS + CSS assets in the output directory in-place.
+ *
+ *   - JS: esbuild transform, target `es2022` so optional chaining,
+ *     logical assignment, and `Map.groupBy` are preserved (we rely on
+ *     modern-browser runtimes anyway).
+ *   - CSS: lightningcss transform — better than esbuild for CSS
+ *     (color-mix folding, nesting lowering, dead-rule pruning). Same
+ *     browserslist target so the output stays compatible with the
+ *     same runtimes the authored code assumes.
+ *
+ * No sourcemaps — the user opted out explicitly. Authored files live
+ * at the repo root unchanged; this only touches the emitted copies.
+ */
+async function minifyEmittedAssets(): Promise<void> {
+  const jsFiles = ['walkthrough-comments.js', 'walkthrough-drag.js']
+  const cssFiles = ['walkthrough.css']
+
+  let savedBytes = 0
+
+  for (const f of jsFiles) {
+    const p = path.join(walkthroughDir, f)
+    if (!existsSync(p)) {
+      continue
+    }
+    const before = readFileSync(p, 'utf8')
+    const out = await esbuildTransform(before, {
+      loader: 'js',
+      minify: true,
+      target: 'es2022',
+      legalComments: 'none',
+    })
+    writeFileSync(p, out.code)
+    savedBytes += before.length - out.code.length
+  }
+
+  for (const f of cssFiles) {
+    const p = path.join(walkthroughDir, f)
+    if (!existsSync(p)) {
+      continue
+    }
+    const before = readFileSync(p, 'utf8')
+    const out = lightningTransform({
+      filename: f,
+      code: Buffer.from(before),
+      minify: true,
+    })
+    writeFileSync(p, out.code)
+    savedBytes += before.length - out.code.length
+  }
+
+  console.log(`Minified assets — saved ${(savedBytes / 1024).toFixed(1)} KB`)
 }
 
 /**
@@ -324,41 +389,44 @@ function serve(args: readonly string[]): void {
   })
 }
 
+// Shared fail-handler for async subcommands. `err.message || err` was
+// duplicated at every call site; a named helper also guarantees the
+// prefix format and exit code stay in sync across commands.
+const failWith =
+  (scope: string) =>
+  (err: unknown): never => {
+    const msg = err instanceof Error ? err.message : String(err ?? 'unknown')
+    console.error(`[${scope}] failed:`, msg)
+    process.exit(1)
+  }
+
 function main(): void {
   const args = process.argv.slice(2)
   const refresh = args.includes('--refresh')
-  const rest = args.filter(a => a !== '--refresh')
+  const minify = args.includes('--minify')
+  const rest = args.filter(a => a !== '--refresh' && a !== '--minify')
   const command = rest[0]
 
   switch (command) {
     case 'generate':
-      generate(refresh, rest.slice(1))
+      generate(refresh, minify, rest.slice(1)).catch(failWith('generate'))
       break
     case 'serve':
       serve(rest.slice(1))
       break
     case 'deploy-val':
-      deployVal(rest.slice(1)).catch(err => {
-        console.error('[deploy-val] failed:', err.message || err)
-        process.exit(1)
-      })
+      deployVal(rest.slice(1)).catch(failWith('deploy-val'))
       break
     case 'token':
-      tokenCli(rest.slice(1)).catch(err => {
-        console.error('[token] failed:', err.message || err)
-        process.exit(1)
-      })
+      tokenCli(rest.slice(1)).catch(failWith('token'))
       break
     case 'doctor':
-      doctor().catch(err => {
-        console.error('[doctor] failed:', err.message || err)
-        process.exit(1)
-      })
+      doctor().catch(failWith('doctor'))
       break
     default:
       console.error(
         'Usage:\n' +
-          '  pnpm walkthrough [--refresh] generate <walkthrough.json>\n' +
+          '  pnpm walkthrough [--refresh] [--minify] generate <walkthrough.json>\n' +
           '  pnpm walkthrough serve [--port=8080]\n' +
           '  pnpm walkthrough deploy-val [--name=<valname>]\n' +
           '  pnpm walkthrough token <set|clear|status>\n' +

@@ -31,6 +31,7 @@
     "**/package.json",
     "**/pnpm-lock.yaml",
     "**/test/fixtures",
-    "**/test/packages"
+    "**/test/packages",
+    "**/upstream"
   ]
 }
