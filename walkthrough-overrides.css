@@ -1200,9 +1200,18 @@ html[data-theme='dark'] .wt-secondary:hover {
  * brand purple, right-aligned muted-white text, generous top space.
  * Kept fixed-content (no dependency fetch) so it renders the instant
  * the HTML is parsed. */
+/* Sticky-footer layout: body flexes vertically so the footer can
+ * auto-margin to the bottom on short pages (e.g. the index). Long
+ * pages just scroll normally — `min-height: 100vh` only kicks in
+ * when content would otherwise leave empty space below. */
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 .wt-socket-footer {
   /* Full-bleed brand purple band aligned to the page bottom. */
-  margin-top: 48px;
+  margin-top: auto;
   padding: 28px 32px;
   background: #4c1d95;
   color: rgba(255, 255, 255, 0.85);
