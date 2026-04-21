@@ -118,6 +118,14 @@ async function generate(
     copyFileSync(dragSrc, path.join(walkthroughDir, 'walkthrough-drag.js'))
   }
 
+  // Ship the service worker — cache-first for same-origin assets,
+  // network-passthrough for the comment API. Registration script is
+  // injected into each HTML page below.
+  const swSrc = path.join(repoRoot, 'walkthrough-sw.js')
+  if (existsSync(swSrc)) {
+    copyFileSync(swSrc, path.join(walkthroughDir, 'walkthrough-sw.js'))
+  }
+
   // Ship favicons (self-hosted copy of socket.dev's icons). Walkthrough
   // HTML doesn't currently carry <link rel="icon"> tags from meander,
   // so we inject them in the post-processor below.
@@ -166,11 +174,36 @@ async function generate(
   const configTag = commentBackend
     ? `<script>window.socketWalkthrough=${JSON.stringify({ backend: commentBackend })}</script>`
     : ''
+  // Service-worker registration. Wrapped in a feature-check and a
+  // `load`-event guard so SW install never contends with first-paint
+  // work. `updateViaCache:'none'` forces the browser to fetch the SW
+  // file itself via HTTP cache (not its own SW cache), so a new
+  // deploy's SW is picked up on the next reload.
+  const swRegisterTag = [
+    '<script>',
+    "  if ('serviceWorker' in navigator) {",
+    "    addEventListener('load', () => {",
+    "      navigator.serviceWorker.register('/walkthrough-sw.js', { updateViaCache: 'none' }).catch(() => {})",
+    '    })',
+    '  }',
+    '</script>',
+  ].join('\n  ')
   const faviconTags = [
     '<link rel="icon" type="image/x-icon" href="/favicon.ico" />',
     '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />',
     '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />',
     '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
+  ].join('\n  ')
+  // Preload the shim scripts so the browser starts fetching them in
+  // parallel with HTML parsing, ahead of the `defer` discovery. The
+  // CSS is already in a `<link rel="stylesheet">` which is inherently
+  // render-blocking, so it doesn't need a preload. Comment shim is
+  // gated on commentBackend since we only emit the <script> tag then.
+  const preloadTags = [
+    '<link rel="preload" as="script" href="/walkthrough-drag.js" />',
+    ...(commentBackend
+      ? ['<link rel="preload" as="script" href="/walkthrough-comments.js" />']
+      : []),
   ].join('\n  ')
   // Socket tagline footer — matches the format used on socket.dev
   // marketing pages. "⚡️" is rendered as an emoji (single char) so
@@ -194,9 +227,14 @@ async function generate(
       html = stripInlinedCommentScripts(html, COMMENT_SCRIPT_MARKERS)
     }
 
-    // Inject favicons in <head>. Idempotent via marker check.
+    // Inject favicons + preloads in <head>. Idempotent via marker
+    // checks. Preloads land last so they're adjacent to the deferred
+    // <script> tags they anticipate (a visual-grouping nicety).
     if (!html.includes('apple-touch-icon.png')) {
       html = html.replace('</head>', `  ${faviconTags}\n</head>`)
+    }
+    if (!html.includes('rel="preload"')) {
+      html = html.replace('</head>', `  ${preloadTags}\n</head>`)
     }
 
     // Inject our scripts once (idempotent).
@@ -208,6 +246,11 @@ async function generate(
         '</body>',
         `  ${configTag}\n  ${commentsTag}\n</body>`,
       )
+    }
+    // Service worker registration — last script before </body> so
+    // the page-critical shim scripts start downloading first.
+    if (!html.includes('walkthrough-sw.js')) {
+      html = html.replace('</body>', `  ${swRegisterTag}\n</body>`)
     }
 
     // Socket tagline footer, injected once before </body>. Idempotent
@@ -239,7 +282,11 @@ async function generate(
  * at the repo root unchanged; this only touches the emitted copies.
  */
 async function minifyEmittedAssets(): Promise<void> {
-  const jsFiles = ['walkthrough-comments.js', 'walkthrough-drag.js']
+  const jsFiles = [
+    'walkthrough-comments.js',
+    'walkthrough-drag.js',
+    'walkthrough-sw.js',
+  ]
   const cssFiles = ['walkthrough.css']
 
   let savedBytes = 0

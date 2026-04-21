@@ -69,6 +69,30 @@
 
   /* ─── fetch helper ────────────────────────────────────────────── */
 
+  // Every API call gets a default 10s deadline. Callers may supply
+  // their own `signal` for user-initiated cancellation (close button,
+  // route change); we compose the two via `AbortSignal.any()` (ES2024)
+  // so whichever fires first wins — no leaked setTimeouts, no manual
+  // controller plumbing. A `timeoutMs: 0` opt-out is available for
+  // long-poll-style calls if we ever add them.
+  const DEFAULT_TIMEOUT_MS = 10_000
+  const composeSignal = (userSignal, timeoutMs) => {
+    const signals = []
+    if (userSignal) {
+      signals.push(userSignal)
+    }
+    if (timeoutMs > 0) {
+      signals.push(AbortSignal.timeout(timeoutMs))
+    }
+    if (signals.length === 0) {
+      return undefined
+    }
+    if (signals.length === 1) {
+      return signals[0]
+    }
+    return AbortSignal.any(signals)
+  }
+
   const api = async (path, init = {}) => {
     if (!BACKEND) {
       throw new Error('no-backend')
@@ -80,7 +104,12 @@
     if (init.body && !headers.has('content-type')) {
       headers.set('content-type', 'application/json')
     }
-    const res = await fetch(BACKEND + path, { ...init, headers })
+    const { timeoutMs = DEFAULT_TIMEOUT_MS, signal: userSignal, ...rest } = init
+    const res = await fetch(BACKEND + path, {
+      ...rest,
+      headers,
+      signal: composeSignal(userSignal, timeoutMs),
+    })
     if (res.status === 401) {
       saveJwt(null, null)
       throw new Error('unauthorized')
@@ -112,6 +141,34 @@
           "'": '&#39;',
         })[c],
     )
+
+  // Relative-time formatter. `Intl.RelativeTimeFormat` handles the
+  // locale + plural side ("2 hours ago" / "hace 2 horas" / "il y a 2
+  // heures"); `numeric: 'auto'` yields "yesterday" / "last week" when
+  // the platform has an idiom for that slot. The unit pick is a
+  // descending-chain: divide by each unit's seconds and keep the
+  // first |n|≥1 (coarsest unit that still "has quantity").
+  const RELATIVE_UNITS = {
+    year: 60 * 60 * 24 * 365,
+    month: 60 * 60 * 24 * 30,
+    week: 60 * 60 * 24 * 7,
+    day: 60 * 60 * 24,
+    hour: 60 * 60,
+    minute: 60,
+    second: 1,
+  }
+  const relativeFormatter = new Intl.RelativeTimeFormat(undefined, {
+    numeric: 'auto',
+  })
+  const formatRelative = date => {
+    const diffSec = Math.round((date.getTime() - Date.now()) / 1000)
+    for (const [unit, secs] of Object.entries(RELATIVE_UNITS)) {
+      if (Math.abs(diffSec) >= secs || unit === 'second') {
+        return relativeFormatter.format(Math.round(diffSec / secs), unit)
+      }
+    }
+    return date.toLocaleDateString()
+  }
 
   /* ─── auth: email → code flow ─────────────────────────────────── */
 
@@ -766,12 +823,10 @@
       return false
     }
     // 2s cap so a cold-starting val doesn't block the page reveal.
-    // AbortSignal.timeout (ES2024) replaces the manual controller +
-    // setTimeout dance — self-cancels, self-cleans.
+    // Routed through `api()` so it picks up the composed-signal
+    // plumbing (user cancel + timeout) via `timeoutMs`.
     try {
-      const res = await fetch(BACKEND + '/health', {
-        signal: AbortSignal.timeout(2000),
-      })
+      const res = await api('/health', { timeoutMs: 2000 })
       return res.ok
     } catch {
       return false
@@ -1041,6 +1096,54 @@
 
   /* ─── comment form ────────────────────────────────────────────── */
 
+  // Draft auto-save keys. Scoped by file+line+parent so two composers
+  // on different anchors keep separate drafts, and a reply draft
+  // doesn't clobber a top-level draft on the same selection.
+  const draftKey = (file, lineFrom, lineTo, parentId) =>
+    `wt:draft:${slug}:${file}:${lineFrom}-${lineTo}:${parentId || 'root'}`
+
+  // localStorage-backed draft store, gated by `navigator.locks` so
+  // two tabs that open the same composer don't race each other
+  // writing half-typed strings. `navigator.locks.request(name, cb)`
+  // serializes the callback per-name, across tabs, across workers.
+  // The callback runs synchronously-then-async-then-returns — we
+  // read once, apply our op, write once.
+  const saveDraft = async (key, value) => {
+    if (typeof navigator === 'undefined' || !navigator.locks) {
+      // Graceful degradation for environments without Web Locks (older
+      // Safari, tests). Last-writer-wins — acceptable given the draft
+      // is a nice-to-have.
+      try {
+        if (value) {
+          localStorage.setItem(key, value)
+        } else {
+          localStorage.removeItem(key)
+        }
+      } catch {
+        /* storage quota / private-mode — drafts just won't persist */
+      }
+      return
+    }
+    await navigator.locks.request(key, () => {
+      try {
+        if (value) {
+          localStorage.setItem(key, value)
+        } else {
+          localStorage.removeItem(key)
+        }
+      } catch {
+        /* no-op */
+      }
+    })
+  }
+  const loadDraft = key => {
+    try {
+      return localStorage.getItem(key) || ''
+    } catch {
+      return ''
+    }
+  }
+
   const showCommentForm = (file, lineFrom, lineTo, parentId) => {
     // Close any open composer first. We use a native <dialog> so focus
     // is trapped inside the form while typing (can't Tab out), Escape
@@ -1147,11 +1250,31 @@
       })
     }
 
-    form.querySelector('textarea').focus()
-    form.querySelector('.wt-cancel').addEventListener('click', close)
+    // Draft persistence — hydrate from localStorage, save on input
+    // (debounced), clear on successful submit or explicit cancel.
+    // Two tabs on the same anchor share the lock via Web Locks.
+    const dkey = draftKey(file, lineFrom, lineTo, parentId)
+    const textarea = form.querySelector('textarea')
+    const savedDraft = loadDraft(dkey)
+    if (savedDraft) {
+      textarea.value = savedDraft
+    }
+    let saveTimer = 0
+    textarea.addEventListener('input', () => {
+      clearTimeout(saveTimer)
+      saveTimer = setTimeout(() => saveDraft(dkey, textarea.value), 400)
+    })
+
+    textarea.focus()
+    form.querySelector('.wt-cancel').addEventListener('click', () => {
+      // Cancel preserves the draft — user can come back to it.
+      clearTimeout(saveTimer)
+      saveDraft(dkey, textarea.value)
+      close()
+    })
     form.addEventListener('submit', async e => {
       e.preventDefault()
-      const body = form.querySelector('textarea').value.trim()
+      const body = textarea.value.trim()
       if (!body) {
         return
       }
@@ -1168,6 +1291,9 @@
         })
         state.comments.push(created)
         state.expandedGroups.add(`${created.file}:${created.lineFrom}`)
+        // Successful post clears the in-flight draft.
+        clearTimeout(saveTimer)
+        await saveDraft(dkey, '')
         close()
         clearSelectionUi()
         renderAll()
@@ -1281,7 +1407,12 @@
     const who = document.createElement('strong')
     who.textContent = c.author || 'anonymous'
     const when = document.createElement('time')
-    when.textContent = new Date(c.createdAt).toLocaleString()
+    const createdAt = new Date(c.createdAt)
+    when.dateTime = createdAt.toISOString()
+    when.textContent = formatRelative(createdAt)
+    // Absolute timestamp in the tooltip so hovering gives the full
+    // date/time without cluttering the meta line.
+    when.title = createdAt.toLocaleString()
     meta.append(who, when)
     if (c.resolved) {
       const badge = document.createElement('span')
