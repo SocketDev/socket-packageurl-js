@@ -218,6 +218,24 @@ body.wt-ready .file-block {
   margin: 0 0 6px 0;
 }
 
+/* The first annotation inside each file-block is almost always file
+ * boilerplate — license header, @fileoverview, etc. Render it in a
+ * muted, italic tone so it reads as framing rather than body content. */
+.file-block .file-grid > .annotation-card:first-of-type .annotation-md,
+.file-block .file-grid > .annotation-card:first-of-type .annotation-md p,
+.file-block .file-grid > .annotation-card:first-of-type .annotation-md li {
+  color: var(--eyebrow) !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  font-style: italic;
+}
+.file-block .file-grid > .annotation-card:first-of-type .annotation-md code {
+  color: var(--eyebrow);
+  border-color: color-mix(in srgb, var(--eyebrow) 30%, transparent);
+  background: transparent;
+  font-style: normal;
+}
+
 /* ── Code surface ──────────────────────────────────────────────────
  * Recolor meander's dark #0d1117 to the light --code-bg. The hljs CDN
  * ships a dark theme; token colors are remapped to the GitHub Light
