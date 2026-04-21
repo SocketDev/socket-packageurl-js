@@ -36,10 +36,11 @@ on:
       - 'pnpm-lock.yaml'
   workflow_dispatch:
 
+# Default workflow-level permissions are read-only. Each job opts in
+# to the narrower scope it needs — build doesn't touch Pages at all
+# (just uploads an artifact), deploy gets pages + id-token.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Queue Pages deploys serially — don't cancel a running deploy with a
 # newer commit (`cancel-in-progress: false`), that can leave the site
@@ -52,6 +53,8 @@ jobs:
   build:
     name: Build walkthrough
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Setup and install (checkout + Node + pnpm + install)
         uses: SocketDev/socket-registry/.github/actions/setup-and-install@d7b5d15a9be8973a5715459d12b9a033603a5ff5 # main
@@ -81,6 +84,9 @@ jobs:
     name: Deploy to Pages
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
