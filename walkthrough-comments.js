@@ -746,9 +746,8 @@
             if (reason) {
               throw new Error(reason)
             }
-            const res = await fetch(BACKEND + '/auth/request', {
+            const res = await api('/auth/request', {
               method: 'POST',
-              headers: { 'content-type': 'application/json' },
               body: JSON.stringify({ email }),
             })
             if (!res.ok) {
@@ -760,9 +759,8 @@
             if (!/^\d{6}$/.test(code)) {
               throw new Error('Enter the 6-digit code.')
             }
-            const res = await fetch(BACKEND + '/auth/verify', {
+            const res = await api('/auth/verify', {
               method: 'POST',
-              headers: { 'content-type': 'application/json' },
               body: JSON.stringify({ email: pendingEmail, code }),
             })
             if (res.status === 429) {
@@ -805,14 +803,12 @@
       return false
     }
     try {
-      const res = await fetch(BACKEND + '/auth/check', {
-        headers: { Authorization: `Bearer ${state.jwt}` },
-      })
-      if (!res.ok) {
-        saveJwt(null, null)
-        return false
-      }
-      return true
+      // api() auto-attaches the Authorization header and nulls the
+      // JWT on 401 (throws 'unauthorized'); both paths land us in
+      // the catch, which returns false. Non-401 failures also resolve
+      // to false — this is a best-effort heartbeat, not an assertion.
+      const res = await api('/auth/check')
+      return res.ok
     } catch {
       return false
     }
@@ -1524,10 +1520,7 @@
         // captured JWT can't be re-used. If it fails (network blip,
         // 401 from a bad token), we still clear localStorage so the
         // client is signed out locally.
-        await fetch(BACKEND + '/auth/logout', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${state.jwt}` },
-        })
+        await api('/auth/logout', { method: 'POST' })
       } catch {
         /* ignore — the localStorage clear below is the real signout */
       }

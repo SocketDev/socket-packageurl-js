@@ -19,6 +19,11 @@
  * ------------------------------------------------------------------ */
 
 :root {
+  /* Shared interaction timing. 120ms reads as "immediate" while still
+   * being perceptible — used for hovers, focus rings, button state
+   * changes, dropdown toggles, and splitter visuals. Keeping this
+   * single token means the whole UI breathes at one rhythm. */
+  --transition-fast: var(--transition-fast);
   /* Light theme (default). Both surfaces share a hue family,
    * differentiated by luminance. GitHub Light-inspired. */
   --prose-bg: #ffffff;
@@ -184,7 +189,7 @@ body.wt-ready .file-block {
   align-self: stretch;
   margin: 0 !important;
   border-radius: 0 !important;
-  transition: background 120ms ease;
+  transition: background var(--transition-fast);
 }
 
 .pair-grid > .annotation-card,
@@ -392,9 +397,9 @@ pre {
   margin-left: -0.5px;
   background: var(--rule);
   transition:
-    background 120ms ease,
-    width 120ms ease,
-    margin-left 120ms ease;
+    background var(--transition-fast),
+    width var(--transition-fast),
+    margin-left var(--transition-fast);
 }
 .col-splitter:hover::before,
 .col-splitter.dragging::before,
@@ -458,9 +463,9 @@ body.wt-ready .topbar-actions {
   width: 32px;
   height: 32px;
   transition:
-    background 120ms ease,
-    border-color 120ms ease,
-    color 120ms ease;
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 .theme-toggle:hover {
   border-color: var(--accent);
@@ -723,9 +728,9 @@ body.wt-backend-offline .wt-comment-form {
   cursor: pointer;
   position: relative;
   transition:
-    background 120ms ease,
-    border-color 120ms ease,
-    color 120ms ease;
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 .wt-export-btn:hover,
 .wt-unresolved-btn:hover {
@@ -921,9 +926,9 @@ tr.wt-selected .line-num {
   font-weight: 500;
   cursor: pointer;
   transition:
-    background 120ms ease,
-    border-color 120ms ease,
-    filter 120ms ease;
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    filter var(--transition-fast);
 }
 .wt-primary {
   background: var(--accent);
@@ -1090,8 +1095,8 @@ html[data-theme='dark'] .wt-secondary:hover {
   align-items: center;
   justify-content: center;
   transition:
-    background 120ms ease,
-    color 120ms ease;
+    background var(--transition-fast),
+    color var(--transition-fast);
 }
 .wt-modal-close:hover,
 .wt-modal-close:focus-visible {
@@ -1317,9 +1322,9 @@ html[data-theme='dark'] .wt-secondary:hover {
   cursor: pointer;
   flex-shrink: 0;
   transition:
-    background 120ms ease,
-    border-color 120ms ease,
-    color 120ms ease;
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
 .wt-dropdown-signout:hover {
   border-color: var(--accent);
