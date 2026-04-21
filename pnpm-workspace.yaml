@@ -1,4 +1,3 @@
-resolutionMode: highest
 trustPolicy: no-downgrade
 
 # Register .claude/hooks/* as workspace packages so taze (run via
