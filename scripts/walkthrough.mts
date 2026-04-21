@@ -294,14 +294,236 @@ function main(): void {
     case 'serve':
       serve(rest.slice(1))
       break
+    case 'deploy-val':
+      deployVal(rest.slice(1)).catch(err => {
+        console.error('[deploy-val] failed:', err.message || err)
+        process.exit(1)
+      })
+      break
     default:
       console.error(
         'Usage:\n' +
           '  pnpm walkthrough [--refresh] generate <walkthrough.json>\n' +
-          '  pnpm walkthrough serve [--port=8080]',
+          '  pnpm walkthrough serve [--port=8080]\n' +
+          '  pnpm walkthrough deploy-val [--name=<valname>]',
       )
       process.exit(1)
   }
 }
 
 main()
+
+/* ------------------------------------------------------------------ */
+/*  Val Town deploy                                                     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Deploy our val (val/*.ts) to Val Town. Uploads our source files
+ * (index.ts, crypto.ts, validate.ts, email-template.ts), not
+ * meander's. On success, prints the public val URL — paste that into
+ * walkthrough.json's commentBackend field.
+ *
+ * Reads VALTOWN_TOKEN from the environment (via .env.local or shell).
+ * Propagates other relevant env vars as val secrets.
+ */
+async function deployVal(args: readonly string[]): Promise<void> {
+  const envFile = path.join(repoRoot, '.env.local')
+  if (existsSync(envFile)) {
+    loadDotEnv(envFile)
+  }
+
+  const token = process.env['VALTOWN_TOKEN']
+  if (!token) {
+    throw new Error(
+      'VALTOWN_TOKEN must be set (in .env.local or exported in shell)',
+    )
+  }
+
+  const nameArg = args.find(a => a.startsWith('--name='))
+  const valName = nameArg
+    ? nameArg.slice('--name='.length)
+    : 'socketWalkthrough'
+
+  const API = 'https://api.val.town'
+  const authHeader = { Authorization: `Bearer ${token}` }
+
+  const meRes = await fetch(`${API}/v1/me`, { headers: authHeader })
+  if (!meRes.ok) {
+    throw new Error(`GET /v1/me failed: ${meRes.status} ${await meRes.text()}`)
+  }
+  const me = (await meRes.json()) as { username?: string }
+  const username = me.username
+  if (!username) {
+    throw new Error('Val Town API returned no username')
+  }
+  console.log(`Logged in as: ${username}`)
+
+  // Find existing val by name via /me/vals. Alias endpoint uses a
+  // lowercased slug form that doesn't always match how Val Town stores
+  // the canonical name, so /me/vals is more reliable.
+  let valId: string | null = null
+  const listRes = await fetch(`${API}/v2/me/vals?limit=100`, {
+    headers: authHeader,
+  })
+  if (listRes.ok) {
+    const list = (await listRes.json()) as {
+      data?: Array<{ id: string; name: string }>
+    }
+    const match = list.data?.find(
+      v => v.name === valName || v.name.toLowerCase() === valName.toLowerCase(),
+    )
+    if (match) {
+      valId = match.id
+      console.log(`Found existing val: ${valId} (name: ${match.name})`)
+    }
+  }
+
+  if (!valId) {
+    console.log(`Creating new val "${valName}"...`)
+    const createRes = await fetch(`${API}/v2/vals`, {
+      method: 'POST',
+      headers: { ...authHeader, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name: valName,
+        privacy: 'unlisted',
+        description: 'Socket walkthrough comment backend',
+      }),
+    })
+    if (!createRes.ok) {
+      throw new Error(
+        `POST /v2/vals failed: ${createRes.status} ${await createRes.text()}`,
+      )
+    }
+    const created = (await createRes.json()) as { id: string }
+    valId = created.id
+    console.log(`Created val: ${valId}`)
+  }
+
+  const files: Array<{ path: string; type: 'http' | 'script' }> = [
+    { path: 'index.ts', type: 'http' },
+    { path: 'crypto.ts', type: 'script' },
+    { path: 'validate.ts', type: 'script' },
+    { path: 'email-template.ts', type: 'script' },
+  ]
+  for (const f of files) {
+    const srcPath = path.join(repoRoot, 'val', f.path)
+    if (!existsSync(srcPath)) {
+      throw new Error(`missing val source: ${srcPath}`)
+    }
+    const content = readFileSync(srcPath, 'utf8')
+    // Val Town's file API wants `path` in the querystring; body carries
+    // only content + type. PUT for updates, POST for creates.
+    const qs = `?path=${encodeURIComponent(f.path)}`
+    const updateRes = await fetch(`${API}/v2/vals/${valId}/files${qs}`, {
+      method: 'PUT',
+      headers: { ...authHeader, 'content-type': 'application/json' },
+      body: JSON.stringify({ content, type: f.type }),
+    })
+    if (updateRes.ok) {
+      console.log(`  Updated ${f.path}`)
+      continue
+    }
+    const createRes = await fetch(`${API}/v2/vals/${valId}/files${qs}`, {
+      method: 'POST',
+      headers: { ...authHeader, 'content-type': 'application/json' },
+      body: JSON.stringify({ content, type: f.type }),
+    })
+    if (!createRes.ok) {
+      throw new Error(
+        `upload ${f.path} failed: ${createRes.status} ${await createRes.text()}`,
+      )
+    }
+    console.log(`  Created ${f.path}`)
+  }
+
+  const envVars: Array<[string, string | undefined]> = [
+    ['JWT_SIGNING_KEY', process.env['JWT_SIGNING_KEY']],
+    ['ALLOWED_EMAIL_DOMAIN', process.env['ALLOWED_EMAIL_DOMAIN']],
+    ['ALLOWED_ORIGINS_PROD', process.env['ALLOWED_ORIGINS_PROD']],
+    ['ALLOWED_ORIGINS_DEV', process.env['ALLOWED_ORIGINS_DEV']],
+    ['TRUSTED_PROXY_HOPS', process.env['TRUSTED_PROXY_HOPS']],
+    ['NODE_ENV', process.env['NODE_ENV']],
+  ]
+  for (const [key, value] of envVars) {
+    if (!value) {
+      continue
+    }
+    const putRes = await fetch(
+      `${API}/v2/vals/${valId}/environment_variables/${encodeURIComponent(key)}`,
+      {
+        method: 'PUT',
+        headers: { ...authHeader, 'content-type': 'application/json' },
+        body: JSON.stringify({ value }),
+      },
+    )
+    if (putRes.ok) {
+      console.log(`  Set env ${key}`)
+      continue
+    }
+    const postRes = await fetch(
+      `${API}/v2/vals/${valId}/environment_variables`,
+      {
+        method: 'POST',
+        headers: { ...authHeader, 'content-type': 'application/json' },
+        body: JSON.stringify({ key, value }),
+      },
+    )
+    if (!postRes.ok) {
+      throw new Error(
+        `env ${key} failed: ${postRes.status} ${await postRes.text()}`,
+      )
+    }
+    console.log(`  Created env ${key}`)
+  }
+
+  // Fetch the HTTP endpoint URL from Val Town — the file-id-based
+  // hostname is what actually routes, not the friendly name.
+  const fileRes = await fetch(`${API}/v2/vals/${valId}/files?path=index.ts`, {
+    headers: authHeader,
+  })
+  let publicUrl = `https://${username}-${valName.toLowerCase()}.web.val.run`
+  if (fileRes.ok) {
+    const fileList = (await fileRes.json()) as {
+      data?: Array<{ links?: { endpoint?: string } }>
+    }
+    const endpoint = fileList.data?.[0]?.links?.endpoint
+    if (endpoint) {
+      publicUrl = endpoint
+    }
+  }
+  console.log('')
+  console.log(`Deployed. Public URL:  ${publicUrl}`)
+  console.log(`Val ID:                ${valId}`)
+  console.log('')
+  console.log(`Update walkthrough.json: "commentBackend": "${publicUrl}"`)
+}
+
+/**
+ * Minimal .env parser — handles KEY=VALUE lines, # comments, and
+ * surrounding quotes. Does not handle multi-line or escape sequences;
+ * for our use case (a few API tokens), that's fine.
+ */
+function loadDotEnv(filePath: string): void {
+  const text = readFileSync(filePath, 'utf8')
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim()
+    if (!line || line.startsWith('#')) {
+      continue
+    }
+    const eq = line.indexOf('=')
+    if (eq === -1) {
+      continue
+    }
+    const key = line.slice(0, eq).trim()
+    let value = line.slice(eq + 1).trim()
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1)
+    }
+    if (key && !(key in process.env)) {
+      process.env[key] = value
+    }
+  }
+}
