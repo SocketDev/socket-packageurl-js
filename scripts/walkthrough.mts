@@ -307,11 +307,17 @@ async function generate(
       html = html.replace('</head>', `  ${preloadTags}\n</head>`)
     }
 
-    // Inject our scripts once (idempotent).
-    if (!html.includes('walkthrough-drag.js')) {
+    // Inject our scripts once (idempotent). Use the `<script src=`
+    // marker rather than bare filename — the preload tags injected
+    // earlier ALSO contain "walkthrough-drag.js" / "walkthrough-comments.js",
+    // so a filename-only check false-positives and skips script injection.
+    if (!html.includes('<script src="/walkthrough-drag.js"')) {
       html = html.replace('</body>', `  ${dragTag}\n</body>`)
     }
-    if (commentBackend && !html.includes('walkthrough-comments.js')) {
+    if (
+      commentBackend &&
+      !html.includes('<script src="/walkthrough-comments.js"')
+    ) {
       html = html.replace(
         '</body>',
         `  ${configTag}\n  ${commentsTag}\n</body>`,
