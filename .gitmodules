@@ -1,5 +1,5 @@
 # meander-1.3.0
-[submodule "vendor/meander"]
-	path = vendor/meander
+[submodule "upstream/meander"]
+	path = upstream/meander
 	url = https://github.com/divmain/meander.git
 	ignore = dirty

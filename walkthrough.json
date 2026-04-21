@@ -1,6 +1,7 @@
 {
   "slug": "socket-packageurl-js",
   "title": "Socket PackageURL.js Walkthrough",
+  "commentBackend": "https://jdalton-socketwalkthrough.web.val.run",
   "parts": [
     {
       "id": 1,

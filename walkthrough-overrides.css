@@ -352,3 +352,383 @@ body.col-resizing {
   background: transparent;
   border-right: 1px solid var(--rule);
 }
+
+/* ── Comment UI (replaces meander's inlined comment scripts) ──────── */
+
+body.wt-backend-offline .wt-export-btn,
+body.wt-backend-offline .wt-unresolved-btn,
+body.wt-backend-offline .wt-indicator,
+body.wt-backend-offline .wt-thread,
+body.wt-backend-offline .wt-selection-popover,
+body.wt-backend-offline .wt-comment-form {
+  display: none !important;
+}
+
+/* Topbar buttons — match .theme-toggle / .export-btn styling (already
+ * defined earlier in this file). The new buttons inherit the same
+ * .export-btn style from meander via the class name. */
+.wt-export-btn,
+.wt-unresolved-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 8px;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+.wt-export-btn:hover,
+.wt-unresolved-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.wt-unresolved-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: 999px;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  font-weight: 600;
+}
+.wt-unresolved-badge:empty {
+  display: none;
+}
+
+/* Inline indicator dot in line-number gutter. */
+.wt-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.wt-indicator-open {
+  background: #eab308;
+}
+
+/* Selected line highlight. */
+tr.wt-selected .line-code,
+tr.wt-selected-range .line-code {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+tr.wt-selected .line-num {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Floating selection popover. */
+.wt-selection-popover {
+  z-index: 100;
+  background: var(--prose-bg);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 6px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+}
+.wt-sel-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Comment thread inside code table — spans both columns. */
+.wt-thread {
+  margin: 8px 0;
+  padding: 12px;
+  background: var(--prose-bg);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  max-width: 720px;
+}
+.wt-comment {
+  padding: 8px 0;
+}
+.wt-comment + .wt-comment {
+  border-top: 1px solid var(--rule);
+}
+.wt-comment.wt-reply {
+  margin-left: 24px;
+  padding-left: 12px;
+  border-left: 2px solid var(--rule);
+}
+.wt-comment.wt-resolved {
+  opacity: 0.6;
+}
+.wt-comment-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.wt-comment-meta strong {
+  color: var(--prose-text);
+}
+.wt-comment-body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--prose-text);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.wt-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.wt-actions {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+}
+.wt-reply-btn {
+  margin-top: 8px;
+}
+
+/* Buttons shared by modal, selection popover, comment form. */
+.wt-primary,
+.wt-secondary,
+.wt-danger {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease;
+}
+.wt-primary {
+  background: var(--accent);
+  color: #ffffff;
+}
+.wt-primary:hover {
+  filter: brightness(1.05);
+}
+.wt-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.wt-secondary {
+  background: transparent;
+  border-color: var(--rule);
+  color: var(--prose-text);
+}
+.wt-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.wt-danger {
+  background: transparent;
+  border-color: #e5484d;
+  color: #e5484d;
+}
+.wt-danger:hover {
+  background: color-mix(in srgb, #e5484d 10%, transparent);
+}
+
+/* Inline comment form (shown next to selected lines). */
+.wt-comment-form {
+  margin: 8px 0;
+  padding: 12px;
+  background: var(--prose-bg);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wt-comment-header {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.wt-comment-header strong {
+  color: var(--prose-text);
+  font-family: var(
+    --mono,
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace
+  );
+}
+.wt-textarea {
+  min-height: 80px;
+  font-family: inherit;
+  font-size: 14px;
+}
+.wt-row {
+  display: flex;
+  gap: 8px;
+}
+
+/* Modal for auth flow. */
+.wt-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.wt-modal {
+  background: var(--prose-bg);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+.wt-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.wt-modal-close:hover {
+  background: color-mix(in srgb, var(--rule) 50%, transparent);
+  color: var(--prose-text);
+}
+.wt-modal-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: var(--prose-text);
+}
+.wt-modal-sub {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.wt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wt-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--prose-text);
+}
+.wt-input {
+  appearance: none;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 14px;
+  background: var(--prose-bg);
+  color: var(--prose-text);
+}
+.wt-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+  border-color: var(--accent);
+}
+.wt-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 18px;
+  letter-spacing: 0.2em;
+  text-align: center;
+}
+.wt-error {
+  margin: 0;
+  min-height: 1em;
+  font-size: 13px;
+  color: #e5484d;
+}
+
+/* Dropdowns (export, unresolved). */
+.wt-dropdown {
+  background: var(--prose-bg);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  min-width: 260px;
+  max-width: 400px;
+  max-height: 50vh;
+  overflow-y: auto;
+  z-index: 100;
+  padding: 4px;
+}
+.wt-dropdown-item {
+  display: block;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--prose-text);
+  text-align: left;
+  text-decoration: none;
+  font-size: 13px;
+  width: 100%;
+  cursor: pointer;
+}
+.wt-dropdown-item:hover {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.wt-dropdown-empty {
+  padding: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.wt-dropdown-where {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  margin-top: 2px;
+}
+.wt-dropdown-excerpt {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

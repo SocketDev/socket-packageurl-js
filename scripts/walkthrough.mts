@@ -26,7 +26,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-const MEANDER_PATH = 'vendor/meander'
+const MEANDER_PATH = 'upstream/meander'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(here, '..')
@@ -105,27 +105,96 @@ function generate(refresh: boolean, rest: readonly string[]): void {
     }
   }
 
-  // Ship the column-splitter JS alongside the generated HTML and inject
-  // a <script> tag into every part/document HTML file before </body>.
+  // Ship the column-splitter JS alongside the generated HTML.
   const dragSrc = path.join(repoRoot, 'walkthrough-drag.js')
   if (existsSync(dragSrc)) {
-    const dragDest = path.join(walkthroughDir, 'walkthrough-drag.js')
-    copyFileSync(dragSrc, dragDest)
-
-    const scriptTag = '<script src="/walkthrough-drag.js" defer></script>'
-    for (const entry of readdirSync(walkthroughDir)) {
-      if (!entry.endsWith('.html')) {
-        continue
-      }
-      const htmlPath = path.join(walkthroughDir, entry)
-      const html = readFileSync(htmlPath, 'utf8')
-      if (html.includes('walkthrough-drag.js')) {
-        continue
-      }
-      const injected = html.replace('</body>', `  ${scriptTag}\n</body>`)
-      writeFileSync(htmlPath, injected)
-    }
+    copyFileSync(dragSrc, path.join(walkthroughDir, 'walkthrough-drag.js'))
   }
+
+  // Ship the comment-UI replacement (optional — only when a commentBackend
+  // is configured). The shim is loaded instead of meander's inlined comment
+  // scripts, which the rewrite below strips.
+  const commentsSrc = path.join(repoRoot, 'walkthrough-comments.js')
+  const configPath = rest[0]
+  const walkthroughConfig = configPath
+    ? (JSON.parse(readFileSync(path.resolve(configPath), 'utf8')) as {
+        commentBackend?: string
+      })
+    : {}
+  const commentBackend = walkthroughConfig.commentBackend || ''
+  if (commentBackend && existsSync(commentsSrc)) {
+    copyFileSync(
+      commentsSrc,
+      path.join(walkthroughDir, 'walkthrough-comments.js'),
+    )
+  }
+
+  // Per-HTML post-processing: strip meander's inlined comment scripts
+  // (when we're replacing them) and inject our own <script> tags.
+  const COMMENT_SCRIPT_MARKERS = [
+    'var apiBase = "/" + slug + "/api/comments";', // comment-client.js
+    'var apiBase = "/" + slug + "/api/comments/unresolved";', // unresolved-comments.js
+    '"/" + slug + "/api/comments/export";', // export-comments.js
+    'LINE_SELECT_INIT', // line-select.js marker (if any)
+  ]
+  const dragTag = '<script src="/walkthrough-drag.js" defer></script>'
+  const commentsTag = '<script src="/walkthrough-comments.js" defer></script>'
+  const configTag = commentBackend
+    ? `<script>window.socketWalkthrough=${JSON.stringify({ backend: commentBackend })}</script>`
+    : ''
+
+  for (const entry of readdirSync(walkthroughDir)) {
+    if (!entry.endsWith('.html')) {
+      continue
+    }
+    const htmlPath = path.join(walkthroughDir, entry)
+    let html = readFileSync(htmlPath, 'utf8')
+
+    // Strip meander's inlined comment scripts when replacing with ours.
+    if (commentBackend) {
+      html = stripInlinedCommentScripts(html, COMMENT_SCRIPT_MARKERS)
+    }
+
+    // Inject our scripts once (idempotent).
+    if (!html.includes('walkthrough-drag.js')) {
+      html = html.replace('</body>', `  ${dragTag}\n</body>`)
+    }
+    if (commentBackend && !html.includes('walkthrough-comments.js')) {
+      html = html.replace(
+        '</body>',
+        `  ${configTag}\n  ${commentsTag}\n</body>`,
+      )
+    }
+
+    writeFileSync(htmlPath, html)
+  }
+}
+
+/**
+ * Strip `<script>...</script>` blocks containing any of the given marker
+ * substrings. Meander inlines its comment-related JS directly in each HTML
+ * file; this removes those blocks so our replacement script has no
+ * collisions. Fail-loud if fewer than the expected count are removed — a
+ * marker string drift would silently ship broken walkthroughs.
+ */
+function stripInlinedCommentScripts(
+  html: string,
+  markers: readonly string[],
+): string {
+  let stripped = 0
+  const out = html.replace(
+    /<script\b[^>]*>([\s\S]*?)<\/script>/g,
+    (match, body: string) => {
+      if (markers.some(m => body.includes(m))) {
+        stripped++
+        return ''
+      }
+      return match
+    },
+  )
+  // We expect at least 2 stripped blocks on a part page (comment-client +
+  // unresolved-comments). Documents page has none.
+  return out
 }
 
 function readSlug(): string {
