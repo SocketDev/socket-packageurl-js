@@ -1,0 +1,67 @@
+{
+  "$schema": "https://raw.githubusercontent.com/SocketDev/socket-btm/main/packages/build-infra/lib/external-tools-schema.json",
+  "description": "External tools the walkthrough runner may shell out to. All are optional — missing tools produce friendly fallback paths. `pnpm walkthrough doctor` reports which are present / absent and how to install each.",
+  "tools": {
+    "git": {
+      "description": "Git CLI — submodule init for vendored meander, commit history.",
+      "version": "2.30+",
+      "notes": [
+        "Required: yes (all platforms)",
+        "Preinstalled on macOS (Xcode CLT) and most Linux distros",
+        "Windows: https://git-scm.com/download/win or via winget/scoop"
+      ]
+    },
+    "node": {
+      "description": "Node.js — runs the walkthrough scripts and val tests.",
+      "version": "22+",
+      "notes": [
+        "Required: yes",
+        "Uses built-in TypeScript stripping (Node 22+ --experimental-strip-types; Node 23+ default)",
+        "Install via volta / nvm / fnm / official installer"
+      ]
+    },
+    "pnpm": {
+      "description": "pnpm — package manager used repo-wide.",
+      "version": "9+",
+      "notes": [
+        "Required: yes",
+        "Install via `corepack enable pnpm` or `npm install -g pnpm`"
+      ]
+    },
+    "openssl": {
+      "description": "openssl CLI — used by `pnpm walkthrough token set` to generate JWT signing keys (`openssl rand -base64 32`).",
+      "notes": [
+        "Required: only when rotating JWT_SIGNING_KEY locally",
+        "macOS: preinstalled (LibreSSL) or `brew install openssl`",
+        "Linux: preinstalled or `apt install openssl` / `dnf install openssl`",
+        "Windows: via Git-for-Windows, WSL, or standalone installer"
+      ]
+    },
+    "security": {
+      "description": "macOS Keychain CLI — stores the Val Town API token outside any file.",
+      "notes": [
+        "Required: only when using Keychain storage on macOS",
+        "macOS: preinstalled",
+        "Linux / Windows: use `secret-tool` / `cmdkey` respectively (see below) or fall back to VALTOWN_TOKEN env var"
+      ]
+    },
+    "secret-tool": {
+      "description": "Linux libsecret CLI — stores the Val Town API token in the GNOME Keyring / KWallet.",
+      "notes": [
+        "Required: only when using Keychain-like storage on Linux",
+        "Debian/Ubuntu: `apt install libsecret-tools`",
+        "Fedora: `dnf install libsecret`",
+        "Arch: `pacman -S libsecret`",
+        "Fallback: VALTOWN_TOKEN env var via .env.local or shell"
+      ]
+    },
+    "cmdkey": {
+      "description": "Windows Credential Manager CLI — stores the Val Town API token in Windows Credential Manager.",
+      "notes": [
+        "Required: only on Windows when using Credential Manager storage",
+        "Preinstalled on Windows 7+",
+        "cmdkey can store / delete but cannot echo a password back to stdout without a PowerShell credential helper; practical Windows workflow is VALTOWN_TOKEN via .env.local"
+      ]
+    }
+  }
+}

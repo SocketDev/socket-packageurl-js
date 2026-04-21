@@ -165,6 +165,15 @@ function generate(refresh: boolean, rest: readonly string[]): void {
     '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />',
     '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
   ].join('\n  ')
+  // Socket tagline footer — matches the format used on socket.dev
+  // marketing pages. "⚡️" is rendered as an emoji (single char) so
+  // it inherits text color at small sizes; wrapping in a <span>
+  // lets CSS ship a small nudge if we need it later.
+  const footerTag = [
+    '<footer class="wt-socket-footer">',
+    '  <span>Made with <span class="wt-footer-bolt" aria-hidden="true">⚡️</span> by Socket Inc</span>',
+    '</footer>',
+  ].join('\n  ')
 
   for (const entry of readdirSync(walkthroughDir)) {
     if (!entry.endsWith('.html')) {
@@ -192,6 +201,12 @@ function generate(refresh: boolean, rest: readonly string[]): void {
         '</body>',
         `  ${configTag}\n  ${commentsTag}\n</body>`,
       )
+    }
+
+    // Socket tagline footer, injected once before </body>. Idempotent
+    // via the wt-socket-footer class marker.
+    if (!html.includes('wt-socket-footer')) {
+      html = html.replace('</body>', `  ${footerTag}\n</body>`)
     }
 
     writeFileSync(htmlPath, html)
@@ -328,18 +343,30 @@ function main(): void {
         process.exit(1)
       })
       break
+    case 'token':
+      tokenCli(rest.slice(1)).catch(err => {
+        console.error('[token] failed:', err.message || err)
+        process.exit(1)
+      })
+      break
+    case 'doctor':
+      doctor().catch(err => {
+        console.error('[doctor] failed:', err.message || err)
+        process.exit(1)
+      })
+      break
     default:
       console.error(
         'Usage:\n' +
           '  pnpm walkthrough [--refresh] generate <walkthrough.json>\n' +
           '  pnpm walkthrough serve [--port=8080]\n' +
-          '  pnpm walkthrough deploy-val [--name=<valname>]',
+          '  pnpm walkthrough deploy-val [--name=<valname>]\n' +
+          '  pnpm walkthrough token <set|clear|status>\n' +
+          '  pnpm walkthrough doctor',
       )
       process.exit(1)
   }
 }
-
-main()
 
 /* ------------------------------------------------------------------ */
 /*  Val Town deploy                                                     */
@@ -351,8 +378,14 @@ main()
  * meander's. On success, prints the public val URL — paste that into
  * walkthrough.json's commentBackend field.
  *
- * Reads VALTOWN_TOKEN from the environment (via .env.local or shell).
- * Propagates other relevant env vars as val secrets.
+ * Resolves VALTOWN_TOKEN via:
+ *   1. macOS Keychain (service: socket-walkthrough-valtown)
+ *   2. VALTOWN_TOKEN env var
+ *   3. .env.local VALTOWN_TOKEN entry
+ *
+ * Other val secrets (JWT_SIGNING_KEY, ALLOWED_EMAIL_DOMAIN, …) still
+ * come from .env.local / env — those aren't Val Town API creds and
+ * are safe to leave in .env.local.
  */
 async function deployVal(args: readonly string[]): Promise<void> {
   const envFile = path.join(repoRoot, '.env.local')
@@ -360,10 +393,10 @@ async function deployVal(args: readonly string[]): Promise<void> {
     loadDotEnv(envFile)
   }
 
-  const token = process.env['VALTOWN_TOKEN']
+  const token = resolveValTownToken()
   if (!token) {
     throw new Error(
-      'VALTOWN_TOKEN must be set (in .env.local or exported in shell)',
+      'VALTOWN_TOKEN not found. Run `pnpm walkthrough token set` to store one in the macOS Keychain (recommended), or set VALTOWN_TOKEN in .env.local / the environment.',
     )
   }
 
@@ -375,6 +408,12 @@ async function deployVal(args: readonly string[]): Promise<void> {
 
   const meRes = await fetch(`${API}/v1/me`, { headers: authHeader })
   if (!meRes.ok) {
+    if (meRes.status === 401) {
+      throw new Error(
+        'stored VALTOWN_TOKEN is unauthorized — token was rotated or revoked. ' +
+          'Run `pnpm walkthrough token set` to store a fresh one.',
+      )
+    }
     throw new Error(`GET /v1/me failed: ${meRes.status} ${await meRes.text()}`)
   }
   const me = (await meRes.json()) as { username?: string }
@@ -569,3 +608,389 @@ function loadDotEnv(filePath: string): void {
     }
   }
 }
+
+/* ------------------------------------------------------------------ */
+/*  VALTOWN_TOKEN resolution + management                              */
+/* ------------------------------------------------------------------ */
+
+// Token is stored via `git credential` — Git's built-in cross-platform
+// credential protocol. Works on macOS (osxkeychain helper), Linux
+// (libsecret / cache / store), and Windows (Git Credential Manager).
+// We use a fake host to namespace our secret.
+const CRED_PROTOCOL = 'https'
+const CRED_HOST = 'socket-walkthrough-valtown.internal'
+const CRED_URL = `${CRED_PROTOCOL}://${CRED_HOST}`
+
+/**
+ * Resolve the Val Town API token via git-credential → env → .env.local.
+ *
+ * git-credential delegates to whatever credential.helper the user has
+ * configured (osxkeychain, libsecret, wincred/GCM, …) so storage is
+ * always the OS-native secret store — we don't shell out to
+ * platform-specific CLIs. Every platform uses the identical commands.
+ *
+ * Returns empty string when nothing is found so callers can give a
+ * purpose-specific error message.
+ */
+function resolveValTownToken(): string {
+  const fromStore = gitCredentialRead()
+  if (fromStore) {
+    return fromStore
+  }
+  return process.env['VALTOWN_TOKEN'] || ''
+}
+
+/**
+ * Read a credential via `git credential fill`. Returns the password,
+ * or empty string when no credential is stored (or git errors out).
+ */
+function gitCredentialRead(): string {
+  try {
+    // Input is the credential "description" (protocol+host). Output is
+    // a set of key=value lines including `password=<token>`. Git will
+    // consult every configured helper and fall through silently when
+    // none returns a match.
+    const out = execFileSync('git', ['credential', 'fill'], {
+      input: `protocol=${CRED_PROTOCOL}\nhost=${CRED_HOST}\n\n`,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'ignore'],
+      timeout: 5000,
+    }).toString()
+    const m = out.match(/^password=(.*)$/m)
+    return m ? m[1].trim() : ''
+  } catch {
+    return ''
+  }
+}
+
+/**
+ * Store a credential via `git credential approve`. Git routes it to
+ * the first configured helper; absent a helper, this is a no-op
+ * (and we warn elsewhere).
+ */
+function gitCredentialWrite(token: string): void {
+  execFileSync('git', ['credential', 'approve'], {
+    input: `protocol=${CRED_PROTOCOL}\nhost=${CRED_HOST}\nusername=walkthrough\npassword=${token}\n\n`,
+    stdio: ['pipe', 'ignore', 'ignore'],
+    timeout: 5000,
+  })
+}
+
+/**
+ * Delete a credential via `git credential reject`. Must include the
+ * same username we wrote with, otherwise the helper won't match the
+ * entry (tested on osxkeychain — see git-credential(1)). Safe to call
+ * when no credential exists.
+ */
+function gitCredentialClear(): void {
+  try {
+    execFileSync('git', ['credential', 'reject'], {
+      input: `protocol=${CRED_PROTOCOL}\nhost=${CRED_HOST}\nusername=walkthrough\n\n`,
+      stdio: ['pipe', 'ignore', 'ignore'],
+      timeout: 5000,
+    })
+  } catch {
+    /* no-op */
+  }
+}
+
+/**
+ * Report which credential helper(s) git has configured, so the user
+ * knows where the token will actually end up. No helper means
+ * git-credential silently succeeds but stores nothing, which is a
+ * foot-gun worth flagging up-front.
+ */
+function describeCredentialHelper(): string {
+  try {
+    const helpers = execFileSync(
+      'git',
+      ['config', '--get-all', 'credential.helper'],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] },
+    )
+      .toString()
+      .trim()
+      .split('\n')
+      .filter(Boolean)
+    if (helpers.length === 0) {
+      return 'no credential.helper configured'
+    }
+    return helpers.join(', ')
+  } catch {
+    return 'no credential.helper configured'
+  }
+}
+
+/**
+ * `pnpm walkthrough token <set|clear|status>` — manage the Val Town
+ * API token in the macOS Keychain.
+ *
+ *   set    — prompts for a token on stdin (not shown in terminal,
+ *            not stored in shell history), stores it in Keychain
+ *            under service "socket-walkthrough-valtown".
+ *   clear  — deletes the Keychain entry.
+ *   status — reports which resolution source will be used next time
+ *            a deploy runs.
+ */
+async function tokenCli(args: readonly string[]): Promise<void> {
+  const sub = args[0] ?? 'status'
+
+  if (sub === 'status') {
+    const envFile = path.join(repoRoot, '.env.local')
+    if (existsSync(envFile)) {
+      loadDotEnv(envFile)
+    }
+    let source = 'none'
+    let hasToken = false
+    if (gitCredentialRead()) {
+      source = `git credential helper — ${describeCredentialHelper()}`
+      hasToken = true
+    }
+    if (!hasToken && process.env['VALTOWN_TOKEN']) {
+      source = 'VALTOWN_TOKEN env var (from shell or .env.local)'
+      hasToken = true
+    }
+    console.log(`Platform:     ${process.platform} (${process.arch})`)
+    console.log(`Token source: ${source}`)
+    if (!hasToken) {
+      console.log('')
+      console.log('To store one (recommended):')
+      console.log('  pnpm walkthrough token set')
+    }
+    return
+  }
+
+  if (sub === 'set') {
+    // Reject positional arg; tokens on the command line leak into
+    // shell history, process listings, and any terminal transcript
+    // this session is captured in.
+    if (args.length > 1) {
+      throw new Error(
+        'do not pass the token as an argument — that leaks it into shell history.\n' +
+          'Run `pnpm walkthrough token set` with no args and paste when prompted,\n' +
+          'or pipe the token on stdin (e.g. `pbpaste | pnpm walkthrough token set`).\n' +
+          'If the token value was visible anywhere, rotate it at https://val.town/settings/api.',
+      )
+    }
+
+    // Sanity check: a user with no credential.helper configured would
+    // see `git credential approve` silently swallow the secret. Warn.
+    const helper = describeCredentialHelper()
+    if (helper === 'no credential.helper configured') {
+      throw new Error(
+        'git has no credential.helper configured. Install one first:\n' +
+          '  macOS:   git config --global credential.helper osxkeychain\n' +
+          '  Linux:   git config --global credential.helper libsecret   (needs apt install libsecret-tools)\n' +
+          '          or `cache` / `store` if you have no desktop secret service\n' +
+          '  Windows: Git for Windows bundles Git Credential Manager — no setup needed',
+      )
+    }
+
+    const token = await readTokenFromStdin()
+    if (!token) {
+      throw new Error(
+        'no token received on stdin — nothing stored.\n' +
+          '\n' +
+          'Three ways to provide a token:\n' +
+          '  1. From an interactive terminal (preferred):\n' +
+          '       pnpm walkthrough token set\n' +
+          '     then paste the token at the prompt and press Enter.\n' +
+          "     NOTE: Claude Code's `!` shell prefix does not attach a TTY,\n" +
+          "     so the prompt can't read input — run this in your OWN terminal.\n" +
+          '\n' +
+          "  2. Piped from clipboard (works inside Claude's `!` prefix):\n" +
+          '       pbpaste | pnpm walkthrough token set       (macOS)\n' +
+          '       xclip -selection clipboard -o | pnpm walkthrough token set   (Linux)\n' +
+          '       Get-Clipboard | pnpm walkthrough token set (Windows PowerShell)\n' +
+          '\n' +
+          '  3. Piped from a file (short-lived):\n' +
+          '       cat /path/to/token.txt | pnpm walkthrough token set\n' +
+          '       shred -u /path/to/token.txt   # remove it afterwards\n' +
+          '\n' +
+          'Do NOT pass the token as a command-line argument — it leaks\n' +
+          'into shell history and process listings.',
+      )
+    }
+    gitCredentialWrite(token)
+    console.log(`Stored via: ${helper}`)
+    console.log('To verify: `pnpm walkthrough token status`.')
+    return
+  }
+
+  if (sub === 'clear') {
+    gitCredentialClear()
+    console.log('Cleared (if present) via git credential reject.')
+    return
+  }
+
+  throw new Error(`Unknown subcommand: ${sub} (use set|clear|status)`)
+}
+
+/**
+ * Read a token from stdin without echoing to the terminal. When stdin
+ * is a TTY we flip the terminal to non-echo raw mode so the paste is
+ * invisible; when piped (tests, scripts) we just read the line.
+ */
+async function readTokenFromStdin(): Promise<string> {
+  const stdin = process.stdin
+  const isTty = stdin.isTTY === true
+
+  if (!isTty) {
+    // Piped input — read everything and strip trailing newlines.
+    return await new Promise<string>(resolve => {
+      let buf = ''
+      stdin.setEncoding('utf8')
+      stdin.on('data', chunk => {
+        buf += chunk
+      })
+      stdin.on('end', () => resolve(buf.trim()))
+    })
+  }
+
+  process.stdout.write('Paste your Val Town token and press Enter: ')
+  stdin.setRawMode(true)
+  stdin.setEncoding('utf8')
+
+  return await new Promise<string>(resolve => {
+    let buf = ''
+    const onData = (chunk: string) => {
+      for (const ch of chunk) {
+        // Enter = done; Ctrl-C = abort.
+        if (ch === '\r' || ch === '\n') {
+          stdin.setRawMode(false)
+          stdin.pause()
+          stdin.off('data', onData)
+          process.stdout.write('\n')
+          resolve(buf.trim())
+          return
+        }
+        // Ctrl-C — abort with the conventional exit code.
+        const code = ch.charCodeAt(0)
+        if (code === 3) {
+          stdin.setRawMode(false)
+          stdin.pause()
+          process.stdout.write('\n')
+          process.exit(130)
+        }
+        // Backspace (DEL 0x7f on most terminals, BS 0x08 elsewhere).
+        if (code === 0x7f || code === 0x08) {
+          if (buf.length > 0) {
+            buf = buf.slice(0, -1)
+          }
+          continue
+        }
+        buf += ch
+      }
+    }
+    stdin.on('data', onData)
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  External-tools doctor                                              */
+/* ------------------------------------------------------------------ */
+
+type ExternalTool = {
+  description?: string
+  version?: string
+  notes?: string | readonly string[]
+}
+
+type ExternalToolsManifest = {
+  description?: string
+  tools: Record<string, ExternalTool>
+}
+
+/**
+ * `pnpm walkthrough doctor` — reads external-tools.json and reports
+ * which listed CLIs are present on PATH. Human-friendly summary per
+ * tool: ✓ present / ✗ missing + install notes. Exits 0 regardless;
+ * all listed tools are treated as optional (the script itself falls
+ * back when a tool is absent).
+ */
+async function doctor(): Promise<void> {
+  const manifestPath = path.join(repoRoot, 'external-tools.json')
+  if (!existsSync(manifestPath)) {
+    console.log('No external-tools.json found — skipping.')
+    return
+  }
+  const manifest = JSON.parse(
+    readFileSync(manifestPath, 'utf8'),
+  ) as ExternalToolsManifest
+
+  console.log(`Platform: ${process.platform} (${process.arch})`)
+  console.log('')
+
+  const entries = Object.entries(manifest.tools)
+  const present: string[] = []
+  const missing: Array<[string, ExternalTool]> = []
+
+  for (const [name, tool] of entries) {
+    if (isOnPath(name)) {
+      present.push(name)
+    } else {
+      missing.push([name, tool])
+    }
+  }
+
+  for (const name of present) {
+    const tool = manifest.tools[name]
+    console.log(`  ✓ ${name}${tool.version ? ` (need ${tool.version})` : ''}`)
+  }
+
+  if (missing.length === 0) {
+    console.log('')
+    console.log('All listed tools are on PATH.')
+    return
+  }
+
+  console.log('')
+  console.log('Missing (or not on PATH):')
+  for (const [name, tool] of missing) {
+    console.log(
+      `  ✗ ${name}${tool.description ? ` — ${tool.description}` : ''}`,
+    )
+    const notes = tool.notes
+    if (notes) {
+      const lines = Array.isArray(notes) ? notes : [notes]
+      for (const line of lines) {
+        console.log(`      ${line}`)
+      }
+    }
+  }
+  console.log('')
+  console.log(
+    'All listed tools are optional — the walkthrough script falls back when they are absent.',
+  )
+}
+
+function isOnPath(cmd: string): boolean {
+  // On Windows, `where` is a real binary and works with execFileSync.
+  // Elsewhere, `command -v` is a shell builtin, so spawn a shell and
+  // pass the command as the single argv (not split — avoids the
+  // DEP0190 warning about unescaped array args with shell:true).
+  try {
+    if (process.platform === 'win32') {
+      execFileSync('where', [cmd], {
+        stdio: ['ignore', 'ignore', 'ignore'],
+      })
+    } else {
+      // Escape cmd for the shell: allowlist alnum+dash+underscore+dot
+      // for tool names. Anything else and we refuse to probe.
+      if (!/^[A-Za-z0-9._-]+$/.test(cmd)) {
+        return false
+      }
+      execFileSync('sh', ['-c', `command -v ${cmd}`], {
+        stdio: ['ignore', 'ignore', 'ignore'],
+      })
+    }
+    return true
+  } catch {
+    return false
+  }
+}
+
+// Kick off the CLI. Kept at the bottom of the file so every helper
+// (including module-level consts in the token / credential sections)
+// is initialized before main() runs — otherwise the first call into
+// a helper that references a later-declared const hits a TDZ error.
+main()

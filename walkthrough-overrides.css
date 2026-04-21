@@ -27,8 +27,35 @@
   --code-text: #1f2328;
   --rule: #d0d7de;
   --eyebrow: #57606a;
-  --accent: #0969da;
+  /* Socket brand palette — lavender primary, Chakra `success` green
+   * (#38A169, matches the product check-icon glyph), rust red error
+   * (from the marketing-site CTA band). Soft variants are the
+   * subtler versions used for field borders; solid variants are for
+   * fills/text. */
+  /* #6b5fd5 = sampled from the Socket marketing Install button.
+   * Slightly cooler than Tailwind's 600 and more muted than 500 —
+   * the marketing button reads calm-confident, not neon. */
+  --accent: #6b5fd5;
+  --accent-soft: #a79af0;
+  --success: #38a169;
+  --success-soft: #9ae6b4;
+  --danger: #e53e3e;
+  --danger-soft: #feb2b2;
   --page-bg: #ffffff;
+  /* Muted lavender-gray pulled from the Socket marketing footer's
+   * "U.S. Patent No. …" secondary line. Ideal for fine-print, axis
+   * labels, timestamps, resolved badges — anything that wants to
+   * recede without disappearing. */
+  --muted-lavender: #9e92d4;
+
+  /* Paired hover tints. Prose side picks up a soft lavender tint;
+   * code side picks up a rust-orange tint — the two sit opposite
+   * each other on the Socket marketing gradient (lavender hero →
+   * rust CTA band), so a row hover reads as one continuous
+   * left-to-right brand wash. */
+  --highlight-prose: #efe8fe;
+  --highlight-code: #fbe7d9;
+  --rust: #b5522c;
 
   /* hljs tokens, light. */
   --hl-keyword: #cf222e;
@@ -53,8 +80,26 @@ html[data-theme='dark'] {
   --code-text: #e6edf3;
   --rule: #30363d;
   --eyebrow: #8b949e;
-  --accent: #539bf5;
+  /* Dark-mode Socket palette. Lift the light-mode #6b5fd5 just
+   * enough for contrast on #0d1117 without drifting into pink —
+   * #7c6ee0 keeps the true lavender hue at AA contrast for white
+   * button text. */
+  --accent: #7c6ee0;
+  --accent-soft: #9a8bec;
+  --success: #6ee7b7;
+  --success-soft: #a7f3d0;
+  --danger: #c14d42;
+  --danger-soft: #fca5a5;
   --page-bg: #0d1117;
+  /* Dark-mode muted lavender — lifted slightly for legibility on
+   * the near-black bg. */
+  --muted-lavender: #b5a8e5;
+
+  /* Dark-mode paired glows: lavender on the prose side, rust-amber
+   * on the code side — both darkened for legibility on #010409. */
+  --highlight-prose: #2a1f47;
+  --highlight-code: #3b2517;
+  --rust: #d97757;
 
   --hl-keyword: #ff7b72;
   --hl-string: #a5d6ff;
@@ -183,17 +228,48 @@ body.wt-ready .file-block {
 }
 
 /* ── Row hover ─────────────────────────────────────────────────────
- * Only the hovered cell tints. Tinting both halves read as one merged
- * block because the divider between them became low-contrast on the
- * tinted surface. Keeping the highlight local preserves the divider
- * and still communicates focus. */
+ * Only the hovered cell tints. Each side gets a subtle left-to-right
+ * gradient running the Socket brand wash (lavender → rust) — the two
+ * halves still read as distinct because each starts/ends at the split
+ * line with the opposite hue, so the gradient implies continuity
+ * across the splitter even when only one cell is actually hovered.
+ * Mixed over the resting surface so luminance stays stable. */
 .pair-grid > .annotation-card:hover,
 .file-grid > .annotation-card:hover {
-  background: color-mix(in srgb, var(--accent) 7%, var(--prose-bg));
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent) 10%, var(--prose-bg)),
+    color-mix(in srgb, var(--highlight-prose) 70%, var(--prose-bg))
+  );
 }
 .pair-grid > .code-section:hover,
 .file-grid > .code-section:hover {
-  background: color-mix(in srgb, var(--accent) 7%, var(--code-bg)) !important;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--highlight-code) 80%, var(--code-bg)),
+    color-mix(in srgb, var(--rust) 12%, var(--code-bg))
+  ) !important;
+}
+/* Dark-mode row hover — the light-mode mix ratios wash out against
+ * `#0d1117` / `#010409`. Boost the accent lift on both sides and use
+ * the full highlight-prose / highlight-code tokens (pre-darkened in
+ * the dark-theme block) as the destination stop so the gradient
+ * actually reads as a hover. */
+html[data-theme='dark'] .pair-grid > .annotation-card:hover,
+html[data-theme='dark'] .file-grid > .annotation-card:hover {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent) 22%, var(--prose-bg)),
+    var(--highlight-prose)
+  );
+}
+html[data-theme='dark'] .pair-grid > .code-section:hover,
+html[data-theme='dark'] .file-grid > .code-section:hover {
+  background: linear-gradient(
+    to right,
+    var(--highlight-code),
+    color-mix(in srgb, var(--rust) 28%, var(--code-bg))
+  ) !important;
 }
 
 /* ── Prose typography ──────────────────────────────────────────────
@@ -504,15 +580,111 @@ body.wt-ready .topbar-actions {
   opacity: 1;
 }
 
-/* ── Misc polish ───────────────────────────────────────────────────*/
+/* ── Topbar: Socket-brand purple band ──────────────────────────────
+ * Matches the docs.socket.dev header: deep lavender/purple surface
+ * with a thin white hairline and a purple edge — the same two-layer
+ * border used on the marketing site, so the walkthrough reads as
+ * part of the same brand system. White title/subtitle + muted
+ * secondary text for AA contrast on the purple fill. */
 .topbar {
   /* Reserve space on the right for the three peer action buttons
    * (theme toggle, download, show comments). */
   padding-right: 160px !important;
+  background: #4c1d95 !important;
+  color: #ffffff !important;
+  /* Layered bottom edge: 1px translucent-white rule sits directly on
+   * the purple band; 2px deeper-purple rule below anchors it to the
+   * page surface. box-shadow is used (rather than stacked borders)
+   * so the two rules paint as a single crisp 3px band without
+   * affecting layout height. */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: 0 2px 0 0 #2e1065;
 }
 .topbar h1 {
   letter-spacing: -0.01em;
   font-weight: 600;
+  color: #ffffff !important;
+}
+.topbar p,
+.topbar .subtitle {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+/* Topbar buttons (theme toggle, export, unresolved) need inverted
+ * chrome against the purple — transparent fill with a white-tinted
+ * hairline, muted-white icon color, and a lavender-tinted hover.
+ * Overrides the light-theme .theme-toggle / .wt-export-btn /
+ * .wt-unresolved-btn rules earlier in this file. */
+.topbar .theme-toggle,
+.topbar .wt-export-btn,
+.topbar .wt-unresolved-btn,
+.topbar .export-btn {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+.topbar .theme-toggle:hover,
+.topbar .wt-export-btn:hover,
+.topbar .wt-unresolved-btn:hover,
+.topbar .export-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  color: #ffffff !important;
+}
+.topbar .wt-unresolved-badge {
+  background: #ffffff;
+  color: #4c1d95;
+}
+/* Hide meander's inlined comment UI. Our shim mounts its own topbar
+ * buttons (`.wt-export-btn`, `.wt-unresolved-btn`) and inline
+ * composer (`.wt-selection-popover`, `.wt-comment-form`) with the
+ * same affordances plus auth-aware state + Socket styling — leaving
+ * the meander originals visible produces duplicate icons in the
+ * topbar and a floating "+ Comment" button on the right edge of
+ * every selected line. The meander scripts still run (harmless
+ * no-ops against our backend); only the rendered UI is hidden. */
+.topbar-actions > .export-btn:not(.wt-export-btn),
+.topbar-actions > .unresolved-btn:not(.wt-unresolved-btn),
+.comment-add-btn,
+.comment-indicator,
+.comment-row,
+.comment-form-container,
+.comment-form-row,
+.comment-card,
+.doc-comment-container,
+.export-dropdown,
+.unresolved-dropdown {
+  display: none !important;
+}
+/* Part-nav pills on the purple topbar need WCAG-AA contrast: the
+ * default meander rule uses --accent (lavender) for the active state
+ * and --muted (gray) for the rest — both fail against #4c1d95. Swap
+ * to white + translucent-white treatments so the pills read at
+ * AA/AAA levels regardless of theme. Active pill gets a solid white
+ * fill with purple text (inverts the surface, highest contrast);
+ * inactive pills use white text on a faint white-tint (5-7:1). */
+.topbar .part-nav a {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  background: rgba(255, 255, 255, 0.06);
+}
+.topbar .part-nav a:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.55) !important;
+}
+.topbar .part-nav a.active {
+  /* Active pill: lifted translucent-white fill with a brighter border
+   * + bold white label. Reads as "selected" without the eye-burning
+   * solid-white fill; contrast on #4c1d95 stays above AA (7:1+). */
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-color: rgba(255, 255, 255, 0.7) !important;
+  font-weight: 600;
+}
+/* Dark theme keeps the same purple band — docs.socket.dev uses the
+ * same header in both modes, deepened slightly against the near-black
+ * page. */
+html[data-theme='dark'] .topbar {
+  background: #3b0f82 !important;
+  box-shadow: 0 2px 0 0 #1e0749;
 }
 .file-head .path {
   color: var(--code-text);
@@ -575,6 +747,57 @@ body.wt-backend-offline .wt-comment-form {
   text-align: center;
   font-weight: 600;
 }
+/* Two-state comment bubble:
+ *   signed out → hollow outline (invites sign-in)
+ *   signed in  → hollow outline + ellipsis dots (suggests threads inside)
+ * CSS toggles visibility via the data-signed-in attribute set by
+ * walkthrough-comments.js#reflectAuthState. */
+.wt-unresolved-btn .wt-bubble-dots {
+  display: none;
+}
+.wt-unresolved-btn[data-signed-in='true'] .wt-bubble-dots {
+  display: inline;
+}
+/* Staggered 1→2→3 drop-in played once on fresh sign-in. The JS
+ * toggles `.wt-dots-drop` on the signed-out → signed-in transition
+ * and removes/re-adds it with a forced reflow, so repeat logins
+ * replay the animation. `prefers-reduced-motion` falls back to the
+ * default (instant) presentation. */
+@keyframes wt-dot-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(1px) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.wt-unresolved-btn.wt-dots-drop .wt-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: wt-dot-drop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.wt-unresolved-btn.wt-dots-drop .wt-dot-1 {
+  animation-delay: 0ms;
+}
+.wt-unresolved-btn.wt-dots-drop .wt-dot-2 {
+  animation-delay: 140ms;
+}
+.wt-unresolved-btn.wt-dots-drop .wt-dot-3 {
+  animation-delay: 280ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wt-unresolved-btn.wt-dots-drop .wt-dot {
+    animation: none;
+    opacity: 1;
+  }
+}
 .wt-unresolved-badge:empty {
   display: none;
 }
@@ -586,12 +809,12 @@ body.wt-backend-offline .wt-comment-form {
   height: 8px;
   margin-left: 6px;
   border-radius: 50%;
-  background: #22c55e;
+  background: var(--success);
   cursor: pointer;
   vertical-align: middle;
 }
 .wt-indicator-open {
-  background: #eab308;
+  background: var(--accent-soft);
 }
 
 /* Selected line highlight. */
@@ -618,7 +841,7 @@ tr.wt-selected .line-num {
   font-size: 13px;
 }
 .wt-sel-label {
-  color: var(--muted);
+  color: var(--muted-lavender);
   font-size: 12px;
 }
 
@@ -650,7 +873,7 @@ tr.wt-selected .line-num {
   gap: 8px;
   align-items: center;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-lavender);
   margin-bottom: 4px;
 }
 .wt-comment-meta strong {
@@ -681,58 +904,107 @@ tr.wt-selected .line-num {
   margin-top: 8px;
 }
 
-/* Buttons shared by modal, selection popover, comment form. */
+/* Buttons shared by modal, selection popover, comment form.
+ * Matches the Socket marketing button: solid lavender fill, 10px
+ * radius (softer-than-rounded, not a full pill), white text. Label
+ * weight is 500 — 600 was heavy enough that white-on-lavender
+ * clipped into a "blob of bright text" at the button's font size.
+ * .wt-secondary mirrors the geometry with a near-white fill. */
 .wt-primary,
 .wt-secondary,
 .wt-danger {
   appearance: none;
   border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 13px;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition:
     background 120ms ease,
-    border-color 120ms ease;
+    border-color 120ms ease,
+    filter 120ms ease;
 }
 .wt-primary {
   background: var(--accent);
   color: #ffffff;
+  /* Tiny depth — Socket's Install button has a faint shadow that
+   * separates it from the pale-lavender surface. */
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 .wt-primary:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.07);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 .wt-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 .wt-secondary {
-  background: transparent;
-  border-color: var(--rule);
-  color: var(--prose-text);
+  /* Matches the Socket marketing "Read the docs" pair for the
+   * Install primary: white fill at rest, hairline lavender-tinted
+   * border, dark navy label. Sits on a pale-lavender page band
+   * without competing with the solid primary next to it. */
+  background: #ffffff;
+  border-color: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: #1d1b36;
 }
 .wt-secondary:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  /* Hover dips into the pale-lavender tint — reads as "pressed into
+   * the page surface" rather than a color shift. */
+  background: #ede9f5;
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: #1d1b36;
+}
+/* Dark-mode secondary — white-on-dark was blinding against the
+ * selection popover / dialog surfaces. Use a tinted dark surface,
+ * lavender border, and light text so it reads as "quiet button on
+ * a dark panel" instead of a headlight. */
+html[data-theme='dark'] .wt-secondary {
+  background: color-mix(in srgb, var(--accent) 14%, #0d1117);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: #e6edf3;
+}
+html[data-theme='dark'] .wt-secondary:hover {
+  background: color-mix(in srgb, var(--accent) 22%, #0d1117);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  color: #ffffff;
 }
 .wt-danger {
   background: transparent;
-  border-color: #e5484d;
-  color: #e5484d;
+  border-color: var(--danger);
+  color: var(--danger);
 }
 .wt-danger:hover {
-  background: color-mix(in srgb, #e5484d 10%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
 /* Inline comment form (shown next to selected lines). */
+/* Inline comment composer — a <dialog> anchored next to the selected
+ * lines (positioned via JS). No backdrop so the code stays visible
+ * while the user writes. We still get focus trap + Escape + top-layer
+ * stacking from the UA. */
 .wt-comment-form {
-  margin: 8px 0;
   padding: 12px;
   background: var(--prose-bg);
   border: 1px solid var(--accent);
   border-radius: 8px;
   max-width: 720px;
+  width: min(720px, calc(100vw - 32px));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  color: var(--prose-text);
+  /* <dialog> defaults to margin: auto (centered) — the JS anchor
+   * logic overrides top/left/margin inline. */
+}
+.wt-comment-form::backdrop {
+  /* Light dim so "modal context" is visible without occluding the
+   * code. Keeps the code readable but clearly tells the user the
+   * rest of the UI is inert. */
+  background: rgba(0, 0, 0, 0.15);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.wt-comment-form form {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -741,7 +1013,7 @@ tr.wt-selected .line-num {
   display: flex;
   gap: 8px;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-lavender);
 }
 .wt-comment-header strong {
   color: var(--prose-text);
@@ -764,43 +1036,68 @@ tr.wt-selected .line-num {
   gap: 8px;
 }
 
-/* Modal for auth flow. */
-.wt-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
+/* Modal for auth flow — native <dialog> element.
+ * The UA handles centering, top-layer stacking, focus trapping,
+ * Escape-to-close, and ARIA. We only style the surface + backdrop. */
 .wt-modal {
   background: var(--prose-bg);
   border: 1px solid var(--rule);
   border-radius: 12px;
-  padding: 24px;
-  max-width: 400px;
+  /* Symmetric vertical padding so the card reads as a balanced
+   * container around the content, not a block of chrome with trailing
+   * whitespace. Inner element margins carry the top-heaviness. */
+  padding: 28px 28px 28px;
+  /* 480px fits the step-1 subtitle ("Enter your @socket.dev email to
+   * get a 6-digit login code.") on a single line at the current font
+   * size — the old 400px cap was wrapping mid-sentence. */
+  max-width: 480px;
   width: 90%;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  color: var(--prose-text);
   position: relative;
+  /* <dialog> defaults to margin: auto but inherits the UA's normal
+   * box model once we override padding — keep it centered. */
+  margin: auto;
+}
+.wt-modal::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  /* Safari still ships it with the -webkit- prefix in some minor
+   * releases; keep until support telemetry is clearly past it. */
+  -webkit-backdrop-filter: blur(4px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wt-modal::backdrop {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 .wt-modal-close {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
+  top: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   border: none;
   background: transparent;
   color: var(--muted);
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
 }
-.wt-modal-close:hover {
-  background: color-mix(in srgb, var(--rule) 50%, transparent);
+.wt-modal-close:hover,
+.wt-modal-close:focus-visible {
+  background: color-mix(in srgb, var(--rule) 40%, transparent);
   color: var(--prose-text);
+  outline: none;
 }
 .wt-modal-title {
   margin: 0 0 8px 0;
@@ -808,15 +1105,15 @@ tr.wt-selected .line-num {
   color: var(--prose-text);
 }
 .wt-modal-sub {
-  margin: 0 0 16px 0;
+  margin: 0 0 20px 0;
   font-size: 14px;
   color: var(--muted);
-  line-height: 1.4;
+  line-height: 1.5;
 }
 .wt-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 .wt-label {
   display: flex;
@@ -835,9 +1132,58 @@ tr.wt-selected .line-num {
   color: var(--prose-text);
 }
 .wt-input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 0;
+  /* No outline — the color-shifted border + soft accent glow
+   * already signals focus and matches Socket's form styling
+   * without reading as a double ring on top of the 1px border. */
+  outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+/* Lighten the placeholder so the rotating fakey-name doesn't visually
+ * out-weight the label or the user's own typing once they start. */
+.wt-input::placeholder {
+  color: var(--muted);
+  opacity: 0.6;
+}
+/* Live-validity indicator inside the email input. The JS toggles
+ * `data-valid="true"|"false"` on the input; an inline SVG icon drawn
+ * via background-image paints a check or X on the right edge, and
+ * the border tints to the brand success/danger soft token. The
+ * check is the Socket marketing-site glyph (FontAwesome solid
+ * check), which matches the rest of the product surface. */
+.wt-input[data-valid='true'] {
+  border-color: var(--success-soft);
+  /* Soft mint check (%239AE6B4 = --success-soft) — paired with the
+   * border so valid state is one consistent soft-green signal. */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512' fill='%239AE6B4'><path d='M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px 14px;
+  padding-right: 34px;
+}
+.wt-input[data-valid='false'] {
+  border-color: var(--danger-soft);
+  /* Soft peach X (%23FEB2B2 = --danger-soft) — matches the border so
+   * invalid state reads as a single muted signal, not a bright red
+   * alarm. The check icon follows the same rule (border + icon both
+   * in the soft success green). */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 352 512' fill='%23FEB2B2'><path d='M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px 14px;
+  padding-right: 34px;
+}
+/* Focus ring inherits the per-state color so invalid (soft peach)
+ * and valid (soft mint) never double up with a lavender accent
+ * ring from :focus-visible. The base rule uses accent, these
+ * overrides replace it entirely. */
+.wt-input[data-valid='true']:focus-visible {
+  border-color: var(--success-soft);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success-soft) 35%, transparent);
+}
+.wt-input[data-valid='false']:focus-visible {
+  border-color: var(--danger-soft);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger-soft) 35%, transparent);
 }
 .wt-code {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -845,11 +1191,50 @@ tr.wt-selected .line-num {
   letter-spacing: 0.2em;
   text-align: center;
 }
+/* Socket tagline footer — matches the band on socket.dev: deep
+ * brand purple, right-aligned muted-white text, generous top space.
+ * Kept fixed-content (no dependency fetch) so it renders the instant
+ * the HTML is parsed. */
+.wt-socket-footer {
+  /* Full-bleed brand purple band aligned to the page bottom. */
+  margin-top: 48px;
+  padding: 28px 32px;
+  background: #4c1d95;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  text-align: right;
+}
+.wt-footer-bolt {
+  /* Emoji already has color. The nudge keeps it vertically centered
+   * with the text baseline without a flex wrapper. */
+  display: inline-block;
+  transform: translateY(1px);
+  margin: 0 2px;
+}
+
 .wt-error {
   margin: 0;
   min-height: 1em;
   font-size: 13px;
-  color: #e5484d;
+  /* Solid danger — soft-peach was too washed out for body copy on
+   * white; the icon and border stay soft, the message carries the
+   * weight. */
+  color: var(--danger);
+}
+/* Emphasize `<strong>@socket.dev</strong>` inside error messages.
+ * `font-weight: bolder` (the UA default for <strong>) resolves
+ * relative to the parent — at 13px body weight it lands on the same
+ * visual weight, so the token never reads as bold on its own. Pin
+ * to 700 AND shift to the soft-danger pink so it pops against the
+ * darker danger-red body copy. Two axes of contrast (weight + hue)
+ * makes the token unmissable even at small sizes. */
+.wt-error strong {
+  font-weight: 700;
+  color: var(--danger-soft);
+}
+.wt-modal-sub strong {
+  font-weight: 700;
+  color: inherit;
 }
 
 /* Dropdowns (export, unresolved). */
@@ -889,16 +1274,62 @@ tr.wt-selected .line-num {
 .wt-dropdown-where {
   display: block;
   font-size: 11px;
-  color: var(--muted);
+  color: var(--muted-lavender);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   margin-top: 2px;
 }
 .wt-dropdown-excerpt {
   display: block;
   font-size: 12px;
-  color: var(--muted);
+  color: var(--muted-lavender);
   margin-top: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Signed-in header at the top of the unresolved dropdown. */
+.wt-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 4px;
+}
+.wt-dropdown-who {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.wt-dropdown-signout {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--prose-text);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+.wt-dropdown-signout:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.wt-dropdown-signout:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.wt-dropdown-body {
+  /* Container for the scrollable comment list; the dropdown itself
+   * scrolls but the header stays pinned by being a sibling above. */
 }
