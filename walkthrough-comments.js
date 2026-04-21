@@ -833,12 +833,45 @@
 
   /* ─── init ───────────────────────────────────────────────────── */
 
+  // Wait for highlight.js to finish before revealing — prevents the
+  // plain-pre → highlighted-pre flash when the CDN is slow. 1.5s cap
+  // so a stalled CDN doesn't keep the page hidden indefinitely.
+  const waitForHljs = () =>
+    new Promise(resolve => {
+      const codes = document.querySelectorAll('.line-code code')
+      if (codes.length === 0 || codes[0].classList.contains('hljs')) {
+        resolve()
+        return
+      }
+      const obs = new MutationObserver(() => {
+        if (codes[0].classList.contains('hljs')) {
+          obs.disconnect()
+          resolve()
+        }
+      })
+      obs.observe(codes[0], { attributes: true, attributeFilter: ['class'] })
+      setTimeout(() => {
+        obs.disconnect()
+        resolve()
+      }, 1500)
+    })
+
+  // Flag the body as ready so the topbar-actions cluster and content
+  // area can reveal together. Called at every termination path of
+  // init() so the UI never stays hidden.
+  const markReady = async () => {
+    await waitForHljs()
+    document.body.classList.add('wt-ready')
+  }
+
   const init = async () => {
     if (!BACKEND || !slug || isDocPage) {
       // Documents page has no comments; no backend = nothing to do.
+      await markReady()
       return
     }
     if (!Number.isFinite(partId)) {
+      await markReady()
       return
     }
 
@@ -848,6 +881,7 @@
     state.backendReachable = await healthProbe()
     if (!state.backendReachable) {
       document.body.classList.add('wt-backend-offline')
+      await markReady()
       return
     }
 
@@ -869,6 +903,8 @@
         }
       }
     }
+
+    await markReady()
   }
 
   if (document.readyState === 'loading') {

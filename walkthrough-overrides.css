@@ -82,6 +82,29 @@ body {
   color: var(--prose-text);
 }
 
+/* Hide the main content until the shim has finished mounting. Prevents
+ * the "code highlights after a beat" flash when hljs CDN latency makes
+ * plain <pre> render first, then repaints with color tokens. Topbar
+ * itself stays visible (title/subtitle look fine un-hydrated). */
+.layout,
+.part-nav,
+.file-block {
+  opacity: 0;
+  transition: opacity 100ms ease;
+}
+body.wt-ready .layout,
+body.wt-ready .part-nav,
+body.wt-ready .file-block {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .layout,
+  .part-nav,
+  .file-block {
+    transition: none;
+  }
+}
+
 /* ── Layout: two-column grid with no gap ──────────────────────────
  * Collapse meander's 12px column-gap so the per-cell section rules
  * on either side meet at the split line. Cell padding below gives
@@ -298,14 +321,34 @@ body.col-resizing {
  * Three peer buttons (dark mode, download comments, show comments)
  * live in meander's .topbar-actions as a horizontal row. We don't
  * restructure the DOM here — meander's own scripts rely on sibling
- * lookups. Just ensure consistent gap and size. */
+ * lookups. Just ensure consistent gap and hide until our shim has
+ * mounted everything so the buttons don't pop in one-by-one as
+ * separate scripts add them. */
 .topbar-actions {
   gap: 6px;
+  opacity: 0;
+  transition: opacity 100ms ease;
+}
+body.wt-ready .topbar-actions {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .topbar-actions {
+    transition: none;
+  }
 }
 
 /* Theme toggle styled to match meander's .export-btn exactly — same
  * border, radius, padding, hover treatment. Sizing is driven by the
  * inner SVG so it matches the download / comments icons visually. */
+/* ── Theme toggle (3-way: system / light / dark) ────────────────
+ * Compound button with all three icons stacked; CSS picks which one
+ * is visible based on the wrapper's data-pref attribute. Icons fade
+ * + rotate on preference change for a smooth transition. */
+.theme-toggle-wrapper {
+  position: relative;
+  display: inline-flex;
+}
 .theme-toggle {
   appearance: none;
   display: inline-flex;
@@ -317,6 +360,9 @@ body.col-resizing {
   padding: 6px 8px;
   color: var(--muted);
   cursor: pointer;
+  position: relative;
+  width: 32px;
+  height: 32px;
   transition:
     background 120ms ease,
     border-color 120ms ease,
@@ -330,8 +376,114 @@ body.col-resizing {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-.theme-toggle svg {
-  display: block;
+/* Icon enters first: the core shape literally drops in from above
+ * (-8px) with a fade. Then the decorations (rays around the sun,
+ * star next to the moon) scale in after the core has landed. */
+.theme-icon {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 420ms ease,
+    transform 500ms cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+.theme-toggle-wrapper[data-pref='system'] .theme-icon-system,
+.theme-toggle-wrapper[data-pref='light'] .theme-icon-light,
+.theme-toggle-wrapper[data-pref='dark'] .theme-icon-dark {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Rays and star animate inside the button icons: hidden by default,
+ * fade + scale in after the core shape has landed. Only apply the
+ * hidden-by-default rule inside the button — menu icons always show
+ * everything. */
+.theme-toggle .theme-ray,
+.theme-toggle .theme-star {
+  opacity: 0;
+  transform: scale(0.5);
+  transform-origin: 50% 50%;
+  transition:
+    opacity 340ms ease 420ms,
+    transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1) 420ms;
+}
+.theme-toggle-wrapper[data-pref='light'] .theme-icon-light .theme-ray,
+.theme-toggle-wrapper[data-pref='system'] .theme-icon-system .theme-ray,
+.theme-toggle-wrapper[data-pref='dark'] .theme-icon-dark .theme-star {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Dropdown menu */
+.theme-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  background: var(--prose-bg);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 4px;
+  z-index: 50;
+}
+.theme-menu[hidden] {
+  display: none;
+}
+.theme-menu-title {
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--eyebrow);
+}
+.theme-menu-item {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--prose-text);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.theme-menu-item:hover,
+.theme-menu-item:focus-visible {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  outline: none;
+}
+.theme-menu-item[aria-checked='true'] {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  color: var(--accent);
+}
+.theme-menu-icon {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.theme-menu-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.theme-menu-check {
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  opacity: 0;
+}
+.theme-menu-item[aria-checked='true'] .theme-menu-check {
+  opacity: 1;
 }
 
 /* ── Misc polish ───────────────────────────────────────────────────*/

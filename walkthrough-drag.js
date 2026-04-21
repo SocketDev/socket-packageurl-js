@@ -14,10 +14,31 @@
   const SMALL_STEP = 1
   const LARGE_STEP = 5
 
-  const MOON_PATH =
-    'M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.78.78 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278'
-  const SUN_PATH =
-    'M8 12a4 4 0 1 1 0-8 4 4 0 0 1 0 8M8 0a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0V.75A.75.75 0 0 1 8 0m0 13a.75.75 0 0 1 .75.75v1.5a.75.75 0 0 1-1.5 0v-1.5A.75.75 0 0 1 8 13M2.343 2.343a.75.75 0 0 1 1.061 0l1.06 1.061a.75.75 0 0 1-1.06 1.06l-1.06-1.06a.75.75 0 0 1 0-1.06m9.193 9.193a.75.75 0 0 1 1.06 0l1.061 1.06a.75.75 0 0 1-1.06 1.061l-1.061-1.06a.75.75 0 0 1 0-1.061M16 8a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 16 8M3 8a.75.75 0 0 1-.75.75H.75a.75.75 0 0 1 0-1.5h1.5A.75.75 0 0 1 3 8m10.657-5.657a.75.75 0 0 1 0 1.061l-1.061 1.06a.75.75 0 1 1-1.06-1.06l1.06-1.06a.75.75 0 0 1 1.061 0m-9.193 9.193a.75.75 0 0 1 0 1.06l-1.06 1.061a.75.75 0 1 1-1.061-1.06l1.06-1.061a.75.75 0 0 1 1.061 0'
+  // Icon paths lifted from docs.socket.dev's ThemeToggle (24×24 viewBox).
+  // Ray segments carry the `.theme-ray` class so they can animate
+  // independently from the core sun/moon shape.
+  const SYSTEM_ICON = `
+    <path class="theme-ray" d="M12 2v2"/>
+    <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715"/>
+    <path d="M16 12a4 4 0 0 0-4-4"/>
+    <path class="theme-ray" d="m19 5-1.256 1.256"/>
+    <path class="theme-ray" d="M20 12h2"/>
+  `
+  const DARK_ICON = `
+    <path d="M19 14.79C18.8427 16.4922 18.2039 18.1144 17.1582 19.4668C16.1126 20.8192 14.7035 21.8458 13.0957 22.4265C11.4879 23.0073 9.74798 23.1181 8.0795 22.7461C6.41102 22.3741 4.88299 21.5345 3.67423 20.3258C2.46546 19.117 1.62594 17.589 1.25391 15.9205C0.881876 14.252 0.992717 12.5121 1.57346 10.9043C2.1542 9.29651 3.18083 7.88737 4.53321 6.84175C5.8856 5.79614 7.5078 5.15731 9.21 5C8.21341 6.34827 7.73385 8.00945 7.85853 9.68141C7.98322 11.3534 8.70386 12.9251 9.8894 14.1106C11.0749 15.2961 12.6466 16.0168 14.3186 16.1415C15.9906 16.2662 17.6517 15.7866 19 14.79Z"/>
+    <path class="theme-star" d="M18.3707 1C18.3707 3.22825 16.2282 5.37069 14 5.37069C16.2282 5.37069 18.3707 7.51313 18.3707 9.74138C18.3707 7.51313 20.5132 5.37069 22.7414 5.37069C20.5132 5.37069 18.3707 3.22825 18.3707 1Z"/>
+  `
+  const LIGHT_ICON = `
+    <path class="theme-ray" d="M12 1V3"/>
+    <path class="theme-ray" d="M18.36 5.64L19.78 4.22"/>
+    <path class="theme-ray" d="M21 12H23"/>
+    <path class="theme-ray" d="M18.36 18.36L19.78 19.78"/>
+    <path class="theme-ray" d="M12 21V23"/>
+    <path class="theme-ray" d="M4.22 19.78L5.64 18.36"/>
+    <path class="theme-ray" d="M1 12H3"/>
+    <path class="theme-ray" d="M4.22 4.22L5.64 5.64"/>
+    <path d="M12 17C14.7614 17 17 14.7614 17 12C17 9.23858 14.7614 7 12 7C9.23858 7 7 9.23858 7 12C7 14.7614 9.23858 17 12 17Z"/>
+  `
 
   const clamp = n => {
     if (n < MIN) {
@@ -46,18 +67,25 @@
     }
   }
 
+  // Theme preference is one of 'system' | 'light' | 'dark'. 'system'
+  // means no explicit pref — follow prefers-color-scheme. Stored as
+  // THEME_KEY in localStorage (absent = system).
   const readStoredTheme = () => {
     try {
       const t = localStorage.getItem(THEME_KEY)
-      return t === 'dark' || t === 'light' ? t : null
+      return t === 'dark' || t === 'light' ? t : 'system'
     } catch {
-      return null
+      return 'system'
     }
   }
 
   const persistTheme = theme => {
     try {
-      localStorage.setItem(THEME_KEY, theme)
+      if (theme === 'system') {
+        localStorage.removeItem(THEME_KEY)
+      } else {
+        localStorage.setItem(THEME_KEY, theme)
+      }
     } catch {
       /* ignore */
     }
@@ -67,29 +95,20 @@
     window.matchMedia &&
     window.matchMedia('(prefers-color-scheme: dark)').matches
 
+  // Resolve a preference ('system'|'light'|'dark') to the effective
+  // theme that actually applies on <html>.
+  const resolveTheme = pref =>
+    pref === 'system' ? (systemPrefersDark() ? 'dark' : 'light') : pref
+
   const applyTheme = theme => {
     document.documentElement.setAttribute('data-theme', theme)
   }
 
-  const currentTheme = () =>
+  // Current resolved theme (what <html data-theme> actually is).
+  const currentResolved = () =>
     document.documentElement.getAttribute('data-theme') === 'dark'
       ? 'dark'
       : 'light'
-
-  const iconSvg = paths => {
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    svg.setAttribute('viewBox', '0 0 16 16')
-    svg.setAttribute('width', '16')
-    svg.setAttribute('height', '16')
-    svg.setAttribute('fill', 'currentColor')
-    svg.setAttribute('aria-hidden', 'true')
-    for (const d of paths) {
-      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-      p.setAttribute('d', d)
-      svg.appendChild(p)
-    }
-    return svg
-  }
 
   const installThemeToggle = () => {
     if (document.querySelector('.theme-toggle')) {
@@ -106,30 +125,98 @@
       topbar.appendChild(host)
     }
 
-    const btn = document.createElement('button')
-    btn.type = 'button'
-    btn.className = 'theme-toggle'
-    btn.setAttribute('aria-label', 'Toggle dark mode')
-    btn.title = 'Toggle dark mode'
+    const wrapper = document.createElement('div')
+    wrapper.className = 'theme-toggle-wrapper'
+    wrapper.innerHTML = `
+      <button type="button"
+        class="theme-toggle"
+        aria-label="Toggle color scheme"
+        aria-haspopup="menu"
+        aria-expanded="false"
+        title="Color scheme">
+        <svg class="theme-icon theme-icon-system" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SYSTEM_ICON}</svg>
+        <svg class="theme-icon theme-icon-dark"   viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">${DARK_ICON}</svg>
+        <svg class="theme-icon theme-icon-light"  viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${LIGHT_ICON}</svg>
+      </button>
+      <div class="theme-menu" role="menu" hidden>
+        <div class="theme-menu-title">Color Scheme</div>
+        <button type="button" role="menuitemradio" class="theme-menu-item" data-pref="system">
+          <span class="theme-menu-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${SYSTEM_ICON}</svg>
+          </span>
+          <span>System</span>
+          <svg class="theme-menu-check" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/></svg>
+        </button>
+        <button type="button" role="menuitemradio" class="theme-menu-item" data-pref="light">
+          <span class="theme-menu-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${LIGHT_ICON}</svg>
+          </span>
+          <span>Light</span>
+          <svg class="theme-menu-check" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/></svg>
+        </button>
+        <button type="button" role="menuitemradio" class="theme-menu-item" data-pref="dark">
+          <span class="theme-menu-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">${DARK_ICON}</svg>
+          </span>
+          <span>Dark</span>
+          <svg class="theme-menu-check" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z"/></svg>
+        </button>
+      </div>
+    `
+    const btn = wrapper.querySelector('.theme-toggle')
+    const menu = wrapper.querySelector('.theme-menu')
 
-    const moon = iconSvg([MOON_PATH])
-    const sun = iconSvg([SUN_PATH])
+    // Reflect current preference on the wrapper so CSS picks the right
+    // icon to show and the right menu item to check.
     const render = () => {
-      const dark = currentTheme() === 'dark'
-      btn.replaceChildren(dark ? sun : moon)
-      btn.setAttribute('aria-pressed', String(dark))
+      const pref = readStoredTheme()
+      wrapper.setAttribute('data-pref', pref)
+      for (const item of menu.querySelectorAll('.theme-menu-item')) {
+        item.setAttribute(
+          'aria-checked',
+          String(item.getAttribute('data-pref') === pref),
+        )
+      }
     }
-    btn.addEventListener('click', () => {
-      const next = currentTheme() === 'dark' ? 'light' : 'dark'
-      applyTheme(next)
-      persistTheme(next)
-      render()
+
+    const openMenu = () => {
+      menu.hidden = false
+      btn.setAttribute('aria-expanded', 'true')
+      wrapper.classList.add('theme-menu-open')
+    }
+    const closeMenu = () => {
+      menu.hidden = true
+      btn.setAttribute('aria-expanded', 'false')
+      wrapper.classList.remove('theme-menu-open')
+    }
+    const toggleMenu = () => (menu.hidden ? openMenu() : closeMenu())
+
+    btn.addEventListener('click', toggleMenu)
+    document.addEventListener('click', e => {
+      if (!wrapper.contains(e.target)) {
+        closeMenu()
+      }
     })
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && !menu.hidden) {
+        closeMenu()
+        btn.focus()
+      }
+    })
+
+    for (const item of menu.querySelectorAll('.theme-menu-item')) {
+      item.addEventListener('click', () => {
+        const pref = item.getAttribute('data-pref')
+        persistTheme(pref)
+        applyTheme(resolveTheme(pref))
+        render()
+        closeMenu()
+        btn.focus()
+      })
+    }
+
     render()
-    /* Peer insert at the start of .topbar-actions so order is:
-     * theme, export, unresolved. We don't move meander's buttons —
-     * their scripts require them to stay where they are. */
-    host.prepend(btn)
+    host.prepend(wrapper)
   }
 
   const applySplit = value => {
@@ -231,28 +318,16 @@
     }
   }
 
-  /* Apply stored / preferred theme synchronously to avoid a flash
-   * of light theme on dark-preferring systems. */
-  const storedTheme = readStoredTheme()
-  if (storedTheme !== null) {
-    applyTheme(storedTheme)
-  } else if (systemPrefersDark()) {
-    applyTheme('dark')
-  } else {
-    applyTheme('light')
-  }
+  /* Apply stored or system-preferred theme synchronously to avoid a
+   * flash of light theme on dark-preferring systems. */
+  applyTheme(resolveTheme(readStoredTheme()))
 
-  /* React to system theme changes when the user hasn't pinned a
-   * preference. */
+  /* When preference is 'system', follow prefers-color-scheme changes. */
   if (window.matchMedia) {
     const mql = window.matchMedia('(prefers-color-scheme: dark)')
     mql.addEventListener('change', event => {
-      if (readStoredTheme() === null) {
+      if (readStoredTheme() === 'system') {
         applyTheme(event.matches ? 'dark' : 'light')
-        const toggle = document.querySelector('.theme-toggle')
-        if (toggle) {
-          toggle.setAttribute('aria-pressed', String(event.matches))
-        }
       }
     })
   }
@@ -262,9 +337,43 @@
     applySplit(storedSplit)
   }
 
-  const ready = () => {
+  // Wait for highlight.js to finish painting at least one code block
+  // before allowing the content-reveal class to land. Prevents the
+  // "plain pre → highlighted pre" flash when the CDN is slow. Resolves
+  // immediately if there are no code blocks on the page (documents
+  // tab) or if hljs has already run. 1.5s cap so slow CDNs don't
+  // stall the reveal indefinitely.
+  const waitForHljs = () =>
+    new Promise(resolve => {
+      const codes = document.querySelectorAll('.line-code code')
+      if (codes.length === 0 || codes[0].classList.contains('hljs')) {
+        resolve()
+        return
+      }
+      const obs = new MutationObserver(() => {
+        if (codes[0].classList.contains('hljs')) {
+          obs.disconnect()
+          resolve()
+        }
+      })
+      obs.observe(codes[0], { attributes: true, attributeFilter: ['class'] })
+      setTimeout(() => {
+        obs.disconnect()
+        resolve()
+      }, 1500)
+    })
+
+  const ready = async () => {
     installAll()
     installThemeToggle()
+    await waitForHljs()
+    // Fallback reveal for pages with no comment shim (documents, or
+    // walkthroughs with no commentBackend). When the shim IS present,
+    // its init sets wt-ready after its async health probe. Both
+    // paths are idempotent.
+    if (!document.querySelector('script[src*="walkthrough-comments.js"]')) {
+      document.body.classList.add('wt-ready')
+    }
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', ready)
