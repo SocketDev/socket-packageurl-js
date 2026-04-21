@@ -427,9 +427,17 @@ async function deployVal(args: readonly string[]): Promise<void> {
 
   const files: Array<{ path: string; type: 'http' | 'script' }> = [
     { path: 'index.ts', type: 'http' },
+    { path: 'config.ts', type: 'script' },
+    { path: 'types.ts', type: 'script' },
     { path: 'crypto.ts', type: 'script' },
     { path: 'validate.ts', type: 'script' },
     { path: 'email-template.ts', type: 'script' },
+    { path: 'db.ts', type: 'script' },
+    { path: 'audit.ts', type: 'script' },
+    { path: 'util.ts', type: 'script' },
+    { path: 'middleware.ts', type: 'script' },
+    { path: 'auth-routes.ts', type: 'script' },
+    { path: 'comment-routes.ts', type: 'script' },
   ]
   for (const f of files) {
     const srcPath = path.join(repoRoot, 'val', f.path)
@@ -438,28 +446,36 @@ async function deployVal(args: readonly string[]): Promise<void> {
     }
     const content = readFileSync(srcPath, 'utf8')
     // Val Town's file API wants `path` in the querystring; body carries
-    // only content + type. PUT for updates, POST for creates.
+    // only content + type. Try POST (create) first — if the file
+    // already exists it 409s and we fall through to PUT (update).
     const qs = `?path=${encodeURIComponent(f.path)}`
-    const updateRes = await fetch(`${API}/v2/vals/${valId}/files${qs}`, {
-      method: 'PUT',
-      headers: { ...authHeader, 'content-type': 'application/json' },
-      body: JSON.stringify({ content, type: f.type }),
-    })
-    if (updateRes.ok) {
-      console.log(`  Updated ${f.path}`)
-      continue
-    }
     const createRes = await fetch(`${API}/v2/vals/${valId}/files${qs}`, {
       method: 'POST',
       headers: { ...authHeader, 'content-type': 'application/json' },
       body: JSON.stringify({ content, type: f.type }),
     })
-    if (!createRes.ok) {
+    if (createRes.ok) {
+      console.log(`  Created ${f.path}`)
+      continue
+    }
+    if (createRes.status !== 409) {
+      // Not a conflict — real error.
       throw new Error(
-        `upload ${f.path} failed: ${createRes.status} ${await createRes.text()}`,
+        `create ${f.path} failed: ${createRes.status} ${await createRes.text()}`,
       )
     }
-    console.log(`  Created ${f.path}`)
+    // File exists — update it.
+    const updateRes = await fetch(`${API}/v2/vals/${valId}/files${qs}`, {
+      method: 'PUT',
+      headers: { ...authHeader, 'content-type': 'application/json' },
+      body: JSON.stringify({ content, type: f.type }),
+    })
+    if (!updateRes.ok) {
+      throw new Error(
+        `update ${f.path} failed: ${updateRes.status} ${await updateRes.text()}`,
+      )
+    }
+    console.log(`  Updated ${f.path}`)
   }
 
   const envVars: Array<[string, string | undefined]> = [

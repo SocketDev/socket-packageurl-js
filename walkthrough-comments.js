@@ -163,14 +163,23 @@
           <button type="button" class="wt-secondary wt-back">Back</button>
           <p class="wt-error" aria-live="polite"></p>
         `
-        const newErr = form.querySelector('.wt-error')
-        form.querySelector('.wt-code').focus()
+        const codeInput = form.querySelector('.wt-code')
+        codeInput.focus()
+        // Auto-submit as soon as 6 digits land (paste or typing). Success
+        // closes the modal silently; failure stays silent — the user is
+        // still typing, so no error text is shown and the button stays
+        // available for an explicit click.
+        codeInput.addEventListener('input', () => {
+          const v = codeInput.value.replace(/\D/g, '').slice(0, 6)
+          if (v !== codeInput.value) {
+            codeInput.value = v
+          }
+          if (v.length === 6) {
+            form.dataset.auto = '1'
+            form.requestSubmit()
+          }
+        })
         form.querySelector('.wt-back').addEventListener('click', () => {
-          form.setAttribute('data-step', 'email')
-          form.innerHTML = document
-            .querySelector('.wt-modal')
-            .outerHTML.replace(/.*<form/, '<form') // reset — cheap
-          // simpler: just re-invoke
           close()
           resolve(runAuthFlow())
         })
@@ -216,15 +225,22 @@
             if (!res.ok) {
               throw new Error('Invalid or expired code.')
             }
-            const data = await res.json()
-            saveJwt(data.token, data.email)
+            const session = await res.json()
+            saveJwt(session.token, session.email)
             close()
             resolve(true)
           }
         } catch (err) {
-          const errEl2 = form.querySelector('.wt-error')
-          errEl2.textContent = err.message || String(err)
+          // Silent failure on auto-submit — user is still typing, don't
+          // flash errors at them. Explicit click still shows the error.
+          const isAuto = form.dataset.auto === '1'
+          if (!isAuto) {
+            const errEl2 = form.querySelector('.wt-error')
+            errEl2.textContent = err.message || String(err)
+          }
           btn.disabled = false
+        } finally {
+          delete form.dataset.auto
         }
       })
 
