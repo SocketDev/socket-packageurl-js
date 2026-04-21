@@ -19,7 +19,14 @@
  *   Adding Workbox would be a bigger asset than the handler itself.
  * ------------------------------------------------------------------ */
 
-const CACHE_VERSION = 'wt-v1'
+// `__CACHE_VERSION__` is substituted at generate time with the current
+// git commit SHA (see scripts/walkthrough.mts). Every deploy produces
+// a different version string, which flips the SW bytes, which makes
+// the browser's update check detect a new SW, which triggers `install`
+// + `activate` — and the `activate` handler prunes the old cache.
+// Fallback literal 'dev' keeps local file-serve working when the
+// build step hasn't run yet.
+const CACHE_VERSION = '__CACHE_VERSION__'
 const CACHE_NAME = `wt-cache-${CACHE_VERSION}`
 
 // Base path derived from the SW's own scope — works the same whether
@@ -93,8 +100,41 @@ self.addEventListener('fetch', event => {
     return
   }
 
+  // Navigation requests (top-level HTML page loads) are network-first.
+  // Stale HTML is the scariest cache-miss mode: the page ships pointing
+  // at old asset URLs that may have been renamed/moved. Always going
+  // to the network for the document itself avoids "stale page between
+  // deploys" even on first-load revisits. Fall back to cache only
+  // when the network actually fails (offline).
+  if (request.mode === 'navigate') {
+    event.respondWith(networkFirst(request))
+    return
+  }
+
   event.respondWith(cacheFirst(request))
 })
+
+/**
+ * Network-first: try the network, fall back to cache only on failure.
+ * Used for HTML navigations so a new deploy is always picked up.
+ */
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request)
+    if (response.ok) {
+      const cache = await caches.open(CACHE_NAME)
+      cache.put(request, response.clone())
+    }
+    return response
+  } catch {
+    const cache = await caches.open(CACHE_NAME)
+    const cached = await cache.match(request)
+    if (cached) {
+      return cached
+    }
+    throw new Error('offline and no cached copy')
+  }
+}
 
 /**
  * Cache-first with stale-while-revalidate: serve the cached response

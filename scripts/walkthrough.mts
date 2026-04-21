@@ -187,11 +187,28 @@ async function generate(
   }
 
   // Ship the service worker — cache-first for same-origin assets,
-  // network-passthrough for the comment API. Registration script is
-  // injected into each HTML page below.
+  // network-first for HTML navigations, network-passthrough for the
+  // comment API. The SW file carries a `__CACHE_VERSION__` sentinel
+  // that we replace here with the current git HEAD SHA so every
+  // deploy flips the SW's bytes → browser detects a new SW →
+  // `activate` prunes the old cache. Falls back to timestamp if
+  // we're not in a git repo (tarball install, fresh clone pre-init).
   const swSrc = path.join(repoRoot, 'walkthrough-sw.js')
   if (existsSync(swSrc)) {
-    copyFileSync(swSrc, path.join(walkthroughDir, 'walkthrough-sw.js'))
+    let swSource = readFileSync(swSrc, 'utf8')
+    let cacheVersion: string
+    try {
+      cacheVersion = execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+      })
+        .toString()
+        .trim()
+    } catch {
+      cacheVersion = 'ts-' + Date.now().toString(36)
+    }
+    swSource = swSource.replaceAll('__CACHE_VERSION__', cacheVersion)
+    writeFileSync(path.join(walkthroughDir, 'walkthrough-sw.js'), swSource)
   }
 
   // Ship favicons (self-hosted copy of socket.dev's icons). Walkthrough

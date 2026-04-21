@@ -994,8 +994,12 @@ html[data-theme='dark'] .wt-secondary:hover {
   background: var(--prose-bg);
   border: 1px solid var(--accent);
   border-radius: 8px;
-  max-width: 720px;
+  /* Default width matches the old cap; the user can drag the textarea
+   * bigger (resize: vertical) and the dialog will stretch vertically
+   * too because the form is a flex column. Width stays bounded by
+   * the viewport so the composer doesn't escape on narrow screens. */
   width: min(720px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   color: var(--prose-text);
   /* <dialog> defaults to margin: auto (centered) — the JS anchor
@@ -1032,9 +1036,15 @@ html[data-theme='dark'] .wt-secondary:hover {
   );
 }
 .wt-textarea {
-  min-height: 80px;
+  /* Gmail-style: comfortable starting height, user-resizable vertically
+   * up to ~70vh so a long thread can grow without escaping the viewport.
+   * `resize: vertical` keeps horizontal pinned to the dialog width. */
+  min-height: 140px;
+  max-height: 70vh;
+  resize: vertical;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.5;
 }
 .wt-row {
   display: flex;
@@ -1129,10 +1139,12 @@ html[data-theme='dark'] .wt-secondary:hover {
 }
 .wt-input {
   appearance: none;
+  box-sizing: border-box;
+  width: 100%;
   border: 1px solid var(--rule);
   border-radius: 6px;
-  padding: 8px 10px;
-  font-size: 14px;
+  padding: 10px 12px;
+  font-size: 15px;
   background: var(--prose-bg);
   color: var(--prose-text);
 }
@@ -1191,10 +1203,15 @@ html[data-theme='dark'] .wt-secondary:hover {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger-soft) 35%, transparent);
 }
 .wt-code {
+  /* Big monospace numeric field, full-width like the email input.
+   * Pad extra on the vertical so the 6-digit code feels anchored in
+   * a comfortably large hit target, matching the email-field scale. */
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 18px;
-  letter-spacing: 0.2em;
+  font-size: 20px;
+  letter-spacing: 0.35em;
   text-align: center;
+  padding-top: 14px;
+  padding-bottom: 14px;
 }
 /* Socket tagline footer — matches the band on socket.dev: deep
  * brand purple, right-aligned muted-white text, generous top space.
@@ -1229,7 +1246,11 @@ body {
 .wt-error {
   margin: 0;
   min-height: 1em;
-  font-size: 13px;
+  /* Matched to .wt-modal-sub (14px / line-height 1.5) so the error
+   * line visually rhymes with the subtitle at the top of the modal —
+   * the user reads both at the same scale. */
+  font-size: 14px;
+  line-height: 1.5;
   /* Solid danger — soft-peach was too washed out for body copy on
    * white; the icon and border stay soft, the message carries the
    * weight. */
