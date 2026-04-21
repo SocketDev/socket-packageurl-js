@@ -92,7 +92,8 @@ The umbrella rule: never run a git command that mutates state belonging to a pat
 
 - Never create files unless necessary; always prefer editing existing files
 - Forbidden to create docs unless requested
-- 🚨 **NEVER use `npx`, `pnpm dlx`, or `yarn dlx`** — use `pnpm exec` or `pnpm run`
+- 🚨 **NEVER use `npx`, `pnpm dlx`, or `yarn dlx`** — use `pnpm exec` or `pnpm run` <!-- # zizmor: docs mention forbidden tools intentionally -->
+
 - **minimumReleaseAge**: NEVER add packages to `minimumReleaseAgeExclude` in CI. Locally, ASK before adding — the age threshold is a security control.
 
 ## 📚 SHARED STANDARDS
@@ -175,3 +176,23 @@ File naming: `*.test.mts` for standard tests; `*.isolated.test.mts` for tests th
 ### CI
 
 🚨 **MANDATORY**: Pin CI workflow refs to full SHA — `@<full-sha> # main`
+
+## TOKEN HYGIENE — NON-NEGOTIABLE
+
+🚨 **Never** emit the raw value of any secret to any tool output, commit message, comment, or assistant response. A Bash PreToolUse hook at `.claude/hooks/token-hygiene/` enforces this programmatically — `env`/`printenv`/`cat .env*`/`curl -H Authorization` patterns without a redaction pipeline are refused before the tool runs.
+
+**Enforcement rules** the hook encodes (applies to Bash tool calls):
+
+1. Never run `env`, `printenv`, `export -p`, or `set` (no args) — they print everything.
+2. Never `cat`/`head`/`tail`/`less`/`more` a `.env*` file without piping through a redactor (`sed 's/=.*/=<redacted>/'` or similar). If you only need the keys, use `grep -v '^#' .env.local | cut -d= -f1`.
+3. Never run a `curl` that carries `-H "Authorization: ..."` with output going to unfiltered stdout. Either redirect to `/dev/null`, save to a file, or pipe to `jq`/`grep`/`head`.
+4. Never construct a command that references a sensitive env var name (`*TOKEN*`, `*SECRET*`, `*PASSWORD*`, `*API_KEY*`, `*SIGNING_KEY*`, `*PRIVATE_KEY*`, `*AUTH*`, `*CREDENTIAL*`) and writes to stdout without a redaction step — unless the command is a legitimate git/pnpm/npm/node/tsc operation that only surfaces names.
+
+**If the hook blocks you**, the stderr output explains why and suggests a fix. Rewrite the command; don't bypass the hook.
+
+**Behavioral rules** (things the hook can't catch):
+
+- When citing an API response, redact any `token`, `jwt`, `access_token`, `refresh_token`, `api_key`, `secret`, `password`, `authorization` field to `<redacted>` before including in your reply.
+- When showing `.env.local` or similar, show **key names only** — never values.
+- If a user pastes a secret to you, treat the session's copy as compromised and ask them to rotate it. Never re-echo it.
+- Prefer reading env values into subprocesses via `{ env: { ... } }` spawn options over `export FOO=bar && ...` chains, so the value never appears in the Bash tool's command string.
