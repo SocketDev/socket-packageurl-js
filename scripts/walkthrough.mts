@@ -81,14 +81,82 @@ function ensureMeander(refresh: boolean): void {
   }
 }
 
+/**
+ * Normalize a base-path argument — enforce a single leading `/`, strip
+ * trailing `/`. Empty input means "served at the origin root" (no
+ * rewrite needed). Input of just `/` also normalizes to empty.
+ */
+function normalizeBasePath(raw: string): string {
+  let p = raw.trim()
+  if (!p || p === '/') {
+    return ''
+  }
+  if (!p.startsWith('/')) {
+    p = '/' + p
+  }
+  if (p.endsWith('/')) {
+    p = p.slice(0, -1)
+  }
+  return p
+}
+
+/**
+ * Rewrite a generated HTML file for hosting under `basePath`. Two
+ * categories of URL get prefixed:
+ *
+ *   1. Root-relative asset paths meander or our post-processor emits
+ *      (/walkthrough.css, /walkthrough-drag.js, /favicon.ico, etc.).
+ *   2. Val-Town-shaped part links (/<slug>/part/<n>) — these don't
+ *      exist as files; rewrite to the real flat HTML name
+ *      (walkthrough-part-<n>.html) and prefix with basePath.
+ *
+ * We do a narrowly-scoped regex pass rather than a full HTML parse:
+ * the set of URL attributes we emit is small and known, and we don't
+ * want to touch hrefs in the prose (external links, anchor jumps).
+ */
+function applyBasePath(html: string, basePath: string, slug: string): string {
+  if (!basePath) {
+    return html
+  }
+  // 1. Flat part link — rewrite first so step 2 doesn't double-prefix.
+  // Matches href="/<slug>/part/<n>" and rewrites to
+  // href="<basePath>/walkthrough-part-<n>.html".
+  const partLink = new RegExp(`(href=")/${slug}/part/(\\d+)/?(")`, 'g')
+  let out = html.replace(
+    partLink,
+    (_m, pre, n, post) => `${pre}${basePath}/walkthrough-part-${n}.html${post}`,
+  )
+  // 2. Root-relative asset URLs. Match href="/..." and src="/..." and
+  // ServiceWorker-style register('/...') — but skip:
+  //   - protocol-qualified URLs (https://, data:, mailto:, etc.)
+  //   - anchor/hash links ("#...")
+  //   - URLs that already begin with the basePath (idempotent)
+  //   - the part-link pattern above (already rewritten in step 1)
+  const assetAttr = /(\s(?:href|src)=")(\/[^"]*)(")/g
+  out = out.replace(assetAttr, (_m, pre, url, post) => {
+    if (url.startsWith(basePath + '/') || url === basePath) {
+      return `${pre}${url}${post}`
+    }
+    return `${pre}${basePath}${url}${post}`
+  })
+  // 3. SW register — also prefix. Matches .register('/walkthrough-sw.js').
+  out = out.replace(/\.register\('(\/[^']+)'/g, (_m, url) =>
+    url.startsWith(basePath + '/')
+      ? `.register('${url}'`
+      : `.register('${basePath}${url}'`,
+  )
+  return out
+}
+
 async function generate(
   refresh: boolean,
   minify: boolean,
+  basePath: string,
   rest: readonly string[],
 ): Promise<void> {
   if (rest.length === 0) {
     console.error(
-      'Usage: pnpm walkthrough [--refresh] [--minify] generate <walkthrough.json>',
+      'Usage: pnpm walkthrough [--refresh] [--minify] [--base-path=/prefix] generate <walkthrough.json>',
     )
     process.exit(1)
   }
@@ -150,10 +218,12 @@ async function generate(
   const configPath = rest[0]
   const walkthroughConfig = configPath
     ? (JSON.parse(readFileSync(path.resolve(configPath), 'utf8')) as {
+        slug?: string
         commentBackend?: string
       })
     : {}
   const commentBackend = walkthroughConfig.commentBackend || ''
+  const slug = walkthroughConfig.slug || ''
   if (commentBackend && existsSync(commentsSrc)) {
     copyFileSync(
       commentsSrc,
@@ -257,6 +327,13 @@ async function generate(
     // via the wt-socket-footer class marker.
     if (!html.includes('wt-socket-footer')) {
       html = html.replace('</body>', `  ${footerTag}\n</body>`)
+    }
+
+    // Base-path rewrite — last step so every injected tag above gets
+    // prefixed in one pass. No-op when --base-path is empty (local dev,
+    // Val Town hosting, etc.).
+    if (basePath && slug) {
+      html = applyBasePath(html, basePath, slug)
     }
 
     writeFileSync(htmlPath, html)
@@ -381,7 +458,7 @@ function routeToFile(slug: string, urlPath: string): string | undefined {
   return urlPath.replace(/^\//, '')
 }
 
-function serve(args: readonly string[]): void {
+function serve(basePath: string, args: readonly string[]): void {
   const portArg = args.find(a => a.startsWith('--port='))
   const port = portArg ? Number(portArg.slice('--port='.length)) : 8080
 
@@ -396,7 +473,16 @@ function serve(args: readonly string[]): void {
 
   const server = createServer((req, res) => {
     const rawUrl = (req.url ?? '/').split('?')[0]!.split('#')[0]!
-    const decoded = decodeURIComponent(rawUrl)
+    let decoded = decodeURIComponent(rawUrl)
+    // Strip the base-path prefix so `routeToFile` sees the shape it
+    // expects. Mirrors the generate-side `--base-path` rewrite so
+    // `pnpm walkthrough --base-path=/X serve` + a build with the
+    // same flag round-trips correctly.
+    if (basePath && decoded.startsWith(basePath + '/')) {
+      decoded = decoded.slice(basePath.length)
+    } else if (basePath && decoded === basePath) {
+      decoded = '/'
+    }
     const relative = routeToFile(slug, decoded)
     if (relative === undefined) {
       res.writeHead(400).end('bad request')
@@ -451,15 +537,27 @@ function main(): void {
   const args = process.argv.slice(2)
   const refresh = args.includes('--refresh')
   const minify = args.includes('--minify')
-  const rest = args.filter(a => a !== '--refresh' && a !== '--minify')
+  // Parse --base-path=<p>. When set, every root-relative asset URL
+  // and Val-Town-shaped part link is rewritten so the output works
+  // under a subdirectory host (e.g. GitHub Pages /<repo>/). Leading
+  // slash enforced, trailing slash stripped so path joins are clean.
+  const basePathArg = args.find(a => a.startsWith('--base-path='))
+  const basePath = basePathArg
+    ? normalizeBasePath(basePathArg.slice('--base-path='.length))
+    : ''
+  const rest = args.filter(
+    a => a !== '--refresh' && a !== '--minify' && !a.startsWith('--base-path='),
+  )
   const command = rest[0]
 
   switch (command) {
     case 'generate':
-      generate(refresh, minify, rest.slice(1)).catch(failWith('generate'))
+      generate(refresh, minify, basePath, rest.slice(1)).catch(
+        failWith('generate'),
+      )
       break
     case 'serve':
-      serve(rest.slice(1))
+      serve(basePath, rest.slice(1))
       break
     case 'deploy-val':
       deployVal(rest.slice(1)).catch(failWith('deploy-val'))
@@ -473,7 +571,7 @@ function main(): void {
     default:
       console.error(
         'Usage:\n' +
-          '  pnpm walkthrough [--refresh] [--minify] generate <walkthrough.json>\n' +
+          '  pnpm walkthrough [--refresh] [--minify] [--base-path=/prefix] generate <walkthrough.json>\n' +
           '  pnpm walkthrough serve [--port=8080]\n' +
           '  pnpm walkthrough deploy-val [--name=<valname>]\n' +
           '  pnpm walkthrough token <set|clear|status>\n' +

@@ -22,17 +22,23 @@
 const CACHE_VERSION = 'wt-v1'
 const CACHE_NAME = `wt-cache-${CACHE_VERSION}`
 
+// Base path derived from the SW's own scope — works the same whether
+// we're hosted at the origin root (/) or under a subdirectory like
+// GitHub Pages' /<repo>/. `self.location.pathname` is the path to
+// this script file itself; strip the filename to get the dir.
+const BASE_PATH = self.location.pathname.replace(/\/[^/]*$/, '')
+
 // Precache list — the critical-path assets the shell needs on first
 // paint. HTML entries aren't precached (the page is the request that
 // installs the SW); the *next* navigation to them is cached.
 const PRECACHE = [
-  '/walkthrough.css',
-  '/walkthrough-drag.js',
-  '/walkthrough-comments.js',
-  '/favicon.ico',
-  '/favicon-16x16.png',
-  '/favicon-32x32.png',
-  '/apple-touch-icon.png',
+  `${BASE_PATH}/walkthrough.css`,
+  `${BASE_PATH}/walkthrough-drag.js`,
+  `${BASE_PATH}/walkthrough-comments.js`,
+  `${BASE_PATH}/favicon.ico`,
+  `${BASE_PATH}/favicon-16x16.png`,
+  `${BASE_PATH}/favicon-32x32.png`,
+  `${BASE_PATH}/apple-touch-icon.png`,
 ]
 
 self.addEventListener('install', event => {

@@ -1,0 +1,90 @@
+name: 📘 Walkthrough (GH Pages)
+
+# Deploys the walkthrough pilot to https://socketdev.github.io/socket-packageurl-js/
+# Trigger: push to main that touches walkthrough sources (plus manual).
+#
+# Uses the SocketDev/socket-registry shared composite action for
+# checkout + Node/pnpm setup + install, so toolchain versions stay in
+# sync with the rest of the fleet. The build/deploy steps are custom
+# because there isn't a shared Pages workflow yet (worth PR'ing to
+# socket-registry once we've shipped this and validated the pattern).
+#
+# Build model:
+#   1. Shared setup-and-install → checkout w/ submodules, pnpm install.
+#   2. `pnpm walkthrough --minify --base-path=/socket-packageurl-js generate walkthrough.json`
+#      The --base-path flag rewrites root-relative asset URLs and Val-Town
+#      part links (/<slug>/part/<n>) into prefixed flat HTML paths so the
+#      output works at socketdev.github.io/socket-packageurl-js/. --minify
+#      runs esbuild on JS + lightningcss on CSS (~49% on-disk reduction).
+#   3. Upload `walkthrough/` as the Pages artifact.
+#   4. Deploy via actions/deploy-pages.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'walkthrough.json'
+      - 'walkthrough-comments.js'
+      - 'walkthrough-drag.js'
+      - 'walkthrough-overrides.css'
+      - 'walkthrough-sw.js'
+      - 'scripts/walkthrough.mts'
+      - 'src/**'
+      - 'assets/favicon/**'
+      - '.github/workflows/pages.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Queue Pages deploys serially — don't cancel a running deploy with a
+# newer commit (`cancel-in-progress: false`), that can leave the site
+# in a half-deployed state.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build walkthrough
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup and install (checkout + Node + pnpm + install)
+        uses: SocketDev/socket-registry/.github/actions/setup-and-install@d7b5d15a9be8973a5715459d12b9a033603a5ff5 # main
+        with:
+          checkout-fetch-depth: '1'
+
+      # The fleet's shared checkout action doesn't init submodules.
+      # We need upstream/meander because the generate step shells out
+      # to its CLI. Init non-recursively at the pinned commit the
+      # superrepo points at — no re-resolving from meander upstream.
+      - name: Init meander submodule
+        run: git submodule update --init --depth=1 upstream/meander
+
+      - name: Generate walkthrough (minified, base-path=/socket-packageurl-js)
+        run: >
+          pnpm walkthrough
+          --minify
+          --base-path=/socket-packageurl-js
+          generate walkthrough.json
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: walkthrough
+
+  deploy:
+    name: Deploy to Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deploy
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
