@@ -122,7 +122,7 @@ Example — validator on `walkthrough.json`:
 - Dependencies: After `package.json` edits, run `pnpm install`
 - Backward Compatibility: 🚨 FORBIDDEN to maintain — actively remove when encountered
 - Work Safeguards: MANDATORY commit + backup branch before bulk changes
-- Safe Deletion: Use `safeDelete()` from `@socketsecurity/lib/fs` (NEVER `fs.rm/rmSync` or `rm -rf`)
+- Safe Deletion: Route **every** filesystem delete through `safeDelete()` (async) or `safeDeleteSync()` (sync) from `@socketsecurity/lib/fs`. NEVER reach for `fs.rm` / `fs.rmSync` / `fs.unlink` / `fs.unlinkSync` / `fs.rmdir` / `fs.rmdirSync` / `rm -rf` — even for a single known file. The rule is "all deletes go through the safe helpers," not "except when the blast radius is small"; uniform routing is what keeps audit + retry + signal-abort behavior consistent.
 - HTTP Requests: NEVER use `fetch()` — use `httpJson`/`httpText`/`httpRequest` from `@socketsecurity/lib/http-request`
 - File existence: ALWAYS `existsSync` from `node:fs`. NEVER `fs.access`, `fs.stat`-for-existence, or an async `fileExists` wrapper. Import form: `import { existsSync, promises as fs } from 'node:fs'`.
 
