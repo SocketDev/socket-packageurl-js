@@ -1,4 +1,4 @@
-name: 🌐 Deploy val (Val Town)
+name: 🌐 Deploy (Val Town)
 
 # Deploys the walkthrough comment backend to Val Town when the val
 # source changes on main. Also runnable manually via workflow_dispatch.
