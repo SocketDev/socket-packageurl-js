@@ -610,10 +610,12 @@ function computeIntegrity(bytes: Uint8Array): string {
  * bootstrap, our SW register, __defIndex, socketWalkthrough config)
  * are individually sha256-hashed and allowlisted so we can avoid
  * `'unsafe-inline'`. All remaining directives are tight:
+
  *   script-src    self + unpkg + per-script hashes
  *   style-src     self + unpkg (no inline styles generated)
  *   connect-src   self + val backend (when configured)
  *   img-src       self + data: (CSS validity icons use data URIs)
+ *   font-src      self (self-hosted Geist + Geist Mono)
  *   worker-src    self (service worker)
  *   base-uri, form-action   self
  *   frame-ancestors         none (clickjacking protection)
@@ -674,6 +676,7 @@ function buildCspMeta(html: string, commentBackend: string): string {
     `style-src ${styleSources.join(' ')}`,
     `img-src 'self' data:`,
     `connect-src ${connectSources.join(' ')}`,
+    `font-src 'self'`,
     `worker-src 'self'`,
     `base-uri 'self'`,
     `form-action 'self'`,
@@ -1091,11 +1094,30 @@ async function generate(
     // CSS is already in a `<link rel="stylesheet">` which is inherently
     // render-blocking, so it doesn't need a preload. Comment shim is
     // gated on commentBackend since we only emit the <script> tag then.
+    //
+    // Fonts are preloaded separately so text flashes minimally on first
+    // paint. Each preload carries a sha384 integrity hash so the browser
+    // rejects a tampered font before @font-face loads it. `crossorigin`
+    // is required for integrity verification even on same-origin fonts
+    // (spec quirk — font fetches default to CORS 'anonymous', which
+    // browsers treat as cross-origin for SRI purposes).
+    const fontPreloads = await Promise.all(
+      ['Geist.woff2', 'GeistMono.woff2']
+        .map(name => path.join(buildDir, 'fonts', name))
+        .filter(p => existsSync(p))
+        .map(async p => {
+          const bytes = await fs.readFile(p)
+          const sha384 = cryptoHash('sha384', bytes, 'base64')
+          const href = '/fonts/' + path.basename(p)
+          return `<link rel="preload" as="font" type="font/woff2" href="${href}" integrity="sha384-${sha384}" crossorigin="anonymous" />`
+        }),
+    )
     const preloadTags = [
       '<link rel="preload" as="script" href="/drag.js" />',
       ...(commentBackend
         ? ['<link rel="preload" as="script" href="/comments.js" />']
         : []),
+      ...fontPreloads,
     ].join('\n  ')
     // Socket tagline footer — matches the format used on socket.dev
     // marketing pages. "⚡️" is rendered as an emoji (single char) so
