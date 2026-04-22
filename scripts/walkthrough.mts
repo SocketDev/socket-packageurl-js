@@ -661,10 +661,7 @@ async function generate(
         }
         const count = partCounts.get(Number(n))
         const fullLabel = `Part ${n}: ${title.replace(/"/g, '&quot;')}${count ? ` (${count} sections)` : ''}`
-        const countSpan = count
-          ? ` <span class="wt-pill-count">(${count})</span>`
-          : ''
-        return `${open}${attrs} title="${fullLabel}" aria-label="${fullLabel}">${n}${countSpan}</a>`
+        return `${open}${attrs} title="${fullLabel}" aria-label="${fullLabel}">${n}</a>`
       })
     }
 

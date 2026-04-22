@@ -760,15 +760,6 @@ body.wt-ready .topbar-actions {
   letter-spacing: 0.06em;
   font-weight: 600;
 }
-/* Per-pill section count (inside each numbered part pill). Muted
- * relative to the pill's primary number so the count reads as meta
- * rather than competing with the pill label. Same convention as the
- * index TOC row counts. */
-.topbar .part-nav a .wt-pill-count {
-  margin-left: 4px;
-  opacity: 0.65;
-  font-weight: 400;
-}
 /* Dark theme keeps the same purple band — docs.socket.dev uses the
  * same header in both modes, deepened slightly against the near-black
  * page. */
