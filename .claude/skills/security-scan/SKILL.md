@@ -81,3 +81,9 @@ The agent:
 Output a HANDOFF block per `_shared/report-format.md` for pipeline chaining.
 
 Update queue: `status: done`, write `findings_count` and final grade.
+
+---
+
+## Reference
+
+For rule catalogs (AgentShield + zizmor), common false positives, severity decision tree, and fix recipes — load [reference.md](./reference.md) when triaging findings.
