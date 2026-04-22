@@ -247,7 +247,12 @@ async function renderDocs(
       `  <meta name="viewport" content="width=device-width, initial-scale=1" />\n` +
       `  <title>${escapeHtml(doc.title)} — Socket PackageURL.js</title>\n` +
       `  <link rel="stylesheet" href="/walkthrough.css" />\n` +
-      `  <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css" />\n` +
+      // Theme-adaptive syntax highlighting. Media queries gate which
+      // highlight.js theme the browser actually applies based on the
+      // user's OS preference; both stylesheets download, the
+      // non-matching one just yields zero matched rules.
+      `  <link rel="stylesheet" media="(prefers-color-scheme: light)" href="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/styles/github.min.css" />\n` +
+      `  <link rel="stylesheet" media="(prefers-color-scheme: dark)" href="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css" />\n` +
       `</head>\n` +
       `<body data-slug="${escapeHtml(slug)}" data-doc="${escapeHtml(doc.filename)}">\n` +
       `  <header class="topbar">\n` +
@@ -262,6 +267,11 @@ async function renderDocs(
       `  <main class="doc-body">\n` +
       `${body}\n` +
       `  </main>\n` +
+      // highlight.js — loaded at the bottom so code blocks are in the
+      // DOM by the time it runs. The SRI + CSP pipeline pass hashes
+      // both the <script src> tag and the inline init block later.
+      `  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>\n` +
+      `  <script>document.querySelectorAll('pre code').forEach(b => window.hljs && window.hljs.highlightElement(b))</script>\n` +
       `</body>\n` +
       `</html>\n`
     await fs.writeFile(path.join(tourDir, `${doc.filename}.html`), html)

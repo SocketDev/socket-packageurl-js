@@ -364,6 +364,150 @@ html[data-theme='dark'] .file-grid > .code-section:hover {
   margin-left: 2px;
 }
 
+/* ─── Topic doc pages ───────────────────────────────────────────
+ * Pages rendered from docs/*.md into <main class="doc-body">. The
+ * meander parts pages have a two-column layout with their own
+ * spacing rules; these docs are single-column prose and need
+ * newspaper-style centered reading width, muted body text, and
+ * syntax-highlighted code blocks to stop being "torture to read."
+ */
+.doc-body {
+  /* Centered reading column — ~72 chars at this font size keeps
+   * eyes from shuttling too far across a wide monitor. Scale the
+   * side padding on mobile so small screens don't hit the edges. */
+  max-width: 72ch;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  /* Tone down body from pure white. --prose-text is a GitHub-tuned
+   * off-white (#e6edf3) in dark, #1f2328 in light — both land in
+   * the "readable, not aggressive" band. */
+  color: var(--prose-text);
+  font-size: 16px;
+  line-height: 1.65;
+}
+.doc-body h1,
+.doc-body h2,
+.doc-body h3,
+.doc-body h4,
+.doc-body h5,
+.doc-body h6 {
+  color: var(--prose-text);
+  line-height: 1.25;
+  margin: 2em 0 0.6em;
+}
+.doc-body h1 {
+  font-size: 30px;
+  margin-top: 0;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.3em;
+}
+.doc-body h2 {
+  font-size: 22px;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.2em;
+}
+.doc-body h3 {
+  font-size: 18px;
+  /* Override the all-caps 11px treatment the page also applies to
+   * <h3> inside annotation cards; doc-body h3s are normal headings. */
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 600 !important;
+  color: var(--prose-text) !important;
+  font-size: 18px !important;
+  margin: 2em 0 0.6em !important;
+}
+.doc-body h4 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.doc-body p,
+.doc-body li {
+  color: var(--prose-text);
+}
+.doc-body a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  transition: border-color var(--transition-fast);
+}
+.doc-body a:hover {
+  border-bottom-color: var(--accent);
+}
+.doc-body ul,
+.doc-body ol {
+  padding-left: 1.5em;
+}
+.doc-body li {
+  margin: 0.25em 0;
+}
+.doc-body blockquote {
+  margin: 1em 0;
+  padding: 0.4em 1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  color: var(--eyebrow);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+  border-radius: 0 4px 4px 0;
+}
+.doc-body table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  display: block;
+  overflow-x: auto;
+  font-size: 14px;
+}
+.doc-body th,
+.doc-body td {
+  border: 1px solid var(--rule);
+  padding: 6px 10px;
+  text-align: left;
+}
+.doc-body th {
+  background: color-mix(in srgb, var(--accent) 6%, var(--page-bg));
+  font-weight: 600;
+}
+
+/* Inline code — subtle chip background + monospace, so it visually
+ * separates from surrounding prose without being a different color
+ * than the code-block text it shares glyphs with. */
+.doc-body :not(pre) > code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  background: color-mix(in srgb, var(--rule) 35%, transparent);
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: inherit;
+  border: 1px solid color-mix(in srgb, var(--rule) 50%, transparent);
+}
+
+/* Fenced code blocks. highlight.js paints tokens once
+ * <script>hljs.highlightElement(block)</script> runs; the container
+ * owns the padding, border, scroll behavior. */
+.doc-body pre {
+  margin: 1em 0;
+  padding: 14px 16px;
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+.doc-body pre > code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13.5px;
+  color: inherit;
+  /* highlight.js's theme CSS sets foreground token colors; let it
+   * win over the doc-body prose color. */
+}
+.doc-body hr {
+  margin: 2em 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+
 /* The first annotation inside each file-block is almost always file
  * boilerplate — license header, @fileoverview, etc. Render it in a
  * muted, italic tone so it reads as framing rather than body content. */
