@@ -158,6 +158,57 @@ function computeIntegrity(bytes: Uint8Array): string {
 }
 
 /**
+ * Build a `<meta http-equiv="Content-Security-Policy">` tag for a
+ * specific HTML page. Inline `<script>` blocks (meander's hljs
+ * bootstrap, our SW register, __defIndex, socketWalkthrough config)
+ * are individually sha256-hashed and allowlisted so we can avoid
+ * `'unsafe-inline'`. All remaining directives are tight:
+ *   script-src    self + unpkg + per-script hashes
+ *   style-src     self + unpkg (no inline styles generated)
+ *   connect-src   self + val backend (when configured)
+ *   img-src       self + data: (CSS validity icons use data URIs)
+ *   worker-src    self (service worker)
+ *   base-uri, form-action   self
+ *   frame-ancestors         none (clickjacking protection)
+ *   default-src             self (fallback for anything not listed)
+ */
+function buildCspMeta(html: string, commentBackend: string): string {
+  // Collect each inline script body, hash it, prefix with sha256-.
+  // Meander + our post-processor both emit scripts with `<script>...`
+  // (no src attr) — match those, skip `<script src=...>`.
+  const inlineRe = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi
+  const scriptHashes = new Set<string>()
+  for (const m of html.matchAll(inlineRe)) {
+    const body = m[1]!
+    // CSP hashes the script body verbatim, including surrounding
+    // whitespace. We don't normalize — browsers hash what they get.
+    const hash = cryptoHash('sha256', body, 'base64')
+    scriptHashes.add(`'sha256-${hash}'`)
+  }
+  const scriptSources = ["'self'", 'https://unpkg.com', ...scriptHashes].join(
+    ' ',
+  )
+  const connectSources = ["'self'"]
+  if (commentBackend) {
+    const origin = new URL(commentBackend).origin
+    connectSources.push(origin)
+  }
+  const directives = [
+    `default-src 'self'`,
+    `script-src ${scriptSources}`,
+    `style-src 'self' https://unpkg.com`,
+    `img-src 'self' data:`,
+    `connect-src ${connectSources.join(' ')}`,
+    `worker-src 'self'`,
+    `base-uri 'self'`,
+    `form-action 'self'`,
+    `frame-ancestors 'none'`,
+  ]
+  const content = directives.join('; ')
+  return `<meta http-equiv="Content-Security-Policy" content="${content}" />`
+}
+
+/**
  * Compute / look up the SRI hash for a CDN URL. Disk-cached under
  * `.cache/sri/<base64url(url)>.txt` so repeat builds don't refetch.
  * Version bumps invalidate automatically since the cache key is the
@@ -524,10 +575,19 @@ async function generate(
       continue
     }
     const htmlPath = path.join(walkthroughDir, entry)
-    const html = readFileSync(htmlPath, 'utf8')
-    const withSri = await injectSri(html, walkthroughDir, basePath, sriCacheDir)
-    if (withSri !== html) {
-      writeFileSync(htmlPath, withSri)
+    let html = readFileSync(htmlPath, 'utf8')
+    const originalHtml = html
+    html = await injectSri(html, walkthroughDir, basePath, sriCacheDir)
+    // CSP meta — must run AFTER SRI injection so the hash of each
+    // inline <script> reflects its final body (no further rewrites).
+    // Per-file because __defIndex varies per-part; pages also differ
+    // in which inline blocks land (index vs part pages).
+    if (!html.includes('http-equiv="Content-Security-Policy"')) {
+      const cspTag = buildCspMeta(html, commentBackend)
+      html = html.replace('</head>', `  ${cspTag}\n</head>`)
+    }
+    if (html !== originalHtml) {
+      writeFileSync(htmlPath, html)
     }
   }
 }
