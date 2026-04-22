@@ -12,22 +12,13 @@
 
 import { execFileSync } from 'node:child_process'
 import { hash as cryptoHash } from 'node:crypto'
-import {
-  appendFileSync,
-  copyFileSync,
-  createReadStream,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  writeFileSync,
-} from 'node:fs'
-import { safeDeleteSync } from '@socketsecurity/lib/fs'
+import { createReadStream, existsSync, promises as fs } from 'node:fs'
 import { createServer } from 'node:http'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+
+import { safeDelete } from '@socketsecurity/lib/fs'
 
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'
@@ -64,12 +55,15 @@ function run(cmd: string, args: readonly string[], cwd: string): void {
   execFileSync(cmd, args, { cwd, stdio: 'inherit' })
 }
 
-function isEmptyDir(dir: string): boolean {
-  return !existsSync(dir) || readdirSync(dir).length === 0
+async function isEmptyDir(dir: string): Promise<boolean> {
+  if (!existsSync(dir)) {
+    return true
+  }
+  return (await fs.readdir(dir)).length === 0
 }
 
-function ensureMeander(refresh: boolean): void {
-  if (isEmptyDir(meanderDir)) {
+async function ensureMeander(refresh: boolean): Promise<void> {
+  if (await isEmptyDir(meanderDir)) {
     run(
       'git',
       ['submodule', 'update', '--init', '--depth=1', MEANDER_PATH],
@@ -324,15 +318,15 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
   const key = Buffer.from(url).toString('base64url')
   const cachePath = path.join(cacheDir, `${key}.txt`)
   if (existsSync(cachePath)) {
-    return readFileSync(cachePath, 'utf8').trim()
+    return (await fs.readFile(cachePath, 'utf8')).trim()
   }
   const res = await fetch(url)
   if (!res.ok) {
     throw new Error(`SRI fetch ${url} → HTTP ${res.status}`)
   }
   const integrity = computeIntegrity(new Uint8Array(await res.arrayBuffer()))
-  mkdirSync(cacheDir, { recursive: true })
-  writeFileSync(cachePath, integrity + '\n')
+  await fs.mkdir(cacheDir, { recursive: true })
+  await fs.writeFile(cachePath, integrity + '\n')
   return integrity
 }
 
@@ -380,7 +374,7 @@ async function injectSri(
           : ref
       const localPath = path.join(walkthroughDir, bareRef)
       if (existsSync(localPath)) {
-        integrity = computeIntegrity(readFileSync(localPath))
+        integrity = computeIntegrity(await fs.readFile(localPath))
       }
     }
     integrityByRef.set(ref, integrity ?? '')
@@ -452,7 +446,7 @@ async function generate(
     )
     process.exit(1)
   }
-  ensureMeander(refresh)
+  await ensureMeander(refresh)
   run(process.execPath, [cliEntry, 'generate', ...rest], repoRoot)
 
   // Append Socket overrides to meander's emitted CSS. Guarded by a
@@ -462,10 +456,10 @@ async function generate(
   const emittedCss = path.join(walkthroughDir, 'walkthrough.css')
   const overrideMarker = '/* ── Socket overrides'
   if (existsSync(overrideCssPath) && existsSync(emittedCss)) {
-    const current = readFileSync(emittedCss, 'utf8')
+    const current = await fs.readFile(emittedCss, 'utf8')
     if (!current.includes(overrideMarker)) {
-      const overrideCss = readFileSync(overrideCssPath, 'utf8')
-      appendFileSync(
+      const overrideCss = await fs.readFile(overrideCssPath, 'utf8')
+      await fs.appendFile(
         emittedCss,
         `\n\n${overrideMarker} (walkthrough-overrides.css) ── */\n${overrideCss}`,
       )
@@ -475,7 +469,7 @@ async function generate(
   // Ship the column-splitter JS alongside the generated HTML.
   const dragSrc = path.join(repoRoot, 'walkthrough-drag.js')
   if (existsSync(dragSrc)) {
-    copyFileSync(dragSrc, path.join(walkthroughDir, 'walkthrough-drag.js'))
+    await fs.copyFile(dragSrc, path.join(walkthroughDir, 'walkthrough-drag.js'))
   }
 
   // Ship the service worker — cache-first for same-origin assets,
@@ -487,7 +481,7 @@ async function generate(
   // we're not in a git repo (tarball install, fresh clone pre-init).
   const swSrc = path.join(repoRoot, 'walkthrough-sw.js')
   if (existsSync(swSrc)) {
-    let swSource = readFileSync(swSrc, 'utf8')
+    let swSource = await fs.readFile(swSrc, 'utf8')
     let cacheVersion: string
     try {
       cacheVersion = execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], {
@@ -500,12 +494,13 @@ async function generate(
       cacheVersion = 'ts-' + Date.now().toString(36)
     }
     swSource = swSource.replaceAll('__CACHE_VERSION__', cacheVersion)
-    writeFileSync(path.join(walkthroughDir, 'walkthrough-sw.js'), swSource)
+    await fs.writeFile(path.join(walkthroughDir, 'walkthrough-sw.js'), swSource)
   }
 
   // Ship favicons (self-hosted copy of socket.dev's icons). Walkthrough
   // HTML doesn't currently carry <link rel="icon"> tags from meander,
-  // so we inject them in the post-processor below.
+  // so we inject them in the post-processor below. Parallelize via
+  // Promise.allSettled so one missing favicon doesn't abort the others.
   const faviconSrc = path.join(repoRoot, 'assets', 'favicon')
   const faviconFiles = [
     'favicon.ico',
@@ -513,12 +508,15 @@ async function generate(
     'favicon-16x16.png',
     'apple-touch-icon.png',
   ] as const
-  for (const f of faviconFiles) {
-    const src = path.join(faviconSrc, f)
-    if (existsSync(src)) {
-      copyFileSync(src, path.join(walkthroughDir, f))
-    }
-  }
+  await Promise.allSettled(
+    faviconFiles.map(f => {
+      const src = path.join(faviconSrc, f)
+      if (!existsSync(src)) {
+        return Promise.resolve()
+      }
+      return fs.copyFile(src, path.join(walkthroughDir, f))
+    }),
+  )
 
   // Ship the comment-UI replacement (optional — only when a commentBackend
   // is configured). The shim is loaded instead of meander's inlined comment
@@ -526,7 +524,7 @@ async function generate(
   const commentsSrc = path.join(repoRoot, 'walkthrough-comments.js')
   const configPath = rest[0]
   const walkthroughConfig = configPath
-    ? (JSON.parse(readFileSync(path.resolve(configPath), 'utf8')) as {
+    ? (JSON.parse(await fs.readFile(path.resolve(configPath), 'utf8')) as {
         slug?: string
         commentBackend?: string
         parts?: Array<{ id: number; title: string; filename?: string }>
@@ -562,7 +560,7 @@ async function generate(
   const partCounts = new Map<number, number>()
   const indexPath = path.join(walkthroughDir, 'index.html')
   if (existsSync(indexPath)) {
-    const indexHtml = readFileSync(indexPath, 'utf8')
+    const indexHtml = await fs.readFile(indexPath, 'utf8')
     const countRe = new RegExp(
       `/${slug}/part/(\\d+)[^<]*</a>\\s*<span[^>]*>\\((\\d+)\\s+sections?\\)`,
       'g',
@@ -572,7 +570,7 @@ async function generate(
     }
   }
   if (commentBackend && existsSync(commentsSrc)) {
-    copyFileSync(
+    await fs.copyFile(
       commentsSrc,
       path.join(walkthroughDir, 'walkthrough-comments.js'),
     )
@@ -649,12 +647,16 @@ async function generate(
     '</footer>',
   ].join('\n  ')
 
-  for (const entry of readdirSync(walkthroughDir)) {
-    if (!entry.endsWith('.html')) {
-      continue
-    }
+  // Per-file HTML post-processor. Hoisted out of the loop so we can
+  // fan out across every emitted page with Promise.allSettled instead
+  // of walking them serially — each file's transforms are
+  // self-contained (no cross-file state beyond the pre-computed maps
+  // above). allSettled over all rejects so one broken file doesn't
+  // mask the others; we collect rejections and throw a composite
+  // after.
+  const postProcessEntry = async (entry: string): Promise<void> => {
     const htmlPath = path.join(walkthroughDir, entry)
-    let html = readFileSync(htmlPath, 'utf8')
+    let html = await fs.readFile(htmlPath, 'utf8')
 
     // Strip meander's inlined comment scripts when replacing with ours.
     if (commentBackend) {
@@ -794,14 +796,34 @@ async function generate(
         )
       }
       const newPath = path.join(walkthroughDir, `${newName}.html`)
-      writeFileSync(newPath, html)
+      await fs.writeFile(newPath, html)
       if (newPath !== htmlPath) {
-        safeDeleteSync(htmlPath)
+        await safeDelete(htmlPath)
       }
-      continue
+      return
     }
 
-    writeFileSync(htmlPath, html)
+    await fs.writeFile(htmlPath, html)
+  }
+
+  const entries = await fs.readdir(walkthroughDir)
+  const htmlEntries = entries.filter(e => e.endsWith('.html'))
+  const postProcessResults = await Promise.allSettled(
+    htmlEntries.map(postProcessEntry),
+  )
+  const postProcessFailures: string[] = []
+  for (let i = 0; i < postProcessResults.length; i++) {
+    const r = postProcessResults[i]!
+    if (r.status === 'rejected') {
+      postProcessFailures.push(
+        `${htmlEntries[i]}: ${String((r.reason as Error)?.message ?? r.reason)}`,
+      )
+    }
+  }
+  if (postProcessFailures.length > 0) {
+    throw new Error(
+      `walkthrough post-processing failed for ${postProcessFailures.length} file(s):\n  - ${postProcessFailures.join('\n  - ')}`,
+    )
   }
 
   // Socket.dev malware audit on CDN scripts (marked, highlight.js)
@@ -824,25 +846,41 @@ async function generate(
   // files in `walkthroughDir` directly. Any `<script>` / `<link>`
   // (CDN or same-origin) ends up with `integrity="sha384-..."`.
   const sriCacheDir = path.join(repoRoot, '.cache', 'sri')
-  for (const entry of readdirSync(walkthroughDir)) {
-    if (!entry.endsWith('.html')) {
-      continue
+  const sriEntries = (await fs.readdir(walkthroughDir)).filter(e =>
+    e.endsWith('.html'),
+  )
+  const sriResults = await Promise.allSettled(
+    sriEntries.map(async entry => {
+      const htmlPath = path.join(walkthroughDir, entry)
+      let html = await fs.readFile(htmlPath, 'utf8')
+      const originalHtml = html
+      html = await injectSri(html, walkthroughDir, basePath, sriCacheDir)
+      // CSP meta — must run AFTER SRI injection so the hash of each
+      // inline <script> reflects its final body (no further rewrites).
+      // Per-file because __defIndex varies per-part; pages also differ
+      // in which inline blocks land (index vs part pages).
+      if (!html.includes('http-equiv="Content-Security-Policy"')) {
+        const cspTag = buildCspMeta(html, commentBackend)
+        html = html.replace('</head>', `  ${cspTag}\n</head>`)
+      }
+      if (html !== originalHtml) {
+        await fs.writeFile(htmlPath, html)
+      }
+    }),
+  )
+  const sriFailures: string[] = []
+  for (let i = 0; i < sriResults.length; i++) {
+    const r = sriResults[i]!
+    if (r.status === 'rejected') {
+      sriFailures.push(
+        `${sriEntries[i]}: ${String((r.reason as Error)?.message ?? r.reason)}`,
+      )
     }
-    const htmlPath = path.join(walkthroughDir, entry)
-    let html = readFileSync(htmlPath, 'utf8')
-    const originalHtml = html
-    html = await injectSri(html, walkthroughDir, basePath, sriCacheDir)
-    // CSP meta — must run AFTER SRI injection so the hash of each
-    // inline <script> reflects its final body (no further rewrites).
-    // Per-file because __defIndex varies per-part; pages also differ
-    // in which inline blocks land (index vs part pages).
-    if (!html.includes('http-equiv="Content-Security-Policy"')) {
-      const cspTag = buildCspMeta(html, commentBackend)
-      html = html.replace('</head>', `  ${cspTag}\n</head>`)
-    }
-    if (html !== originalHtml) {
-      writeFileSync(htmlPath, html)
-    }
+  }
+  if (sriFailures.length > 0) {
+    throw new Error(
+      `SRI/CSP injection failed for ${sriFailures.length} file(s):\n  - ${sriFailures.join('\n  - ')}`,
+    )
   }
 }
 
@@ -868,37 +906,53 @@ async function minifyEmittedAssets(): Promise<void> {
   ]
   const cssFiles = ['walkthrough.css']
 
-  let savedBytes = 0
-
-  for (const f of jsFiles) {
+  // Each minify op is independent — fan out across all files of both
+  // kinds in parallel and sum the byte savings afterwards. Use
+  // allSettled so a failure on one asset (e.g. lightningcss rejecting
+  // invalid CSS) doesn't hide any other savings we'd otherwise report.
+  const jsTasks = jsFiles.map(async f => {
     const p = path.join(walkthroughDir, f)
     if (!existsSync(p)) {
-      continue
+      return 0
     }
-    const before = readFileSync(p, 'utf8')
+    const before = await fs.readFile(p, 'utf8')
     const out = await esbuildTransform(before, {
       loader: 'js',
       minify: true,
       target: 'es2022',
       legalComments: 'none',
     })
-    writeFileSync(p, out.code)
-    savedBytes += before.length - out.code.length
-  }
-
-  for (const f of cssFiles) {
+    await fs.writeFile(p, out.code)
+    return before.length - out.code.length
+  })
+  const cssTasks = cssFiles.map(async f => {
     const p = path.join(walkthroughDir, f)
     if (!existsSync(p)) {
-      continue
+      return 0
     }
-    const before = readFileSync(p, 'utf8')
+    const before = await fs.readFile(p, 'utf8')
     const out = lightningTransform({
       filename: f,
       code: Buffer.from(before),
       minify: true,
     })
-    writeFileSync(p, out.code)
-    savedBytes += before.length - out.code.length
+    await fs.writeFile(p, out.code)
+    return before.length - out.code.length
+  })
+  const results = await Promise.allSettled([...jsTasks, ...cssTasks])
+  let savedBytes = 0
+  const failures: string[] = []
+  for (const r of results) {
+    if (r.status === 'fulfilled') {
+      savedBytes += r.value
+    } else {
+      failures.push(String((r.reason as Error)?.message ?? r.reason))
+    }
+  }
+  if (failures.length > 0) {
+    throw new Error(
+      `minification failed for ${failures.length} asset(s):\n  - ${failures.join('\n  - ')}`,
+    )
   }
 
   console.log(`Minified assets — saved ${(savedBytes / 1024).toFixed(1)} KB`)
@@ -931,12 +985,12 @@ function stripInlinedCommentScripts(
   return out
 }
 
-function readSlug(): string {
+async function readSlug(): Promise<string> {
   // Meander bakes Val-Town-shaped links (/<slug>/part/<n>) into the HTML even
   // though it writes flat file names. Read the slug from manifest.json so we
   // can route those URLs to the right file.
   const manifestPath = path.join(walkthroughDir, 'manifest.json')
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+  const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8')) as {
     slug: string
   }
   return manifest.slug
@@ -951,12 +1005,12 @@ function readSlug(): string {
  * isn't present (e.g. invoked from a fresh checkout without the
  * source config) — the route table falls back to the legacy shape.
  */
-function readPartFilenames(): Map<number, string> {
+async function readPartFilenames(): Promise<Map<number, string>> {
   const configPath = path.join(repoRoot, 'walkthrough.json')
   if (!existsSync(configPath)) {
     return new Map()
   }
-  const config = JSON.parse(readFileSync(configPath, 'utf8')) as {
+  const config = JSON.parse(await fs.readFile(configPath, 'utf8')) as {
     parts?: Array<{ id: number; filename?: string }>
   }
   const map = new Map<number, string>()
@@ -1000,7 +1054,7 @@ function routeToFile(
   return urlPath.replace(/^\//, '')
 }
 
-function serve(basePath: string, args: readonly string[]): void {
+async function serve(basePath: string, args: readonly string[]): Promise<void> {
   const portArg = args.find(a => a.startsWith('--port='))
   const port = portArg ? Number(portArg.slice('--port='.length)) : 8080
 
@@ -1011,10 +1065,10 @@ function serve(basePath: string, args: readonly string[]): void {
     process.exit(1)
   }
 
-  const slug = readSlug()
-  const partFilenames = readPartFilenames()
+  const slug = await readSlug()
+  const partFilenames = await readPartFilenames()
 
-  const server = createServer((req, res) => {
+  const server = createServer(async (req, res) => {
     const rawUrl = (req.url ?? '/').split('?')[0]!.split('#')[0]!
     let decoded = decodeURIComponent(rawUrl)
     // Strip the base-path prefix so `routeToFile` sees the shape it
@@ -1041,12 +1095,28 @@ function serve(basePath: string, args: readonly string[]): void {
       return
     }
 
+    // existsSync stays sync per the fs-guidelines exception; stat uses
+    // the async promise API to avoid a blocking call inside the
+    // request handler. If the target doesn't exist or fails to stat,
+    // respond 404 rather than throwing.
     let resolvedTarget = target
-    if (existsSync(resolvedTarget) && statSync(resolvedTarget).isDirectory()) {
-      resolvedTarget = path.join(resolvedTarget, 'index.html')
+    let stats: Awaited<ReturnType<typeof fs.stat>>
+    try {
+      stats = await fs.stat(resolvedTarget)
+    } catch {
+      res.writeHead(404, { 'content-type': 'text/plain' }).end('not found')
+      return
     }
-
-    if (!existsSync(resolvedTarget) || !statSync(resolvedTarget).isFile()) {
+    if (stats.isDirectory()) {
+      resolvedTarget = path.join(resolvedTarget, 'index.html')
+      try {
+        stats = await fs.stat(resolvedTarget)
+      } catch {
+        res.writeHead(404, { 'content-type': 'text/plain' }).end('not found')
+        return
+      }
+    }
+    if (!stats.isFile()) {
       res.writeHead(404, { 'content-type': 'text/plain' }).end('not found')
       return
     }
@@ -1101,7 +1171,10 @@ async function watch(
   // Start the server. `serve` blocks on its own createServer; since
   // we're about to install watchers on the main loop, kicking it off
   // first keeps the process alive without explicit setInterval.
-  serve(basePath, [])
+  // Fire-and-forget await — the server listen is non-blocking after
+  // setup, and any startup error surfaces via the unhandledrejection
+  // path so watch mode halts fast rather than silently dropping.
+  void serve(basePath, [])
 
   // Files/directories that should trigger a rebuild when they change.
   // Keep this narrow — watching the entire repo would catch noise
@@ -1275,7 +1348,7 @@ function main(): void {
       )
       break
     case 'serve':
-      serve(basePath, rest.slice(1))
+      serve(basePath, rest.slice(1)).catch(failWith('serve'))
       break
     case 'watch':
       watch(refresh, minify, basePath, rest.slice(1)).catch(failWith('watch'))
@@ -1333,11 +1406,11 @@ type DeployReceiptRow = {
  * summary. The summary is written to `$GITHUB_STEP_SUMMARY` when
  * present, and always to stdout.
  */
-function printDeployReceipt(
+async function printDeployReceipt(
   valName: string,
   valId: string,
   receipts: readonly DeployReceiptRow[],
-): void {
+): Promise<void> {
   const total = receipts.reduce((sum, r) => sum + r.bytes, 0)
   const lines = [
     `## Deploy receipt — ${valName} (${valId})`,
@@ -1355,7 +1428,7 @@ function printDeployReceipt(
   const summaryPath = process.env['GITHUB_STEP_SUMMARY']
   if (summaryPath) {
     try {
-      appendFileSync(summaryPath, summary + '\n')
+      await fs.appendFile(summaryPath, summary + '\n')
     } catch (err) {
       console.warn(
         '[valtown] could not write GITHUB_STEP_SUMMARY:',
@@ -1368,7 +1441,7 @@ function printDeployReceipt(
 async function deployValtown(args: readonly string[]): Promise<void> {
   const envFile = path.join(repoRoot, '.env.local')
   if (existsSync(envFile)) {
-    loadDotEnv(envFile)
+    await loadDotEnv(envFile)
   }
 
   const token = resolveValTownToken()
@@ -1461,7 +1534,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
   // Sorted alphabetically so upload order + deploy receipts are stable
   // across runs (useful for diffing run logs).
   const valDir = path.join(repoRoot, 'val')
-  const files = readdirSync(valDir)
+  const files = (await fs.readdir(valDir))
     .filter(f => f.endsWith('.ts') && !f.endsWith('.test.ts'))
     .sort()
     .map(p => ({
@@ -1485,7 +1558,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
 
   for (const f of files) {
     const srcPath = path.join(valDir, f.path)
-    const content = readFileSync(srcPath, 'utf8')
+    const content = await fs.readFile(srcPath, 'utf8')
     const sha256 = cryptoHash('sha256', content, 'hex')
     // Val Town's file API wants `path` in the querystring; body carries
     // only content + type. Try POST (create) first — if the file
@@ -1533,7 +1606,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
   // hashes. Printed to console always; also emitted to GitHub step
   // summary when running under Actions so the workflow run page has
   // the same info as the CLI output.
-  printDeployReceipt(valName, valId, receipts)
+  await printDeployReceipt(valName, valId, receipts)
 
   const envVars: Array<[string, string | undefined]> = [
     ['JWT_SIGNING_KEY', process.env['JWT_SIGNING_KEY']],
@@ -1602,8 +1675,8 @@ async function deployValtown(args: readonly string[]): Promise<void> {
  * surrounding quotes. Does not handle multi-line or escape sequences;
  * for our use case (a few API tokens), that's fine.
  */
-function loadDotEnv(filePath: string): void {
-  const text = readFileSync(filePath, 'utf8')
+async function loadDotEnv(filePath: string): Promise<void> {
+  const text = await fs.readFile(filePath, 'utf8')
   for (const rawLine of text.split(/\r?\n/)) {
     const line = rawLine.trim()
     if (!line || line.startsWith('#')) {
@@ -1932,7 +2005,7 @@ async function doctor(): Promise<void> {
     return
   }
   const manifest = JSON.parse(
-    readFileSync(manifestPath, 'utf8'),
+    await fs.readFile(manifestPath, 'utf8'),
   ) as ExternalToolsManifest
 
   console.log(`Platform: ${process.platform} (${process.arch})`)
