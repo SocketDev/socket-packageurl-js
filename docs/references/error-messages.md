@@ -98,6 +98,62 @@ Both wrap `Intl.ListFormat`, so the Oxford comma and one-/two-item cases come ou
 
 Use `joinOr` whenever the error is "must be one of X", `joinAnd` whenever it's "all of X are required / missing / in conflict".
 
+## Working with caught values
+
+`catch (e)` binds `unknown`. The helpers in `@socketsecurity/lib/errors` cover the four patterns that recur everywhere:
+
+```ts
+import {
+  errorMessage,
+  errorStack,
+  isError,
+  isErrnoException,
+} from '@socketsecurity/lib/errors'
+```
+
+### `isError(value)` — replaces `value instanceof Error`
+
+Cross-realm-safe. Uses the native ES2025 `Error.isError` when the engine ships it, falls back to a spec-compliant shim otherwise. Catches Errors from worker threads, `vm` contexts, and iframes that same-realm `instanceof Error` silently misses.
+
+- ✗ `if (e instanceof Error) { … }`
+- ✓ `if (isError(e)) { … }`
+
+### `isErrnoException(value)` — replaces `'code' in err` guards
+
+Narrows to `NodeJS.ErrnoException` (an Error with a string `code` set by libuv/syscalls like `ENOENT`, `EACCES`, `EBUSY`, `EPERM`). Builds on `isError`, so it's also cross-realm-safe, and it checks that `code` is a string — a merely branded Error without a real errno code returns `false`.
+
+- ✗ `if (e && typeof e === 'object' && 'code' in e && e.code === 'ENOENT') { … }`
+- ✓ `if (isErrnoException(e) && e.code === 'ENOENT') { … }`
+
+### `errorMessage(value)` — replaces the `instanceof Error ? e.message : String(e)` pattern
+
+Walks the `cause` chain via `messageWithCauses`, coerces primitives and objects to string, and returns the shared `UNKNOWN_ERROR` sentinel (the string `'Unknown error'`) for `null`, `undefined`, empty strings, `[object Object]`, or Errors with no message.
+
+That last bullet is the important one: **every `|| 'Unknown error'` fallback in the fleet should collapse into a single `errorMessage(e)` call.**
+
+- ✗ `` `Failed: ${e instanceof Error ? e.message : String(e)}` ``
+- ✗ `` `Failed: ${(e as Error)?.message ?? 'Unknown error'}` ``
+- ✗ `` `Failed: ${e instanceof Error ? e.message : 'Unknown error'}` ``
+- ✓ `` `Failed: ${errorMessage(e)}` ``
+
+When you want to preserve the cause chain upstream (recommended), pair it with `{ cause }`:
+
+```ts
+try {
+  await readConfig(path)
+} catch (e) {
+  throw new Error(`Failed to read ${path}: ${errorMessage(e)}`, { cause: e })
+}
+```
+
+### `errorStack(value)` — cause-aware stack, or `undefined`
+
+Returns the cause-walking stack for Errors; returns `undefined` for non-Errors so logger calls stay safe:
+
+```ts
+logger.error(`rebuild failed: ${errorMessage(e)}`, { stack: errorStack(e) })
+```
+
 ## Voice & tone
 
 - Imperative for the fix: `rename`, `add`, `remove`, `set`.

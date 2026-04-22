@@ -114,6 +114,13 @@ Rules for every message:
 - Bloat check: if removing a word keeps the information, drop it.
 - For allowed-set / conflict lists, use `joinAnd` / `joinOr` from `@socketsecurity/lib/arrays` — `must be one of: ${joinOr(allowed)}` reads better than a hand-formatted list.
 
+Caught-value helpers from `@socketsecurity/lib/errors` (prefer these in **scripts** over hand-rolled checks; `src/` uses primordial-guarded helpers from `src/error.ts` instead):
+
+- `isError(e)` — replaces `e instanceof Error`. Cross-realm-safe.
+- `isErrnoException(e)` — replaces `'code' in err` guards. Narrows to `NodeJS.ErrnoException`.
+- `errorMessage(e)` — replaces `e instanceof Error ? e.message : String(e)` and any `'Unknown error'` fallback. Walks the `cause` chain.
+- `errorStack(e)` — cause-aware stack or `undefined`.
+
 Examples:
 
 - ✗ `Error: invalid config` → ✓ `config.json: part 3 is missing "filename". Add a lowercase filename (e.g. "parsing").`
