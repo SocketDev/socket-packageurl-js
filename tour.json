@@ -198,6 +198,12 @@
       "summary": "How the library treats PURL strings as hostile input — injection-character detection, frozen instances, and a strong protective stance."
     },
     {
+      "filename": "release",
+      "title": "Release",
+      "source": "docs/release.md",
+      "summary": "Publish flow — npm trusted publishing, provenance attestations, Socket.dev post-publish audit, and common release scenarios."
+    },
+    {
       "filename": "tour",
       "title": "Tour",
       "source": "docs/tour.md",
