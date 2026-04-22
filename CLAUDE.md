@@ -90,37 +90,35 @@ The umbrella rule: never run a git command that mutates state belonging to a pat
 
 ## ERROR MESSAGES
 
-Errors are a UX surface. Every error message must let the reader fix the problem without reading the source. Four ingredients, in order:
+An error message is UI. The reader should be able to fix the problem from the message alone, without opening your source.
 
-1. **What**: the rule that was violated (the contract, not the symptom)
-2. **Where**: the exact file, key, line, or record — never "somewhere in config"
-3. **Saw vs. wanted**: the offending value and the allowed shape/set
-4. **Fix**: one concrete action to resolve it
+Every message needs four ingredients, in order:
 
-Find the balance between terse and meaningful — meaningful does not mean bloated:
+1. **What** — the rule that was broken (e.g. "must be lowercase"), not the fallout ("invalid").
+2. **Where** — the exact file, line, key, field, or CLI flag. Not "somewhere in config".
+3. **Saw vs. wanted** — the bad value and the allowed shape or set.
+4. **Fix** — one concrete action, in imperative voice (`rename the key to …`, not `the key was not renamed`).
 
-- **Library-API errors** (thrown from the published package to its callers): terse. A caller catching and asserting on the message needs it short and stable. The four ingredients may collapse into one line; `name "__proto__" cannot start with an underscore` carries all four (what = start-rule, where = name component, saw = `__proto__`, fix implied by the rule).
-- **Validator / config errors** (build-time, developer-facing): verbose. The reader is staring at a file, needs to find the offending record, and won't re-run the tool to spot the next hit. Every ingredient gets its own words.
-- **Programmatic errors** (internal assertions, invariant checks): terse, rule-only. No caller will parse the message; terse keeps the check readable.
+Length depends on the audience:
 
-Baseline rules that apply to all three:
+- **Library API errors** (thrown from a published package): terse. Callers may match on the message text, so every word counts. All four ingredients often fit in one sentence — e.g. `name "__proto__" cannot start with an underscore` covers rule, where (`name`), saw (`__proto__`), and implies the fix.
+- **Validator / config / build-tool errors** (developer reading a terminal): verbose. Give each ingredient its own words so the reader can find the bad record without re-running the tool.
+- **Programmatic errors** (internal assertions, invariant checks): terse, rule only. No end user will see it; short keeps the check readable.
 
-- Write the fix step in the imperative (`add "filename" to part 3`), not passive narration (`"filename" was missing`).
-- Never say "invalid" without what made it invalid. `invalid filename 'My Part'` is a symptom; `filename 'My Part' must be [a-z]+ (lowercase, no spaces)` is a rule.
-- If two records collide, name both — not just the second one found.
-- Suggest, don't auto-correct. An error that silently repairs state hides the bug in the next run.
-- Bloat test: if removing a word loses information, keep it. If removing it loses only rhythm, drop it.
+Rules for every message:
 
-Example — validator on `tour.json` (verbose form, one record per run):
+- Imperative voice for the fix — `add "filename" to part 3`, not `"filename" was missing`.
+- Never "invalid" on its own. `invalid filename 'My Part'` is fallout; `filename 'My Part' must be [a-z]+ (lowercase, no spaces)` is a rule.
+- On a collision, name **both** sides, not just the second one found.
+- Suggest, don't auto-correct. Silently fixing state hides the bug next time.
+- Bloat check: if removing a word keeps the information, drop it.
 
-- ✗ `Error: invalid tour config`
-- ✓ `tour.json: part 3 ("Parsing & Normalization") is missing "filename". Add a single-word lowercase filename (e.g. "parsing") to this part — one per part is required to route /<slug>/part/3 at publish time.`
+Examples:
 
-Example — library API error (terse form, caught in user code):
+- ✗ `Error: invalid config` → ✓ `config.json: part 3 is missing "filename". Add a lowercase filename (e.g. "parsing").`
+- ✗ `Error: invalid component` → ✓ `npm "name" component is required`
 
-- ✗ `Error: invalid component` (misses what / saw)
-- ✗ `The "name" component of type "npm" failed validation because the provided value "" is empty, which is not allowed because names are required; please provide a non-empty name.` (bloated — restates the rule three times)
-- ✓ `npm "name" component is a required component` (rule + where + implicit saw=missing)
+See `docs/references/error-messages.md` for worked examples and anti-patterns.
 
 ## ABSOLUTE RULES
 
