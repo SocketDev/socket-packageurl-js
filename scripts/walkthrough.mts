@@ -21,6 +21,7 @@ import {
   readFileSync,
   readdirSync,
   statSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs'
 import { createServer } from 'node:http'
@@ -105,6 +106,63 @@ function normalizeBasePath(raw: string): string {
 }
 
 /**
+ * Validate the `filename` field on every walkthrough.json part, then
+ * build the part-id → filename map the post-processor uses to rename
+ * emitted HTML and rewrite hrefs.
+ *
+ * Invariants:
+ *   - every part has `filename` set
+ *   - `filename` is [a-z]+ (lowercase ASCII letters, no digits, no
+ *     hyphens, no dots). Single-word nouns keep public URLs short and
+ *     speakable — see .claude/skills/content-filename-from-title.
+ *   - `filename` is unique across all parts
+ *
+ * Errors follow the ERROR MESSAGES doctrine in CLAUDE.md: what rule,
+ * where, saw-vs-wanted, fix. Collects all violations before throwing
+ * so the build reports every broken part in one pass, not just the
+ * first one found.
+ */
+function validatePartFilenames(
+  parts: ReadonlyArray<{ id: number; title: string; filename?: string }>,
+  configPath: string,
+): Map<number, string> {
+  const errors: string[] = []
+  const seen = new Map<string, number>()
+  for (const p of parts) {
+    if (!p.filename) {
+      errors.push(
+        `${configPath}: part ${p.id} ("${p.title}") is missing "filename". Add a single-word lowercase filename (e.g. "anatomy") to this part — one per part is required to route /<slug>/part/${p.id} at publish time.`,
+      )
+      continue
+    }
+    if (!/^[a-z]+$/.test(p.filename)) {
+      errors.push(
+        `${configPath}: part ${p.id} ("${p.title}") has filename "${p.filename}" but filenames must match [a-z]+ (lowercase ASCII letters only — no digits, hyphens, or dots). Rewrite "${p.filename}" as a single lowercase word.`,
+      )
+      continue
+    }
+    const prior = seen.get(p.filename)
+    if (prior !== undefined) {
+      errors.push(
+        `${configPath}: filename "${p.filename}" is used by both part ${prior} and part ${p.id} ("${p.title}"). Filenames must be unique — rename one of the two to a distinct single-word lowercase filename.`,
+      )
+      continue
+    }
+    seen.set(p.filename, p.id)
+  }
+  if (errors.length > 0) {
+    throw new Error(
+      `walkthrough.json has ${errors.length} invalid part filename(s):\n  - ${errors.join('\n  - ')}`,
+    )
+  }
+  const map = new Map<number, string>()
+  for (const p of parts) {
+    map.set(p.id, p.filename!)
+  }
+  return map
+}
+
+/**
  * Rewrite a generated HTML file for hosting under `basePath`. Two
  * categories of URL get prefixed:
  *
@@ -112,24 +170,36 @@ function normalizeBasePath(raw: string): string {
  *      (/walkthrough.css, /walkthrough-drag.js, /favicon.ico, etc.).
  *   2. Val-Town-shaped part links (/<slug>/part/<n>) — these don't
  *      exist as files; rewrite to the real flat HTML name
- *      (walkthrough-part-<n>.html) and prefix with basePath.
+ *      (<partFilenames[n]>.html, e.g. "anatomy.html") and prefix with
+ *      basePath.
  *
  * We do a narrowly-scoped regex pass rather than a full HTML parse:
  * the set of URL attributes we emit is small and known, and we don't
  * want to touch hrefs in the prose (external links, anchor jumps).
  */
-function applyBasePath(html: string, basePath: string, slug: string): string {
+function applyBasePath(
+  html: string,
+  basePath: string,
+  slug: string,
+  partFilenames: ReadonlyMap<number, string>,
+): string {
   if (!basePath) {
     return html
   }
   // 1. Flat part link — rewrite first so step 2 doesn't double-prefix.
   // Matches href="/<slug>/part/<n>" and rewrites to
-  // href="<basePath>/walkthrough-part-<n>.html".
+  // href="<basePath>/<partFilenames[n]>.html". Part numbers without a
+  // filename entry are left untouched; the validator that built the
+  // map already guaranteed coverage for every configured part, so any
+  // miss here is a stray href meander rendered for a removed part.
   const partLink = new RegExp(`(href=")/${slug}/part/(\\d+)/?(")`, 'g')
-  let out = html.replace(
-    partLink,
-    (_m, pre, n, post) => `${pre}${basePath}/walkthrough-part-${n}.html${post}`,
-  )
+  let out = html.replace(partLink, (_m, pre, n, post) => {
+    const filename = partFilenames.get(Number(n))
+    if (!filename) {
+      return `${pre}/${slug}/part/${n}${post}`
+    }
+    return `${pre}${basePath}/${filename}.html${post}`
+  })
   // 2. Root-relative asset URLs. Match href="/..." and src="/..." and
   // ServiceWorker-style register('/...') — but skip:
   //   - protocol-qualified URLs (https://, data:, mailto:, etc.)
@@ -459,7 +529,7 @@ async function generate(
     ? (JSON.parse(readFileSync(path.resolve(configPath), 'utf8')) as {
         slug?: string
         commentBackend?: string
-        parts?: Array<{ id: number; title: string }>
+        parts?: Array<{ id: number; title: string; filename?: string }>
       })
     : {}
   const commentBackend = walkthroughConfig.commentBackend || ''
@@ -472,6 +542,16 @@ async function generate(
   for (const p of walkthroughConfig.parts ?? []) {
     partTitles.set(p.id, p.title)
   }
+
+  // Map part-id → filename (e.g. 1 → "anatomy"). Drives both the flat
+  // HTML filenames on disk (<filename>.html) and the hrefs we rewrite
+  // in applyBasePath(). Validator below enforces presence, shape, and
+  // uniqueness — errors follow CLAUDE.md's ERROR MESSAGES doctrine so
+  // the build fails with an actionable message, not a cryptic symptom.
+  const partFilenames = validatePartFilenames(
+    walkthroughConfig.parts ?? [],
+    configPath ? path.resolve(configPath) : '<config>',
+  )
 
   // Pull per-part section counts off the emitted index page. Meander
   // computes them while rendering — cheaper + more reliable than
@@ -692,7 +772,33 @@ async function generate(
     // prefixed in one pass. No-op when --base-path is empty (local dev,
     // Val Town hosting, etc.).
     if (basePath && slug) {
-      html = applyBasePath(html, basePath, slug)
+      html = applyBasePath(html, basePath, slug, partFilenames)
+    }
+
+    // Rename meander's walkthrough-part-<n>.html to the configured
+    // <filename>.html (e.g. walkthrough-part-1.html → anatomy.html).
+    // Flat public URLs replace /<slug>/part/<n>-style links once the
+    // site is deployed. Other emitted HTML (index.html, documents.html
+    // if any) retains its name. Idempotent: if the target file already
+    // exists and entry is the legacy name, we write the fresh content
+    // then unlink the old — both states are covered by the validator
+    // running before the loop, which guarantees partFilenames has an
+    // entry for every part meander rendered.
+    const partMatch = /^walkthrough-part-(\d+)\.html$/.exec(entry)
+    if (partMatch) {
+      const n = Number(partMatch[1])
+      const newName = partFilenames.get(n)
+      if (!newName) {
+        throw new Error(
+          `walkthrough/${entry}: no filename configured for part ${n}. Add "filename" to part ${n} in walkthrough.json (e.g. "anatomy") — the validator should have caught this, so meander may have rendered a part that isn't in walkthrough.json.`,
+        )
+      }
+      const newPath = path.join(walkthroughDir, `${newName}.html`)
+      writeFileSync(newPath, html)
+      if (newPath !== htmlPath) {
+        unlinkSync(htmlPath)
+      }
+      continue
     }
 
     writeFileSync(htmlPath, html)
@@ -836,12 +942,42 @@ function readSlug(): string {
   return manifest.slug
 }
 
-function routeToFile(slug: string, urlPath: string): string | undefined {
+/**
+ * Read the part-id → filename map from walkthrough.json at the repo
+ * root. The dev server uses this to translate /<slug>/part/<n> URLs
+ * to the renamed <filename>.html files on disk. Mirrors the rename
+ * applied by the generate pipeline, so a build + serve round-trips
+ * URLs to files correctly. Returns an empty map when walkthrough.json
+ * isn't present (e.g. invoked from a fresh checkout without the
+ * source config) — the route table falls back to the legacy shape.
+ */
+function readPartFilenames(): Map<number, string> {
+  const configPath = path.join(repoRoot, 'walkthrough.json')
+  if (!existsSync(configPath)) {
+    return new Map()
+  }
+  const config = JSON.parse(readFileSync(configPath, 'utf8')) as {
+    parts?: Array<{ id: number; filename?: string }>
+  }
+  const map = new Map<number, string>()
+  for (const p of config.parts ?? []) {
+    if (p.filename) {
+      map.set(p.id, p.filename)
+    }
+  }
+  return map
+}
+
+function routeToFile(
+  slug: string,
+  urlPath: string,
+  partFilenames: ReadonlyMap<number, string>,
+): string | undefined {
   // /                           → index.html
   // /<slug>  or  /<slug>/       → index.html (slug-prefixed root, same as the
   //                               URL GH Pages serves the site at; matches
   //                               the flat file name emitted by meander)
-  // /<slug>/part/<n>            → walkthrough-part-<n>.html
+  // /<slug>/part/<n>            → <partFilenames[n]>.html (e.g. anatomy.html)
   // /<slug>/documents           → documents.html
   // anything else               → as-is (e.g. /walkthrough.css)
   if (urlPath === '/' || urlPath === '') {
@@ -852,7 +988,11 @@ function routeToFile(slug: string, urlPath: string): string | undefined {
   }
   const partMatch = new RegExp(`^/${slug}/part/(\\d+)/?$`).exec(urlPath)
   if (partMatch) {
-    return `walkthrough-part-${partMatch[1]}.html`
+    const filename = partFilenames.get(Number(partMatch[1]))
+    if (filename) {
+      return `${filename}.html`
+    }
+    return undefined
   }
   if (urlPath === `/${slug}/documents` || urlPath === `/${slug}/documents/`) {
     return 'documents.html'
@@ -872,6 +1012,7 @@ function serve(basePath: string, args: readonly string[]): void {
   }
 
   const slug = readSlug()
+  const partFilenames = readPartFilenames()
 
   const server = createServer((req, res) => {
     const rawUrl = (req.url ?? '/').split('?')[0]!.split('#')[0]!
@@ -885,7 +1026,7 @@ function serve(basePath: string, args: readonly string[]): void {
     } else if (basePath && decoded === basePath) {
       decoded = '/'
     }
-    const relative = routeToFile(slug, decoded)
+    const relative = routeToFile(slug, decoded, partFilenames)
     if (relative === undefined) {
       res.writeHead(400).end('bad request')
       return
@@ -919,7 +1060,14 @@ function serve(basePath: string, args: readonly string[]): void {
   server.listen(port, '127.0.0.1', () => {
     console.log(`Serving ${walkthroughDir} (slug: ${slug})`)
     console.log(`  index  → http://127.0.0.1:${port}/`)
-    console.log(`  part 1 → http://127.0.0.1:${port}/${slug}/part/1`)
+    const firstFilename = partFilenames.get(1)
+    if (firstFilename) {
+      console.log(
+        `  part 1 → http://127.0.0.1:${port}/${slug}/part/1  (alias of /${firstFilename}.html)`,
+      )
+    } else {
+      console.log(`  part 1 → http://127.0.0.1:${port}/${slug}/part/1`)
+    }
     console.log(`  Press Ctrl+C to stop.`)
   })
 }
