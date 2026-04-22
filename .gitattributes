@@ -1,1 +1,6 @@
 * text=auto eol=lf
+
+# Vendored font binaries — don't diff, don't merge, don't
+# EOL-normalize. Keeps `git diff`/`git log -p` readable when the
+# woff2 bytes change on a font bump.
+fonts/*.woff2 binary
