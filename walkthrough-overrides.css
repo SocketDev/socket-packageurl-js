@@ -686,6 +686,28 @@ body.wt-ready .topbar-actions {
   border-color: rgba(255, 255, 255, 0.7) !important;
   font-weight: 600;
 }
+
+/* Meander's default `.ok` class is Chakra-green (#16a34a) for positive
+ * annotations like the "(N sections)" counts on the TOC. Green clashes
+ * with the Socket lavender surface on the index. Retint to muted
+ * lavender so the count recedes as metadata and the part titles carry
+ * the visual weight. */
+.ok {
+  color: var(--muted-lavender) !important;
+}
+/* "All parts" home link on every part page. Leading chevron makes it
+ * unambiguous it's a back-nav, not another Part pill. Slight right
+ * margin + brighter border separate it from the numbered pills so it
+ * reads as a distinct category ("root" vs "children"). */
+.topbar .part-nav a.wt-home-link {
+  border-color: rgba(255, 255, 255, 0.55) !important;
+  margin-right: 8px;
+}
+.topbar .part-nav a.wt-home-link::before {
+  content: '‹ ';
+  margin-right: 2px;
+  opacity: 0.8;
+}
 /* Dark theme keeps the same purple band — docs.socket.dev uses the
  * same header in both modes, deepened slightly against the near-black
  * page. */

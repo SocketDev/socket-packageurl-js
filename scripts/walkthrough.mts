@@ -574,6 +574,21 @@ async function generate(
       html = html.replace('</body>', `  ${footerTag}\n</body>`)
     }
 
+    // Inject a "All parts" home link at the front of the part-nav on
+    // every part page. Meander's emitted topbar only has the numbered
+    // Part pills — users clicking a part had no one-click way back to
+    // the TOC. Index page has no `.part-nav` so the replace is a
+    // no-op there (the TOC IS the index). Idempotent via class marker.
+    if (
+      html.includes('<div class="part-nav">') &&
+      !html.includes('wt-home-link')
+    ) {
+      html = html.replace(
+        '<div class="part-nav">',
+        '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the walkthrough index">All parts</a>',
+      )
+    }
+
     // Base-path rewrite — last step so every injected tag above gets
     // prefixed in one pass. No-op when --base-path is empty (local dev,
     // Val Town hosting, etc.).
