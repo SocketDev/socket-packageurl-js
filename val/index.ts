@@ -33,7 +33,7 @@
  *   TRUSTED_PROXY_HOPS      default 1 (Val Town edge)
  */
 
-import { Hono } from 'npm:hono@4'
+import { Hono } from 'npm:hono@4.12.14'
 import { sqlite } from 'https://esm.town/v/std/sqlite/main.ts'
 
 import { importHmacKey } from './crypto.ts'

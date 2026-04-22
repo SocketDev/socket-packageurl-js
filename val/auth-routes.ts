@@ -4,7 +4,7 @@
  * can compose modules without circular imports.
  */
 
-import type { Hono, Next, Context } from 'npm:hono@4'
+import type { Hono, Next, Context } from 'npm:hono@4.12.14'
 import { sqlite } from 'https://esm.town/v/std/sqlite/main.ts'
 import { email as sendEmail } from 'https://esm.town/v/std/email'
 

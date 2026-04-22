@@ -7,7 +7,7 @@
  */
 
 import { sqlite } from 'https://esm.town/v/std/sqlite/main.ts'
-import type { Context } from 'npm:hono@4'
+import type { Context } from 'npm:hono@4.12.14'
 import { scrubIp } from './validate.ts'
 import type { AppEnv } from './types.ts'
 

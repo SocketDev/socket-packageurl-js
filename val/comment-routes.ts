@@ -7,7 +7,7 @@
  * else's comment).
  */
 
-import type { Context, Hono, Next } from 'npm:hono@4'
+import type { Context, Hono, Next } from 'npm:hono@4.12.14'
 import { sqlite } from 'https://esm.town/v/std/sqlite/main.ts'
 
 import { isValidSlug, isValidUuid, validateCommentInput } from './validate.ts'

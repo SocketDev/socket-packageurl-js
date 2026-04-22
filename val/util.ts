@@ -7,7 +7,7 @@
  * `jsonError` — standard error envelope.
  */
 
-import type { Context } from 'npm:hono@4'
+import type { Context } from 'npm:hono@4.12.14'
 import { extractClientIp } from './validate.ts'
 import { TRUSTED_PROXY_HOPS } from './config.ts'
 import type { HttpStatus } from './types.ts'

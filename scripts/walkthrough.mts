@@ -29,6 +29,8 @@ import { fileURLToPath } from 'node:url'
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'
 
+import { auditCdnScripts, auditValDeps } from './audit-deps.mts'
+
 const MEANDER_PATH = 'upstream/meander'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
@@ -362,6 +364,16 @@ async function generate(
     writeFileSync(htmlPath, html)
   }
 
+  // Socket.dev malware audit on CDN scripts (marked, highlight.js)
+  // that meander's generated HTML loads via `<script src=unpkg...>`.
+  // Runs before minification so a failure aborts early. Skip the
+  // audit via SKIP_AUDIT=1 for offline dev; CI must not set this.
+  if (!process.env['SKIP_AUDIT']) {
+    await auditCdnScripts(walkthroughDir)
+  } else {
+    console.warn('[audit-deps] SKIP_AUDIT=1 — CDN audit SKIPPED')
+  }
+
   if (minify) {
     await minifyEmittedAssets()
   }
@@ -634,6 +646,16 @@ async function deployVal(args: readonly string[]): Promise<void> {
     throw new Error(
       'VALTOWN_TOKEN not found. Run `pnpm walkthrough token set` to store one in the macOS Keychain (recommended), or set VALTOWN_TOKEN in .env.local / the environment.',
     )
+  }
+
+  // Socket.dev malware audit on the val's transitive npm closure.
+  // Fails fast before we upload anything — never ship flagged deps.
+  // Skip with SKIP_AUDIT=1 for offline dev if the API is unreachable;
+  // CI must not set this.
+  if (!process.env['SKIP_AUDIT']) {
+    await auditValDeps(repoRoot)
+  } else {
+    console.warn('[audit-deps] SKIP_AUDIT=1 — malware audit SKIPPED')
   }
 
   const nameArg = args.find(a => a.startsWith('--name='))

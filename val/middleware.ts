@@ -3,8 +3,8 @@
  * and the requireAuth gate used by every protected route.
  */
 
-import type { Context, Next } from 'npm:hono@4'
-import { cors } from 'npm:hono@4/cors'
+import type { Context, Next } from 'npm:hono@4.12.14'
+import { cors } from 'npm:hono@4.12.14/cors'
 import { verifyJwt } from './crypto.ts'
 import { isJtiRevoked } from './db.ts'
 import { ALLOWED_ORIGINS } from './config.ts'
