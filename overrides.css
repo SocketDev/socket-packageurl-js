@@ -1,1651 +1,1202 @@
 /* ------------------------------------------------------------------
- * Socket override layer for meander's emitted base CSS.
+ * Docs-site stylesheet — owns 100% of the visual rules.
  *
- * Appended to the emitted stylesheet by scripts/tour.mts after
- * `meander generate` runs. Targets six issues:
- *   1. No alignment affordance between prose and its paired code.
- *   2. Prose body at 14px with no max-width (cramped + loose).
- *   3. Flat heading hierarchy (h3 smaller than body).
- *   4. Code-favored 34/66 column ratio inherited from Val Town's own
- *      walkthrough, wrong for a library reference.
- *   5. Split-palette (white prose / near-black code) reads as two
- *      welded-together websites.
- *   6. No visual beats between sections.
+ * scripts/tour.mts copies this over meander's emitted walkthrough.css
+ * wholesale during post-processing; every styling decision on the
+ * deployed site comes from here. Meander owns the HTML shape (class
+ * names, structure); this file owns the look.
  *
- * Plus an interactive: draggable column splitter (--col-split),
- * persisted by walkthrough-drag.js.
- *
- * CSS-only layer — meander's HTML is unchanged.
+ * Organised top-down:
+ *   1. @font-face (Geist + Geist Mono, self-hosted variable)
+ *   2. Theme tokens (system / light / dark / synthwave '84)
+ *   3. Reset + base typography
+ *   4. Layout shell (topbar, main, footer)
+ *   5. Buttons, pills, keycaps
+ *   6. Tables, TOC rows, three-column feature grid
+ *   7. Annotated part pages (pair-grid, code-section, file-block)
+ *   8. Code / diff table styles
+ *   9. Doc body prose
+ *  10. Theme toggle UI
+ *  11. Comment shim UI
  * ------------------------------------------------------------------ */
 
-:root {
-  /* Shared interaction timing. 120ms reads as "immediate" while still
-   * being perceptible — used for hovers, focus rings, button state
-   * changes, dropdown toggles, and splitter visuals. Keeping this
-   * single token means the whole UI breathes at one rhythm. */
-  --transition-fast: var(--transition-fast);
-  /* Light theme (default). Both surfaces share a hue family,
-   * differentiated by luminance. GitHub Light-inspired. */
-  --prose-bg: #ffffff;
-  --prose-text: #1f2328;
-  --code-bg: #f6f8fa;
-  --code-text: #1f2328;
-  --rule: #d0d7de;
-  --eyebrow: #57606a;
-  /* Socket brand palette — lavender primary, Chakra `success` green
-   * (#38A169, matches the product check-icon glyph), rust red error
-   * (from the marketing-site CTA band). Soft variants are the
-   * subtler versions used for field borders; solid variants are for
-   * fills/text. */
-  /* #6b5fd5 = sampled from the Socket marketing Install button.
-   * Slightly cooler than Tailwind's 600 and more muted than 500 —
-   * the marketing button reads calm-confident, not neon. */
-  --accent: #6b5fd5;
-  --accent-soft: #a79af0;
-  --success: #38a169;
-  --success-soft: #9ae6b4;
-  --danger: #e53e3e;
-  --danger-soft: #feb2b2;
-  --page-bg: #ffffff;
-  /* Muted lavender-gray pulled from the Socket marketing footer's
-   * "U.S. Patent No. …" secondary line. Ideal for fine-print, axis
-   * labels, timestamps, resolved badges — anything that wants to
-   * recede without disappearing. */
-  --muted-lavender: #9e92d4;
+/* ── 1. Fonts ─────────────────────────────────────────────────────── */
 
-  /* Paired hover tints. Prose side picks up a soft lavender tint;
-   * code side picks up a rust-orange tint — the two sit opposite
-   * each other on the Socket marketing gradient (lavender hero →
-   * rust CTA band), so a row hover reads as one continuous
-   * left-to-right brand wash. */
-  --highlight-prose: #efe8fe;
-  --highlight-code: #fbe7d9;
-  --rust: #b5522c;
-
-  /* hljs tokens, light. */
-  --hl-keyword: #cf222e;
-  --hl-string: #0a3069;
-  --hl-title: #6639ba;
-  --hl-comment: #6e7781;
-  --hl-type: #953800;
-  --hl-linenum: #8c959f;
-
-  /* Prose column width as a percentage. walkthrough-drag.js rewrites
-   * this on drag and persists to localStorage. */
-  --col-split: 50;
+@font-face {
+  font-family: 'Geist';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/Geist.woff2') format('woff2-variations');
 }
 
-/* Dark theme. Applied by walkthrough-drag.js via `data-theme="dark"`
- * on <html>, auto-selected from prefers-color-scheme on first load
- * and togglable via the button injected in the topbar. */
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/GeistMono.woff2') format('woff2-variations');
+}
+
+/* ── 2. Theme tokens ──────────────────────────────────────────────── */
+
+/* Light theme — default and the baseline other themes extend.
+ * Contrast ladder: --ink (dead-serious black for headings and first
+ * inline tokens) → --body (medium gray for prose) → --muted (lighter
+ * gray for meta). That three-tier gray is the whole visual system. */
+:root,
+html[data-theme='light'] {
+  --bg: #ffffff;
+  --bg-elev: #fafafa;
+  --bg-tint: #f5f5f5;
+  --surface: #ffffff;
+  --ink: #0a0a0a;
+  --body: #525866;
+  --muted: #8a8f98;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --accent: #1e40af;
+  --accent-fg: #1e40af;
+  --accent-bg: #e0ecff;
+  --danger: #b42318;
+  --success: #067647;
+  --code-bg: #0a0a0a;
+  --code-fg: #e5e7eb;
+  --code-comment: #8b949e;
+  --code-keyword: #ff7b72;
+  --code-string: #a5d6ff;
+  --code-number: #79c0ff;
+  --code-function: #d2a8ff;
+  --code-type: #ffa657;
+  --diff-add-bg: rgba(46, 160, 67, 0.15);
+  --diff-del-bg: rgba(248, 81, 73, 0.15);
+  --diff-add-mark: #2ea043;
+  --diff-del-mark: #f85149;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --transition-fast: 120ms ease;
+  --transition-med: 220ms ease;
+}
+
+/* System preference — follow prefers-color-scheme. Only applies when
+ * the user hasn't picked an explicit theme (data-theme missing or
+ * absent). The drag.js bootstrap resolves 'system' to 'light' or
+ * 'dark' on page load, so this block is a fallback for pre-JS paint. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0a0a;
+    --bg-elev: #111111;
+    --bg-tint: #161616;
+    --surface: #111111;
+    --ink: #fafafa;
+    --body: #a1a1aa;
+    --muted: #71717a;
+    --border: #262626;
+    --border-strong: #404040;
+    --accent: #93c5fd;
+    --accent-fg: #93c5fd;
+    --accent-bg: #1a2540;
+    --code-bg: #000000;
+  }
+}
+
+/* Dark theme — explicit toggle pick. Higher-contrast-than-system so
+ * code blocks and diff markers read cleanly. */
 html[data-theme='dark'] {
-  --prose-bg: #0d1117;
-  --prose-text: #e6edf3;
-  --code-bg: #010409;
-  --code-text: #e6edf3;
-  --rule: #30363d;
-  --eyebrow: #8b949e;
-  /* Dark-mode Socket palette. Lift the light-mode #6b5fd5 just
-   * enough for contrast on #0d1117 without drifting into pink —
-   * #7c6ee0 keeps the true lavender hue at AA contrast for white
-   * button text. */
-  --accent: #7c6ee0;
-  --accent-soft: #9a8bec;
-  --success: #6ee7b7;
-  --success-soft: #a7f3d0;
-  --danger: #c14d42;
-  --danger-soft: #fca5a5;
-  --page-bg: #0d1117;
-  /* Dark-mode muted lavender — lifted slightly for legibility on
-   * the near-black bg. */
-  --muted-lavender: #b5a8e5;
-
-  /* Dark-mode paired glows: lavender on the prose side, rust-amber
-   * on the code side — both darkened for legibility on #010409. */
-  --highlight-prose: #2a1f47;
-  --highlight-code: #3b2517;
-  --rust: #d97757;
-
-  --hl-keyword: #ff7b72;
-  --hl-string: #a5d6ff;
-  --hl-title: #d2a8ff;
-  --hl-comment: #8b949e;
-  --hl-type: #ffa657;
-  --hl-linenum: #6e7681;
-
-  /* Retarget meander's own tokens so its un-overridden rules
-   * (topbar, file-head, part-nav, comment widgets, etc.) pick up
-   * dark values without having to enumerate them all. */
-  --bg: #0d1117;
-  --bg-elev: #161b22;
-  --bg-card: #0d1117;
-  --text: #e6edf3;
-  --muted: #8b949e;
-  --border: #30363d;
+  --bg: #0a0a0a;
+  --bg-elev: #111111;
+  --bg-tint: #161616;
+  --surface: #111111;
+  --ink: #fafafa;
+  --body: #a1a1aa;
+  --muted: #71717a;
+  --border: #262626;
+  --border-strong: #404040;
+  --accent: #93c5fd;
+  --accent-fg: #93c5fd;
+  --accent-bg: #1a2540;
+  --code-bg: #000000;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
-/* Apply the page-level background on the root so the sticky topbar's
- * color-mix blur has the correct base to tint. */
+/* Synthwave '84 — deep midnight purple with magenta accent. Not a
+ * light/dark variant; its own coherent palette. Background uses a
+ * subtle radial toward a warmer plum corner per the reference album
+ * art. Active-state pink matches the cassette-icon tag color. */
+html[data-theme='synthwave'] {
+  --bg: radial-gradient(
+    ellipse at top right,
+    #3a2450 0%,
+    #2a1b3d 40%,
+    #1a0f2e 100%
+  );
+  --bg-elev: #2a1b3d;
+  --bg-tint: #241633;
+  --surface: #2a1b3d;
+  --ink: #f8f0ff;
+  --body: #c8b8e8;
+  --muted: #9080b0;
+  --border: #3d2a5a;
+  --border-strong: #5a3d7a;
+  --accent: #ff7edb;
+  --accent-fg: #ff7edb;
+  --accent-bg: rgba(255, 126, 219, 0.18);
+  --danger: #ff6b9d;
+  --success: #4ade80;
+  --code-bg: #1a0f2e;
+  --code-fg: #f8f0ff;
+  --code-comment: #9080b0;
+  --code-keyword: #ff7edb;
+  --code-string: #ffb86c;
+  --code-number: #bd93f9;
+  --code-function: #8be9fd;
+  --code-type: #50fa7b;
+  --diff-add-bg: rgba(80, 250, 123, 0.15);
+  --diff-del-bg: rgba(255, 107, 157, 0.15);
+  --diff-add-mark: #50fa7b;
+  --diff-del-mark: #ff6b9d;
+  --shadow-sm: 0 1px 2px rgba(255, 126, 219, 0.1);
+  --shadow-md: 0 2px 12px rgba(255, 126, 219, 0.15);
+  --shadow-lg: 0 8px 32px rgba(255, 126, 219, 0.2);
+}
+
+/* ── 3. Reset + base typography ──────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
-  background: var(--page-bg) !important;
-  color: var(--prose-text);
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--body);
+  font-family: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  font-feature-settings: 'ss01', 'cv01';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Hide the main content until the shim has finished mounting. Prevents
- * the "code highlights after a beat" flash when hljs CDN latency makes
- * plain <pre> render first, then repaints with color tokens. Topbar
- * itself stays visible (title/subtitle look fine un-hydrated). */
+/* Headings — near-black ink, tight tracking, extra-bold display
+ * weight. The giant H1 is the signature of the editorial look. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  color: var(--ink);
+  font-family: 'Geist', system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+}
+
+h1 {
+  font-size: clamp(40px, 5.5vw, 68px);
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  margin-bottom: 24px;
+}
+
+h2 {
+  font-size: 30px;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin: 56px 0 20px;
+}
+
+h3 {
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin: 40px 0 14px;
+}
+
+h4 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 28px 0 10px;
+}
+
+p {
+  margin: 0 0 16px;
+  color: var(--body);
+  line-height: 1.6;
+}
+
+/* Inline code — Geist Mono, faint box, no color. Meant to sit in
+ * prose without pulling focus. The first inline code token after a
+ * heading often reads in --ink for emphasis. */
+code {
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.92em;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tint);
+  color: var(--ink);
+  font-feature-settings: 'ss01';
+}
+
+/* First inline code in a paragraph is often a package/API name and
+ * should carry ink weight to match the "@pierre/diffs"-style opening. */
+p > code:first-child,
+li > code:first-child {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+pre {
+  margin: 0;
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+pre code {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: inherit;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: text-decoration-color var(--transition-fast);
+}
+
+a:hover {
+  text-decoration-color: var(--ink);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 48px 0;
+}
+
+ul,
+ol {
+  padding-left: 24px;
+  margin: 0 0 20px;
+}
+
+li {
+  margin-bottom: 6px;
+  color: var(--body);
+}
+
+blockquote {
+  margin: 24px 0;
+  padding: 4px 0 4px 20px;
+  border-left: 2px solid var(--border-strong);
+  color: var(--body);
+  font-style: normal;
+}
+
+/* ── 4. Layout shell ──────────────────────────────────────────────── */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+html[data-theme='synthwave'] .topbar {
+  background: color-mix(in srgb, #1a0f2e 88%, transparent);
+}
+
+.topbar h1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  margin: 0;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.topbar h1::after {
+  content: 'by Socket Inc';
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
+.topbar p {
+  display: none;
+}
+
+.topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
+}
+
+/* Hide content until drag.js fires wt-ready — prevents a FOUC while
+ * the comment shim and column splitter settle. */
 .layout,
 .part-nav,
 .file-block {
   opacity: 0;
-  transition: opacity 100ms ease;
+  transition: opacity 160ms ease;
 }
+
 body.wt-ready .layout,
 body.wt-ready .part-nav,
 body.wt-ready .file-block {
   opacity: 1;
 }
-@media (prefers-reduced-motion: reduce) {
-  .layout,
-  .part-nav,
-  .file-block {
-    transition: none;
-  }
-}
 
-/* ── Layout: two-column grid with no gap ──────────────────────────
- * Collapse meander's 12px column-gap so the per-cell section rules
- * on either side meet at the split line. Cell padding below gives
- * prose and line-numbers their breathing room. */
-.pair-grid,
-.file-grid {
-  grid-template-columns: calc(var(--col-split) * 1%) calc(
-      (100 - var(--col-split)) * 1%
-    ) !important;
-  column-gap: 0 !important;
-  /* Zero meander's 12px wrapper padding — it shifts grid tracks inward
-   * while the splitter (parented to .file-block) sits at the outer
-   * edge, so the two misalign. Cell padding below restores breathing
-   * room. Also kill meander's hardcoded `34% + 12px` gradient — with
-   * a draggable split, a painted background at a fixed % is always
-   * wrong; the per-cell backgrounds (annotation-card, code-section)
-   * already handle the left/right surface colors. */
-  padding: 0 !important;
-  background: none !important;
-}
-.layout {
-  grid-template-columns: 22% 78%;
-}
-
-/* ── Cells ─────────────────────────────────────────────────────────
- * Both sides stretch to the grid row height so hover fills, section
- * rules, and the splitter all span the full cell. */
-.pair-grid > .annotation-card,
-.file-grid > .annotation-card,
-.pair-grid > .code-section,
-.file-grid > .code-section {
-  align-self: stretch;
-  margin: 0 !important;
-  border-radius: 0 !important;
-  transition: background var(--transition-fast);
-}
-
-.pair-grid > .annotation-card,
-.file-grid > .annotation-card {
-  position: relative;
-  padding: 20px 20px 12px 16px !important;
-  background: var(--prose-bg);
-}
-
-.pair-grid > .code-section,
-.file-grid > .code-section {
-  border: 0 !important;
-  background: var(--code-bg) !important;
-  /* Breathing room between the splitter rule and the line-number
-   * column so the code doesn't read as "welded to the divider". */
-  padding-left: 16px;
-}
-
-/* ── Section beats ─────────────────────────────────────────────────
- * A single 1px rule runs across the top of each row. We draw it on
- * both cells (annotation-card::before + code-section border-top) so
- * the rule appears continuous through the splitter. The first row in
- * a file block suppresses it — file-head serves as that beat. */
-.pair-grid > .annotation-card::before,
-.file-grid > .annotation-card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  border-top: 1px solid var(--rule);
-}
-.file-grid > .code-section {
-  border-top: 1px solid var(--rule) !important;
-}
-.file-block .file-grid > .annotation-card:first-of-type {
-  padding-top: 14px !important;
-}
-.file-block .file-grid > .annotation-card:first-of-type::before,
-.file-block .file-grid > .code-section:first-of-type {
-  border-top: 0 !important;
-}
-.file-block .file-grid > .annotation-card:first-of-type::before {
-  display: none;
-}
-
-/* ── Row hover ─────────────────────────────────────────────────────
- * Only the hovered cell tints. Each side gets a subtle left-to-right
- * gradient running the Socket brand wash (lavender → rust) — the two
- * halves still read as distinct because each starts/ends at the split
- * line with the opposite hue, so the gradient implies continuity
- * across the splitter even when only one cell is actually hovered.
- * Mixed over the resting surface so luminance stays stable. */
-.pair-grid > .annotation-card:hover,
-.file-grid > .annotation-card:hover {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--accent) 10%, var(--prose-bg)),
-    color-mix(in srgb, var(--highlight-prose) 70%, var(--prose-bg))
-  );
-}
-.pair-grid > .code-section:hover,
-.file-grid > .code-section:hover {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--highlight-code) 80%, var(--code-bg)),
-    color-mix(in srgb, var(--rust) 12%, var(--code-bg))
-  ) !important;
-}
-/* Dark-mode row hover — the light-mode mix ratios wash out against
- * `#0d1117` / `#010409`. Boost the accent lift on both sides and use
- * the full highlight-prose / highlight-code tokens (pre-darkened in
- * the dark-theme block) as the destination stop so the gradient
- * actually reads as a hover. */
-html[data-theme='dark'] .pair-grid > .annotation-card:hover,
-html[data-theme='dark'] .file-grid > .annotation-card:hover {
-  background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--accent) 22%, var(--prose-bg)),
-    var(--highlight-prose)
-  );
-}
-html[data-theme='dark'] .pair-grid > .code-section:hover,
-html[data-theme='dark'] .file-grid > .code-section:hover {
-  background: linear-gradient(
-    to right,
-    var(--highlight-code),
-    color-mix(in srgb, var(--rust) 28%, var(--code-bg))
-  ) !important;
-}
-
-/* ── Prose typography ──────────────────────────────────────────────
- * Meander nests rendered markdown in .annotation-md; direct <p>
- * children of the card are used when there's no markdown wrapper.
- * Both get the same scale. */
-.annotation-md,
-.annotation-card > p {
-  font-size: 15px !important;
-  line-height: 1.6 !important;
-  letter-spacing: 0.003em;
-  max-width: 68ch;
-  color: var(--prose-text);
-}
-
-.annotation-card h3 {
-  font-size: 11px !important;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  color: var(--eyebrow);
-  margin: 0 0 16px 0;
-}
-
-/* Index-page TOC — a single unified Topics list covering parts + docs.
- * Emitted by rewriteIndexContents in scripts/tour.mts. Each row is a
- * plain <div> with a title link and a muted one-liner context line
- * (section count for parts, summary for docs). No list markers — the
- * bright title does the "this is a link" job; the muted context sits
- * underneath like a dek line in a newspaper headline. */
-.wt-contents {
-  /* Card surface to anchor the list against the page background. */
-  background: var(--prose-bg);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  padding: 20px 24px;
-  margin: 0 0 16px 0;
-}
-.wt-contents > h3 {
-  font-size: 11px !important;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  color: var(--eyebrow);
-  margin: 0 0 16px 0;
-}
-
-/* Each row is a two-column flex: the main title+summary stack on
- * the left (capped width so descriptions don't sprint across
- * ultra-wide monitors), the section-count badge on the right. */
-.wt-contents-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
-  border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
-}
-.wt-contents-row:first-of-type {
-  border-top: 0;
-  padding-top: 4px;
-}
-.wt-contents-row:last-of-type {
-  padding-bottom: 4px;
-}
-.wt-contents-main {
-  /* Cap the reading width of the description column so prose doesn't
-   * stretch edge-to-edge on wide monitors. Matches the doc-body
-   * reading rhythm. */
-  max-width: 72ch;
-  min-width: 0;
-}
-.wt-contents-title {
-  display: inline-block;
-  font-size: 15px;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--accent);
-  text-decoration: none;
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin: -2px -4px;
-  transition: background var(--transition-fast);
-}
-.wt-contents-title:hover {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-}
-.wt-contents-summary {
-  /* Muted one-liner — same tone as the "U.S. Patent No. …" dek line
-   * in the socket.dev footer reference. */
-  margin: 6px 0 0 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--eyebrow);
-}
-
-/* Section-count badge — rides the right edge of the row. Pill shape
- * with a soft accent tint so it reads as "metadata," not as another
- * link or action. Tabular-nums keeps widths consistent across rows
- * so the column of badges is visually aligned. */
-.wt-contents-badge {
-  flex: 0 0 auto;
-  align-self: center;
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--eyebrow);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
-  padding: 3px 10px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
-/* ─── Topic doc pages ───────────────────────────────────────────
- * Pages rendered from docs/*.md into <main class="doc-body">. The
- * meander parts pages have a two-column layout with their own
- * spacing rules; these docs are single-column prose and need
- * newspaper-style centered reading width, muted body text, and
- * syntax-highlighted code blocks to stop being "torture to read."
- */
-.doc-body {
-  /* Centered reading column — ~72 chars at this font size keeps
-   * eyes from shuttling too far across a wide monitor. Scale the
-   * side padding on mobile so small screens don't hit the edges. */
-  max-width: 72ch;
-  margin: 0 auto;
-  padding: 32px 24px 64px;
-  /* Tone down body from pure white. --prose-text is a GitHub-tuned
-   * off-white (#e6edf3) in dark, #1f2328 in light — both land in
-   * the "readable, not aggressive" band. */
-  color: var(--prose-text);
-  font-size: 16px;
-  line-height: 1.65;
-}
-.doc-body h1,
-.doc-body h2,
-.doc-body h3,
-.doc-body h4,
-.doc-body h5,
-.doc-body h6 {
-  color: var(--prose-text);
-  line-height: 1.25;
-  margin: 2em 0 0.6em;
-}
-.doc-body h1 {
-  font-size: 30px;
-  margin-top: 0;
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 0.3em;
-}
-.doc-body h2 {
-  font-size: 22px;
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 0.2em;
-}
-.doc-body h3 {
-  font-size: 18px;
-  /* Override the all-caps 11px treatment the page also applies to
-   * <h3> inside annotation cards; doc-body h3s are normal headings. */
-  text-transform: none !important;
-  letter-spacing: 0 !important;
-  font-weight: 600 !important;
-  color: var(--prose-text) !important;
-  font-size: 18px !important;
-  margin: 2em 0 0.6em !important;
-}
-.doc-body h4 {
-  font-size: 16px;
-  font-weight: 600;
-}
-.doc-body p,
-.doc-body li {
-  color: var(--prose-text);
-}
-.doc-body a {
-  color: var(--accent);
-  text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  transition: border-color var(--transition-fast);
-}
-.doc-body a:hover {
-  border-bottom-color: var(--accent);
-}
-.doc-body ul,
-.doc-body ol {
-  padding-left: 1.5em;
-}
-.doc-body li {
-  margin: 0.25em 0;
-}
-.doc-body blockquote {
-  margin: 1em 0;
-  padding: 0.4em 1em;
-  border-left: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
-  color: var(--eyebrow);
-  background: color-mix(in srgb, var(--accent) 4%, transparent);
-  border-radius: 0 4px 4px 0;
-}
-.doc-body table {
-  border-collapse: collapse;
-  margin: 1em 0;
-  display: block;
-  overflow-x: auto;
-  font-size: 14px;
-}
-.doc-body th,
-.doc-body td {
-  border: 1px solid var(--rule);
-  padding: 6px 10px;
-  text-align: left;
-}
-.doc-body th {
-  background: color-mix(in srgb, var(--accent) 6%, var(--page-bg));
-  font-weight: 600;
-}
-
-/* Inline code — subtle chip background + monospace, so it visually
- * separates from surrounding prose without being a different color
- * than the code-block text it shares glyphs with. */
-.doc-body :not(pre) > code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.88em;
-  background: color-mix(in srgb, var(--rule) 35%, transparent);
-  padding: 1px 5px;
-  border-radius: 4px;
-  color: inherit;
-  border: 1px solid color-mix(in srgb, var(--rule) 50%, transparent);
-}
-
-/* Fenced code blocks. highlight.js paints tokens once
- * <script>hljs.highlightElement(block)</script> runs; the container
- * owns the padding, border, scroll behavior. */
-.doc-body pre {
-  margin: 1em 0;
-  padding: 14px 16px;
-  background: var(--code-bg);
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  overflow-x: auto;
-  line-height: 1.5;
-}
-.doc-body pre > code {
-  background: none;
-  border: 0;
-  padding: 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13.5px;
-  color: inherit;
-  /* highlight.js's theme CSS sets foreground token colors; let it
-   * win over the doc-body prose color. */
-}
-.doc-body hr {
-  margin: 2em 0;
-  border: 0;
-  border-top: 1px solid var(--rule);
-}
-
-/* The first annotation inside each file-block is almost always file
- * boilerplate — license header, @fileoverview, etc. Render it in a
- * muted, italic tone so it reads as framing rather than body content. */
-.file-block .file-grid > .annotation-card:first-of-type .annotation-md,
-.file-block .file-grid > .annotation-card:first-of-type .annotation-md p,
-.file-block .file-grid > .annotation-card:first-of-type .annotation-md li {
-  color: var(--eyebrow) !important;
-  font-size: 13px !important;
-  line-height: 1.5 !important;
-  font-style: italic;
-}
-.file-block .file-grid > .annotation-card:first-of-type .annotation-md code {
-  color: var(--eyebrow);
-  border-color: color-mix(in srgb, var(--eyebrow) 30%, transparent);
-  background: transparent;
-  font-style: normal;
-}
-
-/* ── Code surface ──────────────────────────────────────────────────
- * Recolor meander's dark #0d1117 to the light --code-bg. The hljs CDN
- * ships a dark theme; token colors are remapped to the GitHub Light
- * palette so they read on --code-bg. */
-.file-block pre,
-pre {
-  background: var(--code-bg) !important;
-  color: var(--code-text);
-}
-.code-table .line-num {
-  color: var(--hl-linenum) !important;
-  border-right: 1px solid var(--rule);
-}
-.code-table tr.selected .line-code {
-  background: color-mix(in srgb, var(--accent) 10%, transparent) !important;
-}
-
-.hljs {
-  background: var(--code-bg) !important;
-  color: var(--code-text) !important;
-}
-.hljs-keyword,
-.hljs-built_in,
-.hljs-literal {
-  color: var(--hl-keyword) !important;
-}
-.hljs-string,
-.hljs-attr,
-.hljs-number {
-  color: var(--hl-string) !important;
-}
-.hljs-title,
-.hljs-class .hljs-title,
-.hljs-function .hljs-title {
-  color: var(--hl-title) !important;
-}
-.hljs-params,
-.hljs-variable {
-  color: var(--code-text) !important;
-}
-.hljs-comment,
-.hljs-quote {
-  color: var(--hl-comment) !important;
-  font-style: italic;
-}
-.hljs-type,
-.hljs-selector-tag,
-.hljs-tag {
-  color: var(--hl-type) !important;
-}
-
-/* ── Draggable column splitter ─────────────────────────────────────
- * Injected into each .file-block by walkthrough-drag.js. The handle
- * is a 12px invisible hit zone centered on the split line; a 1px
- * rule is always visible (this IS the divider), brightens and
- * thickens on hover / drag. */
-.file-block {
-  position: relative;
-}
-.col-splitter {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 12px;
-  margin-left: -6px;
-  left: calc(var(--col-split) * 1%);
-  cursor: col-resize;
-  z-index: 5;
-  background: transparent;
-}
-.col-splitter::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  margin-left: -0.5px;
-  background: var(--rule);
-  transition:
-    background var(--transition-fast),
-    width var(--transition-fast),
-    margin-left var(--transition-fast);
-}
-.col-splitter:hover::before,
-.col-splitter.dragging::before,
-.col-splitter:focus-visible::before {
-  background: var(--accent);
-  width: 2px;
-  margin-left: -1px;
-}
-.col-splitter:focus-visible {
-  outline: none;
-}
-body.col-resizing {
-  cursor: col-resize;
-  user-select: none;
-}
-
-/* ── Topbar action group ───────────────────────────────────────────
- * Three peer buttons (dark mode, download comments, show comments)
- * live in meander's .topbar-actions as a horizontal row. We don't
- * restructure the DOM here — meander's own scripts rely on sibling
- * lookups. Just ensure consistent gap and hide until our shim has
- * mounted everything so the buttons don't pop in one-by-one as
- * separate scripts add them. */
-.topbar-actions {
-  gap: 6px;
-  opacity: 0;
-  transition: opacity 100ms ease;
-}
-body.wt-ready .topbar-actions {
+/* Initial paint — the TOC rows, topbar, and footer always show; only
+ * the heavier content waits for wt-ready. */
+.wt-contents,
+.topbar,
+.wt-socket-footer,
+main > * {
   opacity: 1;
 }
-@media (prefers-reduced-motion: reduce) {
-  .topbar-actions {
-    transition: none;
-  }
+
+/* ── 5. Buttons, pills, keycaps ──────────────────────────────────── */
+
+/* Part-nav row — the sticky "Parts: 1 2 3 …" row above content. Each
+ * Part is a pill. Active pill = white-with-thin-border; inactive =
+ * soft-gray-fill (the reversed elevation pattern). */
+.part-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 32px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
 }
 
-/* Theme toggle styled to match meander's .export-btn exactly — same
- * border, radius, padding, hover treatment. Sizing is driven by the
- * inner SVG so it matches the download / comments icons visually. */
-/* ── Theme toggle (3-way: system / light / dark) ────────────────
- * Compound button with all three icons stacked; CSS picks which one
- * is visible based on the wrapper's data-pref attribute. Icons fade
- * + rotate on preference change for a smooth transition. */
-.theme-toggle-wrapper {
-  position: relative;
-  display: inline-flex;
+.wt-parts-label {
+  color: var(--muted);
+  font-weight: 500;
+  margin-right: 4px;
 }
-.theme-toggle {
-  appearance: none;
+
+.part-nav a,
+.wt-home-link {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 8px;
-  color: var(--muted);
-  cursor: pointer;
-  position: relative;
-  width: 32px;
+  min-width: 32px;
   height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--body);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
   transition:
     background var(--transition-fast),
     border-color var(--transition-fast),
     color var(--transition-fast);
 }
-.theme-toggle:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+
+.part-nav a:hover,
+.wt-home-link:hover {
+  background: var(--bg-tint);
+  color: var(--ink);
 }
-.theme-toggle:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+
+.part-nav a.active {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
 }
-/* Icon enters first: the core shape literally drops in from above
- * (-8px) with a fade. Then the decorations (rays around the sun,
- * star next to the moon) scale in after the core has landed. */
-.theme-icon {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 16px;
-  height: 16px;
-  opacity: 0;
-  transform: translateY(-8px);
+
+.wt-home-link {
+  padding: 0 8px;
+  min-width: 32px;
+}
+
+.wt-home-link svg {
+  display: block;
+}
+
+.wt-topics-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+}
+
+/* Generic button — used by doc pages and any future CTA surface.
+ * Black pill with white text, primary-CTA style like
+ * `bun i @pierre/diffs`. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-family: 'Geist', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--bg);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  color: var(--ink);
+  background: var(--bg-tint);
+  border-color: transparent;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-elev);
+}
+
+/* Keycap chip — for keyboard shortcuts in tables + prose. Thin
+ * border, soft white fill, monospace label. */
+.kbd,
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  box-shadow:
+    0 1px 0 var(--border-strong),
+    inset 0 0 0 1px var(--bg);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ── 6. Tables, TOC rows, feature grid ────────────────────────────── */
+
+/* Tables — hairline rows, faint tinted header, generous row height.
+ * Used for API references, keyboard shortcuts, any comparison table. */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+  font-size: 15px;
+}
+
+thead th {
+  background: var(--bg-elev);
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+}
+
+tbody tr:last-child {
+  border-bottom: none;
+}
+
+tbody td {
+  padding: 16px;
+  vertical-align: top;
+  color: var(--body);
+}
+
+tbody td:first-child {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* TOC on the index page — each part/topic is a row with a bold
+ * title, a muted summary, and a count badge on the right. Replaces
+ * meander's default <ul> TOC with a typeset list. */
+.wt-contents {
+  margin: 48px 0;
+  padding: 0;
+}
+
+.wt-contents > h3 {
+  margin: 0 0 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.wt-contents-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.wt-contents-row:last-of-type {
+  border-bottom: none;
+}
+
+.wt-contents-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.wt-contents-title {
+  display: inline-block;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+  margin-bottom: 4px;
+}
+
+.wt-contents-title:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--ink);
+  text-underline-offset: 4px;
+}
+
+.wt-contents-summary {
+  margin: 0;
+  font-size: 15px;
+  color: var(--body);
+  line-height: 1.5;
+}
+
+.wt-contents-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--bg-tint);
+  border-radius: 999px;
+  white-space: nowrap;
+  align-self: center;
+}
+
+/* Three-column feature grid — for landing-page sections like
+ * "Anatomy / Building / Parsing" presented as side-by-side briefs. */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  margin: 64px 0;
+}
+
+@media (max-width: 840px) {
+  .feature-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+.feature-grid > .feature {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feature h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.feature p {
+  margin: 0;
+  color: var(--body);
+  font-size: 15px;
+}
+
+/* ── 7. Annotated part pages ─────────────────────────────────────── */
+
+/* Meander emits `.pair-grid` (two-column: prose + code) and
+ * `.file-grid` (single-column file blocks). We preserve the
+ * structure but restyle the cells. */
+
+.layout {
+  display: block;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.pair-grid,
+.file-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 42fr) minmax(420px, 58fr);
+  gap: 32px;
+  align-items: start;
+  margin: 32px 0;
+}
+
+@media (max-width: 960px) {
+  .pair-grid,
+  .file-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pair-grid > .annotation-card,
+.file-grid > .annotation-card {
+  padding: 20px 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.pair-grid > .code-section,
+.file-grid > .code-section {
+  margin: 0;
+}
+
+.files-stack {
+  margin: 48px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.file-block {
+  margin: 0;
+  border: none;
+  background: transparent;
+}
+
+.file-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.file-head .path {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.file-head .count {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Annotation cards — prose that sits alongside code. Title + body. */
+.annotation-card {
+  padding: 0;
+}
+
+.annotation-card h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.annotation-md {
+  color: var(--body);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.annotation-md > *:first-child {
+  margin-top: 0;
+}
+
+.annotation-md > *:last-child {
+  margin-bottom: 0;
+}
+
+.annotation-md p {
+  margin: 0 0 12px;
+}
+
+.annotation-md-source {
+  display: none;
+}
+
+/* ── 8. Code / diff tables ───────────────────────────────────────── */
+
+/* The code-section wraps a meander code-table. Darkened, rounded
+ * container like the diffs.com reference screenshots. */
+.code-section {
+  background: var(--code-bg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.code-section pre {
+  margin: 0;
+  padding: 16px 0;
+  overflow-x: auto;
+}
+
+.code-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--code-fg);
+  background: transparent;
+  margin: 0;
+}
+
+.code-table tr {
+  border: none;
+}
+
+.code-table td {
+  border: none;
+  padding: 0;
+  vertical-align: top;
+  color: var(--code-fg);
+}
+
+.code-table .line-num {
+  width: 1%;
+  min-width: 48px;
+  padding: 0 14px 0 18px;
+  text-align: right;
+  color: var(--code-comment);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.code-table .line-code {
+  padding: 0 18px 0 4px;
+  white-space: pre;
+  color: var(--code-fg);
+}
+
+.code-table .line-code code {
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+}
+
+/* Diff rows — add / delete highlight bars on the left edge + tinted
+ * row background. Meander can emit `.line-add` / `.line-del` when
+ * a range is diffed; style them identically to the reference
+ * screenshots. */
+.code-table tr.line-add {
+  background: var(--diff-add-bg);
+  box-shadow: inset 3px 0 0 var(--diff-add-mark);
+}
+
+.code-table tr.line-del {
+  background: var(--diff-del-bg);
+  box-shadow: inset 3px 0 0 var(--diff-del-mark);
+}
+
+/* ── 9. Doc body prose ───────────────────────────────────────────── */
+
+.doc-body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 0 64px;
+}
+
+.doc-body h1 {
+  margin: 0 0 32px;
+}
+
+.doc-body h2 {
+  margin: 56px 0 20px;
+}
+
+.doc-body h3 {
+  margin: 40px 0 14px;
+}
+
+.doc-body p,
+.doc-body li {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--body);
+}
+
+.doc-body pre {
+  background: var(--code-bg);
+  color: var(--code-fg);
+  padding: 20px 24px;
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  margin: 24px 0;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.doc-body pre code {
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.doc-body code {
+  font-size: 0.9em;
+}
+
+.doc-body table {
+  margin: 24px 0;
+  font-size: 14px;
+}
+
+.doc-body img {
+  max-width: 100%;
+  border-radius: var(--radius-md);
+  margin: 24px 0;
+}
+
+/* ── 10. Theme toggle UI ─────────────────────────────────────────── */
+
+.theme-toggle-wrapper {
+  position: relative;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--body);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
   transition:
-    opacity 420ms ease,
-    transform 500ms cubic-bezier(0.34, 1.2, 0.64, 1);
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
 }
+
+.theme-toggle:hover {
+  background: var(--bg-tint);
+  color: var(--ink);
+}
+
+.theme-toggle[aria-expanded='true'] {
+  background: var(--bg-tint);
+  border-color: var(--border-strong);
+  color: var(--ink);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Stacked icons — only the one matching the current pref is visible.
+ * Wrapper carries data-pref so CSS can pick. */
+.theme-icon {
+  display: none;
+  width: 20px;
+  height: 20px;
+}
+
 .theme-toggle-wrapper[data-pref='system'] .theme-icon-system,
 .theme-toggle-wrapper[data-pref='light'] .theme-icon-light,
-.theme-toggle-wrapper[data-pref='dark'] .theme-icon-dark {
-  opacity: 1;
-  transform: translateY(0);
+.theme-toggle-wrapper[data-pref='dark'] .theme-icon-dark,
+.theme-toggle-wrapper[data-pref='synthwave'] .theme-icon-synthwave {
+  display: block;
 }
 
-/* Rays and star animate inside the button icons: hidden by default,
- * fade + scale in after the core shape has landed. Only apply the
- * hidden-by-default rule inside the button — menu icons always show
- * everything. */
-.theme-toggle .theme-ray,
-.theme-toggle .theme-star {
-  opacity: 0;
-  transform: scale(0.5);
-  transform-origin: 50% 50%;
-  transition:
-    opacity 340ms ease 420ms,
-    transform 420ms cubic-bezier(0.34, 1.56, 0.64, 1) 420ms;
-}
-.theme-toggle-wrapper[data-pref='light'] .theme-icon-light .theme-ray,
-.theme-toggle-wrapper[data-pref='system'] .theme-icon-system .theme-ray,
-.theme-toggle-wrapper[data-pref='dark'] .theme-icon-dark .theme-star {
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* Dropdown menu */
 .theme-menu {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
   min-width: 180px;
-  background: var(--prose-bg);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  padding: 4px;
-  z-index: 50;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
+
 .theme-menu[hidden] {
   display: none;
 }
-.theme-menu-title {
-  padding: 8px 10px 4px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 600;
-  color: var(--eyebrow);
-}
+
 .theme-menu-item {
-  appearance: none;
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
   padding: 8px 10px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--body);
   background: transparent;
   border: none;
   border-radius: 6px;
-  color: var(--prose-text);
-  font-size: 14px;
-  text-align: left;
   cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
 }
-.theme-menu-item:hover,
-.theme-menu-item:focus-visible {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  outline: none;
+
+.theme-menu-item:hover {
+  background: var(--bg-tint);
+  color: var(--ink);
 }
+
 .theme-menu-item[aria-checked='true'] {
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
-  color: var(--accent);
+  color: var(--ink);
+  background: var(--bg-tint);
 }
-.theme-menu-icon {
-  display: inline-flex;
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
-}
-.theme-menu-icon svg {
-  width: 16px;
-  height: 16px;
-}
-.theme-menu-check {
-  width: 14px;
-  height: 14px;
-  margin-left: auto;
-  opacity: 0;
-}
+
 .theme-menu-item[aria-checked='true'] .theme-menu-check {
   opacity: 1;
 }
 
-/* ── Topbar: Socket-brand purple band ──────────────────────────────
- * Matches the docs.socket.dev header: deep lavender/purple surface
- * with a thin white hairline and a purple edge — the same two-layer
- * border used on the marketing site, so the walkthrough reads as
- * part of the same brand system. White title/subtitle + muted
- * secondary text for AA contrast on the purple fill. */
-.topbar {
-  /* Reserve space on the right for the three peer action buttons
-   * (theme toggle, download, show comments). */
-  padding-right: 160px !important;
-  background: #4c1d95 !important;
-  color: #ffffff !important;
-  /* Layered bottom edge: 1px translucent-white rule sits directly on
-   * the purple band; 2px deeper-purple rule below anchors it to the
-   * page surface. box-shadow is used (rather than stacked borders)
-   * so the two rules paint as a single crisp 3px band without
-   * affecting layout height. */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.18) !important;
-  box-shadow: 0 2px 0 0 #2e1065;
-}
-.topbar h1 {
-  letter-spacing: -0.01em;
-  font-weight: 600;
-  color: #ffffff !important;
-}
-.topbar p,
-.topbar .subtitle {
-  color: rgba(255, 255, 255, 0.72) !important;
-}
-/* Topbar buttons (theme toggle, export, unresolved) need inverted
- * chrome against the purple — transparent fill with a white-tinted
- * hairline, muted-white icon color, and a lavender-tinted hover.
- * Overrides the light-theme .theme-toggle / .wt-export-btn /
- * .wt-unresolved-btn rules earlier in this file. */
-.topbar .theme-toggle,
-.topbar .wt-export-btn,
-.topbar .wt-unresolved-btn,
-.topbar .export-btn {
-  border-color: rgba(255, 255, 255, 0.25) !important;
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-.topbar .theme-toggle:hover,
-.topbar .wt-export-btn:hover,
-.topbar .wt-unresolved-btn:hover,
-.topbar .export-btn:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: rgba(255, 255, 255, 0.45) !important;
-  color: #ffffff !important;
-}
-.topbar .wt-unresolved-badge {
-  background: #ffffff;
-  color: #4c1d95;
-}
-/* Hide meander's inlined comment UI. Our shim mounts its own topbar
- * buttons (`.wt-export-btn`, `.wt-unresolved-btn`) and inline
- * composer (`.wt-selection-popover`, `.wt-comment-form`) with the
- * same affordances plus auth-aware state + Socket styling — leaving
- * the meander originals visible produces duplicate icons in the
- * topbar and a floating "+ Comment" button on the right edge of
- * every selected line. The meander scripts still run (harmless
- * no-ops against our backend); only the rendered UI is hidden. */
-.topbar-actions > .export-btn:not(.wt-export-btn),
-.topbar-actions > .unresolved-btn:not(.wt-unresolved-btn),
-.comment-add-btn,
-.comment-indicator,
-.comment-row,
-.comment-form-container,
-.comment-form-row,
-.comment-card,
-.doc-comment-container,
-.export-dropdown,
-.unresolved-dropdown {
-  display: none !important;
-}
-/* Part-nav pills on the purple topbar need WCAG-AA contrast: the
- * default meander rule uses --accent (lavender) for the active state
- * and --muted (gray) for the rest — both fail against #4c1d95. Swap
- * to white + translucent-white treatments so the pills read at
- * AA/AAA levels regardless of theme. Active pill gets a solid white
- * fill with purple text (inverts the surface, highest contrast);
- * inactive pills use white text on a faint white-tint (5-7:1). */
-.topbar .part-nav a {
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
-  background: rgba(255, 255, 255, 0.06);
-}
-.topbar .part-nav a:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.55) !important;
-}
-.topbar .part-nav a.active {
-  /* Active pill: lifted translucent-white fill with a brighter border
-   * + bold white label. Reads as "selected" without the eye-burning
-   * solid-white fill; contrast on #4c1d95 stays above AA (7:1+). */
-  color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.22) !important;
-  border-color: rgba(255, 255, 255, 0.7) !important;
-  font-weight: 600;
-}
-
-/* Meander's default `.ok` class is Chakra-green (#16a34a) for positive
- * annotations like the "(N sections)" counts on the TOC. Green clashes
- * with the Socket lavender surface on the index. Retint to muted
- * lavender so the count recedes as metadata and the part titles carry
- * the visual weight. */
-.ok {
-  color: var(--muted-lavender) !important;
-}
-/* Emoji-only home link on every part page — 🏠 reads as "go back
- * to the index" without needing a word label. Slight right margin +
- * brighter border separate it from the numbered Part pills so it
- * reads as a distinct category ("root" vs "children"). Tooltip
- * (title attribute on the anchor) carries the label for keyboard /
- * screen-reader users; visual users read the glyph. */
-/* Home-link pill matches the numbered part-pill footprint exactly —
- * same padding (4px 10px from the upstream .part-nav rule) and the
- * inline-flex + line-height:1 combo makes the 14px SVG land in the
- * same pill height as the 12px text labels. */
-.topbar .part-nav a.wt-home-link {
-  border-color: rgba(255, 255, 255, 0.55) !important;
-  margin-right: 8px;
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
-}
-.topbar .part-nav a.wt-home-link svg {
-  display: block;
-}
-/* "Parts:" label emitted server-side in the post-processor. Eight
- * numbered pills read as repetitive "Part 1 Part 2 Part 3…"; this
- * turns it into "Parts: 1 2 3 4 5 6 7 8". The label itself is a
- * <span>, not a pill — same translucent-white as the pill text so
- * it reads as the column header. */
-.topbar .part-nav .wt-parts-label {
-  color: rgba(255, 255, 255, 0.72);
-  margin-right: 4px;
-  align-self: center;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 600;
-}
-/* Dark theme keeps the same purple band — docs.socket.dev uses the
- * same header in both modes, deepened slightly against the near-black
- * page. */
-html[data-theme='dark'] .topbar {
-  background: #3b0f82 !important;
-  box-shadow: 0 2px 0 0 #1e0749;
-}
-.file-head .path {
-  color: var(--code-text);
-  font-weight: 500;
-}
-.left-pane {
-  background: transparent;
-  border-right: 1px solid var(--rule);
-}
-
-/* ── Comment UI (replaces meander's inlined comment scripts) ──────── */
-
-body.wt-backend-offline .wt-export-btn,
-body.wt-backend-offline .wt-unresolved-btn,
-body.wt-backend-offline .wt-indicator,
-body.wt-backend-offline .wt-thread,
-body.wt-backend-offline .wt-selection-popover,
-body.wt-backend-offline .wt-comment-form {
-  display: none !important;
-}
-
-/* Topbar buttons — match .theme-toggle / .export-btn styling (already
- * defined earlier in this file). The new buttons inherit the same
- * .export-btn style from meander via the class name. */
-.wt-export-btn,
-.wt-unresolved-btn {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 8px;
-  color: var(--muted);
-  cursor: pointer;
-  position: relative;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
-}
-.wt-export-btn:hover,
-.wt-unresolved-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.wt-unresolved-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  background: var(--accent);
-  color: #ffffff;
-  border-radius: 999px;
-  font-size: 10px;
-  line-height: 16px;
-  text-align: center;
-  font-weight: 600;
-}
-/* Two-state comment bubble:
- *   signed out → hollow outline (invites sign-in)
- *   signed in  → hollow outline + ellipsis dots (suggests threads inside)
- * CSS toggles visibility via the data-signed-in attribute set by
- * walkthrough-comments.js#reflectAuthState. */
-.wt-unresolved-btn .wt-bubble-dots {
-  display: none;
-}
-.wt-unresolved-btn[data-signed-in='true'] .wt-bubble-dots {
-  display: inline;
-}
-/* Staggered 1→2→3 drop-in played once on fresh sign-in. The JS
- * toggles `.wt-dots-drop` on the signed-out → signed-in transition
- * and removes/re-adds it with a forced reflow, so repeat logins
- * replay the animation. `prefers-reduced-motion` falls back to the
- * default (instant) presentation. */
-@keyframes wt-dot-drop {
-  0% {
-    opacity: 0;
-    transform: translateY(-8px) scale(0.5);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(1px) scale(1.1);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-.wt-unresolved-btn.wt-dots-drop .wt-dot {
-  transform-box: fill-box;
-  transform-origin: center;
+.theme-menu-check {
   opacity: 0;
-  animation: wt-dot-drop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-.wt-unresolved-btn.wt-dots-drop .wt-dot-1 {
-  animation-delay: 0ms;
-}
-.wt-unresolved-btn.wt-dots-drop .wt-dot-2 {
-  animation-delay: 140ms;
-}
-.wt-unresolved-btn.wt-dots-drop .wt-dot-3 {
-  animation-delay: 280ms;
-}
-@media (prefers-reduced-motion: reduce) {
-  .wt-unresolved-btn.wt-dots-drop .wt-dot {
-    animation: none;
-    opacity: 1;
-  }
-}
-.wt-unresolved-badge:empty {
-  display: none;
-}
-
-/* Inline indicator dot in line-number gutter. */
-.wt-indicator {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-left: 6px;
-  border-radius: 50%;
-  background: var(--success);
-  cursor: pointer;
-  vertical-align: middle;
-}
-.wt-indicator-open {
-  background: var(--accent-soft);
-}
-
-/* Selected line highlight. */
-tr.wt-selected .line-code,
-tr.wt-selected-range .line-code {
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-}
-tr.wt-selected .line-num {
+  margin-left: auto;
+  width: 14px;
+  height: 14px;
   color: var(--accent);
-  font-weight: 600;
+  transition: opacity var(--transition-fast);
 }
 
-/* Floating selection popover. */
-.wt-selection-popover {
-  z-index: 100;
-  background: var(--prose-bg);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  padding: 6px 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.theme-menu-icon {
   display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 13px;
-}
-.wt-sel-label {
-  color: var(--muted-lavender);
-  font-size: 12px;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
 }
 
-/* Comment thread inside code table — spans both columns. */
-.wt-thread {
-  margin: 8px 0;
-  padding: 12px;
-  background: var(--prose-bg);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  max-width: 720px;
+.theme-menu-item[aria-checked='true'] .theme-menu-icon,
+.theme-menu-item:hover .theme-menu-icon {
+  color: var(--ink);
 }
+
+/* Sun/moon ray animation — kept from the original icon set. Rays
+ * fade in when their parent icon becomes the active one. */
+.theme-ray {
+  transform-origin: 12px 12px;
+}
+
+/* ── 11. Comment shim UI ─────────────────────────────────────────── */
+
+/* The comments.js shim injects threads into each code block. Style
+ * them as white cards floating inside the dark code container per
+ * the diffs.com comment reference. */
+.wt-comment-thread {
+  background: var(--surface);
+  color: var(--body);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 16px;
+  margin: 16px;
+  font-size: 14px;
+}
+
 .wt-comment {
-  padding: 8px 0;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
 }
-.wt-comment + .wt-comment {
-  border-top: 1px solid var(--rule);
+
+.wt-comment:last-child {
+  margin-bottom: 0;
 }
-.wt-comment.wt-reply {
-  margin-left: 24px;
-  padding-left: 12px;
-  border-left: 2px solid var(--rule);
+
+.wt-comment-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-tint);
+  flex-shrink: 0;
 }
-.wt-comment.wt-resolved {
-  opacity: 0.6;
+
+.wt-comment-body {
+  flex: 1;
+  min-width: 0;
 }
+
 .wt-comment-meta {
   display: flex;
+  align-items: baseline;
   gap: 8px;
-  align-items: center;
+  margin-bottom: 2px;
+}
+
+.wt-comment-author {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.wt-comment-time {
+  color: var(--muted);
   font-size: 12px;
-  color: var(--muted-lavender);
-  margin-bottom: 4px;
 }
-.wt-comment-meta strong {
-  color: var(--prose-text);
-}
-.wt-comment-body {
+
+.wt-comment-text {
+  color: var(--body);
   font-size: 14px;
   line-height: 1.5;
-  color: var(--prose-text);
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  margin: 0;
 }
-.wt-badge {
-  display: inline-block;
-  padding: 1px 6px;
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-  color: var(--accent);
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.wt-actions {
-  margin-top: 6px;
+
+.wt-comment-actions {
   display: flex;
-  gap: 6px;
-}
-.wt-reply-btn {
+  gap: 12px;
   margin-top: 8px;
 }
 
-/* Buttons shared by modal, selection popover, comment form.
- * Matches the Socket marketing button: solid lavender fill, 10px
- * radius (softer-than-rounded, not a full pill), white text. Label
- * weight is 500 — 600 was heavy enough that white-on-lavender
- * clipped into a "blob of bright text" at the button's font size.
- * .wt-secondary mirrors the geometry with a near-white fill. */
-.wt-primary,
-.wt-secondary,
-.wt-danger {
-  appearance: none;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  padding: 8px 14px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    filter var(--transition-fast);
-}
-.wt-primary {
-  background: var(--accent);
-  color: #ffffff;
-  /* Tiny depth — Socket's Install button has a faint shadow that
-   * separates it from the pale-lavender surface. */
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent) 35%, transparent);
-}
-.wt-primary:hover {
-  filter: brightness(1.07);
-  box-shadow: 0 2px 6px color-mix(in srgb, var(--accent) 40%, transparent);
-}
-.wt-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.wt-secondary {
-  /* Matches the Socket marketing "Read the docs" pair for the
-   * Install primary: white fill at rest, hairline lavender-tinted
-   * border, dark navy label. Sits on a pale-lavender page band
-   * without competing with the solid primary next to it. */
-  background: #ffffff;
-  border-color: color-mix(in srgb, var(--accent) 18%, transparent);
-  color: #1d1b36;
-}
-.wt-secondary:hover {
-  /* Hover dips into the pale-lavender tint — reads as "pressed into
-   * the page surface" rather than a color shift. */
-  background: #ede9f5;
-  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
-  color: #1d1b36;
-}
-/* Dark-mode secondary — white-on-dark was blinding against the
- * selection popover / dialog surfaces. Use a tinted dark surface,
- * lavender border, and light text so it reads as "quiet button on
- * a dark panel" instead of a headlight. */
-html[data-theme='dark'] .wt-secondary {
-  background: color-mix(in srgb, var(--accent) 14%, #0d1117);
-  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-  color: #e6edf3;
-}
-html[data-theme='dark'] .wt-secondary:hover {
-  background: color-mix(in srgb, var(--accent) 22%, #0d1117);
-  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
-  color: #ffffff;
-}
-.wt-danger {
-  background: transparent;
-  border-color: var(--danger);
-  color: var(--danger);
-}
-.wt-danger:hover {
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
-}
-
-/* Inline comment form (shown next to selected lines). */
-/* Inline comment composer — a <dialog> anchored next to the selected
- * lines (positioned via JS). No backdrop so the code stays visible
- * while the user writes. We still get focus trap + Escape + top-layer
- * stacking from the UA. */
-.wt-comment-form {
-  padding: 12px;
-  background: var(--prose-bg);
-  border: 1px solid var(--accent);
-  border-radius: 8px;
-  /* Default width matches the old cap; the user can drag the textarea
-   * bigger (resize: vertical) and the dialog will stretch vertically
-   * too because the form is a flex column. Width stays bounded by
-   * the viewport so the composer doesn't escape on narrow screens. */
-  width: min(720px, calc(100vw - 32px));
-  max-width: calc(100vw - 32px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  color: var(--prose-text);
-  /* <dialog> defaults to margin: auto (centered) — the JS anchor
-   * logic overrides top/left/margin inline. */
-}
-.wt-comment-form::backdrop {
-  /* Light dim so "modal context" is visible without occluding the
-   * code. Keeps the code readable but clearly tells the user the
-   * rest of the UI is inert. */
-  background: rgba(0, 0, 0, 0.15);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-.wt-comment-form form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.wt-comment-header {
-  display: flex;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--muted-lavender);
-}
-.wt-comment-header strong {
-  color: var(--prose-text);
-  font-family: var(
-    --mono,
-    ui-monospace,
-    SFMono-Regular,
-    Menlo,
-    Consolas,
-    monospace
-  );
-}
-.wt-textarea {
-  /* Gmail-style: comfortable starting height, user-resizable vertically
-   * up to ~70vh so a long thread can grow without escaping the viewport.
-   * `resize: vertical` keeps horizontal pinned to the dialog width. */
-  min-height: 140px;
-  max-height: 70vh;
-  resize: vertical;
-  font-family: inherit;
-  font-size: 15px;
-  line-height: 1.5;
-}
-.wt-row {
-  display: flex;
-  gap: 8px;
-}
-
-/* Modal for auth flow — native <dialog> element.
- * The UA handles centering, top-layer stacking, focus trapping,
- * Escape-to-close, and ARIA. We only style the surface + backdrop. */
-.wt-modal {
-  background: var(--prose-bg);
-  border: 1px solid var(--rule);
-  border-radius: 12px;
-  /* Symmetric vertical padding so the card reads as a balanced
-   * container around the content, not a block of chrome with trailing
-   * whitespace. Inner element margins carry the top-heaviness. */
-  padding: 28px 28px 28px;
-  /* 480px fits the step-1 subtitle ("Enter your @socket.dev email to
-   * get a 6-digit login code.") on a single line at the current font
-   * size — the old 400px cap was wrapping mid-sentence. */
-  max-width: 480px;
-  width: 90%;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  color: var(--prose-text);
-  position: relative;
-  /* <dialog> defaults to margin: auto but inherits the UA's normal
-   * box model once we override padding — keep it centered. */
-  margin: auto;
-}
-.wt-modal::backdrop {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-  /* Safari still ships it with the -webkit- prefix in some minor
-   * releases; keep until support telemetry is clearly past it. */
-  -webkit-backdrop-filter: blur(4px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .wt-modal::backdrop {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-}
-.wt-modal-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast);
-}
-.wt-modal-close:hover,
-.wt-modal-close:focus-visible {
-  background: color-mix(in srgb, var(--rule) 40%, transparent);
-  color: var(--prose-text);
-  outline: none;
-}
-.wt-modal-title {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  color: var(--prose-text);
-}
-.wt-modal-sub {
-  margin: 0 0 20px 0;
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.5;
-}
-.wt-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.wt-label {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 13px;
-  color: var(--prose-text);
-}
-.wt-input {
-  appearance: none;
-  box-sizing: border-box;
-  width: 100%;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 10px 12px;
-  font-size: 15px;
-  background: var(--prose-bg);
-  color: var(--prose-text);
-}
-.wt-input:focus-visible {
-  /* No outline — the color-shifted border + soft accent glow
-   * already signals focus and matches Socket's form styling
-   * without reading as a double ring on top of the 1px border. */
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
-}
-/* Lighten the placeholder so the rotating fakey-name doesn't visually
- * out-weight the label or the user's own typing once they start. */
-.wt-input::placeholder {
-  color: var(--muted);
-  opacity: 0.6;
-}
-/* Live-validity indicator inside the email input. The JS toggles
- * `data-valid="true"|"false"` on the input; an inline SVG icon drawn
- * via background-image paints a check or X on the right edge, and
- * the border tints to the brand success/danger soft token. The
- * check is the Socket marketing-site glyph (FontAwesome solid
- * check), which matches the rest of the product surface. */
-.wt-input[data-valid='true'] {
-  border-color: var(--success-soft);
-  /* Soft mint check (%239AE6B4 = --success-soft) — paired with the
-   * border so valid state is one consistent soft-green signal. */
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512' fill='%239AE6B4'><path d='M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px 14px;
-  padding-right: 34px;
-}
-.wt-input[data-valid='false'] {
-  border-color: var(--danger-soft);
-  /* Soft peach X (%23FEB2B2 = --danger-soft) — matches the border so
-   * invalid state reads as a single muted signal, not a bright red
-   * alarm. The check icon follows the same rule (border + icon both
-   * in the soft success green). */
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 352 512' fill='%23FEB2B2'><path d='M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px 14px;
-  padding-right: 34px;
-}
-/* Focus ring inherits the per-state color so invalid (soft peach)
- * and valid (soft mint) never double up with a lavender accent
- * ring from :focus-visible. The base rule uses accent, these
- * overrides replace it entirely. */
-.wt-input[data-valid='true']:focus-visible {
-  border-color: var(--success-soft);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success-soft) 35%, transparent);
-}
-.wt-input[data-valid='false']:focus-visible {
-  border-color: var(--danger-soft);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger-soft) 35%, transparent);
-}
-.wt-code {
-  /* Big monospace numeric field, full-width like the email input.
-   * Pad extra on the vertical so the 6-digit code feels anchored in
-   * a comfortably large hit target, matching the email-field scale. */
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 20px;
-  letter-spacing: 0.35em;
-  text-align: center;
-  padding-top: 14px;
-  padding-bottom: 14px;
-}
-/* Socket tagline footer — matches the band on socket.dev: deep
- * brand purple, right-aligned muted-white text, generous top space.
- * Kept fixed-content (no dependency fetch) so it renders the instant
- * the HTML is parsed. */
-/* Sticky-footer layout: body flexes vertically so the footer can
- * auto-margin to the bottom on short pages (e.g. the index). Long
- * pages just scroll normally — `min-height: 100vh` only kicks in
- * when content would otherwise leave empty space below. */
-body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-.wt-socket-footer {
-  /* Full-bleed brand purple band aligned to the page bottom. */
-  margin-top: auto;
-  padding: 28px 32px;
-  background: #4c1d95;
-  color: rgba(255, 255, 255, 0.85);
-  font-size: 14px;
-  text-align: right;
-}
-.wt-footer-bolt {
-  /* Emoji already has color. The nudge keeps it vertically centered
-   * with the text baseline without a flex wrapper. */
-  display: inline-block;
-  transform: translateY(1px);
-  margin: 0 2px;
-}
-
-.wt-error {
-  margin: 0;
-  min-height: 1em;
-  /* Matched to .wt-modal-sub (14px / line-height 1.5) so the error
-   * line visually rhymes with the subtitle at the top of the modal —
-   * the user reads both at the same scale. */
-  font-size: 14px;
-  line-height: 1.5;
-  /* Solid danger — soft-peach was too washed out for body copy on
-   * white; the icon and border stay soft, the message carries the
-   * weight. */
-  color: var(--danger);
-}
-/* Emphasize `<strong>@socket.dev</strong>` inside error messages.
- * `font-weight: bolder` (the UA default for <strong>) resolves
- * relative to the parent — at 13px body weight it lands on the same
- * visual weight, so the token never reads as bold on its own. Pin
- * to 700 AND shift to the soft-danger pink so it pops against the
- * darker danger-red body copy. Two axes of contrast (weight + hue)
- * makes the token unmissable even at small sizes. */
-.wt-error strong {
-  font-weight: 700;
-  color: var(--danger-soft);
-}
-.wt-modal-sub strong {
-  font-weight: 700;
-  color: inherit;
-}
-
-/* Dropdowns (export, unresolved). */
-.wt-dropdown {
-  background: var(--prose-bg);
-  border: 1px solid var(--rule);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  min-width: 260px;
-  max-width: 400px;
-  max-height: 50vh;
-  overflow-y: auto;
-  z-index: 100;
-  padding: 4px;
-}
-.wt-dropdown-item {
-  display: block;
-  padding: 8px 10px;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: var(--prose-text);
-  text-align: left;
-  text-decoration: none;
-  font-size: 13px;
-  width: 100%;
-  cursor: pointer;
-}
-.wt-dropdown-item:hover {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-}
-.wt-dropdown-empty {
-  padding: 12px;
-  font-size: 13px;
-  color: var(--muted);
-}
-.wt-dropdown-where {
-  display: block;
-  font-size: 11px;
-  color: var(--muted-lavender);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  margin-top: 2px;
-}
-.wt-dropdown-excerpt {
-  display: block;
-  font-size: 12px;
-  color: var(--muted-lavender);
-  margin-top: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Signed-in header at the top of the unresolved dropdown. */
-.wt-dropdown-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--rule);
-  margin-bottom: 4px;
-}
-.wt-dropdown-who {
-  font-size: 12px;
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-.wt-dropdown-signout {
-  appearance: none;
-  background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: var(--prose-text);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast),
-    color var(--transition-fast);
-}
-.wt-dropdown-signout:hover {
-  border-color: var(--accent);
+.wt-comment-action {
   color: var(--accent);
+  font-size: 13px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
-.wt-dropdown-signout:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+
+.wt-comment-action:hover {
+  text-decoration: underline;
 }
-.wt-dropdown-body {
-  /* Container for the scrollable comment list; the dropdown itself
-   * scrolls but the header stays pinned by being a sibling above. */
+
+/* ── 12. Footer ──────────────────────────────────────────────────── */
+
+.wt-socket-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 16px;
+  color: var(--muted);
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+  margin-top: 80px;
+}
+
+.wt-footer-bolt {
+  display: inline-block;
+  transform: translateY(-1px);
+}
+
+/* ── 13. Utilities ───────────────────────────────────────────────── */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Selection color picks up the accent on every theme. */
+::selection {
+  background: var(--accent-bg);
+  color: var(--accent-fg);
+}
+
+/* Scrollbar chrome — subtle on all themes. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }

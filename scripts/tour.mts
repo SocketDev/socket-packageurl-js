@@ -916,6 +916,26 @@ async function generate(
       }),
     )
 
+    // Ship self-hosted fonts. Geist + Geist Mono variable woff2 files
+    // live under fonts/ at the repo root; copy them into pages/fonts/
+    // so the emitted @font-face rules resolve same-origin. Also copy
+    // OFL.txt — SIL OFL-1.1 requires the license to ship alongside.
+    const fontSrcDir = path.join(repoRoot, 'fonts')
+    const fontFiles = ['Geist.woff2', 'GeistMono.woff2', 'OFL.txt'] as const
+    if (existsSync(fontSrcDir)) {
+      const fontDestDir = path.join(buildDir, 'fonts')
+      await fs.mkdir(fontDestDir, { recursive: true })
+      await Promise.allSettled(
+        fontFiles.map(f => {
+          const src = path.join(fontSrcDir, f)
+          if (!existsSync(src)) {
+            return Promise.resolve()
+          }
+          return fs.copyFile(src, path.join(fontDestDir, f))
+        }),
+      )
+    }
+
     // Ship the comment-UI replacement (optional — only when a commentBackend
     // is configured). The shim is loaded instead of meander's inlined comment
     // scripts, which the rewrite below strips.
