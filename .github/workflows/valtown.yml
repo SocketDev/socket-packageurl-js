@@ -35,7 +35,7 @@ on:
       - 'val/**'
       - 'scripts/walkthrough.mts'
       - 'scripts/audit-deps.mts'
-      - '.github/workflows/deploy-val.yml'
+      - '.github/workflows/valtown.yml'
       - 'package.json'
       - 'pnpm-lock.yaml'
   workflow_dispatch:
@@ -46,7 +46,7 @@ permissions:
 # Queue deploys serially. Never cancel a running deploy — a partial
 # upload can leave Val Town with a mix of old + new file versions.
 concurrency:
-  group: deploy-val
+  group: valtown
   cancel-in-progress: false
 
 jobs:
@@ -68,7 +68,7 @@ jobs:
         run: |
           if [ -z "$VALTOWN_TOKEN" ]; then
             echo "::error::VALTOWN_TOKEN secret is not configured."
-            echo "::error::See .github/workflows/deploy-val.yml header for setup steps."
+            echo "::error::See .github/workflows/valtown.yml header for setup steps."
             exit 1
           fi
           echo "VALTOWN_TOKEN present (length: ${#VALTOWN_TOKEN})"
@@ -79,8 +79,8 @@ jobs:
           checkout-fetch-depth: '1'
 
       - name: Deploy val
-        # `pnpm walkthrough deploy-val` runs the Socket.dev malware
+        # `pnpm walkthrough valtown` runs the Socket.dev malware
         # audit on the val's transitive closure first — a finding
         # fails fast before any upload. Deploy receipt (file + sha256)
         # prints to GITHUB_STEP_SUMMARY at the end.
-        run: pnpm walkthrough deploy-val
+        run: pnpm walkthrough valtown

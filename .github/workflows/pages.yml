@@ -11,11 +11,11 @@ name: 📘 Walkthrough (GH Pages)
 #
 # Build model:
 #   1. Shared setup-and-install → checkout w/ submodules, pnpm install.
-#   2. `pnpm walkthrough --minify --base-path=/socket-packageurl-js generate walkthrough.json`
-#      The --base-path flag rewrites root-relative asset URLs and Val-Town
-#      part links (/<slug>/part/<n>) into prefixed flat HTML paths so the
-#      output works at socketdev.github.io/socket-packageurl-js/. --minify
-#      runs esbuild on JS + lightningcss on CSS (~49% on-disk reduction).
+#   2. `pnpm walkthrough:build` — the `CI` env var (set by all GitHub
+#      Actions runners) makes this auto-select the `prod` preset, which
+#      applies --minify + --base-path=/socket-packageurl-js. Locally the
+#      same script defaults to `dev`. No flag drift between CI and the
+#      npm script.
 #   3. Upload `walkthrough/` as the Pages artifact.
 #   4. Deploy via actions/deploy-pages.
 
@@ -68,12 +68,8 @@ jobs:
       - name: Init meander submodule
         run: git submodule update --init --depth=1 upstream/meander
 
-      - name: Generate walkthrough (minified, base-path=/socket-packageurl-js)
-        run: >
-          pnpm walkthrough
-          --minify
-          --base-path=/socket-packageurl-js
-          generate walkthrough.json
+      - name: Generate walkthrough (auto-prod via CI env)
+        run: pnpm walkthrough:build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

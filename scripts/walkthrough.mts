@@ -1008,24 +1008,91 @@ const failWith =
     process.exit(1)
   }
 
+// Preset shorthand — sets minify + base-path in one flag.
+//   --prod  ≈  --minify --base-path=/socket-packageurl-js (GH Pages layout)
+//   --dev   ≈  plain, no minify, no base-path (local-friendly)
+// Explicit --minify / --base-path= still work and override the preset.
+// No preset given? Auto-pick based on `CI` in process.env:
+//   CI set (GitHub Actions, GitLab, etc.) → prod
+//   CI unset (local machine)              → dev
+const PROD_BASE_PATH = '/socket-packageurl-js'
+
 function main(): void {
   const args = process.argv.slice(2)
   const refresh = args.includes('--refresh')
-  const minify = args.includes('--minify')
-  // Parse --base-path=<p>. When set, every root-relative asset URL
-  // and Val-Town-shaped part link is rewritten so the output works
-  // under a subdirectory host (e.g. GitHub Pages /<repo>/). Leading
-  // slash enforced, trailing slash stripped so path joins are clean.
+
+  // Explicit flags.
+  const wantDev = args.includes('--dev')
+  const wantProd = args.includes('--prod')
+  const explicitMinify = args.includes('--minify')
   const basePathArg = args.find(a => a.startsWith('--base-path='))
-  const basePath = basePathArg
+  const explicitBasePath = basePathArg
     ? normalizeBasePath(basePathArg.slice('--base-path='.length))
-    : ''
+    : undefined
+
+  // Resolve preset. Explicit --dev / --prod wins; otherwise CI env var
+  // picks prod. `'CI' in process.env` covers any CI that exports it
+  // (GitHub Actions, GitLab CI, CircleCI, most).
+  const preset: 'dev' | 'prod' = wantProd
+    ? 'prod'
+    : wantDev
+      ? 'dev'
+      : 'CI' in process.env
+        ? 'prod'
+        : 'dev'
+
+  // Final knobs — explicit flag beats preset default.
+  const minify = explicitMinify || preset === 'prod'
+  const basePath =
+    explicitBasePath !== undefined
+      ? explicitBasePath
+      : preset === 'prod'
+        ? PROD_BASE_PATH
+        : ''
+
   const rest = args.filter(
-    a => a !== '--refresh' && a !== '--minify' && !a.startsWith('--base-path='),
+    a =>
+      a !== '--refresh' &&
+      a !== '--minify' &&
+      a !== '--dev' &&
+      a !== '--prod' &&
+      !a.startsWith('--base-path='),
   )
   const command = rest[0]
 
+  const HELP_TEXT = [
+    'pnpm walkthrough — walkthrough generator for the Socket pilot',
+    '',
+    'Subcommands:',
+    '  generate <walkthrough.json>   Build the walkthrough HTML/CSS/JS.',
+    '  serve [--port=8080]           Start the local dev server.',
+    '  watch <walkthrough.json>      Build + serve + rebuild on source change.',
+    '  valtown [--name=<valname>]    Deploy val/ to Val Town.',
+    '  token <set|clear|status>      Manage the Val Town API token.',
+    '  doctor                        Check external-tool prerequisites.',
+    '',
+    'Presets (apply to build/serve/watch):',
+    '  --dev    Local-friendly: no minify, no base-path.',
+    `  --prod   GH Pages-shaped: --minify + --base-path=${PROD_BASE_PATH}.`,
+    '  Default: `prod` when the `CI` env var is set, else `dev`.',
+    '',
+    'Explicit knobs (override presets piecewise):',
+    '  --minify                 Minify emitted JS/CSS.',
+    '  --base-path=/prefix      Subdir URL prefix for assets + part links.',
+    '  --refresh                Force-rebuild the meander submodule.',
+    '',
+    'Show this help: pnpm walkthrough --help  (or -h)',
+  ].join('\n')
+
   switch (command) {
+    case undefined:
+    case '--help':
+    case '-h':
+      // POSIX convention: --help is a successful request. Stdout, exit 0 —
+      // so `pnpm walkthrough --help > help.txt` works and shell checks
+      // can detect availability by capturing stdout.
+      console.log(HELP_TEXT)
+      return
     case 'generate':
       generate(refresh, minify, basePath, rest.slice(1)).catch(
         failWith('generate'),
@@ -1037,8 +1104,8 @@ function main(): void {
     case 'watch':
       watch(refresh, minify, basePath, rest.slice(1)).catch(failWith('watch'))
       break
-    case 'deploy-val':
-      deployVal(rest.slice(1)).catch(failWith('deploy-val'))
+    case 'valtown':
+      deployValtown(rest.slice(1)).catch(failWith('valtown'))
       break
     case 'token':
       tokenCli(rest.slice(1)).catch(failWith('token'))
@@ -1047,14 +1114,10 @@ function main(): void {
       doctor().catch(failWith('doctor'))
       break
     default:
+      // Unknown command — stderr + non-zero exit, with a pointer to
+      // --help rather than dumping the full usage block here.
       console.error(
-        'Usage:\n' +
-          '  pnpm walkthrough [--refresh] [--minify] [--base-path=/prefix] generate <walkthrough.json>\n' +
-          '  pnpm walkthrough [--base-path=/prefix] serve [--port=8080]\n' +
-          '  pnpm walkthrough [--minify] [--base-path=/prefix] watch <walkthrough.json>\n' +
-          '  pnpm walkthrough deploy-val [--name=<valname>]\n' +
-          '  pnpm walkthrough token <set|clear|status>\n' +
-          '  pnpm walkthrough doctor',
+        `Unknown command: ${command}\n\nRun \`pnpm walkthrough --help\` for usage.`,
       )
       process.exit(1)
   }
@@ -1119,14 +1182,14 @@ function printDeployReceipt(
       appendFileSync(summaryPath, summary + '\n')
     } catch (err) {
       console.warn(
-        '[deploy-val] could not write GITHUB_STEP_SUMMARY:',
+        '[valtown] could not write GITHUB_STEP_SUMMARY:',
         (err as Error).message,
       )
     }
   }
 }
 
-async function deployVal(args: readonly string[]): Promise<void> {
+async function deployValtown(args: readonly string[]): Promise<void> {
   const envFile = path.join(repoRoot, '.env.local')
   if (existsSync(envFile)) {
     loadDotEnv(envFile)
