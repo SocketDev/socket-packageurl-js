@@ -153,7 +153,7 @@ function applyBasePath(html: string, basePath: string, slug: string): string {
 }
 
 /** Build the `sha384-<base64>` SRI attribute value for a byte stream. */
-function sriOf(bytes: Uint8Array): string {
+function computeIntegrity(bytes: Uint8Array): string {
   return `sha384-${cryptoHash('sha384', bytes, 'base64')}`
 }
 
@@ -175,7 +175,7 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
   if (!res.ok) {
     throw new Error(`SRI fetch ${url} → HTTP ${res.status}`)
   }
-  const integrity = sriOf(new Uint8Array(await res.arrayBuffer()))
+  const integrity = computeIntegrity(new Uint8Array(await res.arrayBuffer()))
   mkdirSync(cacheDir, { recursive: true })
   writeFileSync(cachePath, integrity + '\n')
   return integrity
