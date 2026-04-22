@@ -220,6 +220,14 @@ function buildCspMeta(html: string, commentBackend: string): string {
     const origin = new URL(commentBackend).origin
     connectSources.push(origin)
   }
+  // Note: `frame-ancestors` and `sandbox` are ignored when CSP is
+  // delivered via <meta http-equiv> (spec-level — browsers may have
+  // already begun rendering a framed page by the time they parse
+  // meta tags). We'd get a console warning for emitting them here,
+  // with no actual clickjacking protection to show for it. When/if
+  // this deploy moves to a host that can set response headers
+  // (Cloudflare Workers, Netlify `_headers`, Val Town routing),
+  // add `frame-ancestors 'none'` as a real HTTP header.
   const directives = [
     `default-src 'self'`,
     `script-src ${scriptSources.join(' ')}`,
@@ -229,7 +237,6 @@ function buildCspMeta(html: string, commentBackend: string): string {
     `worker-src 'self'`,
     `base-uri 'self'`,
     `form-action 'self'`,
-    `frame-ancestors 'none'`,
   ]
   const content = directives.join('; ')
   return `<meta http-equiv="Content-Security-Policy" content="${content}" />`
