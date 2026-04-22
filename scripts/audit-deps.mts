@@ -17,7 +17,7 @@
  * required, same pattern as socket-sdk-js's `check-new-deps` hook.
  */
 
-import { readdirSync, readFileSync } from 'node:fs'
+import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
 import { SOCKET_PUBLIC_API_TOKEN } from '@socketsecurity/lib/constants/socket'
@@ -54,53 +54,68 @@ const sdk = new SocketSdk(SOCKET_PUBLIC_API_TOKEN, { timeout: API_TIMEOUT_MS })
 // --- specifier extraction ---
 
 /**
- * Parse `npm:` specifiers out of every `.ts` file in `dir`. Deduped
- * by `name@version` string. Only direct deps — transitives come from
- * the pacote walk.
+ * Scan every file in `dir` matching `suffix`, read each in parallel,
+ * and collect matches of `pattern` as `NpmDep`s tagged `source`. The
+ * shared pipeline for both extractors below so all dedupe/parallelism
+ * logic lives in one place. Reads are `Promise.allSettled` so a single
+ * unreadable file doesn't abort the scan — failures collect into a
+ * composite error and throw after the successful results are drained.
  */
-function extractNpmDepsFromDir(dir: string): NpmDep[] {
+async function extractDepsFromDir(
+  dir: string,
+  suffix: string,
+  pattern: RegExp,
+  source: NpmDep['source'],
+): Promise<NpmDep[]> {
+  const entries = await fs.readdir(dir)
+  const matching = entries.filter(e => e.endsWith(suffix))
+  const reads = await Promise.allSettled(
+    matching.map(entry =>
+      fs
+        .readFile(path.join(dir, entry), 'utf8')
+        .then(text => ({ entry, text })),
+    ),
+  )
+  const failures: string[] = []
   const seen = new Map<string, NpmDep>()
-  for (const entry of readdirSync(dir)) {
-    if (!entry.endsWith('.ts')) {
+  for (const r of reads) {
+    if (r.status === 'rejected') {
+      failures.push(String((r.reason as Error)?.message ?? r.reason))
       continue
     }
-    const source = readFileSync(path.join(dir, entry), 'utf8')
-    for (const m of source.matchAll(NPM_SPECIFIER_RE)) {
+    for (const m of r.value.text.matchAll(pattern)) {
       const spec = m.groups!['spec']!
       const atIndex = spec.lastIndexOf('@')
       const name = spec.slice(0, atIndex)
       const version = spec.slice(atIndex + 1)
       const key = `${name}@${version}`
       if (!seen.has(key)) {
-        seen.set(key, { name, version, source: 'direct' })
+        seen.set(key, { name, version, source })
       }
     }
+  }
+  if (failures.length > 0) {
+    throw new Error(
+      `audit-deps: failed to read ${failures.length} file(s) in ${dir}:\n  - ${failures.join('\n  - ')}`,
+    )
   }
   return [...seen.values()]
 }
 
 /**
+ * Parse `npm:` specifiers out of every `.ts` file in `dir`. Deduped
+ * by `name@version` string. Only direct deps — transitives come from
+ * the pacote walk.
+ */
+async function extractNpmDepsFromDir(dir: string): Promise<NpmDep[]> {
+  return extractDepsFromDir(dir, '.ts', NPM_SPECIFIER_RE, 'direct')
+}
+
+/**
  * Extract unpkg script deps from generated HTML files.
  */
-function extractCdnDepsFromDir(dir: string): NpmDep[] {
-  const seen = new Map<string, NpmDep>()
-  for (const entry of readdirSync(dir)) {
-    if (!entry.endsWith('.html')) {
-      continue
-    }
-    const source = readFileSync(path.join(dir, entry), 'utf8')
-    for (const m of source.matchAll(UNPKG_SCRIPT_RE)) {
-      const spec = m.groups!['spec']!
-      const atIndex = spec.lastIndexOf('@')
-      const name = spec.slice(0, atIndex)
-      const version = spec.slice(atIndex + 1)
-      const key = `${name}@${version}`
-      if (!seen.has(key)) {
-        seen.set(key, { name, version, source: 'cdn' })
-      }
-    }
-  }
-  return [...seen.values()]
+async function extractCdnDepsFromDir(dir: string): Promise<NpmDep[]> {
+  return extractDepsFromDir(dir, '.html', UNPKG_SCRIPT_RE, 'cdn')
 }
 
 // --- transitive closure via pacote ---
@@ -215,7 +230,7 @@ async function checkMalwareBatched(
  */
 export async function auditValDeps(repoRoot: string): Promise<void> {
   const valDir = path.join(repoRoot, 'val')
-  const directs = extractNpmDepsFromDir(valDir)
+  const directs = await extractNpmDepsFromDir(valDir)
   if (directs.length === 0) {
     console.log('[audit-deps] no npm specifiers found in val/')
     return
@@ -237,7 +252,7 @@ export async function auditValDeps(repoRoot: string): Promise<void> {
  * bundles are preflight-built, their deps don't ship separately.
  */
 export async function auditCdnScripts(walkthroughDir: string): Promise<void> {
-  const cdnDeps = extractCdnDepsFromDir(walkthroughDir)
+  const cdnDeps = await extractCdnDepsFromDir(walkthroughDir)
   if (cdnDeps.length === 0) {
     console.log('[audit-deps] no unpkg CDN scripts in walkthrough HTML')
     return
