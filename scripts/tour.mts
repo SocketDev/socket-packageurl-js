@@ -24,7 +24,7 @@ import { safeDelete } from '@socketsecurity/lib/fs'
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'
 import { marked } from 'marked'
-import { parse as parseHtml } from 'node-html-parser'
+import { HTMLElement, parse as parseHtml } from 'node-html-parser'
 
 import { auditCdnScripts, auditValDeps } from './audit-deps.mts'
 import { errorMessage } from './utils/error-message.mts'
@@ -472,6 +472,22 @@ async function rewriteIndexContents(
     }
   }
 
+  // De-emphasize the `.js` suffix inside the topbar wordmark. The
+  // site is about the PURL library; the `.js` tag is a technical
+  // qualifier that should sit quieter than the name itself. Wrap
+  // it in a span the CSS can dim. Only the index's topbar carries
+  // this wordmark — part/doc pages substitute their own title there.
+  const topbarH1 = root.querySelector('.topbar h1')
+  if (topbarH1) {
+    const text = topbarH1.text
+    const jsMatch = text.match(/^(.*?)(\.js)(.*)$/)
+    if (jsMatch) {
+      topbarH1.set_content(
+        `${escapeHtml(jsMatch[1]!)}<span class="wt-tech-tag">${escapeHtml(jsMatch[2]!)}</span>${escapeHtml(jsMatch[3]!)}`,
+      )
+    }
+  }
+
   await fs.writeFile(indexPath, root.toString())
 }
 
@@ -533,63 +549,90 @@ function validatePartFilenames(
 }
 
 /**
- * Rewrite a generated HTML file for hosting under `basePath`. Two
- * categories of URL get prefixed:
+ * Rewrite a parsed document for hosting under `basePath`. Three
+ * categories of URL get prefixed, mutating the DOM in place:
  *
- *   1. Root-relative asset paths meander or our post-processor emits
- *      (/style.css, /drag.js, /favicon.ico, etc.).
- *   2. Val-Town-shaped part links (/<slug>/part/<n>) — these don't
+ *   1. Val-Town-shaped part links (/<slug>/part/<n>) — these don't
  *      exist as files; rewrite to the real flat HTML name
  *      (<partFilenames[n]>.html, e.g. "anatomy.html") and prefix with
  *      basePath.
+ *   2. Root-relative asset URLs on [href] and [src] attributes.
+ *   3. ServiceWorker `register('/path')` calls inside inline scripts.
  *
- * We do a narrowly-scoped regex pass rather than a full HTML parse:
- * the set of URL attributes we emit is small and known, and we don't
- * want to touch hrefs in the prose (external links, anchor jumps).
+ * Operates via node-html-parser selectors + attribute reads/writes,
+ * so attribute-order and quoting style in the source don't matter.
  */
 function applyBasePath(
-  html: string,
+  root: HTMLElement,
   basePath: string,
   slug: string,
   partFilenames: ReadonlyMap<number, string>,
-): string {
+): void {
   if (!basePath) {
-    return html
+    return
   }
+  const partLinkPrefix = `/${slug}/part/`
   // 1. Flat part link — rewrite first so step 2 doesn't double-prefix.
-  // Matches href="/<slug>/part/<n>" and rewrites to
-  // href="<basePath>/<partFilenames[n]>.html". Part numbers without a
-  // filename entry are left untouched; the validator that built the
-  // map already guaranteed coverage for every configured part, so any
-  // miss here is a stray href meander rendered for a removed part.
-  const partLink = new RegExp(`(href=")/${slug}/part/(\\d+)/?(")`, 'g')
-  let out = html.replace(partLink, (_m, pre, n, post) => {
-    const filename = partFilenames.get(Number(n))
+  for (const a of root.querySelectorAll('a[href]')) {
+    const href = a.getAttribute('href') ?? ''
+    if (!href.startsWith(partLinkPrefix)) {
+      continue
+    }
+    const rest = href.slice(partLinkPrefix.length).replace(/\/$/, '')
+    const n = Number(rest)
+    if (!Number.isFinite(n)) {
+      continue
+    }
+    const filename = partFilenames.get(n)
     if (!filename) {
-      return `${pre}/${slug}/part/${n}${post}`
+      continue
     }
-    return `${pre}${basePath}/${filename}.html${post}`
-  })
-  // 2. Root-relative asset URLs. Match href="/..." and src="/..." and
-  // ServiceWorker-style register('/...') — but skip:
-  //   - protocol-qualified URLs (https://, data:, mailto:, etc.)
-  //   - anchor/hash links ("#...")
-  //   - URLs that already begin with the basePath (idempotent)
-  //   - the part-link pattern above (already rewritten in step 1)
-  const assetAttr = /(\s(?:href|src)=")(\/[^"]*)(")/g
-  out = out.replace(assetAttr, (_m, pre, url, post) => {
-    if (url.startsWith(basePath + '/') || url === basePath) {
-      return `${pre}${url}${post}`
+    a.setAttribute('href', `${basePath}/${filename}.html`)
+  }
+  // 2. Root-relative asset URLs. Walk any element carrying href/src
+  // and prefix same-origin absolute paths.
+  const prefixAttr = (el: HTMLElement, attr: 'href' | 'src'): void => {
+    const value = el.getAttribute(attr)
+    if (!value || !value.startsWith('/')) {
+      return
     }
-    return `${pre}${basePath}${url}${post}`
-  })
-  // 3. SW register — also prefix. Matches .register('/sw.js').
-  out = out.replace(/\.register\('(\/[^']+)'/g, (_m, url) =>
-    url.startsWith(basePath + '/')
-      ? `.register('${url}'`
-      : `.register('${basePath}${url}'`,
-  )
-  return out
+    if (value.startsWith(basePath + '/') || value === basePath) {
+      return
+    }
+    if (value.startsWith(partLinkPrefix)) {
+      // Part links handled above — don't double-prefix if the step 1
+      // branch dropped through (no matching filename entry).
+      return
+    }
+    el.setAttribute(attr, `${basePath}${value}`)
+  }
+  for (const el of root.querySelectorAll('[href]')) {
+    prefixAttr(el, 'href')
+  }
+  for (const el of root.querySelectorAll('[src]')) {
+    prefixAttr(el, 'src')
+  }
+  // 3. ServiceWorker register — rewrite .register('/sw.js') inside
+  // inline scripts. The register call lives inside the swRegisterTag
+  // inline block, so mutate the script's text content directly.
+  const swRegisterRe = /\.register\('(\/[^']+)'/g
+  for (const script of root.querySelectorAll('script')) {
+    if (script.getAttribute('src')) {
+      continue
+    }
+    const text = script.text
+    if (!text.includes('.register(')) {
+      continue
+    }
+    const updated = text.replace(swRegisterRe, (_m, url) =>
+      url.startsWith(basePath + '/')
+        ? `.register('${url}'`
+        : `.register('${basePath}${url}'`,
+    )
+    if (updated !== text) {
+      script.set_content(updated)
+    }
+  }
 }
 
 /**
@@ -621,37 +664,50 @@ function computeIntegrity(bytes: Uint8Array): string {
  *   frame-ancestors         none (clickjacking protection)
  *   default-src             self (fallback for anything not listed)
  */
-function buildCspMeta(html: string, commentBackend: string): string {
+function buildCspMeta(root: HTMLElement, commentBackend: string): string {
   // Collect each inline script body, hash it as sha512 — same algo
   // as our SRI attributes, consistent with the fleet convention.
-  // Meander + our post-processor both emit scripts with `<script>...`
-  // (no src attr) — match those, skip `<script src=...>`.
-  const inlineRe = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi
+  // Meander + our post-processor both emit inline scripts (no src
+  // attr) that need per-hash allowlisting; `<script src>` scripts are
+  // covered by the SRI hash below.
   const inlineScriptHashes = new Set<string>()
-  for (const m of html.matchAll(inlineRe)) {
-    const body = m[1]!
+  const cdnScriptHashes = new Set<string>()
+  const cdnStyleHashes = new Set<string>()
+
+  for (const script of root.querySelectorAll('script')) {
+    const src = script.getAttribute('src')
+    if (src) {
+      // Pull the already-computed SRI hash off cross-origin script
+      // tags. CSP accepts sha256/384/512 hashes directly as allowlist
+      // entries — stricter than listing the CDN origin, because a
+      // compromised unpkg serving a different bundle fails the CSP
+      // check *before* SRI even runs. Same-origin tags don't need
+      // hashes here (covered by 'self' + their own SRI attribute).
+      if (src.startsWith('https:')) {
+        const integrity = script.getAttribute('integrity')
+        if (integrity) {
+          cdnScriptHashes.add(`'${integrity}'`)
+        }
+      }
+      continue
+    }
+    const body = script.text
     const hash = cryptoHash('sha512', body, 'base64')
     inlineScriptHashes.add(`'sha512-${hash}'`)
   }
 
-  // Pull the already-computed SRI hashes off cross-origin <script src>
-  // and <link rel=stylesheet href> tags. CSP accepts sha256/384/512
-  // hashes directly as allowlist entries — this is stricter than
-  // listing the CDN origin, because a compromised unpkg serving a
-  // different bundle fails the CSP check *before* SRI even runs.
-  // Same-origin tags don't need hashes here (covered by `'self'` +
-  // their own SRI attribute).
-  const cdnScriptHashes = new Set<string>()
-  const cdnStyleHashes = new Set<string>()
-  const scriptIntegrityRe =
-    /<script[^>]*\bsrc="https:[^"]*"[^>]*\bintegrity="(sha\d+-[^"]+)"/gi
-  const styleIntegrityRe =
-    /<link[^>]*\brel="stylesheet"[^>]*\bhref="https:[^"]*"[^>]*\bintegrity="(sha\d+-[^"]+)"/gi
-  for (const m of html.matchAll(scriptIntegrityRe)) {
-    cdnScriptHashes.add(`'${m[1]!}'`)
-  }
-  for (const m of html.matchAll(styleIntegrityRe)) {
-    cdnStyleHashes.add(`'${m[1]!}'`)
+  for (const link of root.querySelectorAll('link')) {
+    if (link.getAttribute('rel') !== 'stylesheet') {
+      continue
+    }
+    const href = link.getAttribute('href')
+    if (!href || !href.startsWith('https:')) {
+      continue
+    }
+    const integrity = link.getAttribute('integrity')
+    if (integrity) {
+      cdnStyleHashes.add(`'${integrity}'`)
+    }
   }
 
   const scriptSources = ["'self'", ...inlineScriptHashes, ...cdnScriptHashes]
@@ -728,18 +784,18 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
  * Idempotent — tags that already carry `integrity=` are left alone.
  */
 async function injectSri(
-  html: string,
+  root: HTMLElement,
   tourDir: string,
   basePath: string,
   cacheDir: string,
-): Promise<string> {
+): Promise<void> {
   // Map of URL/path → SRI hash. Populated lazily as we walk the tag
-  // stream so we resolve each URL at most once per file.
+  // list so we resolve each URL at most once per file.
   const integrityByRef = new Map<string, string>()
 
   const resolveIntegrity = async (ref: string): Promise<string | null> => {
     if (integrityByRef.has(ref)) {
-      return integrityByRef.get(ref)!
+      return integrityByRef.get(ref) || null
     }
     let integrity: string | null = null
     if (ref.startsWith('https://unpkg.com/')) {
@@ -760,57 +816,69 @@ async function injectSri(
     return integrity
   }
 
-  // Match tags carrying src/href pointing at either unpkg.com or a
-  // same-origin absolute path. Exclude `/` from the attrs capture so
-  // a self-closing `<link .../>` doesn't drag the slash mid-rewrite.
-  const tagRe =
-    /<(script|link)\s([^>/]*?\b(?:src|href)="((?:https:\/\/unpkg\.com\/|\/)[^"]+)"[^>/]*)(\s*\/?\s*>)/gi
-
   // Browsers only honor `integrity` on:
   //   <script>
   //   <link rel=stylesheet>
   //   <link rel=preload>  / <link rel=modulepreload>
   // `<link rel=icon>` / `<link rel=apple-touch-icon>` ignore it, so
   // skip them — no point emitting hash bytes the browser throws away.
-  const supportsSri = (tag: string, attrs: string): boolean => {
-    if (tag.toLowerCase() === 'script') {
-      return true
+  const getRef = (el: HTMLElement): string | null => {
+    if (el.rawTagName.toLowerCase() === 'script') {
+      const src = el.getAttribute('src')
+      if (!src) {
+        return null
+      }
+      return src.startsWith('https://unpkg.com/') || src.startsWith('/')
+        ? src
+        : null
     }
-    const relMatch = attrs.match(/\brel="([^"]+)"/i)
-    if (!relMatch) {
-      return false
+    const rel = (el.getAttribute('rel') ?? '').toLowerCase()
+    if (!/\b(?:stylesheet|preload|modulepreload)\b/.test(rel)) {
+      return null
     }
-    return /\b(?:stylesheet|preload|modulepreload)\b/i.test(relMatch[1]!)
+    const href = el.getAttribute('href')
+    if (!href) {
+      return null
+    }
+    return href.startsWith('https://unpkg.com/') || href.startsWith('/')
+      ? href
+      : null
   }
 
-  // Two-pass: first collect + resolve all refs the browser honors,
-  // then rewrite. `matchAll` is sync so we walk once to gather refs,
-  // resolve them, then `replace` using the populated map.
-  for (const m of html.matchAll(tagRe)) {
-    if (supportsSri(m[1]!, m[2]!)) {
-      await resolveIntegrity(m[3]!)
+  const candidates: HTMLElement[] = []
+  for (const el of root.querySelectorAll('script,link')) {
+    if (el.getAttribute('integrity')) {
+      continue
+    }
+    const ref = getRef(el)
+    if (ref) {
+      candidates.push(el)
     }
   }
 
-  return html.replace(tagRe, (full, tag, attrs, ref, close) => {
-    if (/\bintegrity=/i.test(attrs)) {
-      return full
-    }
-    if (!supportsSri(tag, attrs)) {
-      return full
-    }
+  // Resolve every ref first (may await disk reads + network fetches),
+  // then set attributes synchronously. `setAttribute` is non-async so
+  // the two-pass lets us keep the DOM writes uncluttered by awaits.
+  await Promise.all(
+    candidates.map(el => {
+      const ref = getRef(el)!
+      return resolveIntegrity(ref)
+    }),
+  )
+
+  for (const el of candidates) {
+    const ref = getRef(el)!
     const integrity = integrityByRef.get(ref)
     if (!integrity) {
-      return full
+      continue
     }
+    el.setAttribute('integrity', integrity)
     // crossorigin=anonymous only makes sense (and is required for SRI)
     // on cross-origin requests. Same-origin tags shouldn't carry it.
-    const crossorigin = ref.startsWith('https://')
-      ? ' crossorigin="anonymous"'
-      : ''
-    const trimmedAttrs = attrs.trimEnd()
-    return `<${tag} ${trimmedAttrs} integrity="${integrity}"${crossorigin}${close}`
-  })
+    if (ref.startsWith('https://')) {
+      el.setAttribute('crossorigin', 'anonymous')
+    }
+  }
 }
 
 async function generate(
@@ -1135,130 +1203,141 @@ async function generate(
     // self-contained (no cross-file state beyond the pre-computed maps
     // above). allSettled over all rejects so one broken file doesn't
     // mask the others; we collect rejections and throw a composite
-    // after.
+    // after. Every DOM edit uses node-html-parser — no string.replace
+    // against HTML — so meander-output whitespace or attribute-order
+    // changes don't silently break the pipeline.
+    const homeLinkHtml =
+      '<a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></a><span class="wt-parts-label">Parts:</span>'
+
     const postProcessEntry = async (entry: string): Promise<void> => {
       const htmlPath = path.join(buildDir, entry)
-      let html = await fs.readFile(htmlPath, 'utf8')
+      const source = await fs.readFile(htmlPath, 'utf8')
+      const root = parseHtml(source)
 
       // Rewrite meander's emitted asset references to their renamed
       // counterparts. Meander bakes `/walkthrough.css` into every page
       // it generates (from its own template), but we rename that file
-      // to `style.css` before shipping. Same for any other stray
-      // `/walkthrough*` reference — keep the site self-consistent.
-      html = html.replaceAll('/walkthrough.css', '/style.css')
-
-      // De-emphasize the `.js` suffix inside the topbar wordmark. The
-      // site is about the PURL library; the `.js` tag is a technical
-      // qualifier that should sit quieter than the name itself. Wrap
-      // it in a span the CSS can dim. Index-only — part/doc pages
-      // carry a different h1 (part title) that we leave alone.
-      html = html.replace(
-        /<h1>Socket PackageURL\.js Tour<\/h1>/,
-        '<h1>Socket PackageURL<span class="wt-tech-tag">.js</span> Tour</h1>',
-      )
+      // to `style.css` before shipping.
+      for (const link of root.querySelectorAll(
+        'link[href="/walkthrough.css"]',
+      )) {
+        link.setAttribute('href', '/style.css')
+      }
 
       // Strip meander's inlined comment scripts when replacing with ours.
       if (commentBackend) {
-        html = stripInlinedCommentScripts(html, COMMENT_SCRIPT_MARKERS)
+        stripInlinedCommentScripts(root, COMMENT_SCRIPT_MARKERS)
       }
+
+      const head = root.querySelector('head')
+      const body = root.querySelector('body')
 
       // Inject favicons + preloads in <head>. Idempotent via marker
       // checks. Preloads land last so they're adjacent to the deferred
       // <script> tags they anticipate (a visual-grouping nicety).
-      if (!html.includes('apple-touch-icon.png')) {
-        html = html.replace('</head>', `  ${faviconTags}\n</head>`)
+      if (head && !root.querySelector('link[href="/apple-touch-icon.png"]')) {
+        head.insertAdjacentHTML('beforeend', `\n  ${faviconTags}`)
       }
-      if (!html.includes('rel="preload"')) {
-        html = html.replace('</head>', `  ${preloadTags}\n</head>`)
+      if (head && !root.querySelector('link[rel="preload"]')) {
+        head.insertAdjacentHTML('beforeend', `\n  ${preloadTags}`)
       }
 
-      // Inject our scripts once (idempotent). Use the `<script src=`
-      // marker rather than bare filename — the preload tags injected
-      // earlier ALSO contain "pages-drag.js" / "pages-comments.js",
-      // so a filename-only check false-positives and skips script injection.
-      if (!html.includes('<script src="/drag.js"')) {
-        html = html.replace('</body>', `  ${dragTag}\n</body>`)
+      // Inject our scripts once (idempotent). The preload tags
+      // injected earlier also reference drag.js / comments.js paths,
+      // so use the `<script src=...>` selector (not preload's
+      // `<link as="script" href=...>`) to pick only real script tags.
+      if (body && !root.querySelector('script[src="/drag.js"]')) {
+        body.insertAdjacentHTML('beforeend', `\n  ${dragTag}`)
       }
-      if (commentBackend && !html.includes('<script src="/comments.js"')) {
-        html = html.replace(
-          '</body>',
-          `  ${configTag}\n  ${commentsTag}\n</body>`,
+      if (
+        body &&
+        commentBackend &&
+        !root.querySelector('script[src="/comments.js"]')
+      ) {
+        body.insertAdjacentHTML(
+          'beforeend',
+          `\n  ${configTag}\n  ${commentsTag}`,
         )
       }
       // Service worker registration — last script before </body> so
-      // the page-critical shim scripts start downloading first.
-      if (!html.includes('sw.js')) {
-        html = html.replace('</body>', `  ${swRegisterTag}\n</body>`)
+      // the page-critical shim scripts start downloading first. The
+      // swRegisterTag emits an inline script that calls
+      // navigator.serviceWorker.register(...); detect it via a script
+      // whose body references 'sw.js'.
+      const hasSwRegister = root
+        .querySelectorAll('script')
+        .some(s => !s.getAttribute('src') && s.text.includes('sw.js'))
+      if (body && !hasSwRegister) {
+        body.insertAdjacentHTML('beforeend', `\n  ${swRegisterTag}`)
       }
 
       // Socket tagline footer, injected once before </body>. Idempotent
       // via the wt-socket-footer class marker.
-      if (!html.includes('wt-socket-footer')) {
-        html = html.replace('</body>', `  ${footerTag}\n</body>`)
+      if (body && !root.querySelector('.wt-socket-footer')) {
+        body.insertAdjacentHTML('beforeend', `\n  ${footerTag}`)
       }
 
       // Inject a home link at the front of the part-nav on every part
       // page. Meander's emitted topbar only has the numbered Part pills —
       // users clicking a part had no one-click way back to the TOC.
-      // Index page has no `.part-nav` so the replace is a no-op there
-      // (the TOC IS the index). Idempotent via class marker.
-      if (
-        html.includes('<div class="part-nav">') &&
-        !html.includes('wt-home-link')
-      ) {
-        html = html.replace(
-          '<div class="part-nav">',
-          '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></a><span class="wt-parts-label">Parts:</span>',
-        )
+      // Index page has no `.part-nav` so the no-op is safe (the TOC IS
+      // the index). Idempotent via .wt-home-link marker.
+      const partNav = root.querySelector('.part-nav')
+      if (partNav && !partNav.querySelector('.wt-home-link')) {
+        partNav.insertAdjacentHTML('afterbegin', homeLinkHtml)
       }
 
       // Enrich each numbered Part pill. Meander emits
-      //   `<a ... href="/<slug>/part/<n>">Part <n></a>`
+      //   <a ... href="/<slug>/part/<n>">Part <n></a>
       // with no accessible context — a screen reader just hears
       // "Part 1, Part 2, …". We rewrite:
-      //   1. Opening tag: add title + aria-label carrying the real
-      //      section name so keyboard + AT users get the same info
-      //      as the tooltip.
-      //   2. Inner text: strip the "Part " prefix (the pill-row has
-      //      its own "Parts:" label; each pill just needs the number)
-      //      and append "(M)" with the per-part section count, same
-      //      as what the TOC shows. Users see section-depth info on
-      //      every page, not just the index.
+      //   1. Add title + aria-label carrying the real section name so
+      //      keyboard + AT users get the same info as the tooltip.
+      //   2. Replace inner text — strip "Part " (the pill-row has its
+      //      own "Parts:" label; each pill just needs the number) and
+      //      append "(M)" with the per-part section count.
       // Runs BEFORE the base-path rewrite so the `/part/<n>` shape is
-      // still intact and easy to match. Idempotent via the aria-label
-      // probe.
+      // still intact. Idempotent via the aria-label probe.
       if (slug && partTitles.size > 0) {
-        const partPillRe = new RegExp(
-          `(<a\\b)((?:(?!aria-label)[^>])*\\bhref="/${slug}/part/(\\d+)"[^>]*)>Part \\3</a>`,
-          'g',
-        )
-        html = html.replace(partPillRe, (match, open, attrs, n) => {
-          const title = partTitles.get(Number(n))
-          if (!title) {
-            return match
+        const partLinkPrefix = `/${slug}/part/`
+        for (const a of root.querySelectorAll('a[href]')) {
+          if (a.getAttribute('aria-label')) {
+            continue
           }
-          const count = partCounts.get(Number(n))
-          const fullLabel = `Part ${n}: ${title.replace(/"/g, '&quot;')}${count ? ` (${count} sections)` : ''}`
-          return `${open}${attrs} title="${fullLabel}" aria-label="${fullLabel}">${n}</a>`
-        })
+          const href = a.getAttribute('href') ?? ''
+          if (!href.startsWith(partLinkPrefix)) {
+            continue
+          }
+          const n = Number(href.slice(partLinkPrefix.length))
+          if (!Number.isFinite(n)) {
+            continue
+          }
+          const title = partTitles.get(n)
+          if (!title) {
+            continue
+          }
+          const count = partCounts.get(n)
+          const fullLabel = `Part ${n}: ${title}${count ? ` (${count} sections)` : ''}`
+          a.setAttribute('title', fullLabel)
+          a.setAttribute('aria-label', fullLabel)
+          a.set_content(String(n))
+        }
       }
 
       // Base-path rewrite — last step so every injected tag above gets
-      // prefixed in one pass. No-op when --base-path is empty (local dev,
-      // Val Town hosting, etc.).
+      // prefixed in one pass. No-op when --base-path is empty (local
+      // dev, Val Town hosting, etc.).
       if (basePath && slug) {
-        html = applyBasePath(html, basePath, slug, partFilenames)
+        applyBasePath(root, basePath, slug, partFilenames)
       }
+
+      const html = root.toString()
 
       // Rename meander's walkthrough-part-<n>.html to the configured
       // <filename>.html (e.g. walkthrough-part-1.html → anatomy.html).
       // Flat public URLs replace /<slug>/part/<n>-style links once the
       // site is deployed. Other emitted HTML (index.html, documents.html
-      // if any) retains its name. Idempotent: if the target file already
-      // exists and entry is the legacy name, we write the fresh content
-      // then unlink the old — both states are covered by the validator
-      // running before the loop, which guarantees partFilenames has an
-      // entry for every part meander rendered.
+      // if any) retains its name.
       const partMatch = /^walkthrough-part-(\d+)\.html$/.exec(entry)
       if (partMatch) {
         const n = Number(partMatch[1])
@@ -1336,18 +1415,22 @@ async function generate(
     const sriResults = await Promise.allSettled(
       sriEntries.map(async entry => {
         const htmlPath = path.join(buildDir, entry)
-        let html = await fs.readFile(htmlPath, 'utf8')
-        const originalHtml = html
-        html = await injectSri(html, buildDir, basePath, sriCacheDir)
+        const source = await fs.readFile(htmlPath, 'utf8')
+        const root = parseHtml(source)
+        await injectSri(root, buildDir, basePath, sriCacheDir)
         // CSP meta — must run AFTER SRI injection so the hash of each
         // inline <script> reflects its final body (no further rewrites).
         // Per-file because __defIndex varies per-part; pages also differ
         // in which inline blocks land (index vs part pages).
-        if (!html.includes('http-equiv="Content-Security-Policy"')) {
-          const cspTag = buildCspMeta(html, commentBackend)
-          html = html.replace('</head>', `  ${cspTag}\n</head>`)
+        if (!root.querySelector('meta[http-equiv="Content-Security-Policy"]')) {
+          const cspTag = buildCspMeta(root, commentBackend)
+          const head = root.querySelector('head')
+          if (head) {
+            head.insertAdjacentHTML('beforeend', `\n  ${cspTag}`)
+          }
         }
-        if (html !== originalHtml) {
+        const html = root.toString()
+        if (html !== source) {
           await fs.writeFile(htmlPath, html)
         }
       }),
@@ -1455,27 +1538,22 @@ async function minifyEmittedAssets(buildDir: string): Promise<void> {
  * Strip `<script>...</script>` blocks containing any of the given marker
  * substrings. Meander inlines its comment-related JS directly in each HTML
  * file; this removes those blocks so our replacement script has no
- * collisions. Fail-loud if fewer than the expected count are removed — a
- * marker string drift would silently ship broken tours.
+ * collisions. Mutates the DOM in place; walks inline scripts and removes
+ * the ones whose body matches.
  */
 function stripInlinedCommentScripts(
-  html: string,
+  root: HTMLElement,
   markers: readonly string[],
-): string {
-  let stripped = 0
-  const out = html.replace(
-    /<script\b[^>]*>([\s\S]*?)<\/script>/g,
-    (match, body: string) => {
-      if (markers.some(m => body.includes(m))) {
-        stripped++
-        return ''
-      }
-      return match
-    },
-  )
-  // We expect at least 2 stripped blocks on a part page (comment-client +
-  // unresolved-comments). Documents page has none.
-  return out
+): void {
+  for (const script of root.querySelectorAll('script')) {
+    if (script.getAttribute('src')) {
+      continue
+    }
+    const body = script.text
+    if (markers.some(m => body.includes(m))) {
+      script.remove()
+    }
+  }
 }
 
 async function readSlug(): Promise<string> {
