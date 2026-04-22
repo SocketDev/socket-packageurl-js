@@ -90,6 +90,7 @@
     "magic-string": "0.30.21",
     "marked": "18.0.0",
     "nock": "14.0.10",
+    "node-html-parser": "7.1.0",
     "oxfmt": "0.37.0",
     "oxlint": "1.52.0",
     "pacote": "21.0.1",

@@ -23,6 +23,7 @@ import { safeDelete } from '@socketsecurity/lib/fs'
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'
 import { marked } from 'marked'
+import { parse as parseHtml } from 'node-html-parser'
 
 import { auditCdnScripts, auditValDeps } from './audit-deps.mts'
 import { errorMessage } from './utils/error-message.mts'
@@ -284,52 +285,118 @@ async function renderDocs(
 }
 
 /**
- * Extend the generated index.html TOC with a Topics section. Meander
- * emits a parts list under <h3>Parts</h3>; we append a second section
- * with the configured docs so the landing page exposes both surfaces.
- * No-op when no docs are configured.
+ * Rewrite index.html's TOC into a single unified Topics list covering
+ * parts + docs.
+ *
+ * Meander emits `<h3>Parts</h3>` with an unadorned list; an earlier
+ * version of this script appended a separate `<h3>Topics</h3>`
+ * section for the configured docs. Design feedback was that the
+ * two-section split looked jumbled and the Parts rows lacked the
+ * "what's behind this link" context the Topics rows carried. One
+ * unified list under a single "Topics" heading: each row shows title
+ * + muted one-liner (section count for parts, summary for docs). CSS
+ * styles the rest.
+ *
+ * Uses node-html-parser to avoid the regex-brittleness of reaching
+ * into meander's output — selector queries + element replacement let
+ * this survive a future meander output whitespace change.
+ *
+ * Runs as part of generate()'s post-meander fix-ups. Idempotent via a
+ * class marker on the replaced block.
  */
-async function injectTopicsIntoIndex(
+async function rewriteIndexContents(
+  partFilenames: ReadonlyMap<number, string>,
+  partTitles: ReadonlyMap<number, string>,
+  partCounts: ReadonlyMap<number, number>,
   docs: ReadonlyMap<string, DocEntry>,
   tourDir: string,
 ): Promise<void> {
-  if (docs.size === 0) {
-    return
-  }
   const indexPath = path.join(tourDir, 'index.html')
   if (!existsSync(indexPath)) {
     return
   }
-  let html = await fs.readFile(indexPath, 'utf8')
-  if (html.includes('<h3>Topics</h3>')) {
-    // Idempotent — an earlier build may have already injected.
+  const html = await fs.readFile(indexPath, 'utf8')
+  if (html.includes('<div class="wt-contents">')) {
+    // Idempotent — an earlier run already rewrote.
     return
   }
-  const entries = [...docs.values()]
-  const rows = entries
-    .map(d => {
-      const summary = d.summary
-        ? `\n              <p class="wt-topic-summary">${escapeHtml(d.summary)}</p>`
-        : ''
-      return `          <li><a href="/${d.filename}.html">${escapeHtml(d.title)}</a>${summary}</li>`
-    })
-    .join('\n')
-  const block =
-    `    <div class="annotation-card">\n` +
-    `      <h3>Topics</h3>\n` +
-    `      <ul class="wt-topics-ul">\n` +
-    `${rows}\n` +
-    `      </ul>\n` +
-    `    </div>\n`
-  // Inject before </main> so the Topics card sits under the Parts card
-  // in the visual flow. Fall back to inserting before </body> if the
-  // page somehow omits <main> (shouldn't — meander always emits one).
-  if (html.includes('</main>')) {
-    html = html.replace('</main>', `${block}</main>`)
-  } else {
-    html = html.replace('</body>', `${block}</body>`)
+  const root = parseHtml(html)
+
+  // Find every annotation-card wrapping a <h3>Parts</h3> or
+  // <h3>Topics</h3>. Selector can't express "h3 text equals X," so
+  // walk the h3s and climb to their wrapping annotation-card.
+  const cardsToRemove = new Set<ReturnType<typeof parseHtml>>()
+  for (const h3 of root.querySelectorAll('.annotation-card h3')) {
+    const label = h3.text.trim()
+    if (label === 'Parts' || label === 'Topics') {
+      const card = h3.closest('.annotation-card')
+      if (card) {
+        cardsToRemove.add(card as unknown as ReturnType<typeof parseHtml>)
+      }
+    }
   }
-  await fs.writeFile(indexPath, html)
+
+  // Build unified rows in stable order: parts 1..N first, then docs
+  // in manifest order. Each row is a flat <div> carrying the same
+  // shape — title link + muted context line. Using <div>s (not <ul>/
+  // <li>) sidesteps the browser-default bullet rendering that made
+  // the old list look off-tempo.
+  const rows: string[] = []
+  for (const [id, filename] of [...partFilenames.entries()].sort(
+    (a, b) => a[0] - b[0],
+  )) {
+    const title = partTitles.get(id) ?? `Part ${id}`
+    const count = partCounts.get(id)
+    const context = count !== undefined ? `${count} sections` : ''
+    rows.push(
+      `        <div class="wt-contents-row">\n` +
+        `          <a class="wt-contents-title" href="/${filename}.html">${escapeHtml(title)}</a>\n` +
+        (context
+          ? `          <p class="wt-contents-summary">${context}</p>\n`
+          : '') +
+        `        </div>`,
+    )
+  }
+  for (const d of docs.values()) {
+    const context = d.summary ?? ''
+    rows.push(
+      `        <div class="wt-contents-row">\n` +
+        `          <a class="wt-contents-title" href="/${d.filename}.html">${escapeHtml(d.title)}</a>\n` +
+        (context
+          ? `          <p class="wt-contents-summary">${escapeHtml(context)}</p>\n`
+          : '') +
+        `        </div>`,
+    )
+  }
+  const blockHtml =
+    `    <div class="wt-contents">\n` +
+    `      <h3>Topics</h3>\n` +
+    `${rows.join('\n')}\n` +
+    `    </div>`
+
+  // Place the new block where the first Parts/Topics card was, then
+  // remove the rest. This preserves visual position for any existing
+  // surrounding content (e.g. a future Documents card).
+  const firstCard = [...cardsToRemove][0]
+  if (firstCard) {
+    // replaceWith takes a plain string on node-html-parser.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(firstCard as any).replaceWith(blockHtml)
+    for (const card of cardsToRemove) {
+      if (card !== firstCard) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(card as any).remove()
+      }
+    }
+  } else {
+    // No existing card to replace — append inside <main>.
+    const main = root.querySelector('main')
+    if (main) {
+      main.insertAdjacentHTML('beforeend', `\n${blockHtml}\n`)
+    }
+  }
+
+  await fs.writeFile(indexPath, root.toString())
 }
 
 /**
@@ -836,7 +903,13 @@ async function generate(
   // after docs are rendered (no ordering dependency — the section just
   // links by filename) and before post-process so any hrefs get the
   // base-path rewrite if CI set one.
-  await injectTopicsIntoIndex(docFilenames, tourDir)
+  await rewriteIndexContents(
+    partFilenames,
+    partTitles,
+    partCounts,
+    docFilenames,
+    tourDir,
+  )
 
   // Per-HTML post-processing: strip meander's inlined comment scripts
   // (when we're replacing them) and inject our own <script> tags.
@@ -1007,29 +1080,6 @@ async function generate(
         const fullLabel = `Part ${n}: ${title.replace(/"/g, '&quot;')}${count ? ` (${count} sections)` : ''}`
         return `${open}${attrs} title="${fullLabel}" aria-label="${fullLabel}">${n}</a>`
       })
-    }
-
-    // Index-page TOC cleanup. Meander emits `<ul><li><a>Part N: Title</a>
-    // <span class="ok">(M sections)</span></li>…`. Two tweaks:
-    //   - Swap <ul> → <ol> so numbers come from the list marker, not
-    //     the link text. Users read "1. Anatomy of a PURL" instead of
-    //     "• Part 1: Anatomy of a PURL".
-    //   - Strip the "Part N: " prefix from each link so the title
-    //     alone carries the line, no duplication with the list marker.
-    // Only applies to the index page (has <h3>Parts</h3> + ul with
-    // /part/<n> hrefs) — part pages don't have this shape.
-    if (entry === 'index.html' && html.includes('<h3>Parts</h3>')) {
-      html = html.replace(
-        /(<h3>Parts<\/h3>\s*)<ul>([\s\S]*?)<\/ul>/,
-        (_m, head, body) => `${head}<ol class="wt-parts-ol">${body}</ol>`,
-      )
-      // Strip the "Part N: " prefix from the visible link text — the
-      // list marker already supplies the number. aria-label + title
-      // keep the full "Part N: <title>" for screen readers / tooltips.
-      html = html.replace(
-        /(<a\s[^>]*\bhref="\/[^"]+\/part\/\d+"[^>]*>)Part \d+:\s*/g,
-        '$1',
-      )
     }
 
     // Base-path rewrite — last step so every injected tag above gets

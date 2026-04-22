@@ -301,35 +301,60 @@ html[data-theme='dark'] .file-grid > .code-section:hover {
   margin: 0 0 16px 0;
 }
 
-/* Index-page TOC list. Meander emits <ul> but our post-processor
- * rewrites it to <ol class="wt-parts-ol"> + strips the "Part N: "
- * prefix from each link — so the list marker carries the number
- * and the title stands alone. Muted-lavender markers + section
- * counts keep the meta visually behind the titles. Hover tint on
- * each row for affordance. */
-.annotation-card .wt-parts-ol {
-  margin: 0;
-  padding-left: 2em;
-  list-style: decimal;
+/* Index-page TOC — a single unified Topics list covering parts + docs.
+ * Emitted by rewriteIndexContents in scripts/tour.mts. Each row is a
+ * plain <div> with a title link and a muted one-liner context line
+ * (section count for parts, summary for docs). No list markers — the
+ * bright title does the "this is a link" job; the muted context sits
+ * underneath like a dek line in a newspaper headline. */
+.wt-contents {
+  /* Borrow the annotation-card surface tone so it visually anchors
+   * like the rest of the page, but skip the inner padding because
+   * .wt-contents-row carries its own rhythm. */
+  background: var(--prose-bg);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 0 0 16px 0;
 }
-.annotation-card .wt-parts-ol > li {
-  padding: 8px 0;
-  font-size: 16px;
-  line-height: 1.5;
-  color: var(--muted-lavender);
-}
-.annotation-card .wt-parts-ol > li::marker {
-  color: var(--muted-lavender);
+.wt-contents > h3 {
+  font-size: 11px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   font-weight: 600;
+  color: var(--eyebrow);
+  margin: 0 0 12px 0;
 }
-.annotation-card .wt-parts-ol > li > a {
+.wt-contents-row {
+  padding: 8px 0;
+  border-top: 1px solid color-mix(in srgb, var(--rule) 50%, transparent);
+}
+.wt-contents-row:first-of-type {
+  border-top: 0;
+}
+.wt-contents-title {
+  display: inline-block;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--accent);
+  text-decoration: none;
   border-radius: 4px;
   padding: 2px 4px;
   margin: -2px -4px;
   transition: background var(--transition-fast);
 }
-.annotation-card .wt-parts-ol > li > a:hover {
+.wt-contents-title:hover {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.wt-contents-summary {
+  /* Muted, matches the "Generated from multiline source comments…"
+   * dek line at the top of the topbar. Same tone as the patent line
+   * in the socket.dev footer reference. */
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--eyebrow);
 }
 
 /* The first annotation inside each file-block is almost always file
