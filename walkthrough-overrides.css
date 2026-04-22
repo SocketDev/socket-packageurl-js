@@ -701,16 +701,16 @@ body.wt-ready .topbar-actions {
  * reads as a distinct category ("root" vs "children"). Tooltip
  * (title attribute on the anchor) carries the label for keyboard /
  * screen-reader users; visual users read the glyph. */
+/* Home-link pill matches the numbered part-pill footprint exactly —
+ * same padding (4px 10px from the upstream .part-nav rule) and the
+ * inline-flex + line-height:1 combo makes the 14px SVG land in the
+ * same pill height as the 12px text labels. */
 .topbar .part-nav a.wt-home-link {
   border-color: rgba(255, 255, 255, 0.55) !important;
   margin-right: 8px;
-  /* Tighten padding so the inline SVG icon sits at the same visual
-   * height as the numbered pill labels — the icon's 16px square
-   * otherwise runs taller than the text row. */
   display: inline-flex;
   align-items: center;
-  padding-top: 4px;
-  padding-bottom: 4px;
+  line-height: 1;
 }
 .topbar .part-nav a.wt-home-link svg {
   display: block;
