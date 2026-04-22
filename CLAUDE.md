@@ -88,6 +88,25 @@ The umbrella rule: never run a git command that mutates state belonging to a pat
 - Offer to checkpoint before risky changes
 - Flag files >400 LOC for potential splitting
 
+## ERROR MESSAGES
+
+Errors are a UX surface. When validating config or enforcing invariants, every error message must let the reader fix the problem without reading the source. Four ingredients, in order:
+
+1. **What**: the rule that was violated (the contract, not the symptom)
+2. **Where**: the exact file, key, line, or record — never "somewhere in config"
+3. **Saw vs. wanted**: the offending value and the allowed shape/set
+4. **Fix**: one concrete action to resolve it
+
+- Write the fix step in the imperative (`add "filename" to part 3`), not passive narration (`"filename" was missing`)
+- Never say "invalid" without what made it invalid. `invalid filename 'My Part'` is a symptom; `filename 'My Part' must be [a-z]+ (lowercase, no spaces)` is a rule
+- If two records collide, name both — not just the second one found
+- Suggest, don't auto-correct. An error that silently repairs state hides the bug in the next run
+
+Example — validator on `walkthrough.json`:
+
+- ✗ `Error: invalid walkthrough config`
+- ✓ `walkthrough.json: part 3 ("Parsing & Normalization") is missing "filename". Add a single-word lowercase filename (e.g. "parsing") to this part — one per part is required to route /<slug>/part/3 at publish time.`
+
 ## ABSOLUTE RULES
 
 - Never create files unless necessary; always prefer editing existing files
