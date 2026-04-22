@@ -11,6 +11,7 @@ import type { Logger } from '@socketsecurity/lib/logger'
 import { spawnSync } from '@socketsecurity/lib/spawn'
 
 import { runCommand } from './utils/run-command.mts'
+import { errorMessage } from './utils/error-message.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -45,7 +46,7 @@ async function main(): Promise<void> {
 }
 
 void main().catch((e: unknown) => {
-  const message = e instanceof Error ? e.message : String(e)
+  const message = errorMessage(e)
   logger.error(`security scan failed: ${message}`)
   process.exitCode = 1
 })

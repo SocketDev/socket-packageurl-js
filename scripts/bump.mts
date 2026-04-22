@@ -20,6 +20,7 @@ import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
 import { printFooter } from '@socketsecurity/lib/stdio/footer'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
+import { errorMessage } from './utils/error-message.mts'
 
 type CommandResult = {
   exitCode: number
@@ -925,7 +926,7 @@ async function main(): Promise<void> {
 
     process.exitCode = 0
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e)
+    const message = errorMessage(e)
     logger.error(`Version bump failed: ${message}`)
     process.exitCode = 1
   }

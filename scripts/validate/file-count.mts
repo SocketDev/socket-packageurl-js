@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 
 import loggerPkg from '@socketsecurity/lib/logger'
+import { errorMessage } from '../utils/error-message.mts'
 
 const logger = loggerPkg.getDefaultLogger()
 const execAsync = promisify(exec)
@@ -109,7 +110,7 @@ async function main(): Promise<void> {
 
     process.exitCode = 1
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
+    const message = errorMessage(error)
     logger.fail(`Validation failed: ${message}`)
     process.exitCode = 1
   }

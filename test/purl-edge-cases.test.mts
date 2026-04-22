@@ -36,7 +36,11 @@ import {
   encodeSubpath,
   encodeVersion,
 } from '../src/encode.js'
-import { PurlError, formatPurlErrorMessage } from '../src/error.js'
+import {
+  PurlError,
+  errorMessage,
+  formatPurlErrorMessage,
+} from '../src/error.js'
 import {
   normalizeName,
   normalizeNamespace,
@@ -1754,6 +1758,41 @@ describe('Edge cases and additional coverage', () => {
       // Character after Z
       const result2 = formatPurlErrorMessage('[')
       expect(result2).toBe('Invalid purl: [')
+    })
+
+    describe('errorMessage', () => {
+      it('returns .message for Error instances', () => {
+        expect(errorMessage(new Error('boom'))).toBe('boom')
+      })
+
+      it('returns .message for Error subclasses', () => {
+        expect(errorMessage(new TypeError('bad type'))).toBe('bad type')
+        expect(errorMessage(new PurlError('name required'))).toBe(
+          'Invalid purl: name required',
+        )
+      })
+
+      it('returns "Unknown error" for Error with empty message', () => {
+        expect(errorMessage(new Error(''))).toBe('Unknown error')
+      })
+
+      it('returns "Unknown error" for null', () => {
+        expect(errorMessage(null)).toBe('Unknown error')
+      })
+
+      it('returns "Unknown error" for undefined', () => {
+        expect(errorMessage(undefined)).toBe('Unknown error')
+      })
+
+      it('returns "Unknown error" for empty string', () => {
+        expect(errorMessage('')).toBe('Unknown error')
+      })
+
+      it('coerces non-Error values to a string', () => {
+        expect(errorMessage('oops')).toBe('oops')
+        expect(errorMessage(42)).toBe('42')
+        expect(errorMessage({ code: 'E_FAIL' })).toBe('[object Object]')
+      })
     })
 
     // Test objects.js line 33 - else branch with Object.values

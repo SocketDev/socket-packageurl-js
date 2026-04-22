@@ -25,6 +25,7 @@ import { transform as lightningTransform } from 'lightningcss'
 import { marked } from 'marked'
 
 import { auditCdnScripts, auditValDeps } from './audit-deps.mts'
+import { errorMessage } from './utils/error-message.mts'
 
 const MEANDER_PATH = 'upstream/meander'
 
@@ -1461,10 +1462,7 @@ async function watch(
       await generate(refresh, minify, basePath, rest)
       console.log(`[watch] rebuilt at ${new Date().toLocaleTimeString()}`)
     } catch (err) {
-      console.error(
-        `[watch] rebuild failed:`,
-        err instanceof Error ? err.message : String(err),
-      )
+      console.error(`[watch] rebuild failed:`, errorMessage(err))
     } finally {
       building = false
       if (dirtyWhileBuilding) {
@@ -1510,7 +1508,7 @@ async function watch(
 const failWith =
   (scope: string) =>
   (err: unknown): never => {
-    const msg = err instanceof Error ? err.message : String(err ?? 'unknown')
+    const msg = errorMessage(err)
     console.error(`[${scope}] failed:`, msg)
     process.exit(1)
   }

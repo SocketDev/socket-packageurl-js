@@ -3,6 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pypi
  */
 
+import { errorMessage } from '../error.js'
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { StringPrototypeIncludes, encodeComponent } from '../primordials.js'
@@ -133,7 +134,7 @@ export async function pypiExists(
       return result
     } catch (e) {
       /* v8 ignore start - httpJson typically throws Error; String(e) is defensive programming */
-      const error = e instanceof Error ? e.message : String(e)
+      const error = errorMessage(e)
       return {
         exists: false,
         error: StringPrototypeIncludes(error, '404')

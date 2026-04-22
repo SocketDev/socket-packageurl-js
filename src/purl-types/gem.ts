@@ -5,6 +5,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
+import { errorMessage } from '../error.js'
 import {
   ArrayIsArray,
   ArrayPrototypeSome,
@@ -116,7 +117,7 @@ export async function gemExists(
       return result
     } catch (e) {
       /* v8 ignore start - httpJson typically throws Error; String(e) is defensive programming */
-      const error = e instanceof Error ? e.message : String(e)
+      const error = errorMessage(e)
       return {
         exists: false,
         error: StringPrototypeIncludes(error, '404') ? 'Gem not found' : error,

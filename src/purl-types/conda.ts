@@ -3,6 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#conda
  */
 
+import { errorMessage } from '../error.js'
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import {
@@ -150,7 +151,7 @@ export async function condaExists(
       return result
     } catch (e) {
       /* v8 ignore start */
-      const error = e instanceof Error ? e.message : String(e)
+      const error = errorMessage(e)
       /* v8 ignore stop */
       return {
         exists: false,

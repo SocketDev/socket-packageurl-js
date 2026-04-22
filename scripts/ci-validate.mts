@@ -12,6 +12,7 @@ import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import type { SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
+import { errorMessage } from './utils/error-message.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -76,14 +77,14 @@ async function main(): Promise<void> {
 
     logger.success('CI validation completed successfully!')
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e)
+    const message = errorMessage(e)
     logger.error(`CI validation failed: ${message}`)
     process.exitCode = 1
   }
 }
 
 main().catch((e: unknown) => {
-  const message = e instanceof Error ? e.message : String(e)
+  const message = errorMessage(e)
   logger.error(`CI validation crashed: ${message}`)
   process.exitCode = 1
 })

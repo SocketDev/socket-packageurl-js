@@ -15,6 +15,7 @@ import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import type { SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
+import { errorMessage } from './utils/error-message.mts'
 
 const WIN32 = process.platform === 'win32'
 const logger: Logger = getDefaultLogger()
@@ -25,7 +26,7 @@ type RunOptions = {
 }
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
+  return errorMessage(error)
 }
 
 async function run(

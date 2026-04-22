@@ -11,6 +11,25 @@ import {
  */
 
 /**
+ * Extract a readable message string from any thrown value.
+ *
+ * Returns `e.message` for Error instances, a coerced string for other
+ * non-nullish values, and `'Unknown error'` for nullish or
+ * empty-message cases. Use at boundaries where `catch (e: unknown)`
+ * needs to surface a message (log lines, result payloads, API
+ * responses) without a per-call-site type ladder.
+ */
+function errorMessage(e: unknown): string {
+  if (e instanceof Error) {
+    return e.message || 'Unknown error'
+  }
+  if (e === null || e === undefined) {
+    return 'Unknown error'
+  }
+  return String(e) || 'Unknown error'
+}
+
+/**
  * Format error message for PURL exceptions.
  */
 function formatPurlErrorMessage(message = ''): string {
@@ -80,4 +99,4 @@ class PurlInjectionError extends PurlError {
 }
 ObjectFreeze(PurlInjectionError.prototype)
 
-export { formatPurlErrorMessage, PurlError, PurlInjectionError }
+export { errorMessage, formatPurlErrorMessage, PurlError, PurlInjectionError }

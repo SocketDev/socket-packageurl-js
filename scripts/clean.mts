@@ -16,6 +16,7 @@ import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { createSectionHeader } from '@socketsecurity/lib/stdio/header'
+import { errorMessage } from './utils/error-message.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -86,7 +87,7 @@ async function cleanDirectories(
     } catch (e) {
       if (!quiet) {
         logger.error(`Failed to clean ${name}`)
-        const message = e instanceof Error ? e.message : String(e)
+        const message = errorMessage(e)
         console.error(message)
       }
       return 1
@@ -235,7 +236,7 @@ async function main(): Promise<void> {
       }
     }
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e)
+    const message = errorMessage(e)
     logger.error(`Clean runner failed: ${message}`)
     process.exitCode = 1
   }

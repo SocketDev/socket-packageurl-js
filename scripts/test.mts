@@ -22,6 +22,7 @@ import { getDefaultSpinner } from '@socketsecurity/lib/spinner'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
 
 import { getTestsToRun } from './utils/changed-test-mapper.mts'
+import { errorMessage } from './utils/error-message.mts'
 
 type RunningProcess = SpawnResult['process']
 
@@ -75,13 +76,11 @@ const WIN32 = process.platform === 'win32'
 process.on(
   'unhandledRejection',
   (reason: unknown, _promise: Promise<unknown>): void => {
-    const errorMessage = String(
-      reason instanceof Error ? reason.message : (reason ?? ''),
-    )
+    const msg = errorMessage(reason)
     // Filter out known non-fatal worker termination errors
     if (
-      errorMessage.includes('Terminating worker thread') ||
-      errorMessage.includes('ThreadTermination')
+      msg.includes('Terminating worker thread') ||
+      msg.includes('ThreadTermination')
     ) {
       // Ignore these - they're cleanup messages from vitest worker threads
       return
@@ -565,9 +564,7 @@ async function main(): Promise<void> {
     try {
       spinner.stop()
     } catch {}
-    logger.error(
-      `Test runner failed: ${error instanceof Error ? error.message : String(error)}`,
-    )
+    logger.error(`Test runner failed: ${errorMessage(error)}`)
     process.exitCode = 1
   } finally {
     // Ensure spinner is stopped

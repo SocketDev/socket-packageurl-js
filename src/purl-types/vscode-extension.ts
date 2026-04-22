@@ -8,7 +8,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { PurlError } from '../error.js'
+import { errorMessage, PurlError } from '../error.js'
 import {
   ArrayPrototypeSome,
   JSONStringify,
@@ -243,7 +243,7 @@ export async function vscodeExtensionExists(
       return result
     } catch (e) {
       /* v8 ignore start */
-      const error = e instanceof Error ? e.message : String(e)
+      const error = errorMessage(e)
       /* v8 ignore stop */
       // IMPORTANT: httpJson() throws on non-2xx responses, so we cannot inspect
       // response.status directly. We rely on the error message containing "404"

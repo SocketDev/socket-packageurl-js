@@ -18,6 +18,7 @@ import { parseArgs } from '@socketsecurity/lib/argv/parse'
 import { LOG_SYMBOLS } from '@socketsecurity/lib/logger'
 import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
+import { errorMessage } from './utils/error-message.mts'
 
 type CommandResult = {
   exitCode: number
@@ -5095,7 +5096,7 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
             log.warn(`Claude fix exited with code ${exitCode}`)
           }
         } catch (e) {
-          const message = e instanceof Error ? e.message : String(e)
+          const message = errorMessage(e)
           log.warn(`Claude fix error: ${message}`)
         } finally {
           clearInterval(progressInterval)
@@ -5430,7 +5431,7 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
                   log.warn(`Claude fix exited with code ${exitCode}`)
                 }
               } catch (e) {
-                const message = e instanceof Error ? e.message : String(e)
+                const message = errorMessage(e)
                 log.warn(`Claude fix error: ${message}`)
               } finally {
                 clearInterval(progressInterval)
@@ -5636,7 +5637,7 @@ async function runWatchMode(
             log.done('No issues found')
           }
         } catch (e) {
-          const message = e instanceof Error ? e.message : String(e)
+          const message = errorMessage(e)
           log.failed(`Error scanning ${project.name}: ${message}`)
         }
       },
@@ -5670,7 +5671,7 @@ async function runWatchMode(
             )
           }
         } catch (e) {
-          const message = e instanceof Error ? e.message : String(e)
+          const message = errorMessage(e)
           log.failed(`Full scan error in ${project.name}: ${message}`)
         }
       }
@@ -6079,7 +6080,7 @@ async function main(): Promise<void> {
 
     process.exitCode = success ? 0 : 1
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e)
+    const message = errorMessage(e)
     log.error(`Operation failed: ${message}`)
     process.exitCode = 1
   }

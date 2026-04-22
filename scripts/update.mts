@@ -18,9 +18,10 @@ import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import type { SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
+import { errorMessage } from './utils/error-message.mts'
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
+  return errorMessage(error)
 }
 
 async function main(): Promise<void> {

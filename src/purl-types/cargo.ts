@@ -3,6 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/types-doc/cargo-definition.md
  */
 
+import { errorMessage } from '../error.js'
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import {
@@ -118,7 +119,7 @@ export async function cargoExists(
       return result
     } catch (e) {
       /* v8 ignore start */
-      const error = e instanceof Error ? e.message : String(e)
+      const error = errorMessage(e)
       /* v8 ignore stop */
       return {
         exists: false,

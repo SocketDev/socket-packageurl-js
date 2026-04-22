@@ -19,6 +19,7 @@ import { printHeader } from '@socketsecurity/lib/stdio/header'
 
 import type { CommandResult } from './utils/run-command.mts'
 import { runCommandQuiet } from './utils/run-command.mts'
+import { errorMessage } from './utils/error-message.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -236,7 +237,7 @@ try {
 
   process.exitCode = exitCode
 } catch (e) {
-  const message = e instanceof Error ? e.message : String(e)
+  const message = errorMessage(e)
   logger.error(`Coverage script failed: ${message}`)
   process.exitCode = 1
 }

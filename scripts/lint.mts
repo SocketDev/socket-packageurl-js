@@ -16,6 +16,7 @@ import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
 
 import { runCommandQuiet } from './utils/run-command.mts'
+import { errorMessage } from './utils/error-message.mts'
 
 type LintResult = {
   exitCode: number
@@ -463,9 +464,7 @@ async function main(): Promise<void> {
       }
     }
   } catch (error) {
-    logger.error(
-      `Lint runner failed: ${error instanceof Error ? error.message : String(error)}`,
-    )
+    logger.error(`Lint runner failed: ${errorMessage(error)}`)
     process.exitCode = 1
   }
 }

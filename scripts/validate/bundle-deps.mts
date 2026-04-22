@@ -14,6 +14,7 @@ import { builtinModules } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { errorMessage } from '../utils/error-message.mts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.join(__dirname, '..', '..')
@@ -407,7 +408,7 @@ async function main(): Promise<void> {
     // Only fail on violations, not warnings
     process.exitCode = violations.length > 0 ? 1 : 0
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
+    const message = errorMessage(error)
     console.error('Validation failed:', message)
     process.exitCode = 1
   }

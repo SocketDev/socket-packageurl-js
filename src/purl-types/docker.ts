@@ -3,6 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#docker
  */
 
+import { errorMessage } from '../error.js'
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { StringPrototypeIncludes, encodeComponent } from '../primordials.js'
@@ -133,7 +134,7 @@ export async function dockerExists(
           await httpJson(tagUrl)
         } catch (e) {
           /* v8 ignore start */
-          const error = e instanceof Error ? e.message : String(e)
+          const error = errorMessage(e)
           /* v8 ignore stop */
           return {
             exists: false,
@@ -150,7 +151,7 @@ export async function dockerExists(
       }
     } catch (e) {
       /* v8 ignore start */
-      const error = e instanceof Error ? e.message : String(e)
+      const error = errorMessage(e)
       /* v8 ignore stop */
       return {
         exists: false,

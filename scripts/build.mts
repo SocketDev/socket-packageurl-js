@@ -18,6 +18,7 @@ import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { printFooter } from '@socketsecurity/lib/stdio/footer'
 import { printHeader } from '@socketsecurity/lib/stdio/header'
+import { errorMessage } from './utils/error-message.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -87,7 +88,7 @@ const rootPath = path.resolve(
 )
 
 function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
+  return errorMessage(error)
 }
 
 function getLogLevel(quiet: boolean, verbose: boolean): LogLevel {
