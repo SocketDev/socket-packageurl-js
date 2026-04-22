@@ -47,6 +47,13 @@ const SKIP_DIRS = new Set([
   '.turbo',
   '.type-coverage',
   '.yarn',
+  // Vendored third-party submodule — meander's own code legitimately
+  // ships CDN references that we don't control and shouldn't rewrite.
+  'upstream',
+  // Generated output — the walkthrough HTML loads unpkg bundles for
+  // marked + highlight.js by design. Integrity + CSP hashes protect
+  // those loads; the bare URL strings are expected.
+  'walkthrough',
 ])
 
 // File extensions to check
@@ -128,8 +135,10 @@ async function findTextFiles(
  * Check file contents for CDN references.
  */
 async function checkFileForCdnRefs(filePath: string): Promise<CdnViolation[]> {
-  // Skip this validator script itself (it mentions CDN domains by necessity)
-  if (filePath.endsWith('no-cdn-refs.mjs')) {
+  // Skip this validator script itself (it mentions CDN domains by
+  // necessity). Match any module extension — historically this was
+  // .mjs, now it's .mts.
+  if (/no-cdn-refs\.(m?[jt]s|cjs)$/.test(filePath)) {
     return []
   }
 

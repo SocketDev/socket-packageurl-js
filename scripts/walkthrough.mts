@@ -152,9 +152,16 @@ function applyBasePath(html: string, basePath: string, slug: string): string {
   return out
 }
 
-/** Build the `sha384-<base64>` SRI attribute value for a byte stream. */
+/**
+ * Build the `sha512-<base64>` SRI attribute value for a byte stream.
+ *
+ * Fleet convention (see @socketsecurity/lib/dlx/integrity): integrity
+ * is sha512 SRI, matching what the npm registry returns; checksum is
+ * sha256 hex. We only produce integrity here — browser SRI + CSP want
+ * SRI format.
+ */
 function computeIntegrity(bytes: Uint8Array): string {
-  return `sha384-${cryptoHash('sha384', bytes, 'base64')}`
+  return `sha512-${cryptoHash('sha512', bytes, 'base64')}`
 }
 
 /**
@@ -173,15 +180,16 @@ function computeIntegrity(bytes: Uint8Array): string {
  *   default-src             self (fallback for anything not listed)
  */
 function buildCspMeta(html: string, commentBackend: string): string {
-  // Collect each inline script body, hash it as sha256.
+  // Collect each inline script body, hash it as sha512 — same algo
+  // as our SRI attributes, consistent with the fleet convention.
   // Meander + our post-processor both emit scripts with `<script>...`
   // (no src attr) — match those, skip `<script src=...>`.
   const inlineRe = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi
   const inlineScriptHashes = new Set<string>()
   for (const m of html.matchAll(inlineRe)) {
     const body = m[1]!
-    const hash = cryptoHash('sha256', body, 'base64')
-    inlineScriptHashes.add(`'sha256-${hash}'`)
+    const hash = cryptoHash('sha512', body, 'base64')
+    inlineScriptHashes.add(`'sha512-${hash}'`)
   }
 
   // Pull the already-computed SRI hashes off cross-origin <script src>
