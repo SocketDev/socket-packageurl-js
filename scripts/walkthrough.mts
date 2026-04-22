@@ -602,7 +602,7 @@ async function generate(
     ) {
       html = html.replace(
         '<div class="part-nav">',
-        '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the walkthrough index" title="Back to index">🏠︎</a>',
+        '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the walkthrough index" title="Back to index">⌂</a>',
       )
     }
 
