@@ -882,6 +882,53 @@ function main(): void {
  * come from .env.local / env — those aren't Val Town API creds and
  * are safe to leave in .env.local.
  */
+
+type DeployReceiptRow = {
+  path: string
+  type: 'http' | 'script'
+  sha256: string
+  action: 'created' | 'updated'
+  bytes: number
+}
+
+/**
+ * Print a table of uploaded files with content hashes so the deploy
+ * record is readable from both the CLI and a GitHub Actions run
+ * summary. The summary is written to `$GITHUB_STEP_SUMMARY` when
+ * present, and always to stdout.
+ */
+function printDeployReceipt(
+  valName: string,
+  valId: string,
+  receipts: readonly DeployReceiptRow[],
+): void {
+  const total = receipts.reduce((sum, r) => sum + r.bytes, 0)
+  const lines = [
+    `## Deploy receipt — ${valName} (${valId})`,
+    '',
+    '| file | type | action | bytes | sha256 |',
+    '|---|---|---|---|---|',
+    ...receipts.map(
+      r =>
+        `| \`${r.path}\` | ${r.type} | ${r.action} | ${r.bytes} | \`${r.sha256}\` |`,
+    ),
+    `| **total** | | | **${total}** | |`,
+  ]
+  const summary = lines.join('\n')
+  console.log('\n' + summary)
+  const summaryPath = process.env['GITHUB_STEP_SUMMARY']
+  if (summaryPath) {
+    try {
+      appendFileSync(summaryPath, summary + '\n')
+    } catch (err) {
+      console.warn(
+        '[deploy-val] could not write GITHUB_STEP_SUMMARY:',
+        (err as Error).message,
+      )
+    }
+  }
+}
+
 async function deployVal(args: readonly string[]): Promise<void> {
   const envFile = path.join(repoRoot, '.env.local')
   if (existsSync(envFile)) {
@@ -969,33 +1016,41 @@ async function deployVal(args: readonly string[]): Promise<void> {
     console.log(`Created val: ${valId}`)
   }
 
-  const files: Array<{ path: string; type: 'http' | 'script' }> = [
-    { path: 'index.ts', type: 'http' },
-    { path: 'config.ts', type: 'script' },
-    { path: 'types.ts', type: 'script' },
-    { path: 'crypto.ts', type: 'script' },
-    { path: 'validate.ts', type: 'script' },
-    { path: 'email-template.ts', type: 'script' },
-    { path: 'db.ts', type: 'script' },
-    { path: 'audit.ts', type: 'script' },
-    { path: 'util.ts', type: 'script' },
-    { path: 'middleware.ts', type: 'script' },
-    { path: 'auth-request.ts', type: 'script' },
-    { path: 'auth-verify.ts', type: 'script' },
-    { path: 'auth-session.ts', type: 'script' },
-    { path: 'auth-routes.ts', type: 'script' },
-    { path: 'comments-shared.ts', type: 'script' },
-    { path: 'comments-read.ts', type: 'script' },
-    { path: 'comments-create.ts', type: 'script' },
-    { path: 'comments-mutate.ts', type: 'script' },
-    { path: 'comment-routes.ts', type: 'script' },
-  ]
+  // Auto-discover `val/*.ts`: filesystem-as-manifest. Any file added
+  // to val/ gets uploaded automatically — no hand-maintained list to
+  // drift from reality. Skip *.test.ts (unit tests don't run on Val
+  // Town; they'd just be dead code + bigger attack surface).
+  //   - `index.ts` is the HTTP entry point → type: 'http'.
+  //   - everything else is a library module → type: 'script'.
+  // Sorted alphabetically so upload order + deploy receipts are stable
+  // across runs (useful for diffing run logs).
+  const valDir = path.join(repoRoot, 'val')
+  const files = readdirSync(valDir)
+    .filter(f => f.endsWith('.ts') && !f.endsWith('.test.ts'))
+    .sort()
+    .map(p => ({
+      path: p,
+      type: (p === 'index.ts' ? 'http' : 'script') as 'http' | 'script',
+    }))
+  if (!files.some(f => f.path === 'index.ts')) {
+    throw new Error(
+      `val/index.ts missing — cannot deploy without an HTTP entry`,
+    )
+  }
+
+  type Receipt = {
+    path: string
+    type: 'http' | 'script'
+    sha256: string
+    action: 'created' | 'updated'
+    bytes: number
+  }
+  const receipts: Receipt[] = []
+
   for (const f of files) {
-    const srcPath = path.join(repoRoot, 'val', f.path)
-    if (!existsSync(srcPath)) {
-      throw new Error(`missing val source: ${srcPath}`)
-    }
+    const srcPath = path.join(valDir, f.path)
     const content = readFileSync(srcPath, 'utf8')
+    const sha256 = cryptoHash('sha256', content, 'hex')
     // Val Town's file API wants `path` in the querystring; body carries
     // only content + type. Try POST (create) first — if the file
     // already exists it 409s and we fall through to PUT (update).
@@ -1005,29 +1060,44 @@ async function deployVal(args: readonly string[]): Promise<void> {
       headers: { ...authHeader, 'content-type': 'application/json' },
       body: JSON.stringify({ content, type: f.type }),
     })
+    let action: Receipt['action']
     if (createRes.ok) {
-      console.log(`  Created ${f.path}`)
-      continue
-    }
-    if (createRes.status !== 409) {
-      // Not a conflict — real error.
+      action = 'created'
+    } else if (createRes.status === 409) {
+      // File exists — PUT to update.
+      const updateRes = await fetch(`${API}/v2/vals/${valId}/files${qs}`, {
+        method: 'PUT',
+        headers: { ...authHeader, 'content-type': 'application/json' },
+        body: JSON.stringify({ content, type: f.type }),
+      })
+      if (!updateRes.ok) {
+        throw new Error(
+          `update ${f.path} failed: ${updateRes.status} ${await updateRes.text()}`,
+        )
+      }
+      action = 'updated'
+    } else {
       throw new Error(
         `create ${f.path} failed: ${createRes.status} ${await createRes.text()}`,
       )
     }
-    // File exists — update it.
-    const updateRes = await fetch(`${API}/v2/vals/${valId}/files${qs}`, {
-      method: 'PUT',
-      headers: { ...authHeader, 'content-type': 'application/json' },
-      body: JSON.stringify({ content, type: f.type }),
+    receipts.push({
+      path: f.path,
+      type: f.type,
+      sha256,
+      action,
+      bytes: content.length,
     })
-    if (!updateRes.ok) {
-      throw new Error(
-        `update ${f.path} failed: ${updateRes.status} ${await updateRes.text()}`,
-      )
-    }
-    console.log(`  Updated ${f.path}`)
+    console.log(
+      `  ${action} ${f.path} (${content.length}B, sha256:${sha256.slice(0, 12)}…)`,
+    )
   }
+
+  // Deploy receipt — table of everything we uploaded with content
+  // hashes. Printed to console always; also emitted to GitHub step
+  // summary when running under Actions so the workflow run page has
+  // the same info as the CLI output.
+  printDeployReceipt(valName, valId, receipts)
 
   const envVars: Array<[string, string | undefined]> = [
     ['JWT_SIGNING_KEY', process.env['JWT_SIGNING_KEY']],

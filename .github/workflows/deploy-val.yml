@@ -1,0 +1,86 @@
+name: 🌐 Deploy val (Val Town)
+
+# Deploys the walkthrough comment backend to Val Town when the val
+# source changes on main. Also runnable manually via workflow_dispatch.
+#
+# One-time setup required in the repo settings:
+# ─────────────────────────────────────────────
+#   1. Mint a Val Town API token (val.town → Settings → API Tokens).
+#      Scope: val:write only — nothing broader. No blob, no user.
+#      Write down the token; Val Town won't show it again.
+#
+#   2. Store it as a GitHub repository secret:
+#        Settings → Secrets and variables → Actions → New
+#        Name:  VALTOWN_TOKEN
+#        Value: the token from step 1.
+#
+#   3. Rotate by repeating 1–2 and deleting the old token in Val Town.
+#
+# The workflow never logs the token. Job-level env scope means only the
+# deploy job sees it — other jobs in this workflow (if we add any) run
+# without it. Fork PRs are excluded: pull_request triggers never get
+# access to secrets, and we don't declare a pull_request trigger here.
+#
+# What ships
+# ──────────
+# Every `val/*.ts` file that isn't a `*.test.ts`. The deploy step auto-
+# discovers them via `readdirSync(val/)`; `scripts/walkthrough.mts`
+# uploads each via Val Town's files API. A deploy receipt with content
+# sha256 per file is printed to the run summary.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'val/**'
+      - 'scripts/walkthrough.mts'
+      - 'scripts/audit-deps.mts'
+      - '.github/workflows/deploy-val.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Queue deploys serially. Never cancel a running deploy — a partial
+# upload can leave Val Town with a mix of old + new file versions.
+concurrency:
+  group: deploy-val
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Upload val files to Val Town
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # Job-level scope — only this job (not the workflow as a whole)
+      # can see the token. Anything we add later runs without it unless
+      # explicitly granted.
+      VALTOWN_TOKEN: ${{ secrets.VALTOWN_TOKEN }}
+    steps:
+      - name: Preflight — verify VALTOWN_TOKEN is configured
+        # Fail fast with a clear message if the secret is missing.
+        # Runs BEFORE any action-download so a misconfigured repo
+        # doesn't waste sfw/install time. Doesn't echo the token.
+        run: |
+          if [ -z "$VALTOWN_TOKEN" ]; then
+            echo "::error::VALTOWN_TOKEN secret is not configured."
+            echo "::error::See .github/workflows/deploy-val.yml header for setup steps."
+            exit 1
+          fi
+          echo "VALTOWN_TOKEN present (length: ${#VALTOWN_TOKEN})"
+
+      - name: Setup and install (checkout + Node + pnpm + install)
+        uses: SocketDev/socket-registry/.github/actions/setup-and-install@d7b5d15a9be8973a5715459d12b9a033603a5ff5 # main
+        with:
+          checkout-fetch-depth: '1'
+
+      - name: Deploy val
+        # `pnpm walkthrough deploy-val` runs the Socket.dev malware
+        # audit on the val's transitive closure first — a finding
+        # fails fast before any upload. Deploy receipt (file + sha256)
+        # prints to GITHUB_STEP_SUMMARY at the end.
+        run: pnpm walkthrough deploy-val
