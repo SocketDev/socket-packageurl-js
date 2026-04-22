@@ -973,7 +973,14 @@ async function deployVal(args: readonly string[]): Promise<void> {
     { path: 'audit.ts', type: 'script' },
     { path: 'util.ts', type: 'script' },
     { path: 'middleware.ts', type: 'script' },
+    { path: 'auth-request.ts', type: 'script' },
+    { path: 'auth-verify.ts', type: 'script' },
+    { path: 'auth-session.ts', type: 'script' },
     { path: 'auth-routes.ts', type: 'script' },
+    { path: 'comments-shared.ts', type: 'script' },
+    { path: 'comments-read.ts', type: 'script' },
+    { path: 'comments-create.ts', type: 'script' },
+    { path: 'comments-mutate.ts', type: 'script' },
     { path: 'comment-routes.ts', type: 'script' },
   ]
   for (const f of files) {

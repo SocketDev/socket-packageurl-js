@@ -12,8 +12,15 @@ import { extractClientIp } from './validate.ts'
 import { TRUSTED_PROXY_HOPS } from './config.ts'
 import type { HttpStatus } from './types.ts'
 
+// Seconds-since-epoch (UNIX time). Most of our DB columns + JWT
+// fields use seconds; Date.now() returns milliseconds so we divide.
 export const now = (): number => Math.floor(Date.now() / 1000)
 
+// The direct client IP on a forwarded request is always Val Town's
+// edge proxy. `extractClientIp` walks the x-forwarded-for header and
+// picks the N-th-from-the-right address, where N = TRUSTED_PROXY_HOPS.
+// We wrap it so routes/middleware don't have to know about the header
+// extraction shape.
 export const getIp = (c: Context): string =>
   extractClientIp(
     {
@@ -25,6 +32,10 @@ export const getIp = (c: Context): string =>
     TRUSTED_PROXY_HOPS,
   )
 
+// Read a JSON body with a hard byte cap. A client can't DOS us by
+// streaming an enormous request — anything over `maxBytes` returns
+// null and the caller emits 400. Returns null on parse errors too so
+// call sites only check for one failure mode.
 export const readBoundedJson = async <T>(
   c: Context,
   maxBytes: number,
@@ -40,6 +51,9 @@ export const readBoundedJson = async <T>(
   }
 }
 
+// Standard error envelope. Clients that want a machine-readable
+// reason pass `code` (e.g. 'rate_limit'); the human message always
+// goes in `error`.
 export const jsonError = (
   c: Context,
   status: HttpStatus,
