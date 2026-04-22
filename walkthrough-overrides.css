@@ -356,6 +356,13 @@ html[data-theme='dark'] .file-grid > .code-section:hover {
   line-height: 1.45;
   color: var(--eyebrow);
 }
+.wt-contents-bonus {
+  /* Section-count annotation — even lighter than the summary itself
+   * so it reads as "bonus metadata" rather than part of the prose. */
+  color: color-mix(in srgb, var(--eyebrow) 70%, transparent);
+  font-variant-numeric: tabular-nums;
+  margin-left: 2px;
+}
 
 /* The first annotation inside each file-block is almost always file
  * boilerplate — license header, @fileoverview, etc. Render it in a

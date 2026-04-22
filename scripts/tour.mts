@@ -307,6 +307,7 @@ async function renderDocs(
 async function rewriteIndexContents(
   partFilenames: ReadonlyMap<number, string>,
   partTitles: ReadonlyMap<number, string>,
+  partObjectives: ReadonlyMap<number, string>,
   partCounts: ReadonlyMap<number, number>,
   docs: ReadonlyMap<string, DocEntry>,
   tourDir: string,
@@ -338,35 +339,40 @@ async function rewriteIndexContents(
 
   // Build unified rows in stable order: parts 1..N first, then docs
   // in manifest order. Each row is a flat <div> carrying the same
-  // shape — title link + muted context line. Using <div>s (not <ul>/
-  // <li>) sidesteps the browser-default bullet rendering that made
-  // the old list look off-tempo.
+  // shape — title link + muted description. Parts also get a lighter
+  // "N sections" bonus annotation appended inline. Using <div>s (not
+  // <ul>/<li>) sidesteps the browser-default bullet rendering that
+  // made the old list look off-tempo.
+  const renderRow = (
+    href: string,
+    title: string,
+    description: string,
+    bonus?: string,
+  ): string => {
+    const bonusHtml = bonus
+      ? ` <span class="wt-contents-bonus">· ${escapeHtml(bonus)}</span>`
+      : ''
+    return (
+      `        <div class="wt-contents-row">\n` +
+      `          <a class="wt-contents-title" href="${href}">${escapeHtml(title)}</a>\n` +
+      (description
+        ? `          <p class="wt-contents-summary">${escapeHtml(description)}${bonusHtml}</p>\n`
+        : '') +
+      `        </div>`
+    )
+  }
   const rows: string[] = []
   for (const [id, filename] of [...partFilenames.entries()].sort(
     (a, b) => a[0] - b[0],
   )) {
     const title = partTitles.get(id) ?? `Part ${id}`
+    const description = partObjectives.get(id) ?? ''
     const count = partCounts.get(id)
-    const context = count !== undefined ? `${count} sections` : ''
-    rows.push(
-      `        <div class="wt-contents-row">\n` +
-        `          <a class="wt-contents-title" href="/${filename}.html">${escapeHtml(title)}</a>\n` +
-        (context
-          ? `          <p class="wt-contents-summary">${context}</p>\n`
-          : '') +
-        `        </div>`,
-    )
+    const bonus = count !== undefined ? `${count} sections` : undefined
+    rows.push(renderRow(`/${filename}.html`, title, description, bonus))
   }
   for (const d of docs.values()) {
-    const context = d.summary ?? ''
-    rows.push(
-      `        <div class="wt-contents-row">\n` +
-        `          <a class="wt-contents-title" href="/${d.filename}.html">${escapeHtml(d.title)}</a>\n` +
-        (context
-          ? `          <p class="wt-contents-summary">${escapeHtml(context)}</p>\n`
-          : '') +
-        `        </div>`,
-    )
+    rows.push(renderRow(`/${d.filename}.html`, d.title, d.summary ?? ''))
   }
   const blockHtml =
     `    <div class="wt-contents">\n` +
@@ -827,7 +833,12 @@ async function generate(
     ? (JSON.parse(await fs.readFile(path.resolve(configPath), 'utf8')) as {
         slug?: string
         commentBackend?: string
-        parts?: Array<{ id: number; title: string; filename?: string }>
+        parts?: Array<{
+          id: number
+          title: string
+          filename?: string
+          objective?: string
+        }>
         docs?: Array<{
           filename?: string | undefined
           title?: string | undefined
@@ -843,8 +854,12 @@ async function generate(
   // each pill as just "Part 1", "Part 2", …; with it, they get the
   // real section title ("Anatomy of a PURL" etc.).
   const partTitles = new Map<number, string>()
+  const partObjectives = new Map<number, string>()
   for (const p of tourConfig.parts ?? []) {
     partTitles.set(p.id, p.title)
+    if (p.objective) {
+      partObjectives.set(p.id, p.objective)
+    }
   }
 
   // Map part-id → filename (e.g. 1 → "anatomy"). Drives both the flat
@@ -906,6 +921,7 @@ async function generate(
   await rewriteIndexContents(
     partFilenames,
     partTitles,
+    partObjectives,
     partCounts,
     docFilenames,
     tourDir,
