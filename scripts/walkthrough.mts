@@ -173,21 +173,40 @@ function computeIntegrity(bytes: Uint8Array): string {
  *   default-src             self (fallback for anything not listed)
  */
 function buildCspMeta(html: string, commentBackend: string): string {
-  // Collect each inline script body, hash it, prefix with sha256-.
+  // Collect each inline script body, hash it as sha256.
   // Meander + our post-processor both emit scripts with `<script>...`
   // (no src attr) — match those, skip `<script src=...>`.
   const inlineRe = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi
-  const scriptHashes = new Set<string>()
+  const inlineScriptHashes = new Set<string>()
   for (const m of html.matchAll(inlineRe)) {
     const body = m[1]!
-    // CSP hashes the script body verbatim, including surrounding
-    // whitespace. We don't normalize — browsers hash what they get.
     const hash = cryptoHash('sha256', body, 'base64')
-    scriptHashes.add(`'sha256-${hash}'`)
+    inlineScriptHashes.add(`'sha256-${hash}'`)
   }
-  const scriptSources = ["'self'", 'https://unpkg.com', ...scriptHashes].join(
-    ' ',
-  )
+
+  // Pull the already-computed SRI hashes off cross-origin <script src>
+  // and <link rel=stylesheet href> tags. CSP accepts sha256/384/512
+  // hashes directly as allowlist entries — this is stricter than
+  // listing the CDN origin, because a compromised unpkg serving a
+  // different bundle fails the CSP check *before* SRI even runs.
+  // Same-origin tags don't need hashes here (covered by `'self'` +
+  // their own SRI attribute).
+  const cdnScriptHashes = new Set<string>()
+  const cdnStyleHashes = new Set<string>()
+  const scriptIntegrityRe =
+    /<script[^>]*\bsrc="https:[^"]*"[^>]*\bintegrity="(sha\d+-[^"]+)"/gi
+  const styleIntegrityRe =
+    /<link[^>]*\brel="stylesheet"[^>]*\bhref="https:[^"]*"[^>]*\bintegrity="(sha\d+-[^"]+)"/gi
+  for (const m of html.matchAll(scriptIntegrityRe)) {
+    cdnScriptHashes.add(`'${m[1]!}'`)
+  }
+  for (const m of html.matchAll(styleIntegrityRe)) {
+    cdnStyleHashes.add(`'${m[1]!}'`)
+  }
+
+  const scriptSources = ["'self'", ...inlineScriptHashes, ...cdnScriptHashes]
+  const styleSources = ["'self'", ...cdnStyleHashes]
+
   const connectSources = ["'self'"]
   if (commentBackend) {
     const origin = new URL(commentBackend).origin
@@ -195,8 +214,8 @@ function buildCspMeta(html: string, commentBackend: string): string {
   }
   const directives = [
     `default-src 'self'`,
-    `script-src ${scriptSources}`,
-    `style-src 'self' https://unpkg.com`,
+    `script-src ${scriptSources.join(' ')}`,
+    `style-src ${styleSources.join(' ')}`,
     `img-src 'self' data:`,
     `connect-src ${connectSources.join(' ')}`,
     `worker-src 'self'`,
