@@ -168,6 +168,12 @@
   ],
   "docs": [
     {
+      "filename": "architecture",
+      "title": "Architecture",
+      "source": "docs/architecture.md",
+      "summary": "Module map, data flow, and the key abstractions that keep the library small."
+    },
+    {
       "filename": "tour",
       "title": "Tour",
       "source": "docs/tour.md",
