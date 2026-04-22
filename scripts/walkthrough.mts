@@ -21,9 +21,9 @@ import {
   readFileSync,
   readdirSync,
   statSync,
-  unlinkSync,
   writeFileSync,
 } from 'node:fs'
+import { safeDeleteSync } from '@socketsecurity/lib/fs'
 import { createServer } from 'node:http'
 import path from 'node:path'
 import process from 'node:process'
@@ -796,7 +796,7 @@ async function generate(
       const newPath = path.join(walkthroughDir, `${newName}.html`)
       writeFileSync(newPath, html)
       if (newPath !== htmlPath) {
-        unlinkSync(htmlPath)
+        safeDeleteSync(htmlPath)
       }
       continue
     }
