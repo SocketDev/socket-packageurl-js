@@ -463,8 +463,8 @@ async function main(): Promise<void> {
         logger.success('All lint checks passed!')
       }
     }
-  } catch (error) {
-    logger.error(`Lint runner failed: ${errorMessage(error)}`)
+  } catch (e) {
+    logger.error(`Lint runner failed: ${errorMessage(e)}`)
     process.exitCode = 1
   }
 }

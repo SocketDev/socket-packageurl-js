@@ -404,8 +404,8 @@ async function main(): Promise<void> {
       logger.success('All checks passed')
       printFooter()
     }
-  } catch (error) {
-    logger.error(`Check runner failed: ${errorMessage(error)}`)
+  } catch (e) {
+    logger.error(`Check runner failed: ${errorMessage(e)}`)
     process.exitCode = 1
   }
 }

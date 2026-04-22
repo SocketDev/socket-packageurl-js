@@ -407,8 +407,8 @@ async function main(): Promise<void> {
 
     // Only fail on violations, not warnings
     process.exitCode = violations.length > 0 ? 1 : 0
-  } catch (error) {
-    const message = errorMessage(error)
+  } catch (e) {
+    const message = errorMessage(e)
     console.error('Validation failed:', message)
     process.exitCode = 1
   }

@@ -1594,8 +1594,8 @@ async function watch(
     try {
       await generate(refresh, minify, basePath, rest)
       console.log(`[watch] rebuilt at ${new Date().toLocaleTimeString()}`)
-    } catch (err) {
-      console.error(`[watch] rebuild failed:`, errorMessage(err))
+    } catch (e) {
+      console.error(`[watch] rebuild failed:`, errorMessage(e))
     } finally {
       building = false
       if (dirtyWhileBuilding) {
@@ -1818,10 +1818,10 @@ async function printDeployReceipt(
   if (summaryPath) {
     try {
       await fs.appendFile(summaryPath, summary + '\n')
-    } catch (err) {
+    } catch (e) {
       console.warn(
         '[valtown] could not write GITHUB_STEP_SUMMARY:',
-        (err as Error).message,
+        (e as Error).message,
       )
     }
   }

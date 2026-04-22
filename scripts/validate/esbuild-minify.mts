@@ -64,8 +64,8 @@ async function validateEsbuildMinify(): Promise<EsbuildMinifyViolation[]> {
     }
 
     return violations
-  } catch (error) {
-    const message = errorMessage(error)
+  } catch (e) {
+    const message = errorMessage(e)
     console.error(`Failed to load esbuild config: ${message}`)
     process.exitCode = 1
     return []

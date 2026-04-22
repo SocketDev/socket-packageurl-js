@@ -37,7 +37,7 @@ export const audit = async (
         meta: opts.meta ? JSON.stringify(opts.meta) : null,
       },
     })
-  } catch (err) {
-    console.warn('[val] audit write failed', err)
+  } catch (e) {
+    console.warn('[val] audit write failed', e)
   }
 }

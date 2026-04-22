@@ -94,9 +94,9 @@ export const ensureDb = (async () => {
     await sqlite.execute(
       `CREATE INDEX IF NOT EXISTS idx_audit_action_ts ON audit_log(action, ts)`,
     )
-  } catch (err) {
-    console.error('[val] ensureDb failed', err)
-    throw err
+  } catch (e) {
+    console.error('[val] ensureDb failed', e)
+    throw e
   }
 })()
 
@@ -120,8 +120,8 @@ export const cleanOldRows = async (): Promise<void> => {
       sql: 'DELETE FROM audit_log WHERE ts < :c',
       args: { c: auditCutoff },
     })
-  } catch (err) {
-    console.warn('[val] cleanup failed', err)
+  } catch (e) {
+    console.warn('[val] cleanup failed', e)
   }
 }
 

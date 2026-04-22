@@ -208,8 +208,8 @@ async function checkFileForCdnRefs(filePath: string): Promise<CdnViolation[]> {
     }
 
     return violations
-  } catch (error) {
-    const nodeError = error as NodeError
+  } catch (e) {
+    const nodeError = e as NodeError
     // Skip files we can't read (likely binary despite extension)
     if (nodeError.code === 'EISDIR' || nodeError.message.includes('ENOENT')) {
       return []
@@ -270,8 +270,8 @@ async function main(): Promise<void> {
     logger.log('')
 
     process.exitCode = 1
-  } catch (error) {
-    const message = errorMessage(error)
+  } catch (e) {
+    const message = errorMessage(e)
     logger.fail(`Validation failed: ${message}`)
     process.exitCode = 1
   }
