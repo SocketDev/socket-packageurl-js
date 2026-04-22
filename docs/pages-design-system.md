@@ -76,7 +76,7 @@ Key traits:
 - **Large, confident toggles.** Easy to scan "on" vs "off" from across
   the screen.
 
-Mood: *one important choice at a time*.
+Mood: _one important choice at a time_.
 
 ### Reference B — "Scan" screen
 
@@ -118,7 +118,7 @@ Key traits:
   green means "done". Used consistently, a chip's color tells you what
   the row is about before you read the word.
 
-Mood: *see everything at once*.
+Mood: _see everything at once_.
 
 ## One system, two tiers
 
@@ -136,11 +136,11 @@ system applied at two densities.
     layout, short rules                     big toggles, long connectors
 ```
 
-If you are about to build a surface, ask: **"is the user *choosing*
-here, or *reading* here?"** If choosing → Tier 1. If reading → Tier 2.
+If you are about to build a surface, ask: **"is the user _choosing_
+here, or _reading_ here?"** If choosing → Tier 1. If reading → Tier 2.
 
 > **Why this works:** decisions need room because the user is about to
-> *act*. Reading doesn't — dense layouts help comparison. Matching the
+> _act_. Reading doesn't — dense layouts help comparison. Matching the
 > density to the intent makes the page feel like it was made for what
 > you're about to do.
 
@@ -176,9 +176,7 @@ Here's a before/after showing how a Tier 1 card is built.
 
 ```html
 <div>
-  <label>
-    <input type="checkbox"> Create Issue
-  </label>
+  <label> <input type="checkbox" /> Create Issue </label>
   <p>Create an issue in the ticketing system when conditions are met.</p>
 </div>
 ```
@@ -191,8 +189,8 @@ Here's a before/after showing how a Tier 1 card is built.
     <div>
       <h3 class="decision-title">Create Issue</h3>
       <p class="decision-help">
-        Create an issue in the ticketing system when the event
-        occurs and conditions are met.
+        Create an issue in the ticketing system when the event occurs and
+        conditions are met.
       </p>
     </div>
     <button class="toggle" data-state="on" aria-pressed="true">
@@ -261,8 +259,12 @@ Today the TOC renders like this:
 
 ```html
 <ul>
-  <li><a href="/part/1">Part 1: Anatomy of a PURL</a> <span>(41 sections)</span></li>
-  <li><a href="/part/2">Part 2: Building PURLs</a>   <span>(18 sections)</span></li>
+  <li>
+    <a href="/part/1">Part 1: Anatomy of a PURL</a> <span>(41 sections)</span>
+  </li>
+  <li>
+    <a href="/part/2">Part 2: Building PURLs</a> <span>(18 sections)</span>
+  </li>
 </ul>
 ```
 
@@ -364,22 +366,22 @@ quietest. Each role has a CSS variable defined in
 `walkthrough-overrides.css`. Use variables — never hex codes — so dark
 and light themes both work automatically.
 
-| Role | CSS variable | What it's for |
-|---|---|---|
-| **Primary text** | `--prose-text` | Titles, values, the thing you came to read. Brightest on page. |
-| **Muted label** | `--eyebrow` | Definition-list labels (`Part 1`, `Events`), section kickers. Half-bright. |
-| **Chip surface** | `--code-bg` | The background of a chip or tag. A subtle step darker than the page. |
-| **Accent** | `--accent` | Primary buttons, active state, current step. Our brand violet. |
-| **Accent soft** | `--accent-soft` | Hover fills, active outlines. Lighter tint of accent. |
-| **Success** | `--success` | Confirm actions, "done" / "active" badges. Green. |
-| **Danger** | `--danger` | Destructive actions only. Red. Never for "attention." |
-| **Rule** | `--rule` | Horizontal/vertical lines at semantic boundaries. |
+| Role             | CSS variable    | What it's for                                                              |
+| ---------------- | --------------- | -------------------------------------------------------------------------- |
+| **Primary text** | `--prose-text`  | Titles, values, the thing you came to read. Brightest on page.             |
+| **Muted label**  | `--eyebrow`     | Definition-list labels (`Part 1`, `Events`), section kickers. Half-bright. |
+| **Chip surface** | `--code-bg`     | The background of a chip or tag. A subtle step darker than the page.       |
+| **Accent**       | `--accent`      | Primary buttons, active state, current step. Our brand violet.             |
+| **Accent soft**  | `--accent-soft` | Hover fills, active outlines. Lighter tint of accent.                      |
+| **Success**      | `--success`     | Confirm actions, "done" / "active" badges. Green.                          |
+| **Danger**       | `--danger`      | Destructive actions only. Red. Never for "attention."                      |
+| **Rule**         | `--rule`        | Horizontal/vertical lines at semantic boundaries.                          |
 
 > **Junior-dev tip:** if you think you need a new color, you usually
 > don't — you need one of these roles at a different opacity. Add an
 > opacity step before adding a color. If the token you want doesn't
 > exist, add it to `walkthrough-overrides.css` and this doc in the
-> *same commit* so the system stays in sync.
+> _same commit_ so the system stays in sync.
 
 ## Component patterns
 
@@ -517,7 +519,7 @@ walkthrough.json`). The secondary is `Dismiss`.
 
 ## Anti-patterns
 
-These are mistakes that *look* reasonable until you see the
+These are mistakes that _look_ reasonable until you see the
 consequences. Learn to spot them.
 
 ### Mixing tiers on one surface
@@ -623,5 +625,5 @@ keeping it honest:
   tokens this doc references, with inline comments explaining why each
   value was picked.
 - [scripts/walkthrough.mts](../scripts/walkthrough.mts) — the generator
-  + post-processor; read this if you need to change the generated HTML
-  shape (e.g. to add a new class a component needs).
+  - post-processor; read this if you need to change the generated HTML
+    shape (e.g. to add a new class a component needs).
