@@ -171,11 +171,6 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
     throw new Error(`SRI fetch ${url} → HTTP ${res.status}`)
   }
   const bytes = new Uint8Array(await res.arrayBuffer())
-  // `crypto.hash` is the Node 21+ one-shot helper — base64-encodes
-  // the sha384 digest in a single call. Equivalent to the
-  // createHash(...).update(...).digest('base64') dance but shorter.
-  // SRI format itself is just `<algo>-<base64hash>`; no stdlib helper
-  // does the string prefix, so we build that ourselves.
   const integrity = `sha384-${cryptoHash('sha384', bytes, 'base64')}`
   mkdirSync(cacheDir, { recursive: true })
   writeFileSync(cachePath, integrity + '\n')
