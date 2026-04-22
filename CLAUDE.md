@@ -132,6 +132,7 @@ See `docs/references/error-messages.md` for worked examples and anti-patterns.
 
 - Never create files unless necessary; always prefer editing existing files
 - Forbidden to create docs unless requested
+- 🚨 **NEVER leave `TODO`, `FIXME`, `XXX`, shims, stubs, or placeholder code** — finish 100%. If the task is too large for a single pass, **inform the user and ask** before cutting scope; don't silently reduce scope, and don't land half-work with a promise to fix it later.
 - 🚨 **NEVER use `npx`, `pnpm dlx`, or `yarn dlx`** — use `pnpm exec` or `pnpm run` <!-- # zizmor: docs mention forbidden tools intentionally -->
 
 - **minimumReleaseAge**: NEVER add packages to `minimumReleaseAgeExclude` in CI. Locally, ASK before adding — the age threshold is a security control.
