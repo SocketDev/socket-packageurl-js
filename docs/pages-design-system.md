@@ -1,10 +1,9 @@
 # Pages Design System
 
-A practical guide to styling the walkthrough site we publish at
+A practical guide to styling the tour site we publish at
 `https://socketdev.github.io/socket-packageurl-js/`. Read this before
 touching `walkthrough-overrides.css`, any generated HTML in
-`scripts/walkthrough.mts`, or when building a new UI that lives on that
-site.
+`scripts/tour.mts`, or when building a new UI that lives on that site.
 
 ## Who this is for
 
@@ -253,7 +252,7 @@ Use when the user is reading, comparing, or reviewing.
 5. No card-on-card nesting. A row lives on the page surface, not inside
    a box inside another box.
 
-### Worked example: walkthrough TOC
+### Worked example: tour TOC
 
 Today the TOC renders like this:
 
@@ -515,7 +514,7 @@ overlay has four slots in strict order:
 4. **Fix**: one concrete step to resolve it
 
 The primary button is `Fix` (or the concrete action, e.g. `Open
-walkthrough.json`). The secondary is `Dismiss`.
+tour.json`). The secondary is `Dismiss`.
 
 ## Anti-patterns
 
@@ -587,17 +586,18 @@ A quick map so you know which file to open:
 
 ```
 socket-packageurl-js/
-├── walkthrough.json            ← content: parts, titles, files, filenames
+├── tour.json                   ← content: parts, titles, files, filenames
 ├── walkthrough-overrides.css   ← tokens + component styles (THIS is the style code)
 ├── walkthrough-drag.js         ← runtime behavior (column splitter)
 ├── walkthrough-comments.js     ← runtime behavior (comments panel)
 ├── scripts/
-│   └── walkthrough.mts         ← generator + post-processor (generates HTML)
+│   └── tour.mts                ← generator + post-processor (generates HTML)
 ├── .github/workflows/
 │   └── pages.yml               ← CI: build + deploy to GitHub Pages
 └── docs/
     ├── api.md                  ← library API reference
     ├── types.md                ← TypeScript types reference
+    ├── tour.md                 ← how the build pipeline works
     └── pages-design-system.md  ← you are here
 ```
 
@@ -624,6 +624,6 @@ keeping it honest:
 - [walkthrough-overrides.css](../walkthrough-overrides.css) — the CSS
   tokens this doc references, with inline comments explaining why each
   value was picked.
-- [scripts/walkthrough.mts](../scripts/walkthrough.mts) — the generator
+- [scripts/tour.mts](../scripts/tour.mts) — the generator
   - post-processor; read this if you need to change the generated HTML
     shape (e.g. to add a new class a component needs).

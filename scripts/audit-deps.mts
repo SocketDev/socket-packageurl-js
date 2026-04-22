@@ -1,5 +1,5 @@
 /**
- * @fileoverview Socket.dev malware audit for the walkthrough pilot.
+ * @fileoverview Socket.dev malware audit for the tour pilot.
  *
  * Two entry points: `auditValDeps()` runs before the Val Town deploy
  * (scans the transitive closure of `npm:` specifiers imported by our
@@ -247,21 +247,21 @@ export async function auditValDeps(repoRoot: string): Promise<void> {
 }
 
 /**
- * Audit the CDN scripts the generated walkthrough HTML loads via
+ * Audit the CDN scripts the generated tour HTML loads via
  * `<script src=https://unpkg.com/...>`. No transitive walk — CDN
  * bundles are preflight-built, their deps don't ship separately.
  */
-export async function auditCdnScripts(walkthroughDir: string): Promise<void> {
-  const cdnDeps = await extractCdnDepsFromDir(walkthroughDir)
+export async function auditCdnScripts(tourDir: string): Promise<void> {
+  const cdnDeps = await extractCdnDepsFromDir(tourDir)
   if (cdnDeps.length === 0) {
-    console.log('[audit-deps] no unpkg CDN scripts in walkthrough HTML')
+    console.log('[audit-deps] no unpkg CDN scripts in tour HTML')
     return
   }
   console.log(
     `[audit-deps] CDN scripts: ${cdnDeps.map(d => `${d.name}@${d.version}`).join(', ')}`,
   )
   const findings = await checkMalwareBatched(cdnDeps)
-  reportAndThrow(findings, 'walkthrough generation')
+  reportAndThrow(findings, 'tour generation')
 }
 
 function reportAndThrow(findings: AuditFinding[], scope: string): void {

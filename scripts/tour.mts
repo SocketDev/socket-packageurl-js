@@ -1,13 +1,13 @@
 /**
- * @fileoverview Walkthrough generator + local server wrapper.
+ * @fileoverview Tour generator + local server wrapper.
  *
  * Ensures the vendored meander submodule is checked out, builds it on first
- * run, then either generates the walkthrough or serves the generated output
- * over HTTP for local preview. The submodule is pinned by commit SHA (via
- * the git superrepo pointer); the human-readable `# name-version` comment
- * in .gitmodules records which upstream version the SHA corresponds to.
+ * run, then either generates the tour or serves the generated output over
+ * HTTP for local preview. The submodule is pinned by commit SHA (via the git
+ * superrepo pointer); the human-readable `# name-version` comment in
+ * .gitmodules records which upstream version the SHA corresponds to.
  *
- * Generation also runs in CI (.github/workflows/walkthrough.yml).
+ * Generation also runs in CI (.github/workflows/pages.yml).
  */
 
 import { execFileSync } from 'node:child_process'
@@ -22,6 +22,7 @@ import { safeDelete } from '@socketsecurity/lib/fs'
 
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'
+import { marked } from 'marked'
 
 import { auditCdnScripts, auditValDeps } from './audit-deps.mts'
 
@@ -32,7 +33,7 @@ const repoRoot = path.resolve(here, '..')
 const meanderDir = path.join(repoRoot, MEANDER_PATH)
 const cliEntry = path.join(meanderDir, 'dist', 'cli.js')
 const nodeModulesDir = path.join(meanderDir, 'node_modules')
-const walkthroughDir = path.join(repoRoot, 'walkthrough')
+const tourDir = path.join(repoRoot, 'walkthrough')
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -100,7 +101,238 @@ function normalizeBasePath(raw: string): string {
 }
 
 /**
- * Validate the `filename` field on every walkthrough.json part, then
+ * Escape a string for safe HTML attribute / text node inclusion.
+ * Keeps the renderer's output XSS-safe for values pulled from the
+ * tour.json manifest (titles, summaries) without pulling in a
+ * full sanitizer dep.
+ */
+function escapeHtml(s: string): string {
+  return s
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+type DocEntry = {
+  filename: string
+  title: string
+  source: string
+  summary?: string | undefined
+}
+
+/**
+ * Validate the `docs` array in tour.json and build a filename
+ * → entry map. Same shape / same error doctrine as
+ * validatePartFilenames, plus a cross-check against the part
+ * filenames: docs and parts share the same output directory, so a
+ * collision between (say) part "security" and a doc "security" would
+ * overwrite one with the other. Detecting it here is strictly better
+ * than discovering it when the wrong page ships.
+ */
+function validateDocFilenames(
+  docs: readonly DocEntry[],
+  partFilenames: ReadonlyMap<number, string>,
+  configPath: string,
+): Map<string, DocEntry> {
+  const errors: string[] = []
+  const seen = new Map<string, DocEntry>()
+  const partFilenameSet = new Set(partFilenames.values())
+  for (const d of docs) {
+    if (!d.filename) {
+      errors.push(
+        `${configPath}: doc "${d.title ?? '<untitled>'}" is missing "filename". Add a single-word lowercase filename (e.g. "architecture") to this doc.`,
+      )
+      continue
+    }
+    if (!/^[a-z]+$/.test(d.filename)) {
+      errors.push(
+        `${configPath}: doc "${d.title}" has filename "${d.filename}" but filenames must match [a-z]+ (lowercase ASCII letters only — no digits, hyphens, or dots). Rewrite "${d.filename}" as a single lowercase word.`,
+      )
+      continue
+    }
+    if (!d.source) {
+      errors.push(
+        `${configPath}: doc "${d.title}" (filename "${d.filename}") is missing "source". Add the path to the markdown file (e.g. "docs/architecture.md").`,
+      )
+      continue
+    }
+    if (partFilenameSet.has(d.filename)) {
+      errors.push(
+        `${configPath}: filename "${d.filename}" is used by both a part and the doc "${d.title}". Parts and docs share the same output directory — rename the doc to a distinct filename.`,
+      )
+      continue
+    }
+    const prior = seen.get(d.filename)
+    if (prior) {
+      errors.push(
+        `${configPath}: filename "${d.filename}" is used by doc "${prior.title}" and doc "${d.title}". Filenames must be unique — rename one of the two.`,
+      )
+      continue
+    }
+    seen.set(d.filename, d)
+  }
+  if (errors.length > 0) {
+    throw new Error(
+      `tour.json has ${errors.length} invalid doc(s):\n  - ${errors.join('\n  - ')}`,
+    )
+  }
+  return seen
+}
+
+/**
+ * Render the tour.json `docs` entries into HTML pages in the
+ * output directory. Called AFTER meander writes the parts but BEFORE
+ * the per-file post-process loop, so the emitted doc pages pick up
+ * the same chrome (favicons, preloads, SW register, footer, CSP, SRI)
+ * as part pages with no special-casing in the loop.
+ *
+ * Template contract for each doc:
+ *
+ *   - <title> is `{doc.title} — Socket PackageURL.js`
+ *   - topbar has a `.topic-nav` row with pills for every doc (current
+ *     doc gets `class="active"`); post-process injects the home link
+ *     at the front of this nav, mirroring what it does for `.part-nav`.
+ *   - body is rendered markdown wrapped in `<main class="doc-body">`.
+ *
+ * Rendering is fanned out across docs via Promise.allSettled. Reject
+ * paths surface all failures at once so editing errors in every doc
+ * show up in one build, not one-per-build.
+ */
+async function renderDocs(
+  docs: ReadonlyMap<string, DocEntry>,
+  slug: string,
+  repoRoot: string,
+  tourDir: string,
+): Promise<void> {
+  if (docs.size === 0) {
+    return
+  }
+  // Configure marked for GFM + single-line breaks. `gfm: true` is the
+  // default in marked 18, kept explicit for readers.
+  marked.setOptions({ gfm: true, breaks: false })
+
+  const entries = [...docs.values()]
+
+  // Build the topic-nav fragment once per build. Each doc swaps in
+  // class="active" for its own anchor before emitting.
+  const navLink = (d: DocEntry, active: boolean): string => {
+    const cls = active ? 'active' : ''
+    return `<a class="${cls}" href="/${slug}/${d.filename}.html" title="${escapeHtml(d.title)}"${d.summary ? ` aria-label="${escapeHtml(d.title)}: ${escapeHtml(d.summary)}"` : ''}>${escapeHtml(d.title)}</a>`
+  }
+
+  const renderOne = async (doc: DocEntry): Promise<void> => {
+    const sourcePath = path.join(repoRoot, doc.source)
+    if (!existsSync(sourcePath)) {
+      throw new Error(
+        `${doc.source}: source markdown file not found for doc "${doc.title}" (filename "${doc.filename}"). Either create the file, correct the "source" path in tour.json, or remove this doc entry.`,
+      )
+    }
+    const markdown = await fs.readFile(sourcePath, 'utf8')
+    const body = await marked.parse(markdown)
+    const navPills = entries
+      .map(d => navLink(d, d.filename === doc.filename))
+      .join('\n      ')
+    const summaryLine = doc.summary
+      ? `    <p>${escapeHtml(doc.summary)}</p>\n`
+      : ''
+    const html =
+      `<!doctype html>\n` +
+      `<html lang="en">\n` +
+      `<head>\n` +
+      `  <meta charset="utf-8" />\n` +
+      `  <meta name="viewport" content="width=device-width, initial-scale=1" />\n` +
+      `  <title>${escapeHtml(doc.title)} — Socket PackageURL.js</title>\n` +
+      `  <link rel="stylesheet" href="/walkthrough.css" />\n` +
+      `  <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css" />\n` +
+      `</head>\n` +
+      `<body data-slug="${escapeHtml(slug)}" data-doc="${escapeHtml(doc.filename)}">\n` +
+      `  <header class="topbar">\n` +
+      `    <h1>${escapeHtml(doc.title)}</h1>\n` +
+      summaryLine +
+      `    <div class="topic-nav">\n` +
+      `      <span class="wt-topics-label">Topics:</span>\n` +
+      `      ${navPills}\n` +
+      `    </div>\n` +
+      `  </header>\n` +
+      `\n` +
+      `  <main class="doc-body">\n` +
+      `${body}\n` +
+      `  </main>\n` +
+      `</body>\n` +
+      `</html>\n`
+    await fs.writeFile(path.join(tourDir, `${doc.filename}.html`), html)
+  }
+
+  const results = await Promise.allSettled(entries.map(renderOne))
+  const failures: string[] = []
+  for (let i = 0; i < results.length; i++) {
+    const r = results[i]!
+    if (r.status === 'rejected') {
+      failures.push(
+        `${entries[i]!.filename}.html: ${String((r.reason as Error)?.message ?? r.reason)}`,
+      )
+    }
+  }
+  if (failures.length > 0) {
+    throw new Error(
+      `doc rendering failed for ${failures.length} doc(s):\n  - ${failures.join('\n  - ')}`,
+    )
+  }
+}
+
+/**
+ * Extend the generated index.html TOC with a Topics section. Meander
+ * emits a parts list under <h3>Parts</h3>; we append a second section
+ * with the configured docs so the landing page exposes both surfaces.
+ * No-op when no docs are configured.
+ */
+async function injectTopicsIntoIndex(
+  docs: ReadonlyMap<string, DocEntry>,
+  tourDir: string,
+): Promise<void> {
+  if (docs.size === 0) {
+    return
+  }
+  const indexPath = path.join(tourDir, 'index.html')
+  if (!existsSync(indexPath)) {
+    return
+  }
+  let html = await fs.readFile(indexPath, 'utf8')
+  if (html.includes('<h3>Topics</h3>')) {
+    // Idempotent — an earlier build may have already injected.
+    return
+  }
+  const entries = [...docs.values()]
+  const rows = entries
+    .map(d => {
+      const summary = d.summary
+        ? `\n              <p class="wt-topic-summary">${escapeHtml(d.summary)}</p>`
+        : ''
+      return `          <li><a href="/${d.filename}.html">${escapeHtml(d.title)}</a>${summary}</li>`
+    })
+    .join('\n')
+  const block =
+    `    <div class="annotation-card">\n` +
+    `      <h3>Topics</h3>\n` +
+    `      <ul class="wt-topics-ul">\n` +
+    `${rows}\n` +
+    `      </ul>\n` +
+    `    </div>\n`
+  // Inject before </main> so the Topics card sits under the Parts card
+  // in the visual flow. Fall back to inserting before </body> if the
+  // page somehow omits <main> (shouldn't — meander always emits one).
+  if (html.includes('</main>')) {
+    html = html.replace('</main>', `${block}</main>`)
+  } else {
+    html = html.replace('</body>', `${block}</body>`)
+  }
+  await fs.writeFile(indexPath, html)
+}
+
+/**
+ * Validate the `filename` field on every tour.json part, then
  * build the part-id → filename map the post-processor uses to rename
  * emitted HTML and rewrite hrefs.
  *
@@ -146,7 +378,7 @@ function validatePartFilenames(
   }
   if (errors.length > 0) {
     throw new Error(
-      `walkthrough.json has ${errors.length} invalid part filename(s):\n  - ${errors.join('\n  - ')}`,
+      `tour.json has ${errors.length} invalid part filename(s):\n  - ${errors.join('\n  - ')}`,
     )
   }
   const map = new Map<number, string>()
@@ -338,9 +570,9 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
  *
  * Sources:
  *   - `https://unpkg.com/...` → fetched + disk-cached (see sriForUrl).
- *   - `/walkthrough.css` etc. → read from `walkthroughDir` directly.
+ *   - `/walkthrough.css` etc. → read from `tourDir` directly.
  *   - `basePath`-prefixed same-origin paths → stripped to the bare
- *     file name, then read from `walkthroughDir`.
+ *     file name, then read from `tourDir`.
  *
  * CDN tags also get `crossorigin="anonymous"` (required for the SRI
  * check to run on cross-origin responses). Same-origin tags don't
@@ -350,7 +582,7 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
  */
 async function injectSri(
   html: string,
-  walkthroughDir: string,
+  tourDir: string,
   basePath: string,
   cacheDir: string,
 ): Promise<string> {
@@ -372,7 +604,7 @@ async function injectSri(
         basePath && ref.startsWith(basePath + '/')
           ? ref.slice(basePath.length)
           : ref
-      const localPath = path.join(walkthroughDir, bareRef)
+      const localPath = path.join(tourDir, bareRef)
       if (existsSync(localPath)) {
         integrity = computeIntegrity(await fs.readFile(localPath))
       }
@@ -442,7 +674,7 @@ async function generate(
 ): Promise<void> {
   if (rest.length === 0) {
     console.error(
-      'Usage: pnpm walkthrough [--refresh] [--minify] [--base-path=/prefix] generate <walkthrough.json>',
+      'Usage: pnpm tour [--refresh] [--minify] [--base-path=/prefix] generate <tour.json>',
     )
     process.exit(1)
   }
@@ -453,7 +685,7 @@ async function generate(
   // marker so re-runs don't double-append if meander ever preserves
   // the file (today it overwrites from source every run).
   const overrideCssPath = path.join(repoRoot, 'walkthrough-overrides.css')
-  const emittedCss = path.join(walkthroughDir, 'walkthrough.css')
+  const emittedCss = path.join(tourDir, 'walkthrough.css')
   const overrideMarker = '/* ── Socket overrides'
   if (existsSync(overrideCssPath) && existsSync(emittedCss)) {
     const current = await fs.readFile(emittedCss, 'utf8')
@@ -469,7 +701,7 @@ async function generate(
   // Ship the column-splitter JS alongside the generated HTML.
   const dragSrc = path.join(repoRoot, 'walkthrough-drag.js')
   if (existsSync(dragSrc)) {
-    await fs.copyFile(dragSrc, path.join(walkthroughDir, 'walkthrough-drag.js'))
+    await fs.copyFile(dragSrc, path.join(tourDir, 'walkthrough-drag.js'))
   }
 
   // Ship the service worker — cache-first for same-origin assets,
@@ -494,7 +726,7 @@ async function generate(
       cacheVersion = 'ts-' + Date.now().toString(36)
     }
     swSource = swSource.replaceAll('__CACHE_VERSION__', cacheVersion)
-    await fs.writeFile(path.join(walkthroughDir, 'walkthrough-sw.js'), swSource)
+    await fs.writeFile(path.join(tourDir, 'walkthrough-sw.js'), swSource)
   }
 
   // Ship favicons (self-hosted copy of socket.dev's icons). Walkthrough
@@ -514,7 +746,7 @@ async function generate(
       if (!existsSync(src)) {
         return Promise.resolve()
       }
-      return fs.copyFile(src, path.join(walkthroughDir, f))
+      return fs.copyFile(src, path.join(tourDir, f))
     }),
   )
 
@@ -523,21 +755,27 @@ async function generate(
   // scripts, which the rewrite below strips.
   const commentsSrc = path.join(repoRoot, 'walkthrough-comments.js')
   const configPath = rest[0]
-  const walkthroughConfig = configPath
+  const tourConfig = configPath
     ? (JSON.parse(await fs.readFile(path.resolve(configPath), 'utf8')) as {
         slug?: string
         commentBackend?: string
         parts?: Array<{ id: number; title: string; filename?: string }>
+        docs?: Array<{
+          filename?: string | undefined
+          title?: string | undefined
+          source?: string | undefined
+          summary?: string | undefined
+        }>
       })
     : {}
-  const commentBackend = walkthroughConfig.commentBackend || ''
-  const slug = walkthroughConfig.slug || ''
+  const commentBackend = tourConfig.commentBackend || ''
+  const slug = tourConfig.slug || ''
   // Map part-id → title for the post-processor to inject as aria-label
   // on each numbered part pill. Without this, screen readers announce
   // each pill as just "Part 1", "Part 2", …; with it, they get the
   // real section title ("Anatomy of a PURL" etc.).
   const partTitles = new Map<number, string>()
-  for (const p of walkthroughConfig.parts ?? []) {
+  for (const p of tourConfig.parts ?? []) {
     partTitles.set(p.id, p.title)
   }
 
@@ -547,7 +785,7 @@ async function generate(
   // uniqueness — errors follow CLAUDE.md's ERROR MESSAGES doctrine so
   // the build fails with an actionable message, not a cryptic symptom.
   const partFilenames = validatePartFilenames(
-    walkthroughConfig.parts ?? [],
+    tourConfig.parts ?? [],
     configPath ? path.resolve(configPath) : '<config>',
   )
 
@@ -558,7 +796,7 @@ async function generate(
   // Used below to append "(N)" to each numbered pill so users see
   // section-depth info from any page, not just the TOC.
   const partCounts = new Map<number, number>()
-  const indexPath = path.join(walkthroughDir, 'index.html')
+  const indexPath = path.join(tourDir, 'index.html')
   if (existsSync(indexPath)) {
     const indexHtml = await fs.readFile(indexPath, 'utf8')
     const countRe = new RegExp(
@@ -572,9 +810,32 @@ async function generate(
   if (commentBackend && existsSync(commentsSrc)) {
     await fs.copyFile(
       commentsSrc,
-      path.join(walkthroughDir, 'walkthrough-comments.js'),
+      path.join(tourDir, 'walkthrough-comments.js'),
     )
   }
+
+  // Render the tour.json `docs` entries into flat HTML pages
+  // alongside the part files. Runs BEFORE the per-file post-process
+  // loop below so docs receive the same treatment as parts (favicons,
+  // preloads, drag/SW/comments scripts, CSP, SRI, footer) without
+  // per-surface branching.
+  const docEntries = (tourConfig.docs ?? []).filter(
+    (d): d is DocEntry =>
+      typeof d.filename === 'string' &&
+      typeof d.title === 'string' &&
+      typeof d.source === 'string',
+  )
+  const docFilenames = validateDocFilenames(
+    docEntries,
+    partFilenames,
+    configPath ? path.resolve(configPath) : '<config>',
+  )
+  await renderDocs(docFilenames, slug, repoRoot, tourDir)
+  // Extend index.html with a Topics section pointing at each doc. Runs
+  // after docs are rendered (no ordering dependency — the section just
+  // links by filename) and before post-process so any hrefs get the
+  // base-path rewrite if CI set one.
+  await injectTopicsIntoIndex(docFilenames, tourDir)
 
   // Per-HTML post-processing: strip meander's inlined comment scripts
   // (when we're replacing them) and inject our own <script> tags.
@@ -655,7 +916,7 @@ async function generate(
   // mask the others; we collect rejections and throw a composite
   // after.
   const postProcessEntry = async (entry: string): Promise<void> => {
-    const htmlPath = path.join(walkthroughDir, entry)
+    const htmlPath = path.join(tourDir, entry)
     let html = await fs.readFile(htmlPath, 'utf8')
 
     // Strip meander's inlined comment scripts when replacing with ours.
@@ -792,10 +1053,10 @@ async function generate(
       const newName = partFilenames.get(n)
       if (!newName) {
         throw new Error(
-          `walkthrough/${entry}: no filename configured for part ${n}. Add "filename" to part ${n} in walkthrough.json (e.g. "anatomy") — the validator should have caught this, so meander may have rendered a part that isn't in walkthrough.json.`,
+          `walkthrough/${entry}: no filename configured for part ${n}. Add "filename" to part ${n} in tour.json (e.g. "anatomy") — the validator should have caught this, so meander may have rendered a part that isn't in tour.json.`,
         )
       }
-      const newPath = path.join(walkthroughDir, `${newName}.html`)
+      const newPath = path.join(tourDir, `${newName}.html`)
       await fs.writeFile(newPath, html)
       if (newPath !== htmlPath) {
         await safeDelete(htmlPath)
@@ -806,7 +1067,7 @@ async function generate(
     await fs.writeFile(htmlPath, html)
   }
 
-  const entries = await fs.readdir(walkthroughDir)
+  const entries = await fs.readdir(tourDir)
   const htmlEntries = entries.filter(e => e.endsWith('.html'))
   const postProcessResults = await Promise.allSettled(
     htmlEntries.map(postProcessEntry),
@@ -822,7 +1083,7 @@ async function generate(
   }
   if (postProcessFailures.length > 0) {
     throw new Error(
-      `walkthrough post-processing failed for ${postProcessFailures.length} file(s):\n  - ${postProcessFailures.join('\n  - ')}`,
+      `tour post-processing failed for ${postProcessFailures.length} file(s):\n  - ${postProcessFailures.join('\n  - ')}`,
     )
   }
 
@@ -831,7 +1092,7 @@ async function generate(
   // Runs before minification so a failure aborts early. Skip the
   // audit via SKIP_AUDIT=1 for offline dev; CI must not set this.
   if (!process.env['SKIP_AUDIT']) {
-    await auditCdnScripts(walkthroughDir)
+    await auditCdnScripts(tourDir)
   } else {
     console.warn('[audit-deps] SKIP_AUDIT=1 — CDN audit SKIPPED')
   }
@@ -843,18 +1104,18 @@ async function generate(
   // Subresource Integrity pass — runs LAST so the local-file hashes
   // we compute match the exact bytes that ship (post-minify). CDN
   // hashes are disk-cached under .cache/sri/; local ones hash the
-  // files in `walkthroughDir` directly. Any `<script>` / `<link>`
+  // files in `tourDir` directly. Any `<script>` / `<link>`
   // (CDN or same-origin) ends up with `integrity="sha384-..."`.
   const sriCacheDir = path.join(repoRoot, '.cache', 'sri')
-  const sriEntries = (await fs.readdir(walkthroughDir)).filter(e =>
+  const sriEntries = (await fs.readdir(tourDir)).filter(e =>
     e.endsWith('.html'),
   )
   const sriResults = await Promise.allSettled(
     sriEntries.map(async entry => {
-      const htmlPath = path.join(walkthroughDir, entry)
+      const htmlPath = path.join(tourDir, entry)
       let html = await fs.readFile(htmlPath, 'utf8')
       const originalHtml = html
-      html = await injectSri(html, walkthroughDir, basePath, sriCacheDir)
+      html = await injectSri(html, tourDir, basePath, sriCacheDir)
       // CSP meta — must run AFTER SRI injection so the hash of each
       // inline <script> reflects its final body (no further rewrites).
       // Per-file because __defIndex varies per-part; pages also differ
@@ -911,7 +1172,7 @@ async function minifyEmittedAssets(): Promise<void> {
   // allSettled so a failure on one asset (e.g. lightningcss rejecting
   // invalid CSS) doesn't hide any other savings we'd otherwise report.
   const jsTasks = jsFiles.map(async f => {
-    const p = path.join(walkthroughDir, f)
+    const p = path.join(tourDir, f)
     if (!existsSync(p)) {
       return 0
     }
@@ -926,7 +1187,7 @@ async function minifyEmittedAssets(): Promise<void> {
     return before.length - out.code.length
   })
   const cssTasks = cssFiles.map(async f => {
-    const p = path.join(walkthroughDir, f)
+    const p = path.join(tourDir, f)
     if (!existsSync(p)) {
       return 0
     }
@@ -963,7 +1224,7 @@ async function minifyEmittedAssets(): Promise<void> {
  * substrings. Meander inlines its comment-related JS directly in each HTML
  * file; this removes those blocks so our replacement script has no
  * collisions. Fail-loud if fewer than the expected count are removed — a
- * marker string drift would silently ship broken walkthroughs.
+ * marker string drift would silently ship broken tours.
  */
 function stripInlinedCommentScripts(
   html: string,
@@ -989,7 +1250,7 @@ async function readSlug(): Promise<string> {
   // Meander bakes Val-Town-shaped links (/<slug>/part/<n>) into the HTML even
   // though it writes flat file names. Read the slug from manifest.json so we
   // can route those URLs to the right file.
-  const manifestPath = path.join(walkthroughDir, 'manifest.json')
+  const manifestPath = path.join(tourDir, 'manifest.json')
   const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8')) as {
     slug: string
   }
@@ -997,16 +1258,16 @@ async function readSlug(): Promise<string> {
 }
 
 /**
- * Read the part-id → filename map from walkthrough.json at the repo
+ * Read the part-id → filename map from tour.json at the repo
  * root. The dev server uses this to translate /<slug>/part/<n> URLs
  * to the renamed <filename>.html files on disk. Mirrors the rename
  * applied by the generate pipeline, so a build + serve round-trips
- * URLs to files correctly. Returns an empty map when walkthrough.json
+ * URLs to files correctly. Returns an empty map when tour.json
  * isn't present (e.g. invoked from a fresh checkout without the
  * source config) — the route table falls back to the legacy shape.
  */
 async function readPartFilenames(): Promise<Map<number, string>> {
-  const configPath = path.join(repoRoot, 'walkthrough.json')
+  const configPath = path.join(repoRoot, 'tour.json')
   if (!existsSync(configPath)) {
     return new Map()
   }
@@ -1058,9 +1319,9 @@ async function serve(basePath: string, args: readonly string[]): Promise<void> {
   const portArg = args.find(a => a.startsWith('--port='))
   const port = portArg ? Number(portArg.slice('--port='.length)) : 8080
 
-  if (!existsSync(walkthroughDir)) {
+  if (!existsSync(tourDir)) {
     console.error(
-      `No walkthrough/ directory found. Run \`pnpm walkthrough generate walkthrough.json\` first.`,
+      `No walkthrough/ directory found. Run \`pnpm tour generate tour.json\` first.`,
     )
     process.exit(1)
   }
@@ -1073,7 +1334,7 @@ async function serve(basePath: string, args: readonly string[]): Promise<void> {
     let decoded = decodeURIComponent(rawUrl)
     // Strip the base-path prefix so `routeToFile` sees the shape it
     // expects. Mirrors the generate-side `--base-path` rewrite so
-    // `pnpm walkthrough --base-path=/X serve` + a build with the
+    // `pnpm tour --base-path=/X serve` + a build with the
     // same flag round-trips correctly.
     if (basePath && decoded.startsWith(basePath + '/')) {
       decoded = decoded.slice(basePath.length)
@@ -1086,11 +1347,8 @@ async function serve(basePath: string, args: readonly string[]): Promise<void> {
       return
     }
 
-    const target = path.resolve(walkthroughDir, relative)
-    if (
-      target !== walkthroughDir &&
-      !target.startsWith(walkthroughDir + path.sep)
-    ) {
+    const target = path.resolve(tourDir, relative)
+    if (target !== tourDir && !target.startsWith(tourDir + path.sep)) {
       res.writeHead(400).end('bad request')
       return
     }
@@ -1128,7 +1386,7 @@ async function serve(basePath: string, args: readonly string[]): Promise<void> {
   })
 
   server.listen(port, '127.0.0.1', () => {
-    console.log(`Serving ${walkthroughDir} (slug: ${slug})`)
+    console.log(`Serving ${tourDir} (slug: ${slug})`)
     console.log(`  index  → http://127.0.0.1:${port}/`)
     const firstFilename = partFilenames.get(1)
     if (firstFilename) {
@@ -1144,7 +1402,7 @@ async function serve(basePath: string, args: readonly string[]): Promise<void> {
 
 /**
  * Watch mode — generate once, start the server, then debounced
- * regenerate when any source file (shim, CSS, SW, walkthrough.json,
+ * regenerate when any source file (shim, CSS, SW, tour.json,
  * the annotated source tree) changes. Uses Node's built-in fs.watch
  * — no chokidar dep — and debounces at 200 ms so an editor's
  * multi-save-in-quick-succession writes only trigger one rebuild.
@@ -1156,7 +1414,7 @@ async function watch(
   rest: readonly string[],
 ): Promise<void> {
   if (rest.length === 0) {
-    console.error('Usage: pnpm walkthrough watch <walkthrough.json>')
+    console.error('Usage: pnpm tour watch <tour.json>')
     process.exit(1)
   }
 
@@ -1165,7 +1423,7 @@ async function watch(
   const { watch: fsWatch } = await import('node:fs')
 
   // Initial build before we start the server. This also populates
-  // walkthroughDir so `serve` has something to serve on first request.
+  // tourDir so `serve` has something to serve on first request.
   await generate(refresh, minify, basePath, rest)
 
   // Start the server. `serve` blocks on its own createServer; since
@@ -1233,7 +1491,7 @@ async function watch(
     }
     fsWatch(target, { recursive: true }, (_event, filename) => {
       // Ignore writes to the output directory itself — generate() writes
-      // into walkthroughDir, which would otherwise loop-trigger.
+      // into tourDir, which would otherwise loop-trigger.
       if (filename && filename.startsWith('walkthrough/')) {
         return
       }
@@ -1310,12 +1568,12 @@ function main(): void {
   const command = rest[0]
 
   const HELP_TEXT = [
-    'pnpm walkthrough — walkthrough generator for the Socket pilot',
+    'pnpm tour — tour generator for the Socket pilot',
     '',
     'Subcommands:',
-    '  generate <walkthrough.json>   Build the walkthrough HTML/CSS/JS.',
+    '  generate <tour.json>   Build the tour HTML/CSS/JS.',
     '  serve [--port=8080]           Start the local dev server.',
-    '  watch <walkthrough.json>      Build + serve + rebuild on source change.',
+    '  watch <tour.json>      Build + serve + rebuild on source change.',
     '  valtown [--name=<valname>]    Deploy val/ to Val Town.',
     '  token <set|clear|status>      Manage the Val Town API token.',
     '  doctor                        Check external-tool prerequisites.',
@@ -1330,7 +1588,7 @@ function main(): void {
     '  --base-path=/prefix      Subdir URL prefix for assets + part links.',
     '  --refresh                Force-rebuild the meander submodule.',
     '',
-    'Show this help: pnpm walkthrough --help  (or -h)',
+    'Show this help: pnpm tour --help  (or -h)',
   ].join('\n')
 
   switch (command) {
@@ -1338,7 +1596,7 @@ function main(): void {
     case '--help':
     case '-h':
       // POSIX convention: --help is a successful request. Stdout, exit 0 —
-      // so `pnpm walkthrough --help > help.txt` works and shell checks
+      // so `pnpm tour --help > help.txt` works and shell checks
       // can detect availability by capturing stdout.
       console.log(HELP_TEXT)
       return
@@ -1366,7 +1624,7 @@ function main(): void {
       // Unknown command — stderr + non-zero exit, with a pointer to
       // --help rather than dumping the full usage block here.
       console.error(
-        `Unknown command: ${command}\n\nRun \`pnpm walkthrough --help\` for usage.`,
+        `Unknown command: ${command}\n\nRun \`pnpm tour --help\` for usage.`,
       )
       process.exit(1)
   }
@@ -1380,7 +1638,7 @@ function main(): void {
  * Deploy our val (val/*.ts) to Val Town. Uploads our source files
  * (index.ts, crypto.ts, validate.ts, email-template.ts), not
  * meander's. On success, prints the public val URL — paste that into
- * walkthrough.json's commentBackend field.
+ * tour.json's commentBackend field.
  *
  * Resolves VALTOWN_TOKEN via:
  *   1. macOS Keychain (service: socket-walkthrough-valtown)
@@ -1447,7 +1705,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
   const token = resolveValTownToken()
   if (!token) {
     throw new Error(
-      'VALTOWN_TOKEN not found. Run `pnpm walkthrough token set` to store one in the macOS Keychain (recommended), or set VALTOWN_TOKEN in .env.local / the environment.',
+      'VALTOWN_TOKEN not found. Run `pnpm tour token set` to store one in the macOS Keychain (recommended), or set VALTOWN_TOKEN in .env.local / the environment.',
     )
   }
 
@@ -1472,7 +1730,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
     if (meRes.status === 401) {
       throw new Error(
         'stored VALTOWN_TOKEN is unauthorized — token was rotated or revoked. ' +
-          'Run `pnpm walkthrough token set` to store a fresh one.',
+          'Run `pnpm tour token set` to store a fresh one.',
       )
     }
     throw new Error(`GET /v1/me failed: ${meRes.status} ${await meRes.text()}`)
@@ -1667,7 +1925,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
   console.log(`Deployed. Public URL:  ${publicUrl}`)
   console.log(`Val ID:                ${valId}`)
   console.log('')
-  console.log(`Update walkthrough.json: "commentBackend": "${publicUrl}"`)
+  console.log(`Update tour.json: "commentBackend": "${publicUrl}"`)
 }
 
 /**
@@ -1812,7 +2070,7 @@ function describeCredentialHelper(): string {
 }
 
 /**
- * `pnpm walkthrough token <set|clear|status>` — manage the Val Town
+ * `pnpm tour token <set|clear|status>` — manage the Val Town
  * API token in the macOS Keychain.
  *
  *   set    — prompts for a token on stdin (not shown in terminal,
@@ -1845,7 +2103,7 @@ async function tokenCli(args: readonly string[]): Promise<void> {
     if (!hasToken) {
       console.log('')
       console.log('To store one (recommended):')
-      console.log('  pnpm walkthrough token set')
+      console.log('  pnpm tour token set')
     }
     return
   }
@@ -1857,8 +2115,8 @@ async function tokenCli(args: readonly string[]): Promise<void> {
     if (args.length > 1) {
       throw new Error(
         'do not pass the token as an argument — that leaks it into shell history.\n' +
-          'Run `pnpm walkthrough token set` with no args and paste when prompted,\n' +
-          'or pipe the token on stdin (e.g. `pbpaste | pnpm walkthrough token set`).\n' +
+          'Run `pnpm tour token set` with no args and paste when prompted,\n' +
+          'or pipe the token on stdin (e.g. `pbpaste | pnpm tour token set`).\n' +
           'If the token value was visible anywhere, rotate it at https://val.town/settings/api.',
       )
     }
@@ -1883,18 +2141,18 @@ async function tokenCli(args: readonly string[]): Promise<void> {
           '\n' +
           'Three ways to provide a token:\n' +
           '  1. From an interactive terminal (preferred):\n' +
-          '       pnpm walkthrough token set\n' +
+          '       pnpm tour token set\n' +
           '     then paste the token at the prompt and press Enter.\n' +
           "     NOTE: Claude Code's `!` shell prefix does not attach a TTY,\n" +
           "     so the prompt can't read input — run this in your OWN terminal.\n" +
           '\n' +
           "  2. Piped from clipboard (works inside Claude's `!` prefix):\n" +
-          '       pbpaste | pnpm walkthrough token set       (macOS)\n' +
-          '       xclip -selection clipboard -o | pnpm walkthrough token set   (Linux)\n' +
-          '       Get-Clipboard | pnpm walkthrough token set (Windows PowerShell)\n' +
+          '       pbpaste | pnpm tour token set       (macOS)\n' +
+          '       xclip -selection clipboard -o | pnpm tour token set   (Linux)\n' +
+          '       Get-Clipboard | pnpm tour token set (Windows PowerShell)\n' +
           '\n' +
           '  3. Piped from a file (short-lived):\n' +
-          '       cat /path/to/token.txt | pnpm walkthrough token set\n' +
+          '       cat /path/to/token.txt | pnpm tour token set\n' +
           '       shred -u /path/to/token.txt   # remove it afterwards\n' +
           '\n' +
           'Do NOT pass the token as a command-line argument — it leaks\n' +
@@ -1903,7 +2161,7 @@ async function tokenCli(args: readonly string[]): Promise<void> {
     }
     gitCredentialWrite(token)
     console.log(`Stored via: ${helper}`)
-    console.log('To verify: `pnpm walkthrough token status`.')
+    console.log('To verify: `pnpm tour token status`.')
     return
   }
 
@@ -1992,7 +2250,7 @@ type ExternalToolsManifest = {
 }
 
 /**
- * `pnpm walkthrough doctor` — reads external-tools.json and reports
+ * `pnpm tour doctor` — reads external-tools.json and reports
  * which listed CLIs are present on PATH. Human-friendly summary per
  * tool: ✓ present / ✗ missing + install notes. Exits 0 regardless;
  * all listed tools are treated as optional (the script itself falls
@@ -2050,7 +2308,7 @@ async function doctor(): Promise<void> {
   }
   console.log('')
   console.log(
-    'All listed tools are optional — the walkthrough script falls back when they are absent.',
+    'All listed tools are optional — the tour script falls back when they are absent.',
   )
 }
 

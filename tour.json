@@ -1,6 +1,6 @@
 {
   "slug": "socket-packageurl-js",
-  "title": "Socket PackageURL.js Walkthrough",
+  "title": "Socket PackageURL.js Tour",
   "commentBackend": "https://socketdev--f074d2683d5711f1a65242b51c65c3df.web.val.run",
   "parts": [
     {
@@ -164,6 +164,14 @@
         "pre-standard"
       ],
       "files": ["src/strings.ts", "src/objects.ts", "src/vers.ts"]
+    }
+  ],
+  "docs": [
+    {
+      "filename": "tour",
+      "title": "Tour",
+      "source": "docs/tour.md",
+      "summary": "How the tour site is built, from meander submodule through post-process to GitHub Pages deploy."
     }
   ]
 }

@@ -102,10 +102,10 @@ Errors are a UX surface. When validating config or enforcing invariants, every e
 - If two records collide, name both — not just the second one found
 - Suggest, don't auto-correct. An error that silently repairs state hides the bug in the next run
 
-Example — validator on `walkthrough.json`:
+Example — validator on `tour.json`:
 
-- ✗ `Error: invalid walkthrough config`
-- ✓ `walkthrough.json: part 3 ("Parsing & Normalization") is missing "filename". Add a single-word lowercase filename (e.g. "parsing") to this part — one per part is required to route /<slug>/part/3 at publish time.`
+- ✗ `Error: invalid tour config`
+- ✓ `tour.json: part 3 ("Parsing & Normalization") is missing "filename". Add a single-word lowercase filename (e.g. "parsing") to this part — one per part is required to route /<slug>/part/3 at publish time.`
 
 ## ABSOLUTE RULES
 

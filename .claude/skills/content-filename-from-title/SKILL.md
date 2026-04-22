@@ -1,6 +1,6 @@
 ---
 name: content-filename-from-title
-description: Turns a prose title into a short, single-word, URL-friendly filename for published content (docs, walkthrough parts, blog slugs, guide pages). Use when adding a new entry to a manifest that exposes public filenames (e.g. walkthrough.json parts, docs/*.md for GH Pages), when renaming an existing one, or when a user asks "what should I name this file?"
+description: Turns a prose title into a short, single-word, URL-friendly filename for published content (docs, tour parts, blog slugs, guide pages). Use when adding a new entry to a manifest that exposes public filenames (e.g. tour.json parts, docs/*.md for GH Pages), when renaming an existing one, or when a user asks "what should I name this file?"
 ---
 
 # content-filename-from-title
@@ -8,7 +8,7 @@ description: Turns a prose title into a short, single-word, URL-friendly filenam
 <task>
 Produce a single-word, lowercase, ASCII-only filename (no extension,
 no hyphens, no digits) that best represents the content of a titled
-page. The filename goes into a config manifest — `walkthrough.json`
+page. The filename goes into a config manifest — `tour.json`
 part entries, `docs/` frontmatter, or similar — where it becomes the
 public URL segment for that page.
 </task>
@@ -30,14 +30,14 @@ procedure so the output is reproducible.
 
 ## Where it fits in the repo
 
-- `walkthrough.json` — the `parts[].filename` field is the URL segment
+- `tour.json` — the `parts[].filename` field is the URL segment
   the page is published under at `socketdev.github.io/socket-packageurl-js/<filename>.html`.
 - `docs/*.md` — the file stem becomes the URL segment when docs are
   stitched into the GH Pages flow (see `docs/pages-design-system.md`
   for the surrounding design system).
 - Any future blog or guide manifest added to this repo.
 
-A build-time validator in `scripts/walkthrough.mts` enforces the
+A build-time validator in `scripts/tour.mts` enforces the
 **shape** (`[a-z]+`) and **uniqueness**; this skill decides the
 **choice** (which word).
 </context>
@@ -134,9 +134,9 @@ cute), adjust. Internal consistency matters — don't mix
 </instructions>
 
 <examples>
-## Worked examples — the 8 walkthrough parts
+## Worked examples — the 8 tour parts
 
-These are the filenames currently in `walkthrough.json` at the time
+These are the filenames currently in `tour.json` at the time
 this skill was written. Each shows the rule that produced the choice.
 
 <example id="1">
@@ -302,7 +302,7 @@ again.
   validator uses when it rejects a bad filename.
 - `docs/pages-design-system.md` — the surrounding design system for
   pages that use these filenames.
-- `scripts/walkthrough.mts` → `validatePartFilenames()` — the
+- `scripts/tour.mts` → `validatePartFilenames()` — the
   validator implementation that enforces the hard constraints.
-- `walkthrough.json` — the current live manifest applying this skill.
+- `tour.json` — the current live manifest applying this skill.
 </further-reading>

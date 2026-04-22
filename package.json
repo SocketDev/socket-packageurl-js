@@ -61,11 +61,11 @@
     "type": "tsgo --noEmit -p .config/tsconfig.check.json",
     "update": "node scripts/update.mts",
     "update:data:npm": "node scripts/update-data-npm.mts",
-    "walkthrough": "node scripts/walkthrough.mts",
-    "walkthrough:build": "node scripts/walkthrough.mts generate walkthrough.json",
-    "walkthrough:serve": "node scripts/walkthrough.mts serve",
-    "walkthrough:watch": "node scripts/walkthrough.mts watch walkthrough.json",
-    "walkthrough:valtown": "node scripts/walkthrough.mts valtown"
+    "tour": "node scripts/tour.mts",
+    "tour:build": "node scripts/tour.mts generate tour.json",
+    "tour:serve": "node scripts/tour.mts serve",
+    "tour:watch": "node scripts/tour.mts watch tour.json",
+    "tour:valtown": "node scripts/tour.mts valtown"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "2.1.92",
@@ -88,6 +88,7 @@
     "husky": "9.1.7",
     "lightningcss": "1.32.0",
     "magic-string": "0.30.21",
+    "marked": "18.0.0",
     "nock": "14.0.10",
     "oxfmt": "0.37.0",
     "oxlint": "1.52.0",

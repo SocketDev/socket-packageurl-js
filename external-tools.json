@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/SocketDev/socket-btm/main/packages/build-infra/lib/external-tools-schema.json",
-  "description": "External tools the walkthrough runner may shell out to. All are optional — missing tools produce friendly fallback paths. `pnpm walkthrough doctor` reports which are present / absent and how to install each.",
+  "description": "External tools the tour runner may shell out to. All are optional — missing tools produce friendly fallback paths. `pnpm tour doctor` reports which are present / absent and how to install each.",
   "tools": {
     "git": {
       "description": "Git CLI — submodule init for vendored meander, commit history.",
@@ -12,7 +12,7 @@
       ]
     },
     "node": {
-      "description": "Node.js — runs the walkthrough scripts and val tests.",
+      "description": "Node.js — runs the tour scripts and val tests.",
       "version": "22+",
       "notes": [
         "Required: yes",
@@ -29,7 +29,7 @@
       ]
     },
     "openssl": {
-      "description": "openssl CLI — used by `pnpm walkthrough token set` to generate JWT signing keys (`openssl rand -base64 32`).",
+      "description": "openssl CLI — used by `pnpm tour token set` to generate JWT signing keys (`openssl rand -base64 32`).",
       "notes": [
         "Required: only when rotating JWT_SIGNING_KEY locally",
         "macOS: preinstalled (LibreSSL) or `brew install openssl`",

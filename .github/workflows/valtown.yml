@@ -1,6 +1,6 @@
 name: 🌐 Deploy (Val Town)
 
-# Deploys the walkthrough comment backend to Val Town when the val
+# Deploys the tour comment backend to Val Town when the val
 # source changes on main. Also runnable manually via workflow_dispatch.
 #
 # One-time setup required in the repo settings:
@@ -24,7 +24,7 @@ name: 🌐 Deploy (Val Town)
 # What ships
 # ──────────
 # Every `val/*.ts` file that isn't a `*.test.ts`. The deploy step auto-
-# discovers them via `readdirSync(val/)`; `scripts/walkthrough.mts`
+# discovers them via `readdirSync(val/)`; `scripts/tour.mts`
 # uploads each via Val Town's files API. A deploy receipt with content
 # sha256 per file is printed to the run summary.
 
@@ -33,7 +33,7 @@ on:
     branches: [main]
     paths:
       - 'val/**'
-      - 'scripts/walkthrough.mts'
+      - 'scripts/tour.mts'
       - 'scripts/audit-deps.mts'
       - '.github/workflows/valtown.yml'
       - 'package.json'
@@ -79,8 +79,8 @@ jobs:
           checkout-fetch-depth: '1'
 
       - name: Deploy val
-        # `pnpm walkthrough valtown` runs the Socket.dev malware
-        # audit on the val's transitive closure first — a finding
-        # fails fast before any upload. Deploy receipt (file + sha256)
-        # prints to GITHUB_STEP_SUMMARY at the end.
-        run: pnpm walkthrough valtown
+        # `pnpm tour valtown` runs the Socket.dev malware audit on
+        # the val's transitive closure first — a finding fails fast
+        # before any upload. Deploy receipt (file + sha256) prints to
+        # GITHUB_STEP_SUMMARY at the end.
+        run: pnpm tour valtown

@@ -1,7 +1,7 @@
-name: 📘 Walkthrough (GH Pages)
+name: 📘 Tour (GH Pages)
 
-# Deploys the walkthrough pilot to https://socketdev.github.io/socket-packageurl-js/
-# Trigger: push to main that touches walkthrough sources (plus manual).
+# Deploys the tour pilot to https://socketdev.github.io/socket-packageurl-js/
+# Trigger: push to main that touches tour sources (plus manual).
 #
 # Uses the SocketDev/socket-registry shared composite action for
 # checkout + Node/pnpm setup + install, so toolchain versions stay in
@@ -11,25 +11,27 @@ name: 📘 Walkthrough (GH Pages)
 #
 # Build model:
 #   1. Shared setup-and-install → checkout w/ submodules, pnpm install.
-#   2. `pnpm walkthrough:build` — the `CI` env var (set by all GitHub
+#   2. `pnpm tour:build` — the `CI` env var (set by all GitHub
 #      Actions runners) makes this auto-select the `prod` preset, which
 #      applies --minify + --base-path=/socket-packageurl-js. Locally the
 #      same script defaults to `dev`. No flag drift between CI and the
 #      npm script.
-#   3. Upload `walkthrough/` as the Pages artifact.
+#   3. Upload `walkthrough/` as the Pages artifact. (Meander hardcodes
+#      the output directory name; we keep it to avoid forking meander.)
 #   4. Deploy via actions/deploy-pages.
 
 on:
   push:
     branches: [main]
     paths:
-      - 'walkthrough.json'
+      - 'tour.json'
       - 'walkthrough-comments.js'
       - 'walkthrough-drag.js'
       - 'walkthrough-overrides.css'
       - 'walkthrough-sw.js'
-      - 'scripts/walkthrough.mts'
+      - 'scripts/tour.mts'
       - 'src/**'
+      - 'docs/**'
       - 'assets/favicon/**'
       - '.github/workflows/pages.yml'
       - 'package.json'
@@ -51,7 +53,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build walkthrough
+    name: Build tour
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -68,8 +70,8 @@ jobs:
       - name: Init meander submodule
         run: git submodule update --init --depth=1 upstream/meander
 
-      - name: Generate walkthrough (auto-prod via CI env)
-        run: pnpm walkthrough:build
+      - name: Generate tour (auto-prod via CI env)
+        run: pnpm tour:build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
