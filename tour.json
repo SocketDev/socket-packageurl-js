@@ -184,6 +184,12 @@
       "title": "Tour",
       "source": "docs/tour.md",
       "summary": "How the tour site is built, from meander submodule through post-process to GitHub Pages deploy."
+    },
+    {
+      "filename": "vers",
+      "title": "VERS",
+      "source": "docs/vers.md",
+      "summary": "Version-range specifiers — the pre-standard grammar slated for Ecma submission in late 2026."
     }
   ]
 }
