@@ -182,47 +182,106 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
 }
 
 /**
- * Scan HTML for `<script src=https://unpkg.com/...>` and
- * `<link rel=stylesheet href=https://unpkg.com/...>` tags, fetch +
- * hash each resource, and inject `integrity="sha384-..." crossorigin
- * ="anonymous"` so the browser rejects any tampered CDN response.
+ * Scan HTML for `<script src=...>`, `<link rel=stylesheet href=...>`,
+ * and `<link rel=preload as=script href=...>` tags, hash each resource,
+ * and inject `integrity="sha384-..."` so the browser rejects tampered
+ * responses (CDN or our own origin).
  *
- * Idempotent — tags that already carry `integrity=` are left alone
- * so hand-authored hashes survive.
+ * Sources:
+ *   - `https://unpkg.com/...` → fetched + disk-cached (see sriForUrl).
+ *   - `/walkthrough.css` etc. → read from `walkthroughDir` directly.
+ *   - `basePath`-prefixed same-origin paths → stripped to the bare
+ *     file name, then read from `walkthroughDir`.
+ *
+ * CDN tags also get `crossorigin="anonymous"` (required for the SRI
+ * check to run on cross-origin responses). Same-origin tags don't
+ * need it and shouldn't have it (would trigger CORS unnecessarily).
+ *
+ * Idempotent — tags that already carry `integrity=` are left alone.
  */
-async function injectSri(html: string, cacheDir: string): Promise<string> {
-  // Collect unique URLs first so we fetch each once even if it's
-  // referenced in multiple tags.
-  const urlRe =
-    /<(?:script\s[^>]*\bsrc|link\s[^>]*\bhref)="(https:\/\/unpkg\.com\/[^"]+)"/gi
-  const urls = new Set<string>()
-  for (const m of html.matchAll(urlRe)) {
-    urls.add(m[1]!)
+async function injectSri(
+  html: string,
+  walkthroughDir: string,
+  basePath: string,
+  cacheDir: string,
+): Promise<string> {
+  // Map of URL/path → SRI hash. Populated lazily as we walk the tag
+  // stream so we resolve each URL at most once per file.
+  const integrityByRef = new Map<string, string>()
+
+  const resolveIntegrity = async (ref: string): Promise<string | null> => {
+    if (integrityByRef.has(ref)) {
+      return integrityByRef.get(ref)!
+    }
+    let integrity: string | null = null
+    if (ref.startsWith('https://unpkg.com/')) {
+      integrity = await sriForUrl(ref, cacheDir)
+    } else if (ref.startsWith('/')) {
+      // Strip leading basePath if present so we can read the bare
+      // filename out of the output dir.
+      const bareRef =
+        basePath && ref.startsWith(basePath + '/')
+          ? ref.slice(basePath.length)
+          : ref
+      const localPath = path.join(walkthroughDir, bareRef)
+      if (existsSync(localPath)) {
+        integrity = computeIntegrity(readFileSync(localPath))
+      }
+    }
+    integrityByRef.set(ref, integrity ?? '')
+    return integrity
   }
-  if (urls.size === 0) {
-    return html
-  }
-  const integrityByUrl = new Map<string, string>()
-  for (const url of urls) {
-    integrityByUrl.set(url, await sriForUrl(url, cacheDir))
-  }
-  // Rewrite each tag. Skip tags that already carry `integrity=`.
-  // The `attrs` capture intentionally excludes `/` so a self-closing
-  // `<link ... />` doesn't pull the trailing slash into the attrs
-  // string (which we'd then echo back before our injected attrs,
-  // producing `href="..." / integrity="...">`).
+
+  // Match tags carrying src/href pointing at either unpkg.com or a
+  // same-origin absolute path. Exclude `/` from the attrs capture so
+  // a self-closing `<link .../>` doesn't drag the slash mid-rewrite.
   const tagRe =
-    /<(script|link)\s([^>/]*?\b(?:src|href)="(https:\/\/unpkg\.com\/[^"]+)"[^>/]*)(\s*\/?\s*>)/gi
-  return html.replace(tagRe, (full, tag, attrs, url, close) => {
+    /<(script|link)\s([^>/]*?\b(?:src|href)="((?:https:\/\/unpkg\.com\/|\/)[^"]+)"[^>/]*)(\s*\/?\s*>)/gi
+
+  // Browsers only honor `integrity` on:
+  //   <script>
+  //   <link rel=stylesheet>
+  //   <link rel=preload>  / <link rel=modulepreload>
+  // `<link rel=icon>` / `<link rel=apple-touch-icon>` ignore it, so
+  // skip them — no point emitting hash bytes the browser throws away.
+  const supportsSri = (tag: string, attrs: string): boolean => {
+    if (tag.toLowerCase() === 'script') {
+      return true
+    }
+    const relMatch = attrs.match(/\brel="([^"]+)"/i)
+    if (!relMatch) {
+      return false
+    }
+    return /\b(?:stylesheet|preload|modulepreload)\b/i.test(relMatch[1]!)
+  }
+
+  // Two-pass: first collect + resolve all refs the browser honors,
+  // then rewrite. `matchAll` is sync so we walk once to gather refs,
+  // resolve them, then `replace` using the populated map.
+  for (const m of html.matchAll(tagRe)) {
+    if (supportsSri(m[1]!, m[2]!)) {
+      await resolveIntegrity(m[3]!)
+    }
+  }
+
+  return html.replace(tagRe, (full, tag, attrs, ref, close) => {
     if (/\bintegrity=/i.test(attrs)) {
       return full
     }
-    const integrity = integrityByUrl.get(url)
+    if (!supportsSri(tag, attrs)) {
+      return full
+    }
+    const integrity = integrityByRef.get(ref)
     if (!integrity) {
       return full
     }
+    // crossorigin=anonymous only makes sense (and is required for SRI)
+    // on cross-origin requests. Same-origin tags shouldn't carry it.
+    const crossorigin = ref.startsWith('https://')
+      ? ' crossorigin="anonymous"'
+      : ''
     const trimmedAttrs = attrs.trimEnd()
-    return `<${tag} ${trimmedAttrs} integrity="${integrity}" crossorigin="anonymous"${close}`
+    return `<${tag} ${trimmedAttrs} integrity="${integrity}"${crossorigin}${close}`
   })
 }
 
@@ -437,14 +496,6 @@ async function generate(
       html = applyBasePath(html, basePath, slug)
     }
 
-    // Subresource Integrity on CDN scripts (marked, highlight.js,
-    // highlight.js CSS theme). Fetches each URL once per build,
-    // sha384-hashes the bytes, injects `integrity="sha384-..."
-    // crossorigin="anonymous"` so the browser rejects any tampered
-    // response. Disk-cached under .cache/sri/ so repeat builds are
-    // free; a version bump (new URL) invalidates automatically.
-    html = await injectSri(html, path.join(repoRoot, '.cache', 'sri'))
-
     writeFileSync(htmlPath, html)
   }
 
@@ -460,6 +511,24 @@ async function generate(
 
   if (minify) {
     await minifyEmittedAssets()
+  }
+
+  // Subresource Integrity pass — runs LAST so the local-file hashes
+  // we compute match the exact bytes that ship (post-minify). CDN
+  // hashes are disk-cached under .cache/sri/; local ones hash the
+  // files in `walkthroughDir` directly. Any `<script>` / `<link>`
+  // (CDN or same-origin) ends up with `integrity="sha384-..."`.
+  const sriCacheDir = path.join(repoRoot, '.cache', 'sri')
+  for (const entry of readdirSync(walkthroughDir)) {
+    if (!entry.endsWith('.html')) {
+      continue
+    }
+    const htmlPath = path.join(walkthroughDir, entry)
+    const html = readFileSync(htmlPath, 'utf8')
+    const withSri = await injectSri(html, walkthroughDir, basePath, sriCacheDir)
+    if (withSri !== html) {
+      writeFileSync(htmlPath, withSri)
+    }
   }
 }
 
