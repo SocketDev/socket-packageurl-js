@@ -180,6 +180,12 @@
       "summary": "The PurlBuilder fluent API — construct a PackageURL step by step with per-field setters and per-ecosystem factories."
     },
     {
+      "filename": "converters",
+      "title": "Converters",
+      "source": "docs/converters.md",
+      "summary": "URL ↔ PURL conversion across ~25 ecosystems — fromUrl, toDownloadUrl, toRepositoryUrl, getAllUrls."
+    },
+    {
       "filename": "hardening",
       "title": "Hardening",
       "source": "docs/hardening.md",
