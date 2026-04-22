@@ -746,11 +746,11 @@ body.wt-ready .topbar-actions {
 .topbar .part-nav a.wt-home-link svg {
   display: block;
 }
-/* "Parts:" label prepended by walkthrough-drag.js once the topbar has
- * mounted. Eight numbered pills read as repetitive "Part 1 Part 2 Part
- * 3…"; this turns it into "Parts: 1 2 3 4 5 6 7 8". The label itself
- * is a <span>, not a pill — same translucent-white as the pill text
- * so it reads as the column header. */
+/* "Parts:" label emitted server-side in the post-processor. Eight
+ * numbered pills read as repetitive "Part 1 Part 2 Part 3…"; this
+ * turns it into "Parts: 1 2 3 4 5 6 7 8". The label itself is a
+ * <span>, not a pill — same translucent-white as the pill text so
+ * it reads as the column header. */
 .topbar .part-nav .wt-parts-label {
   color: rgba(255, 255, 255, 0.72);
   margin-right: 4px;
@@ -759,6 +759,15 @@ body.wt-ready .topbar-actions {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 600;
+}
+/* Per-pill section count (inside each numbered part pill). Muted
+ * relative to the pill's primary number so the count reads as meta
+ * rather than competing with the pill label. Same convention as the
+ * index TOC row counts. */
+.topbar .part-nav a .wt-pill-count {
+  margin-left: 4px;
+  opacity: 0.65;
+  font-weight: 400;
 }
 /* Dark theme keeps the same purple band — docs.socket.dev uses the
  * same header in both modes, deepened slightly against the near-black

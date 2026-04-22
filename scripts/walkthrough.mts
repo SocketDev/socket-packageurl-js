@@ -472,6 +472,25 @@ async function generate(
   for (const p of walkthroughConfig.parts ?? []) {
     partTitles.set(p.id, p.title)
   }
+
+  // Pull per-part section counts off the emitted index page. Meander
+  // computes them while rendering — cheaper + more reliable than
+  // re-parsing every part page here. Matches the TOC row shape:
+  //   <li><a href="/<slug>/part/<n>">…</a> <span class="ok">(N sections)</span></li>
+  // Used below to append "(N)" to each numbered pill so users see
+  // section-depth info from any page, not just the TOC.
+  const partCounts = new Map<number, number>()
+  const indexPath = path.join(walkthroughDir, 'index.html')
+  if (existsSync(indexPath)) {
+    const indexHtml = readFileSync(indexPath, 'utf8')
+    const countRe = new RegExp(
+      `/${slug}/part/(\\d+)[^<]*</a>\\s*<span[^>]*>\\((\\d+)\\s+sections?\\)`,
+      'g',
+    )
+    for (const m of indexHtml.matchAll(countRe)) {
+      partCounts.set(Number(m[1]), Number(m[2]))
+    }
+  }
   if (commentBackend && existsSync(commentsSrc)) {
     copyFileSync(
       commentsSrc,
@@ -611,20 +630,28 @@ async function generate(
     ) {
       html = html.replace(
         '<div class="part-nav">',
-        '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></a>',
+        '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></a><span class="wt-parts-label">Parts:</span>',
       )
     }
 
-    // Enrich numbered Part pills with the section title. Meander emits
-    // `<a ... href="/<slug>/part/<n>">Part <n></a>` with no accessible
-    // context — a screen reader just hears "Part 1, Part 2, …". Add
-    // title + aria-label carrying the real section name so keyboard
-    // and AT users get the same information as the tooltip. Runs
-    // BEFORE the base-path rewrite so the `/part/<n>` shape is still
-    // intact and easy to match. Idempotent via the aria-label probe.
+    // Enrich each numbered Part pill. Meander emits
+    //   `<a ... href="/<slug>/part/<n>">Part <n></a>`
+    // with no accessible context — a screen reader just hears
+    // "Part 1, Part 2, …". We rewrite:
+    //   1. Opening tag: add title + aria-label carrying the real
+    //      section name so keyboard + AT users get the same info
+    //      as the tooltip.
+    //   2. Inner text: strip the "Part " prefix (the pill-row has
+    //      its own "Parts:" label; each pill just needs the number)
+    //      and append "(M)" with the per-part section count, same
+    //      as what the TOC shows. Users see section-depth info on
+    //      every page, not just the index.
+    // Runs BEFORE the base-path rewrite so the `/part/<n>` shape is
+    // still intact and easy to match. Idempotent via the aria-label
+    // probe.
     if (slug && partTitles.size > 0) {
       const partPillRe = new RegExp(
-        `(<a\\b)((?:(?!aria-label)[^>])*\\bhref="/${slug}/part/(\\d+)"[^>]*)>`,
+        `(<a\\b)((?:(?!aria-label)[^>])*\\bhref="/${slug}/part/(\\d+)"[^>]*)>Part \\3</a>`,
         'g',
       )
       html = html.replace(partPillRe, (match, open, attrs, n) => {
@@ -632,8 +659,12 @@ async function generate(
         if (!title) {
           return match
         }
-        const fullLabel = `Part ${n}: ${title.replace(/"/g, '&quot;')}`
-        return `${open}${attrs} title="${fullLabel}" aria-label="${fullLabel}">`
+        const count = partCounts.get(Number(n))
+        const fullLabel = `Part ${n}: ${title.replace(/"/g, '&quot;')}${count ? ` (${count} sections)` : ''}`
+        const countSpan = count
+          ? ` <span class="wt-pill-count">(${count})</span>`
+          : ''
+        return `${open}${attrs} title="${fullLabel}" aria-label="${fullLabel}">${n}${countSpan}</a>`
       })
     }
 
