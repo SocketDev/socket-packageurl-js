@@ -13,6 +13,162 @@
         "src/purl-component.ts",
         "src/constants.ts"
       ]
+    },
+    {
+      "id": 2,
+      "title": "Building & Stringifying PURLs",
+      "objective": "Build PURLs with the fluent PurlBuilder API; serialize back to canonical `pkg:...` string form.",
+      "keywords": [
+        "builder",
+        "fluent",
+        "stringify",
+        "serialization",
+        "canonical"
+      ],
+      "files": ["src/package-url-builder.ts", "src/stringify.ts"]
+    },
+    {
+      "id": 3,
+      "title": "Parsing & Normalization",
+      "objective": "Percent-encoding, name/namespace normalization, and the known-qualifiers catalogue (checksum, download_url, file_name, repository_url, vcs_url, vers).",
+      "keywords": [
+        "encode",
+        "decode",
+        "percent-encoding",
+        "normalize",
+        "qualifiers"
+      ],
+      "files": [
+        "src/encode.ts",
+        "src/decode.ts",
+        "src/normalize.ts",
+        "src/purl-qualifier-names.ts"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Validation, Errors & Results",
+      "objective": "Shape + format validation, the Result<T,E> functional error pattern (Ok/Err/ResultUtils), typed errors (PurlError, PurlInjectionError), and per-ecosystem rule plumbing.",
+      "keywords": [
+        "validate",
+        "result",
+        "error",
+        "ok",
+        "err",
+        "purl-type"
+      ],
+      "files": [
+        "src/validate.ts",
+        "src/result.ts",
+        "src/error.ts",
+        "src/purl-type.ts"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "URL ↔ PURL Conversion",
+      "objective": "Convert between repository/download URLs and PURLs — ~25 ecosystem URL parsers, toDownloadUrl, toRepositoryUrl, getAllUrls.",
+      "keywords": [
+        "url-converter",
+        "url",
+        "repository",
+        "download",
+        "vcs"
+      ],
+      "files": ["src/url-converter.ts"]
+    },
+    {
+      "id": 6,
+      "title": "Ecosystems",
+      "objective": "Per-ecosystem normalize/validate/encode rules across all 41 supported package ecosystems.",
+      "keywords": [
+        "ecosystem",
+        "purl-types",
+        "npm",
+        "maven",
+        "cargo",
+        "docker",
+        "pypi",
+        "deb",
+        "rpm",
+        "github"
+      ],
+      "files": [
+        "src/purl-types/alpm.ts",
+        "src/purl-types/apk.ts",
+        "src/purl-types/bazel.ts",
+        "src/purl-types/bitbucket.ts",
+        "src/purl-types/bitnami.ts",
+        "src/purl-types/cargo.ts",
+        "src/purl-types/cocoapods.ts",
+        "src/purl-types/composer.ts",
+        "src/purl-types/conan.ts",
+        "src/purl-types/conda.ts",
+        "src/purl-types/cpan.ts",
+        "src/purl-types/cran.ts",
+        "src/purl-types/deb.ts",
+        "src/purl-types/docker.ts",
+        "src/purl-types/gem.ts",
+        "src/purl-types/generic.ts",
+        "src/purl-types/github.ts",
+        "src/purl-types/gitlab.ts",
+        "src/purl-types/golang.ts",
+        "src/purl-types/hackage.ts",
+        "src/purl-types/hex.ts",
+        "src/purl-types/huggingface.ts",
+        "src/purl-types/julia.ts",
+        "src/purl-types/luarocks.ts",
+        "src/purl-types/maven.ts",
+        "src/purl-types/mlflow.ts",
+        "src/purl-types/npm.ts",
+        "src/purl-types/nuget.ts",
+        "src/purl-types/oci.ts",
+        "src/purl-types/opam.ts",
+        "src/purl-types/otp.ts",
+        "src/purl-types/pub.ts",
+        "src/purl-types/pypi.ts",
+        "src/purl-types/qpkg.ts",
+        "src/purl-types/rpm.ts",
+        "src/purl-types/socket.ts",
+        "src/purl-types/swid.ts",
+        "src/purl-types/swift.ts",
+        "src/purl-types/unknown.ts",
+        "src/purl-types/vscode-extension.ts",
+        "src/purl-types/yocto.ts"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Comparison, Matching & Existence",
+      "objective": "Compare + equal + match PURLs with wildcard patterns (ReDoS-protected); registry existence checks (npmExists, pypiExists, and friends).",
+      "keywords": [
+        "compare",
+        "equals",
+        "matches",
+        "wildcard",
+        "exists",
+        "registry"
+      ],
+      "files": [
+        "src/compare.ts",
+        "src/exists.ts",
+        "src/purl-exists.ts",
+        "src/helpers.ts"
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Security Primitives & VERS",
+      "objective": "Injection-character detection for safe PURL handling (containsInjectionCharacters, findInjectionCharCode), safe object freezing, and VERS — the pre-standard version-range specifier slated for Ecma submission in late 2026.",
+      "keywords": [
+        "security",
+        "injection",
+        "freeze",
+        "vers",
+        "version-range",
+        "pre-standard"
+      ],
+      "files": ["src/strings.ts", "src/objects.ts", "src/vers.ts"]
     }
   ]
 }
