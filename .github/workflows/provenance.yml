@@ -32,7 +32,7 @@ jobs:
       debug: ${{ inputs.debug }}
       dist-tag: ${{ inputs.dist-tag }}
       package-name: '@socketregistry/packageurl-js'
-      publish-script: 'release:ci'
+      publish-script: 'publish:ci'
       setup-script: 'ci:validate'
       use-trusted-publishing: true
     secrets:

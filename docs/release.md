@@ -36,7 +36,7 @@ Three things happen, in order:
  ┌───────────────────────────────────────────────────────────────┐
  │  3. the workflow (calling the fleet's shared provenance.yml):  │
  │     ci:validate  → pnpm check + build + coverage               │
- │     release:ci  → npm publish --provenance                     │
+ │     publish:ci  → npm publish --provenance                     │
  │     Socket.dev  → post-publish malware audit                   │
  │     Sigstore    → attestation published                        │
  └───────────────────────────────────────────────────────────────┘
@@ -59,7 +59,7 @@ with:
   debug: ${{ inputs.debug }}
   dist-tag: ${{ inputs.dist-tag }}
   package-name: '@socketregistry/packageurl-js'
-  publish-script: 'release:ci'
+  publish-script: 'publish:ci'
   setup-script: 'ci:validate'
   use-trusted-publishing: true
 secrets:
@@ -76,7 +76,7 @@ Key choices:
 - **`setup-script: 'ci:validate'`** — runs `pnpm check` in a clean
   env before the publish starts. Publication aborts if any check
   fails.
-- **`publish-script: 'release:ci'`** — the npm script the workflow
+- **`publish-script: 'publish:ci'`** — the npm script the workflow
   invokes to actually publish. Wraps `npm publish --provenance`.
 
 ### The dist-tag input
@@ -250,11 +250,11 @@ consequences (integrity mismatches, dependency confusion risks).
 - **Publishing from a non-clean tree.** The workflow runs
   `ci:validate`, but if a bump commit bundles unrelated changes,
   those ship too. Keep bump commits single-purpose.
-- **`release:ci` vs `publish:ci` script name drift.** The workflow
-  calls `release:ci`. Confirm `package.json` has that script name;
-  otherwise the workflow falls over with "script not found." (If
-  renamed, update either this file and the workflow, or the
-  script, in the same PR.)
+- **`publish-script` drift.** The workflow calls the npm script
+  whose name is in `publish-script` (currently `publish:ci`). If
+  `package.json`'s script is ever renamed, update both the
+  workflow input and this doc in the same PR — otherwise the
+  workflow fails with "script not found."
 - **Trusted publisher misconfig.** If the npm-side trusted-publisher
   config for this repo is removed or the workflow file is renamed,
   publishes will fail with a 403. Check npm's trusted publisher
