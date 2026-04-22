@@ -298,6 +298,10 @@ again.
 </when-not-to-use>
 
 <further-reading>
+- [reference.md](./reference.md) — extended reference: edge cases,
+  manifest types beyond `tour.json`, acronym / proper-noun handling,
+  decision history for the 8 current filenames, rejected candidates,
+  regex/validator quick-checks.
 - `CLAUDE.md` § ERROR MESSAGES — the error-shape the filename
   validator uses when it rejects a bad filename.
 - `docs/pages-design-system.md` — the surrounding design system for
