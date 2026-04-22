@@ -301,32 +301,34 @@ html[data-theme='dark'] .file-grid > .code-section:hover {
   margin: 0 0 16px 0;
 }
 
-/* Index-page TOC list. Meander's default was a tight bullet list that
- * read as cramped against the generous topbar above it. Bump the item
- * font + line-height, space the bullets, and add a hover tint on the
- * link. Bullets get the muted-lavender tint so they don't compete
- * with the part titles. */
-.annotation-card > ul {
+/* Index-page TOC list. Meander emits <ul> but our post-processor
+ * rewrites it to <ol class="wt-parts-ol"> + strips the "Part N: "
+ * prefix from each link — so the list marker carries the number
+ * and the title stands alone. Muted-lavender markers + section
+ * counts keep the meta visually behind the titles. Hover tint on
+ * each row for affordance. */
+.annotation-card .wt-parts-ol {
   margin: 0;
-  padding-left: 1.5em;
-  list-style: disc;
+  padding-left: 2em;
+  list-style: decimal;
 }
-.annotation-card > ul > li {
+.annotation-card .wt-parts-ol > li {
   padding: 8px 0;
   font-size: 16px;
   line-height: 1.5;
   color: var(--muted-lavender);
 }
-.annotation-card > ul > li::marker {
+.annotation-card .wt-parts-ol > li::marker {
   color: var(--muted-lavender);
+  font-weight: 600;
 }
-.annotation-card > ul > li > a {
+.annotation-card .wt-parts-ol > li > a {
   border-radius: 4px;
   padding: 2px 4px;
   margin: -2px -4px;
   transition: background var(--transition-fast);
 }
-.annotation-card > ul > li > a:hover {
+.annotation-card .wt-parts-ol > li > a:hover {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 

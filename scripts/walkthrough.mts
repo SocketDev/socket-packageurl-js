@@ -637,6 +637,29 @@ async function generate(
       })
     }
 
+    // Index-page TOC cleanup. Meander emits `<ul><li><a>Part N: Title</a>
+    // <span class="ok">(M sections)</span></li>…`. Two tweaks:
+    //   - Swap <ul> → <ol> so numbers come from the list marker, not
+    //     the link text. Users read "1. Anatomy of a PURL" instead of
+    //     "• Part 1: Anatomy of a PURL".
+    //   - Strip the "Part N: " prefix from each link so the title
+    //     alone carries the line, no duplication with the list marker.
+    // Only applies to the index page (has <h3>Parts</h3> + ul with
+    // /part/<n> hrefs) — part pages don't have this shape.
+    if (entry === 'index.html' && html.includes('<h3>Parts</h3>')) {
+      html = html.replace(
+        /(<h3>Parts<\/h3>\s*)<ul>([\s\S]*?)<\/ul>/,
+        (_m, head, body) => `${head}<ol class="wt-parts-ol">${body}</ol>`,
+      )
+      // Strip the "Part N: " prefix from the visible link text — the
+      // list marker already supplies the number. aria-label + title
+      // keep the full "Part N: <title>" for screen readers / tooltips.
+      html = html.replace(
+        /(<a\s[^>]*\bhref="\/[^"]+\/part\/\d+"[^>]*>)Part \d+:\s*/g,
+        '$1',
+      )
+    }
+
     // Base-path rewrite — last step so every injected tag above gets
     // prefixed in one pass. No-op when --base-path is empty (local dev,
     // Val Town hosting, etc.).
