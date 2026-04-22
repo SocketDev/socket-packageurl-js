@@ -167,7 +167,8 @@ async function findTextFiles(
 // rewrites CDN URLs for SRI + CSP enforcement. The validator's intent
 // ("no accidental CDN runtime dependencies") doesn't apply here.
 const ALLOWED_FILES = [
-  /no-cdn-refs\.(m?[jt]s|cjs)$/, // self-skip
+  // Self-skip — this file mentions CDN domains to describe the rule.
+  /no-cdn-refs\.(m?[jt]s|cjs)$/,
   // Build tooling for the walkthrough pilot — these files enumerate,
   // fetch, hash, and rewrite CDN references so they can ship with
   // integrity + CSP hashes. Any CDN reference in them is in the

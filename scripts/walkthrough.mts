@@ -465,11 +465,18 @@ async function generate(
 
   // Per-HTML post-processing: strip meander's inlined comment scripts
   // (when we're replacing them) and inject our own <script> tags.
+  // Each entry is a unique string present in one of meander's inline
+  // scripts — we match on the marker and delete the whole <script>...
+  // </script> block. Ordered by the file each marker comes from:
+  //   1. comment-client.js
+  //   2. unresolved-comments.js
+  //   3. export-comments.js
+  //   4. line-select.js (if present)
   const COMMENT_SCRIPT_MARKERS = [
-    'var apiBase = "/" + slug + "/api/comments";', // comment-client.js
-    'var apiBase = "/" + slug + "/api/comments/unresolved";', // unresolved-comments.js
-    '"/" + slug + "/api/comments/export";', // export-comments.js
-    'LINE_SELECT_INIT', // line-select.js marker (if any)
+    'var apiBase = "/" + slug + "/api/comments";',
+    'var apiBase = "/" + slug + "/api/comments/unresolved";',
+    '"/" + slug + "/api/comments/export";',
+    'LINE_SELECT_INIT',
   ]
   const dragTag = '<script src="/walkthrough-drag.js" defer></script>'
   const commentsTag = '<script src="/walkthrough-comments.js" defer></script>'

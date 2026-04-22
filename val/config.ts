@@ -53,11 +53,17 @@ export const EMAIL_FROM = {
 }
 export const EMAIL_REPLY_TO = 'security@socket.dev'
 
-// Timings
+// Timings (all seconds). Multiplication form is kept so the unit is
+// visible at the call site without having to consult a comment.
+// 10 min — how long a freshly-emailed login code remains valid.
 export const CODE_TTL_SECONDS = 60 * 10
+// 24 h — JWT session lifetime.
 export const SESSION_TTL_SECONDS = 60 * 60 * 24
+// 10 min — rolling window for the verify-attempt rate-limit counter.
 export const VERIFY_WINDOW_SECONDS = 10 * 60
-export const AUDIT_RETENTION_SECONDS = 60 * 60 * 24 * 90 // 90 days
+// 90 days — how long audit-log rows survive before cleanup.
+export const AUDIT_RETENTION_SECONDS = 60 * 60 * 24 * 90
+// 24 h — how long login_codes + verify_attempts rows survive.
 export const LOGIN_CODE_RETENTION_SECONDS = 60 * 60 * 24
 
 // Rate limits
