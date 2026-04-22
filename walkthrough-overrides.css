@@ -704,7 +704,7 @@ body.wt-ready .topbar-actions {
   margin-right: 8px;
 }
 .topbar .part-nav a.wt-home-link::before {
-  content: '‹ ';
+  content: '« ';
   margin-right: 2px;
   opacity: 0.8;
 }
