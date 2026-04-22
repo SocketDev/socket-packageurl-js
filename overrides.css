@@ -359,6 +359,14 @@ html[data-theme='synthwave'] .topbar {
   letter-spacing: 0;
 }
 
+/* Quieter technical tag inside the wordmark ("Socket PackageURL .js
+ * Tour"). Keeps the signal, lets the product name carry the weight. */
+.topbar h1 .wt-tech-tag {
+  font-weight: 400;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
 .topbar p {
   display: none;
 }

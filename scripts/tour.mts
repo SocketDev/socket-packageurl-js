@@ -1147,6 +1147,16 @@ async function generate(
       // `/walkthrough*` reference — keep the site self-consistent.
       html = html.replaceAll('/walkthrough.css', '/style.css')
 
+      // De-emphasize the `.js` suffix inside the topbar wordmark. The
+      // site is about the PURL library; the `.js` tag is a technical
+      // qualifier that should sit quieter than the name itself. Wrap
+      // it in a span the CSS can dim. Index-only — part/doc pages
+      // carry a different h1 (part title) that we leave alone.
+      html = html.replace(
+        /<h1>Socket PackageURL\.js Tour<\/h1>/,
+        '<h1>Socket PackageURL<span class="wt-tech-tag">.js</span> Tour</h1>',
+      )
+
       // Strip meander's inlined comment scripts when replacing with ours.
       if (commentBackend) {
         html = stripInlinedCommentScripts(html, COMMENT_SCRIPT_MARKERS)
