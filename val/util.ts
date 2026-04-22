@@ -34,20 +34,22 @@ export const getIp = (c: Context): string =>
 
 // Read a JSON body with a hard byte cap. A client can't DOS us by
 // streaming an enormous request — anything over `maxBytes` returns
-// null and the caller emits 400. Returns null on parse errors too so
-// call sites only check for one failure mode.
+// undefined and the caller emits 400. Parse errors return undefined
+// too so call sites only check for one failure mode. Using undefined
+// (not null) keeps the absent-value signal consistent with TS defaults
+// (optional fields, early returns, etc.).
 export const readBoundedJson = async <T>(
   c: Context,
   maxBytes: number,
-): Promise<T | null> => {
+): Promise<T | undefined> => {
   try {
     const text = await c.req.text()
     if (text.length > maxBytes) {
-      return null
+      return undefined
     }
     return JSON.parse(text) as T
   } catch {
-    return null
+    return undefined
   }
 }
 
