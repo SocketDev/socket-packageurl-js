@@ -61,7 +61,12 @@
     "type": "tsgo --noEmit -p .config/tsconfig.check.json",
     "update": "node scripts/update.mts",
     "update:data:npm": "node scripts/update-data-npm.mts",
-    "walkthrough": "node scripts/walkthrough.mts"
+    "walkthrough": "node scripts/walkthrough.mts",
+    "walkthrough:build": "node scripts/walkthrough.mts generate walkthrough.json",
+    "walkthrough:build:prod": "node scripts/walkthrough.mts --minify --base-path=/socket-packageurl-js generate walkthrough.json",
+    "walkthrough:serve": "node scripts/walkthrough.mts serve",
+    "walkthrough:dev": "node scripts/walkthrough.mts generate walkthrough.json && node scripts/walkthrough.mts serve",
+    "walkthrough:deploy:val": "node scripts/walkthrough.mts deploy-val"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "2.1.92",
