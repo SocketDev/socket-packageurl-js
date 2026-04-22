@@ -90,22 +90,37 @@ The umbrella rule: never run a git command that mutates state belonging to a pat
 
 ## ERROR MESSAGES
 
-Errors are a UX surface. When validating config or enforcing invariants, every error message must let the reader fix the problem without reading the source. Four ingredients, in order:
+Errors are a UX surface. Every error message must let the reader fix the problem without reading the source. Four ingredients, in order:
 
 1. **What**: the rule that was violated (the contract, not the symptom)
 2. **Where**: the exact file, key, line, or record — never "somewhere in config"
 3. **Saw vs. wanted**: the offending value and the allowed shape/set
 4. **Fix**: one concrete action to resolve it
 
-- Write the fix step in the imperative (`add "filename" to part 3`), not passive narration (`"filename" was missing`)
-- Never say "invalid" without what made it invalid. `invalid filename 'My Part'` is a symptom; `filename 'My Part' must be [a-z]+ (lowercase, no spaces)` is a rule
-- If two records collide, name both — not just the second one found
-- Suggest, don't auto-correct. An error that silently repairs state hides the bug in the next run
+Find the balance between terse and meaningful — meaningful does not mean bloated:
 
-Example — validator on `tour.json`:
+- **Library-API errors** (thrown from the published package to its callers): terse. A caller catching and asserting on the message needs it short and stable. The four ingredients may collapse into one line; `name "__proto__" cannot start with an underscore` carries all four (what = start-rule, where = name component, saw = `__proto__`, fix implied by the rule).
+- **Validator / config errors** (build-time, developer-facing): verbose. The reader is staring at a file, needs to find the offending record, and won't re-run the tool to spot the next hit. Every ingredient gets its own words.
+- **Programmatic errors** (internal assertions, invariant checks): terse, rule-only. No caller will parse the message; terse keeps the check readable.
+
+Baseline rules that apply to all three:
+
+- Write the fix step in the imperative (`add "filename" to part 3`), not passive narration (`"filename" was missing`).
+- Never say "invalid" without what made it invalid. `invalid filename 'My Part'` is a symptom; `filename 'My Part' must be [a-z]+ (lowercase, no spaces)` is a rule.
+- If two records collide, name both — not just the second one found.
+- Suggest, don't auto-correct. An error that silently repairs state hides the bug in the next run.
+- Bloat test: if removing a word loses information, keep it. If removing it loses only rhythm, drop it.
+
+Example — validator on `tour.json` (verbose form, one record per run):
 
 - ✗ `Error: invalid tour config`
 - ✓ `tour.json: part 3 ("Parsing & Normalization") is missing "filename". Add a single-word lowercase filename (e.g. "parsing") to this part — one per part is required to route /<slug>/part/3 at publish time.`
+
+Example — library API error (terse form, caught in user code):
+
+- ✗ `Error: invalid component` (misses what / saw)
+- ✗ `The "name" component of type "npm" failed validation because the provided value "" is empty, which is not allowed because names are required; please provide a non-empty name.` (bloated — restates the rule three times)
+- ✓ `npm "name" component is a required component` (rule + where + implicit saw=missing)
 
 ## ABSOLUTE RULES
 
