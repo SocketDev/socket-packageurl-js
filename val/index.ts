@@ -1,5 +1,5 @@
 /**
- * @fileoverview Socket walkthrough comment backend — HTTP entry point.
+ * @fileoverview Socket tour comment backend — HTTP entry point.
  *
  * Composes modules:
  *   config          — env vars + constants

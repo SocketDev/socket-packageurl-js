@@ -77,7 +77,7 @@ export const registerAuthRequest = (app: Hono<AppEnv>): void => {
           to: rawEmail,
           from: EMAIL_FROM,
           replyTo: EMAIL_REPLY_TO,
-          subject: 'Your Socket walkthrough login code',
+          subject: 'Your Socket tour login code',
           html: renderLoginEmail(code),
           text: renderLoginEmailText(code),
         })

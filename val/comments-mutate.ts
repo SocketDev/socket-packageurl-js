@@ -39,7 +39,7 @@ export const registerCommentMutateRoutes = (
     }
     // Load the row first so we can confirm it exists AND that the
     // requester owns it. 404 vs 403 is deliberate: leaking "this id
-    // exists but you can't touch it" is fine for a walkthrough — it
+    // exists but you can't touch it" is fine for a tour — it
     // doesn't expose anything sensitive about the comment contents.
     const existing = await sqlite.execute({
       sql: 'SELECT author FROM comments WHERE id = :id AND slug = :slug',

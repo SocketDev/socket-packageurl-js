@@ -4,7 +4,7 @@
  * All three are read-only queries against the comments table, so they
  * share a file. Each requires auth (no anonymous browsing) but none
  * enforce author-only filters — any authed user can see every comment
- * on the walkthrough.
+ * on the tour.
  */
 
 import type { Context, Hono, Next } from 'npm:hono@4.12.14'
@@ -38,7 +38,7 @@ export const registerCommentReadRoutes = (
 
   // Dump all (or unresolved-only) comments as a JSON bundle for
   // offline archival / review. Single round-trip, no pagination —
-  // walkthroughs are small enough that the full list is fine.
+  // tours are small enough that the full list is fine.
   app.get('/:slug/api/comments/export', requireAuth, async c => {
     await ensureDb
     const slug = c.req.param('slug')
@@ -57,7 +57,7 @@ export const registerCommentReadRoutes = (
     })
   })
 
-  // List comments for a single walkthrough part. Part ID capped so a
+  // List comments for a single tour part. Part ID capped so a
   // malformed query string can't produce an inefficient index scan.
   app.get('/:slug/api/comments', requireAuth, async c => {
     await ensureDb

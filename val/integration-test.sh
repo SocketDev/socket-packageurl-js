@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Live integration tests for the Socket walkthrough comment val.
+# Live integration tests for the Socket tour comment val.
 # Runs against a deployed Val Town URL. Does NOT require Deno or Node.
 #
 # Usage:
@@ -12,7 +12,7 @@
 #   - SQLite persistence
 #   - Email sending (manual step — check inbox)
 #
-# Run after `pnpm walkthrough deploy-val` + secret config. Expected env
+# Run after `pnpm tour:valtown` + secret config. Expected env
 # vars:
 #   VAL_URL                  URL of deployed val
 #   TEST_EMAIL               a @socket.dev address you control
