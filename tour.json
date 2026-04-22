@@ -180,6 +180,12 @@
       "summary": "The PurlBuilder fluent API — construct a PackageURL step by step with per-field setters and per-ecosystem factories."
     },
     {
+      "filename": "contributing",
+      "title": "Contributing",
+      "source": "docs/contributing.md",
+      "summary": "Dev setup, test layout, the parallel-sessions git workflow, and the full pre-PR checklist."
+    },
+    {
       "filename": "converters",
       "title": "Converters",
       "source": "docs/converters.md",
