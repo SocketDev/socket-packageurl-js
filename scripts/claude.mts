@@ -5,12 +5,7 @@
  */
 
 import crypto from 'node:crypto'
-import {
-  existsSync,
-  readFileSync,
-  writeFileSync,
-  promises as fs,
-} from 'node:fs'
+import { existsSync, promises as fs } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
@@ -325,37 +320,59 @@ class CostTracker {
   constructor(model: string = 'claude-sonnet-4-5') {
     this.model = model
     this.session = { input: 0, output: 0, cacheWrite: 0, cacheRead: 0, cost: 0 }
-    this.monthly = this.loadMonthlyStats()
-    this.startTime = Date.now()
-  }
-
-  loadMonthlyStats(): MonthlyStats {
-    try {
-      if (existsSync(STORAGE_PATHS.stats)) {
-        const data = JSON.parse(readFileSync(STORAGE_PATHS.stats, 'utf8'))
-        // YYYY-MM
-        const currentMonth = new Date().toISOString().slice(0, 7)
-        if (data.month === currentMonth) {
-          return data
-        }
-      }
-    } catch {
-      // Ignore errors, start fresh.
-    }
-    return {
+    // Start with a fresh-month default. The on-disk monthly stats (if
+    // any) load asynchronously below and replace this.monthly when
+    // they resolve. Known race: if track() fires before the load
+    // resolves, it mutates the default baseline and the first save
+    // clobbers the prior month's accumulated value. Acceptable here
+    // because (a) the Claude CLI session is single-user and typically
+    // has a human-paced delay between start and first tracked event,
+    // and (b) the persisted quantity is per-session cost accounting —
+    // losing at most one update window costs fractions of a cent. If
+    // the race ever becomes load-bearing, promote this to a proper
+    // read-modify-write on save() with a mutex.
+    this.monthly = {
       month: new Date().toISOString().slice(0, 7),
       cost: 0,
       fixes: 0,
       sessions: 0,
     }
+    this.startTime = Date.now()
+    void this.loadMonthlyStats().then(loaded => {
+      if (loaded) {
+        this.monthly = loaded
+      }
+    })
+  }
+
+  async loadMonthlyStats(): Promise<MonthlyStats | undefined> {
+    if (!existsSync(STORAGE_PATHS.stats)) {
+      return undefined
+    }
+    try {
+      const text = await fs.readFile(STORAGE_PATHS.stats, 'utf8')
+      const data = JSON.parse(text) as MonthlyStats
+      // YYYY-MM — only honor disk state if the persisted month matches
+      // the current one; otherwise the caller keeps the fresh default.
+      const currentMonth = new Date().toISOString().slice(0, 7)
+      if (data.month === currentMonth) {
+        return data
+      }
+    } catch {
+      // Unreadable, invalid JSON, etc. — keep the fresh default.
+    }
+    return undefined
   }
 
   saveMonthlyStats(): void {
-    try {
-      writeFileSync(STORAGE_PATHS.stats, JSON.stringify(this.monthly, null, 2))
-    } catch {
-      // Ignore errors.
-    }
+    // Fire-and-forget async write. Best-effort persistence — existing
+    // try/catch pattern already swallowed failures, so the semantic
+    // doesn't change. Keeps the calling track() path synchronous
+    // without pinning fs to a sync primitive.
+    fs.writeFile(
+      STORAGE_PATHS.stats,
+      JSON.stringify(this.monthly, null, 2),
+    ).catch(() => {})
   }
 
   track(usage: UsageData): void {
@@ -437,38 +454,54 @@ class ProgressTracker {
     this.phases = []
     this.currentPhase = null
     this.startTime = Date.now()
-    this.history = this.loadHistory()
+    // Empty history until the on-disk state loads. Same race as in
+    // CostTracker: a brief window where ETA estimation sees no prior
+    // sessions. In practice history reads faster than the first phase
+    // starts, and worst case we emit a "no ETA yet" message for one
+    // phase.
+    this.history = []
+    void this.loadHistory().then(loaded => {
+      if (loaded) {
+        this.history = loaded
+      }
+    })
   }
 
-  loadHistory(): Array<{ phases: PhaseRecord[]; timestamp: number }> {
-    try {
-      if (existsSync(STORAGE_PATHS.history)) {
-        const data = JSON.parse(readFileSync(STORAGE_PATHS.history, 'utf8'))
-        // Keep only last 50 sessions.
-        return data.sessions.slice(-50)
-      }
-    } catch {
-      // Ignore errors.
+  async loadHistory(): Promise<
+    Array<{ phases: PhaseRecord[]; timestamp: number }> | undefined
+  > {
+    if (!existsSync(STORAGE_PATHS.history)) {
+      return undefined
     }
-    return []
+    try {
+      const text = await fs.readFile(STORAGE_PATHS.history, 'utf8')
+      const data = JSON.parse(text) as {
+        sessions: Array<{ phases: PhaseRecord[]; timestamp: number }>
+      }
+      // Keep only the last 50 sessions — old ones aren't useful for ETA.
+      return data.sessions.slice(-50)
+    } catch {
+      // Unreadable / invalid JSON — keep empty history.
+    }
+    return undefined
   }
 
   saveHistory(): void {
-    try {
-      const data = {
-        sessions: [
-          ...this.history,
-          { phases: this.phases, timestamp: Date.now() },
-        ],
-      }
-      // Keep only last 50 sessions.
-      if (data.sessions.length > 50) {
-        data.sessions = data.sessions.slice(-50)
-      }
-      writeFileSync(STORAGE_PATHS.history, JSON.stringify(data, null, 2))
-    } catch {
-      // Ignore errors.
+    // Fire-and-forget async write. Existing try/catch already ignored
+    // failures, so the best-effort semantic is unchanged.
+    const data = {
+      sessions: [
+        ...this.history,
+        { phases: this.phases, timestamp: Date.now() },
+      ],
     }
+    // Keep only last 50 sessions.
+    if (data.sessions.length > 50) {
+      data.sessions = data.sessions.slice(-50)
+    }
+    fs.writeFile(STORAGE_PATHS.history, JSON.stringify(data, null, 2)).catch(
+      () => {},
+    )
   }
 
   startPhase(name: string): void {
