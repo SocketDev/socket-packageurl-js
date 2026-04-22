@@ -1,8 +1,8 @@
 /* Walkthrough interactivity:
  *   • Draggable splitter between prose and code columns (per file),
  *     updating --col-split on :root.
- *   • Theme toggle (light/dark) in the topbar, setting data-theme on
- *     <html>.
+ *   • Theme toggle (system/light/dark/synthwave) in the topbar,
+ *     setting data-theme on <html>.
  * Both preferences persist to localStorage. Splitter uses Pointer
  * Events so the handle works with mouse, touch, and pen input. */
 {
@@ -60,6 +60,23 @@
     <path class="theme-star" d="M18.3707 1C18.3707 3.22825 16.2282 5.37069 14 5.37069C16.2282 5.37069 18.3707 7.51313 18.3707 9.74138C18.3707 7.51313 20.5132 5.37069 22.7414 5.37069C20.5132 5.37069 18.3707 3.22825 18.3707 1Z"/>
   `,
     },
+    synthwave: {
+      label: "Synthwave '84",
+      style: 'outline',
+      path: `
+    <rect x="2.3" y="5.3" width="19.4" height="13.4" rx="1.5" stroke-width="1"/>
+    <rect x="4" y="6.6" width="16" height="5" rx=".4" stroke-width=".5"/>
+    <path d="M6 10.65H8.8" stroke-width=".5"/>
+    <circle cx="8" cy="14.55" r="1.8" stroke-width=".5"/>
+    <circle cx="16" cy="14.55" r="1.8" stroke-width=".5"/>
+    <g stroke-width=".5"><path d="M8 12.85V16.25"/><path d="M6.5 13.75 9.5 15.35"/><path d="M6.5 15.35 9.5 13.75"/><path d="M16 12.85V16.25"/><path d="M14.5 13.75 17.5 15.35"/><path d="M14.5 15.35 17.5 13.75"/></g>
+    <path d="M10 14.15H14" stroke-width=".5"/>
+    <path d="M10 14.95H14" stroke-width=".5"/>
+    <path d="M7 17.3H9" stroke-width=".5"/>
+    <path d="M15 17.3H17" stroke-width=".5"/>
+    <g transform="translate(12 9.3)rotate(-8)scale(1.25)translate(-11.6 -9)" stroke-width=".7"><path transform="translate(.5 -.3)" d="M10.2 7.7C9.3 7.7 9.2 8.6 10 9 10.9 9.4 11.1 10.4 10 10.4 8.9 10.4 9.1 9.4 10 9 10.8 8.7 10.9 7.7 10.1 7.7Z"/><path d="M8.7 7.6Q8.5 8 8.6 8.4"/><path d="M14.4 7.6V10.5"/><path d="M12.7 9.5H14.6"/><path d="M12.8 9.5 13.9 7.7"/></g>
+  `,
+    },
   }
   const themeIconSvg = (pref, extraClass = '') => {
     const { style, path } = THEME_ICONS[pref]
@@ -110,12 +127,12 @@
   }
   const persist = value => storageSet(SPLIT_KEY, String(value))
 
-  // Theme preference is one of 'system' | 'light' | 'dark'. 'system'
-  // means no explicit pref — follow prefers-color-scheme. Stored as
-  // THEME_KEY in localStorage (absent = system).
+  // Theme preference is one of 'system' | 'light' | 'dark' | 'synthwave'.
+  // 'system' means no explicit pref — follow prefers-color-scheme.
+  // Stored as THEME_KEY in localStorage (absent = system).
   const readStoredTheme = () => {
     const t = storageGet(THEME_KEY)
-    return t === 'dark' || t === 'light' ? t : 'system'
+    return t === 'dark' || t === 'light' || t === 'synthwave' ? t : 'system'
   }
   const persistTheme = theme =>
     storageSet(THEME_KEY, theme === 'system' ? null : theme)
@@ -124,8 +141,9 @@
     window.matchMedia &&
     window.matchMedia('(prefers-color-scheme: dark)').matches
 
-  // Resolve a preference ('system'|'light'|'dark') to the effective
-  // theme that actually applies on <html>.
+  // Resolve a preference ('system'|'light'|'dark'|'synthwave') to the
+  // effective theme that actually applies on <html>. 'synthwave' passes
+  // through — it's its own palette, not a light/dark variant.
   const resolveTheme = pref =>
     pref === 'system' ? (systemPrefersDark() ? 'dark' : 'light') : pref
 
@@ -134,10 +152,10 @@
   }
 
   // Current resolved theme (what <html data-theme> actually is).
-  const currentResolved = () =>
-    document.documentElement.getAttribute('data-theme') === 'dark'
-      ? 'dark'
-      : 'light'
+  const currentResolved = () => {
+    const t = document.documentElement.getAttribute('data-theme')
+    return t === 'dark' || t === 'synthwave' ? t : 'light'
+  }
 
   const installThemeToggle = () => {
     if (document.querySelector('.theme-toggle')) {
