@@ -459,10 +459,19 @@ async function generate(
     ? (JSON.parse(readFileSync(path.resolve(configPath), 'utf8')) as {
         slug?: string
         commentBackend?: string
+        parts?: Array<{ id: number; title: string }>
       })
     : {}
   const commentBackend = walkthroughConfig.commentBackend || ''
   const slug = walkthroughConfig.slug || ''
+  // Map part-id → title for the post-processor to inject as aria-label
+  // on each numbered part pill. Without this, screen readers announce
+  // each pill as just "Part 1", "Part 2", …; with it, they get the
+  // real section title ("Anatomy of a PURL" etc.).
+  const partTitles = new Map<number, string>()
+  for (const p of walkthroughConfig.parts ?? []) {
+    partTitles.set(p.id, p.title)
+  }
   if (commentBackend && existsSync(commentsSrc)) {
     copyFileSync(
       commentsSrc,
@@ -591,19 +600,41 @@ async function generate(
       html = html.replace('</body>', `  ${footerTag}\n</body>`)
     }
 
-    // Inject a "All parts" home link at the front of the part-nav on
-    // every part page. Meander's emitted topbar only has the numbered
-    // Part pills — users clicking a part had no one-click way back to
-    // the TOC. Index page has no `.part-nav` so the replace is a
-    // no-op there (the TOC IS the index). Idempotent via class marker.
+    // Inject a home link at the front of the part-nav on every part
+    // page. Meander's emitted topbar only has the numbered Part pills —
+    // users clicking a part had no one-click way back to the TOC.
+    // Index page has no `.part-nav` so the replace is a no-op there
+    // (the TOC IS the index). Idempotent via class marker.
     if (
       html.includes('<div class="part-nav">') &&
       !html.includes('wt-home-link')
     ) {
       html = html.replace(
         '<div class="part-nav">',
-        '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the walkthrough index" title="Back to index"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></a>',
+        '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></a>',
       )
+    }
+
+    // Enrich numbered Part pills with the section title. Meander emits
+    // `<a ... href="/<slug>/part/<n>">Part <n></a>` with no accessible
+    // context — a screen reader just hears "Part 1, Part 2, …". Add
+    // title + aria-label carrying the real section name so keyboard
+    // and AT users get the same information as the tooltip. Runs
+    // BEFORE the base-path rewrite so the `/part/<n>` shape is still
+    // intact and easy to match. Idempotent via the aria-label probe.
+    if (slug && partTitles.size > 0) {
+      const partPillRe = new RegExp(
+        `(<a\\b)((?:(?!aria-label)[^>])*\\bhref="/${slug}/part/(\\d+)"[^>]*)>`,
+        'g',
+      )
+      html = html.replace(partPillRe, (match, open, attrs, n) => {
+        const title = partTitles.get(Number(n))
+        if (!title) {
+          return match
+        }
+        const fullLabel = `Part ${n}: ${title.replace(/"/g, '&quot;')}`
+        return `${open}${attrs} title="${fullLabel}" aria-label="${fullLabel}">`
+      })
     }
 
     // Base-path rewrite — last step so every injected tag above gets

@@ -298,7 +298,36 @@ html[data-theme='dark'] .file-grid > .code-section:hover {
   letter-spacing: 0.08em;
   font-weight: 600;
   color: var(--eyebrow);
-  margin: 0 0 6px 0;
+  margin: 0 0 16px 0;
+}
+
+/* Index-page TOC list. Meander's default was a tight bullet list that
+ * read as cramped against the generous topbar above it. Bump the item
+ * font + line-height, space the bullets, and add a hover tint on the
+ * link. Bullets get the muted-lavender tint so they don't compete
+ * with the part titles. */
+.annotation-card > ul {
+  margin: 0;
+  padding-left: 1.5em;
+  list-style: disc;
+}
+.annotation-card > ul > li {
+  padding: 8px 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--muted-lavender);
+}
+.annotation-card > ul > li::marker {
+  color: var(--muted-lavender);
+}
+.annotation-card > ul > li > a {
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: background var(--transition-fast);
+}
+.annotation-card > ul > li > a:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 /* The first annotation inside each file-block is almost always file
