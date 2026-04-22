@@ -94,7 +94,9 @@ const regexSemverNumberedGroups = ObjectFreeze(
 function parseSemver(version: string): SemverParts {
   const match = RegExpPrototypeExec(regexSemverNumberedGroups, version)
   if (!match) {
-    throw new PurlError(`invalid semver version "${version}"`)
+    throw new PurlError(
+      `semver version "${version}" must match MAJOR.MINOR.PATCH (e.g. "1.2.3")`,
+    )
   }
   const major = Number(match[1])
   const minor = Number(match[2])
@@ -225,7 +227,9 @@ function parseConstraint(raw: string): VersConstraint {
   }
   // Bare version implies equality
   if (trimmed.length === 0) {
-    throw new PurlError('empty constraint')
+    throw new PurlError(
+      'VERS constraint must not be empty (use "*" for the wildcard)',
+    )
   }
   return ObjectFreeze({
     __proto__: null,

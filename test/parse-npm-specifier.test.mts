@@ -216,13 +216,13 @@ describe('parseNpmSpecifier', () => {
 
     it('should throw on invalid scoped package (missing slash)', () => {
       expect(() => parseNpmSpecifier('@babel')).toThrow(
-        'Invalid scoped package specifier.',
+        'npm scoped specifier must contain "/" after scope',
       )
     })
 
     it('should throw on invalid scoped package (only @ symbol)', () => {
       expect(() => parseNpmSpecifier('@')).toThrow(
-        'Invalid scoped package specifier.',
+        'npm scoped specifier must contain "/" after scope',
       )
     })
   })

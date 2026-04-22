@@ -310,7 +310,7 @@ describe('PackageURL', () => {
               undefined,
               undefined,
             ),
-        ).toThrow(/contains an illegal character|cannot start with a number/)
+        ).toThrow(/must match \[A-Za-z0-9\.\\-\]|cannot start with a number/)
       },
     )
 
@@ -730,7 +730,7 @@ describe('PackageURL', () => {
 
     it('should reject invalid scoped package format', () => {
       expect(() => PackageURL.fromNpm('@babel')).toThrow(
-        'Invalid scoped package specifier',
+        'npm scoped specifier must contain "/" after scope',
       )
     })
   })
@@ -803,7 +803,7 @@ describe('PackageURL', () => {
       )
 
       expect(() => PackageURL.fromSpec('npm', '@babel')).toThrow(
-        'Invalid scoped package specifier',
+        'npm scoped specifier must contain "/" after scope',
       )
     })
 

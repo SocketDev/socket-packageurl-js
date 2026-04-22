@@ -909,7 +909,7 @@ describe('Edge cases and additional coverage', () => {
           validateQualifierKey(value as string, opts),
         'key',
         'key!invalid' as unknown,
-        /qualifier "key!invalid" contains an illegal character/,
+        /qualifier key "key!invalid" must match \[a-z0-9\.\\-_\]/,
         'validkey' as unknown,
       ],
       [
@@ -927,7 +927,7 @@ describe('Edge cases and additional coverage', () => {
           validateType(value, opts),
         'type',
         'type$illegal' as unknown,
-        /type "type\$illegal" contains an illegal character/,
+        /type "type\$illegal" must match \[A-Za-z0-9\.\\-\]/,
         'validtype' as unknown,
       ],
       [
@@ -1209,7 +1209,7 @@ describe('Edge cases and additional coverage', () => {
       // Test lines 73-76 - illegal character in key
       expect(() =>
         validateQualifierKey('key!invalid', { throws: true }),
-      ).toThrow(/qualifier "key!invalid" contains an illegal character/)
+      ).toThrow(/qualifier key "key!invalid" must match \[a-z0-9\.\\-_\]/)
 
       expect(validateQualifierKey('key!invalid', { throws: false })).toBe(false)
     })
@@ -1842,7 +1842,7 @@ describe('Edge cases and additional coverage', () => {
 
       // Test URL parsing failure (line 145 branch) - malformed URL
       expect(() => PackageURL.fromString('pkg::')).toThrow(
-        'type ":" contains an illegal character',
+        'type ":" must match [A-Za-z0-9.\\-]',
       )
 
       // Test the maybeUrlWithAuth branch where afterColon.length !== trimmedAfterColon.length

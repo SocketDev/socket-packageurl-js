@@ -390,7 +390,9 @@ export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
     // Find the second slash (after @scope/)
     const slashIndex = StringPrototypeIndexOf(specifier, '/')
     if (slashIndex === -1) {
-      throw new Error('Invalid scoped package specifier.')
+      throw new Error(
+        'npm scoped specifier must contain "/" after scope (e.g. "@scope/name").',
+      )
     }
 
     // Find the @ after the scope

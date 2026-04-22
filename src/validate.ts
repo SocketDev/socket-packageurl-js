@@ -195,7 +195,7 @@ function validateQualifierKey(
       )
     ) {
       if (throws) {
-        throw new PurlError(`qualifier "${key}" contains an illegal character`)
+        throw new PurlError(`qualifier key "${key}" must match [a-z0-9.\\-_]`)
       }
       return false
     }
@@ -455,7 +455,7 @@ function validateType(
       )
     ) {
       if (throws) {
-        throw new PurlError(`type "${type}" contains an illegal character`)
+        throw new PurlError(`type "${type}" must match [A-Za-z0-9.\\-]`)
         /* v8 ignore next -- Unreachable code after throw. */
       }
       return false
