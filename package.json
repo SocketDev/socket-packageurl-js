@@ -65,8 +65,8 @@
     "walkthrough:build": "node scripts/walkthrough.mts generate walkthrough.json",
     "walkthrough:build:prod": "node scripts/walkthrough.mts --minify --base-path=/socket-packageurl-js generate walkthrough.json",
     "walkthrough:serve": "node scripts/walkthrough.mts serve",
-    "walkthrough:dev": "node scripts/walkthrough.mts generate walkthrough.json && node scripts/walkthrough.mts serve",
-    "walkthrough:deploy:val": "node scripts/walkthrough.mts deploy-val"
+    "walkthrough:watch": "node scripts/walkthrough.mts watch walkthrough.json",
+    "walkthrough:val": "node scripts/walkthrough.mts deploy-val"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "2.1.92",

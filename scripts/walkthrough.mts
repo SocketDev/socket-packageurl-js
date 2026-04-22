@@ -896,6 +896,107 @@ function serve(basePath: string, args: readonly string[]): void {
   })
 }
 
+/**
+ * Watch mode — generate once, start the server, then debounced
+ * regenerate when any source file (shim, CSS, SW, walkthrough.json,
+ * the annotated source tree) changes. Uses Node's built-in fs.watch
+ * — no chokidar dep — and debounces at 200 ms so an editor's
+ * multi-save-in-quick-succession writes only trigger one rebuild.
+ */
+async function watch(
+  refresh: boolean,
+  minify: boolean,
+  basePath: string,
+  rest: readonly string[],
+): Promise<void> {
+  if (rest.length === 0) {
+    console.error('Usage: pnpm walkthrough watch <walkthrough.json>')
+    process.exit(1)
+  }
+
+  // Import fs.watch lazily so we don't pay the import cost on other
+  // subcommands. Node 20+ supports `recursive: true` on all platforms.
+  const { watch: fsWatch } = await import('node:fs')
+
+  // Initial build before we start the server. This also populates
+  // walkthroughDir so `serve` has something to serve on first request.
+  await generate(refresh, minify, basePath, rest)
+
+  // Start the server. `serve` blocks on its own createServer; since
+  // we're about to install watchers on the main loop, kicking it off
+  // first keeps the process alive without explicit setInterval.
+  serve(basePath, [])
+
+  // Files/directories that should trigger a rebuild when they change.
+  // Keep this narrow — watching the entire repo would catch noise
+  // from test output, node_modules, walkthrough/ itself, etc.
+  const configArg = rest[0]!
+  const sourcesToWatch: string[] = [
+    path.join(repoRoot, configArg),
+    path.join(repoRoot, 'walkthrough-comments.js'),
+    path.join(repoRoot, 'walkthrough-drag.js'),
+    path.join(repoRoot, 'walkthrough-overrides.css'),
+    path.join(repoRoot, 'walkthrough-sw.js'),
+    path.join(repoRoot, 'src'),
+  ]
+
+  let debounceTimer: NodeJS.Timeout | undefined
+  let building = false
+  let dirtyWhileBuilding = false
+
+  const rebuild = async () => {
+    if (building) {
+      dirtyWhileBuilding = true
+      return
+    }
+    building = true
+    try {
+      await generate(refresh, minify, basePath, rest)
+      console.log(`[watch] rebuilt at ${new Date().toLocaleTimeString()}`)
+    } catch (err) {
+      console.error(
+        `[watch] rebuild failed:`,
+        err instanceof Error ? err.message : String(err),
+      )
+    } finally {
+      building = false
+      if (dirtyWhileBuilding) {
+        dirtyWhileBuilding = false
+        // Another change landed while we were busy — queue a fresh pass.
+        scheduleRebuild()
+      }
+    }
+  }
+
+  const scheduleRebuild = (): void => {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer)
+    }
+    debounceTimer = setTimeout(() => {
+      debounceTimer = undefined
+      rebuild()
+    }, 200)
+  }
+
+  for (const target of sourcesToWatch) {
+    if (!existsSync(target)) {
+      continue
+    }
+    fsWatch(target, { recursive: true }, (_event, filename) => {
+      // Ignore writes to the output directory itself — generate() writes
+      // into walkthroughDir, which would otherwise loop-trigger.
+      if (filename && filename.startsWith('walkthrough/')) {
+        return
+      }
+      scheduleRebuild()
+    })
+  }
+
+  console.log(
+    `[watch] watching ${sourcesToWatch.length} source targets — Ctrl+C to stop.`,
+  )
+}
+
 // Shared fail-handler for async subcommands. `err.message || err` was
 // duplicated at every call site; a named helper also guarantees the
 // prefix format and exit code stay in sync across commands.
@@ -933,6 +1034,9 @@ function main(): void {
     case 'serve':
       serve(basePath, rest.slice(1))
       break
+    case 'watch':
+      watch(refresh, minify, basePath, rest.slice(1)).catch(failWith('watch'))
+      break
     case 'deploy-val':
       deployVal(rest.slice(1)).catch(failWith('deploy-val'))
       break
@@ -946,7 +1050,8 @@ function main(): void {
       console.error(
         'Usage:\n' +
           '  pnpm walkthrough [--refresh] [--minify] [--base-path=/prefix] generate <walkthrough.json>\n' +
-          '  pnpm walkthrough serve [--port=8080]\n' +
+          '  pnpm walkthrough [--base-path=/prefix] serve [--port=8080]\n' +
+          '  pnpm walkthrough [--minify] [--base-path=/prefix] watch <walkthrough.json>\n' +
           '  pnpm walkthrough deploy-val [--name=<valname>]\n' +
           '  pnpm walkthrough token <set|clear|status>\n' +
           '  pnpm walkthrough doctor',
