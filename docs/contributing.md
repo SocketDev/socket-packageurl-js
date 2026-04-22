@@ -14,11 +14,11 @@ change → Running checks → Opening the PR**.
 
 Requirements:
 
-| Tool | Version | Notes |
-|---|---|---|
-| Node.js | ≥ 22 | Built-in TypeScript stripping (`--experimental-strip-types` on 22, default on 23+). |
-| pnpm | ≥ 11.0.0-rc.0 | Install via `corepack enable pnpm` or `npm install -g pnpm`. |
-| git | ≥ 2.30 | Submodule support. |
+| Tool    | Version       | Notes                                                                               |
+| ------- | ------------- | ----------------------------------------------------------------------------------- |
+| Node.js | ≥ 22          | Built-in TypeScript stripping (`--experimental-strip-types` on 22, default on 23+). |
+| pnpm    | ≥ 11.0.0-rc.0 | Install via `corepack enable pnpm` or `npm install -g pnpm`.                        |
+| git     | ≥ 2.30        | Submodule support.                                                                  |
 
 Clone and install:
 
@@ -99,9 +99,9 @@ Per `CLAUDE.md`:
 
 Two vitest configs:
 
-| Config | When | File naming |
-|---|---|---|
-| `.config/vitest.config.mts` | Normal tests. Threads, shared memory. Fast. | `*.test.mts` |
+| Config                               | When                                                                                                      | File naming           |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------- | --------------------- |
+| `.config/vitest.config.mts`          | Normal tests. Threads, shared memory. Fast.                                                               | `*.test.mts`          |
 | `.config/vitest.config.isolated.mts` | Tests that mock globals via `vi.doMock`, modify `process.env`, or `process.chdir`. Forks, full isolation. | `*.isolated.test.mts` |
 
 **Test style in this repo:** functional. Tests assert behavior via
@@ -143,18 +143,18 @@ It runs:
 
 Every step runs independently too:
 
-| Command | What |
-|---|---|
-| `pnpm build` | Compile `src/` → `dist/` (esbuild). `pnpm build --watch` for dev. |
-| `pnpm type` | Strict TypeScript check, no emit. |
-| `pnpm lint` | oxlint. |
-| `pnpm fix` | Auto-fix what's auto-fixable (formatter + lint autofixes). |
-| `pnpm test` | Run vitest. `pnpm test:unit path/to/file.test.mts` for a single file. Never use `--` before test paths — runs ALL tests. |
-| `pnpm testu` | Update vitest snapshots (review the diff before committing). |
-| `pnpm cover` | Coverage. Must stay at 100%. |
-| `pnpm format` | Run oxfmt across the tree (writes fixes). |
-| `pnpm format --check` | Verify formatting without writing. |
-| `pnpm security` | AgentShield + zizmor security scan. |
+| Command               | What                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm build`          | Compile `src/` → `dist/` (esbuild). `pnpm build --watch` for dev.                                                        |
+| `pnpm type`           | Strict TypeScript check, no emit.                                                                                        |
+| `pnpm lint`           | oxlint.                                                                                                                  |
+| `pnpm fix`            | Auto-fix what's auto-fixable (formatter + lint autofixes).                                                               |
+| `pnpm test`           | Run vitest. `pnpm test:unit path/to/file.test.mts` for a single file. Never use `--` before test paths — runs ALL tests. |
+| `pnpm testu`          | Update vitest snapshots (review the diff before committing).                                                             |
+| `pnpm cover`          | Coverage. Must stay at 100%.                                                                                             |
+| `pnpm format`         | Run oxfmt across the tree (writes fixes).                                                                                |
+| `pnpm format --check` | Verify formatting without writing.                                                                                       |
+| `pnpm security`       | AgentShield + zizmor security scan.                                                                                      |
 
 ### Coverage — the 100% rule
 

@@ -29,7 +29,7 @@ different parsers just to answer "does version 1.4.2 satisfy this
 range?"
 
 VERS proposes a single grammar that any consumer can parse, with
-a `scheme` field telling you how to *compare* versions within the
+a `scheme` field telling you how to _compare_ versions within the
 range (semver semantics, PEP 440 semantics, etc.):
 
 ```
@@ -106,7 +106,7 @@ with Ecma submission planned for **late 2026**. That means:
   behavior, review every release's changelog for spec-driven
   changes. We flag them prominently.
 
-If you need a stable version-range system *today*, use the native
+If you need a stable version-range system _today_, use the native
 one for your ecosystem. VERS is for tooling that spans ecosystems
 and is willing to absorb some pre-standard churn in exchange for
 uniformity.
@@ -116,17 +116,17 @@ uniformity.
 This library's `Vers` class currently supports the **semver
 comparison scheme** and its common aliases:
 
-| Scheme | Notes |
-|---|---|
-| `semver` | Reference semver 2.0.0 comparison |
-| `npm` | Same as semver (npm follows semver) |
-| `cargo` | Same as semver (cargo follows semver, with pre-release tail differences) |
-| `golang` | Same as semver |
-| `hex` | Same as semver (Elixir/Erlang) |
-| `pub` | Same as semver (Dart) |
-| `cran` | Same as semver |
-| `gem` | Same as semver |
-| `swift` | Same as semver |
+| Scheme   | Notes                                                                    |
+| -------- | ------------------------------------------------------------------------ |
+| `semver` | Reference semver 2.0.0 comparison                                        |
+| `npm`    | Same as semver (npm follows semver)                                      |
+| `cargo`  | Same as semver (cargo follows semver, with pre-release tail differences) |
+| `golang` | Same as semver                                                           |
+| `hex`    | Same as semver (Elixir/Erlang)                                           |
+| `pub`    | Same as semver (Dart)                                                    |
+| `cran`   | Same as semver                                                           |
+| `gem`    | Same as semver                                                           |
+| `swift`  | Same as semver                                                           |
 
 Unsupported-but-declared schemes (`pypi`, `maven`, `nuget`, `deb`,
 `rpm`, …) parse as VERS grammar but throw when a comparison is
@@ -185,18 +185,18 @@ in the VERS accepts the version. For the semver scheme that means:
 
 ```typescript
 const range = Vers.parse('vers:npm/>=1.0.0|<2.0.0')
-range.contains('1.5.0')  // true
-range.contains('2.5.0')  // true (matches the >=1.0.0 constraint)
-range.contains('0.9.0')  // true (matches <2.0.0)
+range.contains('1.5.0') // true
+range.contains('2.5.0') // true (matches the >=1.0.0 constraint)
+range.contains('0.9.0') // true (matches <2.0.0)
 // (OR semantics — most versions satisfy this particular range)
 ```
 
 Prerelease ordering follows semver 2.0.0:
 
 ```typescript
-compareSemver('1.0.0-alpha', '1.0.0')          // -1 (alpha precedes)
+compareSemver('1.0.0-alpha', '1.0.0') // -1 (alpha precedes)
 compareSemver('1.0.0-alpha.1', '1.0.0-alpha.2') // -1 (numeric compare)
-compareSemver('1.0.0-alpha.1', '1.0.0-alpha')   // 1  (longer > shorter)
+compareSemver('1.0.0-alpha.1', '1.0.0-alpha') // 1  (longer > shorter)
 ```
 
 Build metadata (`+xyz`) is ignored in comparisons, per semver.
@@ -207,7 +207,7 @@ Build metadata (`+xyz`) is ignored in comparisons, per semver.
 
 ```typescript
 const v = Vers.parse('vers:npm/>=1.0.0|<2.0.0')
-v.toString()  // 'vers:npm/>=1.0.0|<2.0.0'
+v.toString() // 'vers:npm/>=1.0.0|<2.0.0'
 ```
 
 Round-tripping is lossless — `Vers.parse(v.toString())` always
@@ -218,13 +218,13 @@ redundant whitespace; the string form strips.)
 
 Cheat sheet for the most common patterns:
 
-| Intent | VERS |
-|---|---|
-| Exactly version X | `vers:npm/=X` |
-| Any version | `vers:npm/*` |
-| ≥ X | `vers:npm/>=X` |
-| Strict greater than X | `vers:npm/>X` |
-| Everything except X | `vers:npm/!=X` |
+| Intent                                              | VERS                                                                                                                                       |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Exactly version X                                   | `vers:npm/=X`                                                                                                                              |
+| Any version                                         | `vers:npm/*`                                                                                                                               |
+| ≥ X                                                 | `vers:npm/>=X`                                                                                                                             |
+| Strict greater than X                               | `vers:npm/>X`                                                                                                                              |
+| Everything except X                                 | `vers:npm/!=X`                                                                                                                             |
 | "X inclusive through Y exclusive" (intent: `[X,Y)`) | **Not expressible directly** — VERS uses OR between constraints; use your ecosystem's native range or pair a lower bound with a validator. |
 
 Note the last row — **VERS constraints OR together**, so writing

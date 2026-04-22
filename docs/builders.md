@@ -14,12 +14,12 @@ adding a new ecosystem factory.
 
 ## When to use what
 
-| You have… | Use |
-|---|---|
-| All six pieces in hand at once | `new PackageURL(type, ns, name, version, qualifiers, subpath)` — positional, fastest. |
-| A loop / conditional that sets fields over time | `PurlBuilder` — method chaining, field-by-field. |
+| You have…                                          | Use                                                                                                     |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| All six pieces in hand at once                     | `new PackageURL(type, ns, name, version, qualifiers, subpath)` — positional, fastest.                   |
+| A loop / conditional that sets fields over time    | `PurlBuilder` — method chaining, field-by-field.                                                        |
 | An existing PackageURL and want to tweak one field | `PurlBuilder.from(existing).name('new').build()` — creates a fresh instance since PackageURL is frozen. |
-| A string from the wire | `new PackageURL(str)` or `PackageURL.fromStringResult(str)` — see `docs/hardening.md`. |
+| A string from the wire                             | `new PackageURL(str)` or `PackageURL.fromStringResult(str)` — see `docs/hardening.md`.                  |
 
 The builder is not faster than the constructor; it is easier to
 read when construction is spread across code.
@@ -48,16 +48,16 @@ or a value fails its component's validator, `build()` throws.
 
 ## The setters
 
-| Method | Sets | Notes |
-|---|---|---|
-| `.type(str)` | The package type (`npm`, `pypi`, `maven`, …). Required. | Lowercased. Must match a registered `PurlType`. |
-| `.namespace(str)` | Namespace / scope / group (e.g. `@scope` for npm, `org.acme` for maven). Optional. | Normalization depends on type. npm lowercases; maven preserves case. |
-| `.name(str)` | Package name. Required. | Same as namespace — normalization per type. |
-| `.version(str)` | Version string. Optional. | Free-form; validated for injection chars but not semver-shape (ecosystems disagree). |
-| `.qualifier(key, value)` | One key-value qualifier. Add many by chaining multiple calls. | See the known-qualifier list below. |
-| `.qualifiers(obj)` | Set all qualifiers at once from an object. | Replaces any previously-set qualifiers. |
-| `.subpath(str)` | Subpath within the package (e.g. `lib/utils`). Optional. | Leading/trailing slashes are stripped. |
-| `.build()` | Finalize. | Throws on invalid. |
+| Method                   | Sets                                                                               | Notes                                                                                |
+| ------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `.type(str)`             | The package type (`npm`, `pypi`, `maven`, …). Required.                            | Lowercased. Must match a registered `PurlType`.                                      |
+| `.namespace(str)`        | Namespace / scope / group (e.g. `@scope` for npm, `org.acme` for maven). Optional. | Normalization depends on type. npm lowercases; maven preserves case.                 |
+| `.name(str)`             | Package name. Required.                                                            | Same as namespace — normalization per type.                                          |
+| `.version(str)`          | Version string. Optional.                                                          | Free-form; validated for injection chars but not semver-shape (ecosystems disagree). |
+| `.qualifier(key, value)` | One key-value qualifier. Add many by chaining multiple calls.                      | See the known-qualifier list below.                                                  |
+| `.qualifiers(obj)`       | Set all qualifiers at once from an object.                                         | Replaces any previously-set qualifiers.                                              |
+| `.subpath(str)`          | Subpath within the package (e.g. `lib/utils`). Optional.                           | Leading/trailing slashes are stripped.                                               |
+| `.build()`               | Finalize.                                                                          | Throws on invalid.                                                                   |
 
 ## The per-ecosystem factories
 
@@ -72,33 +72,33 @@ PurlBuilder.npm().name('lodash').version('4.17.21').build()
 
 Available factories:
 
-| Factory | Ecosystem | Preset type |
-|---|---|---|
-| `PurlBuilder.bitbucket()` | Bitbucket repos | `bitbucket` |
-| `PurlBuilder.cargo()` | Rust crates | `cargo` |
-| `PurlBuilder.cocoapods()` | iOS/macOS pods | `cocoapods` |
-| `PurlBuilder.composer()` | PHP packages | `composer` |
-| `PurlBuilder.conan()` | C/C++ (Conan Center) | `conan` |
-| `PurlBuilder.conda()` | Conda packages | `conda` |
-| `PurlBuilder.cran()` | R packages | `cran` |
-| `PurlBuilder.deb()` | Debian packages | `deb` |
-| `PurlBuilder.docker()` | Docker images | `docker` |
-| `PurlBuilder.gem()` | Ruby gems | `gem` |
-| `PurlBuilder.github()` | GitHub repos | `github` |
-| `PurlBuilder.gitlab()` | GitLab repos | `gitlab` |
-| `PurlBuilder.golang()` | Go modules | `golang` |
-| `PurlBuilder.hackage()` | Haskell packages | `hackage` |
-| `PurlBuilder.hex()` | Elixir/Erlang packages | `hex` |
-| `PurlBuilder.huggingface()` | Hugging Face models | `huggingface` |
-| `PurlBuilder.luarocks()` | Lua packages | `luarocks` |
-| `PurlBuilder.maven()` | Maven Central | `maven` |
-| `PurlBuilder.npm()` | npm packages | `npm` |
-| `PurlBuilder.nuget()` | .NET packages | `nuget` |
-| `PurlBuilder.oci()` | OCI containers | `oci` |
-| `PurlBuilder.pub()` | Dart/Flutter | `pub` |
-| `PurlBuilder.pypi()` | Python packages | `pypi` |
-| `PurlBuilder.rpm()` | RPM packages | `rpm` |
-| `PurlBuilder.swift()` | Swift packages | `swift` |
+| Factory                     | Ecosystem              | Preset type   |
+| --------------------------- | ---------------------- | ------------- |
+| `PurlBuilder.bitbucket()`   | Bitbucket repos        | `bitbucket`   |
+| `PurlBuilder.cargo()`       | Rust crates            | `cargo`       |
+| `PurlBuilder.cocoapods()`   | iOS/macOS pods         | `cocoapods`   |
+| `PurlBuilder.composer()`    | PHP packages           | `composer`    |
+| `PurlBuilder.conan()`       | C/C++ (Conan Center)   | `conan`       |
+| `PurlBuilder.conda()`       | Conda packages         | `conda`       |
+| `PurlBuilder.cran()`        | R packages             | `cran`        |
+| `PurlBuilder.deb()`         | Debian packages        | `deb`         |
+| `PurlBuilder.docker()`      | Docker images          | `docker`      |
+| `PurlBuilder.gem()`         | Ruby gems              | `gem`         |
+| `PurlBuilder.github()`      | GitHub repos           | `github`      |
+| `PurlBuilder.gitlab()`      | GitLab repos           | `gitlab`      |
+| `PurlBuilder.golang()`      | Go modules             | `golang`      |
+| `PurlBuilder.hackage()`     | Haskell packages       | `hackage`     |
+| `PurlBuilder.hex()`         | Elixir/Erlang packages | `hex`         |
+| `PurlBuilder.huggingface()` | Hugging Face models    | `huggingface` |
+| `PurlBuilder.luarocks()`    | Lua packages           | `luarocks`    |
+| `PurlBuilder.maven()`       | Maven Central          | `maven`       |
+| `PurlBuilder.npm()`         | npm packages           | `npm`         |
+| `PurlBuilder.nuget()`       | .NET packages          | `nuget`       |
+| `PurlBuilder.oci()`         | OCI containers         | `oci`         |
+| `PurlBuilder.pub()`         | Dart/Flutter           | `pub`         |
+| `PurlBuilder.pypi()`        | Python packages        | `pypi`        |
+| `PurlBuilder.rpm()`         | RPM packages           | `rpm`         |
+| `PurlBuilder.swift()`       | Swift packages         | `swift`       |
 
 Generic entry points:
 
@@ -113,14 +113,14 @@ Generic entry points:
 Qualifiers are an open key-value space, but the PURL spec (and
 downstream tooling) standardizes a few:
 
-| Qualifier | Meaning |
-|---|---|
-| `checksum` | Digest of the artifact (e.g. `sha256:abc…`). |
-| `download_url` | Direct URL to download the artifact. |
-| `file_name` | Filename of the distributed artifact (e.g. `tar.gz`, `whl`). |
-| `repository_url` | URL of the source repository. |
-| `vcs_url` | VCS (git/hg) URL, including commit reference. |
-| `vers` | A VERS range (see `docs/vers.md`) constraining the version. |
+| Qualifier        | Meaning                                                      |
+| ---------------- | ------------------------------------------------------------ |
+| `checksum`       | Digest of the artifact (e.g. `sha256:abc…`).                 |
+| `download_url`   | Direct URL to download the artifact.                         |
+| `file_name`      | Filename of the distributed artifact (e.g. `tar.gz`, `whl`). |
+| `repository_url` | URL of the source repository.                                |
+| `vcs_url`        | VCS (git/hg) URL, including commit reference.                |
+| `vers`           | A VERS range (see `docs/vers.md`) constraining the version.  |
 
 The library knows these keys and normalizes their values; custom
 keys pass through untouched. See
@@ -159,7 +159,10 @@ const purl = PurlBuilder.pypi()
   .name('requests')
   .version('2.31.0')
   .qualifier('extension', 'tar.gz')
-  .qualifier('download_url', 'https://files.pythonhosted.org/…/requests-2.31.0.tar.gz')
+  .qualifier(
+    'download_url',
+    'https://files.pythonhosted.org/…/requests-2.31.0.tar.gz',
+  )
   .build()
 
 purl.toString()
@@ -174,8 +177,8 @@ Note that qualifiers are alphabetized in the canonical output.
 const original = new PackageURL('npm', undefined, 'lodash', '4.17.20')
 const updated = PurlBuilder.from(original).version('4.17.21').build()
 
-original.toString()  // 'pkg:npm/lodash@4.17.20' (unchanged; frozen)
-updated.toString()   // 'pkg:npm/lodash@4.17.21'
+original.toString() // 'pkg:npm/lodash@4.17.20' (unchanged; frozen)
+updated.toString() // 'pkg:npm/lodash@4.17.21'
 ```
 
 `PurlBuilder.from()` is the only sanctioned way to produce a
@@ -221,9 +224,7 @@ object already.
 The builder does **not** validate as you set — so:
 
 ```typescript
-PurlBuilder.create()
-  .type('npm')
-  .name('')       // empty name — won't error here
+PurlBuilder.create().type('npm').name('') // empty name — won't error here
 ```
 
 Validation runs when you call `.build()`. That call constructs a

@@ -150,7 +150,14 @@ Two entry points:
 **Constructor** (all-at-once):
 
 ```typescript
-new PackageURL('npm', '@scope', 'left-pad', '1.3.0', { extension: 'tgz' }, 'lib')
+new PackageURL(
+  'npm',
+  '@scope',
+  'left-pad',
+  '1.3.0',
+  { extension: 'tgz' },
+  'lib',
+)
 ```
 
 **Builder** (fluent):
@@ -292,7 +299,7 @@ Two error classes:
 - **`PurlInjectionError`** — the input contained a dangerous
   control character that could desync a downstream consumer (URL
   encoder, shell interpolation, SQL). Thrown before parse — we
-  refuse to even *interpret* input that could smuggle injection
+  refuse to even _interpret_ input that could smuggle injection
   payloads.
 
 See `docs/safety.md` for the threat model.

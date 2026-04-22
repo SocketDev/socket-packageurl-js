@@ -58,12 +58,12 @@ This doc is how the library refuses all six.
 `src/strings.ts` exports `isInjectionCharCode(code: number)`. It
 returns `true` for any character code in one of four classes:
 
-| Class | Codes | Why |
-|---|---|---|
-| **C0 control characters** | `0x00`–`0x1f` | NUL (truncation), TAB / LF / CR (log injection), ESC (terminal escape), everything else in that range |
-| **Shell metacharacters + brackets + quotes** | `0x20` (space), `!`, `"`, `#`, `$`, `%`, `&`, `'`, `(`, `)`, `*`, `;`, `<`, `=`, `>`, `?`, `[`, `\`, `]`, `` ` ``, `{`, `|`, `}`, `~`, DEL | Shell interpretation, SQL quote-escape, URL-fragment injection |
-| **C1 control characters** | `0x80`–`0x9f` | Legacy control bytes; some terminals still act on them |
-| **Unicode invisible/directional** | `U+200B`–`U+200F`, `U+202A`–`U+202E`, `U+2060`, `U+FEFF`, `U+FFFC`, `U+FFFD` | Zero-width chars, bidi override characters (IDN-homograph attacks), BOM, object replacement |
+| Class                                        | Codes                                                                                                                     | Why                                                                                                   |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **C0 control characters**                    | `0x00`–`0x1f`                                                                                                             | NUL (truncation), TAB / LF / CR (log injection), ESC (terminal escape), everything else in that range |
+| **Shell metacharacters + brackets + quotes** | `0x20` (space), `!`, `"`, `#`, `$`, `%`, `&`, `'`, `(`, `)`, `*`, `;`, `<`, `=`, `>`, `?`, `[`, `\`, `]`, `` ` ``, `{`, ` | `, `}`, `~`, DEL                                                                                      | Shell interpretation, SQL quote-escape, URL-fragment injection |
+| **C1 control characters**                    | `0x80`–`0x9f`                                                                                                             | Legacy control bytes; some terminals still act on them                                                |
+| **Unicode invisible/directional**            | `U+200B`–`U+200F`, `U+202A`–`U+202E`, `U+2060`, `U+FEFF`, `U+FFFC`, `U+FFFD`                                              | Zero-width chars, bidi override characters (IDN-homograph attacks), BOM, object replacement           |
 
 Any input containing one of these characters in a component where
 we scan for injection throws `PurlInjectionError` before the
@@ -118,8 +118,8 @@ mutated by a later code path:
 
 ```typescript
 const purl = new PackageURL('npm', undefined, 'safe-pkg', '1.0.0')
-purl.name = 'evil-pkg'       // silently ignored (strict mode: throws)
-purl.qualifiers.key = 'hax'  // silently ignored (strict mode: throws)
+purl.name = 'evil-pkg' // silently ignored (strict mode: throws)
+purl.qualifiers.key = 'hax' // silently ignored (strict mode: throws)
 ```
 
 This matters when a validated PURL is passed through 3+ hops — a
@@ -149,19 +149,19 @@ shape:
 
 - Is grep-able (every one starts with `Invalid purl:`).
 - Never renders attacker-controlled bytes verbatim when injection is
-  detected — the `PurlInjectionError` message says *the char label*
+  detected — the `PurlInjectionError` message says _the char label_
   (e.g. "SPACE", "NUL", "BACKTICK"), not the raw character, so a
   terminal that pipes the log never interprets an ESC sequence the
   attacker embedded.
 
 ## When to call what
 
-| Situation | Use |
-|---|---|
-| Parsing a full PURL string from untrusted input | `new PackageURL(str)` — catches `PurlInjectionError` + `PurlError` |
-| Validating a user-submitted PURL in a form | `PackageURL.fromStringResult(str)` — returns `Result`, collect failures |
+| Situation                                                        | Use                                                                                                                      |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Parsing a full PURL string from untrusted input                  | `new PackageURL(str)` — catches `PurlInjectionError` + `PurlError`                                                       |
+| Validating a user-submitted PURL in a form                       | `PackageURL.fromStringResult(str)` — returns `Result`, collect failures                                                  |
 | Building a PURL from already-trusted pieces (internal codepaths) | `new PackageURL(type, ns, name, version, qualifiers, subpath)` — still runs validation but you know the inputs are clean |
-| Comparing two PURLs | `purl.equals(other)` / `purl.matches(pattern)` — both ReDoS-safe |
+| Comparing two PURLs                                              | `purl.equals(other)` / `purl.matches(pattern)` — both ReDoS-safe                                                         |
 
 For converter utilities (URL → PURL, PURL → URL) see
 `docs/converters.md`; for the builder API see `docs/builders.md`.

@@ -81,13 +81,13 @@ Key choices:
 
 ### The dist-tag input
 
-| Tag | Use |
-|---|---|
-| `latest` | Default. Production release for most consumers. |
-| `next` | Release candidate before cutting `latest`. |
-| `beta` | Pre-release on a feature branch. |
-| `canary` | Experimental / daily / short-lived. |
-| `backport` | Patches to older major lines. |
+| Tag        | Use                                             |
+| ---------- | ----------------------------------------------- |
+| `latest`   | Default. Production release for most consumers. |
+| `next`     | Release candidate before cutting `latest`.      |
+| `beta`     | Pre-release on a feature branch.                |
+| `canary`   | Experimental / daily / short-lived.             |
+| `backport` | Patches to older major lines.                   |
 
 npm shows the `latest` tag by default; other tags require
 `npm install <pkg>@<tag>`. Picking the wrong tag (e.g. `latest` for
@@ -235,7 +235,7 @@ emergencies:
 
 1. Publish a patch release that reverts the bad change.
 2. Use `npm deprecate @socketregistry/packageurl-js@<bad-version>
-   "<reason>"` to mark the bad version deprecated (visible in
+"<reason>"` to mark the bad version deprecated (visible in
    installs, but not removed).
 3. Announce in the repo's CHANGELOG and any Socket channels.
 

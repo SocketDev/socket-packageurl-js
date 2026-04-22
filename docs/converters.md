@@ -46,33 +46,33 @@ When you call `UrlConverter.fromUrl('https://github.com/lodash/lodash')`
 the library dispatches on the URL's hostname. These hostnames are
 registered:
 
-| Hostname | Dispatches to |
-|---|---|
-| `registry.npmjs.org` | npm registry API parser |
-| `www.npmjs.com` | npm website parser (human-facing URLs) |
-| `pypi.org` | pypi |
-| `repo1.maven.org`, `central.maven.org` | maven |
-| `rubygems.org` | gem |
-| `crates.io` | cargo |
-| `www.nuget.org`, `api.nuget.org` | nuget |
-| `pkg.go.dev` | golang |
-| `hex.pm` | hex (Elixir/Erlang) |
-| `pub.dev` | pub (Dart/Flutter) |
-| `packagist.org` | composer (PHP) |
-| `hub.docker.com` | docker |
-| `cocoapods.org` | cocoapods |
-| `hackage.haskell.org` | hackage |
-| `cran.r-project.org` | cran |
-| `anaconda.org` | conda |
-| `metacpan.org` | cpan |
-| `luarocks.org` | luarocks |
-| `swiftpackageindex.com` | swift |
-| `huggingface.co` | huggingface |
-| `marketplace.visualstudio.com` | vscode-extension |
-| `open-vsx.org` | vscode-extension |
-| `github.com` | github (repo PURL) |
-| `gitlab.com` | gitlab |
-| `bitbucket.org` | bitbucket |
+| Hostname                               | Dispatches to                          |
+| -------------------------------------- | -------------------------------------- |
+| `registry.npmjs.org`                   | npm registry API parser                |
+| `www.npmjs.com`                        | npm website parser (human-facing URLs) |
+| `pypi.org`                             | pypi                                   |
+| `repo1.maven.org`, `central.maven.org` | maven                                  |
+| `rubygems.org`                         | gem                                    |
+| `crates.io`                            | cargo                                  |
+| `www.nuget.org`, `api.nuget.org`       | nuget                                  |
+| `pkg.go.dev`                           | golang                                 |
+| `hex.pm`                               | hex (Elixir/Erlang)                    |
+| `pub.dev`                              | pub (Dart/Flutter)                     |
+| `packagist.org`                        | composer (PHP)                         |
+| `hub.docker.com`                       | docker                                 |
+| `cocoapods.org`                        | cocoapods                              |
+| `hackage.haskell.org`                  | hackage                                |
+| `cran.r-project.org`                   | cran                                   |
+| `anaconda.org`                         | conda                                  |
+| `metacpan.org`                         | cpan                                   |
+| `luarocks.org`                         | luarocks                               |
+| `swiftpackageindex.com`                | swift                                  |
+| `huggingface.co`                       | huggingface                            |
+| `marketplace.visualstudio.com`         | vscode-extension                       |
+| `open-vsx.org`                         | vscode-extension                       |
+| `github.com`                           | github (repo PURL)                     |
+| `gitlab.com`                           | gitlab                                 |
+| `bitbucket.org`                        | bitbucket                              |
 
 `UrlConverter.supportsFromUrl(str)` answers "is this URL
 recognized?" without parsing.
@@ -173,10 +173,9 @@ For some ecosystems, the repository URL depends on qualifiers set
 on the PURL:
 
 ```typescript
-const pypiWithRepo = new PackageURL(
-  'pypi', undefined, 'requests', '2.31.0',
-  { repository_url: 'https://github.com/psf/requests' }
-)
+const pypiWithRepo = new PackageURL('pypi', undefined, 'requests', '2.31.0', {
+  repository_url: 'https://github.com/psf/requests',
+})
 UrlConverter.toRepositoryUrl(pypiWithRepo)
 // → { type: 'git', url: 'https://github.com/psf/requests.git' }
 ```
