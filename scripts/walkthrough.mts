@@ -495,12 +495,22 @@ async function generate(
   // work. `updateViaCache:'none'` forces the browser to fetch the SW
   // file itself via HTTP cache (not its own SW cache), so a new
   // deploy's SW is picked up on the next reload.
+  // Skip SW registration on localhost / 127.0.0.1 so rapid iteration
+  // doesn't get stuck on stale cached HTML/assets served by a prior
+  // SW install. If an SW is already registered from a previous load,
+  // unregister it so the very next fetch goes to the network. Prod
+  // (GH Pages) registers normally — cache-first pays off there.
   const swRegisterTag = [
     '<script>',
     "  if ('serviceWorker' in navigator) {",
-    "    addEventListener('load', () => {",
-    "      navigator.serviceWorker.register('/walkthrough-sw.js', { updateViaCache: 'none' }).catch(() => {})",
-    '    })',
+    '    var isLocal = /^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname)',
+    '    if (isLocal) {',
+    '      navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {})',
+    '    } else {',
+    "      addEventListener('load', () => {",
+    "        navigator.serviceWorker.register('/walkthrough-sw.js', { updateViaCache: 'none' }).catch(() => {})",
+    '      })',
+    '    }',
     '  }',
     '</script>',
   ].join('\n  ')
@@ -592,7 +602,7 @@ async function generate(
     ) {
       html = html.replace(
         '<div class="part-nav">',
-        '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the walkthrough table of contents">TOC</a>',
+        '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the walkthrough index" title="Back to index">🏠︎</a>',
       )
     }
 

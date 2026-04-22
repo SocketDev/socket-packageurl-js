@@ -695,18 +695,29 @@ body.wt-ready .topbar-actions {
 .ok {
   color: var(--muted-lavender) !important;
 }
-/* "All parts" home link on every part page. Leading chevron makes it
- * unambiguous it's a back-nav, not another Part pill. Slight right
- * margin + brighter border separate it from the numbered pills so it
- * reads as a distinct category ("root" vs "children"). */
+/* Emoji-only home link on every part page — 🏠 reads as "go back
+ * to the index" without needing a word label. Slight right margin +
+ * brighter border separate it from the numbered Part pills so it
+ * reads as a distinct category ("root" vs "children"). Tooltip
+ * (title attribute on the anchor) carries the label for keyboard /
+ * screen-reader users; visual users read the glyph. */
 .topbar .part-nav a.wt-home-link {
   border-color: rgba(255, 255, 255, 0.55) !important;
   margin-right: 8px;
 }
-.topbar .part-nav a.wt-home-link::before {
-  content: '« ';
-  margin-right: 2px;
-  opacity: 0.8;
+/* "Parts:" label prepended by walkthrough-drag.js once the topbar has
+ * mounted. Eight numbered pills read as repetitive "Part 1 Part 2 Part
+ * 3…"; this turns it into "Parts: 1 2 3 4 5 6 7 8". The label itself
+ * is a <span>, not a pill — same translucent-white as the pill text
+ * so it reads as the column header. */
+.topbar .part-nav .wt-parts-label {
+  color: rgba(255, 255, 255, 0.72);
+  margin-right: 4px;
+  align-self: center;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
 }
 /* Dark theme keeps the same purple band — docs.socket.dev uses the
  * same header in both modes, deepened slightly against the near-black

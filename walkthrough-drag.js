@@ -388,9 +388,39 @@
       }, 1500)
     })
 
+  // Compact the meander-emitted Part pill labels from "Part 1", "Part 2",
+  // … down to just the number, and prepend a shared "Parts:" label.
+  // Eight "Part N" pills read as repetitive noise; one label + eight
+  // numerals communicate the same grouping with less visual weight.
+  // The home (🏠) pill we inject in the post-processor keeps its emoji
+  // — it's not a numbered part, so the `Part ` prefix isn't there
+  // to strip.
+  const installPartNavLabels = () => {
+    const nav = document.querySelector('.topbar .part-nav')
+    if (!nav || nav.querySelector('.wt-parts-label')) {
+      return
+    }
+    const pills = nav.querySelectorAll('a:not(.wt-home-link)')
+    for (const a of pills) {
+      const m = a.textContent?.match(/^Part\s+(\d+)/)
+      if (m) {
+        a.textContent = m[1]
+      }
+    }
+    if (pills.length > 0) {
+      const label = document.createElement('span')
+      label.className = 'wt-parts-label'
+      label.textContent = 'Parts:'
+      // Insert label right before the first numbered pill — after the
+      // home link if present, otherwise at the nav's start.
+      pills[0].before(label)
+    }
+  }
+
   const ready = async () => {
     installAll()
     installThemeToggle()
+    installPartNavLabels()
     await waitForHljs()
     // Fallback reveal for pages with no comment shim (documents, or
     // walkthroughs with no commentBackend). When the shim IS present,
