@@ -848,21 +848,16 @@ async function generate(
     }
     await fs.rename(meanderOut, buildDir)
 
-    // Append Socket overrides to meander's emitted CSS. Guarded by a
-    // marker so re-runs don't double-append if meander ever preserves
-    // the file (today it overwrites from source every run).
+    // Replace meander's emitted CSS with ours wholesale. Earlier we
+    // appended our overrides to meander's base, then fought for
+    // specificity; now we own 100% of the stylesheet. Meander emits
+    // the HTML shape (class names, structure); our CSS from scratch
+    // decides every visual rule that applies to it. The file gets
+    // renamed to style.css below, before minification + SRI.
     const overrideCssPath = path.join(repoRoot, 'overrides.css')
     const emittedCss = path.join(buildDir, 'walkthrough.css')
-    const overrideMarker = '/* ── Socket overrides'
-    if (existsSync(overrideCssPath) && existsSync(emittedCss)) {
-      const current = await fs.readFile(emittedCss, 'utf8')
-      if (!current.includes(overrideMarker)) {
-        const overrideCss = await fs.readFile(overrideCssPath, 'utf8')
-        await fs.appendFile(
-          emittedCss,
-          `\n\n${overrideMarker} (walkthrough-overrides.css) ── */\n${overrideCss}`,
-        )
-      }
+    if (existsSync(overrideCssPath)) {
+      await fs.copyFile(overrideCssPath, emittedCss)
     }
 
     // Ship the column-splitter JS alongside the generated HTML.
