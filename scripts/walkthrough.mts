@@ -11,11 +11,13 @@
  */
 
 import { execFileSync } from 'node:child_process'
+import { hash as cryptoHash } from 'node:crypto'
 import {
   appendFileSync,
   copyFileSync,
   createReadStream,
   existsSync,
+  mkdirSync,
   readFileSync,
   readdirSync,
   statSync,
@@ -148,6 +150,81 @@ function applyBasePath(html: string, basePath: string, slug: string): string {
       : `.register('${basePath}${url}'`,
   )
   return out
+}
+
+/**
+ * Compute / look up the SRI hash for a CDN URL. Disk-cached under
+ * `.cache/sri/<base64url(url)>.txt` so repeat builds don't refetch.
+ * Version bumps invalidate automatically since the cache key is the
+ * full URL (including the @version segment).
+ *
+ * Returns a ready-to-paste `sha384-<base64>` string.
+ */
+async function sriForUrl(url: string, cacheDir: string): Promise<string> {
+  const key = Buffer.from(url).toString('base64url')
+  const cachePath = path.join(cacheDir, `${key}.txt`)
+  if (existsSync(cachePath)) {
+    return readFileSync(cachePath, 'utf8').trim()
+  }
+  const res = await fetch(url)
+  if (!res.ok) {
+    throw new Error(`SRI fetch ${url} → HTTP ${res.status}`)
+  }
+  const bytes = new Uint8Array(await res.arrayBuffer())
+  // `crypto.hash` is the Node 21+ one-shot helper — base64-encodes
+  // the sha384 digest in a single call. Equivalent to the
+  // createHash(...).update(...).digest('base64') dance but shorter.
+  // SRI format itself is just `<algo>-<base64hash>`; no stdlib helper
+  // does the string prefix, so we build that ourselves.
+  const integrity = `sha384-${cryptoHash('sha384', bytes, 'base64')}`
+  mkdirSync(cacheDir, { recursive: true })
+  writeFileSync(cachePath, integrity + '\n')
+  return integrity
+}
+
+/**
+ * Scan HTML for `<script src=https://unpkg.com/...>` and
+ * `<link rel=stylesheet href=https://unpkg.com/...>` tags, fetch +
+ * hash each resource, and inject `integrity="sha384-..." crossorigin
+ * ="anonymous"` so the browser rejects any tampered CDN response.
+ *
+ * Idempotent — tags that already carry `integrity=` are left alone
+ * so hand-authored hashes survive.
+ */
+async function injectSri(html: string, cacheDir: string): Promise<string> {
+  // Collect unique URLs first so we fetch each once even if it's
+  // referenced in multiple tags.
+  const urlRe =
+    /<(?:script\s[^>]*\bsrc|link\s[^>]*\bhref)="(https:\/\/unpkg\.com\/[^"]+)"/gi
+  const urls = new Set<string>()
+  for (const m of html.matchAll(urlRe)) {
+    urls.add(m[1]!)
+  }
+  if (urls.size === 0) {
+    return html
+  }
+  const integrityByUrl = new Map<string, string>()
+  for (const url of urls) {
+    integrityByUrl.set(url, await sriForUrl(url, cacheDir))
+  }
+  // Rewrite each tag. Skip tags that already carry `integrity=`.
+  // The `attrs` capture intentionally excludes `/` so a self-closing
+  // `<link ... />` doesn't pull the trailing slash into the attrs
+  // string (which we'd then echo back before our injected attrs,
+  // producing `href="..." / integrity="...">`).
+  const tagRe =
+    /<(script|link)\s([^>/]*?\b(?:src|href)="(https:\/\/unpkg\.com\/[^"]+)"[^>/]*)(\s*\/?\s*>)/gi
+  return html.replace(tagRe, (full, tag, attrs, url, close) => {
+    if (/\bintegrity=/i.test(attrs)) {
+      return full
+    }
+    const integrity = integrityByUrl.get(url)
+    if (!integrity) {
+      return full
+    }
+    const trimmedAttrs = attrs.trimEnd()
+    return `<${tag} ${trimmedAttrs} integrity="${integrity}" crossorigin="anonymous"${close}`
+  })
 }
 
 async function generate(
@@ -360,6 +437,14 @@ async function generate(
     if (basePath && slug) {
       html = applyBasePath(html, basePath, slug)
     }
+
+    // Subresource Integrity on CDN scripts (marked, highlight.js,
+    // highlight.js CSS theme). Fetches each URL once per build,
+    // sha384-hashes the bytes, injects `integrity="sha384-..."
+    // crossorigin="anonymous"` so the browser rejects any tampered
+    // response. Disk-cached under .cache/sri/ so repeat builds are
+    // free; a version bump (new URL) invalidates automatically.
+    html = await injectSri(html, path.join(repoRoot, '.cache', 'sri'))
 
     writeFileSync(htmlPath, html)
   }
