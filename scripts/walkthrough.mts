@@ -152,6 +152,11 @@ function applyBasePath(html: string, basePath: string, slug: string): string {
   return out
 }
 
+/** Build the `sha384-<base64>` SRI attribute value for a byte stream. */
+function sriOf(bytes: Uint8Array): string {
+  return `sha384-${cryptoHash('sha384', bytes, 'base64')}`
+}
+
 /**
  * Compute / look up the SRI hash for a CDN URL. Disk-cached under
  * `.cache/sri/<base64url(url)>.txt` so repeat builds don't refetch.
@@ -170,8 +175,7 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
   if (!res.ok) {
     throw new Error(`SRI fetch ${url} → HTTP ${res.status}`)
   }
-  const bytes = new Uint8Array(await res.arrayBuffer())
-  const integrity = `sha384-${cryptoHash('sha384', bytes, 'base64')}`
+  const integrity = sriOf(new Uint8Array(await res.arrayBuffer()))
   mkdirSync(cacheDir, { recursive: true })
   writeFileSync(cachePath, integrity + '\n')
   return integrity
