@@ -308,13 +308,11 @@ html[data-theme='dark'] .file-grid > .code-section:hover {
  * bright title does the "this is a link" job; the muted context sits
  * underneath like a dek line in a newspaper headline. */
 .wt-contents {
-  /* Borrow the annotation-card surface tone so it visually anchors
-   * like the rest of the page, but skip the inner padding because
-   * .wt-contents-row carries its own rhythm. */
+  /* Card surface to anchor the list against the page background. */
   background: var(--prose-bg);
   border: 1px solid var(--rule);
   border-radius: 8px;
-  padding: 16px 20px;
+  padding: 20px 24px;
   margin: 0 0 16px 0;
 }
 .wt-contents > h3 {
@@ -323,14 +321,33 @@ html[data-theme='dark'] .file-grid > .code-section:hover {
   letter-spacing: 0.08em;
   font-weight: 600;
   color: var(--eyebrow);
-  margin: 0 0 12px 0;
+  margin: 0 0 16px 0;
 }
+
+/* Each row is a two-column flex: the main title+summary stack on
+ * the left (capped width so descriptions don't sprint across
+ * ultra-wide monitors), the section-count badge on the right. */
 .wt-contents-row {
-  padding: 8px 0;
-  border-top: 1px solid color-mix(in srgb, var(--rule) 50%, transparent);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid color-mix(in srgb, var(--rule) 60%, transparent);
 }
 .wt-contents-row:first-of-type {
   border-top: 0;
+  padding-top: 4px;
+}
+.wt-contents-row:last-of-type {
+  padding-bottom: 4px;
+}
+.wt-contents-main {
+  /* Cap the reading width of the description column so prose doesn't
+   * stretch edge-to-edge on wide monitors. Matches the doc-body
+   * reading rhythm. */
+  max-width: 72ch;
+  min-width: 0;
 }
 .wt-contents-title {
   display: inline-block;
@@ -348,20 +365,32 @@ html[data-theme='dark'] .file-grid > .code-section:hover {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 .wt-contents-summary {
-  /* Muted, matches the "Generated from multiline source comments…"
-   * dek line at the top of the topbar. Same tone as the patent line
+  /* Muted one-liner — same tone as the "U.S. Patent No. …" dek line
    * in the socket.dev footer reference. */
-  margin: 4px 0 0 0;
+  margin: 6px 0 0 0;
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--eyebrow);
 }
-.wt-contents-bonus {
-  /* Section-count annotation — even lighter than the summary itself
-   * so it reads as "bonus metadata" rather than part of the prose. */
-  color: color-mix(in srgb, var(--eyebrow) 70%, transparent);
+
+/* Section-count badge — rides the right edge of the row. Pill shape
+ * with a soft accent tint so it reads as "metadata," not as another
+ * link or action. Tabular-nums keeps widths consistent across rows
+ * so the column of badges is visually aligned. */
+.wt-contents-badge {
+  flex: 0 0 auto;
+  align-self: center;
+  font-size: 11px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  margin-left: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--eyebrow);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 
 /* ─── Topic doc pages ───────────────────────────────────────────

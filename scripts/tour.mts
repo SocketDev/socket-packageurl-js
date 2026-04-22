@@ -202,9 +202,70 @@ function validateDocFilenames(
  * paths surface all failures at once so editing errors in every doc
  * show up in one build, not one-per-build.
  */
+/**
+ * SVG home icon used in every page's nav. Defined once so the docs
+ * renderer and the part-page post-processor emit the same bytes (CSP
+ * hash stable across both). Single path, hard-coded stroke — no
+ * external sprite or font dep.
+ */
+const HOME_ICON_SVG =
+  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg>'
+
+const HOME_LINK_HTML =
+  `<a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents">${HOME_ICON_SVG}</a>`
+
+/**
+ * Render the "Parts: 1 2 3 … 8" pill row. Same HTML shape meander
+ * emits for its own part-nav — classes and hrefs match so the CSS +
+ * post-process pill-enrichment paths in this file apply uniformly.
+ * Emitted at the top of every doc page so doc readers can jump into
+ * any part with one click.
+ */
+function renderPartsPillRow(
+  slug: string,
+  partFilenames: ReadonlyMap<number, string>,
+): string {
+  const ids = [...partFilenames.keys()].sort((a, b) => a - b)
+  const pills = ids
+    .map(id => `<a href="/${slug}/part/${id}">Part ${id}</a>`)
+    .join('\n      ')
+  return (
+    `    <div class="part-nav">${HOME_LINK_HTML}<span class="wt-parts-label">Parts:</span>\n` +
+    `      ${pills}\n` +
+    `    </div>`
+  )
+}
+
+/**
+ * Render the "Topics: A B C … Z" pill row. Mirrors the parts row
+ * shape so the same CSS styles both. `activeFilename` marks the
+ * current doc's pill with class="active"; pass `undefined` from part
+ * pages so no pill is active.
+ */
+function renderTopicsPillRow(
+  docs: ReadonlyMap<string, DocEntry>,
+  activeFilename: string | undefined,
+): string {
+  const pills = [...docs.values()]
+    .map(d => {
+      const cls = d.filename === activeFilename ? 'active' : ''
+      const ariaLabel = d.summary
+        ? ` aria-label="${escapeHtml(d.title)}: ${escapeHtml(d.summary)}"`
+        : ''
+      return `<a class="${cls}" href="/${d.filename}.html" title="${escapeHtml(d.title)}"${ariaLabel}>${escapeHtml(d.title)}</a>`
+    })
+    .join('\n      ')
+  return (
+    `    <div class="part-nav wt-topics-nav"><span class="wt-parts-label">Topics:</span>\n` +
+    `      ${pills}\n` +
+    `    </div>`
+  )
+}
+
 async function renderDocs(
   docs: ReadonlyMap<string, DocEntry>,
   slug: string,
+  partFilenames: ReadonlyMap<number, string>,
   repoRoot: string,
   tourDir: string,
 ): Promise<void> {
@@ -217,12 +278,9 @@ async function renderDocs(
 
   const entries = [...docs.values()]
 
-  // Build the topic-nav fragment once per build. Each doc swaps in
-  // class="active" for its own anchor before emitting.
-  const navLink = (d: DocEntry, active: boolean): string => {
-    const cls = active ? 'active' : ''
-    return `<a class="${cls}" href="/${slug}/${d.filename}.html" title="${escapeHtml(d.title)}"${d.summary ? ` aria-label="${escapeHtml(d.title)}: ${escapeHtml(d.summary)}"` : ''}>${escapeHtml(d.title)}</a>`
-  }
+  // Precompute the two pill rows once per build — same bytes on every
+  // doc page except the "active" marker on the current Topics pill.
+  const partsRow = renderPartsPillRow(slug, partFilenames)
 
   const renderOne = async (doc: DocEntry): Promise<void> => {
     const sourcePath = path.join(repoRoot, doc.source)
@@ -233,9 +291,7 @@ async function renderDocs(
     }
     const markdown = await fs.readFile(sourcePath, 'utf8')
     const body = await marked.parse(markdown)
-    const navPills = entries
-      .map(d => navLink(d, d.filename === doc.filename))
-      .join('\n      ')
+    const topicsRow = renderTopicsPillRow(docs, doc.filename)
     const summaryLine = doc.summary
       ? `    <p>${escapeHtml(doc.summary)}</p>\n`
       : ''
@@ -258,10 +314,8 @@ async function renderDocs(
       `  <header class="topbar">\n` +
       `    <h1>${escapeHtml(doc.title)}</h1>\n` +
       summaryLine +
-      `    <div class="topic-nav">\n` +
-      `      <span class="wt-topics-label">Topics:</span>\n` +
-      `      ${navPills}\n` +
-      `    </div>\n` +
+      `${partsRow}\n` +
+      `${topicsRow}\n` +
       `  </header>\n` +
       `\n` +
       `  <main class="doc-body">\n` +
@@ -349,25 +403,28 @@ async function rewriteIndexContents(
 
   // Build unified rows in stable order: parts 1..N first, then docs
   // in manifest order. Each row is a flat <div> carrying the same
-  // shape — title link + muted description. Parts also get a lighter
-  // "N sections" bonus annotation appended inline. Using <div>s (not
-  // <ul>/<li>) sidesteps the browser-default bullet rendering that
-  // made the old list look off-tempo.
+  // shape — title link + muted description on the left (capped reading
+  // width via CSS), optional section-count badge on the right. Using
+  // <div>s (not <ul>/<li>) sidesteps the browser-default bullet
+  // rendering that made the old list look off-tempo.
   const renderRow = (
     href: string,
     title: string,
     description: string,
-    bonus?: string,
+    badge?: string,
   ): string => {
-    const bonusHtml = bonus
-      ? ` <span class="wt-contents-bonus">· ${escapeHtml(bonus)}</span>`
+    const badgeHtml = badge
+      ? `          <span class="wt-contents-badge">${escapeHtml(badge)}</span>\n`
       : ''
     return (
       `        <div class="wt-contents-row">\n` +
-      `          <a class="wt-contents-title" href="${href}">${escapeHtml(title)}</a>\n` +
+      `          <div class="wt-contents-main">\n` +
+      `            <a class="wt-contents-title" href="${href}">${escapeHtml(title)}</a>\n` +
       (description
-        ? `          <p class="wt-contents-summary">${escapeHtml(description)}${bonusHtml}</p>\n`
+        ? `            <p class="wt-contents-summary">${escapeHtml(description)}</p>\n`
         : '') +
+      `          </div>\n` +
+      badgeHtml +
       `        </div>`
     )
   }
@@ -378,8 +435,8 @@ async function rewriteIndexContents(
     const title = partTitles.get(id) ?? `Part ${id}`
     const description = partObjectives.get(id) ?? ''
     const count = partCounts.get(id)
-    const bonus = count !== undefined ? `${count} sections` : undefined
-    rows.push(renderRow(`/${filename}.html`, title, description, bonus))
+    const badge = count !== undefined ? `${count} sections` : undefined
+    rows.push(renderRow(`/${filename}.html`, title, description, badge))
   }
   for (const d of docs.values()) {
     rows.push(renderRow(`/${d.filename}.html`, d.title, d.summary ?? ''))
@@ -923,7 +980,7 @@ async function generate(
     partFilenames,
     configPath ? path.resolve(configPath) : '<config>',
   )
-  await renderDocs(docFilenames, slug, repoRoot, tourDir)
+  await renderDocs(docFilenames, slug, partFilenames, repoRoot, tourDir)
   // Extend index.html with a Topics section pointing at each doc. Runs
   // after docs are rendered (no ordering dependency — the section just
   // links by filename) and before post-process so any hrefs get the
