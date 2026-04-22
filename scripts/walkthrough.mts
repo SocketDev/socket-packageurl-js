@@ -810,10 +810,16 @@ function readSlug(): string {
 
 function routeToFile(slug: string, urlPath: string): string | undefined {
   // /                           → index.html
+  // /<slug>  or  /<slug>/       → index.html (slug-prefixed root, same as the
+  //                               URL GH Pages serves the site at; matches
+  //                               the flat file name emitted by meander)
   // /<slug>/part/<n>            → walkthrough-part-<n>.html
   // /<slug>/documents           → documents.html
   // anything else               → as-is (e.g. /walkthrough.css)
   if (urlPath === '/' || urlPath === '') {
+    return 'index.html'
+  }
+  if (urlPath === `/${slug}` || urlPath === `/${slug}/`) {
     return 'index.html'
   }
   const partMatch = new RegExp(`^/${slug}/part/(\\d+)/?$`).exec(urlPath)
