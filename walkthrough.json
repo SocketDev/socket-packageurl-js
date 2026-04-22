@@ -49,14 +49,7 @@
       "id": 4,
       "title": "Validation, Errors & Results",
       "objective": "Shape + format validation, the Result<T,E> functional error pattern (Ok/Err/ResultUtils), typed errors (PurlError, PurlInjectionError), and per-ecosystem rule plumbing.",
-      "keywords": [
-        "validate",
-        "result",
-        "error",
-        "ok",
-        "err",
-        "purl-type"
-      ],
+      "keywords": ["validate", "result", "error", "ok", "err", "purl-type"],
       "files": [
         "src/validate.ts",
         "src/result.ts",
@@ -68,13 +61,7 @@
       "id": 5,
       "title": "URL ↔ PURL Conversion",
       "objective": "Convert between repository/download URLs and PURLs — ~25 ecosystem URL parsers, toDownloadUrl, toRepositoryUrl, getAllUrls.",
-      "keywords": [
-        "url-converter",
-        "url",
-        "repository",
-        "download",
-        "vcs"
-      ],
+      "keywords": ["url-converter", "url", "repository", "download", "vcs"],
       "files": ["src/url-converter.ts"]
     },
     {
