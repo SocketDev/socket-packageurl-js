@@ -65,7 +65,7 @@ const SKIP_DIRS = new Set([
   // Vendored submodule — we don't control filenames in upstream code.
   'upstream',
   // Tour build output — generated HTML, not hand-authored markdown.
-  'walkthrough',
+  'pages',
 ])
 
 type MarkdownFilenameViolation = {

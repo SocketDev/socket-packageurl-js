@@ -11,9 +11,10 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { hash as cryptoHash } from 'node:crypto'
+import { hash as cryptoHash, randomUUID } from 'node:crypto'
 import { createReadStream, existsSync, promises as fs } from 'node:fs'
 import { createServer } from 'node:http'
+import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -35,7 +36,10 @@ const repoRoot = path.resolve(here, '..')
 const meanderDir = path.join(repoRoot, MEANDER_PATH)
 const cliEntry = path.join(meanderDir, 'dist', 'cli.js')
 const nodeModulesDir = path.join(meanderDir, 'node_modules')
-const tourDir = path.join(repoRoot, 'walkthrough')
+// Final destination of the generated site. `generate()` builds into a
+// tmpdir and moves the finished tree here at the very end — `pages/`
+// only ever contains a finished, consistent site.
+const outputDir = path.join(repoRoot, 'pages')
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -211,8 +215,7 @@ function validateDocFilenames(
 const HOME_ICON_SVG =
   '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg>'
 
-const HOME_LINK_HTML =
-  `<a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents">${HOME_ICON_SVG}</a>`
+const HOME_LINK_HTML = `<a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents">${HOME_ICON_SVG}</a>`
 
 /**
  * Render the "Parts: 1 2 3 … 8" pill row. Same HTML shape meander
@@ -302,7 +305,7 @@ async function renderDocs(
       `  <meta charset="utf-8" />\n` +
       `  <meta name="viewport" content="width=device-width, initial-scale=1" />\n` +
       `  <title>${escapeHtml(doc.title)} — Socket PackageURL.js</title>\n` +
-      `  <link rel="stylesheet" href="/walkthrough.css" />\n` +
+      `  <link rel="stylesheet" href="/style.css" />\n` +
       // Theme-adaptive syntax highlighting. Media queries gate which
       // highlight.js theme the browser actually applies based on the
       // user's OS preference; both stylesheets download, the
@@ -534,7 +537,7 @@ function validatePartFilenames(
  * categories of URL get prefixed:
  *
  *   1. Root-relative asset paths meander or our post-processor emits
- *      (/walkthrough.css, /walkthrough-drag.js, /favicon.ico, etc.).
+ *      (/style.css, /drag.js, /favicon.ico, etc.).
  *   2. Val-Town-shaped part links (/<slug>/part/<n>) — these don't
  *      exist as files; rewrite to the real flat HTML name
  *      (<partFilenames[n]>.html, e.g. "anatomy.html") and prefix with
@@ -580,7 +583,7 @@ function applyBasePath(
     }
     return `${pre}${basePath}${url}${post}`
   })
-  // 3. SW register — also prefix. Matches .register('/walkthrough-sw.js').
+  // 3. SW register — also prefix. Matches .register('/sw.js').
   out = out.replace(/\.register\('(\/[^']+)'/g, (_m, url) =>
     url.startsWith(basePath + '/')
       ? `.register('${url}'`
@@ -711,7 +714,7 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
  *
  * Sources:
  *   - `https://unpkg.com/...` → fetched + disk-cached (see sriForUrl).
- *   - `/walkthrough.css` etc. → read from `tourDir` directly.
+ *   - `/style.css` etc. → read from `tourDir` directly.
  *   - `basePath`-prefixed same-origin paths → stripped to the bare
  *     file name, then read from `tourDir`.
  *
@@ -820,462 +823,514 @@ async function generate(
     process.exit(1)
   }
   await ensureMeander(refresh)
-  run(process.execPath, [cliEntry, 'generate', ...rest], repoRoot)
 
-  // Append Socket overrides to meander's emitted CSS. Guarded by a
-  // marker so re-runs don't double-append if meander ever preserves
-  // the file (today it overwrites from source every run).
-  const overrideCssPath = path.join(repoRoot, 'walkthrough-overrides.css')
-  const emittedCss = path.join(tourDir, 'walkthrough.css')
-  const overrideMarker = '/* ── Socket overrides'
-  if (existsSync(overrideCssPath) && existsSync(emittedCss)) {
-    const current = await fs.readFile(emittedCss, 'utf8')
-    if (!current.includes(overrideMarker)) {
-      const overrideCss = await fs.readFile(overrideCssPath, 'utf8')
-      await fs.appendFile(
-        emittedCss,
-        `\n\n${overrideMarker} (walkthrough-overrides.css) ── */\n${overrideCss}`,
+  // Private scratch directory for this build. Meander writes into
+  // <cwd>/walkthrough so we keep cwd=repoRoot (meander needs it to
+  // resolve src/ + tour.json), then immediately move its output into
+  // buildDir for all post-processing. Same-filesystem rename, so no
+  // EXDEV risk. The try/finally at the bottom cleans up buildDir on
+  // both success and failure.
+  const buildRoot = await fs.mkdtemp(
+    path.join(repoRoot, `.tour-build-${randomUUID()}-`),
+  )
+  const buildDir = path.join(buildRoot, 'walkthrough')
+  try {
+    run(process.execPath, [cliEntry, 'generate', ...rest], repoRoot)
+
+    // Move meander's freshly-written output into our private scratch
+    // area. After this rename, repoRoot/walkthrough no longer exists
+    // and all subsequent work happens in buildDir.
+    const meanderOut = path.join(repoRoot, 'walkthrough')
+    if (!existsSync(meanderOut)) {
+      throw new Error(
+        `meander did not emit ${meanderOut}. The generator reported success but left no walkthrough/ directory behind — re-run with --refresh to rebuild the submodule.`,
       )
     }
-  }
+    await fs.rename(meanderOut, buildDir)
 
-  // Ship the column-splitter JS alongside the generated HTML.
-  const dragSrc = path.join(repoRoot, 'walkthrough-drag.js')
-  if (existsSync(dragSrc)) {
-    await fs.copyFile(dragSrc, path.join(tourDir, 'walkthrough-drag.js'))
-  }
-
-  // Ship the service worker — cache-first for same-origin assets,
-  // network-first for HTML navigations, network-passthrough for the
-  // comment API. The SW file carries a `__CACHE_VERSION__` sentinel
-  // that we replace here with the current git HEAD SHA so every
-  // deploy flips the SW's bytes → browser detects a new SW →
-  // `activate` prunes the old cache. Falls back to timestamp if
-  // we're not in a git repo (tarball install, fresh clone pre-init).
-  const swSrc = path.join(repoRoot, 'walkthrough-sw.js')
-  if (existsSync(swSrc)) {
-    let swSource = await fs.readFile(swSrc, 'utf8')
-    let cacheVersion: string
-    try {
-      cacheVersion = execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], {
-        cwd: repoRoot,
-        encoding: 'utf8',
-      })
-        .toString()
-        .trim()
-    } catch {
-      cacheVersion = 'ts-' + Date.now().toString(36)
-    }
-    swSource = swSource.replaceAll('__CACHE_VERSION__', cacheVersion)
-    await fs.writeFile(path.join(tourDir, 'walkthrough-sw.js'), swSource)
-  }
-
-  // Ship favicons (self-hosted copy of socket.dev's icons). Walkthrough
-  // HTML doesn't currently carry <link rel="icon"> tags from meander,
-  // so we inject them in the post-processor below. Parallelize via
-  // Promise.allSettled so one missing favicon doesn't abort the others.
-  const faviconSrc = path.join(repoRoot, 'assets', 'favicon')
-  const faviconFiles = [
-    'favicon.ico',
-    'favicon-32x32.png',
-    'favicon-16x16.png',
-    'apple-touch-icon.png',
-  ] as const
-  await Promise.allSettled(
-    faviconFiles.map(f => {
-      const src = path.join(faviconSrc, f)
-      if (!existsSync(src)) {
-        return Promise.resolve()
-      }
-      return fs.copyFile(src, path.join(tourDir, f))
-    }),
-  )
-
-  // Ship the comment-UI replacement (optional — only when a commentBackend
-  // is configured). The shim is loaded instead of meander's inlined comment
-  // scripts, which the rewrite below strips.
-  const commentsSrc = path.join(repoRoot, 'walkthrough-comments.js')
-  const configPath = rest[0]
-  const tourConfig = configPath
-    ? (JSON.parse(await fs.readFile(path.resolve(configPath), 'utf8')) as {
-        slug?: string
-        commentBackend?: string
-        parts?: Array<{
-          id: number
-          title: string
-          filename?: string
-          objective?: string
-        }>
-        docs?: Array<{
-          filename?: string | undefined
-          title?: string | undefined
-          source?: string | undefined
-          summary?: string | undefined
-        }>
-      })
-    : {}
-  const commentBackend = tourConfig.commentBackend || ''
-  const slug = tourConfig.slug || ''
-  // Map part-id → title for the post-processor to inject as aria-label
-  // on each numbered part pill. Without this, screen readers announce
-  // each pill as just "Part 1", "Part 2", …; with it, they get the
-  // real section title ("Anatomy of a PURL" etc.).
-  const partTitles = new Map<number, string>()
-  const partObjectives = new Map<number, string>()
-  for (const p of tourConfig.parts ?? []) {
-    partTitles.set(p.id, p.title)
-    if (p.objective) {
-      partObjectives.set(p.id, p.objective)
-    }
-  }
-
-  // Map part-id → filename (e.g. 1 → "anatomy"). Drives both the flat
-  // HTML filenames on disk (<filename>.html) and the hrefs we rewrite
-  // in applyBasePath(). Validator below enforces presence, shape, and
-  // uniqueness — errors follow CLAUDE.md's ERROR MESSAGES doctrine so
-  // the build fails with an actionable message, not a cryptic symptom.
-  const partFilenames = validatePartFilenames(
-    tourConfig.parts ?? [],
-    configPath ? path.resolve(configPath) : '<config>',
-  )
-
-  // Pull per-part section counts off the emitted index page. Meander
-  // computes them while rendering — cheaper + more reliable than
-  // re-parsing every part page here. Matches the TOC row shape:
-  //   <li><a href="/<slug>/part/<n>">…</a> <span class="ok">(N sections)</span></li>
-  // Used below to append "(N)" to each numbered pill so users see
-  // section-depth info from any page, not just the TOC.
-  const partCounts = new Map<number, number>()
-  const indexPath = path.join(tourDir, 'index.html')
-  if (existsSync(indexPath)) {
-    const indexHtml = await fs.readFile(indexPath, 'utf8')
-    const countRe = new RegExp(
-      `/${slug}/part/(\\d+)[^<]*</a>\\s*<span[^>]*>\\((\\d+)\\s+sections?\\)`,
-      'g',
-    )
-    for (const m of indexHtml.matchAll(countRe)) {
-      partCounts.set(Number(m[1]), Number(m[2]))
-    }
-  }
-  if (commentBackend && existsSync(commentsSrc)) {
-    await fs.copyFile(
-      commentsSrc,
-      path.join(tourDir, 'walkthrough-comments.js'),
-    )
-  }
-
-  // Render the tour.json `docs` entries into flat HTML pages
-  // alongside the part files. Runs BEFORE the per-file post-process
-  // loop below so docs receive the same treatment as parts (favicons,
-  // preloads, drag/SW/comments scripts, CSP, SRI, footer) without
-  // per-surface branching.
-  const docEntries = (tourConfig.docs ?? []).filter(
-    (d): d is DocEntry =>
-      typeof d.filename === 'string' &&
-      typeof d.title === 'string' &&
-      typeof d.source === 'string',
-  )
-  const docFilenames = validateDocFilenames(
-    docEntries,
-    partFilenames,
-    configPath ? path.resolve(configPath) : '<config>',
-  )
-  await renderDocs(docFilenames, slug, partFilenames, repoRoot, tourDir)
-  // Extend index.html with a Topics section pointing at each doc. Runs
-  // after docs are rendered (no ordering dependency — the section just
-  // links by filename) and before post-process so any hrefs get the
-  // base-path rewrite if CI set one.
-  await rewriteIndexContents(
-    partFilenames,
-    partTitles,
-    partObjectives,
-    partCounts,
-    docFilenames,
-    tourDir,
-  )
-
-  // Per-HTML post-processing: strip meander's inlined comment scripts
-  // (when we're replacing them) and inject our own <script> tags.
-  // Each entry is a unique string present in one of meander's inline
-  // scripts — we match on the marker and delete the whole <script>...
-  // </script> block. Ordered by the file each marker comes from:
-  //   1. comment-client.js
-  //   2. unresolved-comments.js
-  //   3. export-comments.js
-  //   4. line-select.js (if present)
-  const COMMENT_SCRIPT_MARKERS = [
-    'var apiBase = "/" + slug + "/api/comments";',
-    'var apiBase = "/" + slug + "/api/comments/unresolved";',
-    '"/" + slug + "/api/comments/export";',
-    'LINE_SELECT_INIT',
-  ]
-  const dragTag = '<script src="/walkthrough-drag.js" defer></script>'
-  const commentsTag = '<script src="/walkthrough-comments.js" defer></script>'
-  const configTag = commentBackend
-    ? `<script>window.socketWalkthrough=${JSON.stringify({ backend: commentBackend })}</script>`
-    : ''
-  // Service-worker registration. Wrapped in a feature-check and a
-  // `load`-event guard so SW install never contends with first-paint
-  // work. `updateViaCache:'none'` forces the browser to fetch the SW
-  // file itself via HTTP cache (not its own SW cache), so a new
-  // deploy's SW is picked up on the next reload.
-  // Skip SW registration on localhost / 127.0.0.1 so rapid iteration
-  // doesn't get stuck on stale cached HTML/assets served by a prior
-  // SW install. If an SW is already registered from a previous load,
-  // unregister it so the very next fetch goes to the network. Prod
-  // (GH Pages) registers normally — cache-first pays off there.
-  const swRegisterTag = [
-    '<script>',
-    "  if ('serviceWorker' in navigator) {",
-    '    var isLocal = /^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname)',
-    '    if (isLocal) {',
-    '      navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {})',
-    '    } else {',
-    "      addEventListener('load', () => {",
-    "        navigator.serviceWorker.register('/walkthrough-sw.js', { updateViaCache: 'none' }).catch(() => {})",
-    '      })',
-    '    }',
-    '  }',
-    '</script>',
-  ].join('\n  ')
-  const faviconTags = [
-    '<link rel="icon" type="image/x-icon" href="/favicon.ico" />',
-    '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />',
-    '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />',
-    '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
-  ].join('\n  ')
-  // Preload the shim scripts so the browser starts fetching them in
-  // parallel with HTML parsing, ahead of the `defer` discovery. The
-  // CSS is already in a `<link rel="stylesheet">` which is inherently
-  // render-blocking, so it doesn't need a preload. Comment shim is
-  // gated on commentBackend since we only emit the <script> tag then.
-  const preloadTags = [
-    '<link rel="preload" as="script" href="/walkthrough-drag.js" />',
-    ...(commentBackend
-      ? ['<link rel="preload" as="script" href="/walkthrough-comments.js" />']
-      : []),
-  ].join('\n  ')
-  // Socket tagline footer — matches the format used on socket.dev
-  // marketing pages. "⚡️" is rendered as an emoji (single char) so
-  // it inherits text color at small sizes; wrapping in a <span>
-  // lets CSS ship a small nudge if we need it later.
-  const footerTag = [
-    '<footer class="wt-socket-footer">',
-    '  <span>Made with <span class="wt-footer-bolt" aria-hidden="true">⚡️</span> by Socket Inc</span>',
-    '</footer>',
-  ].join('\n  ')
-
-  // Per-file HTML post-processor. Hoisted out of the loop so we can
-  // fan out across every emitted page with Promise.allSettled instead
-  // of walking them serially — each file's transforms are
-  // self-contained (no cross-file state beyond the pre-computed maps
-  // above). allSettled over all rejects so one broken file doesn't
-  // mask the others; we collect rejections and throw a composite
-  // after.
-  const postProcessEntry = async (entry: string): Promise<void> => {
-    const htmlPath = path.join(tourDir, entry)
-    let html = await fs.readFile(htmlPath, 'utf8')
-
-    // Strip meander's inlined comment scripts when replacing with ours.
-    if (commentBackend) {
-      html = stripInlinedCommentScripts(html, COMMENT_SCRIPT_MARKERS)
-    }
-
-    // Inject favicons + preloads in <head>. Idempotent via marker
-    // checks. Preloads land last so they're adjacent to the deferred
-    // <script> tags they anticipate (a visual-grouping nicety).
-    if (!html.includes('apple-touch-icon.png')) {
-      html = html.replace('</head>', `  ${faviconTags}\n</head>`)
-    }
-    if (!html.includes('rel="preload"')) {
-      html = html.replace('</head>', `  ${preloadTags}\n</head>`)
-    }
-
-    // Inject our scripts once (idempotent). Use the `<script src=`
-    // marker rather than bare filename — the preload tags injected
-    // earlier ALSO contain "walkthrough-drag.js" / "walkthrough-comments.js",
-    // so a filename-only check false-positives and skips script injection.
-    if (!html.includes('<script src="/walkthrough-drag.js"')) {
-      html = html.replace('</body>', `  ${dragTag}\n</body>`)
-    }
-    if (
-      commentBackend &&
-      !html.includes('<script src="/walkthrough-comments.js"')
-    ) {
-      html = html.replace(
-        '</body>',
-        `  ${configTag}\n  ${commentsTag}\n</body>`,
-      )
-    }
-    // Service worker registration — last script before </body> so
-    // the page-critical shim scripts start downloading first.
-    if (!html.includes('walkthrough-sw.js')) {
-      html = html.replace('</body>', `  ${swRegisterTag}\n</body>`)
-    }
-
-    // Socket tagline footer, injected once before </body>. Idempotent
-    // via the wt-socket-footer class marker.
-    if (!html.includes('wt-socket-footer')) {
-      html = html.replace('</body>', `  ${footerTag}\n</body>`)
-    }
-
-    // Inject a home link at the front of the part-nav on every part
-    // page. Meander's emitted topbar only has the numbered Part pills —
-    // users clicking a part had no one-click way back to the TOC.
-    // Index page has no `.part-nav` so the replace is a no-op there
-    // (the TOC IS the index). Idempotent via class marker.
-    if (
-      html.includes('<div class="part-nav">') &&
-      !html.includes('wt-home-link')
-    ) {
-      html = html.replace(
-        '<div class="part-nav">',
-        '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></a><span class="wt-parts-label">Parts:</span>',
-      )
-    }
-
-    // Enrich each numbered Part pill. Meander emits
-    //   `<a ... href="/<slug>/part/<n>">Part <n></a>`
-    // with no accessible context — a screen reader just hears
-    // "Part 1, Part 2, …". We rewrite:
-    //   1. Opening tag: add title + aria-label carrying the real
-    //      section name so keyboard + AT users get the same info
-    //      as the tooltip.
-    //   2. Inner text: strip the "Part " prefix (the pill-row has
-    //      its own "Parts:" label; each pill just needs the number)
-    //      and append "(M)" with the per-part section count, same
-    //      as what the TOC shows. Users see section-depth info on
-    //      every page, not just the index.
-    // Runs BEFORE the base-path rewrite so the `/part/<n>` shape is
-    // still intact and easy to match. Idempotent via the aria-label
-    // probe.
-    if (slug && partTitles.size > 0) {
-      const partPillRe = new RegExp(
-        `(<a\\b)((?:(?!aria-label)[^>])*\\bhref="/${slug}/part/(\\d+)"[^>]*)>Part \\3</a>`,
-        'g',
-      )
-      html = html.replace(partPillRe, (match, open, attrs, n) => {
-        const title = partTitles.get(Number(n))
-        if (!title) {
-          return match
-        }
-        const count = partCounts.get(Number(n))
-        const fullLabel = `Part ${n}: ${title.replace(/"/g, '&quot;')}${count ? ` (${count} sections)` : ''}`
-        return `${open}${attrs} title="${fullLabel}" aria-label="${fullLabel}">${n}</a>`
-      })
-    }
-
-    // Base-path rewrite — last step so every injected tag above gets
-    // prefixed in one pass. No-op when --base-path is empty (local dev,
-    // Val Town hosting, etc.).
-    if (basePath && slug) {
-      html = applyBasePath(html, basePath, slug, partFilenames)
-    }
-
-    // Rename meander's walkthrough-part-<n>.html to the configured
-    // <filename>.html (e.g. walkthrough-part-1.html → anatomy.html).
-    // Flat public URLs replace /<slug>/part/<n>-style links once the
-    // site is deployed. Other emitted HTML (index.html, documents.html
-    // if any) retains its name. Idempotent: if the target file already
-    // exists and entry is the legacy name, we write the fresh content
-    // then unlink the old — both states are covered by the validator
-    // running before the loop, which guarantees partFilenames has an
-    // entry for every part meander rendered.
-    const partMatch = /^walkthrough-part-(\d+)\.html$/.exec(entry)
-    if (partMatch) {
-      const n = Number(partMatch[1])
-      const newName = partFilenames.get(n)
-      if (!newName) {
-        throw new Error(
-          `walkthrough/${entry}: no filename configured for part ${n}. Add "filename" to part ${n} in tour.json (e.g. "anatomy") — the validator should have caught this, so meander may have rendered a part that isn't in tour.json.`,
+    // Append Socket overrides to meander's emitted CSS. Guarded by a
+    // marker so re-runs don't double-append if meander ever preserves
+    // the file (today it overwrites from source every run).
+    const overrideCssPath = path.join(repoRoot, 'overrides.css')
+    const emittedCss = path.join(buildDir, 'walkthrough.css')
+    const overrideMarker = '/* ── Socket overrides'
+    if (existsSync(overrideCssPath) && existsSync(emittedCss)) {
+      const current = await fs.readFile(emittedCss, 'utf8')
+      if (!current.includes(overrideMarker)) {
+        const overrideCss = await fs.readFile(overrideCssPath, 'utf8')
+        await fs.appendFile(
+          emittedCss,
+          `\n\n${overrideMarker} (walkthrough-overrides.css) ── */\n${overrideCss}`,
         )
       }
-      const newPath = path.join(tourDir, `${newName}.html`)
-      await fs.writeFile(newPath, html)
-      if (newPath !== htmlPath) {
-        await safeDelete(htmlPath)
+    }
+
+    // Ship the column-splitter JS alongside the generated HTML.
+    const dragSrc = path.join(repoRoot, 'drag.js')
+    if (existsSync(dragSrc)) {
+      await fs.copyFile(dragSrc, path.join(buildDir, 'drag.js'))
+    }
+
+    // Ship the service worker — cache-first for same-origin assets,
+    // network-first for HTML navigations, network-passthrough for the
+    // comment API. The SW file carries a `__CACHE_VERSION__` sentinel
+    // that we replace here with the current git HEAD SHA so every
+    // deploy flips the SW's bytes → browser detects a new SW →
+    // `activate` prunes the old cache. Falls back to timestamp if
+    // we're not in a git repo (tarball install, fresh clone pre-init).
+    const swSrc = path.join(repoRoot, 'sw.js')
+    if (existsSync(swSrc)) {
+      let swSource = await fs.readFile(swSrc, 'utf8')
+      let cacheVersion: string
+      try {
+        cacheVersion = execFileSync(
+          'git',
+          ['rev-parse', '--short=12', 'HEAD'],
+          {
+            cwd: repoRoot,
+            encoding: 'utf8',
+          },
+        )
+          .toString()
+          .trim()
+      } catch {
+        cacheVersion = 'ts-' + Date.now().toString(36)
       }
-      return
+      swSource = swSource.replaceAll('__CACHE_VERSION__', cacheVersion)
+      await fs.writeFile(path.join(buildDir, 'sw.js'), swSource)
     }
 
-    await fs.writeFile(htmlPath, html)
-  }
-
-  const entries = await fs.readdir(tourDir)
-  const htmlEntries = entries.filter(e => e.endsWith('.html'))
-  const postProcessResults = await Promise.allSettled(
-    htmlEntries.map(postProcessEntry),
-  )
-  const postProcessFailures: string[] = []
-  for (let i = 0; i < postProcessResults.length; i++) {
-    const r = postProcessResults[i]!
-    if (r.status === 'rejected') {
-      postProcessFailures.push(
-        `${htmlEntries[i]}: ${String((r.reason as Error)?.message ?? r.reason)}`,
-      )
-    }
-  }
-  if (postProcessFailures.length > 0) {
-    throw new Error(
-      `tour post-processing failed for ${postProcessFailures.length} file(s):\n  - ${postProcessFailures.join('\n  - ')}`,
+    // Ship favicons (self-hosted copy of socket.dev's icons). The emitted
+    // HTML doesn't currently carry <link rel="icon"> tags from meander,
+    // so we inject them in the post-processor below. Parallelize via
+    // Promise.allSettled so one missing favicon doesn't abort the others.
+    const faviconSrc = path.join(repoRoot, 'assets', 'favicon')
+    const faviconFiles = [
+      'favicon.ico',
+      'favicon-32x32.png',
+      'favicon-16x16.png',
+      'apple-touch-icon.png',
+    ] as const
+    await Promise.allSettled(
+      faviconFiles.map(f => {
+        const src = path.join(faviconSrc, f)
+        if (!existsSync(src)) {
+          return Promise.resolve()
+        }
+        return fs.copyFile(src, path.join(buildDir, f))
+      }),
     )
-  }
 
-  // Socket.dev malware audit on CDN scripts (marked, highlight.js)
-  // that meander's generated HTML loads via `<script src=unpkg...>`.
-  // Runs before minification so a failure aborts early. Skip the
-  // audit via SKIP_AUDIT=1 for offline dev; CI must not set this.
-  if (!process.env['SKIP_AUDIT']) {
-    await auditCdnScripts(tourDir)
-  } else {
-    console.warn('[audit-deps] SKIP_AUDIT=1 — CDN audit SKIPPED')
-  }
+    // Ship the comment-UI replacement (optional — only when a commentBackend
+    // is configured). The shim is loaded instead of meander's inlined comment
+    // scripts, which the rewrite below strips.
+    const commentsSrc = path.join(repoRoot, 'comments.js')
+    const configPath = rest[0]
+    const tourConfig = configPath
+      ? (JSON.parse(await fs.readFile(path.resolve(configPath), 'utf8')) as {
+          slug?: string
+          commentBackend?: string
+          parts?: Array<{
+            id: number
+            title: string
+            filename?: string
+            objective?: string
+          }>
+          docs?: Array<{
+            filename?: string | undefined
+            title?: string | undefined
+            source?: string | undefined
+            summary?: string | undefined
+          }>
+        })
+      : {}
+    const commentBackend = tourConfig.commentBackend || ''
+    const slug = tourConfig.slug || ''
+    // Map part-id → title for the post-processor to inject as aria-label
+    // on each numbered part pill. Without this, screen readers announce
+    // each pill as just "Part 1", "Part 2", …; with it, they get the
+    // real section title ("Anatomy of a PURL" etc.).
+    const partTitles = new Map<number, string>()
+    const partObjectives = new Map<number, string>()
+    for (const p of tourConfig.parts ?? []) {
+      partTitles.set(p.id, p.title)
+      if (p.objective) {
+        partObjectives.set(p.id, p.objective)
+      }
+    }
 
-  if (minify) {
-    await minifyEmittedAssets()
-  }
+    // Map part-id → filename (e.g. 1 → "anatomy"). Drives both the flat
+    // HTML filenames on disk (<filename>.html) and the hrefs we rewrite
+    // in applyBasePath(). Validator below enforces presence, shape, and
+    // uniqueness — errors follow CLAUDE.md's ERROR MESSAGES doctrine so
+    // the build fails with an actionable message, not a cryptic symptom.
+    const partFilenames = validatePartFilenames(
+      tourConfig.parts ?? [],
+      configPath ? path.resolve(configPath) : '<config>',
+    )
 
-  // Subresource Integrity pass — runs LAST so the local-file hashes
-  // we compute match the exact bytes that ship (post-minify). CDN
-  // hashes are disk-cached under .cache/sri/; local ones hash the
-  // files in `tourDir` directly. Any `<script>` / `<link>`
-  // (CDN or same-origin) ends up with `integrity="sha384-..."`.
-  const sriCacheDir = path.join(repoRoot, '.cache', 'sri')
-  const sriEntries = (await fs.readdir(tourDir)).filter(e =>
-    e.endsWith('.html'),
-  )
-  const sriResults = await Promise.allSettled(
-    sriEntries.map(async entry => {
-      const htmlPath = path.join(tourDir, entry)
+    // Pull per-part section counts off the emitted index page. Meander
+    // computes them while rendering — cheaper + more reliable than
+    // re-parsing every part page here. Matches the TOC row shape:
+    //   <li><a href="/<slug>/part/<n>">…</a> <span class="ok">(N sections)</span></li>
+    // Used below to append "(N)" to each numbered pill so users see
+    // section-depth info from any page, not just the TOC.
+    const partCounts = new Map<number, number>()
+    const indexPath = path.join(buildDir, 'index.html')
+    if (existsSync(indexPath)) {
+      const indexHtml = await fs.readFile(indexPath, 'utf8')
+      const countRe = new RegExp(
+        `/${slug}/part/(\\d+)[^<]*</a>\\s*<span[^>]*>\\((\\d+)\\s+sections?\\)`,
+        'g',
+      )
+      for (const m of indexHtml.matchAll(countRe)) {
+        partCounts.set(Number(m[1]), Number(m[2]))
+      }
+    }
+    if (commentBackend && existsSync(commentsSrc)) {
+      await fs.copyFile(commentsSrc, path.join(buildDir, 'comments.js'))
+    }
+
+    // Render the tour.json `docs` entries into flat HTML pages
+    // alongside the part files. Runs BEFORE the per-file post-process
+    // loop below so docs receive the same treatment as parts (favicons,
+    // preloads, drag/SW/comments scripts, CSP, SRI, footer) without
+    // per-surface branching.
+    const docEntries = (tourConfig.docs ?? []).filter(
+      (d): d is DocEntry =>
+        typeof d.filename === 'string' &&
+        typeof d.title === 'string' &&
+        typeof d.source === 'string',
+    )
+    const docFilenames = validateDocFilenames(
+      docEntries,
+      partFilenames,
+      configPath ? path.resolve(configPath) : '<config>',
+    )
+    await renderDocs(docFilenames, slug, partFilenames, repoRoot, buildDir)
+    // Extend index.html with a Topics section pointing at each doc. Runs
+    // after docs are rendered (no ordering dependency — the section just
+    // links by filename) and before post-process so any hrefs get the
+    // base-path rewrite if CI set one.
+    await rewriteIndexContents(
+      partFilenames,
+      partTitles,
+      partObjectives,
+      partCounts,
+      docFilenames,
+      buildDir,
+    )
+
+    // Per-HTML post-processing: strip meander's inlined comment scripts
+    // (when we're replacing them) and inject our own <script> tags.
+    // Each entry is a unique string present in one of meander's inline
+    // scripts — we match on the marker and delete the whole <script>...
+    // </script> block. Ordered by the file each marker comes from:
+    //   1. comment-client.js
+    //   2. unresolved-comments.js
+    //   3. export-comments.js
+    //   4. line-select.js (if present)
+    const COMMENT_SCRIPT_MARKERS = [
+      'var apiBase = "/" + slug + "/api/comments";',
+      'var apiBase = "/" + slug + "/api/comments/unresolved";',
+      '"/" + slug + "/api/comments/export";',
+      'LINE_SELECT_INIT',
+    ]
+    const dragTag = '<script src="/drag.js" defer></script>'
+    const commentsTag = '<script src="/comments.js" defer></script>'
+    const configTag = commentBackend
+      ? `<script>window.socketWalkthrough=${JSON.stringify({ backend: commentBackend })}</script>`
+      : ''
+    // Service-worker registration. Wrapped in a feature-check and a
+    // `load`-event guard so SW install never contends with first-paint
+    // work. `updateViaCache:'none'` forces the browser to fetch the SW
+    // file itself via HTTP cache (not its own SW cache), so a new
+    // deploy's SW is picked up on the next reload.
+    // Skip SW registration on localhost / 127.0.0.1 so rapid iteration
+    // doesn't get stuck on stale cached HTML/assets served by a prior
+    // SW install. If an SW is already registered from a previous load,
+    // unregister it so the very next fetch goes to the network. Prod
+    // (GH Pages) registers normally — cache-first pays off there.
+    const swRegisterTag = [
+      '<script>',
+      "  if ('serviceWorker' in navigator) {",
+      '    var isLocal = /^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname)',
+      '    if (isLocal) {',
+      '      navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())).catch(() => {})',
+      '    } else {',
+      "      addEventListener('load', () => {",
+      "        navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {})",
+      '      })',
+      '    }',
+      '  }',
+      '</script>',
+    ].join('\n  ')
+    const faviconTags = [
+      '<link rel="icon" type="image/x-icon" href="/favicon.ico" />',
+      '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />',
+      '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />',
+      '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
+    ].join('\n  ')
+    // Preload the shim scripts so the browser starts fetching them in
+    // parallel with HTML parsing, ahead of the `defer` discovery. The
+    // CSS is already in a `<link rel="stylesheet">` which is inherently
+    // render-blocking, so it doesn't need a preload. Comment shim is
+    // gated on commentBackend since we only emit the <script> tag then.
+    const preloadTags = [
+      '<link rel="preload" as="script" href="/drag.js" />',
+      ...(commentBackend
+        ? ['<link rel="preload" as="script" href="/comments.js" />']
+        : []),
+    ].join('\n  ')
+    // Socket tagline footer — matches the format used on socket.dev
+    // marketing pages. "⚡️" is rendered as an emoji (single char) so
+    // it inherits text color at small sizes; wrapping in a <span>
+    // lets CSS ship a small nudge if we need it later.
+    const footerTag = [
+      '<footer class="wt-socket-footer">',
+      '  <span>Made with <span class="wt-footer-bolt" aria-hidden="true">⚡️</span> by Socket Inc</span>',
+      '</footer>',
+    ].join('\n  ')
+
+    // Per-file HTML post-processor. Hoisted out of the loop so we can
+    // fan out across every emitted page with Promise.allSettled instead
+    // of walking them serially — each file's transforms are
+    // self-contained (no cross-file state beyond the pre-computed maps
+    // above). allSettled over all rejects so one broken file doesn't
+    // mask the others; we collect rejections and throw a composite
+    // after.
+    const postProcessEntry = async (entry: string): Promise<void> => {
+      const htmlPath = path.join(buildDir, entry)
       let html = await fs.readFile(htmlPath, 'utf8')
-      const originalHtml = html
-      html = await injectSri(html, tourDir, basePath, sriCacheDir)
-      // CSP meta — must run AFTER SRI injection so the hash of each
-      // inline <script> reflects its final body (no further rewrites).
-      // Per-file because __defIndex varies per-part; pages also differ
-      // in which inline blocks land (index vs part pages).
-      if (!html.includes('http-equiv="Content-Security-Policy"')) {
-        const cspTag = buildCspMeta(html, commentBackend)
-        html = html.replace('</head>', `  ${cspTag}\n</head>`)
+
+      // Rewrite meander's emitted asset references to their renamed
+      // counterparts. Meander bakes `/walkthrough.css` into every page
+      // it generates (from its own template), but we rename that file
+      // to `style.css` before shipping. Same for any other stray
+      // `/walkthrough*` reference — keep the site self-consistent.
+      html = html.replaceAll('/walkthrough.css', '/style.css')
+
+      // Strip meander's inlined comment scripts when replacing with ours.
+      if (commentBackend) {
+        html = stripInlinedCommentScripts(html, COMMENT_SCRIPT_MARKERS)
       }
-      if (html !== originalHtml) {
-        await fs.writeFile(htmlPath, html)
+
+      // Inject favicons + preloads in <head>. Idempotent via marker
+      // checks. Preloads land last so they're adjacent to the deferred
+      // <script> tags they anticipate (a visual-grouping nicety).
+      if (!html.includes('apple-touch-icon.png')) {
+        html = html.replace('</head>', `  ${faviconTags}\n</head>`)
       }
-    }),
-  )
-  const sriFailures: string[] = []
-  for (let i = 0; i < sriResults.length; i++) {
-    const r = sriResults[i]!
-    if (r.status === 'rejected') {
-      sriFailures.push(
-        `${sriEntries[i]}: ${String((r.reason as Error)?.message ?? r.reason)}`,
+      if (!html.includes('rel="preload"')) {
+        html = html.replace('</head>', `  ${preloadTags}\n</head>`)
+      }
+
+      // Inject our scripts once (idempotent). Use the `<script src=`
+      // marker rather than bare filename — the preload tags injected
+      // earlier ALSO contain "pages-drag.js" / "pages-comments.js",
+      // so a filename-only check false-positives and skips script injection.
+      if (!html.includes('<script src="/drag.js"')) {
+        html = html.replace('</body>', `  ${dragTag}\n</body>`)
+      }
+      if (commentBackend && !html.includes('<script src="/comments.js"')) {
+        html = html.replace(
+          '</body>',
+          `  ${configTag}\n  ${commentsTag}\n</body>`,
+        )
+      }
+      // Service worker registration — last script before </body> so
+      // the page-critical shim scripts start downloading first.
+      if (!html.includes('sw.js')) {
+        html = html.replace('</body>', `  ${swRegisterTag}\n</body>`)
+      }
+
+      // Socket tagline footer, injected once before </body>. Idempotent
+      // via the wt-socket-footer class marker.
+      if (!html.includes('wt-socket-footer')) {
+        html = html.replace('</body>', `  ${footerTag}\n</body>`)
+      }
+
+      // Inject a home link at the front of the part-nav on every part
+      // page. Meander's emitted topbar only has the numbered Part pills —
+      // users clicking a part had no one-click way back to the TOC.
+      // Index page has no `.part-nav` so the replace is a no-op there
+      // (the TOC IS the index). Idempotent via class marker.
+      if (
+        html.includes('<div class="part-nav">') &&
+        !html.includes('wt-home-link')
+      ) {
+        html = html.replace(
+          '<div class="part-nav">',
+          '<div class="part-nav"><a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></a><span class="wt-parts-label">Parts:</span>',
+        )
+      }
+
+      // Enrich each numbered Part pill. Meander emits
+      //   `<a ... href="/<slug>/part/<n>">Part <n></a>`
+      // with no accessible context — a screen reader just hears
+      // "Part 1, Part 2, …". We rewrite:
+      //   1. Opening tag: add title + aria-label carrying the real
+      //      section name so keyboard + AT users get the same info
+      //      as the tooltip.
+      //   2. Inner text: strip the "Part " prefix (the pill-row has
+      //      its own "Parts:" label; each pill just needs the number)
+      //      and append "(M)" with the per-part section count, same
+      //      as what the TOC shows. Users see section-depth info on
+      //      every page, not just the index.
+      // Runs BEFORE the base-path rewrite so the `/part/<n>` shape is
+      // still intact and easy to match. Idempotent via the aria-label
+      // probe.
+      if (slug && partTitles.size > 0) {
+        const partPillRe = new RegExp(
+          `(<a\\b)((?:(?!aria-label)[^>])*\\bhref="/${slug}/part/(\\d+)"[^>]*)>Part \\3</a>`,
+          'g',
+        )
+        html = html.replace(partPillRe, (match, open, attrs, n) => {
+          const title = partTitles.get(Number(n))
+          if (!title) {
+            return match
+          }
+          const count = partCounts.get(Number(n))
+          const fullLabel = `Part ${n}: ${title.replace(/"/g, '&quot;')}${count ? ` (${count} sections)` : ''}`
+          return `${open}${attrs} title="${fullLabel}" aria-label="${fullLabel}">${n}</a>`
+        })
+      }
+
+      // Base-path rewrite — last step so every injected tag above gets
+      // prefixed in one pass. No-op when --base-path is empty (local dev,
+      // Val Town hosting, etc.).
+      if (basePath && slug) {
+        html = applyBasePath(html, basePath, slug, partFilenames)
+      }
+
+      // Rename meander's walkthrough-part-<n>.html to the configured
+      // <filename>.html (e.g. walkthrough-part-1.html → anatomy.html).
+      // Flat public URLs replace /<slug>/part/<n>-style links once the
+      // site is deployed. Other emitted HTML (index.html, documents.html
+      // if any) retains its name. Idempotent: if the target file already
+      // exists and entry is the legacy name, we write the fresh content
+      // then unlink the old — both states are covered by the validator
+      // running before the loop, which guarantees partFilenames has an
+      // entry for every part meander rendered.
+      const partMatch = /^walkthrough-part-(\d+)\.html$/.exec(entry)
+      if (partMatch) {
+        const n = Number(partMatch[1])
+        const newName = partFilenames.get(n)
+        if (!newName) {
+          throw new Error(
+            `pages/${entry}: no filename configured for part ${n}. Add "filename" to part ${n} in tour.json (e.g. "anatomy") — the validator should have caught this, so meander may have rendered a part that isn't in tour.json.`,
+          )
+        }
+        const newPath = path.join(buildDir, `${newName}.html`)
+        await fs.writeFile(newPath, html)
+        if (newPath !== htmlPath) {
+          await safeDelete(htmlPath)
+        }
+        return
+      }
+
+      await fs.writeFile(htmlPath, html)
+    }
+
+    const entries = await fs.readdir(buildDir)
+    const htmlEntries = entries.filter(e => e.endsWith('.html'))
+    const postProcessResults = await Promise.allSettled(
+      htmlEntries.map(postProcessEntry),
+    )
+    const postProcessFailures: string[] = []
+    for (let i = 0; i < postProcessResults.length; i++) {
+      const r = postProcessResults[i]!
+      if (r.status === 'rejected') {
+        postProcessFailures.push(
+          `${htmlEntries[i]}: ${String((r.reason as Error)?.message ?? r.reason)}`,
+        )
+      }
+    }
+    if (postProcessFailures.length > 0) {
+      throw new Error(
+        `tour post-processing failed for ${postProcessFailures.length} file(s):\n  - ${postProcessFailures.join('\n  - ')}`,
       )
     }
-  }
-  if (sriFailures.length > 0) {
-    throw new Error(
-      `SRI/CSP injection failed for ${sriFailures.length} file(s):\n  - ${sriFailures.join('\n  - ')}`,
+
+    // Socket.dev malware audit on CDN scripts (marked, highlight.js)
+    // that meander's generated HTML loads via `<script src=unpkg...>`.
+    // Runs before minification so a failure aborts early. Skip the
+    // audit via SKIP_AUDIT=1 for offline dev; CI must not set this.
+    if (!process.env['SKIP_AUDIT']) {
+      await auditCdnScripts(buildDir)
+    } else {
+      console.warn('[audit-deps] SKIP_AUDIT=1 — CDN audit SKIPPED')
+    }
+
+    // Rename meander's emitted shared stylesheet to its served name
+    // before minification + SRI. Meander writes `walkthrough.css`; we
+    // ship it as `style.css`. The URL rewrites in post-process above
+    // already point every <link> at `/style.css`, so the final file
+    // on disk has to match.
+    const legacyCssPath = path.join(buildDir, 'walkthrough.css')
+    const renamedCssPath = path.join(buildDir, 'style.css')
+    if (existsSync(legacyCssPath)) {
+      await fs.rename(legacyCssPath, renamedCssPath)
+    }
+
+    if (minify) {
+      await minifyEmittedAssets(buildDir)
+    }
+
+    // Subresource Integrity pass — runs LAST so the local-file hashes
+    // we compute match the exact bytes that ship (post-minify). CDN
+    // hashes are disk-cached under .cache/sri/; local ones hash the
+    // files in `buildDir` directly. Any `<script>` / `<link>`
+    // (CDN or same-origin) ends up with `integrity="sha384-..."`.
+    const sriCacheDir = path.join(repoRoot, '.cache', 'sri')
+    const sriEntries = (await fs.readdir(buildDir)).filter(e =>
+      e.endsWith('.html'),
     )
+    const sriResults = await Promise.allSettled(
+      sriEntries.map(async entry => {
+        const htmlPath = path.join(buildDir, entry)
+        let html = await fs.readFile(htmlPath, 'utf8')
+        const originalHtml = html
+        html = await injectSri(html, buildDir, basePath, sriCacheDir)
+        // CSP meta — must run AFTER SRI injection so the hash of each
+        // inline <script> reflects its final body (no further rewrites).
+        // Per-file because __defIndex varies per-part; pages also differ
+        // in which inline blocks land (index vs part pages).
+        if (!html.includes('http-equiv="Content-Security-Policy"')) {
+          const cspTag = buildCspMeta(html, commentBackend)
+          html = html.replace('</head>', `  ${cspTag}\n</head>`)
+        }
+        if (html !== originalHtml) {
+          await fs.writeFile(htmlPath, html)
+        }
+      }),
+    )
+    const sriFailures: string[] = []
+    for (let i = 0; i < sriResults.length; i++) {
+      const r = sriResults[i]!
+      if (r.status === 'rejected') {
+        sriFailures.push(
+          `${sriEntries[i]}: ${String((r.reason as Error)?.message ?? r.reason)}`,
+        )
+      }
+    }
+    if (sriFailures.length > 0) {
+      throw new Error(
+        `SRI/CSP injection failed for ${sriFailures.length} file(s):\n  - ${sriFailures.join('\n  - ')}`,
+      )
+    }
+
+    // Final publish — atomic swap of buildDir into outputDir. Wipe
+    // any previous pages/ output so the new tree is authoritative, then
+    // rename buildDir into place. Same-filesystem (both live under
+    // repoRoot), so the rename is atomic.
+    await safeDelete(outputDir)
+    await fs.rename(buildDir, outputDir)
+  } finally {
+    // Always clean up the private scratch root, regardless of
+    // success/failure. Absent buildDir (already renamed on success)
+    // is a no-op under safeDelete.
+    await safeDelete(buildRoot)
   }
 }
 
@@ -1293,20 +1348,16 @@ async function generate(
  * No sourcemaps — the user opted out explicitly. Authored files live
  * at the repo root unchanged; this only touches the emitted copies.
  */
-async function minifyEmittedAssets(): Promise<void> {
-  const jsFiles = [
-    'walkthrough-comments.js',
-    'walkthrough-drag.js',
-    'walkthrough-sw.js',
-  ]
-  const cssFiles = ['walkthrough.css']
+async function minifyEmittedAssets(buildDir: string): Promise<void> {
+  const jsFiles = ['comments.js', 'drag.js', 'sw.js']
+  const cssFiles = ['style.css']
 
   // Each minify op is independent — fan out across all files of both
   // kinds in parallel and sum the byte savings afterwards. Use
   // allSettled so a failure on one asset (e.g. lightningcss rejecting
   // invalid CSS) doesn't hide any other savings we'd otherwise report.
   const jsTasks = jsFiles.map(async f => {
-    const p = path.join(tourDir, f)
+    const p = path.join(buildDir, f)
     if (!existsSync(p)) {
       return 0
     }
@@ -1321,7 +1372,7 @@ async function minifyEmittedAssets(): Promise<void> {
     return before.length - out.code.length
   })
   const cssTasks = cssFiles.map(async f => {
-    const p = path.join(tourDir, f)
+    const p = path.join(buildDir, f)
     if (!existsSync(p)) {
       return 0
     }
@@ -1384,7 +1435,7 @@ async function readSlug(): Promise<string> {
   // Meander bakes Val-Town-shaped links (/<slug>/part/<n>) into the HTML even
   // though it writes flat file names. Read the slug from manifest.json so we
   // can route those URLs to the right file.
-  const manifestPath = path.join(tourDir, 'manifest.json')
+  const manifestPath = path.join(outputDir, 'manifest.json')
   const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8')) as {
     slug: string
   }
@@ -1428,7 +1479,7 @@ function routeToFile(
   //                               the flat file name emitted by meander)
   // /<slug>/part/<n>            → <partFilenames[n]>.html (e.g. anatomy.html)
   // /<slug>/documents           → documents.html
-  // anything else               → as-is (e.g. /walkthrough.css)
+  // anything else               → as-is (e.g. /style.css)
   if (urlPath === '/' || urlPath === '') {
     return 'index.html'
   }
@@ -1453,9 +1504,9 @@ async function serve(basePath: string, args: readonly string[]): Promise<void> {
   const portArg = args.find(a => a.startsWith('--port='))
   const port = portArg ? Number(portArg.slice('--port='.length)) : 8080
 
-  if (!existsSync(tourDir)) {
+  if (!existsSync(outputDir)) {
     console.error(
-      `No walkthrough/ directory found. Run \`pnpm tour generate tour.json\` first.`,
+      `No pages/ directory found. Run \`pnpm tour generate tour.json\` first.`,
     )
     process.exit(1)
   }
@@ -1481,8 +1532,8 @@ async function serve(basePath: string, args: readonly string[]): Promise<void> {
       return
     }
 
-    const target = path.resolve(tourDir, relative)
-    if (target !== tourDir && !target.startsWith(tourDir + path.sep)) {
+    const target = path.resolve(outputDir, relative)
+    if (target !== outputDir && !target.startsWith(outputDir + path.sep)) {
       res.writeHead(400).end('bad request')
       return
     }
@@ -1520,7 +1571,7 @@ async function serve(basePath: string, args: readonly string[]): Promise<void> {
   })
 
   server.listen(port, '127.0.0.1', () => {
-    console.log(`Serving ${tourDir} (slug: ${slug})`)
+    console.log(`Serving ${outputDir} (slug: ${slug})`)
     console.log(`  index  → http://127.0.0.1:${port}/`)
     const firstFilename = partFilenames.get(1)
     if (firstFilename) {
@@ -1557,7 +1608,7 @@ async function watch(
   const { watch: fsWatch } = await import('node:fs')
 
   // Initial build before we start the server. This also populates
-  // tourDir so `serve` has something to serve on first request.
+  // outputDir so `serve` has something to serve on first request.
   await generate(refresh, minify, basePath, rest)
 
   // Start the server. `serve` blocks on its own createServer; since
@@ -1570,14 +1621,14 @@ async function watch(
 
   // Files/directories that should trigger a rebuild when they change.
   // Keep this narrow — watching the entire repo would catch noise
-  // from test output, node_modules, walkthrough/ itself, etc.
+  // from test output, node_modules, pages/ itself, etc.
   const configArg = rest[0]!
   const sourcesToWatch: string[] = [
     path.join(repoRoot, configArg),
-    path.join(repoRoot, 'walkthrough-comments.js'),
-    path.join(repoRoot, 'walkthrough-drag.js'),
-    path.join(repoRoot, 'walkthrough-overrides.css'),
-    path.join(repoRoot, 'walkthrough-sw.js'),
+    path.join(repoRoot, 'comments.js'),
+    path.join(repoRoot, 'drag.js'),
+    path.join(repoRoot, 'overrides.css'),
+    path.join(repoRoot, 'sw.js'),
     path.join(repoRoot, 'src'),
   ]
 
@@ -1621,9 +1672,9 @@ async function watch(
       continue
     }
     fsWatch(target, { recursive: true }, (_event, filename) => {
-      // Ignore writes to the output directory itself — generate() writes
-      // into tourDir, which would otherwise loop-trigger.
-      if (filename && filename.startsWith('walkthrough/')) {
+      // Ignore writes to the output directory itself — the final move
+      // lands at pages/, which would otherwise loop-trigger.
+      if (filename && filename.startsWith('pages/')) {
         return
       }
       scheduleRebuild()

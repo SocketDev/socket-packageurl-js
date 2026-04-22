@@ -1,8 +1,8 @@
 /* ------------------------------------------------------------------
- * Socket override layer for meander's default walkthrough.css.
+ * Socket override layer for meander's emitted base CSS.
  *
- * Appended to the emitted walkthrough.css by scripts/walkthrough.mts
- * after `meander generate` runs. Targets six issues:
+ * Appended to the emitted stylesheet by scripts/tour.mts after
+ * `meander generate` runs. Targets six issues:
  *   1. No alignment affordance between prose and its paired code.
  *   2. Prose body at 14px with no max-width (cramped + loose).
  *   3. Flat heading hierarchy (h3 smaller than body).

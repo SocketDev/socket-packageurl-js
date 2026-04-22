@@ -52,11 +52,11 @@ socket-packageurl-js/
 ├── .github/workflows/      ← CI (ci.yml, pages.yml, provenance.yml, ...)
 ├── .claude/                ← Claude Code config (agents, skills, hooks)
 ├── tour.json               ← tour manifest
-└── walkthrough/            ← tour build output (gitignored)
+└── pages/                  ← tour build output (gitignored)
 ```
 
 You almost never edit `upstream/meander/` (that's the submodule
-we pin) or `walkthrough/` (build output).
+we pin) or `pages/` (build output).
 
 ## Making a change
 

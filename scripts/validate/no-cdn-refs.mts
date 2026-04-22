@@ -14,7 +14,7 @@
  * -------------
  * Every text file in the repo (matching TEXT_EXTENSIONS) except:
  *   SKIP_DIRS     — vendored / generated / ephemeral trees, e.g.
- *                   upstream/ (submodules) and walkthrough/ (emitted
+ *                   upstream/ (submodules) and pages/ (emitted
  *                   HTML for GH Pages).
  *   ALLOWED_FILES — build-side scripts that legitimately reference
  *                   CDN URLs as data (scanner / rewriter / hasher
@@ -77,10 +77,10 @@ const SKIP_DIRS = new Set([
   // Vendored third-party submodule — meander's own code legitimately
   // ships CDN references that we don't control and shouldn't rewrite.
   'upstream',
-  // Generated output — the walkthrough HTML loads unpkg bundles for
+  // Generated output — the docs-site HTML loads unpkg bundles for
   // marked + highlight.js by design. Integrity + CSP hashes protect
   // those loads; the bare URL strings are expected.
-  'walkthrough',
+  'pages',
 ])
 
 // File extensions to check

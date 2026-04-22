@@ -16,8 +16,9 @@ name: 📘 Tour (GH Pages)
 #      applies --minify + --base-path=/socket-packageurl-js. Locally the
 #      same script defaults to `dev`. No flag drift between CI and the
 #      npm script.
-#   3. Upload `walkthrough/` as the Pages artifact. (Meander hardcodes
-#      the output directory name; we keep it to avoid forking meander.)
+#   3. Upload `pages/` as the Pages artifact. (Meander hardcodes its
+#      output directory name; scripts/tour.mts renames the finished
+#      tree to pages/ before upload.)
 #   4. Deploy via actions/deploy-pages.
 
 on:
@@ -25,10 +26,10 @@ on:
     branches: [main]
     paths:
       - 'tour.json'
-      - 'walkthrough-comments.js'
-      - 'walkthrough-drag.js'
-      - 'walkthrough-overrides.css'
-      - 'walkthrough-sw.js'
+      - 'comments.js'
+      - 'drag.js'
+      - 'overrides.css'
+      - 'sw.js'
       - 'scripts/tour.mts'
       - 'src/**'
       - 'docs/**'
@@ -76,7 +77,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: walkthrough
+          path: pages
 
   deploy:
     name: Deploy to Pages

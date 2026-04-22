@@ -1,5 +1,5 @@
 /**
- * Socket walkthrough — comment UI + email magic-code auth.
+ * Docs-site comment UI + email magic-code auth.
  *
  * Replaces meander's inlined comment scripts (comment-client.js,
  * line-select.js, unresolved-comments.js, export-comments.js) entirely.
@@ -7,7 +7,7 @@
  * in their place.
  *
  * Reads meander's DOM markers verbatim:
- *   document.body[data-slug]           — walkthrough slug
+ *   document.body[data-slug]           — tour slug
  *   document.body[data-part]           — current part id
  *   document.body[data-page-type]      — "part" | "documents"
  *   table.code-table[data-file]        — file path for a code block
@@ -15,7 +15,7 @@
  *   .topbar-actions                    — action-button container
  *
  * Backend URL comes from window.socketWalkthrough.backend (injected
- * at build time from walkthrough.json's commentBackend field).
+ * at build time from tour.json's commentBackend field).
  */
 {
   const cfg = window.socketWalkthrough || {}

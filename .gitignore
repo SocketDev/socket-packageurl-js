@@ -20,8 +20,10 @@ Thumbs.db
 
 # Build artifacts
 /.tap
+/.tour-build-*
 /.type-coverage
 /coverage
+/pages
 /reports
 /walkthrough
 *.log

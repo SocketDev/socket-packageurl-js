@@ -393,10 +393,10 @@
     installThemeToggle()
     await waitForHljs()
     // Fallback reveal for pages with no comment shim (documents, or
-    // walkthroughs with no commentBackend). When the shim IS present,
+    // tours with no commentBackend). When the shim IS present,
     // its init sets wt-ready after its async health probe. Both
     // paths are idempotent.
-    if (!document.querySelector('script[src*="walkthrough-comments.js"]')) {
+    if (!document.querySelector('script[src*="comments.js"]')) {
       document.body.classList.add('wt-ready')
     }
   }

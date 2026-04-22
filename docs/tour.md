@@ -32,21 +32,23 @@ that is visible if you grep the tree. Here is the rule:
 | The config manifest           | `tour.json`               | Matches brand                                          |
 | The main build script         | `scripts/tour.mts`        | Matches brand                                          |
 | The `pnpm` commands           | `pnpm tour:*`             | Matches brand                                          |
-| The output directory          | `walkthrough/`            | **Meander hardcodes this — see note**                  |
+| The final output directory    | `pages/`                  | The finished site, ready to deploy                     |
 | The generator submodule       | `upstream/meander/`       | That is the upstream project name                      |
-| The meander-emitted CSS       | `walkthrough.css`         | Meander hardcodes the filename                         |
+| The meander-emitted CSS       | `walkthrough.css`         | Meander hardcodes the filename; we rename to style.css |
 | The meander-emitted parts     | `walkthrough-part-N.html` | Meander hardcodes; we rename in post-process           |
-| Our CSS/JS shims at repo root | `walkthrough-*.{js,css}`  | Match the meander CSS they sit alongside in the output |
+| Our CSS/JS shims at repo root | `overrides.css`, `drag.js`, `comments.js`, `sw.js` | Sources copied into the output |
 | Our CSS class prefix          | `wt-*`                    | Backronym: "walking tour"                              |
 
-> **Why the output dir is still called `walkthrough/`:** Meander is a
-> vendored submodule pinned to an upstream commit. It hardcodes the
-> output directory name in its own source. Renaming would require
-> forking meander or patching it on install. Not worth it — the
-> output dir is a build artifact that ships to GitHub Pages under a
-> different URL path anyway (the repo slug, not the dir name). Inside
-> `scripts/tour.mts` the dir is referenced by a variable called
-> `tourDir` so you can mentally swap it without reading the literal.
+> **Why the build happens in a scratch dir, not in `pages/`:** Meander
+> writes into `<cwd>/walkthrough/` — a fixed name inside the submodule.
+> `scripts/tour.mts` runs meander at `repoRoot`, then immediately moves
+> the output into a private scratch directory (`.tour-build-<uuid>/`),
+> does all post-processing there, and renames the finished tree to
+> `pages/` at the very end. The scratch dir is cleaned up in a
+> `finally` block whether the build succeeds or fails. Net effect:
+> `pages/` only ever contains a complete, consistent site — there is
+> no half-built state, and a concurrent `pnpm tour:serve` never sees
+> mid-build flux.
 
 Everything else (prose, branding, commands, CLI help) says "tour".
 
@@ -70,8 +72,8 @@ Everything else (prose, branding, commands, CLI help) says "tour".
          │                      │                         │
          ▼                      ▼                         ▼
  ┌──────────────────────────────────────────────────────────────────┐
- │  walkthrough/ (output dir — meander-controlled name)             │
- │                                                                  │
+ │  .tour-build-<uuid>/walkthrough/ (private scratch — cleaned      │
+ │                                   up in a finally block)        │
  │    walkthrough-part-1.html          ◀── meander writes this      │
  │    walkthrough-part-2.html              shape; we rename below.  │
  │    ...                                                           │
@@ -84,7 +86,7 @@ Everything else (prose, branding, commands, CLI help) says "tour".
  ┌──────────────────────────────────────────────────────────────────┐
  │  scripts/tour.mts post-process                                   │
  │                                                                  │
- │    1. Append Socket overrides to walkthrough.css                 │
+ │    1. Append Socket overrides to the emitted stylesheet          │
  │    2. Copy drag/comments/SW scripts                              │
  │    3. Copy favicons                                              │
  │    4. Render docs/*.md → <filename>.html  (marked)               │
@@ -93,15 +95,17 @@ Everything else (prose, branding, commands, CLI help) says "tour".
  │       base-path rewrite, rename walkthrough-part-N.html →        │
  │       <title-word>.html (anatomy.html, parsing.html, …)          │
  │    7. CDN script malware audit (Socket SDK)                      │
- │    8. Minify walkthrough.css + shim JS                           │
- │    9. SRI hash injection on every <script>/<link>                │
- │   10. CSP meta tag insertion                                     │
+ │    8. Rename walkthrough.css → style.css                         │
+ │    9. Minify style.css + shim JS                                 │
+ │   10. SRI hash injection on every <script>/<link>                │
+ │   11. CSP meta tag insertion                                     │
+ │   12. Atomic swap: scratch/walkthrough/ → pages/                 │
  │                                                                  │
  └───────┬──────────────────────────────────────────────────────────┘
          │
          ▼
  ┌──────────────────────────────────────────────────────────────────┐
- │  final walkthrough/ ready to deploy                              │
+ │  final pages/ ready to deploy                                    │
  │                                                                  │
  │    anatomy.html, building.html, parsing.html,                    │
  │    validation.html, conversion.html, ecosystems.html,            │
@@ -109,8 +113,8 @@ Everything else (prose, branding, commands, CLI help) says "tour".
  │    architecture.html, builders.html, converters.html,            │
  │    safety.html, vers.html, tour.html,                            │
  │    contributing.html, release.html,                              │
- │    index.html, walkthrough.css (minified, with overrides),       │
- │    walkthrough-*.js (minified), favicons                         │
+ │    index.html, style.css (minified, with overrides),             │
+ │    comments.js/drag.js/sw.js (minified), favicons                │
  │                                                                  │
  └───────┬──────────────────────────────────────────────────────────┘
          │
@@ -120,7 +124,7 @@ Everything else (prose, branding, commands, CLI help) says "tour".
  │                                                                  │
  │    - checkout + submodule init + pnpm install                    │
  │    - pnpm tour:build (CI env → --prod preset)                    │
- │    - upload walkthrough/ as Pages artifact                       │
+ │    - upload pages/ as Pages artifact                             │
  │    - actions/deploy-pages                                        │
  │                                                                  │
  └───────┬──────────────────────────────────────────────────────────┘
@@ -199,10 +203,10 @@ published to npm. The pin is intentional: a random upstream change
 could silently break our build, so every update has to be a
 deliberate bump.
 
-Meander is a **generator only** — it writes HTML to `walkthrough/`
-and does not know about our post-processing. That separation means we
-can evolve our chrome (CSP, SRI, TOC shape, doc rendering) without
-forking meander.
+Meander is a **generator only** — it writes HTML into a scratch
+directory (`.tour-build-<uuid>/walkthrough/`) and does not know about
+our post-processing. That separation means we can evolve our chrome
+(CSP, SRI, TOC shape, doc rendering) without forking meander.
 
 ### `scripts/tour.mts` — the orchestrator
 
@@ -211,8 +215,8 @@ The single build script. Commands:
 - `pnpm tour:build` — one-shot build.
 - `pnpm tour:watch` — build once, start dev server, rebuild on source
   changes.
-- `pnpm tour:serve` — serve the already-built `walkthrough/`
-  directory without rebuilding.
+- `pnpm tour:serve` — serve the already-built `pages/` directory
+  without rebuilding.
 - `pnpm tour:valtown` — deploy the comment-backend val (the val/
   tree, unrelated to the static site).
 
@@ -231,7 +235,7 @@ The workflow file that ships the tour to GitHub Pages on every push
 to main that touches tour sources. Paths that trigger it:
 
 - `tour.json`
-- `walkthrough-*.js`, `walkthrough-overrides.css`
+- `comments.js`, `drag.js`, `sw.js`, `overrides.css`
 - `scripts/tour.mts`
 - `src/**`
 - `docs/**`
@@ -245,7 +249,7 @@ changes.
 Two jobs:
 
 1. **Build** — checkout + submodule init + pnpm install + `pnpm
-tour:build` + upload `walkthrough/` as a Pages artifact.
+tour:build` + upload `pages/` as a Pages artifact.
 2. **Deploy** — `actions/deploy-pages` consumes the artifact and
    publishes.
 
@@ -301,7 +305,7 @@ MB of rendered HTML across all 16 pages, and highlight.js pulled from
 unpkg. On a cold load that's fine. On a return visit we want instant
 paint.
 
-`walkthrough-sw.js` implements:
+`sw.js` (served from `pages/sw.js`) implements:
 
 - **Cache-first** for same-origin assets (CSS, JS, favicons). Served
   from cache; refreshed in the background.
@@ -320,7 +324,7 @@ never fights stale SW caches.
 
 Comments are a separate story that only loosely touches this
 pipeline. The static site ships a tiny shim
-(`walkthrough-comments.js`) that talks to a Val Town HTTP function at
+(`comments.js`) that talks to a Val Town HTTP function at
 `commentBackend` (configured in `tour.json`). The val/ tree under
 repo root is the implementation — Hono routes, libsql storage,
 AES-GCM encryption of comment bodies. The val is deployed separately
@@ -338,7 +342,7 @@ val's routes to match.
 # build its dist/. Idempotent; subsequent runs detect and skip.
 pnpm install
 
-# Build the site once into ./walkthrough/
+# Build the site once into ./pages/
 pnpm tour:build
 
 # Serve it on http://127.0.0.1:8080/
@@ -367,7 +371,7 @@ Ports and URLs:
 3. Make sure every file in `files` has well-placed multiline comments
    — those become the annotated sections.
 4. `pnpm tour:build` and confirm the page emits at
-   `walkthrough/<filename>.html`.
+   `pages/<filename>.html`.
 
 Validator failures you might hit:
 

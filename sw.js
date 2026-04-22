@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
- * Walkthrough service worker.
+ * Docs-site service worker.
  *
  * Cache-first for same-origin static assets (HTML pages, CSS, JS,
  * SVG icons, favicons, fonts, highlight.js bundle). Network-first
@@ -20,7 +20,7 @@
  * ------------------------------------------------------------------ */
 
 // `__CACHE_VERSION__` is substituted at generate time with the current
-// git commit SHA (see scripts/walkthrough.mts). Every deploy produces
+// git commit SHA (see scripts/tour.mts). Every deploy produces
 // a different version string, which flips the SW bytes, which makes
 // the browser's update check detect a new SW, which triggers `install`
 // + `activate` — and the `activate` handler prunes the old cache.
@@ -39,9 +39,9 @@ const BASE_PATH = self.location.pathname.replace(/\/[^/]*$/, '')
 // paint. HTML entries aren't precached (the page is the request that
 // installs the SW); the *next* navigation to them is cached.
 const PRECACHE = [
-  `${BASE_PATH}/walkthrough.css`,
-  `${BASE_PATH}/walkthrough-drag.js`,
-  `${BASE_PATH}/walkthrough-comments.js`,
+  `${BASE_PATH}/style.css`,
+  `${BASE_PATH}/drag.js`,
+  `${BASE_PATH}/comments.js`,
   `${BASE_PATH}/favicon.ico`,
   `${BASE_PATH}/favicon-16x16.png`,
   `${BASE_PATH}/favicon-32x32.png`,
