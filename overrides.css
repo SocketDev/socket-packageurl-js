@@ -1854,7 +1854,14 @@ body.col-resizing * {
 .doc-body blockquote code {
   font-family: var(--font-mono);
   font-size: 0.88em;
-  padding: 1px 5px;
+  padding: 1px 6px;
+  /* Enough min-width that a single-character chip (like `` `.` ``
+   * or `` `?` ``) reads as a pill rather than a truncated dot.
+   * inline-block so the width actually applies — default <code>
+   * is inline. text-align centers short contents inside the chip. */
+  min-width: 1.4em;
+  display: inline-block;
+  text-align: center;
   border-radius: 4px;
   background: var(--bg-tint);
   border: 1px solid var(--border);
