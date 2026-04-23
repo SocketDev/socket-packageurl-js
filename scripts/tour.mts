@@ -944,7 +944,7 @@ async function renderDocs(
        * both registered when we query blocks. */
       `  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/highlight.min.js" defer></script>\n` +
       `  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/languages/typescript.min.js" defer></script>\n` +
-      `  <script>document.addEventListener('DOMContentLoaded',function(){if(!window.hljs)return;document.querySelectorAll('pre:not(.wt-repo-tree) code[class*="language-"]').forEach(function(b){window.hljs.highlightElement(b)})})</script>\n` +
+      `  <script>document.addEventListener('DOMContentLoaded',()=>{if(!window.hljs)return;document.querySelectorAll('pre:not(.wt-repo-tree) code[class*="language-"]').forEach(b=>window.hljs.highlightElement(b))})</script>\n` +
       `</body>\n` +
       `</html>\n`
     await fs.writeFile(path.join(tourDir, `${doc.filename}.html`), html)
