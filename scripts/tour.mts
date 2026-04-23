@@ -2147,18 +2147,6 @@ async function generate(
         stripInlinedCommentScripts(root, COMMENT_SCRIPT_MARKERS)
       }
 
-      /* Meander emits the raw markdown source of every annotation
-       * as <textarea class="annotation-md-source" hidden> alongside
-       * each .annotation-md container — presumably for a JS
-       * editor it expects to mount. We don't use them; nothing in
-       * drag.js / comments.js / tour.mts reads them. They ship
-       * display:none'd (overrides.css) but still cost ~5KB per
-       * part page in raw markdown bytes. Strip them here. */
-      for (const t of root.querySelectorAll('textarea.annotation-md-source')) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ;(t as any).remove?.()
-      }
-
       const head = root.querySelector('head')
       const body = root.querySelector('body')
 
