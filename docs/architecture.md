@@ -244,36 +244,20 @@ See `docs/safety.md` for the threat model.
 
 ## Dependency direction
 
-```
-            index.ts  (public API)
-                │
-                ▼
-          ┌───────────┐
-          │ PackageURL │─────────────┐
-          └─────┬──────┘             │
-                │                    │
-                ▼                    ▼
-         ┌──────────┐         ┌─────────────┐
-         │ decode   │         │ PurlBuilder │
-         └───┬──────┘         └─────┬───────┘
-             │                      │
-             └────┬────────┬────────┘
-                  │        │
-                  ▼        ▼
-          ┌──────────┐  ┌──────────────┐
-          │ validate │  │ purl-type    │───▶ purl-types/*.ts
-          └────┬─────┘  └──────┬───────┘
-               │               │
-               ▼               ▼
-        ┌──────────────┐  ┌──────────────┐
-        │ encode       │  │ normalize    │
-        └──────┬───────┘  └──────┬───────┘
-               │                 │
-               ▼                 ▼
-        ┌──────────────┐  ┌──────────────┐
-        │ strings      │  │ objects      │
-        │ (injection)  │  │ (freeze)     │
-        └──────────────┘  └──────────────┘
+```mermaid
+flowchart TD
+    A["index.ts (public API)"] --> B[PackageURL]
+    B --> C[decode]
+    B --> D[PurlBuilder]
+    C --> E[validate]
+    C --> F[purl-type]
+    D --> E
+    D --> F
+    F --> G["purl-types/*.ts"]
+    E --> H[encode]
+    F --> I[normalize]
+    H --> J["strings (injection)"]
+    I --> K["objects (freeze)"]
 ```
 
 No cycles. `index.ts` only depends on top-level symbols;

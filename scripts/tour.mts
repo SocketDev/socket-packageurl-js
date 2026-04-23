@@ -193,6 +193,226 @@ async function processMermaidTokens(
 }
 
 /**
+ * Emit AI-agent-consumable artifacts alongside the rendered HTML.
+ *
+ * The `llms.txt` convention (llmstxt.org) is "the robots.txt for
+ * AI" — a small curated markdown index an agent can fetch at a
+ * known path to understand a site's structure without scraping.
+ * We ship three flavors:
+ *
+ *   /llms.txt          Small: title, one-line description, linked
+ *                      index of every part + doc.
+ *   /llms-full.txt     Big: every part's objective + every doc's
+ *                      full markdown, concatenated. Cheapest way
+ *                      for an agent to read the whole site in one
+ *                      request (~100KB gzipped for this tour).
+ *   /<filename>.md     For docs, ship the raw markdown source
+ *                      alongside the rendered .html so a
+ *                      content-negotiating agent can prefer .md.
+ *
+ * All same-origin, covered by CSP `default-src 'self'`. No CSP
+ * / SRI interactions — these are static text files.
+ */
+async function emitAiArtifacts(
+  buildDir: string,
+  repoRoot: string,
+  slug: string,
+  title: string,
+  docFilenames: ReadonlyMap<string, DocEntry>,
+  parts: ReadonlyArray<{
+    id: number
+    title: string
+    filename?: string
+    objective?: string
+  }>,
+): Promise<void> {
+  const base = slug ? `/${slug}` : ''
+  /* Small llms.txt — short header, title, and a grouped link
+   * list. Agents parsing this don't read the rendered HTML. */
+  const llmsLines: string[] = []
+  llmsLines.push(`# ${title || 'Package tour'}`)
+  llmsLines.push('')
+  llmsLines.push(
+    '> Build-time generated index of this documentation tour. Every entry below is also available as .md (raw markdown) or .html (rendered).',
+  )
+  llmsLines.push('')
+  if (parts.length > 0) {
+    llmsLines.push('## Parts (code walkthroughs)')
+    llmsLines.push('')
+    for (const p of [...parts].sort((a, b) => a.id - b.id)) {
+      const name = p.filename ?? `part-${p.id}`
+      const bullet = `- [Part ${p.id}: ${p.title}](${base}/${name}.html)`
+      const obj = p.objective ? ` — ${p.objective.replace(/`/g, '')}` : ''
+      llmsLines.push(bullet + obj)
+    }
+    llmsLines.push('')
+  }
+  if (docFilenames.size > 0) {
+    llmsLines.push('## Articles')
+    llmsLines.push('')
+    for (const doc of docFilenames.values()) {
+      const bullet = `- [${doc.title}](${base}/${doc.filename}.html)`
+      const sum = doc.summary ? ` — ${doc.summary}` : ''
+      llmsLines.push(bullet + sum)
+    }
+    llmsLines.push('')
+  }
+  await fs.writeFile(path.join(buildDir, 'llms.txt'), llmsLines.join('\n'))
+
+  /* Full llms.txt — include each article's raw markdown
+   * concatenated after the index. Agents can pull one file for
+   * the whole site. Part-file walkthroughs aren't re-emitted
+   * here (the source is the library code itself, which lives
+   * under src/; the tour is commentary). */
+  const fullLines: string[] = [...llmsLines]
+  fullLines.push('---')
+  fullLines.push('')
+  for (const doc of docFilenames.values()) {
+    const sourcePath = path.join(repoRoot, doc.source)
+    if (!existsSync(sourcePath)) {
+      continue
+    }
+    try {
+      const md = await fs.readFile(sourcePath, 'utf8')
+      fullLines.push(`# ${doc.title}`)
+      fullLines.push('')
+      fullLines.push(md.trimEnd())
+      fullLines.push('')
+      fullLines.push('---')
+      fullLines.push('')
+    } catch {
+      /* unreadable — skip */
+    }
+  }
+  await fs.writeFile(path.join(buildDir, 'llms-full.txt'), fullLines.join('\n'))
+
+  /* Per-doc .md copies — raw source alongside the rendered
+   * .html. Skips parts because parts don't have a hand-authored
+   * markdown source; they're generated from the library code. */
+  await Promise.all(
+    [...docFilenames.values()].map(async doc => {
+      const sourcePath = path.join(repoRoot, doc.source)
+      if (!existsSync(sourcePath)) {
+        return
+      }
+      try {
+        const md = await fs.readFile(sourcePath, 'utf8')
+        await fs.writeFile(path.join(buildDir, `${doc.filename}.md`), md)
+      } catch {
+        /* unreadable — skip */
+      }
+    }),
+  )
+}
+
+/**
+ * Wrap 1–3 digit numeric tokens (optionally `~`-prefixed) in a
+ * `<span class="wt-num">` so counts and approximations pop in
+ * accent color — matches the home TOC summary treatment so the
+ * rhythm stays consistent between the index and the doc pages.
+ * Skips years (≥4 digits) so "2026" stays plain prose.
+ *
+ * Walks text nodes inside prose-like elements only. Code, pre,
+ * links, kbd, samp are left alone so numeric literals in code
+ * don't get wrapped.
+ */
+function highlightProseNumbers(html: string): string {
+  const root = parseHtml(html)
+  const allowed = new Set([
+    'P',
+    'LI',
+    'TD',
+    'TH',
+    'BLOCKQUOTE',
+    'DD',
+    'DT',
+    'H1',
+    'H2',
+    'H3',
+    'H4',
+  ])
+  const skip = new Set(['CODE', 'PRE', 'A', 'KBD', 'SAMP'])
+  const pattern = /(~?\b\d{1,3}\b)/g
+  const walk = (node: HTMLElement): void => {
+    if (skip.has(node.tagName)) {
+      return
+    }
+    const children = Array.from(node.childNodes)
+    for (const child of children) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const any = child as any
+      if (any.nodeType === 3) {
+        if (!allowed.has(node.tagName)) {
+          continue
+        }
+        const text: string = any.rawText ?? ''
+        if (!pattern.test(text)) {
+          continue
+        }
+        pattern.lastIndex = 0
+        any.rawText = text.replace(pattern, '<span class="wt-num">$1</span>')
+      } else if (any.nodeType === 1) {
+        walk(any as HTMLElement)
+      }
+    }
+  }
+  walk(root as HTMLElement)
+  return root.toString()
+}
+
+/**
+ * Remove any `<h2>Further reading</h2>` section from a rendered
+ * doc. The upstream README-style docs close with a "Further
+ * reading" list of cross-references to sibling `docs/*.md`
+ * files — we don't ship those files under those names (they
+ * become `<filename>.html` in the unified Topics nav), so the
+ * links 404. Simplest: drop the whole section.
+ *
+ * Walks the root children, finds the h2, then removes it + every
+ * following sibling until the next h2 (or end). Case-insensitive
+ * title match so variants ("Further Reading", "Further reading:")
+ * get caught too.
+ */
+function stripFurtherReading(html: string): string {
+  const root = parseHtml(html)
+  const headings = root.querySelectorAll('h2')
+  for (const h of headings) {
+    const text = h.text
+      .trim()
+      .toLowerCase()
+      .replace(/[:.…]+$/, '')
+    if (text !== 'further reading') {
+      continue
+    }
+    /* Collect every sibling from this h2 until the next h2, then
+     * remove them all. parentNode is usually the root or the doc
+     * body wrapper marked introduces. */
+    const parent = h.parentNode as HTMLElement | null
+    if (!parent) {
+      continue
+    }
+    const children = parent.childNodes
+    const startIdx = children.indexOf(h)
+    if (startIdx < 0) {
+      continue
+    }
+    const toRemove: Array<ReturnType<HTMLElement['childNodes']['at']>> = []
+    for (let i = startIdx; i < children.length; i++) {
+      const c = children[i]
+      if (i > startIdx && (c as HTMLElement).tagName === 'H2') {
+        break
+      }
+      toRemove.push(c)
+    }
+    for (const n of toRemove) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(n as any).remove?.()
+    }
+  }
+  return root.toString()
+}
+
+/**
  * Mark ASCII repo-tree code blocks (ones that draw a directory
  * hierarchy with `├──`, `└──`, `│`) so CSS can style them
  * differently from regular code — dim the drawing glyphs, lift
@@ -598,13 +818,26 @@ async function renderDocs(
     const withDiagrams = mermaidRenderer
       ? await processMermaidTokens(markdown, mermaidRenderer)
       : await marked.parse(markdown)
+    /* Strip "Further reading" sections. The docs we inherited
+     * from the repo's READMEs include cross-reference lists that
+     * point at sibling docs/*.md files — but we render these to
+     * html + expose them via the unified Topics nav, not the
+     * original filenames. Rather than rewrite every link by hand,
+     * drop the whole section. Removes every `<h2>Further
+     * reading</h2>` and all following siblings until the next h2
+     * (or end of document). */
+    const withoutFurtherReading = stripFurtherReading(withDiagrams)
     /* Italicize parenthetical asides inside prose. Walk only text
      * nodes inside <p>/<li>/<td>/<blockquote> — skip <code>, <pre>,
      * and their descendants so `function(x)` in a code block or a
      * URL's query string doesn't get treated as prose. Matches
      * (two-or-more-char parentheticals that aren't purely symbols)
      * and wraps them in <em>, leaving the parens visible. */
-    const italicized = italicizeParentheticals(withDiagrams)
+    /* Lift counts + approximations (`41`, `~95%`, `28 tests`)
+     * in accent color inside prose. Same treatment the home TOC
+     * uses so the rhythm is consistent across the site. */
+    const withNumbers = highlightProseNumbers(withoutFurtherReading)
+    const italicized = italicizeParentheticals(withNumbers)
     /* Give every heading an id + a hover-visible `#` anchor link
      * so readers can deep-link any section of a doc. Same UX
      * pattern GitHub renders READMEs with. */
@@ -636,6 +869,10 @@ async function renderDocs(
       `  <meta charset="utf-8" />\n` +
       `  <meta name="viewport" content="width=device-width, initial-scale=1" />\n` +
       `  <title>${escapeHtml(doc.title)} — Socket PackageURL.js</title>\n` +
+      /* Raw markdown companion — agents that negotiate content
+       * type can follow this link and get the source instead of
+       * the rendered HTML. Emitted alongside by emitAiArtifacts. */
+      `  <link rel="alternate" type="text/markdown" href="/${doc.filename}.md" />\n` +
       `  <link rel="stylesheet" href="/style.css" />\n` +
       // Syntax highlighting — unconditionally load github-dark to
       // match the part pages (which don't media-gate). Our dark
@@ -1684,6 +1921,27 @@ async function generate(
     } finally {
       await mermaidRenderer.close()
     }
+
+    /* Emit AI-agent-friendly artifacts:
+     *   /llms.txt          — index of every doc + part as a plain
+     *                        markdown-formatted link list (the
+     *                        emerging llms.txt convention).
+     *   /llms-full.txt     — the entire site concatenated into one
+     *                        long markdown file so an agent can
+     *                        consume the project in one request.
+     *   /<name>.md         — raw markdown copy alongside each
+     *                        rendered HTML doc (agents that
+     *                        content-negotiate pick .md over .html).
+     * Every path is same-origin so CSP `default-src 'self'` covers
+     * it; no additional rules needed. */
+    await emitAiArtifacts(
+      buildDir,
+      repoRoot,
+      slug,
+      tourConfig.title ?? '',
+      docFilenames,
+      tourConfig.parts ?? [],
+    )
     /* Count lines in each doc's source markdown, same as parts, so
      * the TOC's size-tier badge can show a meaningful estimate for
      * prose pages. Missing/unreadable files just drop out of the
@@ -1774,6 +2032,15 @@ async function generate(
       '<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />',
       '<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />',
     ].join('\n  ')
+    /* Theme-boot: a tiny blocking inline <script> that reads the
+     * stored preference and sets <html data-theme="…"> BEFORE the
+     * browser paints anything. Without it, the default palette
+     * flashes on every navigation for a frame or two until drag.js
+     * (defer-loaded) fires and applies the real theme. Runs in
+     * under a millisecond; the bytes + SHA-256 hash pair for CSP
+     * are a worthwhile tradeoff for eliminating the FOUC. */
+    const themeBootScript = `(function(){try{var w=window,t=localStorage.getItem('socket-pages:theme'),r;if(t==='dark'||t==='light'||t==='synthwave')r=t;else if(w.matchMedia&&w.matchMedia('(prefers-color-scheme: dark)').matches)r='dark';else r='light';document.documentElement.setAttribute('data-theme',r)}catch{}})()`
+    const themeBootTag = `<script>${themeBootScript}</script>`
     // Preload the shim scripts so the browser starts fetching them in
     // parallel with HTML parsing, ahead of the `defer` discovery. The
     // CSS is already in a `<link rel="stylesheet">` which is inherently
@@ -1923,6 +2190,17 @@ async function generate(
             `\n  <meta name="description" content="${escapeHtml(description)}" />`,
           )
         }
+      }
+
+      /* Theme-boot must land AS EARLY AS POSSIBLE — before the
+       * stylesheet so the browser doesn't paint with the wrong
+       * palette even for a single frame. Inject via afterbegin
+       * on <head>. Idempotent via marker probe. */
+      if (head && !root.querySelector('script[data-theme-boot]')) {
+        head.insertAdjacentHTML(
+          'afterbegin',
+          `\n  ${themeBootTag.replace('<script>', '<script data-theme-boot>')}`,
+        )
       }
 
       // Inject favicons + preloads in <head>. Idempotent via marker

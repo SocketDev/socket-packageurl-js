@@ -25,8 +25,8 @@
     document.documentElement.setAttribute('data-ua', 'safari')
   }
 
-  const SPLIT_KEY = 'socket-walkthrough:col-split'
-  const THEME_KEY = 'socket-walkthrough:theme'
+  const SPLIT_KEY = 'socket-pages:col-split'
+  const THEME_KEY = 'socket-pages:theme'
   const DEFAULT_SPLIT = 50
   const MIN = 20
   const MAX = 80

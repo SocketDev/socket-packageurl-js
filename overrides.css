@@ -589,7 +589,7 @@ main.files-stack {
 
 /* Doc pills in the unified Topics row. Same shape and tone as
  * numbered part pills (one word each) so the row reads as a
- * continuous sequence: "Anatomy Building … VERS Architecture
+ * continuous sequence: "Anatomy Building … VERS | Architecture
  * Builders …". Slightly tighter padding than the number pills
  * since word labels carry their own width. */
 .wt-topic-doc {
@@ -597,21 +597,47 @@ main.files-stack {
 }
 
 .wt-topic-doc:first-of-type {
-  margin-left: 10px;
+  margin-left: 14px;
   position: relative;
 }
 
-/* Hair-thin vertical divider before the first doc pill — reads
- * as a section break between "Parts 1-8" and the named doc
- * articles without taking up real estate. */
+/* Pretty vertical separator between the parts (code) and the
+ * docs (articles). Accent-tinted, full-height, soft gradient
+ * fade at top/bottom so it doesn't feel like a hard chop.
+ * Sits in the 8px gap flex creates between the last part pill
+ * and the first doc pill. */
 .wt-topic-doc:first-of-type::before {
   content: '';
   position: absolute;
-  left: -5px;
-  top: 4px;
-  bottom: 4px;
+  left: -9px;
+  top: 2px;
+  bottom: 2px;
   width: 1px;
-  background: var(--border);
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--accent-fg) 50%, transparent) 20%,
+    color-mix(in srgb, var(--accent-fg) 50%, transparent) 80%,
+    transparent 100%
+  );
+}
+
+/* Hover callback to the home page badges: code pages (parts)
+ * pick up the blue used by the "CODE" kind badge; article pages
+ * (docs) pick up the green "ARTICLE" tint. Subtle — just the
+ * border and a faint fill. Same colors as .wt-badge-kind-code /
+ * .wt-badge-kind-article so the connection reads. Only applies
+ * to the non-active state; .active keeps its accent-fg framing. */
+.part-nav a:not(.wt-topic-doc):not(.active):hover {
+  border-color: color-mix(in srgb, #6aa1ff 45%, var(--border-strong));
+  background: color-mix(in srgb, #6aa1ff 10%, var(--nav-hover-bg));
+  color: #6aa1ff;
+}
+
+.wt-topic-doc:not(.active):hover {
+  border-color: color-mix(in srgb, #4fc48b 45%, var(--border-strong));
+  background: color-mix(in srgb, #4fc48b 10%, var(--nav-hover-bg));
+  color: #4fc48b;
 }
 
 /* Generic button — used by doc pages and any future CTA surface.
@@ -868,7 +894,10 @@ tbody td:first-child {
  * in accent color so they read as quantitative anchors in prose.
  * Slightly stronger weight without changing the font, so the
  * text rhythm stays intact. */
-.wt-contents-summary .wt-num {
+/* Numeric highlight — universal. Used by the home TOC summary
+ * and by doc-page prose (highlightProseNumbers in tour.mts).
+ * Same token, one rule. */
+.wt-num {
   color: var(--accent-fg);
   font-weight: 600;
   font-variant-numeric: tabular-nums;

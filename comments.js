@@ -20,8 +20,8 @@
 {
   const cfg = window.socketWalkthrough || {}
   const BACKEND = (cfg.backend || '').replace(/\/+$/, '')
-  const JWT_KEY = 'socket-walkthrough:jwt'
-  const EMAIL_KEY = 'socket-walkthrough:email'
+  const JWT_KEY = 'socket-pages:jwt'
+  const EMAIL_KEY = 'socket-pages:email'
 
   const slug = document.body.getAttribute('data-slug') || ''
   const partId = Number.parseInt(
