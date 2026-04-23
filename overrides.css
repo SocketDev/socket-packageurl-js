@@ -614,7 +614,13 @@ main.files-stack {
   padding: 0 8px;
 }
 
-.wt-topic-doc:first-of-type {
+/* First doc pill = the one NOT preceded by another .wt-topic-doc.
+ * `:first-of-type` doesn't work here because every pill is an
+ * <a>, so :first-of-type matches the first Part (Anatomy), not
+ * the first doc. The `:not(:has(...))` form reads: "doc pill
+ * whose previous sibling isn't also a doc pill," i.e. the first
+ * in the sequence. */
+.wt-topic-doc:not(.wt-topic-doc + .wt-topic-doc) {
   margin-left: 14px;
   position: relative;
 }
@@ -624,7 +630,7 @@ main.files-stack {
  * fade at top/bottom so it doesn't feel like a hard chop.
  * Sits in the 8px gap flex creates between the last part pill
  * and the first doc pill. */
-.wt-topic-doc:first-of-type::before {
+.wt-topic-doc:not(.wt-topic-doc + .wt-topic-doc)::before {
   content: '';
   position: absolute;
   left: -9px;
