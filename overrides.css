@@ -1203,16 +1203,15 @@ html:not([data-ua='safari']) .file-block {
 }
 
 /* File path on each file-block header — the "this section is
- * about <file>" title. Larger + heavier than the TOC-title
- * scale (18px/600) so it reads as a hero for the entire
- * code+prose stack below, not just another body heading.
- * Monospace because it's a file path, literal text. */
+ * about <file>" title. Clearly the largest heading on the
+ * page so the annotation h1/h2 below (18px/600) read as
+ * sub-headings, not peers. */
 .file-head .path {
   font-family: var(--font-mono);
-  font-size: 22px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
   color: var(--ink);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .file-head .count {
@@ -1692,17 +1691,13 @@ body.col-resizing * {
 
 /* JSDoc tag marker (@param, @returns, @throws, @example, …).
  * Set in annotation prose by drag.js's cleanupAnnotationProse
- * after meander hydrates. Distinctive from surrounding prose —
- * always a tinted accent color + non-italic, since the first
- * annotation-card on each file-block is rendered in italic
- * muted prose (so "dimmer than body" wouldn't stand out there).
- * Using the accent token works across every theme + both
- * card-ordinal treatments. */
+ * after meander hydrates. No color tint — pink/accent would
+ * read as a link. Just plain muted grey + non-italic (to break
+ * out of the italic treatment on the first annotation-card of
+ * each file-block) so the tag reads as quiet metadata. */
 .wt-jsdoc-tag {
-  color: var(--accent-fg);
+  color: var(--muted);
   font-style: normal;
-  font-weight: 500;
-  opacity: 0.75;
 }
 
 /* ── 8. Code / diff tables ───────────────────────────────────────── */
