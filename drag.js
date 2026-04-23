@@ -568,6 +568,22 @@
         panel.scrollTop += centerOffset
       })
     }
+    /* Close any open sections/files menu after the user picks
+     * an entry from its panel. Without this, clicking a link
+     * leaves the floating dropdown open on top of the content
+     * it just jumped to. Delegated on document so chips that
+     * hydrate lazily are covered too. */
+    document.addEventListener('click', e => {
+      const link = e.target.closest?.('.wt-sections-panel a, .wt-files-panel a')
+      if (!link) {
+        return
+      }
+      for (const menu of document.querySelectorAll(
+        '.wt-sections-menu[open], .wt-files-menu[open]',
+      )) {
+        menu.open = false
+      }
+    })
   }
 
   /* Cmd/Ctrl-click links inside code lines. Two flavors:
