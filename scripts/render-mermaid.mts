@@ -2,27 +2,25 @@
  * Build-time Mermaid → SVG renderer.
  *
  * Why build-time, not client-side:
- *   - Zero client JS. The page ships finished SVG; no 1MB+ mermaid
- *     bundle, no render flash, no layout shift.
+ *   - Zero client JS. The page ships finished SVG; no 1MB+
+ *     mermaid bundle, no render flash, no layout shift.
  *   - CSP stays tight. No extra script-src entry, no SRI for a
  *     library we only ever use to make pictures.
- *   - SVGO can shrink each diagram to a few KB of whitespace-free,
- *     group-flattened markup.
+ *   - SVGO shrinks each diagram to a few KB.
  *
  * How it works:
- *   1. Spin up one puppeteer browser per build (shared across every
- *      diagram in every doc so we pay the Chromium boot once).
- *   2. For each diagram: hash the source text + theme. If the
- *      `.cache/mermaid/<hash>.svg` file exists, reuse it —
- *      re-rendering an unchanged diagram is pure cycles.
+ *   1. Spin up one puppeteer browser per build (shared across
+ *      every diagram — Chromium boot paid once).
+ *   2. For each diagram: hash the source + theme + mermaid
+ *      version. If the cache has that hash, return its SVG.
  *   3. Otherwise: open a blank page, load mermaid from
- *      node_modules, call `mermaid.render()`, grab the SVG string.
- *   4. Pipe through SVGO to strip comments, collapse groups,
- *      quantize path precision. Write to cache + return.
+ *      node_modules, wait for fonts, render into a real
+ *      DOM-attached container (mermaid-cli's pattern), grab
+ *      the SVG string.
+ *   4. Pipe through SVGO. Write to cache + return.
  *
- * Cache key includes the mermaid version + theme + source so a
- * mermaid bump or theme change invalidates stale output
- * automatically.
+ * Cache key embeds the mermaid version so a dep bump invalidates
+ * stale output automatically.
  */
 
 import { hash as cryptoHash } from 'node:crypto'
@@ -41,12 +39,13 @@ export type MermaidRenderer = {
   close: () => Promise<void>
 }
 
-/* Minimal SVGO pipeline — keep IDs (mermaid uses them for
- * edge-to-node links), drop comments + XML prolog, collapse
- * useless groups, quantize numeric precision. We deliberately
- * skip `removeUnknownsAndDefaults` because mermaid emits some
- * non-default attrs SVGO's defaults list considers redundant
- * but browsers actually render (e.g. preserveAspectRatio). */
+/* SVGO config — preset-default with three overrides disabled:
+ *   - cleanupIds: mermaid uses IDs for edge-to-node linking, so
+ *     collapsing them breaks arrow rendering.
+ *   - removeViewBox: we need viewBox for responsive sizing in CSS.
+ *   - removeUnknownsAndDefaults: mermaid emits attrs the default
+ *     list wants to strip (preserveAspectRatio variants) that
+ *     browsers actually use. */
 const svgoConfig = {
   multipass: true,
   plugins: [
@@ -70,11 +69,7 @@ export type MermaidRendererConfig = {
 
 /**
  * Create a renderer backed by a shared puppeteer browser. Call
- * `close()` when the build is done — leaving the browser open
- * leaks a Chromium process.
- *
- * `repoRoot` is where we find `node_modules/mermaid/dist/…`.
- * `cacheDir` is where rendered SVGs persist across builds.
+ * `close()` when the build is done.
  */
 export async function createMermaidRenderer(
   config: MermaidRendererConfig,
@@ -93,9 +88,6 @@ export async function createMermaidRenderer(
     )
   }
   const mermaidJs = await fs.readFile(mermaidJsPath, 'utf8')
-  // Embed mermaid version in the cache key so a dep bump invalidates
-  // cached SVGs automatically (otherwise a mermaid update that
-  // changes rendering output would silently serve stale diagrams).
   const mermaidPkgPath = path.join(
     repoRoot,
     'node_modules',
@@ -113,9 +105,8 @@ export async function createMermaidRenderer(
   await fs.mkdir(cacheDir, { recursive: true })
 
   /* Lazy-launch puppeteer — only pay the Chromium boot cost
-   * (~1-2s) if we actually have a cache miss. A build where every
-   * diagram is unchanged returns pure file reads and never starts
-   * the browser. */
+   * (~1-2s) when we actually have a cache miss. A build where
+   * every diagram is unchanged returns pure file reads. */
   let browser: Browser | null = null
   const ensureBrowser = async (): Promise<Browser> => {
     if (!browser) {
@@ -144,17 +135,11 @@ export async function createMermaidRenderer(
     const activeBrowser = await ensureBrowser()
     const page = await activeBrowser.newPage()
     try {
-      /* Render page: strict-sans fallback, no other font hints.
-       * Mermaid's own <style> block inside the SVG declares
-       * Arial-sans (because of our initialize config below), so
-       * keep the outer page's font completely unstyled and let
-       * mermaid drive. */
-      /* Helvetica ships with every macOS and most Linux
-       * distributions; Windows has Arial. Since the SVG bakes
-       * pixel-exact coordinates at render time (puppeteer), the
-       * viewing browser MUST use the same font to avoid clipping.
-       * Helvetica, Arial, sans-serif is the safest stack — every
-       * mainstream viewer resolves to a metric-compatible font. */
+      /* Helvetica ships with every macOS + most Linux distros;
+       * Windows has Arial. With `htmlLabels: false` mermaid uses
+       * real SVG <text>/<tspan>, so the viewing browser measures
+       * with the same Helvetica/Arial metric family the headless
+       * browser used at render time. */
       await page.setContent(
         `<!doctype html><html><head><meta charset="utf-8"><style>
           body { margin: 0; padding: 20px; font-family: Helvetica, Arial, sans-serif; }
@@ -166,30 +151,21 @@ export async function createMermaidRenderer(
         async (src: string, themeArg: string) => {
           // @ts-expect-error — mermaid attaches to window at runtime.
           const mermaid = (window as any).mermaid
-          /* Wait for every declared font to actually load in the
-           * puppeteer page. Without this, mermaid measures labels
-           * against the browser's fallback font during render() —
-           * then the real font gets painted later, wider, and
-           * overflows the measured box. This is exactly what
-           * mermaid-cli and mermaid-isomorphic do:
-           *   await document.fonts.ready
-           *   await Promise.all(Array.from(document.fonts, f => f.load()))
-           * (github.com/mermaid-js/mermaid-cli + remcohaszing/
-           *  mermaid-isomorphic — renderDiagrams). */
+          /* mermaid-cli + mermaid-isomorphic both wait for fonts
+           * before calling render(). Without this, mermaid measures
+           * labels against whatever fallback font is ready, then
+           * the real font paints wider + overflows node boxes. */
           await document.fonts.ready
-          /* allSettled, not all — if one @font-face fails to fetch
-           * (404, wrong MIME, etc.) we still want the others to
-           * finish loading so mermaid measures against whatever
-           * real fonts ARE available rather than the fallback. */
+          /* allSettled so a single @font-face failure doesn't skip
+           * the rest of the loading pass. */
           await Promise.allSettled(
             Array.from(document.fonts, (f: FontFace) => f.load()),
           )
-          /* Create a real DOM-attached scratch container and hand
-           * it to mermaid.render() as the third arg. When mermaid
-           * renders into a detached scratch node, getBBox() /
-           * getBoundingClientRect() calls inside its sizing pass
-           * return zero or stale metrics. Attached-but-visually-
-           * hidden is the pattern mermaid-isomorphic uses. */
+          /* Real DOM-attached container, handed to render() as the
+           * third arg. getBBox() on a detached node returns zero
+           * or stale metrics. max-height:0 + opacity:0 hides it
+           * visually without unmounting — the mermaid-isomorphic
+           * pattern. */
           const container = document.createElement('div')
           Object.assign(container.style, {
             maxHeight: '0',
@@ -202,15 +178,12 @@ export async function createMermaidRenderer(
             startOnLoad: false,
             theme: themeArg,
             securityLevel: 'strict',
-            /* htmlLabels MUST be at the top level here — as of
-             * mermaid 11.12.3 (PR #6995), the nested
-             * flowchart.htmlLabels key is deprecated and silently
-             * ignored when a root-level htmlLabels is present, OR
-             * when the flowchart renderer decides to use HTML
-             * anyway. Setting it at the top level is the
-             * documented escape from foreignObject rendering,
-             * which in 11.x has a known label-clipping bug
-             * (#5785 — max-width:200px on foreignObject divs). */
+            /* MUST be top-level in mermaid 11.12.3+. The nested
+             * flowchart.htmlLabels was deprecated in PR #6995 and
+             * is silently ignored — leaving it nested makes
+             * mermaid emit <foreignObject> labels, which hit a
+             * max-width:200px clipping bug (mermaid #5785). Top-
+             * level htmlLabels:false forces pure SVG <text>. */
             htmlLabels: false,
             flowchart: {
               curve: 'basis',
@@ -226,13 +199,7 @@ export async function createMermaidRenderer(
               fontSize: '14px',
             },
           })
-          /* Mimic mermaid-cli's pattern exactly: render with the
-           * container, then stuff the returned SVG string back
-           * into that same container. The string has mermaid's
-           * post-processed output; re-parsing it by setting
-           * innerHTML gives the browser-normalized DOM we ship. */
           const { svg } = await mermaid.render('diagram', src, container)
-          container.innerHTML = svg
           const out = document.getElementById('out')
           if (out) {
             out.innerHTML = svg
@@ -241,104 +208,21 @@ export async function createMermaidRenderer(
         source,
         theme,
       )
-      /* Grab the final SVG after mermaid has finished layout.
-       * Then: use page.evaluate to re-measure every foreignObject's
-       * inner content box and resize the foreignObject + its parent
-       * node rect to fit. Mermaid 11 sometimes ignores
-       * htmlLabels:false and emits foreignObjects whose
-       * max-width/width doesn't match the rendered text, causing
-       * the clipping we were chasing. Measuring the live DOM and
-       * patching attributes on the SVG elements fixes it at the
-       * source — before serialization. */
-      await page.evaluate(() => {
-        const svg = document.querySelector('#out svg') as SVGSVGElement | null
-        if (!svg) {
-          return
-        }
-        /* Walk every foreignObject under a <g class="label"> — mermaid's
-         * text container. Measure the inner <div>'s scrollWidth /
-         * scrollHeight (true content size even when CSS clips it)
-         * and bump the foreignObject's width/height if the content
-         * overflows. Also bump the parent node's <rect> so the
-         * label stays inside the drawn box. */
-        const labels = svg.querySelectorAll(
-          'g.label > foreignObject',
-        ) as NodeListOf<SVGForeignObjectElement>
-        for (const fo of Array.from(labels)) {
-          const div = fo.querySelector(':scope > div') as HTMLElement | null
-          if (!div) {
-            continue
-          }
-          // Kill the max-width + width CSS mermaid applied so the
-          // browser can give us a true natural width.
-          div.style.maxWidth = 'none'
-          div.style.width = 'auto'
-          div.style.whiteSpace = 'nowrap'
-          div.style.display = 'inline-block'
-          const rect = div.getBoundingClientRect()
-          const naturalW = Math.ceil(rect.width)
-          const naturalH = Math.ceil(rect.height)
-          const currentW = Number(fo.getAttribute('width') ?? '0')
-          const currentH = Number(fo.getAttribute('height') ?? '0')
-          if (naturalW > currentW || naturalH > currentH) {
-            fo.setAttribute('width', String(naturalW))
-            fo.setAttribute('height', String(naturalH))
-            /* Recenter the label group — mermaid placed the <g>
-             * assuming the old width. Pull it left by half the
-             * width delta so the wider text stays centered inside
-             * the rect. */
-            const parent = fo.parentElement as SVGGElement | null
-            if (parent) {
-              const xform = parent.getAttribute('transform') ?? ''
-              const match = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(xform)
-              if (match) {
-                const oldX = parseFloat(match[1]!)
-                const oldY = parseFloat(match[2]!)
-                const newX = oldX - (naturalW - currentW) / 2
-                const newY = oldY - (naturalH - currentH) / 2
-                parent.setAttribute('transform', `translate(${newX}, ${newY})`)
-              }
-            }
-            /* Also widen the enclosing node rect if needed. The
-             * rect has x="-w/2" width="w" convention in mermaid. */
-            const nodeG = fo.closest('g.node') as SVGGElement | null
-            const nodeRect = nodeG?.querySelector(
-              ':scope > rect.label-container',
-            ) as SVGRectElement | null
-            if (nodeRect) {
-              const rw = Number(nodeRect.getAttribute('width') ?? '0')
-              const rh = Number(nodeRect.getAttribute('height') ?? '0')
-              const labelPadding = 40
-              if (naturalW + labelPadding > rw) {
-                const newW = naturalW + labelPadding
-                nodeRect.setAttribute('width', String(newW))
-                nodeRect.setAttribute('x', String(-newW / 2))
-              }
-              if (naturalH + labelPadding > rh) {
-                const newH = naturalH + labelPadding
-                nodeRect.setAttribute('height', String(newH))
-                nodeRect.setAttribute('y', String(-newH / 2))
-              }
-            }
-          }
-        }
-      })
-      const normalizedSvg = (await page.$eval(
+      const rawSvg = (await page.$eval(
         '#out svg',
         el => el.outerHTML,
       )) as string
-      /* Pipe through SVGO when possible, but mermaid emits
-       * `<foreignObject>` with HTML-flavored self-closing tags
-       * (e.g. `<br/>`) that trip SVGO's stricter parser. On
-       * parse failure keep the raw mermaid SVG — it's still
-       * visually correct, just larger. Inline `style="…"` attrs
-       * are preserved; the caller collects the CSP hashes it
-       * needs from the final SVG so styles actually apply. */
-      /* SVGO disabled — it was rewriting geometry in subtle ways
-       * (transform flattening, numeric precision quantization)
-       * that desynced text positions from the node box rectangles
-       * mermaid computed. Ship the raw mermaid SVG verbatim. */
-      const finalSvg = normalizedSvg
+      /* SVGO pass — shrinks each diagram by ~30%. Kept in a
+       * try/catch because mermaid still occasionally emits a
+       * construct SVGO's parser dislikes; raw SVG on failure is
+       * visually correct. */
+      let finalSvg: string
+      try {
+        const optimized = svgoOptimize(rawSvg, svgoConfig)
+        finalSvg = optimized.data
+      } catch {
+        finalSvg = rawSvg
+      }
       await fs.writeFile(cachePath, finalSvg)
       return finalSvg
     } finally {
