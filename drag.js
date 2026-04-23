@@ -1014,6 +1014,20 @@
       for (const a of container.querySelectorAll('a[href^="mailto:"]')) {
         a.replaceWith(document.createTextNode(a.textContent ?? ''))
       }
+      /* 1b. Highlight any code blocks meander rendered inside the
+       * annotation (typically @example fences). These land
+       * without a language- class, so the global hljs init
+       * (which only touches language-* blocks) skips them. Let
+       * hljs auto-detect here — the content is always code per
+       * the JSDoc contract, so the "auto-detection mis-colors
+       * plain text" risk doesn't apply. */
+      if (window.hljs) {
+        for (const code of container.querySelectorAll('pre > code')) {
+          if (!code.classList.contains('hljs')) {
+            window.hljs.highlightElement(code)
+          }
+        }
+      }
       /* 2. Wrap JSDoc tags. Walk text nodes only so we don't
        * disturb existing <a>/<code>/<em> wrappers. A TreeWalker
        * collects the candidates first so we can mutate without
