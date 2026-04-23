@@ -332,9 +332,34 @@ function highlightProseNumbers(html: string): string {
     'H4',
   ])
   const skip = new Set(['CODE', 'PRE', 'A', 'KBD', 'SAMP'])
-  const pattern = /(~?\b\d{1,3}\b)/g
+  /* Numeric token regex:
+   *   - optional ≥/≤/~ prefix
+   *   - one or more digit groups separated by `.` (so 11.0.0 is
+   *     one span, not three)
+   *   - optional trailing `+` / `%` / `-rc.N` etc. that logically
+   *     belong to the number (23+, 95%, 11.0.0-rc.0)
+   * Skips digits inside HTML numeric entities (&#39;, &#x27;)
+   * via a negative lookbehind for `&#` or `&#x`.
+   * Skips numbers that are the bold-marker at the start of a
+   * list item — those are conventional enumeration, not counts. */
+  const pattern =
+    /(?<!&#)(?<!&#x)(?<![\w.-])([≥≤~]?\s?\d+(?:\.\d+)+(?:-[a-z]+(?:\.\d+)*)?[+%]?|[≥≤~]?\s?\d+[+%]?)(?![\w.-])(?!\.\s)/gi
   const walk = (node: HTMLElement): void => {
     if (skip.has(node.tagName)) {
+      return
+    }
+    const tag = node.tagName
+    /* Inside <strong> at the START of an <li>, the number is a
+     * manually-bolded list marker ("**1.** Branch"). Don't
+     * re-colorize. Detect by: parent is <li>, this is the first
+     * <strong> child, text starts with a digit+dot. */
+    const parent = node.parentNode as HTMLElement | null
+    const isLiStartMarker =
+      tag === 'STRONG' &&
+      parent?.tagName === 'LI' &&
+      parent.firstElementChild === node &&
+      /^\d+\./.test(node.text.trim())
+    if (isLiStartMarker) {
       return
     }
     const children = Array.from(node.childNodes)
@@ -342,7 +367,7 @@ function highlightProseNumbers(html: string): string {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const any = child as any
       if (any.nodeType === 3) {
-        if (!allowed.has(node.tagName)) {
+        if (!allowed.has(tag)) {
           continue
         }
         const text: string = any.rawText ?? ''
@@ -2269,6 +2294,12 @@ async function generate(
           'beforeend',
           `\n  ${configTag}\n  ${commentsTag}`,
         )
+        /* Mark the body so CSS can discriminate between "this
+         * page will hydrate comment-shim buttons" vs "this page
+         * never will." The theme-toggle margin push only applies
+         * on the latter — see the rule on .topbar-actions in
+         * overrides.css. */
+        body.setAttribute('data-has-comments', '')
       }
       // Service worker registration — last script before </body> so
       // the page-critical shim scripts start downloading first. The

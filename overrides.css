@@ -450,15 +450,16 @@ html[data-theme='synthwave'] .topbar {
   gap: 4px;
 }
 
-/* On the index, the action row only has the theme toggle — no
- * upload or comments buttons (those are part-page-only). Shift
- * the toggle right by the width those two missing buttons would
- * occupy (2 × 30px + 2 × 4px gap) so its position lines up with
- * the rightmost slot on part pages. Keeps the bolt anchored to
- * the same spot your eye expects to find it when navigating
- * between home and a part. */
-.topbar-actions:not(:has(.wt-export-btn)):not(:has(.wt-unresolved-btn))
-  .theme-toggle-wrapper {
+/* Part pages carry a <body data-has-comments="1"> marker
+ * (tour.mts sets it on the same partMatch that decides to ship
+ * comments.js). Doc + index pages don't. Use that to apply
+ * the 68px push ONLY on pages where comments.js will never
+ * hydrate — there the bolt needs to sit at the rightmost slot
+ * for visual parity. On part pages we skip the push entirely:
+ * the bolt renders at its final leftmost spot from the start,
+ * and the two comments-shim buttons just append to its right
+ * with no reflow of the bolt itself. */
+body:not([data-has-comments]) .topbar-actions .theme-toggle-wrapper {
   margin-left: 68px;
 }
 
