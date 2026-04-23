@@ -450,15 +450,26 @@ html[data-theme='synthwave'] .topbar {
   gap: 4px;
 }
 
-/* Part pages carry a <body data-has-comments="1"> marker
- * (tour.mts sets it on the same partMatch that decides to ship
- * comments.js). Doc + index pages don't. Use that to apply
- * the 68px push ONLY on pages where comments.js will never
- * hydrate — there the bolt needs to sit at the rightmost slot
- * for visual parity. On part pages we skip the push entirely:
- * the bolt renders at its final leftmost spot from the start,
- * and the two comments-shim buttons just append to its right
- * with no reflow of the bolt itself. */
+/* Pre-reserve the action cluster width so the theme-toggle
+ * bolt lands in its final position on first paint — no jump
+ * when comments.js hydrates the two shim buttons.
+ *
+ * Part pages (body[data-has-comments]) will eventually carry
+ * 3 buttons × 30px + 2 × 4px gap = 98px. Reserving that
+ * min-width means the lone bolt, rendered first (prepended by
+ * drag.js), sits at the LEFT edge of a right-aligned 98px
+ * cluster. When comments.js appends the export + unresolved
+ * buttons, they fill the reserved slots to its right; the bolt
+ * doesn't move.
+ *
+ * Doc + index pages never get the comments buttons, but we
+ * still want the bolt at the rightmost slot for visual parity
+ * — same 98px reservation, different end-alignment via
+ * margin-left: auto on the bolt itself. */
+body[data-has-comments] .topbar-actions {
+  min-width: 98px;
+}
+
 body:not([data-has-comments]) .topbar-actions .theme-toggle-wrapper {
   margin-left: 68px;
 }
