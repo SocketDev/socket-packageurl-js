@@ -86,10 +86,10 @@ src/
 
 ```mermaid
 flowchart TD
-    A["pkg:npm/@scope/left-pad@1.3.0?extension=tgz#lib"] --> B["PackageURL.fromString()<br/>(decode.ts)"]
+    A["pkg:npm/@scope/left-pad<br/>@1.3.0?extension=tgz#lib"] --> B["PackageURL.fromString()<br/>(decode.ts)"]
     B --> C["Lexer: split on / : @ ? #<br/>type = npm<br/>namespace = @scope<br/>name = left-pad<br/>version = 1.3.0<br/>qualifiers = { extension: tgz }<br/>subpath = lib"]
     C --> D["Per-component processing<br/>(purl-component.ts)<br/>1. decode (%xx → char)<br/>2. normalize<br/>3. validate"]
-    D --> E["Per-type rules<br/>(purl-type.ts + purl-types/*.ts)<br/>lowercase name, namespace = scope,<br/>validate npm rules"]
+    D --> E["Per-type rules<br/>(purl-type.ts + purl-types/*.ts)<br/>lowercase name<br/>namespace = scope<br/>validate npm rules"]
     E --> F["Frozen PackageURL<br/>instance returned"]
 ```
 

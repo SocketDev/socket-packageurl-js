@@ -173,7 +173,8 @@ export async function createMermaidRenderer(
               useMaxWidth: false,
               nodeSpacing: 60,
               rankSpacing: 70,
-              padding: 20,
+              padding: 28,
+              wrappingWidth: 260,
             },
             fontFamily:
               '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
