@@ -568,20 +568,33 @@
         panel.scrollTop += centerOffset
       })
     }
-    /* Close any open sections/files menu after the user picks
-     * an entry from its panel. Without this, clicking a link
-     * leaves the floating dropdown open on top of the content
-     * it just jumped to. Delegated on document so chips that
-     * hydrate lazily are covered too. */
+    /* Close open sections/files menus when:
+     *   1. the user picks a link inside a panel (nav jump),
+     *   2. the user clicks outside every menu (blur),
+     *   3. the user opens a different menu (the currently
+     *      open one should step aside so two dropdowns don't
+     *      stack on the page).
+     * Delegated on document so chips that hydrate lazily are
+     * covered. A click INSIDE an open menu that isn't the
+     * summary or a panel link (e.g. scrolling a long panel,
+     * empty-space inside the popover) leaves it open. */
     document.addEventListener('click', e => {
-      const link = e.target.closest?.('.wt-sections-panel a, .wt-files-panel a')
-      if (!link) {
-        return
-      }
+      const target = e.target
+      const panelLink = target.closest?.(
+        '.wt-sections-panel a, .wt-files-panel a',
+      )
+      const summary = target.closest?.(
+        '.wt-sections-menu > summary, .wt-files-menu > summary',
+      )
+      const clickedMenu = summary?.parentElement
+      const insideMenu = target.closest?.('.wt-sections-menu, .wt-files-menu')
+      const closeAll = panelLink || (!insideMenu && !summary)
       for (const menu of document.querySelectorAll(
         '.wt-sections-menu[open], .wt-files-menu[open]',
       )) {
-        menu.open = false
+        if (closeAll || (summary && menu !== clickedMenu)) {
+          menu.open = false
+        }
       }
     })
   }
