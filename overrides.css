@@ -1712,10 +1712,13 @@ body.col-resizing * {
   margin: 24px 0 10px;
 }
 
+/* Body text matches .wt-contents-summary on the home TOC
+ * (15px / 1.5 / var(--body)). Same reading rhythm whether
+ * you're scanning the index or sitting inside a doc. */
 .doc-body p,
 .doc-body li {
-  font-size: 17px;
-  line-height: 1.65;
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--body);
 }
 
