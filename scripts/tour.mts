@@ -933,11 +933,18 @@ async function renderDocs(
       /* highlight.min.js ships the "common" bundle — includes JS,
        * bash, shell, json, xml, etc. — but NOT typescript. Load
        * the typescript language pack as a separate deferred
-       * script; deferred scripts execute in document order so by
-       * the time the init runs, both the core + TS are ready. */
+       * script; deferred scripts execute in document order.
+       * The init itself MUST wait for DOMContentLoaded — `defer`
+       * on an inline <script> is ignored by the HTML spec, so
+       * without the listener the init would run at parse time
+       * (before the deferred externals execute, so window.hljs
+       * would be undefined and the short-circuit `&&` silently
+       * skipped). DOMContentLoaded fires AFTER all deferred
+       * scripts finish, guaranteeing hljs + the TS grammar are
+       * both registered when we query blocks. */
       `  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/highlight.min.js" defer></script>\n` +
       `  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/languages/typescript.min.js" defer></script>\n` +
-      `  <script defer>document.querySelectorAll('pre:not(.wt-repo-tree) code[class*="language-"]').forEach(b => window.hljs && window.hljs.highlightElement(b))</script>\n` +
+      `  <script>document.addEventListener('DOMContentLoaded',function(){if(!window.hljs)return;document.querySelectorAll('pre:not(.wt-repo-tree) code[class*="language-"]').forEach(function(b){window.hljs.highlightElement(b)})})</script>\n` +
       `</body>\n` +
       `</html>\n`
     await fs.writeFile(path.join(tourDir, `${doc.filename}.html`), html)
