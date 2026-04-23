@@ -343,7 +343,7 @@ function highlightProseNumbers(html: string): string {
    * Skips numbers that are the bold-marker at the start of a
    * list item — those are conventional enumeration, not counts. */
   const pattern =
-    /(?<!&#)(?<!&#x)(?<![\w.-])([≥≤~]?\s?\d+(?:\.\d+)+(?:-[a-z]+(?:\.\d+)*)?[+%]?|[≥≤~]?\s?\d+[+%]?)(?![\w.-])(?!\.\s)/gi
+    /(?<!&#)(?<!&#x)(?<![\w.-])([≥≤~]?\s?\d+(?:\.\d+)+(?:-[a-z]+(?:\.\d+)*)?[+%]?|[≥≤~]?\s?\d+[+%]?)(?![\w-])(?!\.\s|\.\d)/gi
   const walk = (node: HTMLElement): void => {
     if (skip.has(node.tagName)) {
       return
