@@ -1858,10 +1858,14 @@ body.col-resizing * {
   /* Enough min-width that a single-character chip (like `` `.` ``
    * or `` `?` ``) reads as a pill rather than a truncated dot.
    * inline-block so the width actually applies — default <code>
-   * is inline. text-align centers short contents inside the chip. */
+   * is inline. text-align centers short contents inside the chip.
+   * white-space: nowrap keeps multi-token commands like
+   * `` `pnpm format --check` `` on one line so the pill doesn't
+   * break mid-flag. */
   min-width: 1.4em;
   display: inline-block;
   text-align: center;
+  white-space: nowrap;
   border-radius: 4px;
   background: var(--bg-tint);
   border: 1px solid var(--border);
