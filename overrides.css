@@ -1819,13 +1819,17 @@ body.col-resizing * {
  * cluttering the text rhythm. */
 .wt-heading-anchor {
   margin-left: 0.4em;
-  color: var(--muted);
+  color: var(--accent-fg);
   text-decoration: none;
   opacity: 0;
   transition: opacity var(--transition-fast);
-  font-weight: 400;
+  /* Inherit the heading's weight so the # sits at the same
+   * visual density as its sibling text — only the color (accent)
+   * signals "this is a link." */
+  font-weight: inherit;
 }
 
+.doc-body h1:hover .wt-heading-anchor,
 .doc-body h2:hover .wt-heading-anchor,
 .doc-body h3:hover .wt-heading-anchor,
 .doc-body h4:hover .wt-heading-anchor,
@@ -1834,7 +1838,8 @@ body.col-resizing * {
 }
 
 .wt-heading-anchor:hover {
-  color: var(--accent-fg);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* Mermaid diagrams — rendered to SVG at build time by
