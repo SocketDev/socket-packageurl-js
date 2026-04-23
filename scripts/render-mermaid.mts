@@ -144,16 +144,20 @@ export async function createMermaidRenderer(
     const activeBrowser = await ensureBrowser()
     const page = await activeBrowser.newPage()
     try {
-      /* Font MUST match between the puppeteer render page and
-       * whatever Mermaid bakes into its emitted <style> block —
-       * if they diverge, Mermaid measures boxes with one font
-       * and the browser paints labels with another, clipping
-       * text. Force Arial everywhere: puppeteer has it natively
-       * and Mermaid's default inherits it from body. */
+      /* Render page: strict-sans fallback, no other font hints.
+       * Mermaid's own <style> block inside the SVG declares
+       * Arial-sans (because of our initialize config below), so
+       * keep the outer page's font completely unstyled and let
+       * mermaid drive. */
+      /* Helvetica ships with every macOS and most Linux
+       * distributions; Windows has Arial. Since the SVG bakes
+       * pixel-exact coordinates at render time (puppeteer), the
+       * viewing browser MUST use the same font to avoid clipping.
+       * Helvetica, Arial, sans-serif is the safest stack — every
+       * mainstream viewer resolves to a metric-compatible font. */
       await page.setContent(
         `<!doctype html><html><head><meta charset="utf-8"><style>
-          body, #out, #out * { font-family: Arial, sans-serif !important; font-size: 14px !important; }
-          body { margin: 0; padding: 20px; }
+          body { margin: 0; padding: 20px; font-family: Helvetica, Arial, sans-serif; }
           #out { width: 1200px; }
         </style><script>${mermaidJs}</script></head><body><div id="out"></div></body></html>`,
       )
@@ -206,19 +210,24 @@ export async function createMermaidRenderer(
               rankSpacing: 80,
               padding: 30,
             },
-            fontFamily: 'Arial, sans-serif',
+            fontFamily: 'Helvetica, Arial, sans-serif',
             fontSize: 14,
             themeVariables: {
-              fontFamily: 'Arial, sans-serif',
+              fontFamily: 'Helvetica, Arial, sans-serif',
               fontSize: '14px',
             },
           })
+          /* Mimic mermaid-cli's pattern exactly: render with the
+           * container, then stuff the returned SVG string back
+           * into that same container. The string has mermaid's
+           * post-processed output; re-parsing it by setting
+           * innerHTML gives the browser-normalized DOM we ship. */
           const { svg } = await mermaid.render('diagram', src, container)
+          container.innerHTML = svg
           const out = document.getElementById('out')
           if (out) {
             out.innerHTML = svg
           }
-          container.remove()
         },
         source,
         theme,
@@ -226,8 +235,7 @@ export async function createMermaidRenderer(
       /* Ship the raw mermaid SVG verbatim — no regex font rewrites,
        * no SVGO pass. Any post-processing we do on the string risks
        * desyncing the text positions from the node box rectangles
-       * mermaid measured at render time. The outer page CSS is also
-       * kept hands-off from SVG-internal text styles. */
+       * mermaid measured at render time. */
       const normalizedSvg = (await page.$eval(
         '#out svg',
         el => el.outerHTML,
