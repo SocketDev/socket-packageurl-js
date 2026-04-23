@@ -1207,8 +1207,12 @@ function buildCspMeta(root: HTMLElement, commentBackend: string): string {
    * per-style hashes are gated on that keyword per CSP3 spec. */
   const inlineStyleAttrHashes = new Set<string>()
   const collectInlineStyles = (node: HTMLElement): void => {
+    /* Include empty-string `style=""` too — CSP still checks it
+     * against the hash list, and the empty string hashes to a
+     * known sha256. Without this, elements with `style=""`
+     * (Mermaid emits these on some shape primitives) get blocked. */
     const style = node.getAttribute('style')
-    if (style) {
+    if (style !== null && style !== undefined) {
       const hash = cryptoHash('sha256', style, 'base64')
       inlineStyleAttrHashes.add(`'sha256-${hash}'`)
     }
