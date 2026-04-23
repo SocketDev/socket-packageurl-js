@@ -1623,12 +1623,43 @@ body.col-resizing * {
   padding: 0;
 }
 
-.annotation-card h3 {
-  margin: 0 0 10px;
+/* Every annotation heading (h1-h4) sits at the same 18px / 600
+ * scale as doc-page titles + the home TOC. Hierarchy comes from
+ * margin alone; size + weight stay flat so the prose rhythm
+ * matches what readers see everywhere else on the site. */
+.annotation-card h1,
+.annotation-card h2,
+.annotation-card h3,
+.annotation-card h4,
+.annotation-md h1,
+.annotation-md h2,
+.annotation-md h3,
+.annotation-md h4 {
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.01em;
+  line-height: 1.3;
   color: var(--ink);
+}
+
+.annotation-card h1,
+.annotation-md h1 {
+  margin: 0 0 16px;
+}
+
+.annotation-card h2,
+.annotation-md h2 {
+  margin: 24px 0 12px;
+}
+
+.annotation-card h3,
+.annotation-md h3 {
+  margin: 20px 0 10px;
+}
+
+.annotation-card h4,
+.annotation-md h4 {
+  margin: 16px 0 8px;
 }
 
 .annotation-md {
