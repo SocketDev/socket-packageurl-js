@@ -636,12 +636,12 @@ async function renderDocs(
       `  <meta name="viewport" content="width=device-width, initial-scale=1" />\n` +
       `  <title>${escapeHtml(doc.title)} — Socket PackageURL.js</title>\n` +
       `  <link rel="stylesheet" href="/style.css" />\n` +
-      // Theme-adaptive syntax highlighting. Media queries gate which
-      // highlight.js theme the browser actually applies based on the
-      // user's OS preference; both stylesheets download, the
-      // non-matching one just yields zero matched rules.
-      `  <link rel="stylesheet" media="(prefers-color-scheme: light)" href="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/styles/github.min.css" />\n` +
-      `  <link rel="stylesheet" media="(prefers-color-scheme: dark)" href="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css" />\n` +
+      // Syntax highlighting — unconditionally load github-dark to
+      // match the part pages (which don't media-gate). Our dark
+      // panels (.doc-body pre, .code-section) look right with this
+      // palette across every theme we ship; a light hljs stylesheet
+      // inside a dark panel reads washed out.
+      `  <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css" />\n` +
       `</head>\n` +
       `<body data-slug="${escapeHtml(slug)}" data-doc="${escapeHtml(doc.filename)}">\n` +
       `  <header class="topbar">\n` +

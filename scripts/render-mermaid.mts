@@ -144,13 +144,17 @@ export async function createMermaidRenderer(
     const activeBrowser = await ensureBrowser()
     const page = await activeBrowser.newPage()
     try {
+      /* Force a system font stack the headless browser always has
+       * and make the rendering viewport wide enough that Mermaid
+       * doesn't wrap node labels to guess heights. Inline CSS in
+       * the puppeteer page only — we're not shipping this HTML. */
       await page.setContent(
-        `<!doctype html><html><head><meta charset="utf-8"><script>${mermaidJs}</script></head><body><div id="out"></div></body></html>`,
+        `<!doctype html><html><head><meta charset="utf-8"><style>
+          body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; }
+          #out { width: 1200px; }
+        </style><script>${mermaidJs}</script></head><body><div id="out"></div></body></html>`,
       )
-      // Expose source + theme as window vars so the page-side
-      // script reads the exact inputs without string interpolation
-      // into mermaid source (which could break on backticks or
-      // other quote-like chars in the diagram).
+      await page.setViewport({ width: 1400, height: 900 })
       await page.evaluate(
         async (src: string, themeArg: string) => {
           // @ts-expect-error — mermaid attaches to window at runtime.
@@ -159,7 +163,21 @@ export async function createMermaidRenderer(
             startOnLoad: false,
             theme: themeArg,
             securityLevel: 'strict',
-            flowchart: { htmlLabels: false, curve: 'basis' },
+            /* Use HTML labels so the wrap math actually reads the
+             * DOM box the browser lays out. htmlLabels:false uses
+             * SVG <tspan> measurement which undersized boxes when
+             * our post-processing stripped inline styles. */
+            flowchart: {
+              htmlLabels: true,
+              curve: 'basis',
+              useMaxWidth: false,
+              nodeSpacing: 60,
+              rankSpacing: 70,
+              padding: 20,
+            },
+            fontFamily:
+              '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            fontSize: 14,
           })
           const { svg } = await mermaid.render('diagram', src)
           const out = document.getElementById('out')
