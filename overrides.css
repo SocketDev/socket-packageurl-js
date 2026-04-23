@@ -8,7 +8,7 @@
  *
  * Organised top-down:
  *   1. @font-face (Geist + Geist Mono, self-hosted variable)
- *   2. Theme tokens (system / light / dark / synthwave '84)
+ *   2. Theme tokens (system / light / dark / synthwave)
  *   3. Reset + base typography
  *   4. Layout shell (topbar, main, footer)
  *   5. Buttons, pills, keycaps
@@ -52,12 +52,20 @@ html[data-theme='light'] {
   --surface: #ffffff;
   --ink: #0a0a0a;
   --body: #525866;
-  --muted: #8a8f98;
+  --muted: #6b7280;
   --border: #e5e7eb;
   --border-strong: #d1d5db;
   --accent: #1e40af;
   --accent-fg: #1e40af;
   --accent-bg: #e0ecff;
+  /* Nav state tokens — unified across parts strip + menu panels.
+   * Selected = lighter lift ("you are here"), hover = darker press
+   * ("about to pick"). The bg tokens should read differently from
+   * --bg-elev (the strip / menu container bg) so each state is
+   * visually distinct. Text always goes to the accent in both
+   * states — consistent signal, two different backgrounds. */
+  --nav-hover-bg: #e5e7eb;
+  --nav-selected-bg: #f0f5ff;
   --danger: #b42318;
   --success: #067647;
   --code-bg: #0a0a0a;
@@ -94,7 +102,7 @@ html[data-theme='light'] {
     --surface: #111111;
     --ink: #fafafa;
     --body: #a1a1aa;
-    --muted: #71717a;
+    --muted: #9ca3af;
     --border: #262626;
     --border-strong: #404040;
     --accent: #93c5fd;
@@ -119,13 +127,15 @@ html[data-theme='dark'] {
   --accent: #93c5fd;
   --accent-fg: #93c5fd;
   --accent-bg: #1a2540;
+  --nav-hover-bg: #0a0a0a;
+  --nav-selected-bg: #1e2a3a;
   --code-bg: #000000;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
-/* Synthwave '84 — deep midnight purple with magenta accent. Not a
+/* Synthwave — deep midnight purple with magenta accent. Not a
  * light/dark variant; its own coherent palette. Background uses a
  * subtle radial toward a warmer plum corner per the reference album
  * art. Active-state pink matches the cassette-icon tag color. */
@@ -141,12 +151,17 @@ html[data-theme='synthwave'] {
   --surface: #2a1b3d;
   --ink: #f8f0ff;
   --body: #c8b8e8;
-  --muted: #9080b0;
+  --muted: #b6a6d4;
   --border: #3d2a5a;
   --border-strong: #5a3d7a;
   --accent: #ff7edb;
   --accent-fg: #ff7edb;
   --accent-bg: rgba(255, 126, 219, 0.18);
+  /* Hover is darker than --bg-elev (#2a1b3d), selected is lighter
+   * — selected reads as lit-up, hover reads as pressed-into. Both
+   * use --accent (pink) for text. */
+  --nav-hover-bg: #1a0f2e;
+  --nav-selected-bg: #3d2a5a;
   --danger: #ff6b9d;
   --success: #4ade80;
   --code-bg: #1a0f2e;
@@ -205,18 +220,22 @@ h6 {
   line-height: 1.08;
 }
 
+/* H1 is small by default — sized for UI labels like the topbar
+ * wordmark. Hero headlines are opt-in via a parent class (e.g.
+ * .doc-body h1 or .hero h1) so we don't clobber chrome-sized
+ * occurrences. */
 h1 {
-  font-size: clamp(40px, 5.5vw, 68px);
-  letter-spacing: -0.035em;
-  line-height: 1.02;
-  margin-bottom: 24px;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 20px;
 }
 
 h2 {
-  font-size: 30px;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-  margin: 56px 0 20px;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 48px 0 18px;
 }
 
 h3 {
@@ -321,15 +340,13 @@ blockquote {
 
 /* ── 4. Layout shell ──────────────────────────────────────────────── */
 
+/* Topbar — wordmark only. Actions used to live here; they moved
+ * into the part-nav strip so this band is pure identity. No sticky;
+ * it scrolls away with the page. */
 .topbar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: saturate(140%) blur(10px);
-  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  background: var(--bg);
   border-bottom: 1px solid var(--border);
-  padding: 14px 32px;
+  padding: 12px 32px;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -339,95 +356,161 @@ html[data-theme='synthwave'] .topbar {
   background: color-mix(in srgb, #1a0f2e 88%, transparent);
 }
 
+/* Topbar wordmark. On the index:
+ *   <code class="wt-product">packageurl-js</code>
+ *   <span class="wt-descriptor">override by Socket</span>
+ * The product is the npm package this tour documents, styled as
+ * code (literal coordinate, not a marketing name). The descriptor
+ * sits alongside in a sly purple saying what Socket contributes.
+ * On part/doc pages this <h1> carries the part title as plain
+ * text — the rules below only style the wordmark shape when the
+ * children are present, so they no-op on part pages. */
 .topbar h1 {
+  margin: 0;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  line-height: 1;
-  margin: 0;
+  line-height: 1.1;
   color: var(--ink);
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
 }
 
-.topbar h1::after {
-  content: 'by Socket Inc';
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--muted);
-  letter-spacing: 0;
+.topbar h1 .wt-product {
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  padding: 0;
+  /* Keep ligatures off so the hyphen in `packageurl-js` doesn't
+   * collapse into a figure-dash or similar glyph. */
+  font-variant-ligatures: none;
+  -webkit-font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
 }
 
-/* Quieter technical tag inside the wordmark ("Socket PackageURL .js
- * Tour"). Keeps the signal, lets the product name carry the weight. */
-.topbar h1 .wt-tech-tag {
-  font-weight: 400;
-  color: var(--muted);
+/* Descriptor — "override by Socket" as a trademark-style marker
+ * raised from the baseline like <sup>. Small, sly purple,
+ * signature tint across every theme. Stays in the inline flow so
+ * it can't get clipped by the topbar or positioned off-screen;
+ * vertical-align handles the raise. */
+.topbar h1 .wt-descriptor {
+  display: inline-block;
+  margin-left: 6px;
+  vertical-align: top;
+  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 500;
   letter-spacing: 0;
+  line-height: 1;
+  color: #8b6bb8;
 }
 
 .topbar p {
   display: none;
 }
 
+/* Actions cluster (theme toggle, export, comments) — lives on the
+ * right side of .part-nav. `margin-left: auto` pushes it to the
+ * end of the flex row regardless of how many part pills precede
+ * it, so the cluster is always right-aligned. Items bottom-align
+ * so the visual baseline of the download square, chat-bubble body,
+ * and cassette outline share a horizontal guideline — even though
+ * each icon has its own viewBox + render size. */
 .topbar-actions {
   margin-left: auto;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-end;
+  gap: 4px;
 }
 
+/* On the index, the action row only has the theme toggle — no
+ * upload or comments buttons (those are part-page-only). Shift
+ * the toggle right by the width those two missing buttons would
+ * occupy (2 × 30px + 2 × 4px gap) so its position lines up with
+ * the rightmost slot on part pages. Keeps the bolt anchored to
+ * the same spot your eye expects to find it when navigating
+ * between home and a part. */
+.topbar-actions:not(:has(.wt-export-btn)):not(:has(.wt-unresolved-btn)) .theme-toggle-wrapper {
+  margin-left: 68px;
+}
+
+/* <main> is a generic container — meander uses it for part-page
+ * file stacks (wide, two-column) and we use it for doc-page prose
+ * (narrow, single column). Keep the base rule wide; narrower
+ * constraints belong on `.doc-body` and `.wt-contents` (the index
+ * TOC), not on every <main>. */
 main {
-  max-width: 860px;
   margin: 0 auto;
-  padding: 48px 32px 80px;
+  padding: 8px 32px 80px;
 }
 
-/* Hide content until drag.js fires wt-ready — prevents a FOUC while
- * the comment shim and column splitter settle. */
-.layout,
-.part-nav,
-.file-block {
+/* Index TOC: narrow editorial column — reading material, not a
+ * data view. */
+main .wt-contents {
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Part pages (.files-stack) fill the viewport width up to a
+ * generous cap — wide monitors shouldn't have prose + code
+ * wedged into a small center strip when there's real estate to
+ * spread out. Leaves each column room to breathe.  */
+main.files-stack {
+  max-width: 1800px;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+/* Initial paint strategy: the prose column, topbar, TOC, and
+ * footer show as soon as the CSS lands. Only the code sections
+ * wait for wt-ready (which drag.js sets after highlight.js has
+ * run on the first .line-code code block). This keeps LCP fast
+ * — the first paragraph of a part page's prose is visible in
+ * the initial paint, not held behind syntax highlighting. The
+ * fade-in is a gentle reveal to cover the "unhighlighted → hljs
+ * tokens" flip without flashing raw text. */
+.code-section {
   opacity: 0;
   transition: opacity 160ms ease;
 }
 
-body.wt-ready .layout,
-body.wt-ready .part-nav,
-body.wt-ready .file-block {
-  opacity: 1;
-}
-
-/* Initial paint — the TOC rows, topbar, and footer always show; only
- * the heavier content waits for wt-ready. */
-.wt-contents,
-.topbar,
-.wt-socket-footer,
-main > * {
+body.wt-ready .code-section {
   opacity: 1;
 }
 
 /* ── 5. Buttons, pills, keycaps ──────────────────────────────────── */
 
-/* Part-nav row — the sticky "Parts: 1 2 3 …" row above content. Each
- * Part is a pill. Active pill = white-with-thin-border; inactive =
- * soft-gray-fill (the reversed elevation pattern). */
+/* Part-nav — a thin minimal strip directly beneath the topbar.
+ * Shows "[home] Parts: 1 2 3 … 8" and sits at a fixed position on
+ * every page (index, parts, docs) so the nav never visually jumps
+ * when you click between pages. Lightweight chrome — compact
+ * pills, small type, subtle tint — so it recedes when you're
+ * actually reading. Active pill gets the "reversed elevation"
+ * treatment: white fill with a thin border while siblings stay
+ * transparent. */
 .part-nav {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  padding: 12px 32px;
+  gap: 3px;
+  padding: 4px 32px;
   background: var(--bg-elev);
   border-bottom: 1px solid var(--border);
-  font-size: 14px;
+  font-size: 11px;
 }
 
 .wt-parts-label {
   color: var(--muted);
   font-weight: 500;
-  margin-right: 4px;
+  /* Zero right margin so the label sits at the same flex `gap`
+   * distance from "1" as "1" sits from "2". Extra left margin
+   * widens the separation between the home icon and "Parts:" so
+   * the home link reads as its own visual group. */
+  margin: 0 0 0 16px;
+  font-size: 11px;
 }
 
 .part-nav a,
@@ -435,15 +518,15 @@ main > * {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  padding: 0 10px;
-  font-size: 13px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
   font-weight: 500;
-  color: var(--body);
+  color: var(--muted);
   background: transparent;
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: 5px;
   text-decoration: none;
   transition:
     background var(--transition-fast),
@@ -451,26 +534,39 @@ main > * {
     color var(--transition-fast);
 }
 
+/* Hover = darker than the strip bg, with accent-color text. Reads
+ * as "I'm pressing into this option". */
 .part-nav a:hover,
 .wt-home-link:hover {
-  background: var(--bg-tint);
-  color: var(--ink);
+  background: var(--nav-hover-bg);
+  border-color: var(--border-strong);
+  color: var(--accent-fg);
 }
 
-.part-nav a.active {
-  background: var(--surface);
-  border-color: var(--border-strong);
-  color: var(--ink);
+/* Selected (active) = lighter than the strip bg, with accent-color
+ * text. Reads as "you are here, lit up". Same text color as hover
+ * so the two states share a signal (accent-colored = interactive
+ * or selected); bg direction distinguishes them. Applies to the
+ * active part pill AND to the home link when the user is on the
+ * index — visual parity between "on home" and "on part N". */
+.part-nav a.active,
+.wt-home-link.active {
+  background: var(--nav-selected-bg);
+  border-color: var(--accent-fg);
+  color: var(--accent-fg);
   box-shadow: var(--shadow-sm);
 }
 
 .wt-home-link {
-  padding: 0 8px;
-  min-width: 32px;
+  padding: 0 6px;
+  min-width: 26px;
+  color: var(--muted);
 }
 
 .wt-home-link svg {
   display: block;
+  width: 18px;
+  height: 18px;
 }
 
 .wt-topics-nav {
@@ -497,7 +593,17 @@ main > * {
   border-radius: var(--radius-md);
   cursor: pointer;
   text-decoration: none;
-  transition: all var(--transition-fast);
+  /* Enumerate properties instead of `all` — transition:all forces
+   * style recalc + transition setup for every changed property,
+   * including layout-triggering ones. Explicit list keeps the
+   * hover change on the compositor (transform) + paint (shadow,
+   * background, border, color) without style-engine churn. */
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .btn:hover {
@@ -638,19 +744,218 @@ tbody td:first-child {
   line-height: 1.5;
 }
 
+/* Intro block above the TOC on the index. Establishes the npm
+ * coordinates (the tour title is a product name; the installable
+ * name differs). Copy-ready `npm install` line so a visitor can
+ * start using the library before reading a single part. */
+.wt-intro {
+  max-width: 720px;
+  margin: 24px auto 32px;
+  padding: 0 8px;
+}
+
+.wt-intro-line {
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--body);
+}
+
+.wt-intro-line code {
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.9em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-tint);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-variant-ligatures: none;
+  -webkit-font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+}
+
+.wt-intro-pkg,
+.wt-intro-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 2px;
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+}
+
+.wt-intro-pkg:hover,
+.wt-intro-link:hover {
+  color: var(--accent-fg);
+  text-decoration-style: solid;
+  text-decoration-color: var(--accent-fg);
+}
+
+.wt-intro-pkg:hover code {
+  color: var(--accent-fg);
+  border-color: var(--accent-fg);
+}
+
+/* Install snippet — reads as a runnable command, not prose.
+ * Darker background like the code-section panels, no line
+ * numbers, comfortable touch target for a copy gesture. */
+.wt-intro-install {
+  margin: 0;
+  padding: 12px 16px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+}
+
+.wt-intro-install code {
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 13px;
+  color: var(--code-fg);
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+/* Numeric highlight inside TOC summaries — counts and tilde-
+ * approximations (e.g. "~25 ecosystems", "41 parts") get lifted
+ * in accent color so they read as quantitative anchors in prose.
+ * Slightly stronger weight without changing the font, so the
+ * text rhythm stays intact. */
+.wt-contents-summary .wt-num {
+  color: var(--accent-fg);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Inline links inside TOC summaries — rendered from
+ * [label](href) markdown. Subtle default (inherit color, no
+ * underline) so they don't pull focus in a list view; reveal
+ * on hover with accent color + underline. */
+.wt-contents-summary .wt-toc-link {
+  color: inherit;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 2px;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+}
+
+.wt-contents-summary .wt-toc-link:hover {
+  color: var(--accent-fg);
+  text-decoration-color: var(--accent-fg);
+  text-decoration-style: solid;
+}
+
+/* Inline code spans inside TOC summaries — rendered from
+ * `backtick`-wrapped segments in tour.json objective/summary
+ * strings. Matches the mono tone of code blocks on part pages
+ * but sized to sit inline with prose. font-variant-ligatures:none
+ * stops Geist Mono from collapsing `...` into a single ellipsis
+ * glyph (which would hide the user's literal three-dot intent). */
+.wt-contents-summary code {
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.88em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-tint);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-variant-ligatures: none;
+  -webkit-font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+}
+
+/* Badge cluster — sits in the right column of each TOC row. Two
+ * signals, visually distinct:
+ *   - kind:  secondary metadata (code vs article). Small flat
+ *            label, no pill shape — reads as a tag, not a button.
+ *   - size:  primary signal (read-time estimate). Pill, muted
+ *            fill, clear hierarchy.
+ * The kind label sits right-justified above the size pill so the
+ * size draws the eye first. */
+.wt-contents-badges {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  align-self: center;
+}
+
+/* Base pill — used only by size tiers now. Kind is flat text. */
 .wt-contents-badge {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  height: 24px;
-  padding: 0 10px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--muted);
-  background: var(--bg-tint);
-  border-radius: 999px;
   white-space: nowrap;
-  align-self: center;
+}
+
+/* Kind badge — demoted to a small tag: flat, borderless, no
+ * background. Slightly colored text so it still signals type at
+ * a glance but doesn't compete with the size pill below. */
+.wt-badge-kind {
+  height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.wt-badge-kind-code {
+  color: color-mix(in srgb, #6aa1ff 75%, var(--muted));
+}
+
+.wt-badge-kind-article {
+  color: color-mix(in srgb, #4fc48b 75%, var(--muted));
+}
+
+/* Size badge — primary pill. Muted fill so the color reads as
+ * "warm = more time" without blaring. Border tuned to each tier
+ * but text kept closer to body color for readability. */
+.wt-badge-size {
+  height: 22px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--body);
+  background: var(--bg-tint);
+}
+
+/* Size tier — the brightness signal. Each tier uses a tinted
+ * background with a slightly stronger border in the same hue.
+ * Text stays near body color for readability; the background
+ * color does the work. Cooler for smaller, warmer for larger. */
+.wt-badge-size-x-small {
+  background: color-mix(in srgb, #7aa5c7 14%, var(--bg-tint));
+  border-color: color-mix(in srgb, #7aa5c7 30%, var(--border));
+}
+.wt-badge-size-small {
+  background: color-mix(in srgb, #6ec3a5 14%, var(--bg-tint));
+  border-color: color-mix(in srgb, #6ec3a5 30%, var(--border));
+}
+.wt-badge-size-medium {
+  background: color-mix(in srgb, #d8c26a 14%, var(--bg-tint));
+  border-color: color-mix(in srgb, #d8c26a 30%, var(--border));
+}
+.wt-badge-size-large {
+  background: color-mix(in srgb, #e69a5a 16%, var(--bg-tint));
+  border-color: color-mix(in srgb, #e69a5a 35%, var(--border));
+}
+.wt-badge-size-x-large {
+  background: color-mix(in srgb, #e47070 18%, var(--bg-tint));
+  border-color: color-mix(in srgb, #e47070 40%, var(--border));
 }
 
 /* Three-column feature grid — for landing-page sections like
@@ -699,13 +1004,27 @@ tbody td:first-child {
   padding: 32px;
 }
 
+/* Two-column grid — prose on the left, code on the right. The
+ * column ratio is driven by --col-split, a number drag.js stores
+ * in localStorage and applies as a percentage on :root (e.g. 42
+ * means prose gets 42%). Default 42/58 leans toward code; users
+ * can rebalance via the .col-splitter handle. Using calc with %
+ * units (not fr) so the arithmetic is well-defined in every
+ * browser. */
+:root {
+  --col-split: 42;
+}
+
 .pair-grid,
 .file-grid {
   display: grid;
-  grid-template-columns: minmax(320px, 42fr) minmax(420px, 58fr);
-  gap: 32px;
+  grid-template-columns:
+    calc(var(--col-split) * 1%)
+    calc((100 - var(--col-split)) * 1%);
+  gap: 0;
   align-items: start;
   margin: 32px 0;
+  position: relative;
 }
 
 @media (max-width: 960px) {
@@ -717,15 +1036,20 @@ tbody td:first-child {
 
 .pair-grid > .annotation-card,
 .file-grid > .annotation-card {
-  padding: 20px 0;
+  /* Right padding gives the prose breathing room before the code
+   * block starts — without it, italic descenders in the prose can
+   * touch the code-section's left border. */
+  padding: 20px 32px 20px 0;
   background: transparent;
   border: none;
   border-radius: 0;
+  min-width: 0;
 }
 
 .pair-grid > .code-section,
 .file-grid > .code-section {
   margin: 0;
+  min-width: 0;
 }
 
 .files-stack {
@@ -739,6 +1063,16 @@ tbody td:first-child {
   margin: 0;
   border: none;
   background: transparent;
+  /* Isolate layout to this block. When the splitter drags, the
+   * grid inside recalculates — `contain: layout` tells the
+   * browser changes inside this block cannot affect siblings'
+   * layout, so it skips re-laying-out other file-blocks on the
+   * page. Paint is NOT contained because the sections-panel
+   * dropdown needs to escape the block to render above siblings
+   * below it. Not using `content-visibility: auto` — it would
+   * break hash-anchor scrolling (#file-foo can't jump into a
+   * block that hasn't been laid out). */
+  contain: layout;
 }
 
 .file-head {
@@ -759,6 +1093,401 @@ tbody td:first-child {
 
 .file-head .count {
   font-size: 12px;
+  color: var(--muted);
+}
+
+/* Files / sections dropdowns on the file-head. Native <details> for
+ * toggle state; the <summary> carries a dashed underline + a small
+ * dot as a "clickable" affordance. Clicking opens a floating panel:
+ *   - Files menu (on .path): list of every file block on the page,
+ *     each linking to its anchor — jump-to-file.
+ *   - Sections menu (on .count): list of every section anchor in
+ *     this file as "Line N" — jump-to-line within the current file.
+ * Both panels are positioned absolute so they overlay content
+ * instead of reflowing the page; both scroll internally when long. */
+.wt-files-menu,
+.wt-sections-menu {
+  position: relative;
+  display: inline-block;
+}
+
+.wt-files-menu > summary,
+.wt-sections-menu > summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  /* Dashed underline — a sly "I'm interactive" hint without the
+   * weight of a button. Small gap between text and underline so
+   * the dashes read clearly. */
+  text-decoration: underline dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--border-strong);
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+}
+
+/* Inherit their existing color/size from .path and .count — the
+ * path menu's summary IS a .path element (mono, ink-colored) and
+ * the sections menu's summary IS a .count (muted, 12px). */
+
+/* Suppress the default ▶/▼ disclosure marker in every browser.
+ * Chrome 89+ uses ::marker; older Chrome / Safari use the
+ * legacy ::-webkit-details-marker; Firefox respects
+ * `list-style: none` on the <summary>. Belt-and-suspenders
+ * all three so no dot/triangle slips through. */
+.wt-files-menu > summary,
+.wt-sections-menu > summary {
+  list-style: none;
+}
+
+.wt-files-menu > summary::marker,
+.wt-sections-menu > summary::marker {
+  content: '';
+  display: none;
+}
+
+.wt-files-menu > summary::-webkit-details-marker,
+.wt-sections-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wt-files-menu[open] > summary,
+.wt-sections-menu[open] > summary {
+  color: var(--ink);
+  text-decoration-color: var(--ink);
+}
+
+.wt-files-panel,
+.wt-sections-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  /* High z-index so the panel renders above later siblings —
+   * especially the per-code-section dropdown, which needs to
+   * overlay the NEXT code block below it on a long part page. */
+  z-index: 40;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  /* Deeper shadow so the panel separates cleanly from whatever
+   * content sits behind it. --shadow-lg is generic; this one layers
+   * a dark ambient plus a sharper contact shadow to read as a
+   * lifted surface. */
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 12px 32px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* Files panel sits left-aligned under the .path (which is
+ * left-aligned in the file-head); the .count's sections panel
+ * is right-aligned since .count sits on the right. */
+.wt-files-panel {
+  left: 0;
+  min-width: 220px;
+}
+
+.wt-sections-panel {
+  right: 0;
+  min-width: 140px;
+}
+
+.wt-files-panel a,
+.wt-sections-panel a {
+  display: block;
+  padding: 6px 10px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--body);
+  background: transparent;
+  border-radius: 5px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+/* Hover = darker than panel bg, accent-colored text. Same
+ * "pressed-in" semantic as parts-strip hover. */
+.wt-files-panel a:hover,
+.wt-sections-panel a:hover {
+  background: var(--nav-hover-bg);
+  color: var(--accent-fg);
+}
+
+/* Selected (current file / current section) = lighter than panel
+ * bg, accent-colored text. Same "lit up" semantic as parts-strip
+ * selected. Slight font-weight bump distinguishes "already-selected"
+ * from "about-to-pick" for anyone moving fast between the two
+ * states. The Sections panel's active entry is set by a scroll
+ * observer in drag.js — whichever section is closest to the top
+ * of the viewport gets the .active class. */
+.wt-files-panel a.active,
+.wt-sections-panel a.active {
+  background: var(--nav-selected-bg);
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
+/* Scrollbar tweak inside the panels — unobtrusive when content
+ * overflows, invisible when it doesn't. */
+.wt-files-panel::-webkit-scrollbar,
+.wt-sections-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.wt-files-panel::-webkit-scrollbar-thumb,
+.wt-sections-panel::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid var(--surface);
+}
+
+/* Per-code-section chip — a small sections dropdown sitting at
+ * the top of each .code-section, so every code chunk has its own
+ * jump-to-section affordance. The summary shows the current
+ * section label ("Section 5 of 41") with a dashed underline; the
+ * panel is the same sections list used by the file-head menu,
+ * with THIS chunk's section pre-marked active. */
+.code-section {
+  position: relative;
+  /* Establish a proper stacking context so an open sections
+   * dropdown can sit above sibling .code-sections later in the
+   * document. Default `position: relative` without a z-index
+   * doesn't create a stacking context; `isolation: isolate`
+   * does. When a chip opens, its section gets bumped further
+   * via the rule below to outrank every other section. */
+  isolation: isolate;
+}
+
+/* When a per-section chip is open, lift its .code-section above
+ * every sibling so the dropdown panel overlays later code blocks
+ * cleanly. Closing the chip returns z-index to auto. */
+.code-section:has(.wt-section-chip[open]) {
+  z-index: 30;
+}
+
+/* Column splitter — vertical handle between prose and code columns
+ * on every .file-block. drag.js injects .col-splitter as a
+ * position:absolute div at the right edge of the prose column;
+ * its --col-split CSS var drives the grid template above. The
+ * handle is invisible at rest, subtle on hover, and the accent
+ * color while being dragged. Cursor becomes col-resize on hover
+ * so users know they can pull.
+ *
+ * The handle is attached to the .pair-grid/.file-grid (which
+ * already has position:relative), so the rail only spans the
+ * prose+code region — no overshoot into file-head above or the
+ * gap below. 6px hit target (wider than visible) with a 1px
+ * visible rail centered inside it. */
+
+.col-splitter {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(clamp(20%, var(--col-split, 42) * 1%, 80%));
+  width: 6px;
+  margin-left: -3px;
+  cursor: col-resize;
+  z-index: 5;
+  touch-action: none;
+  user-select: none;
+  /* Clip the hotspot to the grid's bounds. Masking (below) softens
+   * the clipped edges so the hard `overflow: hidden` cut doesn't
+   * show — the splitter itself fades to transparent at top + bottom,
+   * so whatever child (rail or hotspot) reaches the edge fades
+   * rather than being chopped flat. */
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 6%,
+    #000 94%,
+    transparent 100%
+  );
+  /* The visible rail — thin pseudo centered in the 6px hit zone.
+   * Faint until hover, stronger on active drag. */
+}
+
+.col-splitter::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: transparent;
+  transition: background var(--transition-fast);
+  /* Fade the top + bottom ends so the rail doesn't look like a
+   * hard clipped line where it meets the file-head border or the
+   * page gap below. At rest + on hover: solid-middle linear mask.
+   * While dragging: a radial mask centered on --drag-origin (a
+   * 0-100% y-offset drag.js sets on pointerdown) — the rail glows
+   * brightest where the user grabbed it and fades out above +
+   * below, so the drag feels anchored to the click. */
+  --drag-origin: 50%;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 10%,
+    #000 90%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 10%,
+    #000 90%,
+    transparent 100%
+  );
+}
+
+.col-splitter:hover::before,
+.col-splitter:focus-visible::before {
+  background: var(--border-strong);
+}
+
+.col-splitter.dragging::before {
+  /* Hide the rail while dragging — the .col-hotspot sibling is
+   * the only visible element, anchored to the click point via
+   * inline top. Keeping the rail visible would compete with the
+   * hotspot and make the brightness look centered on the rail
+   * midpoint instead of the pointer. */
+  background: transparent;
+}
+
+/* Hotspot: a tall bright pink segment drag.js positions inline
+ * on pointerdown (top = click y) and moves on pointermove. It's
+ * only rendered while .dragging so the normal rest state isn't
+ * affected. A linear-gradient mask fades the top + bottom ends
+ * to transparent so the hotspot blends softly into the rail. */
+.col-splitter .col-hotspot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 3px;
+  height: 800px;
+  margin-top: -400px;
+  /* Long, soft vertical glow — single linear-gradient background.
+   * Starts at top:0 with a negative margin that centers the bar's
+   * midpoint on the splitter's origin (y=0). drag.js then moves
+   * the bar with translate3d(0, Ypx, 0) — compositor-accelerated,
+   * no layout/paint per frame. */
+  transform: translate3d(-50%, 0, 0);
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    color-mix(in srgb, var(--accent-fg) 55%, transparent) 50%,
+    transparent 100%
+  );
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  will-change: transform;
+}
+
+.col-splitter.dragging .col-hotspot {
+  opacity: 1;
+}
+
+.col-splitter:focus-visible {
+  outline: none;
+}
+
+/* While dragging, override the whole document's cursor + disable
+ * text selection so a fast pointer outside the handle still reads
+ * as resize. drag.js sets body.col-resizing on pointerdown. */
+body.col-resizing,
+body.col-resizing * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+/* Right-align the chip inside its .code-section. The chip floats
+ * at the top-right of the rounded dark code container — a small,
+ * consistent "you're here" label that doesn't fight the code
+ * content for attention. */
+.wt-section-chip {
+  display: inline-flex;
+  float: right;
+  margin: 10px 14px 0;
+}
+
+.wt-section-chip > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--code-comment);
+  cursor: pointer;
+  list-style: none;
+  text-decoration: underline dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--code-comment) 50%, transparent);
+  transition:
+    color var(--transition-fast),
+    text-decoration-color var(--transition-fast);
+}
+
+.wt-section-chip > summary::marker,
+.wt-section-chip > summary::-webkit-details-marker {
+  content: '';
+  display: none;
+}
+
+.wt-section-chip[open] > summary {
+  color: var(--accent-fg);
+  text-decoration-color: var(--accent-fg);
+}
+
+/* The chip's panel overlays the code content beneath it — the
+ * .code-section already has `position: relative` so the panel's
+ * absolute positioning anchors there. Right-aligned because the
+ * chip itself is right-aligned; the panel drops from the same
+ * edge. Numbers-only rows so the panel stays compact — a column
+ * of "1 2 3 …" is fast to scan. */
+.wt-section-chip .wt-sections-panel {
+  top: calc(100% + 4px);
+  right: 14px;
+  left: auto;
+  min-width: 60px;
+  text-align: center;
+}
+
+.wt-section-chip .wt-sections-panel a {
+  text-align: center;
+  padding: 6px 12px;
+}
+
+/* Italicize the first annotation-card on each file-block. These
+ * are typically file-level prose (license header, @fileoverview,
+ * module-level commentary) rather than per-section documentation.
+ * Italic signals "this is preamble — skim it" and pushes the more
+ * interesting per-section annotations to read more prominent. */
+.file-block .pair-grid > .annotation-card:first-of-type .annotation-md,
+.file-block .file-grid > .annotation-card:first-of-type .annotation-md {
+  font-style: italic;
   color: var(--muted);
 }
 
@@ -804,8 +1533,13 @@ tbody td:first-child {
 .code-section {
   background: var(--code-bg);
   border-radius: var(--radius-lg);
-  overflow: hidden;
   border: 1px solid var(--border);
+  /* No overflow:hidden — the per-section dropdown needs to escape
+   * the container to render above the next code block below. The
+   * inner <pre> has its own overflow-x:auto for horizontal code
+   * scrolling, so code content still stays contained; we just let
+   * absolute-positioned children (the sections-panel dropdown)
+   * bleed out of the rounded corner when open. */
 }
 
 .code-section pre {
@@ -841,9 +1575,19 @@ tbody td:first-child {
   min-width: 48px;
   padding: 0 14px 0 18px;
   text-align: right;
+  /* Dimmer at rest so the numbers recede — they're reference
+   * information, not primary content. Brighten when the cursor
+   * is anywhere over the code table so users can pick a specific
+   * line easily when they want one. */
   color: var(--code-comment);
+  opacity: 0.4;
   user-select: none;
   white-space: nowrap;
+  transition: opacity var(--transition-fast);
+}
+
+.code-table tr:hover .line-num {
+  opacity: 1;
 }
 
 .code-table .line-code {
@@ -937,21 +1681,24 @@ tbody td:first-child {
 
 /* ── 10. Theme toggle UI ─────────────────────────────────────────── */
 
-.theme-toggle-wrapper {
-  position: relative;
-}
-
+/* Action buttons — export (download), comments, and the theme
+ * toggle. Live on the right side of the part-nav strip now, so
+ * sized to match that thin-strip language. One rule keeps them
+ * aligned so the cluster reads as one control group. Injected at
+ * runtime by comments.js + drag.js after first paint. */
+.topbar-actions .wt-export-btn,
+.topbar-actions .wt-unresolved-btn,
 .theme-toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   padding: 0;
-  color: var(--body);
+  color: var(--muted);
   background: transparent;
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: 6px;
   cursor: pointer;
   transition:
     background var(--transition-fast),
@@ -959,11 +1706,49 @@ tbody td:first-child {
     color var(--transition-fast);
 }
 
+.topbar-actions .wt-export-btn:hover,
+.topbar-actions .wt-unresolved-btn:hover,
 .theme-toggle:hover {
   background: var(--bg-tint);
   color: var(--ink);
 }
 
+.topbar-actions .wt-export-btn svg,
+.topbar-actions .wt-unresolved-btn svg {
+  display: block;
+}
+
+/* Unresolved-count badge — small dot + number overlay on the
+ * comments button when there are threads to resolve. comments.js
+ * sets data-count on the button; CSS surfaces the badge only when
+ * count > 0. */
+.wt-unresolved-btn[data-count]:not([data-count='0'])::after {
+  content: attr(data-count);
+  position: absolute;
+  transform: translate(10px, -10px);
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  color: var(--bg);
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.wt-unresolved-btn {
+  position: relative;
+}
+
+.theme-toggle-wrapper {
+  position: relative;
+}
+
+/* Expanded state — same tint as hover, plus a ring to show the
+ * menu is open. Specific to the theme-toggle (export/comments
+ * buttons don't have a menu). */
 .theme-toggle[aria-expanded='true'] {
   background: var(--bg-tint);
   border-color: var(--border-strong);
@@ -971,23 +1756,59 @@ tbody td:first-child {
 }
 
 .theme-toggle svg {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
 }
 
-/* Stacked icons — only the one matching the current pref is visible.
- * Wrapper carries data-pref so CSS can pick. */
+.topbar-actions .wt-export-btn svg,
+.topbar-actions .wt-unresolved-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Stacked icons — all four are rendered on top of each other in the
+ * same button; only the one matching the current pref is visible.
+ * Uses opacity (not display:none) for the hide/show so the inactive
+ * icons stay in the layout tree — that's the pre-condition for CSS
+ * transitions to fire when the user switches preference (display
+ * transitions silently drop on newly-rendered elements). Each icon
+ * is absolutely positioned on top of its siblings; pointer-events
+ * none on the hidden ones so clicks always hit the button. */
+.theme-toggle {
+  position: relative;
+}
+
+/* Stacked theme icons — only the one matching the current pref is
+ * visible (opacity-based), but all four share the same centered
+ * position inside the .theme-toggle button so switching themes
+ * doesn't jump the icon. Absolutely positioned so they overlay
+ * each other; inset:0 + margin:auto centers each one exactly
+ * like a flex item would. */
 .theme-icon {
-  display: none;
-  width: 20px;
-  height: 20px;
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+/* Lightning bolt is rendered the same 16×16 as the sun/moon/system
+ * icons so every theme option has the same optical weight in the
+ * button — no one-off "bigger" icon pulling rank. Center-aligned
+ * via inset:0 + margin:auto inherited from .theme-icon above. */
+.theme-icon-synthwave {
+  width: 16px;
+  height: 16px;
 }
 
 .theme-toggle-wrapper[data-pref='system'] .theme-icon-system,
 .theme-toggle-wrapper[data-pref='light'] .theme-icon-light,
 .theme-toggle-wrapper[data-pref='dark'] .theme-icon-dark,
 .theme-toggle-wrapper[data-pref='synthwave'] .theme-icon-synthwave {
-  display: block;
+  opacity: 1;
 }
 
 .theme-menu {
@@ -999,7 +1820,12 @@ tbody td:first-child {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  /* Two-layer shadow for a clearly-lifted feel — matches the
+   * files/sections dropdown panels so every floating surface on
+   * the site reads the same way. */
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 12px 32px rgba(0, 0, 0, 0.16);
   z-index: 60;
   display: flex;
   flex-direction: column;
@@ -1028,13 +1854,13 @@ tbody td:first-child {
 }
 
 .theme-menu-item:hover {
-  background: var(--bg-tint);
-  color: var(--ink);
+  background: var(--nav-hover-bg);
+  color: var(--accent-fg);
 }
 
 .theme-menu-item[aria-checked='true'] {
-  color: var(--ink);
-  background: var(--bg-tint);
+  background: var(--nav-selected-bg);
+  color: var(--accent-fg);
 }
 
 .theme-menu-item[aria-checked='true'] .theme-menu-check {
@@ -1052,23 +1878,593 @@ tbody td:first-child {
 
 .theme-menu-icon {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 18px;
   height: 18px;
   color: var(--muted);
 }
+
+.theme-menu-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
 
 .theme-menu-item[aria-checked='true'] .theme-menu-icon,
 .theme-menu-item:hover .theme-menu-icon {
   color: var(--ink);
 }
 
-/* Sun/moon ray animation — kept from the original icon set. Rays
- * fade in when their parent icon becomes the active one. */
-.theme-ray {
-  transform-origin: 12px 12px;
+/* Sun/moon/star ray animation — the rays + star on the theme icon
+ * are hidden by default and fade + scale in after the core shape
+ * lands. Triggered by the wrapper's data-pref attribute: when the
+ * user picks Light, the light icon's rays animate in; picking Dark
+ * animates the crescent's star. This only applies inside the
+ * toggle button itself — menu icons always show everything so the
+ * user can see each option's final visual at rest. */
+.theme-toggle .theme-ray,
+.theme-toggle .theme-star {
+  opacity: 0;
+  transform: scale(0.5);
+  transform-origin: 50% 50%;
+  transition:
+    opacity 280ms ease 60ms,
+    transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1) 60ms;
+}
+
+.theme-toggle-wrapper[data-pref='light'] .theme-icon-light .theme-ray,
+.theme-toggle-wrapper[data-pref='system'] .theme-icon-system .theme-ray,
+.theme-toggle-wrapper[data-pref='dark'] .theme-icon-dark .theme-star {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle .theme-ray,
+  .theme-toggle .theme-star {
+    transition: none;
+  }
+}
+
+/* Synthwave lightning — strike animation. When synthwave is the
+ * active theme, the bolt plays a one-shot "strike": scales up and
+ * brightens briefly, then settles back to its resting size. Runs
+ * exactly once on page load / theme selection — not infinite —
+ * so the motion signals "energized" without distracting for the
+ * rest of the session. */
+@keyframes wt-bolt-strike {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(0.95);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+html[data-theme='synthwave'] .theme-icon-synthwave {
+  transform-origin: center;
+  animation: wt-bolt-strike 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 1 both;
+}
+
+/* Sparkles are always hidden by default — shown only on the
+ * toggle button when synthwave is the active theme, and only for
+ * a few flickers after it settles. Menu icons never show sparks
+ * (all four preview icons render at rest so the menu is calm). */
+.wt-spark {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Choreographed 3-beat sequence — middle, top, bottom. Each
+ * spark flashes once, in its own 33% of the cycle:
+ *   beat 1 (0-33%):  spark-2 (middle)
+ *   beat 2 (33-67%): spark-1 (top)
+ *   beat 3 (67-100%): spark-3 (bottom)
+ * Total cycle 1.5s = 3 beats × 500ms. scale(1.2) at peak makes
+ * each twinkle read as visibly larger than its rest size. Runs
+ * once after the bolt's strike (520ms delay) then stays hidden
+ * via fill-mode:forwards.
+ *
+ * Each spark has its own keyframes rather than sharing one — that
+ * way the timing per beat is explicit and the sequence reads
+ * correctly even with scaled time. Beats fall at:
+ *   beat 1:  0%   — 17% of cycle
+ *   beat 2: 17%   — 33%
+ *   beat 3: 33%   — 50%
+ *   beat 4: 50%   — 67%
+ *   beat 5: 67%   — 83%
+ *   beat 6: 83%   — 100%
+ * Each spark is visible for ~8% of the cycle at each of its
+ * assigned beats. */
+
+/* Single-flash twinkle keyframes — each spark visible only during
+ * its own beat (a third of the cycle), rest of the cycle hidden.
+ * scale(1.2) at peak punches the sparkle; brief hold at peak for
+ * the "shining" beat. */
+
+/* Middle spark — beat 1 (0-33%). */
+@keyframes wt-spark-middle {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  10% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  33%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* Top spark — beat 2 (33-67%). */
+@keyframes wt-spark-top {
+  0%,
+  33% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  43% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  56% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  67%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* Bottom spark — beat 3 (67-100%). */
+@keyframes wt-spark-bottom {
+  0%,
+  67% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  77% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  90% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+
+/* Sparks fire only on a live user-triggered theme toggle (drag.js
+ * adds .wt-theme-toggle-fired to <html> for a 2.5s window after
+ * the click, then strips it). A fresh page load that just restores
+ * synthwave from localStorage never has this class, so the bolt
+ * stays static — no unprompted animation on navigation. */
+html[data-theme='synthwave'].wt-theme-toggle-fired
+  .theme-toggle
+  .theme-icon-synthwave
+  .wt-spark-1 {
+  animation: wt-spark-top 1.5s ease 0.55s 1 forwards;
+}
+
+html[data-theme='synthwave'].wt-theme-toggle-fired
+  .theme-toggle
+  .theme-icon-synthwave
+  .wt-spark-2 {
+  animation: wt-spark-middle 1.5s ease 0.55s 1 forwards;
+}
+
+html[data-theme='synthwave'].wt-theme-toggle-fired
+  .theme-toggle
+  .theme-icon-synthwave
+  .wt-spark-3 {
+  animation: wt-spark-bottom 1.5s ease 0.55s 1 forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme='synthwave'] .theme-icon-synthwave {
+    animation: none;
+  }
+  html[data-theme='synthwave']
+    .theme-toggle
+    .theme-icon-synthwave
+    .wt-spark {
+    animation: none;
+  }
+}
+
+/* Synthwave — pink-tinted glow on every floating panel (files menu,
+ * sections menu, theme menu, modal). Overrides the neutral shadows
+ * set earlier with a magenta ambient that matches the --accent
+ * color, so menus feel lit from below by neon. Two layers: a close
+ * contact shadow for depth + a wider colored bloom for the glow. */
+html[data-theme='synthwave'] .wt-files-panel,
+html[data-theme='synthwave'] .wt-sections-panel,
+html[data-theme='synthwave'] .theme-menu {
+  box-shadow:
+    0 1px 2px rgba(10, 5, 20, 0.4),
+    0 12px 32px rgba(255, 126, 219, 0.18),
+    0 0 24px rgba(255, 126, 219, 0.12);
+}
+
+html[data-theme='synthwave'] .wt-modal {
+  box-shadow:
+    0 8px 24px rgba(10, 5, 20, 0.6),
+    0 0 48px rgba(255, 126, 219, 0.2);
+}
+
+/* Comments-button bubble. Empty outline when signed out (invitation
+ * to engage); three dots drop in one-by-one when the user signs in.
+ * comments.js toggles data-signed-in="true" on the button when auth
+ * succeeds, and adds the .wt-dots-drop class for a single reflow
+ * so the keyframes play fresh each sign-in. */
+.wt-unresolved-btn .wt-bubble-dots {
+  display: none;
+}
+
+.wt-unresolved-btn[data-signed-in='true'] .wt-bubble-dots {
+  display: inline;
+}
+
+@keyframes wt-dot-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(1px) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.wt-unresolved-btn.wt-dots-drop .wt-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: wt-dot-drop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.wt-unresolved-btn.wt-dots-drop .wt-dot-1 {
+  animation-delay: 0ms;
+}
+
+.wt-unresolved-btn.wt-dots-drop .wt-dot-2 {
+  animation-delay: 140ms;
+}
+
+.wt-unresolved-btn.wt-dots-drop .wt-dot-3 {
+  animation-delay: 280ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wt-unresolved-btn.wt-dots-drop .wt-dot {
+    animation: none;
+    opacity: 1;
+  }
 }
 
 /* ── 11. Comment shim UI ─────────────────────────────────────────── */
+
+/* Auth / comment-compose modal — <dialog> element injected by
+ * comments.js. Native `::backdrop` pseudo styles the scrim; the
+ * dialog itself is a card with editorial padding + radius. All
+ * form controls inside the modal share one visual language so the
+ * sign-in flow feels of-a-piece with the rest of the site.
+ *
+ * Anchored near the top of the viewport rather than centered so
+ * the dialog can grow downward (e.g. when an error message
+ * appears) without the top edge jumping up. The user's focus
+ * stays where it was — fields don't reflow underneath their
+ * cursor. */
+.wt-modal {
+  margin-top: 18vh;
+  margin-bottom: auto;
+  padding: 28px 32px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--body);
+  box-shadow: var(--shadow-lg);
+  max-width: 460px;
+  width: calc(100% - 48px);
+}
+
+.wt-modal::backdrop {
+  background: rgba(10, 10, 10, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.wt-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.wt-modal-close:hover {
+  background: var(--bg-tint);
+  color: var(--ink);
+}
+
+.wt-modal-title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.wt-modal-sub {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--body);
+}
+
+.wt-modal-sub strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Form inside the modal — labels stack with their inputs, buttons
+ * land on their own row at the bottom. Gap is the vertical rhythm
+ * between every field + button cluster. */
+.wt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.wt-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--body);
+}
+
+.wt-input,
+.wt-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.wt-input:focus,
+.wt-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.wt-textarea {
+  min-height: 96px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Primary and secondary buttons inside the modal. Primary is the
+ * black pill — solid commitment (send code, post comment). Secondary
+ * is the neutral tint (cancel, dismiss). Side-by-side with a small
+ * gap, same height, aligned on text baseline. */
+.wt-primary,
+.wt-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+/* Primary button is the pass/fail signal itself — enabled means
+ * the form is valid, disabled means it isn't. No red/green state
+ * markers elsewhere; the button does the talking.
+ *
+ * Enabled: solid accent-colored background with the theme's bg
+ * color as text (readable contrast on all themes). In synthwave
+ * this lights up pink; in light/dark it's the blue accent.
+ *
+ * Disabled: flat muted surface with muted text — visibly inert
+ * so the state difference reads at a glance. No hover lift, no
+ * shadow, not-allowed cursor. */
+/* Enabled: tinted fill matching the nav-selected state, with
+ * accent-color text and border. Same visual language as the
+ * active part-nav pill — consistent "this is the go option"
+ * across every surface. Less assaulting than a solid neon fill,
+ * still unmistakably active.
+ *
+ * Disabled: muted surface, muted text, no hover. Visually inert
+ * so the state difference reads clearly. */
+.wt-primary {
+  color: var(--accent-fg);
+  background: var(--nav-selected-bg);
+  border: 1px solid var(--accent-fg);
+  font-weight: 600;
+}
+
+.wt-primary:hover {
+  background: var(--accent-bg);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Disabled — no border, just a faint tinted fill + muted text.
+ * The absence of a border is itself the signal: every actionable
+ * surface on this modal has a visible outline (input, enabled
+ * primary, secondary cancel); the borderless slab reads as inert
+ * background, not a button waiting for a click. */
+.wt-primary:disabled,
+.wt-primary[aria-disabled='true'] {
+  color: var(--muted);
+  background: var(--bg-tint);
+  border: 1px solid transparent;
+  font-weight: 500;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.wt-primary:disabled:hover,
+.wt-primary[aria-disabled='true']:hover {
+  background: var(--bg-tint);
+}
+
+/* Secondary (cancel) — thin outline button, transparent-ish fill.
+ * Outline is the signal: it's interactive even though it's not
+ * the primary action. Same visual weight of outline as the email
+ * input above, so the dialog has one consistent "interactive
+ * surfaces carry a border" rule. */
+.wt-secondary {
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+}
+
+.wt-secondary:hover {
+  background: var(--bg-tint);
+  border-color: var(--accent-fg);
+  color: var(--accent-fg);
+}
+
+/* Button rows inside the form — by default form children stack
+ * vertically; a pair of buttons should sit side-by-side. comments.js
+ * emits them as consecutive <button> siblings, so target adjacent
+ * buttons directly. */
+.wt-form button + button {
+  margin-top: -8px; /* close the gap inherited from .wt-form */
+}
+
+.wt-form .wt-primary + .wt-secondary,
+.wt-form .wt-secondary + .wt-primary {
+  margin-top: 0;
+}
+
+/* Inline error text below the form — live region announces to AT
+ * when the message changes. Uses the muted tone (not alarm red)
+ * so the message feels like a helpful note rather than a
+ * shout. The element always occupies layout space (no display:
+ * none) so the dialog doesn't jump upward when a message
+ * appears/clears — error text grows into pre-allocated height. */
+.wt-error {
+  margin: 0;
+  min-height: 1.2em;
+  font-size: 13px;
+  color: var(--muted);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.wt-error:not(:empty) {
+  opacity: 1;
+}
+
+/* Selection popover — the inline "Add comment" toolbar comments.js
+ * injects when the user highlights one or more code lines. Floats
+ * directly above the selection with a Lines label, a primary
+ * action (open composer), and a secondary dismiss. Card styling
+ * matches the modal + menu surfaces so every injected UI on the
+ * site reads with the same language. */
+.wt-selection-popover {
+  position: absolute;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 12px 32px rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+}
+
+html[data-theme='synthwave'] .wt-selection-popover {
+  box-shadow:
+    0 1px 2px rgba(10, 5, 20, 0.4),
+    0 12px 32px rgba(255, 126, 219, 0.18),
+    0 0 24px rgba(255, 126, 219, 0.12);
+}
+
+.wt-selection-popover .wt-sel-label {
+  color: var(--muted);
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 12px;
+  padding-right: 4px;
+  border-right: 1px solid var(--border);
+  margin-right: 2px;
+}
+
+/* Smaller-than-modal variant of the primary/secondary buttons for
+ * this compact inline toolbar. Inherits the enabled/disabled
+ * pass/fail semantics from the base .wt-primary rules. */
+.wt-selection-popover .wt-primary,
+.wt-selection-popover .wt-secondary {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+}
 
 /* The comments.js shim injects threads into each code block. Style
  * them as white cards floating inside the dark code container per
@@ -1158,15 +2554,165 @@ tbody td:first-child {
   align-items: center;
   gap: 6px;
   padding: 32px 16px;
+  background: var(--bg);
   color: var(--muted);
   font-size: 13px;
   border-top: 1px solid var(--border);
   margin-top: 80px;
 }
 
-.wt-footer-bolt {
+html[data-theme='synthwave'] .wt-socket-footer {
+  background: color-mix(in srgb, #1a0f2e 88%, transparent);
+}
+
+/* Footer bolt — a two-element bundle: an SVG (visible) next to
+ * a "⚡" emoji span (invisible but selectable). When the user
+ * selects + copies the tagline, the clipboard picks up the emoji
+ * character; visually they still see the SVG.
+ *
+ * The wrapper is inline-block so it reads as one "word" to text
+ * selection. Width = SVG width so the hidden emoji can't push
+ * the layout wider. */
+/* Two-element bundle: a visible SVG + an invisible, selectable
+ * "⚡" emoji. Both are in the wrapper so the emoji lands inside
+ * any text selection that crosses the wrapper — clipboard picks
+ * up "Made with ⚡ by Socket Inc" even though the user sees the
+ * SVG, not the emoji.
+ *
+ * The wrapper is a 14×14 inline-block with overflow:hidden. The
+ * SVG fills it. The emoji is absolutely positioned OUTSIDE the
+ * visible area (negative left) so overflow:hidden clips it, but
+ * it's still a real inline character inside the DOM so the
+ * selection range spans it. */
+.wt-footer-bolt-wrap {
+  position: relative;
   display: inline-block;
-  transform: translateY(-1px);
+  width: 14px;
+  height: 14px;
+  vertical-align: 2px;
+  margin: 0 2px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.wt-footer-bolt-text {
+  position: absolute;
+  top: 0;
+  left: -100px;
+  font-size: 14px;
+  line-height: 1;
+  color: transparent;
+  pointer-events: none;
+}
+
+/* Hide the selection highlight over the bolt region. The emoji
+ * is still in the selection range (and clipboard), but the
+ * colored rectangle doesn't extend over it — reads as a clean
+ * gap between "Made with " and " by Socket Inc" with the SVG
+ * untouched. */
+.wt-footer-bolt-wrap ::selection,
+.wt-footer-bolt-wrap::selection {
+  background: transparent;
+  color: inherit;
+}
+
+/* SVG — same lightning bolt shape as the synthwave theme toggle.
+ * Fills the wrapper. Color follows the current theme's accent
+ * (pink in synthwave, muted on light/dark). Animates once on
+ * page load with a subtle strike settling to rest. */
+.wt-footer-bolt {
+  display: block;
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+  transform-origin: 50% 50%;
+  animation: wt-footer-bolt-strike 900ms ease 250ms 1 both;
+}
+
+html[data-theme='synthwave'] .wt-footer-bolt {
+  color: var(--accent-fg);
+}
+
+/* Footer sparks — three twinkles choreographed across the same
+ * 1.5s window the strike uses, firing after the bolt lands.
+ * Share the same keyframes the theme-toggle sparkles use. Rest
+ * state is invisible (opacity 0); each spark flashes once in its
+ * assigned third of the cycle then stays hidden via forwards. */
+.wt-footer-spark {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.wt-footer-bolt .wt-footer-spark-1 {
+  animation: wt-spark-top 1.5s ease 1s 1 forwards;
+}
+
+.wt-footer-bolt .wt-footer-spark-2 {
+  animation: wt-spark-middle 1.5s ease 1s 1 forwards;
+}
+
+.wt-footer-bolt .wt-footer-spark-3 {
+  animation: wt-spark-bottom 1.5s ease 1s 1 forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wt-footer-bolt .wt-footer-spark {
+    animation: none;
+  }
+}
+
+@keyframes wt-footer-bolt-strike {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-14deg);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.35) rotate(6deg);
+  }
+  65% {
+    transform: scale(0.92) rotate(-3deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wt-footer-bolt {
+    animation: none;
+  }
+}
+
+/* ── 12b. Cmd/Ctrl-click source-code links ──────────────────────── */
+
+/* Links wrapping URLs or cross-file import paths inside .line-code.
+ * By default they're invisible: inherit color, no underline, normal
+ * cursor. Clicking them without a modifier does nothing (drag.js
+ * preventDefault) — so code selection stays uninterrupted. While
+ * the user is holding Cmd (macOS) or Ctrl (every other OS),
+ * body.wt-mod-pressed flips on and hovering a link reveals a
+ * dotted underline + pointer cursor. Matches how the DevTools
+ * console and VS Code handle source links: invisible until you
+ * signal intent, then obvious. */
+.wt-src-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: text;
+}
+
+body.wt-mod-pressed .wt-src-link {
+  cursor: pointer;
+}
+
+body.wt-mod-pressed .wt-src-link:hover {
+  text-decoration: underline dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--accent-fg);
+  color: var(--accent-fg);
 }
 
 /* ── 13. Utilities ───────────────────────────────────────────────── */

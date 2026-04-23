@@ -672,16 +672,23 @@
       // place whether it's valid and (if not) why. The same function
       // gates the submit handler, so the live message and the submit
       // message can never drift.
+      const submitBtn = form.querySelector('button[type=submit]')
       const updateEmailValidity = () => {
         const v = emailInput.value.trim().toLowerCase()
         if (!v.endsWith(SOCKET_SUFFIX)) {
           delete emailInput.dataset.valid
           errEl.innerHTML = ''
+          if (submitBtn) {
+            submitBtn.disabled = true
+          }
           return
         }
         const err = validateEmail(v)
         emailInput.dataset.valid = err ? 'false' : 'true'
         errEl.innerHTML = err || ''
+        if (submitBtn) {
+          submitBtn.disabled = Boolean(err)
+        }
       }
       emailInput.addEventListener('input', updateEmailValidity)
       updateEmailValidity()
@@ -1622,9 +1629,21 @@
   /* ─── topbar buttons ──────────────────────────────────────────── */
 
   const installTopbarButtons = () => {
-    const host = document.querySelector('.topbar-actions')
-    if (!host || isDocPage) {
+    if (isDocPage) {
       return
+    }
+    // Actions cluster lives on the right of the part-nav strip. If
+    // drag.js hasn't run yet, create the container ourselves so
+    // install order doesn't matter — whoever loads first sets it up.
+    const partNav = document.querySelector('.part-nav')
+    if (!partNav) {
+      return
+    }
+    let host = partNav.querySelector('.topbar-actions')
+    if (!host) {
+      host = document.createElement('div')
+      host.className = 'topbar-actions'
+      partNav.appendChild(host)
     }
 
     // Export

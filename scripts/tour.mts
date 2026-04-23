@@ -129,6 +129,42 @@ type DocEntry = {
 }
 
 /**
+ * Map a raw line count to a content-size tier badge label. Tiers
+ * are tuned for this tour's reading rhythm:
+ *
+ *   x-small (≤ 100)    ∼ 1 min — a quick look
+ *   small   (101–400)  ∼ 5 min — coffee break
+ *   medium  (401–1000) ∼ 15 min — short session
+ *   large   (1001–2500) ∼ 30 min — deep dive
+ *   x-large (2501+)    45+ min — half-day
+ *
+ * Thresholds match 4-file-stacks of typical TypeScript (150-400
+ * LOC each) to the "medium" tier, so the smallest visible tier
+ * on this tour is usually "small" and the largest is "x-large"
+ * for parts that sweep many ecosystem handlers. Returned label
+ * is lowercase to pair cleanly with an uppercase `wt-contents-
+ * badge-tier-<tier>` CSS class that colors it.
+ */
+function sizeTier(lines: number): {
+  label: string
+  key: 'x-small' | 'small' | 'medium' | 'large' | 'x-large'
+} {
+  if (lines <= 100) {
+    return { label: 'x-small', key: 'x-small' }
+  }
+  if (lines <= 400) {
+    return { label: 'small', key: 'small' }
+  }
+  if (lines <= 1000) {
+    return { label: 'medium', key: 'medium' }
+  }
+  if (lines <= 2500) {
+    return { label: 'large', key: 'large' }
+  }
+  return { label: 'x-large', key: 'x-large' }
+}
+
+/**
  * Validate the `docs` array in tour.json and build a filename
  * → entry map. Same shape / same error doctrine as
  * validatePartFilenames, plus a cross-check against the part
@@ -213,27 +249,34 @@ function validateDocFilenames(
  * external sprite or font dep.
  */
 const HOME_ICON_SVG =
-  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg>'
+  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg>'
 
-const HOME_LINK_HTML = `<a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents">${HOME_ICON_SVG}</a>`
+const buildHomeLinkHtml = (active: boolean): string =>
+  `<a class="wt-home-link${active ? ' active' : ''}" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"${active ? ' aria-current="page"' : ''}>${HOME_ICON_SVG}</a>`
 
 /**
- * Render the "Parts: 1 2 3 … 8" pill row. Same HTML shape meander
- * emits for its own part-nav — classes and hrefs match so the CSS +
- * post-process pill-enrichment paths in this file apply uniformly.
- * Emitted at the top of every doc page so doc readers can jump into
- * any part with one click.
+ * Render the "[home] Parts: 1 2 3 … 8" pill row. Same HTML shape
+ * meander emits for its own part-nav — classes and hrefs match so
+ * the CSS + post-process pill-enrichment paths in this file apply
+ * uniformly.
+ *
+ * The home icon is ALWAYS rendered so the nav layout stays identical
+ * between the index and part pages (no visual jump when navigating
+ * between them). On the index, it's marked `.active` — the same
+ * selected-state treatment the current part pill gets on a part page
+ * — so users see the home icon as their current location.
  */
 function renderPartsPillRow(
   slug: string,
   partFilenames: ReadonlyMap<number, string>,
+  homeActive: boolean = false,
 ): string {
   const ids = [...partFilenames.keys()].sort((a, b) => a - b)
   const pills = ids
     .map(id => `<a href="/${slug}/part/${id}">Part ${id}</a>`)
     .join('\n      ')
   return (
-    `    <div class="part-nav">${HOME_LINK_HTML}<span class="wt-parts-label">Parts:</span>\n` +
+    `    <div class="part-nav">${buildHomeLinkHtml(homeActive)}<span class="wt-parts-label">Parts:</span>\n` +
     `      ${pills}\n` +
     `    </div>`
   )
@@ -376,7 +419,10 @@ async function rewriteIndexContents(
   partTitles: ReadonlyMap<number, string>,
   partObjectives: ReadonlyMap<number, string>,
   partCounts: ReadonlyMap<number, number>,
+  partLineCounts: ReadonlyMap<number, number>,
+  docLineCounts: ReadonlyMap<string, number>,
   docs: ReadonlyMap<string, DocEntry>,
+  slug: string,
   tourDir: string,
 ): Promise<void> {
   const indexPath = path.join(tourDir, 'index.html')
@@ -410,24 +456,103 @@ async function rewriteIndexContents(
   // width via CSS), optional section-count badge on the right. Using
   // <div>s (not <ul>/<li>) sidesteps the browser-default bullet
   // rendering that made the old list look off-tempo.
+  /* Wrap small numeric tokens (optionally prefixed with ~) in a
+   * styled span so counts and approximations pop visually against
+   * the body text. Only 1–3 digit integers qualify — that scope
+   * covers every count this tour uses (part numbers, ecosystem
+   * counts, section counts) while excluding years like "2026"
+   * which should read as plain prose, not quantity emphasis. */
+  const highlightNumbers = (escaped: string): string =>
+    escaped.replace(/(~?\b\d{1,3}\b)/g, '<span class="wt-num">$1</span>')
+
+  /* Render markdown-style *italic* spans. Runs on already-escaped
+   * prose — the escape pass can't emit literal '*' from entities,
+   * so every '*' we see is a user-authored italic marker. */
+  const renderItalics = (escaped: string): string =>
+    escaped.replace(/\*([^*]+)\*/g, '<em>$1</em>')
+
+  /* Render markdown-style [label](href) links. Runs on already-
+   * HTML-escaped prose. Only https/http/relative URLs are allowed —
+   * anything else (javascript:, data:, …) is left as literal text
+   * so a tour.json typo can't inject an unsafe href. External URLs
+   * open in a new tab with noopener; bare "/" paths stay same-tab. */
+  const renderLinks = (escaped: string): string =>
+    escaped.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+      const safeHref = /^(https?:\/\/|\/)/.test(href) ? href : null
+      if (!safeHref) {
+        return `[${label}](${href})`
+      }
+      const external = safeHref.startsWith('http')
+      const attrs = external ? ' target="_blank" rel="noopener noreferrer"' : ''
+      return `<a class="wt-toc-link" href="${safeHref}"${attrs}>${label}</a>`
+    })
+
+  /* Compose the non-code decorations: links first (so their label
+   * text can still receive italic + numeric treatment), then
+   * italics, then numeric highlights. Each pass is idempotent on
+   * already-decorated output. */
+  const decoratePlain = (escaped: string): string =>
+    highlightNumbers(renderItalics(renderLinks(escaped)))
+
+  /* Render inline markdown-style `backtick` spans as <code> while
+   * keeping every other character HTML-escaped. Supports a single
+   * level of backtick-delimited spans; no nested backticks. Italics
+   * + numeric highlights apply only OUTSIDE code spans. */
+  const renderInlineCode = (text: string): string => {
+    const parts = text.split('`')
+    if (parts.length === 1) {
+      return decoratePlain(escapeHtml(text))
+    }
+    let out = ''
+    for (let i = 0; i < parts.length; i++) {
+      const rawSegment = parts[i]!
+      const escaped = escapeHtml(rawSegment)
+      const isCode = i % 2 === 1
+      if (i === parts.length - 1 && !isCode) {
+        out += decoratePlain(escaped)
+        break
+      }
+      if (isCode) {
+        out += `<code>${escaped}</code>`
+      } else {
+        out += decoratePlain(escaped)
+      }
+    }
+    return out
+  }
+  /* Render a TOC row with two badges:
+   *   - kind:  "code" for parts (walkthroughs of source files) or
+   *            "article" for docs (long-form prose).
+   *   - size:  content-size tier from line count — small / medium
+   *            / large / x-large. Tells the reader roughly how
+   *            much time to set aside for the page. */
   const renderRow = (
     href: string,
     title: string,
     description: string,
-    badge?: string,
+    kind: 'code' | 'article',
+    lineCount: number | undefined,
   ): string => {
-    const badgeHtml = badge
-      ? `          <span class="wt-contents-badge">${escapeHtml(badge)}</span>\n`
-      : ''
+    const badges: string[] = []
+    badges.push(
+      `<span class="wt-contents-badge wt-badge-kind wt-badge-kind-${kind}">${kind}</span>`,
+    )
+    if (lineCount !== undefined) {
+      const tier = sizeTier(lineCount)
+      badges.push(
+        `<span class="wt-contents-badge wt-badge-size wt-badge-size-${tier.key}" title="~${lineCount} lines">${escapeHtml(tier.label)}</span>`,
+      )
+    }
+    const badgesHtml = `          <div class="wt-contents-badges">${badges.join('')}</div>\n`
     return (
       `        <div class="wt-contents-row">\n` +
       `          <div class="wt-contents-main">\n` +
       `            <a class="wt-contents-title" href="${href}">${escapeHtml(title)}</a>\n` +
       (description
-        ? `            <p class="wt-contents-summary">${escapeHtml(description)}</p>\n`
+        ? `            <p class="wt-contents-summary">${renderInlineCode(description)}</p>\n`
         : '') +
       `          </div>\n` +
-      badgeHtml +
+      badgesHtml +
       `        </div>`
     )
   }
@@ -437,14 +562,44 @@ async function rewriteIndexContents(
   )) {
     const title = partTitles.get(id) ?? `Part ${id}`
     const description = partObjectives.get(id) ?? ''
-    const count = partCounts.get(id)
-    const badge = count !== undefined ? `${count} sections` : undefined
-    rows.push(renderRow(`/${filename}.html`, title, description, badge))
+    const lineCount = partLineCounts.get(id)
+    rows.push(
+      renderRow(`/${filename}.html`, title, description, 'code', lineCount),
+    )
   }
   for (const d of docs.values()) {
-    rows.push(renderRow(`/${d.filename}.html`, d.title, d.summary ?? ''))
+    const docLineCount = docLineCounts.get(d.filename)
+    rows.push(
+      renderRow(
+        `/${d.filename}.html`,
+        d.title,
+        d.summary ?? '',
+        'article',
+        docLineCount,
+      ),
+    )
   }
+  /* Intro block: the npm package name. The tour title
+   * ("Socket PackageURL.js") is a product name — the actual npm
+   * coordinates live in @socketregistry/packageurl-js, a Socket
+   * Optimized override of the upstream packageurl-js package.
+   * Showing install coordinates above the TOC answers the first
+   * question a new visitor asks without making them chase through
+   * docs for it. */
+  const introHtml =
+    `    <div class="wt-intro">\n` +
+    `      <p class="wt-intro-line">` +
+    `Published on npm as ` +
+    `<a class="wt-intro-pkg" href="https://socket.dev/npm/package/@socketregistry/packageurl-js" target="_blank" rel="noopener noreferrer">` +
+    `<code>@socketregistry/packageurl-js</code></a>` +
+    ` — a <a class="wt-intro-link" href="https://socket.dev/blog/introducing-socket-optimize" target="_blank" rel="noopener noreferrer">Socket Optimized</a> override of the upstream ` +
+    `<a class="wt-intro-link" href="https://socket.dev/npm/package/packageurl-js" target="_blank" rel="noopener noreferrer"><code>packageurl-js</code></a>.` +
+    `</p>\n` +
+    `      <pre class="wt-intro-install"><code>npm install @socketregistry/packageurl-js</code></pre>\n` +
+    `    </div>`
   const blockHtml =
+    introHtml +
+    '\n' +
     `    <div class="wt-contents">\n` +
     `      <h3>Topics</h3>\n` +
     `${rows.join('\n')}\n` +
@@ -472,18 +627,65 @@ async function rewriteIndexContents(
     }
   }
 
-  // De-emphasize the `.js` suffix inside the topbar wordmark. The
-  // site is about the PURL library; the `.js` tag is a technical
-  // qualifier that should sit quieter than the name itself. Wrap
-  // it in a span the CSS can dim. Only the index's topbar carries
-  // this wordmark — part/doc pages substitute their own title there.
+  // Inject the Parts pill row below the topbar on the index. Part
+  // pages already carry this row (meander emits it inside their
+  // topbar, and the per-page post-process below will lift it out);
+  // the index page is structurally different (it IS the TOC) so
+  // meander leaves the row out. Adding it here makes the chrome
+  // consistent between index and part pages. No home link — the
+  // index IS home — and no pill is `active` (you can't be "on" a
+  // part from the TOC). Inserted as a sibling AFTER the topbar so
+  // it spans the full width without competing with the wordmark.
+  const indexTopbar = root.querySelector('.topbar')
+  if (indexTopbar && !root.querySelector('.part-nav')) {
+    indexTopbar.insertAdjacentHTML(
+      'afterend',
+      '\n' + renderPartsPillRow(slug, partFilenames, true),
+    )
+  }
+
+  // Meander emits a hard-coded `style="padding: 16px; max-width:
+  // 900px;"` on the index page's <main>. Our strict CSP blocks
+  // inline style attributes (style-src 'self', no 'unsafe-hashes'),
+  // so the browser rejects it and logs a violation every page load.
+  // The width constraint is also wrong for our design — the TOC
+  // should use the full viewport with internal centering handled by
+  // our stylesheet. Strip the attribute entirely.
+  const indexMain = root.querySelector('main')
+  if (indexMain) {
+    indexMain.removeAttribute('style')
+  }
+
+  // Restructure the topbar wordmark. Meander emits a flat <h1>
+  // carrying tour.json's title; we split it into:
+  //   <h1>
+  //     <code class="wt-product">packageurl-js</code>
+  //     <span class="wt-descriptor">override by Socket</span>
+  //   </h1>
+  // Rationale:
+  //   - Product is the npm package the tour documents
+  //     (packageurl-js) — styled as <code> so it reads as a literal
+  //     package coordinate, not a marketing name.
+  //   - "override by Socket" is a descriptor line in a sly purple,
+  //     spelling out what we maintain (the @socketregistry
+  //     override). No ambiguous "Socket PackageURL" branding.
+  // Only the index's topbar carries this wordmark — part/doc pages
+  // substitute their own title (the part name) there.
   const topbarH1 = root.querySelector('.topbar h1')
   if (topbarH1) {
     const text = topbarH1.text
-    const jsMatch = text.match(/^(.*?)(\.js)(.*)$/)
-    if (jsMatch) {
+    const wordmarkMatch = text.match(/^(packageurl-js) override by (Socket)$/)
+    if (wordmarkMatch) {
+      /* "Socket" in the descriptor is an <a.wt-src-link> pointing
+       * at socket.dev — same Cmd/Ctrl-click-to-reveal affordance
+       * the source-code links in part pages use, so it stays
+       * visually invisible until the reader holds the modifier
+       * key. Consistent "hidden link" pattern across the site. */
       topbarH1.set_content(
-        `${escapeHtml(jsMatch[1]!)}<span class="wt-tech-tag">${escapeHtml(jsMatch[2]!)}</span>${escapeHtml(jsMatch[3]!)}`,
+        `<code class="wt-product">${escapeHtml(wordmarkMatch[1]!)}</code>` +
+          `<span class="wt-descriptor">override by ` +
+          `<a class="wt-src-link" data-link-type="url" href="https://socket.dev" target="_blank" rel="noopener noreferrer">${escapeHtml(wordmarkMatch[2]!)}</a>` +
+          `</span>`,
       )
     }
   }
@@ -1021,6 +1223,7 @@ async function generate(
             title: string
             filename?: string
             objective?: string
+            files?: string[]
           }>
           docs?: Array<{
             filename?: string | undefined
@@ -1038,10 +1241,33 @@ async function generate(
     // real section title ("Anatomy of a PURL" etc.).
     const partTitles = new Map<number, string>()
     const partObjectives = new Map<number, string>()
+    /* Per-part line-count tally, summed across every source file the
+     * part covers. Drives the content-size badge ("small" / "medium"
+     * / "large" / "x-large") shown on the index TOC and on doc rows.
+     * Line count beats section count because it tracks actual reading
+     * effort — a file with 5 long sections isn't the same effort as
+     * a file with 5 one-liner sections. */
+    const partLineCounts = new Map<number, number>()
     for (const p of tourConfig.parts ?? []) {
       partTitles.set(p.id, p.title)
       if (p.objective) {
         partObjectives.set(p.id, p.objective)
+      }
+      let lineTotal = 0
+      for (const relFile of p.files ?? []) {
+        const abs = path.join(repoRoot, relFile)
+        if (!existsSync(abs)) {
+          continue
+        }
+        try {
+          const src = await fs.readFile(abs, 'utf8')
+          lineTotal += src.split('\n').length
+        } catch {
+          /* unreadable file — skip, the count is advisory */
+        }
+      }
+      if (lineTotal > 0) {
+        partLineCounts.set(p.id, lineTotal)
       }
     }
 
@@ -1094,6 +1320,23 @@ async function generate(
       configPath ? path.resolve(configPath) : '<config>',
     )
     await renderDocs(docFilenames, slug, partFilenames, repoRoot, buildDir)
+    /* Count lines in each doc's source markdown, same as parts, so
+     * the TOC's size-tier badge can show a meaningful estimate for
+     * prose pages. Missing/unreadable files just drop out of the
+     * map — the badge is advisory, not load-bearing. */
+    const docLineCounts = new Map<string, number>()
+    for (const doc of docFilenames.values()) {
+      const abs = path.join(repoRoot, doc.source)
+      if (!existsSync(abs)) {
+        continue
+      }
+      try {
+        const src = await fs.readFile(abs, 'utf8')
+        docLineCounts.set(doc.filename, src.split('\n').length)
+      } catch {
+        /* unreadable — skip */
+      }
+    }
     // Extend index.html with a Topics section pointing at each doc. Runs
     // after docs are rendered (no ordering dependency — the section just
     // links by filename) and before post-process so any hrefs get the
@@ -1103,7 +1346,10 @@ async function generate(
       partTitles,
       partObjectives,
       partCounts,
+      partLineCounts,
+      docLineCounts,
       docFilenames,
+      slug,
       buildDir,
     )
 
@@ -1180,7 +1426,18 @@ async function generate(
           return `<link rel="preload" as="font" type="font/woff2" href="${href}" integrity="sha384-${sha384}" crossorigin="anonymous" />`
         }),
     )
+    /* Preconnect to the comment backend origin so the TCP handshake +
+     * TLS negotiation happens in parallel with HTML parsing, rather
+     * than waiting for comments.js to send its first /health check.
+     * Saves ~100 ms on the LCP path for pages that ship the shim. */
+    const commentBackendOrigin = commentBackend
+      ? new URL(commentBackend).origin
+      : ''
+    const preconnectTags = commentBackendOrigin
+      ? [`<link rel="preconnect" href="${commentBackendOrigin}" crossorigin />`]
+      : []
     const preloadTags = [
+      ...preconnectTags,
       '<link rel="preload" as="script" href="/drag.js" />',
       ...(commentBackend
         ? ['<link rel="preload" as="script" href="/comments.js" />']
@@ -1188,12 +1445,31 @@ async function generate(
       ...fontPreloads,
     ].join('\n  ')
     // Socket tagline footer — matches the format used on socket.dev
-    // marketing pages. "⚡️" is rendered as an emoji (single char) so
-    // it inherits text color at small sizes; wrapping in a <span>
-    // lets CSS ship a small nudge if we need it later.
+    // marketing pages. The bolt is two overlaid elements:
+    //   - <svg class="wt-footer-bolt">       visible glyph
+    //   - <span class="wt-footer-bolt-text"> the "⚡" emoji, visually
+    //     hidden but NOT display:none, so a user's text selection
+    //     still picks it up. Copying "Made with <svg> by Socket Inc"
+    //     from the browser lands "Made with ⚡ by Socket Inc" in
+    //     their clipboard — round-trips cleanly into Slack, docs,
+    //     a commit message, wherever.
+    // The wrapping .wt-footer-bolt-wrap stacks the two on top of
+    // each other so they occupy the same inline box.
+    const footerBoltSvg =
+      '<svg class="wt-footer-bolt" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">' +
+      '<path d="M20 6 L14 6 L4 16 L11 16 L7 24 L20 13 L13 13 Z"/>' +
+      '<path class="wt-footer-spark wt-footer-spark-1" d="M5 2 L5.5 4.5 L8 5 L5.5 5.5 L5 8 L4.5 5.5 L2 5 L4.5 4.5 Z"/>' +
+      '<path class="wt-footer-spark wt-footer-spark-2" d="M22 6.5 L22.5 9 L25 9.5 L22.5 10 L22 12.5 L21.5 10 L19 9.5 L21.5 9 Z"/>' +
+      '<path class="wt-footer-spark wt-footer-spark-3" d="M3.5 17.5 L4 20 L6.5 20.5 L4 21 L3.5 23.5 L3 21 L0.5 20.5 L3 20 Z"/>' +
+      '</svg>'
+    const footerBoltBundle =
+      '<span class="wt-footer-bolt-wrap">' +
+      footerBoltSvg +
+      '<span class="wt-footer-bolt-text" aria-hidden="true">⚡</span>' +
+      '</span>'
     const footerTag = [
       '<footer class="wt-socket-footer">',
-      '  <span>Made with <span class="wt-footer-bolt" aria-hidden="true">⚡️</span> by Socket Inc</span>',
+      `  <span>Made with ${footerBoltBundle} by <a class="wt-src-link" data-link-type="url" href="https://socket.dev" target="_blank" rel="noopener noreferrer">Socket Inc</a></span>`,
       '</footer>',
     ].join('\n  ')
 
@@ -1206,9 +1482,6 @@ async function generate(
     // after. Every DOM edit uses node-html-parser — no string.replace
     // against HTML — so meander-output whitespace or attribute-order
     // changes don't silently break the pipeline.
-    const homeLinkHtml =
-      '<a class="wt-home-link" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg></a><span class="wt-parts-label">Parts:</span>'
-
     const postProcessEntry = async (entry: string): Promise<void> => {
       const htmlPath = path.join(buildDir, entry)
       const source = await fs.readFile(htmlPath, 'utf8')
@@ -1232,6 +1505,48 @@ async function generate(
       const head = root.querySelector('head')
       const body = root.querySelector('body')
 
+      /* Part entries arrive as "walkthrough-part-N" at this point
+       * — the rename to user-facing names (anatomy, building, …)
+       * happens later. Detect part pages by that prefix + resolve
+       * id → metadata. Doc pages arrive already renamed. */
+      const filenameBase = entry.replace(/\.html$/, '')
+      const partMatch = filenameBase.match(/^walkthrough-part-(\d+)$/)
+
+      /* Inject a meta description so each page has a concrete SEO
+       * summary (Lighthouse flags its absence). Parts use
+       * "Part N: <title> — <objective>"; docs use their summary;
+       * the index uses the intro tagline. Idempotent via the
+       * meta[name="description"] probe. */
+      if (head && !root.querySelector('meta[name="description"]')) {
+        let description = ''
+        if (partMatch) {
+          const id = Number(partMatch[1])
+          const title = partTitles.get(id) ?? ''
+          const objective = partObjectives.get(id) ?? ''
+          description = objective
+            ? `Part ${id}: ${title} — ${objective.replace(/`/g, '')}`
+            : `Part ${id}: ${title}`
+        }
+        if (!description) {
+          for (const doc of docFilenames.values()) {
+            if (doc.filename === filenameBase) {
+              description = doc.summary ?? doc.title
+              break
+            }
+          }
+        }
+        if (!description && entry === 'index.html') {
+          description =
+            'A guided walkthrough of @socketregistry/packageurl-js — a Socket Optimized override of the upstream packageurl-js npm package.'
+        }
+        if (description) {
+          head.insertAdjacentHTML(
+            'beforeend',
+            `\n  <meta name="description" content="${escapeHtml(description)}" />`,
+          )
+        }
+      }
+
       // Inject favicons + preloads in <head>. Idempotent via marker
       // checks. Preloads land last so they're adjacent to the deferred
       // <script> tags they anticipate (a visual-grouping nicety).
@@ -1240,6 +1555,33 @@ async function generate(
       }
       if (head && !root.querySelector('link[rel="preload"]')) {
         head.insertAdjacentHTML('beforeend', `\n  ${preloadTags}`)
+      }
+
+      /* Prefetch adjacent part pages so clicking "next" / "prev"
+       * feels instant. On Part 1 we prefetch Part 2; on Part N
+       * (1 < N < last) we prefetch N-1 and N+1; on the last part
+       * we prefetch the one before it. Prefetch is low-priority
+       * by default — browsers will defer it until idle, so it
+       * doesn't compete with the LCP path. Idempotent via the
+       * rel="prefetch" probe. */
+      if (head && partMatch && !root.querySelector('link[rel="prefetch"]')) {
+        const currentId = Number(partMatch[1])
+        const allIds = [...partFilenames.keys()].sort((a, b) => a - b)
+        const adjacentIds = [currentId - 1, currentId + 1].filter(n =>
+          allIds.includes(n),
+        )
+        const prefetchTags = adjacentIds
+          .map(n => {
+            const fname = partFilenames.get(n)
+            return fname
+              ? `<link rel="prefetch" href="/${fname}.html" as="document" />`
+              : ''
+          })
+          .filter(Boolean)
+          .join('\n  ')
+        if (prefetchTags) {
+          head.insertAdjacentHTML('beforeend', `\n  ${prefetchTags}`)
+        }
       }
 
       // Inject our scripts once (idempotent). The preload tags
@@ -1277,14 +1619,65 @@ async function generate(
         body.insertAdjacentHTML('beforeend', `\n  ${footerTag}`)
       }
 
-      // Inject a home link at the front of the part-nav on every part
-      // page. Meander's emitted topbar only has the numbered Part pills —
-      // users clicking a part had no one-click way back to the TOC.
-      // Index page has no `.part-nav` so the no-op is safe (the TOC IS
-      // the index). Idempotent via .wt-home-link marker.
+      // Normalize part-nav placement across every page. Meander emits
+      // `.part-nav` INSIDE `.topbar` for part pages; we need it as a
+      // sibling below the topbar so it becomes a thin full-width strip
+      // rather than a flex item competing with the wordmark. Lift it
+      // out and re-parent after the topbar. Also inject a leading
+      // Widen the gap after "Part N:" in the meander-emitted h1 so
+      // the colon doesn't crowd the part title. "Part 1: Anatomy"
+      // → "Part 1:<en-space>Anatomy". Narrow no-break space (U+2002)
+      // so it reads as intentional spacing rather than a double
+      // space. Idempotent — the replacement only fires when a
+      // regular-space-after-colon is present.
+      const partH1 = root.querySelector('h1')
+      if (partH1) {
+        const current = partH1.text
+        const widened = current.replace(
+          /^(Part\s+\d+):\s+/,
+          (_match, prefix) => `${prefix}:  `,
+        )
+        if (widened !== current) {
+          partH1.set_content(widened)
+        }
+      }
+
+      // home link so users have a one-click jump back to the TOC;
+      // meander leaves that out. Idempotent via .wt-home-link marker.
+      // The index page has its own part-nav injected by rewriteIndexContents
+      // (already a sibling of the topbar, no home link — you can't go
+      // home from home), so skip when the nav is already at the top level.
+      const topbar = root.querySelector('.topbar')
       const partNav = root.querySelector('.part-nav')
-      if (partNav && !partNav.querySelector('.wt-home-link')) {
-        partNav.insertAdjacentHTML('afterbegin', homeLinkHtml)
+      if (partNav && topbar && partNav.parentNode === topbar) {
+        partNav.remove()
+        topbar.insertAdjacentHTML('afterend', '\n  ' + partNav.toString())
+      }
+      // Add home link + label to meander-emitted part-page nav rows
+      // (meander emits neither). The index and doc pages build their
+      // nav via renderPartsPillRow, which already ships both the
+      // label and — on doc pages only — a home link. The index
+      // deliberately omits the home link (you can't go home from
+      // home), so skip the branch entirely for index.html. Part
+      // pages are detected by the ABSENCE of a Parts: label in the
+      // meander-emitted row.
+      const isIndex = entry === 'index.html'
+      const reparentedPartNav = root.querySelector('.part-nav')
+      if (
+        !isIndex &&
+        reparentedPartNav &&
+        !reparentedPartNav.querySelector('.wt-home-link')
+      ) {
+        const hasLabel = Boolean(
+          reparentedPartNav.querySelector('.wt-parts-label'),
+        )
+        const labelHtml = hasLabel
+          ? ''
+          : '<span class="wt-parts-label">Parts:</span>'
+        reparentedPartNav.insertAdjacentHTML(
+          'afterbegin',
+          buildHomeLinkHtml(false) + labelHtml,
+        )
       }
 
       // Enrich each numbered Part pill. Meander emits
@@ -1324,6 +1717,188 @@ async function generate(
         }
       }
 
+      // Each file-head gets two dropdowns — a Files menu (the path)
+      // and a Sections menu (the count). Together they turn the
+      // static header row into a mini-nav: click the path to jump to
+      // another file on the same page, click the count to jump to a
+      // section within this file. Both dashed-underlined to signal
+      // they're interactive.
+      //
+      // Structure per file-head:
+      //   <header class="file-head">
+      //     <details class="wt-files-menu">
+      //       <summary class="path">src/package-url.ts</summary>
+      //       <div class="wt-files-panel">
+      //         <a href="#file-src-package-url-ts" class="active">src/package-url.ts</a>
+      //         <a href="#file-src-purl-component-ts">src/purl-component.ts</a>
+      //         …
+      //       </div>
+      //     </details>
+      //     <details class="wt-sections-menu">
+      //       <summary class="count">33 sections</summary>
+      //       <div class="wt-sections-panel">
+      //         <a href="#ann-1-src-package-url-ts-22">Line 22</a>
+      //         …
+      //       </div>
+      //     </details>
+      //   </header>
+      //
+      // Each .file-block gets a stable anchor id derived from its
+      // path so the Files menu entries can target it. Idempotent via
+      // the wt-files-menu / wt-sections-menu markers on the header.
+      const fileBlocks = root.querySelectorAll('.file-block')
+      const pathToAnchor = (p: string): string =>
+        'file-' + p.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      // First pass: collect the shared list of files on this page
+      // (path + anchor id) so the per-block Files menu can list every
+      // sibling. Also assign the anchor id to each block while we
+      // have it in hand.
+      const fileList: Array<{ path: string; anchor: string }> = []
+      for (const block of fileBlocks) {
+        const pathSpan = block.querySelector('.file-head .path')
+        if (!pathSpan) {
+          continue
+        }
+        const pathText = pathSpan.text.trim()
+        const anchor = pathToAnchor(pathText)
+        if (!block.getAttribute('id')) {
+          block.setAttribute('id', anchor)
+        }
+        fileList.push({ path: pathText, anchor })
+      }
+      // Second pass: wrap path + count in <details> dropdowns.
+      for (const block of fileBlocks) {
+        const head = block.querySelector('.file-head')
+        if (!head) {
+          continue
+        }
+        const blockAnchor = block.getAttribute('id') ?? ''
+        // Files menu (path → jump-to-file).
+        const pathSpan = head.querySelector('.path')
+        if (pathSpan && !head.querySelector('.wt-files-menu')) {
+          const pathText = pathSpan.text.trim()
+          const fileLinks = fileList
+            .map(f => {
+              const active = f.anchor === blockAnchor ? ' class="active"' : ''
+              return `          <a href="#${escapeHtml(f.anchor)}"${active}>${escapeHtml(f.path)}</a>`
+            })
+            .join('\n')
+          const filesHtml =
+            `<details class="wt-files-menu">\n` +
+            `      <summary class="path">${escapeHtml(pathText)}</summary>\n` +
+            `      <div class="wt-files-panel">\n` +
+            `${fileLinks}\n` +
+            `      </div>\n` +
+            `    </details>`
+          pathSpan.replaceWith(filesHtml)
+        }
+        // Build the shared sections list (used by both the file-head
+        // sections menu below and the per-code-section dropdowns).
+        // Each entry has a stable id (the annotation-card anchor),
+        // a display label ("Section N of M"), and the line number
+        // for sorting.
+        const cards = block.querySelectorAll('.annotation-card[id]')
+        type SectionItem = {
+          id: string
+          label: string
+          line: number
+          index: number
+        }
+        const items: SectionItem[] = cards
+          .map(card => {
+            const id = card.getAttribute('id') ?? ''
+            const m = id.match(/-(\d+)$/)
+            return {
+              id,
+              line: m ? Number(m[1]) : Number.POSITIVE_INFINITY,
+            }
+          })
+          .sort((a, b) => a.line - b.line)
+          .map((entry, i, arr) => ({
+            id: entry.id,
+            line: entry.line,
+            index: i + 1,
+            // Chip summary shows the full "Section N of M" readout;
+            // the panel rows are just the index ("1", "2", …) since
+            // the dropdown context already tells you what they are.
+            label: `Section ${i + 1} of ${arr.length}`,
+          }))
+
+        const renderSectionsPanel = (activeId?: string): string => {
+          const links = items
+            .map(item => {
+              const isActive = item.id === activeId ? ' class="active"' : ''
+              return `          <a href="#${escapeHtml(item.id)}"${isActive}>${String(item.index)}</a>`
+            })
+            .join('\n')
+          return (
+            `      <div class="wt-sections-panel">\n` +
+            `${links}\n` +
+            `      </div>`
+          )
+        }
+
+        // File-head sections menu — covers all sections in this
+        // file. Summary shows the count ("33 sections"); panel
+        // lists every section as "Section N of M".
+        const countSpan = head.querySelector('.count')
+        if (
+          countSpan &&
+          items.length > 0 &&
+          !head.querySelector('.wt-sections-menu')
+        ) {
+          const countText = countSpan.text
+          const sectionsHtml =
+            `<details class="wt-sections-menu">\n` +
+            `      <summary class="count">${escapeHtml(countText)}</summary>\n` +
+            renderSectionsPanel() +
+            `\n    </details>`
+          countSpan.replaceWith(sectionsHtml)
+        }
+
+        // Per-code-section dropdown — appears ABOVE each code
+        // block (inside .code-section, as the first child) so a
+        // reader has a jump-to-section affordance at every chunk.
+        // The panel lists the same items as the file-head menu,
+        // with THIS chunk's section pre-highlighted as .active —
+        // opening the dropdown shows "you're on Section 5" at a
+        // glance, and picking another row scrolls there.
+        for (const codeSection of block.querySelectorAll('.code-section[id]')) {
+          if (codeSection.querySelector('.wt-section-chip')) {
+            continue
+          }
+          const codeId = codeSection.getAttribute('id') ?? ''
+          // The code-section's id is `<part>-<file>-<line>`; the
+          // matching annotation-card is `ann-<part>-<file>-<line>`.
+          const cardId = `ann-${codeId}`
+          const current = items.find(it => it.id === cardId)
+          if (!current) {
+            continue
+          }
+          const chipHtml =
+            `<details class="wt-sections-menu wt-section-chip">\n` +
+            `      <summary class="wt-section-chip-label">${escapeHtml(current.label)}</summary>\n` +
+            renderSectionsPanel(cardId) +
+            `\n    </details>\n`
+          codeSection.insertAdjacentHTML('afterbegin', chipHtml)
+        }
+      }
+
+      // Publish the file list as a data attribute on <body> so
+      // drag.js can wire Cmd/Ctrl-click source-code links at
+      // runtime. Each entry is a "path → anchor id" pair; the
+      // client script scans `.line-code` text for quoted paths
+      // matching any entry and wraps them in <a>. Skipped when
+      // there are no file blocks on the page (e.g. doc pages).
+      if (fileList.length > 0) {
+        const body = root.querySelector('body')
+        if (body && !body.getAttribute('data-file-anchors')) {
+          // Compact JSON — minimal bytes, fine to embed as an attr.
+          const payload = JSON.stringify(fileList.map(f => [f.path, f.anchor]))
+          body.setAttribute('data-file-anchors', payload)
+        }
+      }
+
       // Base-path rewrite — last step so every injected tag above gets
       // prefixed in one pass. No-op when --base-path is empty (local
       // dev, Val Town hosting, etc.).
@@ -1337,8 +1912,8 @@ async function generate(
       // <filename>.html (e.g. walkthrough-part-1.html → anatomy.html).
       // Flat public URLs replace /<slug>/part/<n>-style links once the
       // site is deployed. Other emitted HTML (index.html, documents.html
-      // if any) retains its name.
-      const partMatch = /^walkthrough-part-(\d+)\.html$/.exec(entry)
+      // if any) retains its name. `partMatch` was captured at the top
+      // of postProcessEntry — reusing it here.
       if (partMatch) {
         const n = Number(partMatch[1])
         const newName = partFilenames.get(n)

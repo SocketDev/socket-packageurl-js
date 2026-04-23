@@ -1,13 +1,13 @@
 {
   "slug": "socket-packageurl-js",
-  "title": "Socket PackageURL.js Tour",
+  "title": "packageurl-js override by Socket",
   "commentBackend": "https://socketdev--f074d2683d5711f1a65242b51c65c3df.web.val.run",
   "parts": [
     {
       "id": 1,
       "title": "Anatomy of a PURL",
       "filename": "anatomy",
-      "objective": "Understand the pkg:type/ns/name@version?q#sub shape and how it maps to the PackageURL class.",
+      "objective": "Understand the `pkg:type/ns/name@version?q#sub` shape and how it maps to the `PackageURL` class.",
       "keywords": ["purl", "package-url", "anatomy", "components"],
       "files": [
         "src/package-url.ts",
@@ -19,7 +19,7 @@
       "id": 2,
       "title": "Building & Stringifying PURLs",
       "filename": "building",
-      "objective": "Build PURLs with the fluent PurlBuilder API; serialize back to canonical `pkg:...` string form.",
+      "objective": "Build PURLs with the fluent `PurlBuilder` API; serialize back to canonical `pkg:...` string form.",
       "keywords": [
         "builder",
         "fluent",
@@ -33,7 +33,7 @@
       "id": 3,
       "title": "Parsing & Normalization",
       "filename": "parsing",
-      "objective": "Percent-encoding, name/namespace normalization, and the known-qualifiers catalogue (checksum, download_url, file_name, repository_url, vcs_url, vers).",
+      "objective": "Percent-encoding, name/namespace normalization, and the known-qualifiers catalogue.",
       "keywords": [
         "encode",
         "decode",
@@ -52,7 +52,7 @@
       "id": 4,
       "title": "Validation, Errors & Results",
       "filename": "validation",
-      "objective": "Shape + format validation, the Result<T,E> functional error pattern (Ok/Err/ResultUtils), typed errors (PurlError, PurlInjectionError), and per-ecosystem rule plumbing.",
+      "objective": "Shape + format validation, the `Result<T, E>` functional error pattern (`Ok`/`Err`/`ResultUtils`), typed errors (`PurlError`, `PurlInjectionError`), and per-ecosystem rule plumbing.",
       "keywords": ["validate", "result", "error", "ok", "err", "purl-type"],
       "files": [
         "src/validate.ts",
@@ -65,7 +65,7 @@
       "id": 5,
       "title": "URL ↔ PURL Conversion",
       "filename": "conversion",
-      "objective": "Convert between repository/download URLs and PURLs — ~25 ecosystem URL parsers, toDownloadUrl, toRepositoryUrl, getAllUrls.",
+      "objective": "Convert between repository/download URLs and PURLs — ~25 ecosystem URL parsers.",
       "keywords": ["url-converter", "url", "repository", "download", "vcs"],
       "files": ["src/url-converter.ts"]
     },
@@ -134,7 +134,7 @@
       "id": 7,
       "title": "Comparison, Matching & Existence",
       "filename": "comparison",
-      "objective": "Compare + equal + match PURLs with wildcard patterns (ReDoS-protected); registry existence checks (npmExists, pypiExists, and friends).",
+      "objective": "Compare + equal + match PURLs with wildcard patterns *(ReDoS-protected)*; registry existence checks.",
       "keywords": [
         "compare",
         "equals",
@@ -154,7 +154,7 @@
       "id": 8,
       "title": "Security Primitives & VERS",
       "filename": "security",
-      "objective": "Injection-character detection for safe PURL handling (containsInjectionCharacters, findInjectionCharCode), safe object freezing, and VERS — the pre-standard version-range specifier slated for Ecma submission in late 2026.",
+      "objective": "Injection-character detection for safe PURL handling, safe object freezing, and VERS — the pre-standard version-range specifier slated for [ECMA submission](https://github.com/package-url/vers-spec) in late 2026.",
       "keywords": [
         "security",
         "injection",
@@ -177,7 +177,7 @@
       "filename": "builders",
       "title": "Builders",
       "source": "docs/builders.md",
-      "summary": "The PurlBuilder fluent API — construct a PackageURL step by step with per-field setters and per-ecosystem factories."
+      "summary": "The `PurlBuilder` fluent API — construct a `PackageURL` step by step with per-field setters and per-ecosystem factories."
     },
     {
       "filename": "contributing",
@@ -189,7 +189,7 @@
       "filename": "converters",
       "title": "Converters",
       "source": "docs/converters.md",
-      "summary": "URL ↔ PURL conversion across ~25 ecosystems — fromUrl, toDownloadUrl, toRepositoryUrl, getAllUrls."
+      "summary": "URL ↔ PURL conversion across ~25 ecosystems."
     },
     {
       "filename": "hardening",
@@ -201,19 +201,19 @@
       "filename": "release",
       "title": "Release",
       "source": "docs/release.md",
-      "summary": "Publish flow — npm trusted publishing, provenance attestations, Socket.dev post-publish audit, and common release scenarios."
+      "summary": "Publish flow — npm trusted publishing, provenance attestations, [Socket.dev](https://socket.dev) post-publish audit, and common release scenarios."
     },
     {
       "filename": "tour",
       "title": "Tour",
       "source": "docs/tour.md",
-      "summary": "How the tour site is built, from meander submodule through post-process to GitHub Pages deploy."
+      "summary": "How the tour site is built, from meander submodule through post-process to [GitHub Pages](https://pages.github.com) deploy."
     },
     {
       "filename": "vers",
       "title": "VERS",
       "source": "docs/vers.md",
-      "summary": "Version-range specifiers — the pre-standard grammar slated for Ecma submission in late 2026."
+      "summary": "Version-range specifiers — the pre-standard grammar slated for [ECMA submission](https://github.com/package-url/vers-spec) in late 2026."
     }
   ]
 }

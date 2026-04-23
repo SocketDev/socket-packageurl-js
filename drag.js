@@ -61,28 +61,32 @@
   `,
     },
     synthwave: {
-      label: "Synthwave '84",
-      style: 'outline',
+      label: 'Synthwave',
+      style: 'solid',
+      // Lightning bolt — emoji-shape zigzag. Top is a short
+      // horizontal edge (not a point); the four "waist" vertices
+      // split across two y-levels to give the Z its visible
+      // horizontal mid-segment. Bolt sits low in the 24×24 frame
+      // (y=3 to y=23) so sparkles have room to float above it.
+      // Sparkles carry .wt-spark* classes so CSS can fade them in
+      // independently — same pattern the moon icon uses for its
+      // star. Each is a tiny 4-point diamond (cross) rotated via
+      // an inline transform so the four spokes don't all point
+      // axis-aligned.
       path: `
-    <rect x="2.3" y="5.3" width="19.4" height="13.4" rx="1.5" stroke-width="1"/>
-    <rect x="4" y="6.6" width="16" height="5" rx=".4" stroke-width=".5"/>
-    <path d="M6 10.65H8.8" stroke-width=".5"/>
-    <circle cx="8" cy="14.55" r="1.8" stroke-width=".5"/>
-    <circle cx="16" cy="14.55" r="1.8" stroke-width=".5"/>
-    <g stroke-width=".5"><path d="M8 12.85V16.25"/><path d="M6.5 13.75 9.5 15.35"/><path d="M6.5 15.35 9.5 13.75"/><path d="M16 12.85V16.25"/><path d="M14.5 13.75 17.5 15.35"/><path d="M14.5 15.35 17.5 13.75"/></g>
-    <path d="M10 14.15H14" stroke-width=".5"/>
-    <path d="M10 14.95H14" stroke-width=".5"/>
-    <path d="M7 17.3H9" stroke-width=".5"/>
-    <path d="M15 17.3H17" stroke-width=".5"/>
-    <g transform="translate(12 9.3)rotate(-8)scale(1.25)translate(-11.6 -9)" stroke-width=".7"><path transform="translate(.5 -.3)" d="M10.2 7.7C9.3 7.7 9.2 8.6 10 9 10.9 9.4 11.1 10.4 10 10.4 8.9 10.4 9.1 9.4 10 9 10.8 8.7 10.9 7.7 10.1 7.7Z"/><path d="M8.7 7.6Q8.5 8 8.6 8.4"/><path d="M14.4 7.6V10.5"/><path d="M12.7 9.5H14.6"/><path d="M12.8 9.5 13.9 7.7"/></g>
+    <path d="M20 6 L14 6 L4 16 L11 16 L7 24 L20 13 L13 13 Z"/>
+    <path class="wt-spark wt-spark-1" d="M5 2 L5.5 4.5 L8 5 L5.5 5.5 L5 8 L4.5 5.5 L2 5 L4.5 4.5 Z"/>
+    <path class="wt-spark wt-spark-2" d="M22 6.5 L22.5 9 L25 9.5 L22.5 10 L22 12.5 L21.5 10 L19 9.5 L21.5 9 Z"/>
+    <path class="wt-spark wt-spark-3" d="M3.5 17.5 L4 20 L6.5 20.5 L4 21 L3.5 23.5 L3 21 L0.5 20.5 L3 20 Z"/>
   `,
     },
   }
   const themeIconSvg = (pref, extraClass = '') => {
-    const { style, path } = THEME_ICONS[pref]
+    const { style, path, viewBox } = THEME_ICONS[pref]
     const attrs = style === 'solid' ? SOLID_ATTRS : OUTLINE_ATTRS
     const classAttr = extraClass ? ` class="${extraClass}"` : ''
-    return `<svg${classAttr} viewBox="0 0 24 24" aria-hidden="true" ${attrs}>${path}</svg>`
+    const vb = viewBox || '0 0 24 24'
+    return `<svg${classAttr} viewBox="${vb}" aria-hidden="true" ${attrs}>${path}</svg>`
   }
   // Check glyph shared by every menu row — shown for the active pref
   // only (CSS toggles opacity based on aria-checked).
@@ -161,15 +165,18 @@
     if (document.querySelector('.theme-toggle')) {
       return
     }
-    const topbar = document.querySelector('.topbar')
-    if (!topbar) {
+    // Actions (theme toggle, export, comments) cluster on the right
+    // side of the part-nav strip — the topbar itself is now just the
+    // wordmark. Keeps all interactive chrome in one band.
+    const partNav = document.querySelector('.part-nav')
+    if (!partNav) {
       return
     }
-    let host = topbar.querySelector('.topbar-actions')
+    let host = partNav.querySelector('.topbar-actions')
     if (!host) {
       host = document.createElement('div')
       host.className = 'topbar-actions'
-      topbar.appendChild(host)
+      partNav.appendChild(host)
     }
 
     const prefs = Object.keys(THEME_ICONS)
@@ -184,7 +191,7 @@
       .map(
         p => `
         <button type="button" role="menuitemradio" class="theme-menu-item" data-pref="${p}">
-          <span class="theme-menu-icon">${themeIconSvg(p)}</span>
+          <span class="theme-menu-icon theme-menu-icon-${p}">${themeIconSvg(p)}</span>
           <span>${THEME_ICONS[p].label}</span>
           ${CHECK_SVG}
         </button>`,
@@ -252,6 +259,16 @@
         const pref = item.getAttribute('data-pref')
         persistTheme(pref)
         applyTheme(resolveTheme(pref))
+        /* Mark this as a user-initiated theme switch so CSS can gate
+         * one-shot animations (e.g. the synthwave sparkles) on it.
+         * Cleared after the animation window so a fresh page load
+         * with synthwave stored in localStorage doesn't re-fire the
+         * animation — only a live toggle does. */
+        document.documentElement.classList.add('wt-theme-toggle-fired')
+        clearTimeout(installThemeToggle._sparkTimer)
+        installThemeToggle._sparkTimer = setTimeout(() => {
+          document.documentElement.classList.remove('wt-theme-toggle-fired')
+        }, 2500)
         render()
         closeMenu()
         btn.focus()
@@ -275,7 +292,14 @@
   }
 
   const attachHandle = block => {
-    if (block.querySelector('.col-splitter')) {
+    /* Attach the splitter to the inner grid (not the outer file-block)
+     * so the rail only spans the prose+code region — never overshooting
+     * up into the file-head border or past the grid's bottom edge. */
+    const grid = block.querySelector('.pair-grid, .file-grid')
+    if (!grid) {
+      return
+    }
+    if (grid.querySelector('.col-splitter')) {
       return
     }
 
@@ -289,20 +313,87 @@
     handle.setAttribute('aria-valuenow', String(readCurrent()))
     handle.tabIndex = 0
 
+    /* Hotspot: a long soft glow positioned at the pointer during
+     * drag. Sibling of the rail's pseudo. Positioned via
+     * translate3d so the move lives on the GPU compositor path —
+     * no layout, no paint per frame. rAF-throttled so pointermove
+     * events firing faster than the refresh rate coalesce into a
+     * single DOM write. */
+    const hotspot = document.createElement('div')
+    hotspot.className = 'col-hotspot'
+    hotspot.setAttribute('aria-hidden', 'true')
+    handle.appendChild(hotspot)
+
+    /* Hot-path state captured at pointerdown so onMove never reads
+     * the DOM (getBoundingClientRect after a style write forces a
+     * synchronous layout). All reads happen once per drag here;
+     * writes in onMove go straight to rAF-coalesced property sets. */
+    let dragState = null
+    let rafId = 0
+    const flush = () => {
+      rafId = 0
+      if (!dragState) {
+        return
+      }
+      const {
+        pendingClientX,
+        pendingClientY,
+        gridLeft,
+        gridWidth,
+        handleTop,
+        handleHeight,
+      } = dragState
+      if (pendingClientX !== null && gridWidth > 0) {
+        const pct = clamp(((pendingClientX - gridLeft) / gridWidth) * 100)
+        applySplit(pct)
+        dragState.lastPct = pct
+      }
+      if (pendingClientY !== null && handleHeight > 0) {
+        const y = Math.max(
+          0,
+          Math.min(handleHeight, pendingClientY - handleTop),
+        )
+        hotspot.style.transform = `translate3d(-50%, ${y}px, 0)`
+      }
+      dragState.pendingClientX = null
+      dragState.pendingClientY = null
+    }
+    const scheduleFlush = () => {
+      if (rafId === 0) {
+        rafId = requestAnimationFrame(flush)
+      }
+    }
+
     handle.addEventListener('pointerdown', event => {
       event.preventDefault()
       handle.setPointerCapture(event.pointerId)
+      /* Snapshot DOM geometry once — no reads in onMove. If the
+       * layout changes mid-drag (unlikely, and only from our own
+       * writes which don't affect handle/grid position on the Y
+       * axis), we accept slight drift over forced-sync-layout
+       * on every pointer frame. */
+      const gridRect = grid.getBoundingClientRect()
+      const handleRect = handle.getBoundingClientRect()
+      dragState = {
+        gridLeft: gridRect.left,
+        gridWidth: gridRect.width,
+        handleTop: handleRect.top,
+        handleHeight: handleRect.height,
+        pendingClientX: event.clientX,
+        pendingClientY: event.clientY,
+        lastPct: null,
+      }
+      scheduleFlush()
       handle.classList.add('dragging')
       document.body.classList.add('col-resizing')
 
       const onMove = moveEvent => {
-        const rect = block.getBoundingClientRect()
-        if (rect.width === 0) {
+        if (!dragState) {
           return
         }
-        const pct = clamp(((moveEvent.clientX - rect.left) / rect.width) * 100)
-        applySplit(pct)
-        handle.setAttribute('aria-valuenow', String(Math.round(pct)))
+        dragState.pendingClientX = moveEvent.clientX
+        dragState.pendingClientY = moveEvent.clientY
+        scheduleFlush()
       }
 
       const onEnd = () => {
@@ -312,6 +403,16 @@
         handle.removeEventListener('pointermove', onMove)
         handle.removeEventListener('pointerup', onEnd)
         handle.removeEventListener('pointercancel', onEnd)
+        const finalPct = dragState?.lastPct ?? readCurrent()
+        /* Update aria-valuenow only at the end — AT notifications on
+         * every pointer frame are wasteful, and screen readers don't
+         * usefully narrate mid-drag updates. */
+        handle.setAttribute('aria-valuenow', String(Math.round(finalPct)))
+        dragState = null
+        if (rafId !== 0) {
+          cancelAnimationFrame(rafId)
+          rafId = 0
+        }
         persist(readCurrent())
       }
 
@@ -352,12 +453,388 @@
       handle.setAttribute('aria-valuenow', String(DEFAULT_SPLIT))
     })
 
-    block.appendChild(handle)
+    grid.appendChild(handle)
   }
 
   const installAll = () => {
     for (const block of document.querySelectorAll('.file-block')) {
       attachHandle(block)
+    }
+  }
+
+  /* Section scroll-tracking. Each .file-block has a Sections menu
+   * listing anchors to its `.annotation-card[id]` children; the
+   * card closest to the top of the viewport gets marked as the
+   * "current" section, and the matching <a> in the menu picks up
+   * `.active` so the dropdown always shows where you are.
+   *
+   * IntersectionObserver fires as cards cross an upper-viewport
+   * boundary. We use a rootMargin that shifts the observation
+   * window down by 20% of viewport height — that way a card is
+   * considered "current" once it crosses into the top fifth of the
+   * page, which matches the intuitive "what am I reading" anchor.
+   *
+   * Clicking a menu link triggers a native anchor jump; when the
+   * page settles, the observer fires and picks up the new
+   * current-section automatically — no manual sync on click. */
+  /* Scroll the .active row of a sections panel into view the moment
+   * a chip's <details> opens. Without this, the panel always opens
+   * scrolled to the top — if the user is on section 28, they have
+   * to scroll the dropdown manually to find where they are. Runs
+   * on every section <details> regardless of whether it's a chip
+   * or the file-head menu. */
+  const installSectionsMenuScrollSync = () => {
+    for (const menu of document.querySelectorAll('.wt-sections-menu')) {
+      menu.addEventListener('toggle', () => {
+        if (!menu.open) {
+          return
+        }
+        const panel = menu.querySelector('.wt-sections-panel')
+        const active = panel?.querySelector('a.active')
+        if (!panel || !active) {
+          return
+        }
+        // Center the active row in the panel's visible area. The
+        // panel has max-height + overflow-y:auto so we're scrolling
+        // within that box, not the page.
+        const panelRect = panel.getBoundingClientRect()
+        const activeRect = active.getBoundingClientRect()
+        const centerOffset =
+          activeRect.top -
+          panelRect.top -
+          panel.clientHeight / 2 +
+          active.clientHeight / 2
+        panel.scrollTop += centerOffset
+      })
+    }
+  }
+
+  /* Cmd/Ctrl-click links inside code lines. Two flavors:
+   *   - URLs: any http:// or https:// substring becomes an <a> that
+   *     opens in a new tab when Cmd/Ctrl-clicked.
+   *   - Cross-file paths: quoted strings (single or double quotes)
+   *     whose resolved path matches another .file-block on this
+   *     page, opened in the same window (scrolls to its anchor).
+   *
+   * The <a> is invisible (no underline, inherits color) until the
+   * modifier key is held — then body.wt-mod-pressed flips on and
+   * CSS reveals a dotted underline + pointer on hover. Click is
+   * only honored while the modifier is held; a bare click does
+   * nothing (doesn't disrupt code selection). Matches how DevTools
+   * console + VS Code handle these.
+   *
+   * Runs after highlight.js has tokenized the code so we walk the
+   * already-highlighted span tree, not the raw text. Text nodes
+   * inside hljs spans are safe to split and wrap. */
+  const installSourceLinks = () => {
+    const rawAnchors = document.body.getAttribute('data-file-anchors')
+    const anchorByPath = new Map()
+    if (rawAnchors) {
+      try {
+        const entries = JSON.parse(rawAnchors)
+        for (const [p, a] of entries) {
+          anchorByPath.set(p, a)
+        }
+      } catch {
+        // Malformed data — skip the cross-file wiring but keep URL
+        // wrapping working.
+      }
+    }
+
+    // Build a basename-swap fallback so `./compare.js` in source
+    // resolves to `compare.ts` on disk. Keyed by `<dir>/<basename>`
+    // without extension; value is the primary anchor.
+    const anchorByStem = new Map()
+    for (const [path, anchor] of anchorByPath) {
+      const stem = path.replace(/\.[a-z0-9]+$/i, '')
+      if (!anchorByStem.has(stem)) {
+        anchorByStem.set(stem, anchor)
+      }
+    }
+
+    const resolveRelPath = (fromPath, ref) => {
+      // Strip quotes already — we receive the bare import string.
+      if (!ref.startsWith('./') && !ref.startsWith('../')) {
+        return null
+      }
+      const fromDir = fromPath.split('/').slice(0, -1)
+      const segs = ref.split('/')
+      const out = [...fromDir]
+      for (const seg of segs) {
+        if (seg === '.' || seg === '') {
+          continue
+        }
+        if (seg === '..') {
+          out.pop()
+        } else {
+          out.push(seg)
+        }
+      }
+      const resolved = out.join('/')
+      if (anchorByPath.has(resolved)) {
+        return anchorByPath.get(resolved)
+      }
+      const stem = resolved.replace(/\.[a-z0-9]+$/i, '')
+      if (anchorByStem.has(stem)) {
+        return anchorByStem.get(stem)
+      }
+      return null
+    }
+
+    const urlRe = /https?:\/\/[^\s'"`<>)]+/g
+    const quotedPathRe = /(['"])(\.{1,2}\/[^'"`]+)\1/g
+
+    const wrapMatches = (textNode, filePath) => {
+      const text = textNode.nodeValue
+      if (!text) {
+        return
+      }
+      // Collect all matches with their ranges, sort by start index,
+      // then rebuild the node as [text, <a>, text, <a>, …]. Single
+      // pass, no overlap handling needed since URLs don't overlap
+      // quoted strings (quotes would bound a URL at ' or ").
+      const matches = []
+      for (const m of text.matchAll(urlRe)) {
+        matches.push({
+          start: m.index,
+          end: m.index + m[0].length,
+          href: m[0],
+          label: m[0],
+          type: 'url',
+        })
+      }
+      for (const m of text.matchAll(quotedPathRe)) {
+        const pathRef = m[2]
+        const anchor = filePath ? resolveRelPath(filePath, pathRef) : null
+        if (!anchor) {
+          continue
+        }
+        // Start/end bracket the INNER quoted text (not the quotes
+        // themselves) so the visible quote chars stay in the code.
+        const innerStart = m.index + 1
+        matches.push({
+          start: innerStart,
+          end: innerStart + pathRef.length,
+          href: `#${anchor}`,
+          label: pathRef,
+          type: 'file',
+        })
+      }
+      if (matches.length === 0) {
+        return
+      }
+      matches.sort((a, b) => a.start - b.start)
+
+      const parent = textNode.parentNode
+      if (!parent) {
+        return
+      }
+      let cursor = 0
+      const frag = document.createDocumentFragment()
+      for (const m of matches) {
+        if (m.start < cursor) {
+          continue
+        }
+        if (m.start > cursor) {
+          frag.appendChild(document.createTextNode(text.slice(cursor, m.start)))
+        }
+        const a = document.createElement('a')
+        a.className = 'wt-src-link'
+        a.setAttribute('data-link-type', m.type)
+        a.href = m.href
+        if (m.type === 'url') {
+          a.target = '_blank'
+          a.rel = 'noopener noreferrer'
+        }
+        a.textContent = text.slice(m.start, m.end)
+        frag.appendChild(a)
+        cursor = m.end
+      }
+      if (cursor < text.length) {
+        frag.appendChild(document.createTextNode(text.slice(cursor)))
+      }
+      parent.replaceChild(frag, textNode)
+    }
+
+    // Walk every .code-table row and its text nodes. Each table
+    // carries data-file with its source path — use that to resolve
+    // relative imports on this line to known file anchors.
+    for (const table of document.querySelectorAll('.code-table')) {
+      const filePath = table.getAttribute('data-file')
+      for (const cell of table.querySelectorAll('.line-code')) {
+        const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT)
+        const textNodes = []
+        let node = walker.nextNode()
+        while (node) {
+          textNodes.push(node)
+          node = walker.nextNode()
+        }
+        for (const t of textNodes) {
+          wrapMatches(t, filePath)
+        }
+      }
+    }
+
+    // Modifier-key tracking — toggle body.wt-mod-pressed while
+    // Cmd (macOS) or Ctrl (every other OS) is held. CSS reveals
+    // the dotted-underline affordance on .wt-src-link only while
+    // the modifier is pressed. keyup / blur clears the state so a
+    // released-off-window keystroke doesn't leave it stuck on.
+    /* Dedupe: auto-repeat keydown fires continuously while a key
+     * is held. Re-toggling a body class re-matches .wt-src-link
+     * selectors against every link on the page — wasteful when
+     * the state is already what we want. */
+    let modState = false
+    const setMod = pressed => {
+      if (modState === pressed) {
+        return
+      }
+      modState = pressed
+      document.body.classList.toggle('wt-mod-pressed', pressed)
+    }
+    addEventListener('keydown', e => {
+      if (e.key === 'Meta' || e.key === 'Control') {
+        setMod(true)
+      }
+    })
+    addEventListener('keyup', e => {
+      if (e.key === 'Meta' || e.key === 'Control') {
+        setMod(false)
+      }
+    })
+    addEventListener('blur', () => setMod(false))
+
+    // Block plain clicks on source links; only the modifier-held
+    // click should navigate. Check the native event's
+    // metaKey/ctrlKey (not our body class) so the behavior stays
+    // correct even if the key was pressed mid-click.
+    document.addEventListener('click', e => {
+      const link = e.target.closest?.('.wt-src-link')
+      if (!link) {
+        return
+      }
+      if (!e.metaKey && !e.ctrlKey) {
+        e.preventDefault()
+      }
+      // With modifier: let the default <a> behavior fire (new tab
+      // for type=url via target=_blank; same-window hash-jump for
+      // type=file).
+    })
+  }
+
+  const installSectionTracking = () => {
+    const menusByAnchor = new Map()
+    for (const panel of document.querySelectorAll('.wt-sections-panel')) {
+      for (const link of panel.querySelectorAll('a[href^="#"]')) {
+        const id = link.getAttribute('href').slice(1)
+        if (!id) {
+          continue
+        }
+        let entry = menusByAnchor.get(id)
+        if (!entry) {
+          entry = { card: document.getElementById(id), panel, links: [] }
+          menusByAnchor.set(id, entry)
+        }
+        entry.links.push(link)
+      }
+    }
+    if (menusByAnchor.size === 0) {
+      return
+    }
+
+    // Per-panel current active id. Lets us swap cheaply without a
+    // full panel scan on every observer fire.
+    const currentByPanel = new WeakMap()
+    const setActive = (panel, id) => {
+      if (currentByPanel.get(panel) === id) {
+        return
+      }
+      currentByPanel.set(panel, id)
+      for (const link of panel.querySelectorAll('a.active')) {
+        link.classList.remove('active')
+      }
+      if (id) {
+        const entry = menusByAnchor.get(id)
+        if (entry) {
+          for (const link of entry.links) {
+            if (link.parentElement === panel) {
+              link.classList.add('active')
+            }
+          }
+        }
+      }
+    }
+
+    // Track which cards are currently intersecting the "current"
+    // zone. When multiple are visible, the topmost wins — that's
+    // the section most recently scrolled into view.
+    const visibleCards = new Set()
+    const pickCurrentFor = panel => {
+      let best = null
+      let bestTop = Infinity
+      for (const card of visibleCards) {
+        if (!panel.closest('.file-block')?.contains(card)) {
+          continue
+        }
+        const top = card.getBoundingClientRect().top
+        if (top >= 0 && top < bestTop) {
+          best = card
+          bestTop = top
+        }
+      }
+      // Fallback: if nothing in the "good zone", pick whichever
+      // visible card has the largest negative top (last one above
+      // the viewport edge) — handles the case where the user has
+      // scrolled past all of a file's sections.
+      if (!best) {
+        for (const card of visibleCards) {
+          if (!panel.closest('.file-block')?.contains(card)) {
+            continue
+          }
+          const top = card.getBoundingClientRect().top
+          if (top < 0 && top > bestTop - Infinity) {
+            best = card
+            bestTop = top
+          }
+        }
+      }
+      setActive(panel, best?.id ?? null)
+    }
+
+    const io = new IntersectionObserver(
+      entries => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            visibleCards.add(entry.target)
+          } else {
+            visibleCards.delete(entry.target)
+          }
+        }
+        // Scroll-driven "current section" tracking applies only to
+        // the file-head's whole-file sections menu — NOT to the
+        // per-chunk chip panels. Each chip's panel has its active
+        // row baked in at build time (the chunk's own section) and
+        // should stay that way; re-applying scroll logic would
+        // clobber the static highlight whenever the user scrolled
+        // past that chunk. Filter out chip panels by walking up
+        // to see if the panel lives inside a .wt-section-chip.
+        for (const panel of document.querySelectorAll('.wt-sections-panel')) {
+          if (panel.closest('.wt-section-chip')) {
+            continue
+          }
+          pickCurrentFor(panel)
+        }
+      },
+      {
+        rootMargin: '-20% 0px -70% 0px',
+        threshold: 0,
+      },
+    )
+
+    for (const { card } of menusByAnchor.values()) {
+      if (card) {
+        io.observe(card)
+      }
     }
   }
 
@@ -409,7 +886,13 @@
   const ready = async () => {
     installAll()
     installThemeToggle()
+    installSectionTracking()
+    installSectionsMenuScrollSync()
     await waitForHljs()
+    // Source links must run AFTER hljs so we operate on the final
+    // span tree — otherwise text nodes get split by hljs and our
+    // <a> wraps would be blown away on highlight.
+    installSourceLinks()
     // Fallback reveal for pages with no comment shim (documents, or
     // tours with no commentBackend). When the shim IS present,
     // its init sets wt-ready after its async health probe. Both
