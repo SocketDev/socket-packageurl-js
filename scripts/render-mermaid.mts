@@ -173,7 +173,11 @@ export async function createMermaidRenderer(
            * (github.com/mermaid-js/mermaid-cli + remcohaszing/
            *  mermaid-isomorphic — renderDiagrams). */
           await document.fonts.ready
-          await Promise.all(
+          /* allSettled, not all — if one @font-face fails to fetch
+           * (404, wrong MIME, etc.) we still want the others to
+           * finish loading so mermaid measures against whatever
+           * real fonts ARE available rather than the fallback. */
+          await Promise.allSettled(
             Array.from(document.fonts, (f: FontFace) => f.load()),
           )
           /* Create a real DOM-attached scratch container and hand
