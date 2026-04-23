@@ -482,7 +482,7 @@ function validateDocFilenames(
  * external sprite or font dep.
  */
 const HOME_ICON_SVG =
-  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V20a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg>'
+  '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V22h-6v-7h-6v7H3z"/></svg>'
 
 const buildHomeLinkHtml = (active: boolean): string =>
   `<a class="wt-home-link${active ? ' active' : ''}" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"${active ? ' aria-current="page"' : ''}>${HOME_ICON_SVG}</a>`
