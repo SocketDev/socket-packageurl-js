@@ -1651,15 +1651,10 @@ async function generate(
       configPath ? path.resolve(configPath) : '<config>',
     )
     /* Build-time Mermaid renderer — one puppeteer browser shared
-     * across every diagram in every doc. Diagrams are hashed +
-     * cached under .cache/mermaid, so an unchanged diagram is a
-     * file read, not a browser round-trip. Close the browser in
-     * the finally block regardless of success so we never leak a
-     * Chromium process. */
-    /* Cache lives under node_modules so it's automatically ignored
-     * by git + skipped by tooling that already blocks node_modules
-     * (bundlers, linters, published-package file filters). No
-     * additional .gitignore entry needed. */
+     * across every diagram. Cache keyed by sha256(mermaid_version
+     * + theme + source) lives under node_modules/.cache/mermaid.
+     * Close the browser in finally so we never leak a Chromium
+     * process. */
     const mermaidCacheDir = path.join(
       repoRoot,
       'node_modules',

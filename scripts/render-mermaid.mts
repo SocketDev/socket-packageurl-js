@@ -162,15 +162,38 @@ export async function createMermaidRenderer(
         async (src: string, themeArg: string) => {
           // @ts-expect-error — mermaid attaches to window at runtime.
           const mermaid = (window as any).mermaid
+          /* Wait for every declared font to actually load in the
+           * puppeteer page. Without this, mermaid measures labels
+           * against the browser's fallback font during render() —
+           * then the real font gets painted later, wider, and
+           * overflows the measured box. This is exactly what
+           * mermaid-cli and mermaid-isomorphic do:
+           *   await document.fonts.ready
+           *   await Promise.all(Array.from(document.fonts, f => f.load()))
+           * (github.com/mermaid-js/mermaid-cli + remcohaszing/
+           *  mermaid-isomorphic — renderDiagrams). */
+          await document.fonts.ready
+          await Promise.all(
+            Array.from(document.fonts, (f: FontFace) => f.load()),
+          )
+          /* Create a real DOM-attached scratch container and hand
+           * it to mermaid.render() as the third arg. When mermaid
+           * renders into a detached scratch node, getBBox() /
+           * getBoundingClientRect() calls inside its sizing pass
+           * return zero or stale metrics. Attached-but-visually-
+           * hidden is the pattern mermaid-isomorphic uses. */
+          const container = document.createElement('div')
+          Object.assign(container.style, {
+            maxHeight: '0',
+            opacity: '0',
+            overflow: 'hidden',
+          })
+          container.setAttribute('aria-hidden', 'true')
+          document.body.append(container)
           mermaid.initialize({
             startOnLoad: false,
             theme: themeArg,
             securityLevel: 'strict',
-            /* Use plain SVG <tspan> labels, not foreignObject. Mermaid
-             * measures these reliably; foreignObject labels get
-             * undersized when the browser's font metrics differ from
-             * mermaid's assumptions, which was clipping our text on
-             * both axes. */
             flowchart: {
               htmlLabels: false,
               curve: 'basis',
@@ -181,38 +204,30 @@ export async function createMermaidRenderer(
             },
             fontFamily: 'Arial, sans-serif',
             fontSize: 14,
-            /* themeVariables overrides the flowchart theme preset's
-             * own fontFamily/fontSize — without this Mermaid writes
-             * its preset values into the emitted <style> block and
-             * the browser paints with a different font than what
-             * puppeteer measured. */
             themeVariables: {
               fontFamily: 'Arial, sans-serif',
               fontSize: '14px',
             },
           })
-          const { svg } = await mermaid.render('diagram', src)
+          const { svg } = await mermaid.render('diagram', src, container)
           const out = document.getElementById('out')
           if (out) {
             out.innerHTML = svg
           }
+          container.remove()
         },
         source,
         theme,
       )
-      const rawSvg = (await page.$eval(
+      /* Ship the raw mermaid SVG verbatim — no regex font rewrites,
+       * no SVGO pass. Any post-processing we do on the string risks
+       * desyncing the text positions from the node box rectangles
+       * mermaid measured at render time. The outer page CSS is also
+       * kept hands-off from SVG-internal text styles. */
+      const normalizedSvg = (await page.$eval(
         '#out svg',
         el => el.outerHTML,
       )) as string
-      /* Mermaid 11 bakes its theme preset's font into the emitted
-       * <style> block regardless of themeVariables / fontFamily /
-       * fontSize config. Rewrite that inline stylesheet here so the
-       * browser paints labels with the same Arial 14px puppeteer
-       * measured with — otherwise painted text overflows the
-       * measured node boxes and clips. */
-      const normalizedSvg = rawSvg
-        .replaceAll(/font-family:[^;}]+/g, 'font-family:Arial,sans-serif')
-        .replaceAll(/font-size:\d+(?:\.\d+)?px/g, 'font-size:14px')
       /* Pipe through SVGO when possible, but mermaid emits
        * `<foreignObject>` with HTML-flavored self-closing tags
        * (e.g. `<br/>`) that trip SVGO's stricter parser. On
@@ -220,13 +235,11 @@ export async function createMermaidRenderer(
        * visually correct, just larger. Inline `style="…"` attrs
        * are preserved; the caller collects the CSP hashes it
        * needs from the final SVG so styles actually apply. */
-      let finalSvg: string
-      try {
-        const optimized = svgoOptimize(normalizedSvg, svgoConfig)
-        finalSvg = optimized.data
-      } catch {
-        finalSvg = normalizedSvg
-      }
+      /* SVGO disabled — it was rewriting geometry in subtle ways
+       * (transform flattening, numeric precision quantization)
+       * that desynced text positions from the node box rectangles
+       * mermaid computed. Ship the raw mermaid SVG verbatim. */
+      const finalSvg = normalizedSvg
       await fs.writeFile(cachePath, finalSvg)
       return finalSvg
     } finally {

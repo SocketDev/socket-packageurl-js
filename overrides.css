@@ -1836,19 +1836,11 @@ body.col-resizing * {
   display: inline-block;
 }
 
-/* Pin the Mermaid SVG's font to match exactly what the build-time
- * renderer measured with (Arial 14px). If these diverge, box
- * geometry baked into the SVG by puppeteer won't match the fonts
- * the browser paints — text clips. Arial is the most reliable
- * cross-platform choice; any system missing it falls back to the
- * generic sans-serif. */
-.wt-mermaid svg,
-.wt-mermaid svg text,
-.wt-mermaid svg tspan,
-.wt-mermaid svg foreignObject {
-  font-family: Arial, sans-serif !important;
-  font-size: 14px !important;
-}
+/* Mermaid ships an inline <style> block inside the SVG that
+ * fully specifies text styling with #diagram-scoped rules. Don't
+ * override from outside — any font-family / font-size / line-
+ * height leak from .doc-body into the SVG shifts text away from
+ * where mermaid measured it and causes clipping inside nodes. */
 
 /* Repo tree — code blocks that draw a directory hierarchy with
  * box-drawing characters. Tightened line-height for a more
