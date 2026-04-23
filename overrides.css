@@ -1836,6 +1836,18 @@ body.col-resizing * {
   display: inline-block;
 }
 
+/* Isolate Mermaid's text from our doc-body cascade — .doc-body
+ * sets font-size on p/li/td/heading/code which can leak into
+ * <text>, <tspan>, and <foreignObject> children of the SVG,
+ * breaking the font metrics Mermaid used to size its boxes at
+ * render time. Reset to the SVG's own styling (Mermaid writes
+ * a <style> block inside the SVG that sets text styles itself). */
+.wt-mermaid svg text,
+.wt-mermaid svg tspan,
+.wt-mermaid svg foreignObject {
+  all: revert;
+}
+
 /* Repo tree — code blocks that draw a directory hierarchy with
  * box-drawing characters. Tightened line-height for a more
  * tree-like density, no hljs coloring (the nohighlight class

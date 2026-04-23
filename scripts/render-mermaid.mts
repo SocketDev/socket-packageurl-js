@@ -163,21 +163,20 @@ export async function createMermaidRenderer(
             startOnLoad: false,
             theme: themeArg,
             securityLevel: 'strict',
-            /* Use HTML labels so the wrap math actually reads the
-             * DOM box the browser lays out. htmlLabels:false uses
-             * SVG <tspan> measurement which undersized boxes when
-             * our post-processing stripped inline styles. */
+            /* Use plain SVG <tspan> labels, not foreignObject. Mermaid
+             * measures these reliably; foreignObject labels get
+             * undersized when the browser's font metrics differ from
+             * mermaid's assumptions, which was clipping our text on
+             * both axes. */
             flowchart: {
-              htmlLabels: true,
+              htmlLabels: false,
               curve: 'basis',
               useMaxWidth: false,
-              nodeSpacing: 60,
-              rankSpacing: 70,
-              padding: 28,
-              wrappingWidth: 260,
+              nodeSpacing: 80,
+              rankSpacing: 80,
+              padding: 30,
             },
-            fontFamily:
-              '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            fontFamily: 'Arial, sans-serif',
             fontSize: 14,
           })
           const { svg } = await mermaid.render('diagram', src)
