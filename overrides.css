@@ -97,6 +97,11 @@ html[data-theme='light'] {
   --radius-lg: 14px;
   --transition-fast: 120ms ease;
   --transition-med: 220ms ease;
+  /* Universal tokens (theme-independent). --font-mono is the
+   * one mono stack every code surface uses. --col-split is the
+   * splitter ratio drag.js writes back via inline style on :root. */
+  --font-mono: var(--font-mono);
+  --col-split: 42;
 }
 
 /* System preference — follow prefers-color-scheme. Only applies when
@@ -276,7 +281,7 @@ p {
  * prose without pulling focus. The first inline code token after a
  * heading often reads in --ink for emphasis. */
 code {
-  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.92em;
   padding: 2px 6px;
   border: 1px solid var(--border);
@@ -296,7 +301,7 @@ li > code:first-child {
 
 pre {
   margin: 0;
-  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.55;
 }
@@ -389,7 +394,7 @@ html[data-theme='synthwave'] .topbar {
 }
 
 .topbar h1 .wt-product {
-  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -511,6 +516,19 @@ main.files-stack {
   background: var(--bg-elev);
   border-bottom: 1px solid var(--border);
   font-size: 11px;
+  /* Reserve the full 38px nav height (30px action-button height
+   * + 4px top/bottom padding) BEFORE comments.js injects its
+   * download + chat buttons. Without this, the nav initially
+   * sizes to the 26px pill height and grows ~4px when the
+   * buttons land → every reload jumps the page content. */
+  min-height: 38px;
+}
+
+.topbar-actions {
+  /* Same deal — keep the actions cluster at its final height
+   * from first paint so its flex parent doesn't reflow when
+   * the buttons hydrate. */
+  min-height: 30px;
 }
 
 .wt-parts-label {
@@ -695,7 +713,7 @@ kbd {
   min-width: 28px;
   height: 28px;
   padding: 0 8px;
-  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 500;
   color: var(--ink);
@@ -826,7 +844,7 @@ tbody td:first-child {
 }
 
 .wt-intro-line code {
-  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.9em;
   padding: 1px 5px;
   border-radius: 4px;
@@ -881,7 +899,7 @@ tbody td:first-child {
 }
 
 .wt-intro-install code {
-  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   color: var(--code-fg);
   background: transparent;
@@ -931,7 +949,7 @@ tbody td:first-child {
  * stops Geist Mono from collapsing `...` into a single ellipsis
  * glyph (which would hide the user's literal three-dot intent). */
 .wt-contents-summary code {
-  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.88em;
   padding: 1px 5px;
   border-radius: 4px;
@@ -1084,16 +1102,10 @@ tbody td:first-child {
 }
 
 /* Two-column grid — prose on the left, code on the right. The
- * column ratio is driven by --col-split, a number drag.js stores
- * in localStorage and applies as a percentage on :root (e.g. 42
- * means prose gets 42%). Default 42/58 leans toward code; users
- * can rebalance via the .col-splitter handle. Using calc with %
- * units (not fr) so the arithmetic is well-defined in every
- * browser. */
-:root {
-  --col-split: 42;
-}
-
+ * column ratio is driven by --col-split (declared in the main
+ * :root block above — 42 by default). drag.js updates that
+ * token via inline style on :root. Using calc with % units
+ * (not fr) so the arithmetic is well-defined in every browser. */
 .pair-grid,
 .file-grid {
   display: grid;
@@ -1173,7 +1185,7 @@ html:not([data-ua='safari']) .file-block {
 }
 
 .file-head .path {
-  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 500;
   color: var(--ink);
@@ -1292,7 +1304,7 @@ html:not([data-ua='safari']) .file-block {
 .wt-sections-panel a {
   display: block;
   padding: 6px 10px;
-  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   color: var(--body);
   background: transparent;
@@ -1529,7 +1541,7 @@ body.col-resizing * {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: var(--code-comment);
   cursor: pointer;
@@ -1648,7 +1660,7 @@ body.col-resizing * {
 .code-table {
   border-collapse: collapse;
   width: 100%;
-  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.55;
   color: var(--code-fg);
@@ -1782,7 +1794,7 @@ body.col-resizing * {
   border: 1px solid var(--border);
   overflow-x: auto;
   margin: 20px 0;
-  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 13px;
   line-height: 1.55;
   font-variant-ligatures: none;
@@ -1833,7 +1845,7 @@ body.col-resizing * {
 .doc-body h3 code,
 .doc-body h4 code,
 .doc-body blockquote code {
-  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: var(--font-mono);
   font-size: 0.88em;
   padding: 1px 5px;
   border-radius: 4px;
@@ -2696,7 +2708,7 @@ html[data-theme='synthwave'] .wt-selection-popover {
 
 .wt-selection-popover .wt-sel-label {
   color: var(--muted);
-  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
   padding-right: 4px;
   border-right: 1px solid var(--border);
@@ -2713,40 +2725,17 @@ html[data-theme='synthwave'] .wt-selection-popover {
   border-radius: 6px;
 }
 
-/* The comments.js shim injects threads into each code block. Style
- * them as white cards floating inside the dark code container per
- * the diffs.com comment reference. */
-.wt-comment-thread {
-  background: var(--surface);
-  color: var(--body);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  padding: 16px;
-  margin: 16px;
-  font-size: 14px;
-}
-
-.wt-comment {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.wt-comment:last-child {
-  margin-bottom: 0;
-}
-
-.wt-comment-avatar {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--bg-tint);
-  flex-shrink: 0;
-}
-
+/* Comment row — comments.js injects these into the thread
+ * dialog. Only the classes the shim actually emits are styled:
+ * .wt-comment-body (the row content), .wt-comment-meta (author +
+ * time row above it), .wt-comment-form / .wt-comment-header (the
+ * new-comment dialog wrapper). */
 .wt-comment-body {
   flex: 1;
   min-width: 0;
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .wt-comment-meta {
@@ -2754,43 +2743,14 @@ html[data-theme='synthwave'] .wt-selection-popover {
   align-items: baseline;
   gap: 8px;
   margin-bottom: 2px;
-}
-
-.wt-comment-author {
-  font-weight: 600;
-  color: var(--ink);
-  font-size: 13px;
-}
-
-.wt-comment-time {
   color: var(--muted);
   font-size: 12px;
 }
 
-.wt-comment-text {
-  color: var(--body);
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.wt-comment-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.wt-comment-action {
-  color: var(--accent);
+.wt-comment-meta strong {
+  font-weight: 600;
+  color: var(--ink);
   font-size: 13px;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.wt-comment-action:hover {
-  text-decoration: underline;
 }
 
 /* ── 12. Footer ──────────────────────────────────────────────────── */

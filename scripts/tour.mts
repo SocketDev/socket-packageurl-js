@@ -2147,6 +2147,18 @@ async function generate(
         stripInlinedCommentScripts(root, COMMENT_SCRIPT_MARKERS)
       }
 
+      /* Meander emits the raw markdown source of every annotation
+       * as <textarea class="annotation-md-source" hidden> alongside
+       * each .annotation-md container — presumably for a JS
+       * editor it expects to mount. We don't use them; nothing in
+       * drag.js / comments.js / tour.mts reads them. They ship
+       * display:none'd (overrides.css) but still cost ~5KB per
+       * part page in raw markdown bytes. Strip them here. */
+      for (const t of root.querySelectorAll('textarea.annotation-md-source')) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(t as any).remove?.()
+      }
+
       const head = root.querySelector('head')
       const body = root.querySelector('body')
 
@@ -2551,30 +2563,31 @@ async function generate(
           countSpan.replaceWith(sectionsHtml)
         }
 
-        // Per-code-section dropdown — appears ABOVE each code
-        // block (inside .code-section, as the first child) so a
-        // reader has a jump-to-section affordance at every chunk.
-        // The panel lists the same items as the file-head menu,
-        // with THIS chunk's section pre-highlighted as .active —
-        // opening the dropdown shows "you're on Section 5" at a
-        // glance, and picking another row scrolls there.
+        /* Per-code-section dropdown — appears ABOVE each code
+         * block (inside .code-section, as the first child) so a
+         * reader has a jump-to-section affordance at every chunk.
+         *
+         * Ship an EMPTY panel with a data-active-id marker; drag.js
+         * clones the file-head menu's full list on first open and
+         * marks the right row as .active. Saves ~(N-1)*N anchor
+         * elements per file — for a 33-section file that's ~1000
+         * fewer <a> tags in the HTML. */
+        const blockId = block.getAttribute('id') ?? ''
         for (const codeSection of block.querySelectorAll('.code-section[id]')) {
           if (codeSection.querySelector('.wt-section-chip')) {
             continue
           }
           const codeId = codeSection.getAttribute('id') ?? ''
-          // The code-section's id is `<part>-<file>-<line>`; the
-          // matching annotation-card is `ann-<part>-<file>-<line>`.
           const cardId = `ann-${codeId}`
           const current = items.find(it => it.id === cardId)
           if (!current) {
             continue
           }
           const chipHtml =
-            `<details class="wt-sections-menu wt-section-chip">\n` +
+            `<details class="wt-sections-menu wt-section-chip" data-sections-for="${escapeHtml(blockId)}" data-active-id="${escapeHtml(cardId)}">\n` +
             `      <summary class="wt-section-chip-label">${escapeHtml(current.label)}</summary>\n` +
-            renderSectionsPanel(cardId) +
-            `\n    </details>\n`
+            `      <div class="wt-sections-panel"></div>\n` +
+            `    </details>\n`
           codeSection.insertAdjacentHTML('afterbegin', chipHtml)
         }
       }

@@ -495,6 +495,43 @@
    * Clicking a menu link triggers a native anchor jump; when the
    * page settles, the observer fires and picks up the new
    * current-section automatically — no manual sync on click. */
+  /* Hydrate each .wt-section-chip's empty panel by cloning the
+   * file-head menu's list on first open. The build emits chips
+   * with empty <div class="wt-sections-panel"></div> — expanding
+   * them here (rather than inlining the full list in HTML) saves
+   * ~(N-1)*N anchor elements per file on disk. We clone the DOM
+   * subtree, mark the chip's data-active-id row as .active, and
+   * stash in a WeakSet so we only hydrate once per chip. */
+  const hydratedChips = new WeakSet()
+  const hydrateChip = chip => {
+    if (hydratedChips.has(chip)) {
+      return
+    }
+    hydratedChips.add(chip)
+    const blockId = chip.getAttribute('data-sections-for')
+    const activeId = chip.getAttribute('data-active-id')
+    if (!blockId) {
+      return
+    }
+    const block = document.getElementById(blockId)
+    const src = block?.querySelector(
+      '.file-head .wt-sections-menu .wt-sections-panel',
+    )
+    const dest = chip.querySelector('.wt-sections-panel')
+    if (!src || !dest || dest.childElementCount > 0) {
+      return
+    }
+    const clone = src.cloneNode(true)
+    for (const a of clone.querySelectorAll('a.active')) {
+      a.classList.remove('active')
+    }
+    if (activeId) {
+      const match = clone.querySelector(`a[href="#${CSS.escape(activeId)}"]`)
+      match?.classList.add('active')
+    }
+    dest.append(...clone.childNodes)
+  }
+
   /* Scroll the .active row of a sections panel into view the moment
    * a chip's <details> opens. Without this, the panel always opens
    * scrolled to the top — if the user is on section 28, they have
@@ -506,6 +543,12 @@
       menu.addEventListener('toggle', () => {
         if (!menu.open) {
           return
+        }
+        /* Empty chip? Clone the file-head list now, then fall
+         * through to the scroll-to-active logic below using the
+         * freshly-populated DOM. */
+        if (menu.classList.contains('wt-section-chip')) {
+          hydrateChip(menu)
         }
         const panel = menu.querySelector('.wt-sections-panel')
         const active = panel?.querySelector('a.active')
