@@ -573,7 +573,7 @@ async function renderDocs(
       // DOM by the time it runs. The SRI + CSP pipeline pass hashes
       // both the <script src> tag and the inline init block later.
       `  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>\n` +
-      `  <script>document.querySelectorAll('pre code').forEach(b => window.hljs && window.hljs.highlightElement(b))</script>\n` +
+      `  <script>document.querySelectorAll('pre:not(.wt-repo-tree) code').forEach(b => window.hljs && window.hljs.highlightElement(b))</script>\n` +
       `</body>\n` +
       `</html>\n`
     await fs.writeFile(path.join(tourDir, `${doc.filename}.html`), html)
