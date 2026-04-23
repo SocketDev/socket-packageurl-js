@@ -1656,7 +1656,16 @@ async function generate(
      * file read, not a browser round-trip. Close the browser in
      * the finally block regardless of success so we never leak a
      * Chromium process. */
-    const mermaidCacheDir = path.join(repoRoot, '.cache', 'mermaid')
+    /* Cache lives under node_modules so it's automatically ignored
+     * by git + skipped by tooling that already blocks node_modules
+     * (bundlers, linters, published-package file filters). No
+     * additional .gitignore entry needed. */
+    const mermaidCacheDir = path.join(
+      repoRoot,
+      'node_modules',
+      '.cache',
+      'mermaid',
+    )
     const mermaidRenderer = await createMermaidRenderer({
       repoRoot,
       cacheDir: mermaidCacheDir,

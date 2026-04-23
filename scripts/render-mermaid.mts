@@ -144,13 +144,16 @@ export async function createMermaidRenderer(
     const activeBrowser = await ensureBrowser()
     const page = await activeBrowser.newPage()
     try {
-      /* Force a system font stack the headless browser always has
-       * and make the rendering viewport wide enough that Mermaid
-       * doesn't wrap node labels to guess heights. Inline CSS in
-       * the puppeteer page only — we're not shipping this HTML. */
+      /* Font MUST match between the puppeteer render page and
+       * whatever Mermaid bakes into its emitted <style> block —
+       * if they diverge, Mermaid measures boxes with one font
+       * and the browser paints labels with another, clipping
+       * text. Force Arial everywhere: puppeteer has it natively
+       * and Mermaid's default inherits it from body. */
       await page.setContent(
         `<!doctype html><html><head><meta charset="utf-8"><style>
-          body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; }
+          body, #out, #out * { font-family: Arial, sans-serif !important; font-size: 14px !important; }
+          body { margin: 0; padding: 20px; }
           #out { width: 1200px; }
         </style><script>${mermaidJs}</script></head><body><div id="out"></div></body></html>`,
       )
@@ -178,6 +181,15 @@ export async function createMermaidRenderer(
             },
             fontFamily: 'Arial, sans-serif',
             fontSize: 14,
+            /* themeVariables overrides the flowchart theme preset's
+             * own fontFamily/fontSize — without this Mermaid writes
+             * its preset values into the emitted <style> block and
+             * the browser paints with a different font than what
+             * puppeteer measured. */
+            themeVariables: {
+              fontFamily: 'Arial, sans-serif',
+              fontSize: '14px',
+            },
           })
           const { svg } = await mermaid.render('diagram', src)
           const out = document.getElementById('out')
@@ -192,6 +204,15 @@ export async function createMermaidRenderer(
         '#out svg',
         el => el.outerHTML,
       )) as string
+      /* Mermaid 11 bakes its theme preset's font into the emitted
+       * <style> block regardless of themeVariables / fontFamily /
+       * fontSize config. Rewrite that inline stylesheet here so the
+       * browser paints labels with the same Arial 14px puppeteer
+       * measured with — otherwise painted text overflows the
+       * measured node boxes and clips. */
+      const normalizedSvg = rawSvg
+        .replaceAll(/font-family:[^;}]+/g, 'font-family:Arial,sans-serif')
+        .replaceAll(/font-size:\d+(?:\.\d+)?px/g, 'font-size:14px')
       /* Pipe through SVGO when possible, but mermaid emits
        * `<foreignObject>` with HTML-flavored self-closing tags
        * (e.g. `<br/>`) that trip SVGO's stricter parser. On
@@ -201,10 +222,10 @@ export async function createMermaidRenderer(
        * needs from the final SVG so styles actually apply. */
       let finalSvg: string
       try {
-        const optimized = svgoOptimize(rawSvg, svgoConfig)
+        const optimized = svgoOptimize(normalizedSvg, svgoConfig)
         finalSvg = optimized.data
       } catch {
-        finalSvg = rawSvg
+        finalSvg = normalizedSvg
       }
       await fs.writeFile(cachePath, finalSvg)
       return finalSvg
