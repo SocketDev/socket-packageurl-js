@@ -6,6 +6,25 @@
  * Both preferences persist to localStorage. Splitter uses Pointer
  * Events so the handle works with mouse, touch, and pen input. */
 {
+  /* Tag Safari so CSS can gate `content-visibility: auto` off —
+   * Safari 18+ supports the property but still has known :target
+   * / find-in-page glitches where hash-scrolling into a skipped
+   * block fails to lay it out. Every other evergreen browser
+   * handles it correctly, so only Safari gets the fallback
+   * (`contain: layout` instead of the bigger `content-visibility`
+   * win). UA sniff is narrow: Safari-the-browser, not any
+   * WebKit-based engine — desktop/iOS Safari emits
+   * "…Safari/…" without any of the Chromium-family markers. */
+  const ua = navigator.userAgent
+  if (
+    ua.includes('Safari/') &&
+    !ua.includes('Chrome/') &&
+    !ua.includes('Chromium/') &&
+    !ua.includes('Edg/')
+  ) {
+    document.documentElement.setAttribute('data-ua', 'safari')
+  }
+
   const SPLIT_KEY = 'socket-walkthrough:col-split'
   const THEME_KEY = 'socket-walkthrough:theme'
   const DEFAULT_SPLIT = 50
@@ -82,11 +101,10 @@
     },
   }
   const themeIconSvg = (pref, extraClass = '') => {
-    const { style, path, viewBox } = THEME_ICONS[pref]
+    const { style, path } = THEME_ICONS[pref]
     const attrs = style === 'solid' ? SOLID_ATTRS : OUTLINE_ATTRS
     const classAttr = extraClass ? ` class="${extraClass}"` : ''
-    const vb = viewBox || '0 0 24 24'
-    return `<svg${classAttr} viewBox="${vb}" aria-hidden="true" ${attrs}>${path}</svg>`
+    return `<svg${classAttr} viewBox="0 0 24 24" aria-hidden="true" ${attrs}>${path}</svg>`
   }
   // Check glyph shared by every menu row — shown for the active pref
   // only (CSS toggles opacity based on aria-checked).
@@ -692,17 +710,29 @@
       modState = pressed
       document.body.classList.toggle('wt-mod-pressed', pressed)
     }
-    addEventListener('keydown', e => {
-      if (e.key === 'Meta' || e.key === 'Control') {
-        setMod(true)
-      }
-    })
-    addEventListener('keyup', e => {
-      if (e.key === 'Meta' || e.key === 'Control') {
-        setMod(false)
-      }
-    })
-    addEventListener('blur', () => setMod(false))
+    /* passive: true — these handlers never preventDefault, so
+     * marking them passive lets the browser skip the "is this
+     * going to block scrolling?" check on every key/blur event. */
+    const passive = { passive: true }
+    addEventListener(
+      'keydown',
+      e => {
+        if (e.key === 'Meta' || e.key === 'Control') {
+          setMod(true)
+        }
+      },
+      passive,
+    )
+    addEventListener(
+      'keyup',
+      e => {
+        if (e.key === 'Meta' || e.key === 'Control') {
+          setMod(false)
+        }
+      },
+      passive,
+    )
+    addEventListener('blur', () => setMod(false), passive)
 
     // Block plain clicks on source links; only the modifier-held
     // click should navigate. Check the native event's
@@ -782,19 +812,23 @@
           bestTop = top
         }
       }
-      // Fallback: if nothing in the "good zone", pick whichever
-      // visible card has the largest negative top (last one above
-      // the viewport edge) — handles the case where the user has
-      // scrolled past all of a file's sections.
+      // Fallback: if nothing in the "good zone" above the viewport
+      // edge is currently intersecting, pick whichever visible card
+      // has the highest (closest-to-zero) negative top — the last
+      // card the user scrolled past. Tracks `bestNegTop` separately
+      // starting at -Infinity; `bestTop` is still Infinity here, so
+      // the old `bestTop - Infinity` compare was NaN and always
+      // false — the fallback never fired.
       if (!best) {
+        let bestNegTop = -Infinity
         for (const card of visibleCards) {
           if (!panel.closest('.file-block')?.contains(card)) {
             continue
           }
           const top = card.getBoundingClientRect().top
-          if (top < 0 && top > bestTop - Infinity) {
+          if (top < 0 && top > bestNegTop) {
             best = card
-            bestTop = top
+            bestNegTop = top
           }
         }
       }

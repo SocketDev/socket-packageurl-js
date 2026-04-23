@@ -162,12 +162,16 @@
   })
   const formatRelative = date => {
     const diffSec = Math.round((date.getTime() - Date.now()) / 1000)
+    /* The 'second' slot always matches (|| unit === 'second')
+     * because RELATIVE_UNITS puts it last with the smallest
+     * threshold, so the loop always returns. No post-loop
+     * fallback needed. */
     for (const [unit, secs] of Object.entries(RELATIVE_UNITS)) {
       if (Math.abs(diffSec) >= secs || unit === 'second') {
         return relativeFormatter.format(Math.round(diffSec / secs), unit)
       }
     }
-    return date.toLocaleDateString()
+    return ''
   }
 
   /* ─── auth: email → code flow ─────────────────────────────────── */
@@ -473,6 +477,27 @@
   const BOGUS_STEMS_LC = BOGUS_STEMS_CLEAR.map(s => s.toLowerCase())
   const BAD_WORDS_LC = BAD_WORDS_DECODED.map(s => s.toLowerCase())
 
+  /* Pre-compile a single word-boundary alternation regex per stem
+   * list for the short-stem path in containsStem (≤3-char entries
+   * that would otherwise false-positive as substrings of longer
+   * words). Built once at module init instead of per keystroke
+   * inside the sign-in validator. Empty alternations fall out to
+   * a sentinel `.^` that never matches, keeping null-regex away
+   * from the hot path. */
+  const shortStemRegex = stems => {
+    const short = stems.filter(s => s.length < 4).map(escapeForRegex)
+    if (short.length === 0) {
+      return /.^/
+    }
+    return new RegExp(`(^|[^a-z0-9])(?:${short.join('|')})([^a-z0-9]|$)`, 'i')
+  }
+  const escapeForRegex = s => s.replace(/[\\^$.*+?()[\]{}|]/g, '\\$&')
+  const SHORT_RE_BY_LIST = new Map([
+    [RESERVED_STEMS_LC, shortStemRegex(RESERVED_STEMS_LC)],
+    [BOGUS_STEMS_LC, shortStemRegex(BOGUS_STEMS_LC)],
+    [BAD_WORDS_LC, shortStemRegex(BAD_WORDS_LC)],
+  ])
+
   // Normalize for comparison: lowercase, strip everything that isn't
   // a letter or digit. "adm1n" → "adm1n"; "a.d.m.i.n" → "admin";
   // "s_0_cket.bot" → "s0cketbot". 1337-speak digits stay so we can
@@ -507,23 +532,19 @@
     if (!local) {
       return false
     }
-    const lower = local.toLowerCase()
     const norm = normalizeLocal(local)
+    /* Long stems (≥4 chars) — substring match on the normalized
+     * local-part. Safe to treat as a raw includes() because the
+     * stem is long enough that a chance collision is unlikely. */
     for (const stem of stems) {
-      if (stem.length >= 4) {
-        if (norm.includes(stem)) {
-          return true
-        }
-      } else {
-        // Word-boundary test. Build a regex once would be faster but
-        // the list is short; a scan is fine.
-        const re = new RegExp(`(^|[^a-z0-9])${stem}([^a-z0-9]|$)`, 'i')
-        if (re.test(lower)) {
-          return true
-        }
+      if (stem.length >= 4 && norm.includes(stem)) {
+        return true
       }
     }
-    return false
+    /* Short stems (<4 chars) — one pre-compiled word-boundary
+     * alternation regex per stem list, tested once per call. */
+    const shortRe = SHORT_RE_BY_LIST.get(stems)
+    return shortRe ? shortRe.test(local.toLowerCase()) : false
   }
 
   // Gibberish detector — two orthogonal signals, either one trips:
@@ -637,6 +658,7 @@
         <form class="wt-form" data-step="email">
           <label class="wt-label">Email
             <input type="email" name="email" required autocomplete="username"
+              enterkeyhint="send"
               data-1p-ignore data-lpignore="true" data-form-type="other"
               class="wt-input wt-email-input"/>
           </label>
@@ -702,6 +724,7 @@
             <strong class="wt-code-target"></strong>.</p>
           <label class="wt-label">Code
             <input type="text" name="code" required inputmode="numeric"
+              enterkeyhint="done"
               pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code"
               data-1p-ignore data-lpignore="true" data-form-type="other"
               class="wt-input wt-code" placeholder="123456"/>
@@ -1166,7 +1189,7 @@
         <strong>${esc(file)}</strong>
         <span>Lines ${lineFrom}${lineTo !== lineFrom ? '–' + lineTo : ''}</span>
       </div>
-      <textarea class="wt-input wt-textarea" placeholder="Write a comment…" required maxlength="10000"></textarea>
+      <textarea class="wt-input wt-textarea" placeholder="Write a comment…" required maxlength="10000" enterkeyhint="send"></textarea>
       <div class="wt-row">
         <button type="submit" class="wt-primary wt-post">Post</button>
         <button type="button" class="wt-secondary wt-cancel">Cancel</button>
@@ -1519,6 +1542,12 @@
     signOut.type = 'button'
     signOut.className = 'wt-dropdown-signout'
     signOut.textContent = 'Sign out'
+    /* Capture the teardown so the self-close paths below (sign
+     * out, item click) can abort the outside-click listener —
+     * without this call, clicking sign-out would leave an
+     * orphaned document listener for every dropdown the user
+     * ever opened. */
+    let dismiss = () => {}
     signOut.addEventListener('click', async e => {
       e.stopPropagation()
       signOut.disabled = true
@@ -1532,6 +1561,7 @@
         /* ignore — the localStorage clear below is the real signout */
       }
       saveJwt(null, null)
+      dismiss()
       dd.remove()
       location.reload()
     })
@@ -1568,10 +1598,11 @@
         })
         state.expandedGroups.add(`${file}:${line}`)
         renderAll()
+        dismiss()
         dd.remove()
       })
     }
-    bindOutsideDismiss(dd)
+    dismiss = bindOutsideDismiss(dd)
   }
 
   const showExportDropdown = async () => {
@@ -1584,6 +1615,7 @@
     `
     document.body.appendChild(dd)
     positionDropdown(dd, '.wt-export-btn')
+    let dismiss = () => {}
     for (const b of dd.querySelectorAll('.wt-dropdown-item')) {
       b.addEventListener('click', async () => {
         const scope = b.getAttribute('data-scope')
@@ -1607,10 +1639,11 @@
             }
           }
         }
+        dismiss()
         dd.remove()
       })
     }
-    bindOutsideDismiss(dd)
+    dismiss = bindOutsideDismiss(dd)
   }
 
   const positionDropdown = (dd, triggerSel) => {
@@ -1705,9 +1738,12 @@
       // stable class name).
       if (signedIn && !lastSignedIn) {
         unresolvedBtn.classList.remove('wt-dots-drop')
-        // Force reflow so the animation re-runs.
-        // eslint-disable-next-line no-unused-expressions
-        unresolvedBtn.offsetWidth
+        /* Force a synchronous reflow so the browser commits the
+         * class removal BEFORE we add it again — otherwise the
+         * CSS animation doesn't re-run. getBoundingClientRect is
+         * the canonical reflow trigger; reading offsetWidth works
+         * but gets pruned by aggressive DCE-aware minifiers. */
+        void unresolvedBtn.getBoundingClientRect()
         unresolvedBtn.classList.add('wt-dots-drop')
       }
       lastSignedIn = signedIn

@@ -657,8 +657,19 @@ async function renderDocs(
       // highlight.js — loaded at the bottom so code blocks are in the
       // DOM by the time it runs. The SRI + CSP pipeline pass hashes
       // both the <script src> tag and the inline init block later.
-      `  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/highlight.min.js"></script>\n` +
-      `  <script>document.querySelectorAll('pre:not(.wt-repo-tree) code').forEach(b => window.hljs && window.hljs.highlightElement(b))</script>\n` +
+      /* `defer` on both so neither blocks HTML parsing. Deferred
+       * scripts execute in document order, so by the time the
+       * inline init runs `window.hljs` is defined. The init only
+       * touches blocks with an explicit `language-*` class —
+       * plain unlabeled fenced blocks (like a PURL canonical form
+       * sample: `pkg:type/namespace/name@version?q=v#sub`) would
+       * get mis-colored by hljs's auto-detection (guessing Ruby
+       * or Perl from the `:` and `@`), so we opt them out. The
+       * `.wt-repo-tree` exclusion is redundant now but kept as a
+       * belt-and-suspenders guard for any future block that
+       * happens to land with a language class. */
+      `  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/highlight.min.js" defer></script>\n` +
+      `  <script defer>document.querySelectorAll('pre:not(.wt-repo-tree) code[class*="language-"]').forEach(b => window.hljs && window.hljs.highlightElement(b))</script>\n` +
       `</body>\n` +
       `</html>\n`
     await fs.writeFile(path.join(tourDir, `${doc.filename}.html`), html)
@@ -1755,6 +1766,13 @@ async function generate(
       '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />',
       '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />',
       '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
+      /* theme-color tints the URL bar on iOS Safari + Chrome
+       * Android to match the site's chrome. Two variants for
+       * light/dark OS preference so the color flips with the
+       * rest of the page. Values match --bg in overrides.css
+       * for each palette. */
+      '<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />',
+      '<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)" />',
     ].join('\n  ')
     // Preload the shim scripts so the browser starts fetching them in
     // parallel with HTML parsing, ahead of the `defer` discovery. The
@@ -1786,17 +1804,24 @@ async function generate(
     const commentBackendOrigin = commentBackend
       ? new URL(commentBackend).origin
       : ''
-    const preconnectTags = commentBackendOrigin
-      ? [`<link rel="preconnect" href="${commentBackendOrigin}" crossorigin />`]
-      : []
-    const preloadTags = [
-      ...preconnectTags,
+    /* Preloads shared by every page (drag.js + fonts). comments.js
+     * + the val.run preconnect only belong on part pages — the
+     * only surface where comments.js actually runs. `preloadTags`
+     * is the base set; `partPreloadTags` adds the comments.js +
+     * preconnect pair. Chosen per-page below during post-process. */
+    const basePreloads = [
       '<link rel="preload" as="script" href="/drag.js" />',
-      ...(commentBackend
-        ? ['<link rel="preload" as="script" href="/comments.js" />']
-        : []),
       ...fontPreloads,
-    ].join('\n  ')
+    ]
+    const partPreloads = commentBackend
+      ? [
+          `<link rel="preconnect" href="${commentBackendOrigin}" crossorigin />`,
+          '<link rel="preload" as="script" href="/comments.js" />',
+          ...basePreloads,
+        ]
+      : basePreloads
+    const preloadTags = basePreloads.join('\n  ')
+    const partPreloadTags = partPreloads.join('\n  ')
     // Socket tagline footer — matches the format used on socket.dev
     // marketing pages. The bolt is two overlaid elements:
     //   - <svg class="wt-footer-bolt">       visible glyph
@@ -1907,7 +1932,12 @@ async function generate(
         head.insertAdjacentHTML('beforeend', `\n  ${faviconTags}`)
       }
       if (head && !root.querySelector('link[rel="preload"]')) {
-        head.insertAdjacentHTML('beforeend', `\n  ${preloadTags}`)
+        /* Part pages get the comments.js preload + val.run
+         * preconnect; doc + index pages ship only the base set
+         * (drag.js + fonts) so doc pages don't burn bandwidth
+         * on a comment shim they never exercise. */
+        const chosenPreloads = partMatch ? partPreloadTags : preloadTags
+        head.insertAdjacentHTML('beforeend', `\n  ${chosenPreloads}`)
       }
 
       /* Prefetch adjacent part pages so clicking "next" / "prev"
@@ -1944,9 +1974,17 @@ async function generate(
       if (body && !root.querySelector('script[src="/drag.js"]')) {
         body.insertAdjacentHTML('beforeend', `\n  ${dragTag}`)
       }
+      /* comments.js is only useful on part pages — it binds to
+       * per-section `data-part` markers emitted by meander. Doc
+       * and index pages ship zero parts, so the script would run
+       * its health probe, fetch + parse ~60KB, then bail with
+       * partId=NaN. Gate the `<script>`, config, preload, and
+       * preconnect emission on partMatch so doc/index pages stay
+       * lean. */
       if (
         body &&
         commentBackend &&
+        partMatch &&
         !root.querySelector('script[src="/comments.js"]')
       ) {
         body.insertAdjacentHTML(

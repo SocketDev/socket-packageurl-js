@@ -123,7 +123,7 @@ async function networkFirst(request) {
     const response = await fetch(request)
     if (response.ok) {
       const cache = await caches.open(CACHE_NAME)
-      cache.put(request, response.clone())
+      cache.put(request, response.clone()).catch(() => {})
     }
     return response
   } catch {
@@ -148,13 +148,25 @@ async function cacheFirst(request) {
   const networkFetch = fetch(request)
     .then(response => {
       // Only cache successful responses — don't poison the cache with
-      // 500s or 404s from a transient backend glitch.
+      // 500s or 404s from a transient backend glitch. `.put` is
+      // fire-and-forget; wrap in catch so a write failure (quota,
+      // aborted) doesn't surface as an unhandled rejection.
       if (response.ok) {
-        cache.put(request, response.clone())
+        cache.put(request, response.clone()).catch(() => {})
       }
       return response
     })
     .catch(() => null)
 
-  return cached || networkFetch || fetch(request)
+  /* Cache hit wins. Otherwise await the network — if it resolved
+   * (even to null on fetch failure), prefer it; fall back to a
+   * network error response rather than returning a resolved-null
+   * Promise, which the Fetch handler would pass back as an empty
+   * body. `|| networkFetch || fetch(request)` was buggy: Promises
+   * are always truthy, so the third branch was unreachable. */
+  if (cached) {
+    return cached
+  }
+  const fresh = await networkFetch
+  return fresh ?? Response.error()
 }

@@ -38,6 +38,15 @@
   src: url('/fonts/GeistMono.woff2') format('woff2-variations');
 }
 
+/* Opt every same-origin navigation into the View Transitions API.
+ * Supporting browsers (Chrome 126+, Safari 18+) cross-fade the old
+ * page's frame into the new one — no JS, no rework needed in the
+ * build. Non-supporting browsers ignore the rule; no polyfill
+ * shipped. Honors reduced-motion at the UA level. */
+@view-transition {
+  navigation: auto;
+}
+
 /* ── 2. Theme tokens ──────────────────────────────────────────────── */
 
 /* Light theme — default and the baseline other themes extend.
@@ -1114,16 +1123,25 @@ tbody td:first-child {
   margin: 0;
   border: none;
   background: transparent;
-  /* Isolate layout to this block. When the splitter drags, the
-   * grid inside recalculates — `contain: layout` tells the
-   * browser changes inside this block cannot affect siblings'
-   * layout, so it skips re-laying-out other file-blocks on the
-   * page. Paint is NOT contained because the sections-panel
-   * dropdown needs to escape the block to render above siblings
-   * below it. Not using `content-visibility: auto` — it would
-   * break hash-anchor scrolling (#file-foo can't jump into a
-   * block that hasn't been laid out). */
+  /* Baseline: `contain: layout` isolates the grid inside this
+   * block so a splitter drag doesn't reflow sibling file-blocks.
+   * Paint is NOT contained because the sections-panel dropdown
+   * needs to escape the block to render above siblings below.
+   * Everyone gets this. */
   contain: layout;
+}
+
+/* Non-Safari browsers: promote to `content-visibility: auto`,
+ * which skips rendering off-screen file-blocks entirely (layout
+ * + paint + style). `contain-intrinsic-size` gives the browser a
+ * placeholder height so the scrollbar doesn't thrash as blocks
+ * hydrate on scroll. Safari 18+ supports the property but its
+ * `:target` hash-anchor behavior on skipped blocks is still
+ * flaky as of 2026, so Safari keeps the plain `contain: layout`
+ * path. drag.js sets data-ua="safari" on <html> via UA sniff. */
+html:not([data-ua='safari']) .file-block {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1200px;
 }
 
 .file-head {
@@ -1452,11 +1470,16 @@ tbody td:first-child {
   pointer-events: none;
   opacity: 0;
   transition: opacity var(--transition-fast);
-  will-change: transform;
 }
 
+/* will-change is scoped to the dragging state — promoting every
+ * hotspot to its own compositor layer at rest would be wasteful
+ * (one layer per splitter on every page). The transform-only
+ * animation during drag still gets the GPU path because the
+ * promotion happens at the same moment `.dragging` lands. */
 .col-splitter.dragging .col-hotspot {
   opacity: 1;
+  will-change: transform;
 }
 
 .col-splitter:focus-visible {
