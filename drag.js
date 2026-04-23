@@ -960,6 +960,110 @@
       }, 1500)
     })
 
+  /* Tidy the prose that meander renders into .annotation-md at
+   * page load. Two fixes:
+   *   1. Meander's markdown auto-linker treats `name@x.y.z`
+   *      (e.g. `core@7.0.0`) as an email and wraps it in a
+   *      mailto: <a>. Unwrap those — they're package identifiers,
+   *      not addresses. Check the href pattern rather than the
+   *      text content so we don't accidentally un-link real
+   *      emails if any show up.
+   *   2. JSDoc tags (@param, @returns, @throws, @example,
+   *      @fileoverview, etc.) at the start of a line are
+   *      metadata markers, not primary prose. Wrap them in a
+   *      <span class="wt-jsdoc-tag"> so CSS can tint them lighter
+   *      and set them apart. Matches only the `@tagname` token,
+   *      not `@scope` package names etc. */
+  const JSDOC_TAGS = new Set([
+    'param',
+    'returns',
+    'return',
+    'throws',
+    'throw',
+    'example',
+    'fileoverview',
+    'see',
+    'since',
+    'deprecated',
+    'default',
+    'type',
+    'typedef',
+    'callback',
+    'property',
+    'prop',
+    'template',
+    'inheritdoc',
+    'override',
+    'private',
+    'protected',
+    'public',
+    'readonly',
+    'static',
+    'augments',
+    'extends',
+    'module',
+    'namespace',
+    'memberof',
+    'this',
+  ])
+  const cleanupAnnotationProse = () => {
+    for (const container of document.querySelectorAll('.annotation-md')) {
+      /* 1. Unwrap spurious mailto: links (meander auto-linker
+       * misreading `name@version`). Replace the <a> node with
+       * its text content. */
+      for (const a of container.querySelectorAll('a[href^="mailto:"]')) {
+        a.replaceWith(document.createTextNode(a.textContent ?? ''))
+      }
+      /* 2. Wrap JSDoc tags. Walk text nodes only so we don't
+       * disturb existing <a>/<code>/<em> wrappers. A TreeWalker
+       * collects the candidates first so we can mutate without
+       * invalidating the iterator. */
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+      const textNodes = []
+      let n = walker.nextNode()
+      while (n) {
+        textNodes.push(n)
+        n = walker.nextNode()
+      }
+      const tagPattern = /@([A-Za-z]+)\b/g
+      for (const node of textNodes) {
+        const text = node.nodeValue ?? ''
+        if (!text.includes('@')) {
+          continue
+        }
+        const parts = []
+        let cursor = 0
+        let m
+        tagPattern.lastIndex = 0
+        while ((m = tagPattern.exec(text)) !== null) {
+          const tag = m[1].toLowerCase()
+          if (!JSDOC_TAGS.has(tag)) {
+            continue
+          }
+          if (m.index > cursor) {
+            parts.push(document.createTextNode(text.slice(cursor, m.index)))
+          }
+          const span = document.createElement('span')
+          span.className = 'wt-jsdoc-tag'
+          span.textContent = m[0]
+          parts.push(span)
+          cursor = m.index + m[0].length
+        }
+        if (parts.length === 0) {
+          continue
+        }
+        if (cursor < text.length) {
+          parts.push(document.createTextNode(text.slice(cursor)))
+        }
+        const frag = document.createDocumentFragment()
+        for (const p of parts) {
+          frag.appendChild(p)
+        }
+        node.parentNode?.replaceChild(frag, node)
+      }
+    }
+  }
+
   const ready = async () => {
     installAll()
     installThemeToggle()
@@ -969,6 +1073,13 @@
     // Source links run AFTER hljs — wrapping before would lose
     // our <a>s the moment hljs re-tokenizes the text nodes.
     installSourceLinks()
+    /* Fixup meander's annotation render. Run once now, then
+     * schedule a second pass via requestAnimationFrame so any
+     * meander hydration that landed later-in-the-same-tick gets
+     * swept too. rAF fires before the next paint, so neither
+     * the user nor layout ever sees the un-cleaned state. */
+    cleanupAnnotationProse()
+    requestAnimationFrame(cleanupAnnotationProse)
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', ready)

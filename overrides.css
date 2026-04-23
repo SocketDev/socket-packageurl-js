@@ -1684,6 +1684,18 @@ body.col-resizing * {
   display: none;
 }
 
+/* JSDoc tag marker (@param, @returns, @throws, @example, …).
+ * Set in annotation prose by drag.js's cleanupAnnotationProse
+ * after meander hydrates. Reads as metadata — dimmer than body
+ * text, slightly larger tracking so the `@tagname` token has
+ * visual weight without demanding attention. */
+.wt-jsdoc-tag {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  letter-spacing: 0.02em;
+}
+
 /* ── 8. Code / diff tables ───────────────────────────────────────── */
 
 /* The code-section wraps a meander code-table. Darkened, rounded
