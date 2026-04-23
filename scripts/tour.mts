@@ -27,6 +27,10 @@ import { marked } from 'marked'
 import { HTMLElement, parse as parseHtml } from 'node-html-parser'
 
 import { auditCdnScripts, auditValDeps } from './audit-deps.mts'
+import {
+  createMermaidRenderer,
+  type MermaidRenderer,
+} from './render-mermaid.mts'
 import { errorMessage } from './utils/error-message.mts'
 
 const MEANDER_PATH = 'upstream/meander'
@@ -119,6 +123,72 @@ function escapeHtml(s: string): string {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;')
+}
+
+/**
+ * Replace every `<pre><code class="language-mermaid">…</code></pre>`
+ * in a rendered doc HTML string with a pre-rendered SVG figure.
+ * The renderer handles caching + SVGO; we just wrap the result
+ * in a `<figure class="wt-mermaid">` so CSS can give it some
+ * breathing room in the prose flow.
+ *
+ * If a block fails to render, leaves the original code block in
+ * place with a `.wt-mermaid-error` class so the reader sees the
+ * raw source (copyable, fixable) instead of a mystery gap.
+ */
+/**
+ * Walk a marked-lexed token stream. Whenever we find a `code`
+ * block whose language is `mermaid`, render the source to an
+ * SVG figure and swap the token into an `html` block so marked
+ * emits our pre-rendered markup unchanged. Using the tokenizer
+ * keeps us out of regex-on-HTML territory — marked already
+ * parsed the fence, language attribute, and raw source; we just
+ * intercept the one token type we care about.
+ */
+async function processMermaidTokens(
+  markdown: string,
+  renderer: MermaidRenderer,
+): Promise<string> {
+  const tokens = marked.lexer(markdown)
+  const visit = async (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    list: any[],
+  ): Promise<void> => {
+    for (let i = 0; i < list.length; i++) {
+      const t = list[i]
+      if (!t || typeof t !== 'object') {
+        continue
+      }
+      if (t.type === 'code' && t.lang === 'mermaid') {
+        const source = String(t.text ?? '').trim()
+        try {
+          const svg = await renderer.render(source, 'dark')
+          list[i] = {
+            type: 'html',
+            raw: t.raw,
+            pre: false,
+            text: `<figure class="wt-mermaid">${svg}</figure>`,
+          }
+        } catch (e) {
+          console.warn(
+            `[mermaid] render failed: ${errorMessage(e)}\n--- source ---\n${source}\n---`,
+          )
+          list[i] = {
+            type: 'html',
+            raw: t.raw,
+            pre: false,
+            text: `<pre class="wt-mermaid-error"><code>${escapeHtml(source)}</code></pre>`,
+          }
+        }
+        continue
+      }
+      if (Array.isArray(t.tokens)) {
+        await visit(t.tokens)
+      }
+    }
+  }
+  await visit(tokens)
+  return marked.parser(tokens)
 }
 
 /**
@@ -488,13 +558,20 @@ function renderTopicsPillRow(
   )
 }
 
+type RenderDocsOptions = {
+  mermaidRenderer?: MermaidRenderer | undefined
+}
+
 async function renderDocs(
   docs: ReadonlyMap<string, DocEntry>,
   slug: string,
   partFilenames: ReadonlyMap<number, string>,
   repoRoot: string,
   tourDir: string,
+  options?: RenderDocsOptions | undefined,
 ): Promise<void> {
+  const opts = { __proto__: null, ...options } as RenderDocsOptions
+  const mermaidRenderer = opts.mermaidRenderer
   if (docs.size === 0) {
     return
   }
@@ -512,14 +589,21 @@ async function renderDocs(
       )
     }
     const markdown = await fs.readFile(sourcePath, 'utf8')
-    const rawBody = await marked.parse(markdown)
+    /* Parse the markdown through marked's tokenizer so we can
+     * intercept fenced `mermaid` blocks and swap in pre-rendered
+     * SVG before the HTML is assembled. Falls back to plain
+     * marked.parse when no renderer is available (e.g. in tests
+     * that don't need diagram support). */
+    const withDiagrams = mermaidRenderer
+      ? await processMermaidTokens(markdown, mermaidRenderer)
+      : await marked.parse(markdown)
     /* Italicize parenthetical asides inside prose. Walk only text
      * nodes inside <p>/<li>/<td>/<blockquote> — skip <code>, <pre>,
      * and their descendants so `function(x)` in a code block or a
      * URL's query string doesn't get treated as prose. Matches
      * (two-or-more-char parentheticals that aren't purely symbols)
      * and wraps them in <em>, leaving the parens visible. */
-    const italicized = italicizeParentheticals(rawBody)
+    const italicized = italicizeParentheticals(withDiagrams)
     /* Give every heading an id + a hover-visible `#` anchor link
      * so readers can deep-link any section of a doc. Same UX
      * pattern GitHub renders READMEs with. */
@@ -1117,8 +1201,46 @@ function buildCspMeta(root: HTMLElement, commentBackend: string): string {
     }
   }
 
+  /* Collect SHA-256 hashes of every inline `style="…"` attribute
+   * in the page (primarily Mermaid-emitted SVG styles) so CSP can
+   * allow them individually. Needs 'unsafe-hashes' alongside —
+   * per-style hashes are gated on that keyword per CSP3 spec. */
+  const inlineStyleAttrHashes = new Set<string>()
+  const collectInlineStyles = (node: HTMLElement): void => {
+    const style = node.getAttribute('style')
+    if (style) {
+      const hash = cryptoHash('sha256', style, 'base64')
+      inlineStyleAttrHashes.add(`'sha256-${hash}'`)
+    }
+    for (const child of node.childNodes) {
+      if ((child as HTMLElement).nodeType === 1) {
+        collectInlineStyles(child as HTMLElement)
+      }
+    }
+  }
+  collectInlineStyles(root)
+
+  /* Also hash <style>…</style> element contents (Mermaid SVGs
+   * inline a stylesheet block; CSP's style-src with 'self'
+   * doesn't cover inline element bodies). */
+  const inlineStyleElementHashes = new Set<string>()
+  for (const style of root.querySelectorAll('style')) {
+    const body = style.text
+    if (body) {
+      const hash = cryptoHash('sha256', body, 'base64')
+      inlineStyleElementHashes.add(`'sha256-${hash}'`)
+    }
+  }
+
   const scriptSources = ["'self'", ...inlineScriptHashes, ...cdnScriptHashes]
-  const styleSources = ["'self'", ...cdnStyleHashes]
+  const styleSources = [
+    "'self'",
+    ...cdnStyleHashes,
+    ...inlineStyleElementHashes,
+    ...(inlineStyleAttrHashes.size > 0
+      ? ["'unsafe-hashes'", ...inlineStyleAttrHashes]
+      : []),
+  ]
 
   const connectSources = ["'self'"]
   if (commentBackend) {
@@ -1524,7 +1646,24 @@ async function generate(
       partFilenames,
       configPath ? path.resolve(configPath) : '<config>',
     )
-    await renderDocs(docFilenames, slug, partFilenames, repoRoot, buildDir)
+    /* Build-time Mermaid renderer — one puppeteer browser shared
+     * across every diagram in every doc. Diagrams are hashed +
+     * cached under .cache/mermaid, so an unchanged diagram is a
+     * file read, not a browser round-trip. Close the browser in
+     * the finally block regardless of success so we never leak a
+     * Chromium process. */
+    const mermaidCacheDir = path.join(repoRoot, '.cache', 'mermaid')
+    const mermaidRenderer = await createMermaidRenderer({
+      repoRoot,
+      cacheDir: mermaidCacheDir,
+    })
+    try {
+      await renderDocs(docFilenames, slug, partFilenames, repoRoot, buildDir, {
+        mermaidRenderer,
+      })
+    } finally {
+      await mermaidRenderer.close()
+    }
     /* Count lines in each doc's source markdown, same as parts, so
      * the TOC's size-tier badge can show a meaningful estimate for
      * prose pages. Missing/unreadable files just drop out of the

@@ -195,7 +195,12 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--body);
-  font-family: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family:
+    'Geist',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
   font-size: 17px;
   line-height: 1.55;
   font-feature-settings: 'ss01', 'cv01';
@@ -386,8 +391,14 @@ html[data-theme='synthwave'] .topbar {
   /* Keep ligatures off so the hyphen in `packageurl-js` doesn't
    * collapse into a figure-dash or similar glyph. */
   font-variant-ligatures: none;
-  -webkit-font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
-  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+  -webkit-font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
+  font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
 }
 
 /* Descriptor — "override by Socket" as a trademark-style marker
@@ -432,7 +443,8 @@ html[data-theme='synthwave'] .topbar {
  * the rightmost slot on part pages. Keeps the bolt anchored to
  * the same spot your eye expects to find it when navigating
  * between home and a part. */
-.topbar-actions:not(:has(.wt-export-btn)):not(:has(.wt-unresolved-btn)) .theme-toggle-wrapper {
+.topbar-actions:not(:has(.wt-export-btn)):not(:has(.wt-unresolved-btn))
+  .theme-toggle-wrapper {
   margin-left: 68px;
 }
 
@@ -797,8 +809,14 @@ tbody td:first-child {
   border: 1px solid var(--border);
   color: var(--ink);
   font-variant-ligatures: none;
-  -webkit-font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
-  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+  -webkit-font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
+  font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
 }
 
 .wt-intro-pkg,
@@ -893,8 +911,14 @@ tbody td:first-child {
   border: 1px solid var(--border);
   color: var(--ink);
   font-variant-ligatures: none;
-  -webkit-font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
-  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+  -webkit-font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
+  font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
 }
 
 /* Badge cluster — sits in the right column of each TOC row. Two
@@ -1471,7 +1495,11 @@ body.col-resizing * {
   text-decoration: underline dashed;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--code-comment) 50%, transparent);
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--code-comment) 50%,
+    transparent
+  );
   transition:
     color var(--transition-fast),
     text-decoration-color var(--transition-fast);
@@ -1695,8 +1723,14 @@ body.col-resizing * {
   font-size: 13px;
   line-height: 1.55;
   font-variant-ligatures: none;
-  -webkit-font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
-  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+  -webkit-font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
+  font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
 }
 
 .doc-body pre code {
@@ -1744,8 +1778,14 @@ body.col-resizing * {
   border: 1px solid var(--border);
   color: var(--ink);
   font-variant-ligatures: none;
-  -webkit-font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
-  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+  -webkit-font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
+  font-feature-settings:
+    'liga' 0,
+    'clig' 0,
+    'calt' 0;
 }
 
 .doc-body table {
@@ -1774,6 +1814,26 @@ body.col-resizing * {
 
 .wt-heading-anchor:hover {
   color: var(--accent-fg);
+}
+
+/* Mermaid diagrams — rendered to SVG at build time by
+ * scripts/render-mermaid.mts (puppeteer + svgo), embedded inline.
+ * Center the figure in the doc column with comfortable whitespace
+ * above/below, and let the SVG size fluidly inside the column. */
+.wt-mermaid {
+  margin: 28px auto;
+  padding: 20px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  text-align: center;
+}
+
+.wt-mermaid svg {
+  max-width: 100%;
+  height: auto;
+  display: inline-block;
 }
 
 /* Repo tree — code blocks that draw a directory hierarchy with
@@ -2007,7 +2067,6 @@ body.col-resizing * {
   height: 100%;
 }
 
-
 .theme-menu-item[aria-checked='true'] .theme-menu-icon,
 .theme-menu-item:hover .theme-menu-icon {
   color: var(--ink);
@@ -2205,10 +2264,7 @@ html[data-theme='synthwave'].wt-theme-toggle-fired
   html[data-theme='synthwave'] .theme-icon-synthwave {
     animation: none;
   }
-  html[data-theme='synthwave']
-    .theme-toggle
-    .theme-icon-synthwave
-    .wt-spark {
+  html[data-theme='synthwave'] .theme-toggle .theme-icon-synthwave .wt-spark {
     animation: none;
   }
 }

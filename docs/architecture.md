@@ -84,58 +84,13 @@ src/
 
 ## Data flow — parsing a PURL string
 
-```
-"pkg:npm/@scope/left-pad@1.3.0?extension=tgz#lib"
-              │
-              ▼
-   ┌──────────────────────────┐
-   │  PackageURL.fromString()  │ or `new PackageURL(str)`
-   │        (decode.ts)       │
-   └───────┬──────────────────┘
-           │
-           ▼
-   ┌──────────────────────────┐
-   │  Lexer: split on /:/@?#  │
-   │  Fields extracted:       │
-   │    type = "npm"          │
-   │    namespace = "@scope"  │
-   │    name = "left-pad"     │
-   │    version = "1.3.0"     │
-   │    qualifiers = {        │
-   │      extension: "tgz"    │
-   │    }                     │
-   │    subpath = "lib"       │
-   └───────┬──────────────────┘
-           │
-           ▼
-   ┌──────────────────────────┐
-   │  Per-component processing │
-   │       (purl-component.ts) │
-   │                          │
-   │  Each field runs through: │
-   │    1. decode (%xx → char)│
-   │    2. normalize          │
-   │    3. validate (throw on │
-   │       invalid shape)     │
-   └───────┬──────────────────┘
-           │
-           ▼
-   ┌──────────────────────────┐
-   │  Per-type rules           │
-   │       (purl-type.ts +    │
-   │        purl-types/*.ts)  │
-   │                          │
-   │  Load rules for "npm":   │
-   │    - lowercase name      │
-   │    - namespace is scope  │
-   │    - validate npm rules  │
-   └───────┬──────────────────┘
-           │
-           ▼
-   ┌──────────────────────────┐
-   │  Frozen PackageURL       │
-   │  instance returned       │
-   └──────────────────────────┘
+```mermaid
+flowchart TD
+    A["pkg:npm/@scope/left-pad@1.3.0?extension=tgz#lib"] --> B["PackageURL.fromString()<br/>(decode.ts)"]
+    B --> C["Lexer: split on / : @ ? #<br/>type = npm<br/>namespace = @scope<br/>name = left-pad<br/>version = 1.3.0<br/>qualifiers = { extension: tgz }<br/>subpath = lib"]
+    C --> D["Per-component processing<br/>(purl-component.ts)<br/>1. decode (%xx → char)<br/>2. normalize<br/>3. validate"]
+    D --> E["Per-type rules<br/>(purl-type.ts + purl-types/*.ts)<br/>lowercase name, namespace = scope,<br/>validate npm rules"]
+    E --> F["Frozen PackageURL<br/>instance returned"]
 ```
 
 Parsing throws `PurlError` on malformed input (missing required
@@ -175,28 +130,11 @@ PackageURL.builder()
 
 Both paths converge:
 
-```
- (type, namespace, name, version, qualifiers, subpath)
-              │
-              ▼
-   ┌──────────────────────────┐
-   │  per-component           │
-   │  normalize + validate    │
-   └───────┬──────────────────┘
-           │
-           ▼
-   ┌──────────────────────────┐
-   │  per-type rule load       │
-   │  + any type-specific     │
-   │  adjustment (e.g. lower  │
-   │  name for npm, leave for │
-   │  maven)                  │
-   └───────┬──────────────────┘
-           │
-           ▼
-   ┌──────────────────────────┐
-   │  Frozen PackageURL       │
-   └──────────────────────────┘
+```mermaid
+flowchart TD
+    A["(type, namespace, name, version, qualifiers, subpath)"] --> B["per-component<br/>normalize + validate"]
+    B --> C["per-type rule load<br/>+ any type-specific adjustment<br/>(e.g. lower name for npm,<br/>leave for maven)"]
+    C --> D["Frozen PackageURL"]
 ```
 
 ## Core abstractions

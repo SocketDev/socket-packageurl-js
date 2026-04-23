@@ -26,18 +26,18 @@ minifies everything.
 Meander and this repo disagree a little on what to call things, and
 that is visible if you grep the tree. Here is the rule:
 
-| Concept                       | Name                      | Why                                                    |
-| ----------------------------- | ------------------------- | ------------------------------------------------------ |
-| This build/system/brand       | **tour**                  | Short, speakable, the public name                      |
-| The config manifest           | `tour.json`               | Matches brand                                          |
-| The main build script         | `scripts/tour.mts`        | Matches brand                                          |
-| The `pnpm` commands           | `pnpm tour:*`             | Matches brand                                          |
-| The final output directory    | `pages/`                  | The finished site, ready to deploy                     |
-| The generator submodule       | `upstream/meander/`       | That is the upstream project name                      |
-| The meander-emitted CSS       | `walkthrough.css`         | Meander hardcodes the filename; we rename to style.css |
-| The meander-emitted parts     | `walkthrough-part-N.html` | Meander hardcodes; we rename in post-process           |
-| Our CSS/JS shims at repo root | `overrides.css`, `drag.js`, `comments.js`, `sw.js` | Sources copied into the output |
-| Our CSS class prefix          | `wt-*`                    | Backronym: "walking tour"                              |
+| Concept                       | Name                                               | Why                                                    |
+| ----------------------------- | -------------------------------------------------- | ------------------------------------------------------ |
+| This build/system/brand       | **tour**                                           | Short, speakable, the public name                      |
+| The config manifest           | `tour.json`                                        | Matches brand                                          |
+| The main build script         | `scripts/tour.mts`                                 | Matches brand                                          |
+| The `pnpm` commands           | `pnpm tour:*`                                      | Matches brand                                          |
+| The final output directory    | `pages/`                                           | The finished site, ready to deploy                     |
+| The generator submodule       | `upstream/meander/`                                | That is the upstream project name                      |
+| The meander-emitted CSS       | `walkthrough.css`                                  | Meander hardcodes the filename; we rename to style.css |
+| The meander-emitted parts     | `walkthrough-part-N.html`                          | Meander hardcodes; we rename in post-process           |
+| Our CSS/JS shims at repo root | `overrides.css`, `drag.js`, `comments.js`, `sw.js` | Sources copied into the output                         |
+| Our CSS class prefix          | `wt-*`                                             | Backronym: "walking tour"                              |
 
 > **Why the build happens in a scratch dir, not in `pages/`:** Meander
 > writes into `<cwd>/walkthrough/` — a fixed name inside the submodule.

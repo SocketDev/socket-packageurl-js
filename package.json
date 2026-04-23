@@ -89,12 +89,15 @@
     "lightningcss": "1.32.0",
     "magic-string": "0.30.21",
     "marked": "18.0.0",
+    "mermaid": "11.14.0",
     "nock": "14.0.10",
     "node-html-parser": "7.1.0",
     "oxfmt": "0.37.0",
     "oxlint": "1.52.0",
     "pacote": "21.0.1",
+    "puppeteer": "24.41.0",
     "semver": "7.7.2",
+    "svgo": "4.0.1",
     "taze": "19.9.2",
     "type-coverage": "2.29.7",
     "typescript": "5.9.2",
@@ -119,5 +122,10 @@
     "ignore-type-assertion": true,
     "ignore-files": "test/*",
     "strict": true
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "puppeteer"
+    ]
   }
 }
