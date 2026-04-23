@@ -1682,8 +1682,15 @@ body.col-resizing * {
   padding: 24px 0 64px;
 }
 
+/* Match the TOC row title style so a doc's own heading reads
+ * at the same typographic weight as its pill on the home page.
+ * Was 22px/bold (the global h1); now 18px/semibold matching
+ * .wt-contents-title. */
 .doc-body h1 {
-  margin: 0 0 32px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 24px;
 }
 
 .doc-body h2 {

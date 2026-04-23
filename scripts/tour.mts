@@ -25,6 +25,7 @@ import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'
 import { marked } from 'marked'
 import { HTMLElement, parse as parseHtml } from 'node-html-parser'
+import { optimize as svgoOptimize } from 'svgo'
 
 import { auditCdnScripts, auditValDeps } from './audit-deps.mts'
 import {
@@ -2354,6 +2355,7 @@ async function generate(
 
     if (minify) {
       await minifyEmittedAssets(buildDir)
+      await shrinkInlineSvgs(buildDir)
     }
 
     // Subresource Integrity pass — runs LAST so the local-file hashes
@@ -2431,6 +2433,87 @@ async function generate(
  * No sourcemaps — the user opted out explicitly. Authored files live
  * at the repo root unchanged; this only touches the emitted copies.
  */
+/**
+ * Pass every inline `<svg>` in every emitted HTML file through
+ * SVGO. Scope: handwritten chrome SVGs (home icon, theme icons,
+ * footer bolt + sparks) + anything else that landed inline.
+ * Mermaid-rendered SVGs already went through SVGO during their
+ * render() path, but re-running preset-default here is a no-op
+ * or near-no-op on already-optimized markup — safe to blanket.
+ *
+ * Only runs under the minify flag so dev builds stay readable
+ * (authored SVG source in drag.js / tour.mts stays intact; just
+ * the emitted .html copies get shrunk).
+ */
+async function shrinkInlineSvgs(buildDir: string): Promise<void> {
+  const htmlFiles = (await fs.readdir(buildDir)).filter(e =>
+    e.endsWith('.html'),
+  )
+  /* SVGO v4 moved removeViewBox out of preset-default — override
+   * the three plugins we want disabled inside preset-default's
+   * overrides, leave removeViewBox off entirely (it's no longer
+   * in preset-default so nothing to disable). */
+  const config = {
+    multipass: true,
+    plugins: [
+      {
+        name: 'preset-default',
+        params: {
+          overrides: {
+            /* Keep IDs — edge-to-node links in mermaid SVGs and
+             * aria-labelledby refs in hand-written chrome icons. */
+            cleanupIds: false,
+            /* Mermaid emits attributes SVGO's default list
+             * considers redundant but browsers read (various
+             * preserveAspectRatio forms). */
+            removeUnknownsAndDefaults: false,
+          },
+        },
+      },
+    ],
+  } as const
+  await Promise.all(
+    htmlFiles.map(async name => {
+      const p = path.join(buildDir, name)
+      const source = await fs.readFile(p, 'utf8')
+      if (!source.includes('<svg')) {
+        return
+      }
+      /* Walk the DOM via node-html-parser instead of a regex —
+       * nested <svg> elements, attributes with > inside quoted
+       * values, and SVGs with children containing </svg>-looking
+       * text would all confuse a regex. The parser handles those
+       * correctly and returns us the exact subtree to pass to
+       * SVGO. */
+      const root = parseHtml(source)
+      const svgs = root.querySelectorAll('svg')
+      if (svgs.length === 0) {
+        return
+      }
+      let changed = false
+      for (const svg of svgs) {
+        const before = svg.toString()
+        let after: string
+        try {
+          after = svgoOptimize(before, config).data
+        } catch {
+          /* One malformed SVG shouldn't fail the whole pass;
+           * keep the un-optimized original if SVGO chokes on it. */
+          continue
+        }
+        if (after && after !== before) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ;(svg as any).replaceWith(after)
+          changed = true
+        }
+      }
+      if (changed) {
+        await fs.writeFile(p, root.toString())
+      }
+    }),
+  )
+}
+
 async function minifyEmittedAssets(buildDir: string): Promise<void> {
   const jsFiles = ['comments.js', 'drag.js', 'sw.js']
   const cssFiles = ['style.css']

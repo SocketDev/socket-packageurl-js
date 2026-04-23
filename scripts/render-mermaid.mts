@@ -39,13 +39,14 @@ export type MermaidRenderer = {
   close: () => Promise<void>
 }
 
-/* SVGO config — preset-default with three overrides disabled:
+/* SVGO config — preset-default with two overrides disabled:
  *   - cleanupIds: mermaid uses IDs for edge-to-node linking, so
  *     collapsing them breaks arrow rendering.
- *   - removeViewBox: we need viewBox for responsive sizing in CSS.
  *   - removeUnknownsAndDefaults: mermaid emits attrs the default
  *     list wants to strip (preserveAspectRatio variants) that
- *     browsers actually use. */
+ *     browsers actually use.
+ * removeViewBox was moved out of preset-default in SVGO v4, so
+ * there's nothing to toggle there; viewBox survives by default. */
 const svgoConfig = {
   multipass: true,
   plugins: [
@@ -54,7 +55,6 @@ const svgoConfig = {
       params: {
         overrides: {
           cleanupIds: false,
-          removeViewBox: false,
           removeUnknownsAndDefaults: false,
         },
       },
