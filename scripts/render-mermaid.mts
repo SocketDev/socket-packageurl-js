@@ -202,8 +202,17 @@ export async function createMermaidRenderer(
             startOnLoad: false,
             theme: themeArg,
             securityLevel: 'strict',
+            /* htmlLabels MUST be at the top level here — as of
+             * mermaid 11.12.3 (PR #6995), the nested
+             * flowchart.htmlLabels key is deprecated and silently
+             * ignored when a root-level htmlLabels is present, OR
+             * when the flowchart renderer decides to use HTML
+             * anyway. Setting it at the top level is the
+             * documented escape from foreignObject rendering,
+             * which in 11.x has a known label-clipping bug
+             * (#5785 — max-width:200px on foreignObject divs). */
+            htmlLabels: false,
             flowchart: {
-              htmlLabels: false,
               curve: 'basis',
               useMaxWidth: false,
               nodeSpacing: 80,
@@ -232,10 +241,88 @@ export async function createMermaidRenderer(
         source,
         theme,
       )
-      /* Ship the raw mermaid SVG verbatim — no regex font rewrites,
-       * no SVGO pass. Any post-processing we do on the string risks
-       * desyncing the text positions from the node box rectangles
-       * mermaid measured at render time. */
+      /* Grab the final SVG after mermaid has finished layout.
+       * Then: use page.evaluate to re-measure every foreignObject's
+       * inner content box and resize the foreignObject + its parent
+       * node rect to fit. Mermaid 11 sometimes ignores
+       * htmlLabels:false and emits foreignObjects whose
+       * max-width/width doesn't match the rendered text, causing
+       * the clipping we were chasing. Measuring the live DOM and
+       * patching attributes on the SVG elements fixes it at the
+       * source — before serialization. */
+      await page.evaluate(() => {
+        const svg = document.querySelector('#out svg') as SVGSVGElement | null
+        if (!svg) {
+          return
+        }
+        /* Walk every foreignObject under a <g class="label"> — mermaid's
+         * text container. Measure the inner <div>'s scrollWidth /
+         * scrollHeight (true content size even when CSS clips it)
+         * and bump the foreignObject's width/height if the content
+         * overflows. Also bump the parent node's <rect> so the
+         * label stays inside the drawn box. */
+        const labels = svg.querySelectorAll(
+          'g.label > foreignObject',
+        ) as NodeListOf<SVGForeignObjectElement>
+        for (const fo of Array.from(labels)) {
+          const div = fo.querySelector(':scope > div') as HTMLElement | null
+          if (!div) {
+            continue
+          }
+          // Kill the max-width + width CSS mermaid applied so the
+          // browser can give us a true natural width.
+          div.style.maxWidth = 'none'
+          div.style.width = 'auto'
+          div.style.whiteSpace = 'nowrap'
+          div.style.display = 'inline-block'
+          const rect = div.getBoundingClientRect()
+          const naturalW = Math.ceil(rect.width)
+          const naturalH = Math.ceil(rect.height)
+          const currentW = Number(fo.getAttribute('width') ?? '0')
+          const currentH = Number(fo.getAttribute('height') ?? '0')
+          if (naturalW > currentW || naturalH > currentH) {
+            fo.setAttribute('width', String(naturalW))
+            fo.setAttribute('height', String(naturalH))
+            /* Recenter the label group — mermaid placed the <g>
+             * assuming the old width. Pull it left by half the
+             * width delta so the wider text stays centered inside
+             * the rect. */
+            const parent = fo.parentElement as SVGGElement | null
+            if (parent) {
+              const xform = parent.getAttribute('transform') ?? ''
+              const match = /translate\(([-\d.]+),\s*([-\d.]+)\)/.exec(xform)
+              if (match) {
+                const oldX = parseFloat(match[1]!)
+                const oldY = parseFloat(match[2]!)
+                const newX = oldX - (naturalW - currentW) / 2
+                const newY = oldY - (naturalH - currentH) / 2
+                parent.setAttribute('transform', `translate(${newX}, ${newY})`)
+              }
+            }
+            /* Also widen the enclosing node rect if needed. The
+             * rect has x="-w/2" width="w" convention in mermaid. */
+            const nodeG = fo.closest('g.node') as SVGGElement | null
+            const nodeRect = nodeG?.querySelector(
+              ':scope > rect.label-container',
+            ) as SVGRectElement | null
+            if (nodeRect) {
+              const rw = Number(nodeRect.getAttribute('width') ?? '0')
+              const rh = Number(nodeRect.getAttribute('height') ?? '0')
+              const labelPadding = 40
+              if (naturalW + labelPadding > rw) {
+                const newW = naturalW + labelPadding
+                nodeRect.setAttribute('width', String(newW))
+                nodeRect.setAttribute('x', String(-newW / 2))
+              }
+              if (naturalH + labelPadding > rh) {
+                const newH = naturalH + labelPadding
+                nodeRect.setAttribute('height', String(newH))
+                nodeRect.setAttribute('y', String(-newH / 2))
+              }
+            }
+          }
+        }
+      })
       const normalizedSvg = (await page.$eval(
         '#out svg',
         el => el.outerHTML,
