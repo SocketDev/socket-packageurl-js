@@ -930,7 +930,13 @@ async function renderDocs(
        * `.wt-repo-tree` exclusion is redundant now but kept as a
        * belt-and-suspenders guard for any future block that
        * happens to land with a language class. */
+      /* highlight.min.js ships the "common" bundle — includes JS,
+       * bash, shell, json, xml, etc. — but NOT typescript. Load
+       * the typescript language pack as a separate deferred
+       * script; deferred scripts execute in document order so by
+       * the time the init runs, both the core + TS are ready. */
       `  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/highlight.min.js" defer></script>\n` +
+      `  <script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/languages/typescript.min.js" defer></script>\n` +
       `  <script defer>document.querySelectorAll('pre:not(.wt-repo-tree) code[class*="language-"]').forEach(b => window.hljs && window.hljs.highlightElement(b))</script>\n` +
       `</body>\n` +
       `</html>\n`
