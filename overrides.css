@@ -485,22 +485,12 @@ main.files-stack {
   padding-right: 40px;
 }
 
-/* Initial paint strategy: the prose column, topbar, TOC, and
- * footer show as soon as the CSS lands. Only the code sections
- * wait for wt-ready (which drag.js sets after highlight.js has
- * run on the first .line-code code block). This keeps LCP fast
- * — the first paragraph of a part page's prose is visible in
- * the initial paint, not held behind syntax highlighting. The
- * fade-in is a gentle reveal to cover the "unhighlighted → hljs
- * tokens" flip without flashing raw text. */
-.code-section {
-  opacity: 0;
-  transition: opacity 160ms ease;
-}
-
-body.wt-ready .code-section {
-  opacity: 1;
-}
+/* Code sections paint immediately — no opacity gate, no
+ * wait-for-hljs fade-in. Since hljs now only touches blocks
+ * with an explicit `language-*` class (and ours all do) and the
+ * script is `defer`-loaded, the unhighlighted-to-tokenized
+ * flip happens within ~10ms of first paint. Hiding + fading in
+ * was hurting LCP for no real visual payoff. */
 
 /* ── 5. Buttons, pills, keycaps ──────────────────────────────────── */
 

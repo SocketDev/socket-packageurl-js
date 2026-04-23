@@ -891,12 +891,12 @@
     applySplit(storedSplit)
   }
 
-  // Wait for highlight.js to finish painting at least one code block
-  // before allowing the content-reveal class to land. Prevents the
-  // "plain pre → highlighted pre" flash when the CDN is slow. Resolves
-  // immediately if there are no code blocks on the page (documents
-  // tab) or if hljs has already run. 1.5s cap so slow CDNs don't
-  // stall the reveal indefinitely.
+  /* Wait until highlight.js has run on the first code block so
+   * installSourceLinks can operate on the final token tree —
+   * hljs splits text nodes, so any <a> we wrap before it runs
+   * would be blown away. Resolves immediately if there are no
+   * code blocks (doc pages) or hljs already ran. 1.5s cap so a
+   * slow CDN doesn't stall link installation forever. */
   const waitForHljs = () =>
     new Promise(resolve => {
       const codes = document.querySelectorAll('.line-code code')
@@ -923,17 +923,9 @@
     installSectionTracking()
     installSectionsMenuScrollSync()
     await waitForHljs()
-    // Source links must run AFTER hljs so we operate on the final
-    // span tree — otherwise text nodes get split by hljs and our
-    // <a> wraps would be blown away on highlight.
+    // Source links run AFTER hljs — wrapping before would lose
+    // our <a>s the moment hljs re-tokenizes the text nodes.
     installSourceLinks()
-    // Fallback reveal for pages with no comment shim (documents, or
-    // tours with no commentBackend). When the shim IS present,
-    // its init sets wt-ready after its async health probe. Both
-    // paths are idempotent.
-    if (!document.querySelector('script[src*="comments.js"]')) {
-      document.body.classList.add('wt-ready')
-    }
   }
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', ready)
