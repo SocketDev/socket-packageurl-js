@@ -576,6 +576,33 @@ body.wt-ready .code-section {
   margin-left: 8px;
 }
 
+/* Doc pills in the unified Topics row. Same shape and tone as
+ * numbered part pills (one word each) so the row reads as a
+ * continuous sequence: "Anatomy Building … VERS Architecture
+ * Builders …". Slightly tighter padding than the number pills
+ * since word labels carry their own width. */
+.wt-topic-doc {
+  padding: 0 8px;
+}
+
+.wt-topic-doc:first-of-type {
+  margin-left: 10px;
+  position: relative;
+}
+
+/* Hair-thin vertical divider before the first doc pill — reads
+ * as a section break between "Parts 1-8" and the named doc
+ * articles without taking up real estate. */
+.wt-topic-doc:first-of-type::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: var(--border);
+}
+
 /* Generic button — used by doc pages and any future CTA surface.
  * Black pill with white text, primary-CTA style like
  * `bun i @pierre/diffs`. */
@@ -1646,31 +1673,121 @@ body.col-resizing * {
   color: var(--body);
 }
 
+/* Code blocks in doc pages share the same dark-panel tone as the
+ * part pages' .code-section containers: rounded, bordered, and
+ * using the site's --code-bg / --code-fg tokens. Same font and
+ * line-height too so a reader switching between a part page and
+ * a doc feels like they're reading the same codebase. */
+/* Doc-page code blocks: font, size, line-height, and padding
+ * identical to the part pages' .code-table rows (see
+ * .code-table / .code-table .line-code above) so a reader
+ * switching between vers.html and part/1 sees the same text
+ * density. */
 .doc-body pre {
   background: var(--code-bg);
   color: var(--code-fg);
-  padding: 20px 24px;
+  padding: 16px 18px;
   border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
   overflow-x: auto;
-  margin: 24px 0;
+  margin: 20px 0;
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   font-size: 13px;
   line-height: 1.55;
+  font-variant-ligatures: none;
+  -webkit-font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
 }
 
 .doc-body pre code {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
   color: inherit;
   background: transparent;
   border: none;
   padding: 0;
+  display: block;
 }
 
-.doc-body code {
-  font-size: 0.9em;
+/* Tame highlight.js's color shifts for unlanguaged code inside
+ * docs — when the block has no `language-*` class, hljs often
+ * paints heuristic classes (hljs-string, hljs-number, etc.) that
+ * misalign with the prose tone. Keep tokens legible but pull
+ * them toward the code-fg baseline so the block reads as one
+ * consistent block of text, not a rainbow. */
+.doc-body pre code:not([class*='language-']) .hljs-string,
+.doc-body pre code:not([class*='language-']) .hljs-number,
+.doc-body pre code:not([class*='language-']) .hljs-literal,
+.doc-body pre code:not([class*='language-']) .hljs-built_in,
+.doc-body pre code:not([class*='language-']) .hljs-variable,
+.doc-body pre code:not([class*='language-']) .hljs-name {
+  color: inherit;
+}
+
+/* Inline code — same shape as the TOC summary inline code + the
+ * intro-line `@socketregistry/packageurl-js` chip. Keeps a single
+ * visual for "code inside prose" across every surface. */
+.doc-body p code,
+.doc-body li code,
+.doc-body td code,
+.doc-body h1 code,
+.doc-body h2 code,
+.doc-body h3 code,
+.doc-body h4 code,
+.doc-body blockquote code {
+  font-family: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.88em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-tint);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  font-variant-ligatures: none;
+  -webkit-font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
+  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0;
 }
 
 .doc-body table {
   margin: 24px 0;
   font-size: 14px;
+}
+
+/* Heading anchors — invisible at rest, fade in on hover over the
+ * heading so readers can copy a permalink without the chrome
+ * cluttering the text rhythm. */
+.wt-heading-anchor {
+  margin-left: 0.4em;
+  color: var(--muted);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  font-weight: 400;
+}
+
+.doc-body h2:hover .wt-heading-anchor,
+.doc-body h3:hover .wt-heading-anchor,
+.doc-body h4:hover .wt-heading-anchor,
+.wt-heading-anchor:focus-visible {
+  opacity: 1;
+}
+
+.wt-heading-anchor:hover {
+  color: var(--accent-fg);
+}
+
+/* Repo tree — code blocks that draw a directory hierarchy with
+ * box-drawing characters. Tightened line-height for a more
+ * tree-like density, no hljs coloring (the nohighlight class
+ * tells hljs to skip). The block stays copy-paste friendly as
+ * plain ASCII text. */
+.doc-body pre.wt-repo-tree {
+  line-height: 1.5;
+  padding: 18px 22px;
+}
+
+.doc-body pre.wt-repo-tree code {
+  color: var(--code-fg);
 }
 
 .doc-body img {

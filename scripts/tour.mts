@@ -121,6 +121,168 @@ function escapeHtml(s: string): string {
     .replaceAll("'", '&#39;')
 }
 
+/**
+ * Mark ASCII repo-tree code blocks (ones that draw a directory
+ * hierarchy with `├──`, `└──`, `│`) so CSS can style them
+ * differently from regular code — dim the drawing glyphs, lift
+ * the trailing annotation column, disable hljs auto-highlight.
+ * The block stays as real text; we just add a class hook.
+ */
+function enhanceRepoTrees(html: string): string {
+  const root = parseHtml(html)
+  const preBlocks = root.querySelectorAll('pre')
+  for (const pre of preBlocks) {
+    const text = pre.text
+    if (!/[├└│]/.test(text)) {
+      continue
+    }
+    const existingClass = pre.getAttribute('class') ?? ''
+    pre.setAttribute('class', `${existingClass} wt-repo-tree`.trim())
+    for (const code of pre.querySelectorAll('code')) {
+      const cc = code.getAttribute('class') ?? ''
+      // nohighlight tells hljs to skip this block so the drawing
+      // glyphs don't get painted as random tokens.
+      code.setAttribute('class', `${cc} nohighlight`.trim())
+    }
+  }
+  return root.toString()
+}
+
+/**
+ * Give every heading (h2-h4) in rendered doc HTML an `id` slug
+ * + a trailing `<a class="wt-heading-anchor">#</a>`. Readers
+ * can click the # to copy a permalink to the section. h1 is
+ * skipped — it's the page title and already has the URL itself.
+ *
+ * Slug derivation: lowercase, strip punctuation other than
+ * letters / numbers / whitespace, collapse whitespace to `-`.
+ * Collisions within a doc get a `-2`, `-3`, … suffix.
+ */
+function anchorifyHeadings(html: string): string {
+  const root = parseHtml(html)
+  const used = new Set<string>()
+  const headings = root.querySelectorAll('h2, h3, h4')
+  for (const h of headings) {
+    if (h.getAttribute('id')) {
+      continue
+    }
+    const text = h.text.trim()
+    if (!text) {
+      continue
+    }
+    const baseSlug = text
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}\s-]+/gu, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+    if (!baseSlug) {
+      continue
+    }
+    let slug = baseSlug
+    let n = 2
+    while (used.has(slug)) {
+      slug = `${baseSlug}-${n++}`
+    }
+    used.add(slug)
+    h.setAttribute('id', slug)
+    h.insertAdjacentHTML(
+      'beforeend',
+      ` <a class="wt-heading-anchor" href="#${slug}" aria-label="Permalink to this section">#</a>`,
+    )
+  }
+  return root.toString()
+}
+
+/**
+ * Wrap parenthetical asides in prose with <em> so "(extra info)"
+ * reads as a quiet aside rather than inline copy. Only touches
+ * text inside paragraphs, list items, table cells, and
+ * blockquotes — <code>, <pre>, headings, and their descendants
+ * are left alone, so `function(x)`, URLs with `?q=1`, and code
+ * annotations stay untouched.
+ *
+ * The regex matches `(…)` when the contents are at least 2 chars
+ * and contain no parens/tags/quotes, so nested or complex
+ * expressions fall through without being mangled.
+ */
+function italicizeParentheticals(html: string): string {
+  const root = parseHtml(html)
+  const allowed = new Set(['P', 'LI', 'TD', 'TH', 'BLOCKQUOTE', 'DD', 'DT'])
+  const walk = (node: HTMLElement): void => {
+    const tag = node.tagName
+    if (
+      tag === 'CODE' ||
+      tag === 'PRE' ||
+      tag === 'KBD' ||
+      tag === 'SAMP' ||
+      tag === 'A'
+    ) {
+      return
+    }
+    // eslint-disable-next-line unicorn/no-useless-spread
+    for (const child of [...node.childNodes]) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const any = child as any
+      if (any.nodeType === 3) {
+        if (!allowed.has(tag)) {
+          continue
+        }
+        const text: string = any.rawText ?? ''
+        if (!/\([^()<>"'`]{2,}\)/.test(text)) {
+          continue
+        }
+        const rewritten = text.replace(
+          /\(([^()<>"'`]{2,})\)/g,
+          (_, inner) => `(<em>${inner}</em>)`,
+        )
+        if (rewritten !== text) {
+          any.rawText = rewritten
+        }
+      } else if (any.nodeType === 1) {
+        walk(any as HTMLElement)
+      }
+    }
+  }
+  walk(root as HTMLElement)
+  return root.toString()
+}
+
+/**
+ * First "significant" word of a title — the first token that
+ * isn't an article / stopword. Used to label a topic pill with
+ * one word when the full title is too long:
+ *   "Anatomy of a PURL"              → "Anatomy"
+ *   "Building & Stringifying PURLs"  → "Building"
+ *   "Security Primitives & VERS"     → "Security"
+ * Ampersands stay intact inside multi-word first tokens but
+ * aren't counted as their own word.
+ */
+function firstSignificantWord(title: string): string {
+  const stop = new Set([
+    'a',
+    'an',
+    'the',
+    'and',
+    'or',
+    'of',
+    'for',
+    'to',
+    'in',
+    'on',
+    'with',
+    '&',
+  ])
+  const words = title.split(/\s+/)
+  for (const w of words) {
+    const cleaned = w.replace(/[,:;.!?]+$/, '')
+    if (cleaned && !stop.has(cleaned.toLowerCase())) {
+      return cleaned
+    }
+  }
+  return words[0] ?? title
+}
+
 type DocEntry = {
   filename: string
   title: string
@@ -255,10 +417,17 @@ const buildHomeLinkHtml = (active: boolean): string =>
   `<a class="wt-home-link${active ? ' active' : ''}" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"${active ? ' aria-current="page"' : ''}>${HOME_ICON_SVG}</a>`
 
 /**
- * Render the "[home] Parts: 1 2 3 … 8" pill row. Same HTML shape
- * meander emits for its own part-nav — classes and hrefs match so
- * the CSS + post-process pill-enrichment paths in this file apply
- * uniformly.
+ * Render the "[home] Topics: 1 2 3 … 8 Architecture Builders …"
+ * pill row. Same HTML shape meander emits for its own part-nav —
+ * classes and hrefs match so the CSS + post-process pill-enrichment
+ * paths in this file apply uniformly.
+ *
+ * Numbered Part pills come first (reading order across the tour),
+ * then doc pills (supporting articles — architecture, contributing,
+ * etc.). Matches the unified "Topics" TOC on the index, so there's
+ * exactly one vocabulary across the site: every page is a "topic,"
+ * some are code walkthroughs (numbered parts) and some are articles
+ * (named docs).
  *
  * The home icon is ALWAYS rendered so the nav layout stays identical
  * between the index and part pages (no visual jump when navigating
@@ -270,13 +439,24 @@ function renderPartsPillRow(
   slug: string,
   partFilenames: ReadonlyMap<number, string>,
   homeActive: boolean = false,
+  docs?: ReadonlyMap<string, DocEntry>,
+  activeDocFilename?: string,
 ): string {
   const ids = [...partFilenames.keys()].sort((a, b) => a - b)
-  const pills = ids
+  const partPills = ids
     .map(id => `<a href="/${slug}/part/${id}">Part ${id}</a>`)
     .join('\n      ')
+  const docPills = docs
+    ? [...docs.values()]
+        .map(d => {
+          const activeCls = d.filename === activeDocFilename ? ' active' : ''
+          return `<a class="wt-topic-doc${activeCls}" href="/${d.filename}.html" title="${escapeHtml(d.title)}" aria-label="${escapeHtml(d.title)}">${escapeHtml(d.title)}</a>`
+        })
+        .join('\n      ')
+    : ''
+  const pills = docPills ? `${partPills}\n      ${docPills}` : partPills
   return (
-    `    <div class="part-nav">${buildHomeLinkHtml(homeActive)}<span class="wt-parts-label">Parts:</span>\n` +
+    `    <div class="part-nav">${buildHomeLinkHtml(homeActive)}<span class="wt-parts-label">Topics:</span>\n` +
     `      ${pills}\n` +
     `    </div>`
   )
@@ -324,10 +504,6 @@ async function renderDocs(
 
   const entries = [...docs.values()]
 
-  // Precompute the two pill rows once per build — same bytes on every
-  // doc page except the "active" marker on the current Topics pill.
-  const partsRow = renderPartsPillRow(slug, partFilenames)
-
   const renderOne = async (doc: DocEntry): Promise<void> => {
     const sourcePath = path.join(repoRoot, doc.source)
     if (!existsSync(sourcePath)) {
@@ -336,8 +512,35 @@ async function renderDocs(
       )
     }
     const markdown = await fs.readFile(sourcePath, 'utf8')
-    const body = await marked.parse(markdown)
-    const topicsRow = renderTopicsPillRow(docs, doc.filename)
+    const rawBody = await marked.parse(markdown)
+    /* Italicize parenthetical asides inside prose. Walk only text
+     * nodes inside <p>/<li>/<td>/<blockquote> — skip <code>, <pre>,
+     * and their descendants so `function(x)` in a code block or a
+     * URL's query string doesn't get treated as prose. Matches
+     * (two-or-more-char parentheticals that aren't purely symbols)
+     * and wraps them in <em>, leaving the parens visible. */
+    const italicized = italicizeParentheticals(rawBody)
+    /* Give every heading an id + a hover-visible `#` anchor link
+     * so readers can deep-link any section of a doc. Same UX
+     * pattern GitHub renders READMEs with. */
+    const anchored = anchorifyHeadings(italicized)
+    /* Detect ASCII repo-tree code blocks (contain `├──` or `└──`)
+     * and mark them up so CSS can dim the drawing characters and
+     * lift the annotation column. Keeps the tree as real text
+     * (copyable, selectable) while looking less like a raw
+     * preformatted dump. */
+    const body = enhanceRepoTrees(anchored)
+    /* Unified Topics row — parts (numbered) + docs (named). The
+     * current doc gets `.active` so its pill reads as "you are
+     * here," matching the same treatment a current part pill
+     * gets on a part page. */
+    const partsRow = renderPartsPillRow(
+      slug,
+      partFilenames,
+      false,
+      docs,
+      doc.filename,
+    )
     const summaryLine = doc.summary
       ? `    <p>${escapeHtml(doc.summary)}</p>\n`
       : ''
@@ -361,7 +564,6 @@ async function renderDocs(
       `    <h1>${escapeHtml(doc.title)}</h1>\n` +
       summaryLine +
       `${partsRow}\n` +
-      `${topicsRow}\n` +
       `  </header>\n` +
       `\n` +
       `  <main class="doc-body">\n` +
@@ -638,9 +840,12 @@ async function rewriteIndexContents(
   // it spans the full width without competing with the wordmark.
   const indexTopbar = root.querySelector('.topbar')
   if (indexTopbar && !root.querySelector('.part-nav')) {
+    /* On the index, show the full unified Topics row (parts +
+     * docs), with the home icon active. No single doc is active
+     * since we're on home. */
     indexTopbar.insertAdjacentHTML(
       'afterend',
-      '\n' + renderPartsPillRow(slug, partFilenames, true),
+      '\n' + renderPartsPillRow(slug, partFilenames, true, docs),
     )
   }
 
@@ -1673,10 +1878,32 @@ async function generate(
         )
         const labelHtml = hasLabel
           ? ''
-          : '<span class="wt-parts-label">Parts:</span>'
+          : '<span class="wt-parts-label">Topics:</span>'
         reparentedPartNav.insertAdjacentHTML(
           'afterbegin',
           buildHomeLinkHtml(false) + labelHtml,
+        )
+      }
+
+      /* Append doc pills to the part-page nav so every page shares
+       * the same unified Topics row: [home] Topics: 1 2 3 … 8
+       * Architecture Builders … Idempotent via the per-doc href
+       * probe — skip any doc pill already present. */
+      if (
+        !isIndex &&
+        reparentedPartNav &&
+        docFilenames.size > 0 &&
+        !reparentedPartNav.querySelector('.wt-topic-doc')
+      ) {
+        const docPillsHtml = [...docFilenames.values()]
+          .map(
+            d =>
+              `<a class="wt-topic-doc" href="/${d.filename}.html" title="${escapeHtml(d.title)}" aria-label="${escapeHtml(d.title)}">${escapeHtml(d.title)}</a>`,
+          )
+          .join('\n      ')
+        reparentedPartNav.insertAdjacentHTML(
+          'beforeend',
+          `\n      ${docPillsHtml}\n    `,
         )
       }
 
@@ -1709,11 +1936,15 @@ async function generate(
           if (!title) {
             continue
           }
-          const count = partCounts.get(n)
-          const fullLabel = `Part ${n}: ${title}${count ? ` (${count} sections)` : ''}`
-          a.setAttribute('title', fullLabel)
-          a.setAttribute('aria-label', fullLabel)
-          a.set_content(String(n))
+          /* Pill text: first significant word of the title (e.g.
+           * "Anatomy of a PURL" → "Anatomy"). Keeps the row
+           * readable and consistent with the doc pills which also
+           * show word labels (Architecture, Builders, …).
+           * Tooltip + aria-label carry the full topic title for
+           * hover / screen-reader context. */
+          a.setAttribute('title', title)
+          a.setAttribute('aria-label', title)
+          a.set_content(escapeHtml(firstSignificantWord(title)))
         }
       }
 
