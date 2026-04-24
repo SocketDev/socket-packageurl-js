@@ -54,6 +54,12 @@ Everything else (prose, branding, commands, CLI help) says "tour".
 
 ## The ten-thousand-foot picture
 
+<!-- Box-drawing alignment note: every frame line below must
+     render at exactly 69 display cells. No emoji or CJK chars
+     (those are 2 cells wide in monospace). Verify widths with:
+       python3 -c "import unicodedata; [print(sum(2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in l.rstrip())) for l in open('docs/tour.md').readlines()[57:137]]"
+-->
+
 ```
  ┌──────────────────────────────────────────────────────────────────┐
  │  source inputs                                                   │
@@ -72,9 +78,9 @@ Everything else (prose, branding, commands, CLI help) says "tour".
          │                      │                         │
          ▼                      ▼                         ▼
  ┌──────────────────────────────────────────────────────────────────┐
- │  .tour-build-<uuid>/walkthrough/ (private scratch — cleaned      │
- │                                   up in a finally block)        │
- │    walkthrough-part-1.html          ◀── meander writes this      │
+ │  .tour-build-<uuid>/walkthrough/ (private scratch -- cleaned     │
+ │                                   up in a finally block)         │
+ │    walkthrough-part-1.html          <-- meander writes this      │
  │    walkthrough-part-2.html              shape; we rename below.  │
  │    ...                                                           │
  │    index.html                                                    │
@@ -89,17 +95,17 @@ Everything else (prose, branding, commands, CLI help) says "tour".
  │    1. Append Socket overrides to the emitted stylesheet          │
  │    2. Copy drag/comments/SW scripts                              │
  │    3. Copy favicons                                              │
- │    4. Render docs/*.md → <filename>.html  (marked)               │
+ │    4. Render docs/*.md -> <filename>.html  (marked)              │
  │    5. Inject Topics section into index.html                      │
  │    6. Per-HTML loop: chrome, home link, part-pill aria,          │
- │       base-path rewrite, rename walkthrough-part-N.html →        │
- │       <title-word>.html (anatomy.html, parsing.html, …)          │
+ │       base-path rewrite, rename walkthrough-part-N.html ->       │
+ │       <title-word>.html (anatomy.html, parsing.html, ...)        │
  │    7. CDN script malware audit (Socket SDK)                      │
- │    8. Rename walkthrough.css → style.css                         │
+ │    8. Rename walkthrough.css -> style.css                        │
  │    9. Minify style.css + shim JS                                 │
  │   10. SRI hash injection on every <script>/<link>                │
  │   11. CSP meta tag insertion                                     │
- │   12. Atomic swap: scratch/walkthrough/ → pages/                 │
+ │   12. Atomic swap: scratch/walkthrough/ -> pages/                │
  │                                                                  │
  └───────┬──────────────────────────────────────────────────────────┘
          │
@@ -123,7 +129,7 @@ Everything else (prose, branding, commands, CLI help) says "tour".
  │  .github/workflows/pages.yml                                     │
  │                                                                  │
  │    - checkout + submodule init + pnpm install                    │
- │    - pnpm tour:build (CI env → --prod preset)                    │
+ │    - pnpm tour:build (CI env -> --prod preset)                   │
  │    - upload pages/ as Pages artifact                             │
  │    - actions/deploy-pages                                        │
  │                                                                  │
@@ -132,7 +138,7 @@ Everything else (prose, branding, commands, CLI help) says "tour".
          ▼
  ┌──────────────────────────────────────────────────────────────────┐
  │  https://socketdev.github.io/socket-packageurl-js/               │
- │    /anatomy.html, /parsing.html, /tour.html, …                   │
+ │    /anatomy.html, /parsing.html, /tour.html, ...                 │
  └──────────────────────────────────────────────────────────────────┘
 ```
 

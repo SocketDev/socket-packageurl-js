@@ -22,6 +22,7 @@
   const BACKEND = (cfg.backend || '').replace(/\/+$/, '')
   const JWT_KEY = 'socket-pages:jwt'
   const EMAIL_KEY = 'socket-pages:email'
+  const COMPOSE_SIZE_KEY = 'socket-pages:compose-size'
 
   const slug = document.body.getAttribute('data-slug') || ''
   const partId = Number.parseInt(
@@ -731,6 +732,10 @@
           </label>
           <button type="submit" class="wt-primary">Verify</button>
           <button type="button" class="wt-secondary wt-cancel">Cancel</button>
+          <p class="wt-resend">
+            <button type="button" class="wt-resend-link" disabled>Resend code</button>
+            <span class="wt-resend-timer" aria-live="polite"></span>
+          </p>
           <p class="wt-error" aria-live="polite"></p>
         `
         // Set the email display via textContent, not string interp.
@@ -757,6 +762,66 @@
         form.querySelector('.wt-cancel').addEventListener('click', () => {
           close()
           resolve(false)
+        })
+
+        // Resend-code link with a 30s cooldown. Disabled + shows
+        // "(Xs)" until the timer hits 0, then becomes clickable.
+        // Clicking re-POSTs /auth/request for the pending email
+        // and restarts the cooldown. Inline status writes into
+        // `.wt-resend-timer` so assistive tech hears each
+        // transition (aria-live="polite"). Clean up the
+        // interval on close() so it doesn't fire after the
+        // dialog is gone.
+        const resendBtn = form.querySelector('.wt-resend-link')
+        const resendTimer = form.querySelector('.wt-resend-timer')
+        let cooldownSecs = 30
+        let resendInterval = null
+        const startCooldown = () => {
+          cooldownSecs = 30
+          resendBtn.disabled = true
+          resendTimer.textContent = `(${cooldownSecs}s)`
+          clearInterval(resendInterval)
+          resendInterval = setInterval(() => {
+            cooldownSecs -= 1
+            if (cooldownSecs <= 0) {
+              clearInterval(resendInterval)
+              resendInterval = null
+              resendBtn.disabled = false
+              resendTimer.textContent = ''
+              return
+            }
+            resendTimer.textContent = `(${cooldownSecs}s)`
+          }, 1000)
+        }
+        resendBtn.addEventListener('click', async () => {
+          if (resendBtn.disabled) {
+            return
+          }
+          resendBtn.disabled = true
+          resendTimer.textContent = 'sending…'
+          try {
+            const res = await api('/auth/request', {
+              method: 'POST',
+              body: JSON.stringify({ email: pendingEmail }),
+            })
+            if (!res.ok) {
+              throw new Error('Could not resend. Try again.')
+            }
+            startCooldown()
+          } catch (e) {
+            resendBtn.disabled = false
+            resendTimer.textContent = ''
+            errEl.innerHTML = ''
+            errEl.textContent = e?.message || 'Could not resend.'
+          }
+        })
+        // Arm the cooldown on first render so step 2 opens with
+        // the resend link disabled (the code was just sent).
+        startCooldown()
+        // Tear down the interval when the dialog closes (cancel
+        // button, outside-click, Escape) so timers don't leak.
+        overlay.addEventListener('close', () => clearInterval(resendInterval), {
+          once: true,
         })
       }
 
@@ -823,7 +888,18 @@
 
   const ensureAuth = async () => {
     if (state.jwt) {
-      return true
+      // Stored token may be stale (expired, revoked, backend
+      // reset its signing key). Verify before trusting it —
+      // without this, the UI silently accepts the stale token,
+      // later API calls 401, and the sign-in dialog never
+      // appears because `ensureAuth` already returned true.
+      // `silentCheck` hits /auth/check with a short timeout;
+      // on failure we drop the token, clear the email, and
+      // fall through to the sign-in flow.
+      if (await silentCheck()) {
+        return true
+      }
+      saveJwt(null, null)
     }
     return runAuthFlow()
   }
@@ -1074,17 +1150,48 @@
         return
       }
       case 'delete-comment': {
+        // Inline confirm UI — replace the .wt-actions row with
+        // a short Yes/No prompt. Native browser confirm()
+        // dialogs look out-of-place against the site chrome
+        // and steal focus. An inline prompt stays in the
+        // comment's own card, carries the site's colors, and
+        // is cancellable without hitting Escape on a modal.
         const id = actionEl.dataset.id
-        if (!confirm('Delete this comment?')) {
+        const card = actionEl.closest('.wt-comment')
+        const actions = card?.querySelector('.wt-actions')
+        if (!card || !actions) {
           return
         }
+        const confirmEl = document.createElement('div')
+        confirmEl.className = 'wt-confirm'
+        confirmEl.innerHTML = `
+          <span class="wt-confirm-msg">Delete this comment?</span>
+          <button type="button" class="wt-confirm-yes" data-action="delete-confirm" data-id="${esc(id)}">Delete</button>
+          <button type="button" class="wt-confirm-no" data-action="delete-cancel">Cancel</button>
+        `
+        actions.style.display = 'none'
+        card.appendChild(confirmEl)
+        confirmEl.querySelector('.wt-confirm-yes')?.focus()
+        return
+      }
+      case 'delete-cancel': {
+        const card = actionEl.closest('.wt-comment')
+        card?.querySelector('.wt-confirm')?.remove()
+        const actions = card?.querySelector('.wt-actions')
+        if (actions) {
+          actions.style.display = ''
+        }
+        return
+      }
+      case 'delete-confirm': {
+        const id = actionEl.dataset.id
         try {
           await apiJson(`/${slug}/api/comments/${id}`, { method: 'DELETE' })
           state.comments = state.comments.filter(x => x.id !== id)
           renderAll()
           refreshUnresolvedCount()
         } catch {
-          /* ignore */
+          /* ignore — the card just stays; user can retry */
         }
         return
       }
@@ -1125,8 +1232,11 @@
   // Draft auto-save keys. Scoped by file+line+parent so two composers
   // on different anchors keep separate drafts, and a reply draft
   // doesn't clobber a top-level draft on the same selection.
+  // Namespaced under `socket-pages:draft:` alongside theme / jwt /
+  // email / compose-size so every client-side pref shares one
+  // prefix (easy to audit / clear as a group).
   const draftKey = (file, lineFrom, lineTo, parentId) =>
-    `wt:draft:${slug}:${file}:${lineFrom}-${lineTo}:${parentId || 'root'}`
+    `socket-pages:draft:${slug}:${file}:${lineFrom}-${lineTo}:${parentId || 'root'}`
 
   // localStorage-backed draft store, gated by `navigator.locks` so
   // two tabs that open the same composer don't race each other
@@ -1182,12 +1292,29 @@
 
     const dialog = document.createElement('dialog')
     dialog.className = 'wt-comment-form'
+    // Restore the user's last-chosen compose-size preference.
+    // `compact` (default) = anchored to the selected lines,
+    // textarea sized for a quick note. `fill` = gmail-style
+    // full-area composer, roomy for longer drafts. Persisted
+    // to localStorage under the same `socket-pages:` namespace
+    // as theme / jwt / email so all client-side prefs sit on
+    // one prefix. Errors swallowed (private mode / quota).
+    try {
+      if (localStorage.getItem(COMPOSE_SIZE_KEY) === 'fill') {
+        dialog.classList.add('wt-comment-form-fill')
+      }
+    } catch {
+      /* localStorage unavailable — default to compact */
+    }
     const form = document.createElement('form')
     form.method = 'dialog'
     form.innerHTML = `
       <div class="wt-comment-header">
         <strong>${esc(file)}</strong>
         <span>Lines ${lineFrom}${lineTo !== lineFrom ? '–' + lineTo : ''}</span>
+        <button type="button" class="wt-comment-size-toggle"
+                aria-label="Toggle composer size"
+                title="Toggle composer size"></button>
       </div>
       <textarea class="wt-input wt-textarea" placeholder="Write a comment…" required maxlength="10000" enterkeyhint="send"></textarea>
       <div class="wt-row">
@@ -1198,6 +1325,34 @@
     `
     dialog.appendChild(form)
     document.body.appendChild(dialog)
+
+    // Size-toggle: flips between compact (anchored-to-code)
+    // and fill (gmail-style). Persists the user's choice so
+    // the next comment they write opens in the same mode.
+    const sizeToggle = dialog.querySelector('.wt-comment-size-toggle')
+    const updateToggleLabel = () => {
+      const isFill = dialog.classList.contains('wt-comment-form-fill')
+      sizeToggle.textContent = isFill ? '⤡' : '⤢'
+      sizeToggle.setAttribute(
+        'aria-label',
+        isFill ? 'Shrink composer' : 'Expand composer',
+      )
+      sizeToggle.setAttribute(
+        'title',
+        isFill ? 'Shrink composer' : 'Expand composer',
+      )
+    }
+    updateToggleLabel()
+    sizeToggle.addEventListener('click', () => {
+      dialog.classList.toggle('wt-comment-form-fill')
+      const isFill = dialog.classList.contains('wt-comment-form-fill')
+      try {
+        localStorage.setItem(COMPOSE_SIZE_KEY, isFill ? 'fill' : 'compact')
+      } catch {
+        /* best-effort persistence */
+      }
+      updateToggleLabel()
+    })
 
     const close = () => {
       if (dialog.open) {

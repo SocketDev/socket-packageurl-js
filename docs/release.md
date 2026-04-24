@@ -15,30 +15,37 @@ directly in this repo — the workflow does it on your behalf.
 
 Three things happen, in order:
 
+<!-- Box-drawing alignment note: every frame line below must
+     render at exactly 66 display cells. No emoji or CJK chars
+     (those are 2 cells wide in monospace). Box-drawing glyphs
+     (U+2500 range) and the ▼ arrow are 1 cell. Verify widths
+     after edits with:
+       python3 -c "import unicodedata; [print(sum(2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in l.rstrip())) for l in open('docs/release.md').readlines()[24:47]]" -->
+
 ```
  ┌───────────────────────────────────────────────────────────────┐
- │  1. bump version — local or via CI                             │
- │     • pnpm bump <patch|minor|major|prerelease>                 │
- │     • updates package.json + CHANGELOG                         │
- │     • commits the bump                                         │
- └───────────────────┬──────────────────────────────────────────┘
-                     │
-                     ▼
+ │  1. bump version - local or via CI                            │
+ │     - pnpm bump <patch|minor|major|prerelease>                │
+ │     - updates package.json + CHANGELOG                        │
+ │     - commits the bump                                        │
+ └───────────────────────────┬───────────────────────────────────┘
+                             │
+                             ▼
  ┌───────────────────────────────────────────────────────────────┐
- │  2. trigger the Publish workflow — manual dispatch             │
- │     GitHub → Actions → 📦 Publish → Run workflow               │
- │     Inputs:                                                    │
- │       • dist-tag (latest | next | beta | canary | …)           │
- │       • debug (0 | 1)                                          │
- └───────────────────┬──────────────────────────────────────────┘
-                     │
-                     ▼
+ │  2. trigger the Publish workflow - manual dispatch            │
+ │     GitHub -> Actions -> Publish -> Run workflow              │
+ │     Inputs:                                                   │
+ │       - dist-tag (latest | next | beta | canary | ...)        │
+ │       - debug (0 | 1)                                         │
+ └───────────────────────────┬───────────────────────────────────┘
+                             │
+                             ▼
  ┌───────────────────────────────────────────────────────────────┐
- │  3. the workflow (calling the fleet's shared provenance.yml):  │
- │     ci:validate  → pnpm check + build + coverage               │
- │     publish:ci  → npm publish --provenance                     │
- │     Socket.dev  → post-publish malware audit                   │
- │     Sigstore    → attestation published                        │
+ │  3. the workflow (calling the fleet's shared provenance.yml): │
+ │     ci:validate  -> pnpm check + build + coverage             │
+ │     publish:ci   -> npm publish --provenance                  │
+ │     Socket.dev   -> post-publish malware audit                │
+ │     Sigstore     -> attestation published                     │
  └───────────────────────────────────────────────────────────────┘
 ```
 

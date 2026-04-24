@@ -42,25 +42,33 @@ The wizard's **Actions** step. The user is picking what happens when a
 security alert fires: create a ticket? update an existing one? mark
 ignored?
 
+<!-- Box-drawing alignment note: every outer frame line below must
+     render at exactly 67 display cells; the two inner cards on one
+     row must each match their sibling (30 cells and 26 cells).
+     No emoji or CJK chars (those are 2 cells wide in monospace).
+     Verify widths with:
+       python3 -c "import unicodedata; [print(sum(2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in l.rstrip())) for l in open('docs/pages-design-system.md').readlines()[50:73]]"
+-->
+
 ```
  ┌────────────────────────────────────────────────────────────────┐
  │  Create Configuration                                          │
  │                                                                │
- │     ✓ ── Events ───── ✓ ── Conditions ───── ✓ ── Actions       │
+ │     [x]---Events---[x]---Conditions---[x]---Actions            │
  │                                                                │
- │   ┌───────────────────────────┐  ┌───────────────────────┐    │
- │   │  Create Issue       ⬤──▶ │  │  Update Issue   ⬤──▶ │    │
- │   │                           │  │                       │    │
- │   │  Create an issue in       │  │  Keep created         │    │
- │   │  the ticketing system.    │  │  issues up to date.   │    │
- │   └───────────────────────────┘  └───────────────────────┘    │
+ │   ┌────────────────────────────┐ ┌────────────────────────┐    │
+ │   │  Create Issue      (o)---> │ │  Update Issue  (o)---> │    │
+ │   │                            │ │                        │    │
+ │   │  Create an issue in        │ │  Keep created          │    │
+ │   │  the ticketing system.     │ │  issues up to date.    │    │
+ │   └────────────────────────────┘ └────────────────────────┘    │
  │                                                                │
- │   ┌─────────────────────────────────────────────┐              │
- │   │  Mark alert as "ignored"        ◯──▷         │              │
- │   │                                              │              │
- │   │  Closing the linked ticket will mark the    │              │
- │   │  alert as "ignored".                         │              │
- │   └─────────────────────────────────────────────┘              │
+ │   ┌──────────────────────────────────────────────┐             │
+ │   │  Mark alert as "ignored"        ( )--->      │             │
+ │   │                                              │             │
+ │   │  Closing the linked ticket will mark the     │             │
+ │   │  alert as "ignored".                         │             │
+ │   └──────────────────────────────────────────────┘             │
  │                                                                │
  │   Cancel                              Back    Next             │
  └────────────────────────────────────────────────────────────────┘
@@ -82,21 +90,27 @@ Mood: _one important choice at a time_.
 The **Summary** step in the same wizard. The user is reviewing the
 final shape of their configuration before hitting Create.
 
+<!-- Box-drawing alignment note: every frame line below must
+     render at exactly 67 display cells. No emoji or CJK chars
+     (those are 2 cells wide in monospace). Verify widths with:
+       python3 -c "import unicodedata; [print(sum(2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in l.rstrip())) for l in open('docs/pages-design-system.md').readlines()[99:120]]"
+-->
+
 ```
  ┌────────────────────────────────────────────────────────────────┐
  │  Create Configuration                                          │
  │                                                                │
- │     ✓ ── Events ── ✓ ── Conditions ── ✓ ── … ── ✓ ── Actions   │
+ │     [x]--Events--[x]--Conditions--[x]--...--[x]--Actions       │
  │                                                                │
  │  Summary       Review the configuration settings               │
- │  ──────────────────────────────────────────────────────        │
+ │  ------------------------------------------------------        │
  │  Events        Alerts                                          │
  │  Conditions    Categories: [quality] [supplyChainRisk]         │
  │                Priorities: [high] [critical]                   │
- │  Project/Team  🔷 dummy.atlassian.net → Frontend Dev           │
+ │  Project/Team  [J] dummy.atlassian.net -> Frontend Dev         │
  │  Issue         Type: Task  (Auto priority)                     │
- │  Actions       [+ CREATE ISSUE] [↻ UPDATE ISSUE] [✓ CLOSE]     │
- │  ──────────────────────────────────────────────────────        │
+ │  Actions       [+ CREATE ISSUE] [R UPDATE ISSUE] [OK CLOSE]    │
+ │  ------------------------------------------------------        │
  │  Note          [My ticketing config          ]    Status: ON   │
  │                                                                │
  │  Cancel                               Back    Create           │
@@ -124,8 +138,14 @@ Mood: _see everything at once_.
 A common mistake: treating A and B as separate styles. They are one
 system applied at two densities.
 
+<!-- Box-drawing alignment note: this is a freeform spectrum sketch,
+     not a framed box, so there is no uniform-width rule. Arrows
+     use ASCII (<-----, ----->) so widths stay 1 cell per char.
+
+-->
+
 ```
-    low ◀──── decision weight of this surface ────▶ high
+    low <----- decision weight of this surface -----> high
          │                                          │
        tier 2                                     tier 1
       (scan)                                   (decision)

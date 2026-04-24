@@ -13,17 +13,20 @@ not PURL.
 
 ## The three directions
 
+<!-- Box-drawing alignment note: every frame line below must
+     render at exactly 66 display cells. No emoji or CJK chars
+     (those are 2 cells wide in monospace). Verify widths with:
+       python3 -c "import unicodedata; [print(sum(2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in l.rstrip())) for l in open('docs/converters.md').readlines()[21:29]]"
+-->
+
 ```
- ┌────────────┐    fromUrl()       ┌────────────┐
- │   URL      │ ──────────────────▶│  PackageURL │
- │            │                    │            │
- │            │◀──────────────────┐│            │
- │            │  toRepositoryUrl()├│            │
- │            │  toDownloadUrl()  ││            │
- │            │                   ││            │
- └────────────┘                   │└────────────┘
-                                  │
-                             getAllUrls() returns both
+ ┌───────────────────────────────────────────────────────────────┐
+ │   URL      -----------------fromUrl()----------->  PackageURL │
+ │            <---------------toRepositoryUrl()----              │
+ │            <---------------toDownloadUrl()------              │
+ │                                                               │
+ │            getAllUrls() returns both directions at once       │
+ └───────────────────────────────────────────────────────────────┘
 ```
 
 - **`UrlConverter.fromUrl(str)`** — URL string → PackageURL (or
