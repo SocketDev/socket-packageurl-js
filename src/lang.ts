@@ -4,7 +4,7 @@
  */
 
 /**
- * Check if a value is null, undefined, or an empty string.
+ * Check if a value is `null`, `undefined`, or an empty string.
  */
 function isNullishOrEmptyString(value: unknown): boolean {
   return (

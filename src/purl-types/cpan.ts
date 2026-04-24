@@ -30,10 +30,10 @@ interface PurlObject {
  * Queries MetaCPAN API to verify module existence and retrieve
  * the latest version.
  *
- * @param name - Module name (e.g., 'Moose')
- * @param version - Optional version to validate (e.g., '2.2206')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Module name (e.g., `'Moose'`)
+ * @param version - Optional version to validate (e.g., `'2.2206'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -123,7 +123,7 @@ export async function cpanExists(
 
 /**
  * Validate CPAN package URL.
- * CPAN namespace (author/publisher ID) must be uppercase when present.
+ * CPAN `namespace` (author/publisher ID) must be uppercase when present.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { namespace } = purl

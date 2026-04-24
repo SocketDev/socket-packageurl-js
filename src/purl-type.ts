@@ -1,9 +1,9 @@
 /**
  * @fileoverview Package URL type-specific normalization and validation rules for different package ecosystems.
  *
- * This module provides centralized access to type-specific normalize and validate functions
- * from individual type modules. Each package ecosystem (npm, pypi, maven, etc.) has its own
- * module in the purl-types/ directory with specific rules for namespace, name, version
+ * This module provides centralized access to type-specific `normalize` and `validate` functions
+ * from individual type modules. Each package ecosystem (`npm`, `pypi`, `maven`, etc.) has its own
+ * module in the `purl-types/` directory with specific rules for `namespace`, `name`, `version`
  * normalization and validation.
  */
 import { PurlInjectionError } from './error.js'
@@ -114,7 +114,7 @@ const PurlTypNormalizer = (purl: PurlObject): PurlObject => purl
 
 /**
  * Default validator for PURL types without specific validation rules.
- * Rejects injection characters in name and namespace components.
+ * Rejects injection characters in `name` and `namespace` components.
  * This ensures all types (including newly added ones) get injection
  * protection by default — security is opt-out, not opt-in.
  */

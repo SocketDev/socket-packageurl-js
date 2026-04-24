@@ -18,8 +18,8 @@ interface PurlObject {
 
 /**
  * Validate Conan package URL.
- * If namespace is present, qualifiers are required.
- * If channel qualifier is present, namespace is required.
+ * If `namespace` is present, `qualifiers` are required.
+ * If `channel` qualifier is present, `namespace` is required.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (isNullishOrEmptyString(purl.namespace)) {

@@ -27,7 +27,7 @@ interface PurlObject {
 
 /**
  * Normalize Conda package URL.
- * Lowercases name only.
+ * Lowercases `name` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -36,7 +36,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate Conda package URL.
- * Conda packages must not have a namespace. Name must not contain injection characters.
+ * Conda packages must not have a `namespace`. `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (
@@ -59,17 +59,17 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
  * existence and optionally validate a specific version. Returns the latest
  * version from package metadata.
  *
- * **Note:** Defaults to conda-forge channel. Specify channel parameter for
- * other channels like 'defaults', 'anaconda', etc.
+ * **Note:** Defaults to `conda-forge` channel. Specify `channel` parameter for
+ * other channels like `'defaults'`, `'anaconda'`, etc.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
  * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
  *
- * @param name - Package name (e.g., 'numpy', 'pandas')
- * @param version - Optional version to validate (e.g., '1.24.3')
- * @param channel - Optional channel name (defaults to 'conda-forge')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Package name (e.g., `'numpy'`, `'pandas'`)
+ * @param version - Optional version to validate (e.g., `'1.24.3'`)
+ * @param channel - Optional channel name (defaults to `'conda-forge'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -101,7 +101,7 @@ export async function condaExists(
   channel?: string,
   options?: ExistsOptions,
 ): Promise<ExistsResult> {
-  // Use provided channel or default to conda-forge (most popular community channel)
+  // Use provided channel or default to `conda-forge` (most popular community channel)
   const channelName = channel || 'conda-forge'
   const cacheKey = version
     ? `conda:${channelName}/${name}@${version}`

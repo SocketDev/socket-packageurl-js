@@ -20,10 +20,10 @@ import type { ExistsResult, ExistsOptions } from './npm.js'
  * Queries Hackage API to verify package existence and retrieve
  * the latest version.
  *
- * @param name - Package name (e.g., 'aeson')
- * @param version - Optional version to validate (e.g., '2.2.0.0')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Package name (e.g., `'aeson'`)
+ * @param version - Optional version to validate (e.g., `'2.2.0.0'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript

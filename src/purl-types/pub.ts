@@ -27,7 +27,7 @@ interface PurlObject {
 
 /**
  * Normalize Pub package URL.
- * Lowercases name and replaces dashes with underscores.
+ * Lowercases `name` and replaces dashes with underscores.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -41,10 +41,10 @@ export function normalize(purl: PurlObject): PurlObject {
  * Queries pub.dev API to verify package existence and retrieve
  * the latest version.
  *
- * @param name - Package name (e.g., 'flutter_bloc')
- * @param version - Optional version to validate (e.g., '8.1.3')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Package name (e.g., `'flutter_bloc'`)
+ * @param version - Optional version to validate (e.g., `'8.1.3'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -137,7 +137,7 @@ export async function pubExists(
 
 /**
  * Validate Pub package URL.
- * Name may only contain [a-z0-9_] characters.
+ * `name` may only contain `[a-z0-9_]` characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name } = purl

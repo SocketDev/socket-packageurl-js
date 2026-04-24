@@ -17,7 +17,7 @@ interface PurlObject {
 
 /**
  * Normalize OCI package URL.
- * Lowercases name and version per spec.
+ * Lowercases `name` and `version` per spec.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -27,7 +27,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate OCI package URL.
- * OCI packages must not have a namespace.
+ * OCI packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

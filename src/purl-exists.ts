@@ -27,8 +27,8 @@ import type { ExistsResult, ExistsOptions } from './purl-types/npm.js'
  * Check if a package exists in its registry.
  *
  * Generic wrapper that dispatches to type-specific existence checks based on
- * the package URL type. Queries the appropriate registry (npm, PyPI, crates.io,
- * rubygems.org, etc.) to verify package existence and retrieve latest version.
+ * the package URL type. Queries the appropriate registry (`npm`, PyPI, `crates.io`,
+ * `rubygems.org`, etc.) to verify package existence and retrieve latest version.
  *
  * **Supported types:**
  * - `npm` - Node.js packages from npmjs.org
@@ -53,9 +53,9 @@ import type { ExistsResult, ExistsOptions } from './purl-types/npm.js'
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
  * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
  *
- * @param purl - PackageURL instance or PURL string to check
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param purl - `PackageURL` instance or PURL string to check
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript

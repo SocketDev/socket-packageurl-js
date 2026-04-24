@@ -6,8 +6,8 @@
  * with Ecma submission planned for late 2026.
  *
  * **Early adoption warning:** The VERS spec is not yet finalized. This
- * implementation covers the semver scheme and common aliases (npm, cargo,
- * golang, etc.). Additional version schemes may be added as the spec matures.
+ * implementation covers the semver scheme and common aliases (`npm`, `cargo`,
+ * `golang`, etc.). Additional version schemes may be added as the spec matures.
  *
  * @see https://github.com/package-url/vers-spec
  */
@@ -101,7 +101,7 @@ function parseSemver(version: string): SemverParts {
   const major = Number(match[1])
   const minor = Number(match[2])
   const patch = Number(match[3])
-  // Guard against precision loss with numbers above MAX_SAFE_INTEGER
+  // Guard against precision loss with numbers above `MAX_SAFE_INTEGER`
   if (
     major > Number.MAX_SAFE_INTEGER ||
     minor > Number.MAX_SAFE_INTEGER ||
@@ -121,7 +121,7 @@ function parseSemver(version: string): SemverParts {
 
 /**
  * Compare two prerelease identifier arrays per semver spec.
- * Returns -1, 0, or 1.
+ * Returns `-1`, `0`, or `1`.
  */
 function comparePrereleases(a: string[], b: string[]): number {
   // No prerelease has higher precedence than any prerelease
@@ -173,7 +173,7 @@ function comparePrereleases(a: string[], b: string[]): number {
 
 /**
  * Compare two semver version strings.
- * Returns -1 if a < b, 0 if a === b, 1 if a > b.
+ * Returns `-1` if `a < b`, `0` if `a === b`, `1` if `a > b`.
  * Build metadata is ignored per semver spec.
  */
 function compareSemver(a: string, b: string): -1 | 0 | 1 {
@@ -242,7 +242,7 @@ function parseConstraint(raw: string): VersConstraint {
  * VERS (VErsion Range Specifier) parser and evaluator.
  *
  * **Early adoption:** The VERS spec is pre-standard draft. This implementation
- * supports semver-based schemes (npm, cargo, golang, gem, etc.). Additional
+ * supports semver-based schemes (`npm`, `cargo`, `golang`, `gem`, etc.). Additional
  * version schemes may be added as the spec matures.
  *
  * @example
@@ -269,8 +269,8 @@ class Vers {
   /**
    * Parse a VERS string.
    *
-   * @param versStr - VERS string (e.g., 'vers:npm/>=1.0.0|<2.0.0')
-   * @returns Vers instance
+   * @param versStr - VERS string (e.g., `'vers:npm/>=1.0.0|<2.0.0'`)
+   * @returns `Vers` instance
    * @throws {PurlError} If the string is not a valid VERS
    */
   static parse(versStr: string): Vers {
@@ -280,8 +280,8 @@ class Vers {
   /**
    * Parse a VERS string.
    *
-   * @param versStr - VERS string (e.g., 'vers:npm/>=1.0.0|<2.0.0')
-   * @returns Vers instance
+   * @param versStr - VERS string (e.g., `'vers:npm/>=1.0.0|<2.0.0'`)
+   * @returns `Vers` instance
    * @throws {PurlError} If the string is not a valid VERS
    */
   static fromString(versStr: string): Vers {
@@ -289,12 +289,12 @@ class Vers {
       throw new PurlError('VERS string is required')
     }
 
-    // Must start with 'vers:'
+    // Must start with `'vers:'`
     if (!StringPrototypeStartsWith(versStr, 'vers:')) {
       throw new PurlError('VERS must start with "vers:" scheme')
     }
 
-    const remainder = StringPrototypeSlice(versStr, 5) // after 'vers:'
+    const remainder = StringPrototypeSlice(versStr, 5) // after `'vers:'`
     const slashIndex = StringPrototypeIndexOf(remainder, '/')
     if (slashIndex === -1 || slashIndex === 0) {
       throw new PurlError('VERS must contain a version scheme before "/"')
@@ -357,7 +357,7 @@ class Vers {
    * Implements the VERS containment algorithm for semver-based schemes.
    *
    * @param version - Version string to check
-   * @returns true if the version matches the range
+   * @returns `true` if the version matches the range
    * @throws {PurlError} If the scheme is not supported
    */
   contains(version: string): boolean {
@@ -374,8 +374,8 @@ class Vers {
       return true
     }
 
-    // Check not-equals first — a != exclusion takes priority over = inclusion
-    // to prevent short-circuiting on = before a conflicting != is evaluated.
+    // Check not-equals first — a `!=` exclusion takes priority over `=` inclusion
+    // to prevent short-circuiting on `=` before a conflicting `!=` is evaluated.
     for (let i = 0, { length } = constraints; i < length; i += 1) {
       const c = constraints[i]!
       if (c.comparator === '!=' && compareSemver(version, c.version) === 0) {
@@ -390,7 +390,7 @@ class Vers {
       }
     }
 
-    // Filter to range constraints (not = or !=)
+    // Filter to range constraints (not `=` or `!=`)
     const ranges: VersConstraint[] = []
     for (let i = 0, { length } = constraints; i < length; i += 1) {
       const c = constraints[i]!
@@ -405,7 +405,7 @@ class Vers {
 
     // Evaluate range constraints
     // Per the VERS spec, constraints are sorted and form alternating intervals.
-    // Multiple disjoint ranges are possible (e.g., >=1.0.0|<2.0.0|>=3.0.0|<4.0.0),
+    // Multiple disjoint ranges are possible (e.g., `>=1.0.0|<2.0.0|>=3.0.0|<4.0.0`),
     // so we must check ALL range pairs — not return on the first mismatch.
     for (let i = 0, { length } = ranges; i < length; i += 1) {
       const c = ranges[i]!

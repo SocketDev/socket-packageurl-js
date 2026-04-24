@@ -17,7 +17,7 @@ interface PurlObject {
 
 /**
  * Normalize GitHub package URL.
- * Lowercases both namespace and name.
+ * Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -27,7 +27,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate GitHub package URL.
- * Name and namespace must not contain injection characters.
+ * `name` and `namespace` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

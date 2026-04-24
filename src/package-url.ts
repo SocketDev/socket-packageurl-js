@@ -23,10 +23,10 @@ SOFTWARE.
 /**
  * @fileoverview Package URL parsing and construction utilities.
  *
- * Note on instanceof checks:
+ * Note on `instanceof` checks:
  * When this module is compiled to CommonJS and imported from ESM contexts,
- * instanceof checks may fail due to module system interoperability issues.
- * See package-url-builder.ts for detailed explanation and workarounds.
+ * `instanceof` checks may fail due to module system interoperability issues.
+ * See `package-url-builder.ts` for detailed explanation and workarounds.
  */
 
 import {
@@ -93,13 +93,13 @@ import type { Result } from './result.js'
 import type { DownloadUrl, RepositoryUrl } from './url-converter.js'
 
 /**
- * Type representing the possible values for PackageURL component properties.
+ * Type representing the possible values for `PackageURL` component properties.
  * Used for index signature to allow dynamic property access.
  */
 export type PackageURLComponentValue = string | QualifiersObject | undefined
 
 /**
- * Type representing a plain object representation of a PackageURL.
+ * Type representing a plain object representation of a `PackageURL`.
  * Contains all package URL components as properties.
  */
 export type PackageURLObject = {
@@ -113,8 +113,8 @@ export type PackageURLObject = {
 
 /**
  * Type representing parsed PURL components as a tuple.
- * Returned by PackageURL.parseString() in the order:
- * [type, namespace, name, version, qualifiers, subpath]
+ * Returned by `PackageURL.parseString()` in the order:
+ * `[type, namespace, name, version, qualifiers, subpath]`
  */
 export type ParsedPurlComponents = [
   type: string | undefined,
@@ -125,8 +125,8 @@ export type ParsedPurlComponents = [
   subpath: string | undefined,
 ]
 
-// LRU flyweight cache for fromString — avoids re-parsing identical PURL strings.
-// Bounded to prevent memory leaks. Uses a Map for O(1) lookup with LRU eviction.
+// LRU flyweight cache for `fromString` — avoids re-parsing identical PURL strings.
+// Bounded to prevent memory leaks. Uses a `Map` for O(1) lookup with LRU eviction.
 const FLYWEIGHT_CACHE_MAX = 1024
 const flyweightCache = new MapCtor<string, PackageURL>()
 
@@ -218,21 +218,21 @@ class PackageURL {
   }
 
   /**
-   * Convert PackageURL to object for JSONStringify compatibility.
+   * Convert `PackageURL` to object for `JSON.stringify` compatibility.
    */
   toJSON(): PackageURLObject {
     return this.toObject()
   }
 
   /**
-   * Convert PackageURL to JSON string representation.
+   * Convert `PackageURL` to JSON string representation.
    */
   toJSONString(): string {
     return JSONStringify(this.toObject())
   }
 
   /**
-   * Convert PackageURL to a plain object representation.
+   * Convert `PackageURL` to a plain object representation.
    */
   toObject(): PackageURLObject {
     const result: PackageURLObject = { __proto__: null } as PackageURLObject
@@ -267,7 +267,7 @@ class PackageURL {
    * Returns `namespace/name@version?qualifiers#subpath` — the package identity
    * without the `pkg:type/` prefix.
    *
-   * @returns Spec string (e.g., '@babel/core@7.0.0' for pkg:npm/%40babel/core@7.0.0)
+   * @returns Spec string (e.g., `'@babel/core@7.0.0'` for `pkg:npm/%40babel/core@7.0.0`)
    */
   toSpec() {
     return stringifySpec(this)
@@ -283,11 +283,11 @@ class PackageURL {
   }
 
   /**
-   * Create a new PackageURL with a different version.
+   * Create a new `PackageURL` with a different version.
    * Returns a new instance — the original is unchanged.
    *
    * @param version - New version string
-   * @returns New PackageURL with the updated version
+   * @returns New `PackageURL` with the updated version
    */
   withVersion(version: string | undefined): PackageURL {
     return new PackageURL(
@@ -301,11 +301,11 @@ class PackageURL {
   }
 
   /**
-   * Create a new PackageURL with a different namespace.
+   * Create a new `PackageURL` with a different namespace.
    * Returns a new instance — the original is unchanged.
    *
    * @param namespace - New namespace string
-   * @returns New PackageURL with the updated namespace
+   * @returns New `PackageURL` with the updated namespace
    */
   withNamespace(namespace: string | undefined): PackageURL {
     return new PackageURL(
@@ -319,7 +319,7 @@ class PackageURL {
   }
 
   /**
-   * Create a new PackageURL with a single qualifier added or updated.
+   * Create a new `PackageURL` with a single qualifier added or updated.
    * Returns a new instance — the original is unchanged.
    *
    * Keys are lowercased per the PURL spec. Values are trimmed, and a value
@@ -327,7 +327,7 @@ class PackageURL {
    *
    * @param key - Qualifier key (will be lowercased)
    * @param value - Qualifier value (trimmed; empty-after-trim drops the key)
-   * @returns New PackageURL with the qualifier set
+   * @returns New `PackageURL` with the qualifier set
    */
   withQualifier(key: string, value: string): PackageURL {
     return new PackageURL(
@@ -345,11 +345,11 @@ class PackageURL {
   }
 
   /**
-   * Create a new PackageURL with all qualifiers replaced.
+   * Create a new `PackageURL` with all qualifiers replaced.
    * Returns a new instance — the original is unchanged.
    *
-   * @param qualifiers - New qualifiers object (or undefined to remove all)
-   * @returns New PackageURL with the updated qualifiers
+   * @param qualifiers - New qualifiers object (or `undefined` to remove all)
+   * @returns New `PackageURL` with the updated qualifiers
    */
   withQualifiers(qualifiers: Record<string, string> | undefined): PackageURL {
     return new PackageURL(
@@ -363,11 +363,11 @@ class PackageURL {
   }
 
   /**
-   * Create a new PackageURL with a different subpath.
+   * Create a new `PackageURL` with a different subpath.
    * Returns a new instance — the original is unchanged.
    *
    * @param subpath - New subpath string
-   * @returns New PackageURL with the updated subpath
+   * @returns New `PackageURL` with the updated subpath
    */
   withSubpath(subpath: string | undefined): PackageURL {
     return new PackageURL(
@@ -381,65 +381,65 @@ class PackageURL {
   }
 
   /**
-   * Compare this PackageURL with another for equality.
+   * Compare this `PackageURL` with another for equality.
    *
-   * Two PURLs are considered equal if their canonical string representations match.
+   * Two `purl`s are considered equal if their canonical string representations match.
    * This comparison is case-sensitive after normalization.
    *
-   * @param other - The PackageURL to compare with
-   * @returns true if the PURLs are equal, false otherwise
+   * @param other - The `PackageURL` to compare with
+   * @returns `true` if the `purl`s are equal, `false` otherwise
    */
   equals(other: PackageURL): boolean {
     return equalsPurls(this, other)
   }
 
   /**
-   * Compare two PackageURLs for equality.
+   * Compare two `PackageURL`s for equality.
    *
-   * Two PURLs are considered equal if their canonical string representations match.
+   * Two `purl`s are considered equal if their canonical string representations match.
    *
-   * @param a - First PackageURL to compare
-   * @param b - Second PackageURL to compare
-   * @returns true if the PURLs are equal, false otherwise
+   * @param a - First `PackageURL` to compare
+   * @param b - Second `PackageURL` to compare
+   * @returns `true` if the `purl`s are equal, `false` otherwise
    */
   static equals(a: PackageURL, b: PackageURL): boolean {
     return equalsPurls(a, b)
   }
 
   /**
-   * Compare this PackageURL with another for sorting.
+   * Compare this `PackageURL` with another for sorting.
    *
    * Returns a number indicating sort order:
-   * - Negative if this comes before other
+   * - Negative if this comes before `other`
    * - Zero if they are equal
-   * - Positive if this comes after other
+   * - Positive if this comes after `other`
    *
-   * @param other - The PackageURL to compare with
-   * @returns -1, 0, or 1 for sort ordering
+   * @param other - The `PackageURL` to compare with
+   * @returns `-1`, `0`, or `1` for sort ordering
    */
   compare(other: PackageURL): -1 | 0 | 1 {
     return comparePurls(this, other)
   }
 
   /**
-   * Compare two PackageURLs for sorting.
+   * Compare two `PackageURL`s for sorting.
    *
-   * Compares PURLs using their canonical string representations.
+   * Compares `purl`s using their canonical string representations.
    * Returns a number indicating sort order:
-   * - Negative if a comes before b
+   * - Negative if `a` comes before `b`
    * - Zero if they are equal
-   * - Positive if a comes after b
+   * - Positive if `a` comes after `b`
    *
-   * @param a - First PackageURL to compare
-   * @param b - Second PackageURL to compare
-   * @returns -1, 0, or 1 for sort ordering
+   * @param a - First `PackageURL` to compare
+   * @param b - Second `PackageURL` to compare
+   * @returns `-1`, `0`, or `1` for sort ordering
    */
   static compare(a: PackageURL, b: PackageURL): -1 | 0 | 1 {
     return comparePurls(a, b)
   }
 
   /**
-   * Create PackageURL from JSON string.
+   * Create `PackageURL` from JSON string.
    */
   static fromJSON(json: unknown): PackageURL {
     if (typeof json !== 'string') {
@@ -491,7 +491,7 @@ class PackageURL {
   }
 
   /**
-   * Create PackageURL from a plain object.
+   * Create `PackageURL` from a plain object.
    */
   static fromObject(obj: unknown): PackageURL {
     if (!isObject(obj)) {
@@ -520,7 +520,7 @@ class PackageURL {
       }
     }
     const purl = new PackageURL(...PackageURL.parseString(purlStr))
-    // Eagerly populate the toString cache before freezing
+    // Eagerly populate the `toString` cache before freezing
     purl.toString()
     // Deep freeze the instance and its nested qualifiers object to prevent
     // cache poisoning via mutation of shared cached instances.
@@ -529,7 +529,7 @@ class PackageURL {
     // cache poisoning via property mutation on shared instances.
     if (typeof purlStr === 'string') {
       if (flyweightCache.size >= FLYWEIGHT_CACHE_MAX) {
-        // Evict oldest entry (first key in Map iteration order)
+        // Evict oldest entry (first key in `Map` iteration order)
         const oldest = flyweightCache.keys().next().value
         if (oldest !== undefined) {
           flyweightCache.delete(oldest)
@@ -541,9 +541,9 @@ class PackageURL {
   }
 
   /**
-   * Create PackageURL from npm package specifier.
+   * Create `PackageURL` from npm package specifier.
    *
-   * Parses npm package specifiers and converts them to PackageURL format.
+   * Parses npm package specifiers and converts them to `PackageURL` format.
    * Handles scoped packages, version ranges, and normalizes version strings.
    *
    * **Supported formats:**
@@ -553,7 +553,7 @@ class PackageURL {
    * - Dist-tags: `latest`, `next`, `beta` (passed through as version)
    *
    * **Not supported:**
-   * - Git URLs: `git+https://...` (use PackageURL constructor directly)
+   * - Git URLs: `git+https://...` (use `PackageURL` constructor directly)
    * - File paths: `file:../package.tgz`
    * - GitHub shortcuts: `user/repo#branch`
    * - Aliases: `npm:package@version`
@@ -562,9 +562,9 @@ class PackageURL {
    * concrete versions for reproducible builds. This method passes them through
    * as-is for convenience.
    *
-   * @param specifier - npm package specifier (e.g., 'lodash@4.17.21', '@babel/core@^7.0.0')
-   * @returns PackageURL instance for the npm package
-   * @throws {Error} If specifier is not a string or is empty
+   * @param specifier - npm package specifier (e.g., `'lodash@4.17.21'`, `'@babel/core@^7.0.0'`)
+   * @returns `PackageURL` instance for the npm package
+   * @throws {Error} If `specifier` is not a string or is empty
    *
    * @example
    * ```typescript
@@ -591,18 +591,18 @@ class PackageURL {
   }
 
   /**
-   * Create PackageURL from ecosystem-specific package specifier.
+   * Create `PackageURL` from ecosystem-specific package specifier.
    *
    * This is a convenience wrapper that delegates to type-specific parsers.
    * Each ecosystem has its own specifier format and parsing rules.
    *
    * **Supported types:**
-   * - `npm`: npm package specifiers (e.g., 'lodash@4.17.21', '@babel/core@^7.0.0')
+   * - `npm`: npm package specifiers (e.g., `'lodash@4.17.21'`, `'@babel/core@^7.0.0'`)
    *
-   * @param type - Package ecosystem type (e.g., 'npm', 'pypi', 'maven')
+   * @param type - Package ecosystem type (e.g., `'npm'`, `'pypi'`, `'maven'`)
    * @param specifier - Ecosystem-specific package specifier string
-   * @returns PackageURL instance for the package
-   * @throws {Error} If type is not supported or specifier is invalid
+   * @returns `PackageURL` instance for the package
+   * @throws {Error} If `type` is not supported or `specifier` is invalid
    *
    * @example
    * ```typescript
@@ -800,7 +800,7 @@ class PackageURL {
             'qualifiers',
             ArrayPrototypeAt(pairs, 1) ?? '',
           )
-          // Use URLSearchParams#append to preserve plus signs
+          // Use `URLSearchParams#append` to preserve plus signs
           // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
           /* v8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */ searchParams.append(
             key,
@@ -846,13 +846,13 @@ class PackageURL {
   }
 
   /**
-   * Create PackageURL from a registry or repository URL.
+   * Create `PackageURL` from a registry or repository URL.
    *
-   * Convenience wrapper for UrlConverter.fromUrl(). Supports 27 hostnames
-   * across 17 package types including npm, pypi, maven, github, and more.
+   * Convenience wrapper for `UrlConverter.fromUrl()`. Supports 27 hostnames
+   * across 17 package types including `npm`, `pypi`, `maven`, `github`, and more.
    *
    * @param urlStr - Registry or repository URL
-   * @returns PackageURL instance or undefined if URL is not recognized
+   * @returns `PackageURL` instance or `undefined` if URL is not recognized
    *
    * @example
    * ```typescript

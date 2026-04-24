@@ -1,5 +1,5 @@
 /**
- * @fileoverview npm-specific PURL normalization and validation.
+ * @fileoverview `npm`-specific PURL normalization and validation.
  * Implements npm package naming rules from the PURL specification.
  */
 
@@ -73,7 +73,7 @@ export type NpmPackageComponents = {
 }
 
 /**
- * Get Set of Node.js built-in module names for O(1) lookups.
+ * Get `Set` of Node.js built-in module names for O(1) lookups.
  */
 const getNpmBuiltinSet = (() => {
   let builtinSet: Set<string> | undefined
@@ -82,7 +82,7 @@ const getNpmBuiltinSet = (() => {
       let builtinNames: string[] | undefined
       /* v8 ignore start - Error handling for module access. */
       try {
-        // Try to use Node.js builtinModules first
+        // Try to use Node.js `builtinModules` first
         builtinNames = (module.constructor as { builtinModules?: string[] })
           ?.builtinModules
       } catch {}
@@ -141,7 +141,7 @@ const getNpmBuiltinSet = (() => {
 })()
 
 /**
- * Get npm package identifier with optional namespace.
+ * Get `npm` package identifier with optional namespace.
  */
 function getNpmId(purl: PurlObject): string {
   const { name, namespace } = purl
@@ -149,7 +149,7 @@ function getNpmId(purl: PurlObject): string {
 }
 
 /**
- * Get Set of npm legacy package names for O(1) lookups.
+ * Get `Set` of `npm` legacy package names for O(1) lookups.
  */
 const getNpmLegacySet = (() => {
   let legacySet: Set<string> | undefined
@@ -184,18 +184,18 @@ const getNpmLegacySet = (() => {
 })()
 
 /**
- * Check if npm identifier is a Node.js built-in module name.
+ * Check if `npm` identifier is a Node.js built-in module name.
  */
 const isNpmBuiltinName = (id: string): boolean =>
   getNpmBuiltinSet().has(StringPrototypeToLowerCase(id))
 
 /**
- * Check if npm identifier is a legacy package name.
+ * Check if `npm` identifier is a legacy package name.
  */
 const isNpmLegacyName = (id: string): boolean => getNpmLegacySet().has(id)
 
 /**
- * Normalize npm package URL.
+ * Normalize `npm` package URL.
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#npm
  */
 export function normalize(purl: PurlObject): PurlObject {
@@ -213,16 +213,16 @@ export function normalize(purl: PurlObject): PurlObject {
  *
  * Queries the npm registry at https://registry.npmjs.org to verify package
  * existence and optionally validate a specific version. Returns the latest
- * version from dist-tags.
+ * version from `dist-tags`.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
  * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
  *
- * @param name - Package name (e.g., 'lodash', 'core' for scoped packages)
- * @param namespace - Optional namespace/scope (e.g., '@babel')
- * @param version - Optional version to validate (e.g., '4.17.21')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Package name (e.g., `'lodash'`, `'core'` for scoped packages)
+ * @param namespace - Optional namespace/scope (e.g., `'@babel'`)
+ * @param version - Optional version to validate (e.g., `'4.17.21'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -303,7 +303,7 @@ export async function npmExists(
       return result
     } catch (e) {
       /* v8 ignore start - httpJson typically throws Error; String(e) is defensive programming */
-      // httpJson throws on non-2xx status codes
+      // `httpJson` throws on non-2xx status codes
       const error = errorMessage(e)
       return {
         exists: false,
@@ -329,7 +329,7 @@ export async function npmExists(
 /**
  * Parse npm package specifier into component data.
  *
- * Parses npm package specifiers into namespace, name, and version components.
+ * Parses npm package specifiers into `namespace`, `name`, and `version` components.
  * Handles scoped packages, version ranges, and normalizes version strings.
  *
  * **Supported formats:**
@@ -348,9 +348,9 @@ export async function npmExists(
  * concrete versions for reproducible builds. This method passes them through
  * as-is for convenience.
  *
- * @param specifier - npm package specifier (e.g., 'lodash@4.17.21', '@babel/core@^7.0.0')
- * @returns Object with namespace, name, and version components
- * @throws {Error} If specifier is not a string or is empty
+ * @param specifier - npm package specifier (e.g., `'lodash@4.17.21'`, `'@babel/core@^7.0.0'`)
+ * @returns Object with `namespace`, `name`, and `version` components
+ * @throws {Error} If `specifier` is not a string or is empty
  *
  * @example
  * ```typescript
@@ -380,14 +380,14 @@ export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
     throw new Error('npm package specifier cannot be empty.')
   }
 
-  // Handle scoped packages: @scope/name@version
+  // Handle scoped packages: `@scope/name@version`
   let namespace: string | undefined
   let name: string
   let version: string | undefined
 
   // Check if it's a scoped package
   if (StringPrototypeStartsWith(specifier, '@')) {
-    // Find the second slash (after @scope/)
+    // Find the second slash (after `@scope/`)
     const slashIndex = StringPrototypeIndexOf(specifier, '/')
     if (slashIndex === -1) {
       throw new Error(
@@ -395,7 +395,7 @@ export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
       )
     }
 
-    // Find the @ after the scope
+    // Find the `@` after the scope
     const atIndex = StringPrototypeIndexOf(specifier, '@', slashIndex)
     if (atIndex === -1) {
       // No version specified
@@ -407,7 +407,7 @@ export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
       version = StringPrototypeSlice(specifier, atIndex + 1)
     }
   } else {
-    // Non-scoped package: name@version
+    // Non-scoped package: `name@version`
     const atIndex = StringPrototypeIndexOf(specifier, '@')
     if (atIndex === -1) {
       // No version specified
@@ -420,9 +420,9 @@ export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
 
   // Clean up version - remove common npm range prefixes
   if (version) {
-    // Remove leading ^, ~, >=, <=, >, <, =
+    // Remove leading `^`, `~`, `>=`, `<=`, `>`, `<`, `=`
     version = StringPrototypeReplace(version, /^[\^~>=<]+/, '' as any)
-    // Handle version ranges like "1.0.0 - 2.0.0" by taking first version
+    // Handle version ranges like `"1.0.0 - 2.0.0"` by taking first version
     const spaceIndex = StringPrototypeIndexOf(version, ' ')
     if (spaceIndex !== -1) {
       version = StringPrototypeSlice(version, 0, spaceIndex)
@@ -433,14 +433,14 @@ export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
 }
 
 /**
- * Validate npm package URL.
+ * Validate `npm` package URL.
  * Validation based on https://github.com/npm/validate-npm-package-name/tree/v6.0.0
  * ISC License
  * Copyright (c) 2015, npm, Inc
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name, namespace } = purl
-  // Validate name and namespace for injection characters
+  // Validate `name` and `namespace` for injection characters
   if (!validateNoInjectionByType('npm', 'name', name, throws)) {
     return false
   }

@@ -23,7 +23,7 @@ interface PurlObject {
 
 /**
  * Normalize Docker package URL.
- * Lowercases name only (namespace is case-sensitive for registry hosts).
+ * Lowercases `name` only (`namespace` is case-sensitive for registry hosts).
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -32,7 +32,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate Docker package URL.
- * Name and namespace must not contain injection characters.
+ * `name` and `namespace` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (
@@ -58,11 +58,11 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
  * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
  *
- * @param name - Image name (e.g., 'nginx', 'redis')
- * @param namespace - Optional namespace/repository (e.g., 'library' for official images)
- * @param version - Optional tag to validate (e.g., 'latest', '1.25.3')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest tag
+ * @param name - Image name (e.g., `'nginx'`, `'redis'`)
+ * @param namespace - Optional namespace/repository (e.g., `'library'` for official images)
+ * @param version - Optional tag to validate (e.g., `'latest'`, `'1.25.3'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest tag
  *
  * @example
  * ```typescript
@@ -94,7 +94,7 @@ export async function dockerExists(
   version?: string,
   options?: ExistsOptions,
 ): Promise<ExistsResult> {
-  // Default namespace to 'library' for official images if not specified
+  // Default namespace to `'library'` for official images if not specified
   const repo = namespace ? `${namespace}/${name}` : name
   const cacheKey = version ? `docker:${repo}:${version}` : `docker:${repo}`
 
@@ -108,7 +108,7 @@ export async function dockerExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      // Encode each path segment separately to preserve the / delimiter
+      // Encode each path segment separately to preserve the `/` delimiter
       const encodedRepo = namespace
         ? `${encodeComponent(namespace)}/${encodeComponent(name)}`
         : encodeComponent(name)
@@ -118,7 +118,7 @@ export async function dockerExists(
         name?: string
       }>(url)
 
-      // Docker Hub doesn't provide a simple "latest version" - tags need separate API call
+      // Docker Hub doesn't provide a simple `"latest version"` - tags need separate API call
       // For now, we just verify the repository exists
       if (!data.name) {
         return {

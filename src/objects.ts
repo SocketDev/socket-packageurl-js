@@ -76,8 +76,8 @@ function recursiveFreeze<T>(value_: T): T {
 
 /**
  * Check if value is a non-null object.
- * Inlined to avoid importing @socketsecurity/lib/objects which transitively
- * pulls in sorts → semver → npm-pack (2.5 MB).
+ * Inlined to avoid importing `@socketsecurity/lib/objects` which transitively
+ * pulls in `sorts` → `semver` → `npm-pack` (2.5 MB).
  */
 function isObject(value: unknown): value is { [key: PropertyKey]: unknown } {
   return value !== null && typeof value === 'object'

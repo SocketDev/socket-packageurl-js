@@ -27,19 +27,19 @@ interface PurlObject {
 /**
  * Check if a Cargo crate exists in crates.io.
  *
- * Queries crates.io at https://crates.io/api/v1/crates to verify crate
- * existence and optionally validate a specific version. Returns the max_version
+ * Queries `crates.io` at https://crates.io/api/v1/crates to verify crate
+ * existence and optionally validate a specific version. Returns the `max_version`
  * from crate metadata.
  *
- * **Note:** crates.io requires a User-Agent header for API requests.
+ * **Note:** `crates.io` requires a `User-Agent` header for API requests.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
  * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
  *
- * @param name - Crate name (e.g., 'serde', 'tokio')
- * @param version - Optional version to validate (e.g., '1.0.152')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Crate name (e.g., `'serde'`, `'tokio'`)
+ * @param version - Optional version to validate (e.g., `'1.0.152'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -143,7 +143,7 @@ export async function cargoExists(
 
 /**
  * Validate Cargo package URL.
- * Cargo packages must not have a namespace. Name must not contain injection characters.
+ * Cargo packages must not have a `namespace`. `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

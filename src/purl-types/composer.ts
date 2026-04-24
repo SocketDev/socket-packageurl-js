@@ -26,7 +26,7 @@ interface PurlObject {
 
 /**
  * Normalize Composer package URL.
- * Lowercases both namespace and name.
+ * Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -38,13 +38,13 @@ export function normalize(purl: PurlObject): PurlObject {
  * Check if a Composer package exists on Packagist.
  *
  * Queries Packagist.org API to verify package existence and retrieve
- * the latest version. Composer packages have vendor/package format.
+ * the latest version. Composer packages have `vendor/package` format.
  *
- * @param name - Package name (e.g., 'http-foundation')
- * @param namespace - Vendor name (e.g., 'symfony')
- * @param version - Optional version to validate (e.g., 'v6.3.0')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Package name (e.g., `'http-foundation'`)
+ * @param namespace - Vendor name (e.g., `'symfony'`)
+ * @param version - Optional version to validate (e.g., `'v6.3.0'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -101,7 +101,7 @@ export async function packagistExists(
         return { exists: false, error: 'Package not found' }
       }
 
-      // Find the latest stable version (highest version_normalized without dev suffix)
+      // Find the latest stable version (highest `version_normalized` without `dev` suffix)
       let latestVersion: string | undefined
       for (const pkg of packageVersions) {
         const ver = pkg.version

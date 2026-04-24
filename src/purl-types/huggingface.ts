@@ -16,7 +16,7 @@ interface PurlObject {
 
 /**
  * Normalize Hugging Face package URL.
- * Lowercases version only.
+ * Lowercases `version` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerVersion(purl)

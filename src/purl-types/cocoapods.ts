@@ -28,13 +28,13 @@ interface PurlObject {
 /**
  * Check if a CocoaPod exists in the CocoaPods trunk.
  *
- * Queries trunk.cocoapods.org API to verify pod existence and retrieve
+ * Queries `trunk.cocoapods.org` API to verify pod existence and retrieve
  * the latest version.
  *
- * @param name - Pod name (e.g., 'Alamofire')
- * @param version - Optional version to validate (e.g., '5.8.1')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Pod name (e.g., `'Alamofire'`)
+ * @param version - Optional version to validate (e.g., `'5.8.1'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -130,16 +130,16 @@ export async function cocoapodsExists(
 
 /**
  * Validate CocoaPods package URL.
- * Name cannot contain injection or whitespace characters, plus (+) character,
- * or begin with a period (.).
+ * `name` cannot contain injection or whitespace characters, plus (`+`) character,
+ * or begin with a period (`.`).
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name } = purl
-  // Name must not contain injection characters
+  // `name` must not contain injection characters
   if (!validateNoInjectionByType('cocoapods', 'name', name, throws)) {
     return false
   }
-  // Name cannot contain a plus (+) character
+  // `name` cannot contain a plus (`+`) character
   if (StringPrototypeIncludes(name, '+')) {
     if (throws) {
       throw new PurlError(
@@ -148,7 +148,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
     return false
   }
-  // Name cannot begin with a period (.)
+  // `name` cannot begin with a period (`.`)
   if (StringPrototypeCharCodeAt(name, 0) === 46 /*'.'*/) {
     if (throws) {
       throw new PurlError(

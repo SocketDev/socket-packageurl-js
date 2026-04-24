@@ -13,11 +13,11 @@ import {
 } from './primordials.js'
 import { isNonEmptyString } from './strings.js'
 
-// Module-private reusable URLSearchParams for encodeQualifierParam. Kept
+// Module-private reusable `URLSearchParams` for `encodeQualifierParam`. Kept
 // private here so mutation side-effects can't leak to other modules.
 const REUSED_SEARCH_PARAMS = new URLSearchParamsCtor()
 const REUSED_SEARCH_PARAMS_KEY = '_'
-// '_='.length
+// `'_='.length`
 const REUSED_SEARCH_PARAMS_OFFSET = 2
 
 /**
@@ -48,12 +48,12 @@ function encodeNamespace(namespace: unknown): string {
 function encodeQualifierParam(param: unknown): string {
   if (isNonEmptyString(param)) {
     const value = prepareValueForSearchParams(param)
-    // Use URLSearchParams#set to preserve plus signs
+    // Use `URLSearchParams#set` to preserve plus signs
     // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
     // Reuse shared instance — JS is single-threaded so no concurrent mutation issues
     REUSED_SEARCH_PARAMS.set(REUSED_SEARCH_PARAMS_KEY, value)
     // Param key and value are encoded with `percentEncodeSet` of
-    // 'application/x-www-form-urlencoded' and `spaceAsPlus` of `true`
+    // `'application/x-www-form-urlencoded'` and `spaceAsPlus` of `true`
     // https://url.spec.whatwg.org/#urlencoded-serializing
     const search = REUSED_SEARCH_PARAMS.toString()
     return normalizeSearchParamsEncoding(
@@ -76,7 +76,7 @@ function encodeQualifiers(qualifiers: unknown): string {
       const value = prepareValueForSearchParams(
         (qualifiers as Record<string, unknown>)[key],
       )
-      // Use URLSearchParams#set to preserve plus signs
+      // Use `URLSearchParams#set` to preserve plus signs
       // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
       searchParams.set(key!, value)
     }
@@ -104,7 +104,7 @@ function encodeVersion(version: unknown): string {
 }
 
 /**
- * Normalize URLSearchParams output for qualifier encoding.
+ * Normalize `URLSearchParams` output for qualifier encoding.
  */
 function normalizeSearchParamsEncoding(encoded: string): string {
   return StringPrototypeReplaceAll(
@@ -115,10 +115,10 @@ function normalizeSearchParamsEncoding(encoded: string): string {
 }
 
 /**
- * Prepare string value for URLSearchParams encoding.
+ * Prepare string value for `URLSearchParams` encoding.
  */
 function prepareValueForSearchParams(value: unknown): string {
-  // Replace spaces with %20's so they don't get converted to plus signs
+  // Replace spaces with `%20`'s so they don't get converted to plus signs
   return StringPrototypeReplaceAll(String(value), ' ', '%20')
 }
 

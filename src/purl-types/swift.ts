@@ -19,7 +19,7 @@ interface PurlObject {
 
 /**
  * Validate Swift package URL.
- * Swift packages require both namespace and version. Name and namespace must
+ * Swift packages require both `namespace` and `version`. `name` and `namespace` must
  * not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {

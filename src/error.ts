@@ -6,14 +6,14 @@ import {
 } from './primordials.js'
 
 /**
- * @fileoverview Custom PurlError class for Package URL parsing and validation errors.
+ * @fileoverview Custom `PurlError` class for Package URL parsing and validation errors.
  * Provides consistent error message formatting for PURL-related exceptions.
  */
 
 /**
  * Extract a readable message string from any thrown value.
  *
- * Returns `e.message` for Error instances, a coerced string for other
+ * Returns `e.message` for `Error` instances, a coerced string for other
  * non-nullish values, and `'Unknown error'` for nullish or
  * empty-message cases. Use at boundaries where `catch (e: unknown)`
  * needs to surface a message (log lines, result payloads, API
@@ -73,9 +73,9 @@ class PurlError extends Error {
  * (e.g., logging, alerting, blocking).
  *
  * Properties:
- * - `component` — which PURL component was rejected ("name", "namespace")
+ * - `component` — which PURL component was rejected (`"name"`, `"namespace"`)
  * - `charCode` — the character code of the injection character found
- * - `purlType` — the package type (e.g., "npm", "maven")
+ * - `purlType` — the package type (e.g., `"npm"`, `"maven"`)
  */
 class PurlInjectionError extends PurlError {
   readonly charCode: number

@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
  *
  * VSCode extensions use the Visual Studio Marketplace for distribution.
- * The namespace is the publisher name, and the name is the extension name.
+ * The `namespace` is the publisher name, and the `name` is the extension name.
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -38,8 +38,8 @@ interface PurlObject {
 
 /**
  * Normalize VSCode extension package URL.
- * Lowercases namespace (publisher), name (extension), and version per spec.
- * Spec: namespace, name, and version are all case-insensitive.
+ * Lowercases `namespace` (publisher), `name` (extension), and `version` per spec.
+ * Spec: `namespace`, `name`, and `version` are all case-insensitive.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -50,12 +50,12 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate VSCode extension package URL.
- * Checks namespace (publisher) and name (extension) for injection characters,
- * and validates version as semver when present.
+ * Checks `namespace` (publisher) and `name` (extension) for injection characters,
+ * and validates `version` as semver when present.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name, namespace, version, qualifiers } = purl
-  // VSCode extensions require a namespace (publisher)
+  // VSCode extensions require a `namespace` (publisher)
   if (
     !validateRequiredByType('vscode-extension', 'namespace', namespace, {
       throws,
@@ -63,7 +63,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   ) {
     return false
   }
-  // Namespace must not contain injection characters
+  // `namespace` must not contain injection characters
   if (
     !validateNoInjectionByType(
       'vscode-extension',
@@ -74,11 +74,11 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   ) {
     return false
   }
-  // Name must not contain injection characters
+  // `name` must not contain injection characters
   if (!validateNoInjectionByType('vscode-extension', 'name', name, throws)) {
     return false
   }
-  // Version must be valid semver when present
+  // `version` must be valid semver when present
   if (
     typeof version === 'string' &&
     version.length > 0 &&
@@ -91,7 +91,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
     return false
   }
-  // Platform qualifier must not contain injection characters
+  // `platform` qualifier must not contain injection characters
   if (
     !validateNoInjectionByType(
       'vscode-extension',
@@ -116,11 +116,11 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
  * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
  *
- * @param name - Extension name (e.g., 'vscode-eslint')
- * @param namespace - Publisher name (e.g., 'dbaeumer')
- * @param version - Optional version to validate (e.g., '2.4.2')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Extension name (e.g., `'vscode-eslint'`)
+ * @param namespace - Publisher name (e.g., `'dbaeumer'`)
+ * @param version - Optional version to validate (e.g., `'2.4.2'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -245,11 +245,11 @@ export async function vscodeExtensionExists(
       /* v8 ignore start */
       const error = errorMessage(e)
       /* v8 ignore stop */
-      // IMPORTANT: httpJson() throws on non-2xx responses, so we cannot inspect
-      // response.status directly. We rely on the error message containing "404"
+      // IMPORTANT: `httpJson()` throws on non-2xx responses, so we cannot inspect
+      // `response.status` directly. We rely on the error message containing `"404"`
       // to distinguish "not found" from other HTTP errors.
-      // This depends on @socketsecurity/lib's error message format:
-      // "HTTP 404: Not Found" or similar containing the status code.
+      // This depends on `@socketsecurity/lib`'s error message format:
+      // `"HTTP 404: Not Found"` or similar containing the status code.
       // If upstream changes error format, this string matching may break.
       return {
         exists: false,

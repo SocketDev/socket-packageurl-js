@@ -27,7 +27,7 @@ import { ArrayPrototypePush } from './primordials.js'
  */
 
 /**
- * Result type representing either success (Ok) or failure (Err).
+ * `Result` type representing either success (`Ok`) or failure (`Err`).
  */
 export type Result<T, E = Error> = Ok<T> | Err<E>
 
@@ -71,14 +71,14 @@ export class Ok<T> {
   }
 
   /**
-   * Transform the error (no-op for Ok).
+   * Transform the error (no-op for `Ok`).
    */
   mapErr<F>(_fn: (_error: never) => F): Result<T, F> {
     return this as unknown as Result<T, F>
   }
 
   /**
-   * Return this result or the other if error (no-op for Ok).
+   * Return this result or the other if error (no-op for `Ok`).
    */
   orElse<U>(_fn: (_error: never) => Result<U, never>): Result<T | U, never> {
     return this
@@ -118,7 +118,7 @@ export class Err<E = Error> {
   }
 
   /**
-   * Chain another result-returning operation (no-op for Err).
+   * Chain another result-returning operation (no-op for `Err`).
    */
   andThen<U, F>(_fn: (_value: never) => Result<U, F>): Result<U, E | F> {
     return this as unknown as Result<U, E | F>
@@ -139,7 +139,7 @@ export class Err<E = Error> {
   }
 
   /**
-   * Transform the success value (no-op for Err).
+   * Transform the success value (no-op for `Err`).
    */
   map<U>(_fn: (_value: never) => U): Result<U, E> {
     return this as unknown as Result<U, E>
@@ -199,11 +199,11 @@ export function err<E = Error>(error: E): Err<E> {
 }
 
 /**
- * Utility functions for working with Results.
+ * Utility functions for working with `Result`s.
  */
 export const ResultUtils = {
   /**
-   * Convert all Results to Ok values or return first error.
+   * Convert all `Result`s to `Ok` values or return first error.
    */
   all<T extends ReadonlyArray<Result<unknown, unknown>>>(
     results: T,
@@ -228,7 +228,7 @@ export const ResultUtils = {
   },
 
   /**
-   * Return the first Ok result or the last error.
+   * Return the first `Ok` result or the last error.
    * Returns an error result if the input array is empty.
    */
   any<T extends ReadonlyArray<Result<unknown, unknown>>>(
@@ -252,7 +252,7 @@ export const ResultUtils = {
   err: err,
 
   /**
-   * Wrap a function that might throw into a Result.
+   * Wrap a function that might throw into a `Result`.
    */
   from<T>(fn: () => T): Result<T, Error> {
     try {

@@ -20,7 +20,7 @@ interface PurlObject {
 
 /**
  * Normalize Yocto package URL.
- * Lowercases name.
+ * Lowercases `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -29,7 +29,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate Yocto package URL.
- * Yocto packages must not have a namespace.
+ * Yocto packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

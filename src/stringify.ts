@@ -1,6 +1,6 @@
 /**
  * @fileoverview PURL string serialization.
- * Converts PackageURL instances to canonical PURL string format.
+ * Converts `PackageURL` instances to canonical PURL string format.
  */
 
 import {
@@ -17,14 +17,14 @@ import type { PackageURL } from './package-url.js'
 import type { QualifiersObject } from './purl-component.js'
 
 /**
- * Convert PackageURL instance to spec string (without scheme and type).
+ * Convert `PackageURL` instance to spec string (without scheme and type).
  *
- * Returns the package identity portion: namespace/name@version?qualifiers#subpath
- * This is the purl equivalent of an npm "spec" — the package identity without
+ * Returns the package identity portion: `namespace/name@version?qualifiers#subpath`
+ * This is the `purl` equivalent of an npm "spec" — the package identity without
  * the ecosystem prefix.
  *
- * @param purl - PackageURL instance to stringify
- * @returns Spec string (e.g., '%40babel/core@7.0.0' for pkg:npm/%40babel/core@7.0.0)
+ * @param purl - `PackageURL` instance to stringify
+ * @returns Spec string (e.g., `'%40babel/core@7.0.0'` for `pkg:npm/%40babel/core@7.0.0`)
  *
  * @example
  * ```typescript
@@ -65,13 +65,13 @@ export function stringifySpec(purl: PackageURL): string {
 }
 
 /**
- * Convert PackageURL instance to canonical PURL string.
+ * Convert `PackageURL` instance to canonical PURL string.
  *
- * Serializes a PackageURL object into its canonical string representation
+ * Serializes a `PackageURL` object into its canonical string representation
  * according to the PURL specification.
  *
- * @param purl - PackageURL instance to stringify
- * @returns Canonical PURL string (e.g., 'pkg:npm/lodash@4.17.21')
+ * @param purl - `PackageURL` instance to stringify
+ * @returns Canonical PURL string (e.g., `'pkg:npm/lodash@4.17.21'`)
  *
  * @example
  * ```typescript

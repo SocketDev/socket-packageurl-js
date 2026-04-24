@@ -18,7 +18,7 @@ interface PurlObject {
 
 /**
  * Normalize MLflow package URL.
- * Lowercases name only if repository_url qualifier contains 'databricks'.
+ * Lowercases `name` only if `repository_url` qualifier contains `'databricks'`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   const repoUrl = purl.qualifiers?.['repository_url']
@@ -30,7 +30,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate MLflow package URL.
- * MLflow packages must not have a namespace.
+ * MLflow packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

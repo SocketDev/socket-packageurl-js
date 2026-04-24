@@ -16,7 +16,7 @@ interface PurlObject {
 
 /**
  * Normalize Bitnami package URL.
- * Lowercases name only.
+ * Lowercases `name` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)

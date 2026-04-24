@@ -20,7 +20,7 @@ interface PurlObject {
 
 /**
  * Normalize OTP package URL.
- * Lowercases name.
+ * Lowercases `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -29,7 +29,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate OTP package URL.
- * OTP packages must not have a namespace.
+ * OTP packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

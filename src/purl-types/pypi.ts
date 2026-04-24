@@ -28,8 +28,8 @@ interface PurlObject {
 
 /**
  * Normalize PyPI package URL.
- * Lowercases namespace, name, and version, replaces underscores with dashes in name.
- * Spec: namespace, name, and version are all case-insensitive.
+ * Lowercases `namespace`, `name`, and `version`, replaces underscores with dashes in `name`.
+ * Spec: `namespace`, `name`, and `version` are all case-insensitive.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -41,7 +41,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate PyPI package URL.
- * Name must not contain injection characters.
+ * `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (!validateNoInjectionByType('pypi', 'name', purl.name, throws)) {
@@ -60,10 +60,10 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
  * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
  *
- * @param name - Package name (e.g., 'requests', 'django')
- * @param version - Optional version to validate (e.g., '2.28.1')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Package name (e.g., `'requests'`, `'django'`)
+ * @param version - Optional version to validate (e.g., `'2.28.1'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript

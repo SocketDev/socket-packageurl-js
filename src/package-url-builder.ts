@@ -21,7 +21,7 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Builder pattern implementation for PackageURL construction with fluent API.
+ * @fileoverview Builder pattern implementation for `PackageURL` construction with fluent API.
  */
 import { PackageURL } from './package-url.js'
 import {
@@ -33,32 +33,32 @@ import {
 import type { QualifiersObject } from './purl-component.js'
 
 /**
- * Known Limitation: instanceof checks with ESM/CommonJS interop
+ * Known Limitation: `instanceof` checks with ESM/CommonJS interop
  * ==============================================================
  *
- * When using PurlBuilder in environments that mix ESM and CommonJS modules
- * (such as Vitest tests importing CommonJS-compiled code as ESM), the instanceof
+ * When using `PurlBuilder` in environments that mix ESM and CommonJS modules
+ * (such as Vitest tests importing CommonJS-compiled code as ESM), the `instanceof`
  * operator may not work reliably for checking if the built objects are instances
- * of PackageURL.
+ * of `PackageURL`.
  *
  * This occurs because:
- * - PurlBuilder internally imports PackageURL using CommonJS require()
- * - External code may import PackageURL using ESM import
+ * - `PurlBuilder` internally imports `PackageURL` using CommonJS `require()`
+ * - External code may import `PackageURL` using ESM `import`
  * - Node.js creates different wrapper objects for the same class
- * - The instanceof check fails due to different object identities
+ * - The `instanceof` check fails due to different object identities
  *
  * Workaround:
  * Instead of: `purl instanceof PackageURL`
  * Use: `purl.constructor.name === 'PackageURL'` or check for expected properties/methods
  *
- * This limitation only affects instanceof checks, not the actual functionality
- * of the created PackageURL objects.
+ * This limitation only affects `instanceof` checks, not the actual functionality
+ * of the created `PackageURL` objects.
  */
 
 /**
- * Builder class for constructing PackageURL instances using a fluent API.
+ * Builder class for constructing `PackageURL` instances using a fluent API.
  *
- * This class provides a convenient way to build PackageURL objects step by step
+ * This class provides a convenient way to build `PackageURL` objects step by step
  * with method chaining. Each method returns the builder instance, allowing for
  * fluent construction patterns.
  *
@@ -72,13 +72,13 @@ import type { QualifiersObject } from './purl-component.js'
  * ```
  */
 export class PurlBuilder {
-  /** The package type (e.g., 'npm', 'pypi', 'maven'). */
+  /** The package type (e.g., `'npm'`, `'pypi'`, `'maven'`). */
   private _type?: string | undefined
 
   /** The package namespace (organization, group, or scope). */
   private _namespace?: string | undefined
 
-  /** The package name (required for valid PackageURLs). */
+  /** The package name (required for valid `PackageURL`s). */
   private _name?: string | undefined
 
   /** The package version string. */
@@ -91,13 +91,13 @@ export class PurlBuilder {
   private _subpath?: string | undefined
 
   /**
-   * Build and return the final PackageURL instance.
+   * Build and return the final `PackageURL` instance.
    *
-   * This method creates a new PackageURL instance using all the properties
-   * set on this builder. The PackageURL constructor will handle validation
+   * This method creates a new `PackageURL` instance using all the properties
+   * set on this builder. The `PackageURL` constructor will handle validation
    * and normalization of the provided values.
    *
-   * @throws {Error} If the configuration results in an invalid PackageURL
+   * @throws {Error} If the configuration results in an invalid `PackageURL`
    */
   build(): PackageURL {
     return new PackageURL(
@@ -111,10 +111,10 @@ export class PurlBuilder {
   }
 
   /**
-   * Set the package name for the PackageURL.
+   * Set the package name for the `PackageURL`.
    *
    * This is the core identifier for the package and is required for all valid
-   * PackageURLs. The name should be the canonical package name as it appears
+   * `PackageURL`s. The name should be the canonical package name as it appears
    * in the package repository.
    */
   name(name: string): this {
@@ -123,12 +123,12 @@ export class PurlBuilder {
   }
 
   /**
-   * Set the package namespace for the PackageURL.
+   * Set the package namespace for the `PackageURL`.
    *
    * The namespace represents different concepts depending on the package type:
-   * - npm: organization or scope (e.g., '@angular' for '@angular/core')
-   * - maven: groupId (e.g., 'org.apache.commons')
-   * - pypi: typically unused
+   * - `npm`: organization or scope (e.g., `'@angular'` for `'@angular/core'`)
+   * - `maven`: `groupId` (e.g., `'org.apache.commons'`)
+   * - `pypi`: typically unused
    */
   namespace(namespace: string): this {
     this._namespace = namespace
@@ -156,9 +156,9 @@ export class PurlBuilder {
    * Set all qualifiers at once, replacing any existing qualifiers.
    *
    * Qualifiers provide additional metadata about the package such as:
-   * - arch: target architecture
-   * - os: target operating system
-   * - classifier: additional classifier for the package
+   * - `arch`: target architecture
+   * - `os`: target operating system
+   * - `classifier`: additional classifier for the package
    */
   qualifiers(qualifiers: Record<string, string>): this {
     this._qualifiers = { __proto__: null, ...qualifiers } as unknown as Record<
@@ -169,7 +169,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Set the subpath for the PackageURL.
+   * Set the subpath for the `PackageURL`.
    *
    * The subpath represents a path within the package, useful for referencing
    * specific files or directories within a package. It should not start with
@@ -181,7 +181,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Set the package type for the PackageURL.
+   * Set the package type for the `PackageURL`.
    */
   type(type: string): this {
     this._type = type
@@ -189,10 +189,10 @@ export class PurlBuilder {
   }
 
   /**
-   * Set the package version for the PackageURL.
+   * Set the package version for the `PackageURL`.
    *
    * The version string should match the format used by the package repository.
-   * Some package types may normalize version formats (e.g., removing leading 'v').
+   * Some package types may normalize version formats (e.g., removing leading `'v'`).
    */
   version(version: string): this {
     this._version = version
@@ -200,7 +200,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the bitbucket package type preset.
+   * Create a builder with the `bitbucket` package type preset.
    *
    * @example `PurlBuilder.bitbucket().namespace('owner').name('repo').build()`
    */
@@ -209,7 +209,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the cargo package type preset.
+   * Create a builder with the `cargo` package type preset.
    *
    * @example `PurlBuilder.cargo().name('serde').version('1.0.0').build()`
    */
@@ -218,7 +218,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the cocoapods package type preset.
+   * Create a builder with the `cocoapods` package type preset.
    *
    * @example `PurlBuilder.cocoapods().name('Alamofire').version('5.9.1').build()`
    */
@@ -227,7 +227,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the composer package type preset.
+   * Create a builder with the `composer` package type preset.
    *
    * @example `PurlBuilder.composer().namespace('laravel').name('framework').build()`
    */
@@ -236,7 +236,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the conan package type preset.
+   * Create a builder with the `conan` package type preset.
    *
    * @example `PurlBuilder.conan().name('zlib').version('1.3.1').build()`
    */
@@ -245,7 +245,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the conda package type preset.
+   * Create a builder with the `conda` package type preset.
    *
    * @example `PurlBuilder.conda().name('numpy').version('1.26.4').build()`
    */
@@ -254,7 +254,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the cran package type preset.
+   * Create a builder with the `cran` package type preset.
    *
    * @example `PurlBuilder.cran().name('ggplot2').version('3.5.0').build()`
    */
@@ -265,7 +265,7 @@ export class PurlBuilder {
   /**
    * Create a new empty builder instance.
    *
-   * This is a convenience factory method that returns a new PurlBuilder
+   * This is a convenience factory method that returns a new `PurlBuilder`
    * instance ready for configuration.
    */
   static create(): PurlBuilder {
@@ -273,7 +273,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the deb package type preset.
+   * Create a builder with the `deb` package type preset.
    *
    * @example `PurlBuilder.deb().namespace('debian').name('curl').version('8.5.0').build()`
    */
@@ -282,7 +282,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the docker package type preset.
+   * Create a builder with the `docker` package type preset.
    *
    * @example `PurlBuilder.docker().namespace('library').name('nginx').version('latest').build()`
    */
@@ -291,9 +291,9 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder from an existing PackageURL instance.
+   * Create a builder from an existing `PackageURL` instance.
    *
-   * This factory method copies all properties from an existing PackageURL
+   * This factory method copies all properties from an existing `PackageURL`
    * into a new builder, allowing for modification of existing URLs.
    */
   static from(purl: PackageURL): PurlBuilder {
@@ -326,7 +326,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the gem package type preset.
+   * Create a builder with the `gem` package type preset.
    *
    * @example `PurlBuilder.gem().name('rails').version('7.0.0').build()`
    */
@@ -335,7 +335,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the github package type preset.
+   * Create a builder with the `github` package type preset.
    *
    * @example `PurlBuilder.github().namespace('socketdev').name('socket-cli').build()`
    */
@@ -344,7 +344,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the gitlab package type preset.
+   * Create a builder with the `gitlab` package type preset.
    *
    * @example `PurlBuilder.gitlab().namespace('owner').name('project').build()`
    */
@@ -353,7 +353,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the golang package type preset.
+   * Create a builder with the `golang` package type preset.
    *
    * @example `PurlBuilder.golang().namespace('github.com/go').name('text').build()`
    */
@@ -362,7 +362,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the hackage package type preset.
+   * Create a builder with the `hackage` package type preset.
    *
    * @example `PurlBuilder.hackage().name('aeson').version('2.2.1.0').build()`
    */
@@ -371,7 +371,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the hex package type preset.
+   * Create a builder with the `hex` package type preset.
    *
    * @example `PurlBuilder.hex().name('phoenix').version('1.7.12').build()`
    */
@@ -380,7 +380,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the huggingface package type preset.
+   * Create a builder with the `huggingface` package type preset.
    *
    * @example `PurlBuilder.huggingface().name('bert-base-uncased').build()`
    */
@@ -389,7 +389,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the luarocks package type preset.
+   * Create a builder with the `luarocks` package type preset.
    *
    * @example `PurlBuilder.luarocks().name('luasocket').version('3.1.0').build()`
    */
@@ -398,7 +398,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the maven package type preset.
+   * Create a builder with the `maven` package type preset.
    *
    * @example `PurlBuilder.maven().namespace('org.apache').name('commons-lang3').build()`
    */
@@ -407,7 +407,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the npm package type preset.
+   * Create a builder with the `npm` package type preset.
    *
    * @example `PurlBuilder.npm().name('lodash').version('4.17.21').build()`
    */
@@ -416,7 +416,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the nuget package type preset.
+   * Create a builder with the `nuget` package type preset.
    *
    * @example `PurlBuilder.nuget().name('Newtonsoft.Json').version('13.0.3').build()`
    */
@@ -425,7 +425,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the oci package type preset.
+   * Create a builder with the `oci` package type preset.
    *
    * @example `PurlBuilder.oci().name('nginx').version('sha256:abc123').build()`
    */
@@ -434,7 +434,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the pub package type preset.
+   * Create a builder with the `pub` package type preset.
    *
    * @example `PurlBuilder.pub().name('flutter').version('3.19.0').build()`
    */
@@ -443,7 +443,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the pypi package type preset.
+   * Create a builder with the `pypi` package type preset.
    *
    * @example `PurlBuilder.pypi().name('requests').version('2.31.0').build()`
    */
@@ -452,7 +452,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the rpm package type preset.
+   * Create a builder with the `rpm` package type preset.
    *
    * @example `PurlBuilder.rpm().namespace('fedora').name('curl').version('8.5.0').build()`
    */
@@ -461,7 +461,7 @@ export class PurlBuilder {
   }
 
   /**
-   * Create a builder with the swift package type preset.
+   * Create a builder with the `swift` package type preset.
    *
    * @example `PurlBuilder.swift().namespace('apple').name('swift-nio').version('2.64.0').build()`
    */

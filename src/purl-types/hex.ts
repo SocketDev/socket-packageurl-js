@@ -31,10 +31,10 @@ interface PurlObject {
  * Queries hex.pm API to verify package existence and retrieve
  * the latest version.
  *
- * @param name - Package name (e.g., 'phoenix')
- * @param version - Optional version to validate (e.g., '1.7.10')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Package name (e.g., `'phoenix'`)
+ * @param version - Optional version to validate (e.g., `'1.7.10'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -125,7 +125,7 @@ export async function hexExists(
 
 /**
  * Normalize Hex package URL.
- * Lowercases both namespace and name.
+ * Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -135,7 +135,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate Hex package URL.
- * Name and namespace must not contain injection characters.
+ * `name` and `namespace` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (!validateNoInjectionByType('hex', 'namespace', purl.namespace, throws)) {

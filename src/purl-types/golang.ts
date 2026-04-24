@@ -11,10 +11,10 @@
  *    `github.com/User/Repo` and `github.com/user/repo` are different modules.
  *
  * 2. **Import Path Matching**: The import path must exactly match the module path
- *    declared in go.mod, including case.
+ *    declared in `go.mod`, including case.
  *
  * 3. **Proxy Encoding**: While the Go proxy uses case-encoding for URLs (uppercase
- *    letters become !lowercase, e.g., `User` → `!user`), this is an internal
+ *    letters become `!lowercase`, e.g., `User` → `!user`), this is an internal
  *    encoding detail. The original case must be preserved in PURLs.
  *
  * 4. **Filesystem Implications**: On case-insensitive filesystems (macOS, Windows),
@@ -58,15 +58,15 @@ interface PurlObject {
 /**
  * Check if a Go module exists in the Go module proxy.
  *
- * Queries proxy.golang.org to verify module existence and retrieve
+ * Queries `proxy.golang.org` to verify module existence and retrieve
  * the latest version. Go module names are typically full import paths
- * like 'github.com/user/repo'.
+ * like `'github.com/user/repo'`.
  *
- * @param name - Full module path (e.g., 'github.com/gorilla/mux')
- * @param namespace - Optional namespace (combined with name if provided)
- * @param version - Optional version to validate (e.g., 'v1.8.0')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Full module path (e.g., `'github.com/gorilla/mux'`)
+ * @param namespace - Optional namespace (combined with `name` if provided)
+ * @param version - Optional version to validate (e.g., `'v1.8.0'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -108,7 +108,7 @@ export async function golangExists(
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
       // Encode the module path for the URL
-      // Go proxy uses case-encoded paths where uppercase letters are !lowercase
+      // Go proxy uses case-encoded paths where uppercase letters are `!lowercase`
       const parts = StringPrototypeSplit(modulePath, '/' as any)
       for (let i = 0; i < parts.length; i++) {
         parts[i] = encodeComponent(
@@ -177,8 +177,8 @@ export async function golangExists(
 
 /**
  * Validate Golang package URL.
- * Name and namespace must not contain injection characters.
- * If version starts with "v", it must be followed by a valid semver version.
+ * `name` and `namespace` must not contain injection characters.
+ * If `version` starts with `"v"`, it must be followed by a valid semver version.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (
@@ -193,7 +193,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   // Pending spec change: https://github.com/package-url/purl-spec/pull/196
   const { version } = purl
   const length = typeof version === 'string' ? version.length : 0
-  // If the version starts with a "v" then ensure its a valid semver version
+  // If the version starts with a `"v"` then ensure its a valid semver version
   // This, by semver semantics, also supports pseudo-version number
   // https://go.dev/doc/modules/version-numbers#pseudo-version-number
   if (

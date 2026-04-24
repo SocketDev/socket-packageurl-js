@@ -26,15 +26,15 @@ interface PurlObject {
 /**
  * Check if a Maven package exists in Maven Central.
  *
- * Queries search.maven.org API to verify package existence and retrieve
- * the latest version. Maven packages are identified by group ID (namespace)
- * and artifact ID (name).
+ * Queries `search.maven.org` API to verify package existence and retrieve
+ * the latest version. Maven packages are identified by group ID (`namespace`)
+ * and artifact ID (`name`).
  *
- * @param name - Artifact ID (e.g., 'commons-lang3')
- * @param namespace - Group ID (e.g., 'org.apache.commons')
- * @param version - Optional version to validate (e.g., '3.12.0')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Artifact ID (e.g., `'commons-lang3'`)
+ * @param namespace - Group ID (e.g., `'org.apache.commons'`)
+ * @param version - Optional version to validate (e.g., `'3.12.0'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -142,7 +142,7 @@ export async function mavenExists(
 
 /**
  * Validate Maven package URL.
- * Maven packages require a namespace (groupId). Name and namespace must not
+ * Maven packages require a `namespace` (`groupId`). `name` and `namespace` must not
  * contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
@@ -158,8 +158,8 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
   ) {
     return false
   }
-  // Maven groupId uses dots as separators; a literal '/' in the namespace is
-  // not a valid groupId and corrupts downstream URL construction.
+  // Maven `groupId` uses dots as separators; a literal `'/'` in the namespace is
+  // not a valid `groupId` and corrupts downstream URL construction.
   if (
     typeof purl.namespace === 'string' &&
     StringPrototypeIncludes(purl.namespace, '/')

@@ -108,11 +108,11 @@ function isSemverString(value: unknown): value is string {
   )
 }
 
-// Intl.Collator is faster than String#localeCompare
+// `Intl.Collator` is faster than `String#localeCompare`
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare:
 // > When comparing large numbers of strings, such as in sorting large arrays,
-// > it is better to create an Intl.Collator object and use the function provided
-// > by its compare() method
+// > it is better to create an `Intl.Collator` object and use the function provided
+// > by its `compare()` method
 let _localeCompare: Intl.Collator['compare'] | undefined
 
 /**
@@ -120,7 +120,7 @@ let _localeCompare: Intl.Collator['compare'] | undefined
  */
 function localeCompare(x: string, y: string): number {
   if (_localeCompare === undefined) {
-    // Lazily call new Intl.Collator() because in Node it can take 10-14ms
+    // Lazily call `new Intl.Collator()` because in Node it can take 10-14ms
     _localeCompare = new Intl.Collator().compare
   }
   return _localeCompare(x, y)
@@ -157,7 +157,7 @@ function lowerVersion(purl: { version?: string | undefined }): void {
  * Replace all dashes with underscores in string.
  */
 function replaceDashesWithUnderscores(str: string): string {
-  // Replace all "-" with "_"
+  // Replace all `"-"` with `"_"`
   let result = ''
   let fromIndex = 0
   let index = 0
@@ -172,7 +172,7 @@ function replaceDashesWithUnderscores(str: string): string {
  * Replace all underscores with dashes in string.
  */
 function replaceUnderscoresWithDashes(str: string): string {
-  // Replace all "_" with "-"
+  // Replace all `"_"` with `"-"`
   let result = ''
   let fromIndex = 0
   let index = 0
@@ -189,18 +189,18 @@ function replaceUnderscoresWithDashes(str: string): string {
  * Detects four classes of dangerous characters:
  *
  * 1. **Shell metacharacters** — command execution, piping, redirection, expansion:
- *    |, &, ;, `, $, <, >, (, ), {, }, \
+ *    `|`, `&`, `;`, `` ` ``, `$`, `<`, `>`, `(`, `)`, `{`, `}`, `\`
  *
  * 2. **Quote characters** — break out of quoted contexts in shell, SQL, URLs:
- *    ', "
+ *    `'`, `"`
  *
  * 3. **URL/path delimiters** — fragment injection, comment injection:
- *    #
+ *    `#`
  *
  * 4. **Whitespace & control characters** — argument splitting, log injection,
  *    terminal escape sequences, null-byte truncation:
- *    0x00-0x1f (all C0 controls including NUL, tab, newline, CR, ESC, etc.)
- *    space (0x20), DEL (0x7f)
+ *    `0x00`-`0x1f` (all C0 controls including NUL, tab, newline, CR, ESC, etc.)
+ *    space (`0x20`), DEL (`0x7f`)
  */
 function isInjectionCharCode(code: number): boolean {
   // C0 control characters (0x00-0x1f)
@@ -306,36 +306,36 @@ function isInjectionCharCode(code: number): boolean {
 /**
  * Test whether a character code enables command execution.
  *
- * A narrower scanner than isInjectionCharCode, targeting characters that
+ * A narrower scanner than `isInjectionCharCode`, targeting characters that
  * enable shell command execution and code injection. Allows characters
  * that are legitimate in version strings and URL-based qualifier values
- * (like !, +, ?, &, =, %, :, /, #, space) while still blocking the
+ * (like `!`, `+`, `?`, `&`, `=`, `%`, `:`, `/`, `#`, space) while still blocking the
  * most dangerous execution vectors.
  *
- * Used for version, subpath, and qualifier value validation where the
+ * Used for `version`, `subpath`, and qualifier value validation where the
  * full injection scanner would cause false positives.
  */
 function isCommandInjectionCharCode(code: number): boolean {
-  // C0 control characters except tab (0x09) — tab is used in some
+  // C0 control characters except tab (`0x09`) — tab is used in some
   // version metadata but other controls are never legitimate
   if (code <= 0x1f && code !== 0x09) {
     return true
   }
   // biome-ignore format: newlines
   if (
-    // $ — command substitution $()
+    // `$` — command substitution `$()`
     code === 0x24 ||
-    // ; — command separator
+    // `;` — command separator
     code === 0x3b ||
-    // < — input redirection
+    // `<` — input redirection
     code === 0x3c ||
-    // > — output redirection
+    // `>` — output redirection
     code === 0x3e ||
-    // \ — escape character
+    // `\` — escape character
     code === 0x5c ||
-    // ` — command substitution (backtick form)
+    // `` ` `` — command substitution (backtick form)
     code === 0x60 ||
-    // | — pipe
+    // `|` — pipe
     code === 0x7c ||
     // DEL
     code === 0x7f
@@ -346,7 +346,7 @@ function isCommandInjectionCharCode(code: number): boolean {
   if (code >= 0x80 && code <= 0x9f) {
     return true
   }
-  // Unicode dangerous characters (same set as isInjectionCharCode)
+  // Unicode dangerous characters (same set as `isInjectionCharCode`)
   // biome-ignore format: newlines
   if (
     code === 0x200b ||
@@ -371,8 +371,8 @@ function isCommandInjectionCharCode(code: number): boolean {
 
 /**
  * Find the first command injection character in a string.
- * Like findInjectionCharCode but uses the narrower command injection set.
- * Returns the character code found, or -1.
+ * Like `findInjectionCharCode` but uses the narrower command injection set.
+ * Returns the character code found, or `-1`.
  */
 function findCommandInjectionCharCode(str: string): number {
   for (let i = 0, { length } = str; i < length; i += 1) {
@@ -386,13 +386,13 @@ function findCommandInjectionCharCode(str: string): number {
 
 /**
  * Find the first injection character in a string.
- * Returns the character code of the first dangerous character found, or -1.
+ * Returns the character code of the first dangerous character found, or `-1`.
  *
- * Uses charCode scanning for performance in hot paths. The check is a
+ * Uses `charCode` scanning for performance in hot paths. The check is a
  * single pass with no allocation, no regex, and no prototype method calls
- * beyond the captured StringPrototypeCharCodeAt primordial.
+ * beyond the captured `StringPrototypeCharCodeAt` primordial.
  *
- * Null bytes (0x00) are also caught by validateStrings() in validate.ts,
+ * Null bytes (`0x00`) are also caught by `validateStrings()` in `validate.ts`,
  * but we include them here for defense-in-depth so callers who skip the
  * base validators still get protection.
  */
@@ -408,7 +408,7 @@ function findInjectionCharCode(str: string): number {
 
 /**
  * Check if string contains characters commonly used in injection attacks.
- * Returns true if any dangerous character is found.
+ * Returns `true` if any dangerous character is found.
  *
  * For detailed information about which character was found, use
  * {@link findInjectionCharCode} instead.

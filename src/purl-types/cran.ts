@@ -32,12 +32,12 @@ interface PurlObject {
  *
  * Queries CRAN database to verify package existence and retrieve
  * the latest version. Note: CRAN provides a list of all packages
- * via their packages.rds file.
+ * via their `packages.rds` file.
  *
- * @param name - Package name (e.g., 'ggplot2')
- * @param version - Optional version to validate (e.g., '3.4.4')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Package name (e.g., `'ggplot2'`)
+ * @param version - Optional version to validate (e.g., `'3.4.4'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -126,7 +126,7 @@ export async function cranExists(
 
 /**
  * Validate CRAN package URL.
- * CRAN packages require a version. Name must not contain injection characters.
+ * CRAN packages require a `version`. `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

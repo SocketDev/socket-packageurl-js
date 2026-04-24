@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
  *
  * Bazel is a build system. Bazel packages represent external dependencies
- * in Bazel BUILD files.
+ * in Bazel `BUILD` files.
  */
 
 import { PurlError } from '../error.js'
@@ -21,7 +21,7 @@ interface PurlObject {
 
 /**
  * Normalize Bazel package URL.
- * Lowercases name only.
+ * Lowercases `name` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -30,7 +30,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate Bazel package URL.
- * Bazel packages must have a version (for reproducible builds). Name must not
+ * Bazel packages must have a `version` (for reproducible builds). `name` must not
  * contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {

@@ -32,10 +32,10 @@ interface PurlObject {
  * Queries the NuGet V3 API to verify package existence and retrieve
  * the latest version.
  *
- * @param name - Package name (e.g., 'Newtonsoft.Json')
- * @param version - Optional version to validate (e.g., '13.0.3')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Package name (e.g., `'Newtonsoft.Json'`)
+ * @param version - Optional version to validate (e.g., `'13.0.3'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -148,7 +148,7 @@ export async function nugetExists(
 
 /**
  * Validate NuGet package URL.
- * NuGet packages must not have a namespace. Name must not contain injection characters.
+ * NuGet packages must not have a `namespace`. `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

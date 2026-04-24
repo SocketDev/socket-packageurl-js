@@ -27,7 +27,7 @@ export function normalize(purl: PurlObject): PurlObject {
 
 /**
  * Validate Julia package URL.
- * Julia packages must not have a namespace.
+ * Julia packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

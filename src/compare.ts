@@ -1,6 +1,6 @@
 /**
  * @fileoverview PURL comparison utilities.
- * Functions for comparing PackageURL instances or PURL strings.
+ * Functions for comparing `PackageURL` instances or PURL strings.
  */
 
 import {
@@ -18,11 +18,11 @@ import type { PackageURL } from './package-url.js'
 
 export type PurlInput = PackageURL | string
 
-// Lazy reference to PackageURL, set by package-url.ts at module load time
+// Lazy reference to `PackageURL`, set by `package-url.ts` at module load time
 // to avoid circular import issues.
 let _PackageURL: typeof PackageURL | undefined
 
-/** @internal Register the PackageURL class for string parsing in compare functions. */
+/** @internal Register the `PackageURL` class for string parsing in compare functions. */
 export function _registerPackageURL(ctor: typeof PackageURL): void {
   _PackageURL = ctor
 }
@@ -43,14 +43,14 @@ function toCanonicalString(input: PurlInput): string {
 
 /**
  * Cache for compiled wildcard regexes to avoid recompilation on repeated calls.
- * Bounded to 1024 entries with LRU eviction (same strategy as flyweight cache).
+ * Bounded to `1024` entries with LRU eviction (same strategy as flyweight cache).
  */
 const wildcardRegexCache = new MapCtor<string, RegExp>()
 const WILDCARD_CACHE_MAX = 1024
 
 /**
  * Simple wildcard matcher for PURL components.
- * Supports * (match any chars), ? (match single char), ** (match anything including empty).
+ * Supports `*` (match any chars), `?` (match single char), `**` (match anything including empty).
  * Designed for version strings and package names, not file paths.
  */
 const MAX_PATTERN_LENGTH = 4096
@@ -81,7 +81,7 @@ function matchWildcard(pattern: string, value: string): boolean {
   let regex = wildcardRegexCache.get(pattern)
   if (regex === undefined) {
     // Convert glob pattern to regex
-    // Escape regex special chars except * and ?
+    // Escape regex special chars except `*` and `?`
     const regexPattern = StringPrototypeReplace(
       StringPrototypeReplace(
         StringPrototypeReplace(pattern, /[.+^${}()|[\]\\]/g, '\\$&' as any),
@@ -97,7 +97,7 @@ function matchWildcard(pattern: string, value: string): boolean {
       `^${StringPrototypeReplace(regexPattern, /(\.\*)+/g, '.*' as any)}$`,
     )
     if (wildcardRegexCache.size >= WILDCARD_CACHE_MAX) {
-      // Evict oldest entry (Map iteration order is insertion order)
+      // Evict oldest entry (`Map` iteration order is insertion order)
       const oldest = wildcardRegexCache.keys().next().value
       if (oldest !== undefined) {
         wildcardRegexCache.delete(oldest)
@@ -121,7 +121,7 @@ function matchComponent(
   actualValue: string | null | undefined,
   matcher?: (_value: string) => boolean,
 ): boolean {
-  // Handle ** (match any value including empty)
+  // Handle `**` (match any value including empty)
   if (patternValue === '**') {
     return true
   }
@@ -160,17 +160,17 @@ function matchComponent(
 }
 
 /**
- * Compare two PackageURLs for equality.
+ * Compare two `PackageURL`s for equality.
  *
- * Two PURLs are considered equal if their canonical string representations match.
+ * Two `purl`s are considered equal if their canonical string representations match.
  * This comparison is case-sensitive after normalization.
  *
- * Accepts both PackageURL instances and PURL strings. Strings are parsed and
+ * Accepts both `PackageURL` instances and PURL strings. Strings are parsed and
  * normalized before comparison.
  *
- * @param a - First PackageURL or PURL string to compare
- * @param b - Second PackageURL or PURL string to compare
- * @returns true if the PURLs are equal, false otherwise
+ * @param a - First `PackageURL` or PURL string to compare
+ * @param b - Second `PackageURL` or PURL string to compare
+ * @returns `true` if the `purl`s are equal, `false` otherwise
  *
  * @example
  * ```typescript
@@ -187,7 +187,7 @@ export function equals(a: PurlInput, b: PurlInput): boolean {
 }
 
 /**
- * Compare two PackageURLs for sorting.
+ * Compare two `PackageURL`s for sorting.
  *
  * Returns a number indicating sort order:
  * - Negative if `a` comes before `b`
@@ -196,12 +196,12 @@ export function equals(a: PurlInput, b: PurlInput): boolean {
  *
  * Comparison is based on canonical string representation (lexicographic).
  *
- * Accepts both PackageURL instances and PURL strings. Strings are parsed and
+ * Accepts both `PackageURL` instances and PURL strings. Strings are parsed and
  * normalized before comparison.
  *
- * @param a - First PackageURL or PURL string to compare
- * @param b - Second PackageURL or PURL string to compare
- * @returns -1, 0, or 1 for sort ordering
+ * @param a - First `PackageURL` or PURL string to compare
+ * @param b - Second `PackageURL` or PURL string to compare
+ * @returns `-1`, `0`, or `1` for sort ordering
  *
  * @example
  * ```typescript
@@ -234,18 +234,18 @@ type ParsedPattern = {
 
 /**
  * Parse a PURL pattern string into its individual components.
- * Strips the `pkg:` prefix, extracts type/namespace/name/version,
+ * Strips the `pkg:` prefix, extracts `type`/`namespace`/`name`/`version`,
  * handles scoped `@` prefixes, and applies type-specific normalization
- * (npm lowercase, pypi underscore-to-hyphen).
+ * (`npm` lowercase, `pypi` underscore-to-hyphen).
  *
- * Returns undefined if the pattern is not a valid PURL pattern shape.
+ * Returns `undefined` if the pattern is not a valid PURL pattern shape.
  */
 function parsePattern(pattern: string): ParsedPattern | undefined {
   if (!StringPrototypeStartsWith(pattern, 'pkg:')) {
     return undefined
   }
 
-  // Remove 'pkg:' prefix
+  // Remove `'pkg:'` prefix
   const patternWithoutScheme = StringPrototypeSlice(pattern, 4)
 
   // Extract type
@@ -259,13 +259,13 @@ function parsePattern(pattern: string): ParsedPattern | undefined {
   const remaining = StringPrototypeSlice(patternWithoutScheme, typeEndIndex + 1)
 
   // Parse namespace and name
-  // Format: [namespace/]name[@version][?qualifiers][#subpath]
-  // Namespace is optional and ends at the first '/'
+  // Format: `[namespace/]name[@version][?qualifiers][#subpath]`
+  // Namespace is optional and ends at the first `'/'`
   let namespacePattern: string | undefined
   let namePattern: string
   let versionPattern: string | undefined
 
-  // Check if there's a namespace (indicated by presence of '/')
+  // Check if there's a namespace (indicated by presence of `'/'`)
   const firstSlashIndex = StringPrototypeIndexOf(remaining, '/')
   let nameAndVersion: string
 
@@ -278,15 +278,15 @@ function parsePattern(pattern: string): ParsedPattern | undefined {
     nameAndVersion = remaining
   }
 
-  // Extract version from name (version starts with '@')
-  // For scoped packages without namespace (e.g., '@foo' as name), skip first '@'
+  // Extract version from name (version starts with `'@'`)
+  // For scoped packages without namespace (e.g., `'@foo'` as name), skip first `'@'`
   const versionSeparatorIndex = StringPrototypeStartsWith(nameAndVersion, '@')
     ? StringPrototypeIndexOf(nameAndVersion, '@', 1)
     : StringPrototypeIndexOf(nameAndVersion, '@')
 
   if (versionSeparatorIndex !== -1) {
     namePattern = StringPrototypeSlice(nameAndVersion, 0, versionSeparatorIndex)
-    // Version is everything after @ (qualifiers/subpath not supported in patterns v1)
+    // Version is everything after `@` (qualifiers/subpath not supported in patterns v1)
     versionPattern = StringPrototypeSlice(
       nameAndVersion,
       versionSeparatorIndex + 1,
@@ -299,7 +299,7 @@ function parsePattern(pattern: string): ParsedPattern | undefined {
   // Types are case-insensitive, so normalize to lowercase
   typePattern = StringPrototypeToLowerCase(typePattern)
 
-  // For npm: lowercase namespace and name (ignoring legacy names for simplicity)
+  // For `npm`: lowercase namespace and name (ignoring legacy names for simplicity)
   if (typePattern === 'npm') {
     if (namespacePattern) {
       namespacePattern = StringPrototypeToLowerCase(namespacePattern)
@@ -307,7 +307,7 @@ function parsePattern(pattern: string): ParsedPattern | undefined {
     namePattern = StringPrototypeToLowerCase(namePattern)
   }
 
-  // For pypi: lowercase name and replace underscores with hyphens
+  // For `pypi`: lowercase name and replace underscores with hyphens
   if (typePattern === 'pypi') {
     namePattern = StringPrototypeReplace(
       StringPrototypeToLowerCase(namePattern),
@@ -320,28 +320,28 @@ function parsePattern(pattern: string): ParsedPattern | undefined {
 }
 
 /**
- * Check if a PackageURL matches a pattern with wildcards.
+ * Check if a `PackageURL` matches a pattern with wildcards.
  *
  * Supports glob-style wildcards:
  * - asterisk matches any sequence of characters within a component
  * - double asterisk matches any value including empty (for optional components)
  * - question mark matches single character
  *
- * Pattern matching is performed on normalized PURLs (after type-specific
+ * Pattern matching is performed on normalized `purl`s (after type-specific
  * normalization). Each component is matched independently.
  *
  * @param pattern - PURL string with wildcards
- * @param purl - PackageURL instance to test
- * @returns true if purl matches the pattern
+ * @param purl - `PackageURL` instance to test
+ * @returns `true` if `purl` matches the pattern
  *
  * @example
- * Wildcard in name: matches('pkg:npm/lodash-star', purl)
- * Wildcard in namespace: matches('pkg:npm/@babel/star', purl)
- * Wildcard in version: matches('pkg:npm/react@18.star', purl)
- * Match any type: matches('pkg:star/lodash', purl)
- * Optional version: matches('pkg:npm/lodash@star-star', purl)
+ * Wildcard in name: `matches('pkg:npm/lodash-star', purl)`
+ * Wildcard in namespace: `matches('pkg:npm/@babel/star', purl)`
+ * Wildcard in version: `matches('pkg:npm/react@18.star', purl)`
+ * Match any type: `matches('pkg:star/lodash', purl)`
+ * Optional version: `matches('pkg:npm/lodash@star-star', purl)`
  *
- * See test/pattern-matching.test.mts for comprehensive examples.
+ * See `test/pattern-matching.test.mts` for comprehensive examples.
  */
 export function matches(pattern: string, purl: PackageURL): boolean {
   const parsed = parsePattern(pattern)
@@ -361,19 +361,19 @@ export function matches(pattern: string, purl: PackageURL): boolean {
 
 /**
  * Create a reusable matcher function from a pattern.
- * More efficient for testing multiple PURLs against the same pattern.
+ * More efficient for testing multiple `purl`s against the same pattern.
  *
- * The returned function can be used with Array methods like filter(),
- * some(), and every() for efficient batch matching operations.
+ * The returned function can be used with `Array` methods like `filter()`,
+ * `some()`, and `every()` for efficient batch matching operations.
  *
  * @param pattern - PURL pattern string with wildcards
- * @returns Function that tests PURLs against the pattern
+ * @returns Function that tests `purl`s against the pattern
  *
  * @example
- * const isBabel = createMatcher('pkg:npm/@babel/star')
- * packages.filter(isBabel)
+ * `const isBabel = createMatcher('pkg:npm/@babel/star')`
+ * `packages.filter(isBabel)`
  *
- * See test/pattern-matching.test.mts for comprehensive examples.
+ * See `test/pattern-matching.test.mts` for comprehensive examples.
  */
 export function createMatcher(pattern: string): (_purl: PackageURL) => boolean {
   const parsed = parsePattern(pattern)

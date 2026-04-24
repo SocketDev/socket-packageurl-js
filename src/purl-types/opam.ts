@@ -18,7 +18,7 @@ interface PurlObject {
 
 /**
  * Validate OPAM package URL.
- * OPAM packages must not have a namespace.
+ * OPAM packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

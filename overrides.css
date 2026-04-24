@@ -1203,15 +1203,16 @@ html:not([data-ua='safari']) .file-block {
 }
 
 /* File path on each file-block header — the "this section is
- * about <file>" title. Clearly the largest heading on the
- * page so the annotation h1/h2 below (18px/600) read as
- * sub-headings, not peers. */
+ * about <file>" title. Largest heading on the page but
+ * sized to scale with the annotation-prose beneath (13px body
+ * + 15px subheads), so the hierarchy is visible without the
+ * path shouting. */
 .file-head .path {
   font-family: var(--font-mono);
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--ink);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .file-head .count {

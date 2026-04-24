@@ -16,7 +16,7 @@ interface PurlObject {
 
 /**
  * Normalize QPKG package URL.
- * Lowercases namespace only.
+ * Lowercases `namespace` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)

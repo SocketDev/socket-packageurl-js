@@ -40,7 +40,7 @@ function normalizeNamespace(rawNamespace: unknown): string | undefined {
 }
 
 /**
- * Normalize purl path component by collapsing separators and filtering segments.
+ * Normalize `purl` path component by collapsing separators and filtering segments.
  */
 function normalizePurlPath(
   pathname: string,
@@ -49,7 +49,7 @@ function normalizePurlPath(
   const { filter: callback } = options ?? {}
   let collapsed = ''
   let start = 0
-  // Leading and trailing slashes, i.e. '/', are not significant and should be
+  // Leading and trailing slashes, i.e. `'/'`, are not significant and should be
   // stripped in the canonical form
   while (StringPrototypeCharCodeAt(pathname, start) === 47 /*'/'*/) {
     start += 1
@@ -60,7 +60,7 @@ function normalizePurlPath(
     return StringPrototypeSlice(pathname, start)
   }
   // Discard any empty string segments by collapsing repeated segment
-  // separator slashes, i.e. '/'
+  // separator slashes, i.e. `'/'`
   while (nextIndex !== -1) {
     const segment = StringPrototypeSlice(pathname, start, nextIndex)
     if (callback === undefined || callback(segment)) {
@@ -93,14 +93,14 @@ function normalizeQualifiers(
   rawQualifiers: unknown,
 ): Record<string, string> | undefined {
   let qualifiers: Record<string, string> | undefined
-  // Use for-of to work with entries iterators
+  // Use `for-of` to work with entries iterators
   for (const { 0: key, 1: value } of qualifiersToEntries(rawQualifiers)) {
-    // Skip non-string keys — validateQualifiers rejects these with PurlError.
+    // Skip non-string keys — `validateQualifiers` rejects these with `PurlError`.
     if (typeof key !== 'string') {
       continue
     }
     // Only coerce primitive types — reject objects/functions that could
-    // execute arbitrary code via toString() during coercion.
+    // execute arbitrary code via `toString()` during coercion.
     const strValue =
       typeof value === 'string'
         ? value
@@ -108,7 +108,7 @@ function normalizeQualifiers(
           ? `${value}`
           : ''
     const trimmed = StringPrototypeTrim(strValue)
-    // A key=value pair with an empty value is the same as no key/value
+    // A `key=value` pair with an empty value is the same as no `key/value`
     // at all for this key
     if (trimmed.length === 0) {
       continue
@@ -158,7 +158,7 @@ function qualifiersToEntries(
   rawQualifiers: unknown,
 ): Iterable<[string, string]> {
   if (isObject(rawQualifiers)) {
-    // URLSearchParams instances have an "entries" method that returns an iterator
+    // `URLSearchParams` instances have an `"entries"` method that returns an iterator
     const rawQualifiersObj = rawQualifiers as QualifiersObject | URLSearchParams
     const entriesProperty = (rawQualifiersObj as QualifiersObject)['entries']
     return typeof entriesProperty === 'function'
@@ -179,7 +179,7 @@ function qualifiersToEntries(
  */
 function subpathFilter(segment: string): boolean {
   // When percent-decoded, a segment
-  //   - must not be any of '.' or '..'
+  //   - must not be any of `'.'` or `'..'`
   //   - must not be empty
   const { length } = segment
   if (length === 1 && StringPrototypeCharCodeAt(segment, 0) === 46 /*'.'*/) {

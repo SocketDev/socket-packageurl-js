@@ -16,7 +16,7 @@ interface PurlObject {
 
 /**
  * Normalize ALPM package URL.
- * Lowercases both namespace and name.
+ * Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)

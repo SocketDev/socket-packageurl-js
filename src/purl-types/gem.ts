@@ -28,17 +28,17 @@ interface PurlObject {
 /**
  * Check if a Ruby gem exists in rubygems.org.
  *
- * Queries rubygems.org at https://rubygems.org/api/v1/versions to verify gem
+ * Queries `rubygems.org` at https://rubygems.org/api/v1/versions to verify gem
  * existence and optionally validate a specific version. Returns the latest
  * version from the versions array.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
  * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
  *
- * @param name - Gem name (e.g., 'rails', 'rake')
- * @param version - Optional version to validate (e.g., '7.0.0')
- * @param options - Optional configuration including cache
- * @returns Promise resolving to existence result with latest version
+ * @param name - Gem name (e.g., `'rails'`, `'rake'`)
+ * @param version - Optional version to validate (e.g., `'7.0.0'`)
+ * @param options - Optional configuration including `cache`
+ * @returns `Promise` resolving to existence result with latest version
  *
  * @example
  * ```typescript
@@ -139,7 +139,7 @@ export async function gemExists(
 
 /**
  * Validate RubyGem package URL.
- * Gem packages must not have a namespace. Name must not contain injection characters.
+ * Gem packages must not have a `namespace`. `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

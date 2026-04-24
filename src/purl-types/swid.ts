@@ -27,12 +27,12 @@ interface PurlObject {
 
 /**
  * Validate SWID package URL.
- * SWID requires a tag_id qualifier that must not be empty.
- * If tag_id is a GUID, it must be lowercase.
+ * SWID requires a `tag_id` qualifier that must not be empty.
+ * If `tag_id` is a GUID, it must be lowercase.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { qualifiers } = purl
-  // SWID requires a tag_id qualifier
+  // SWID requires a `tag_id` qualifier
   const tagId = qualifiers?.['tag_id']
   if (!tagId) {
     if (throws) {
@@ -40,7 +40,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
     return false
   }
-  // tag_id must not be empty after trimming
+  // `tag_id` must not be empty after trimming
   const tagIdStr = StringPrototypeTrim(String(tagId))
   if (tagIdStr.length === 0) {
     /* v8 ignore next 3 -- Throw path tested separately from return false path. */
@@ -49,7 +49,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
     return false
   }
-  // If tag_id is a GUID, it must be lowercase
+  // If `tag_id` is a GUID, it must be lowercase
   if (RegExpPrototypeTest(GUID_PATTERN, tagIdStr)) {
     if (tagIdStr !== StringPrototypeToLowerCase(tagIdStr)) {
       if (throws) {

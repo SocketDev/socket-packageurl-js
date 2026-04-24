@@ -44,7 +44,7 @@ function validateEmptyByType(
 /**
  * Validate that a component does not contain injection characters.
  * Shared helper to eliminate boilerplate across per-type validators.
- * @throws {PurlInjectionError} When validation fails and throws is true.
+ * @throws {PurlInjectionError} When validation fails and `throws` is `true`.
  *   The error includes the specific character code, component name, and
  *   package type so callers can log, alert, or handle injection attempts
  *   at an elevated level.
@@ -92,7 +92,7 @@ function validateName(
     return false
   }
 
-  // Validate length (npm package name limit is 214 characters)
+  // Validate length (npm package name limit is `214` characters)
   const MAX_NAME_LENGTH = 214
   if (typeof name === 'string' && name.length > MAX_NAME_LENGTH) {
     if (throws) {
@@ -172,7 +172,7 @@ function validateQualifierKey(
     return false
   }
   // The key must be composed only of ASCII letters and numbers,
-  // '.', '-' and '_' (period, dash and underscore)
+  // `'.'`, `'-'` and `'_'` (period, dash and underscore)
   for (let i = 0, { length } = key as string; i < length; i += 1) {
     const code = StringPrototypeCharCodeAt(key as string, i)
     // biome-ignore format: newlines
@@ -227,13 +227,13 @@ function validateQualifiers(
   const keysProperty = (qualifiersObj as QualifiersObject)['keys']
   // type-coverage:ignore-next-line -- TypeScript correctly infers this type through the ternary and cast
   const keysIterable: Iterable<string> =
-    // URLSearchParams instances have a "keys" method that returns an iterator
+    // `URLSearchParams` instances have a `"keys"` method that returns an iterator
     (
       typeof keysProperty === 'function'
         ? ReflectApply(keysProperty, qualifiersObj, [])
         : ObjectKeys(qualifiers as QualifiersObject)
     ) as Iterable<string>
-  // Use for-of to work with URLSearchParams#keys iterators
+  // Use `for-of` to work with `URLSearchParams#keys` iterators
   // type-coverage:ignore-next-line -- TypeScript correctly infers the iteration type
   for (const key of keysIterable) {
     if (typeof key !== 'string') {
@@ -247,8 +247,8 @@ function validateQualifiers(
     }
     // Validate qualifier values for command injection characters.
     // Uses the narrower command injection scanner to allow URL-safe characters
-    // (?, &, =, :, /, #) that are legitimate in qualifier values like
-    // download_url, repository_url, and vcs_url.
+    // (`?`, `&`, `=`, `:`, `/`, `#`) that are legitimate in qualifier values like
+    // `download_url`, `repository_url`, and `vcs_url`.
     const value =
       typeof (qualifiersObj as QualifiersObject)[key] === 'string'
         ? ((qualifiersObj as QualifiersObject)[key] as string)
@@ -369,7 +369,7 @@ function validateStrings(
     }
     return false
   }
-  // Reject null bytes which cause truncation in C-based consumers
+  // Reject `null` bytes which cause truncation in C-based consumers
   if (StringPrototypeIncludes(value, '\x00')) {
     if (throws) {
       throw new PurlError(`"${name}" must not contain null bytes`)
@@ -381,11 +381,11 @@ function validateStrings(
 
 /**
  * Validate subpath component.
- * Rejects command injection characters (|, ;, `, $, <, >, \) while allowing
- * characters that are legitimate in decoded subpaths (?, #, space, etc. which
+ * Rejects command injection characters (`|`, `;`, `` ` ``, `$`, `<`, `>`, `\`) while allowing
+ * characters that are legitimate in decoded subpaths (`?`, `#`, space, etc. which
  * get percent-encoded in the PURL string representation).
- * @throws {PurlInjectionError} When command injection characters found and options.throws is true.
- * @throws {PurlError} When validation fails and options.throws is true.
+ * @throws {PurlInjectionError} When command injection characters found and `options.throws` is `true`.
+ * @throws {PurlError} When validation fails and `options.throws` is `true`.
  */
 function validateSubpath(
   subpath: unknown,
@@ -434,7 +434,7 @@ function validateType(
     return false
   }
   // The package type is composed only of ASCII letters and numbers,
-  // '.' (period), and '-' (dash)
+  // `'.'` (period), and `'-'` (dash)
   for (let i = 0, { length } = type as string; i < length; i += 1) {
     const code = StringPrototypeCharCodeAt(type as string, i)
     // biome-ignore format: newlines
@@ -466,10 +466,10 @@ function validateType(
 
 /**
  * Validate package version component.
- * Rejects command injection characters (|, ;, `, $, <, >, \) while allowing
- * characters legitimate in version strings (!, +, -, ., _, ~, space, %, ?, #).
- * @throws {PurlInjectionError} When command injection characters found and options.throws is true.
- * @throws {PurlError} When validation fails and options.throws is true.
+ * Rejects command injection characters (`|`, `;`, `` ` ``, `$`, `<`, `>`, `\`) while allowing
+ * characters legitimate in version strings (`!`, `+`, `-`, `.`, `_`, `~`, space, `%`, `?`, `#`).
+ * @throws {PurlInjectionError} When command injection characters found and `options.throws` is `true`.
+ * @throws {PurlError} When validation fails and `options.throws` is `true`.
  */
 function validateVersion(
   version: unknown,
