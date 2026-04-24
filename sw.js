@@ -40,7 +40,19 @@ const BASE_PATH = self.location.pathname.replace(/\/[^/]*$/, '')
 // installs the SW); the *next* navigation to them is cached.
 const PRECACHE = [
   `${BASE_PATH}/style.css`,
-  `${BASE_PATH}/drag.js`,
+  /* Walkthrough modules — each cached individually so a single
+   * module bump invalidates only that file on reload. The rest
+   * (which didn't change across the deploy) stay hot. */
+  `${BASE_PATH}/pages/boot.js`,
+  `${BASE_PATH}/pages/theme.js`,
+  `${BASE_PATH}/pages/splitter.js`,
+  `${BASE_PATH}/pages/sections.js`,
+  `${BASE_PATH}/pages/hotlinks.js`,
+  `${BASE_PATH}/pages/purl-classifiers.js`,
+  `${BASE_PATH}/pages/purl-tokenizer.js`,
+  `${BASE_PATH}/pages/jsdoc-wrap.js`,
+  `${BASE_PATH}/pages/jsdoc-group.js`,
+  `${BASE_PATH}/pages/annotation-ready.js`,
   `${BASE_PATH}/comments.js`,
   `${BASE_PATH}/favicon.ico`,
   `${BASE_PATH}/favicon-16x16.png`,

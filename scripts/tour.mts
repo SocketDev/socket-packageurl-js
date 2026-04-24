@@ -46,6 +46,31 @@ const nodeModulesDir = path.join(meanderDir, 'node_modules')
 // only ever contains a finished, consistent site.
 const outputDir = path.join(repoRoot, 'pages')
 
+/* Walkthrough JS modules — copied from src/pages/ into the
+ * built output as `/pages/<name>.js` and emitted as one
+ * `<script defer>` per entry on every generated page. Order
+ * is load order:
+ *   - boot.js MUST run first (creates window[Symbol.for('socket-pages')]
+ *     and the phase runner).
+ *   - theme.js is next so its synchronous apply runs before
+ *     any other module's phase fires.
+ *   - The rest register phases with the runner; phases execute
+ *     in source registration order on DOMContentLoaded.
+ *   - annotation-ready.js runs last because it depends on
+ *     every other module's exports. */
+const PAGES_SCRIPTS = [
+  'boot.js',
+  'theme.js',
+  'splitter.js',
+  'sections.js',
+  'hotlinks.js',
+  'purl-classifiers.js',
+  'purl-tokenizer.js',
+  'jsdoc-wrap.js',
+  'jsdoc-group.js',
+  'annotation-ready.js',
+]
+
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -898,13 +923,16 @@ async function renderDocs(
        * type can follow this link and get the source instead of
        * the rendered HTML. Emitted alongside by emitAiArtifacts. */
       `  <link rel="alternate" type="text/markdown" href="/${doc.filename}.md" />\n` +
-      `  <link rel="stylesheet" href="/style.css" />\n` +
       // Syntax highlighting — unconditionally load github-dark to
       // match the part pages (which don't media-gate). Our dark
       // panels (.doc-body pre, .code-section) look right with this
       // palette across every theme we ship; a light hljs stylesheet
-      // inside a dark panel reads washed out.
+      // inside a dark panel reads washed out. Must load BEFORE
+      // style.css so our inline-pill overrides win the cascade —
+      // github-dark tints identifiers in colors calibrated for a
+      // near-black panel, which read dim on our lifted charcoal.
       `  <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/styles/github-dark.min.css" />\n` +
+      `  <link rel="stylesheet" href="/style.css" />\n` +
       `</head>\n` +
       `<body data-slug="${escapeHtml(slug)}" data-doc="${escapeHtml(doc.filename)}">\n` +
       `  <header class="topbar">\n` +
@@ -1751,10 +1779,22 @@ async function generate(
       await fs.copyFile(overrideCssPath, emittedCss)
     }
 
-    // Ship the column-splitter JS alongside the generated HTML.
-    const dragSrc = path.join(repoRoot, 'drag.js')
-    if (existsSync(dragSrc)) {
-      await fs.copyFile(dragSrc, path.join(buildDir, 'drag.js'))
+    /* Ship the walkthrough JS modules alongside the generated
+     * HTML. Each module is self-contained and attaches behavior
+     * to the shared namespace at window[Symbol.for('socket-pages')].
+     * Load order matters: boot.js must run first (sets up the
+     * namespace + phase runner); everything else pushes a phase.
+     * Order is asserted by the script-tag emission below. */
+    const pagesSrcDir = path.join(repoRoot, 'src', 'pages')
+    const pagesBuildDir = path.join(buildDir, 'pages')
+    if (existsSync(pagesSrcDir)) {
+      await fs.mkdir(pagesBuildDir, { recursive: true })
+      for (const name of PAGES_SCRIPTS) {
+        const src = path.join(pagesSrcDir, name)
+        if (existsSync(src)) {
+          await fs.copyFile(src, path.join(pagesBuildDir, name))
+        }
+      }
     }
 
     // Ship the service worker — cache-first for same-origin assets,
@@ -2028,7 +2068,13 @@ async function generate(
       '"/" + slug + "/api/comments/export";',
       'LINE_SELECT_INIT',
     ]
-    const dragTag = '<script src="/drag.js" defer></script>'
+    /* Walkthrough script tags — one <script defer> per module
+     * so each file is individually cacheable. `defer` preserves
+     * document-order execution, so boot.js's namespace is ready
+     * by the time the next tag runs. */
+    const pagesScriptTags = PAGES_SCRIPTS.map(
+      name => `<script src="/pages/${name}" defer></script>`,
+    ).join('\n  ')
     const commentsTag = '<script src="/comments.js" defer></script>'
     const configTag = commentBackend
       ? `<script>window.socketWalkthrough=${JSON.stringify({ backend: commentBackend })}</script>`
@@ -2109,13 +2155,18 @@ async function generate(
     const commentBackendOrigin = commentBackend
       ? new URL(commentBackend).origin
       : ''
-    /* Preloads shared by every page (drag.js + fonts). comments.js
-     * + the val.run preconnect only belong on part pages — the
-     * only surface where comments.js actually runs. `preloadTags`
-     * is the base set; `partPreloadTags` adds the comments.js +
-     * preconnect pair. Chosen per-page below during post-process. */
+    /* Preloads shared by every page (walkthrough modules +
+     * fonts). comments.js + the val.run preconnect only belong
+     * on part pages — the only surface where comments.js
+     * actually runs. `preloadTags` is the base set;
+     * `partPreloadTags` adds the comments.js + preconnect pair.
+     * Chosen per-page below during post-process. One preload
+     * per module so the browser starts fetching all of them in
+     * parallel with HTML parsing. */
     const basePreloads = [
-      '<link rel="preload" as="script" href="/drag.js" />',
+      ...PAGES_SCRIPTS.map(
+        name => `<link rel="preload" as="script" href="/pages/${name}" />`,
+      ),
       ...fontPreloads,
     ]
     const partPreloads = commentBackend
@@ -2178,6 +2229,26 @@ async function generate(
         'link[href="/walkthrough.css"]',
       )) {
         link.setAttribute('href', '/style.css')
+      }
+
+      /* Ensure our style.css loads AFTER the github-dark hljs
+       * stylesheet so our inline-pill overrides win the cascade —
+       * github-dark tints identifiers with colors calibrated for
+       * a near-black panel which read dim on our lifted charcoal
+       * pill. Move the style.css <link> to sit right after the
+       * github-dark CDN <link>. Idempotent — if already ordered
+       * correctly, no DOM change. */
+      const styleLink = root.querySelector('link[href="/style.css"]')
+      const hljsLink = root.querySelector(
+        'link[href*="@highlightjs/cdn-assets"][href*="github-dark"]',
+      )
+      if (
+        styleLink &&
+        hljsLink &&
+        styleLink.previousElementSibling !== hljsLink
+      ) {
+        styleLink.remove()
+        hljsLink.insertAdjacentHTML('afterend', `\n  ${styleLink.toString()}`)
       }
 
       // Strip meander's inlined comment scripts when replacing with ours.
@@ -2283,12 +2354,42 @@ async function generate(
         }
       }
 
-      // Inject our scripts once (idempotent). The preload tags
-      // injected earlier also reference drag.js / comments.js paths,
-      // so use the `<script src=...>` selector (not preload's
-      // `<link as="script" href=...>`) to pick only real script tags.
-      if (body && !root.querySelector('script[src="/drag.js"]')) {
-        body.insertAdjacentHTML('beforeend', `\n  ${dragTag}`)
+      /* Part pages ship only highlight.js's "common" bundle (from
+       * meander's template) — no TypeScript grammar. `@example`
+       * fences in JSDoc are tagged `language-typescript` and need
+       * the TS grammar pack to highlight; without it, hljs silently
+       * leaves the code plain. Inject the TS grammar right after
+       * meander's highlight.min.js so both load in parallel and the
+       * grammar is registered before drag.js's cleanupAnnotationProse
+       * calls highlightElement on the hydrated `.annotation-md`
+       * blocks. SRI hashes get filled in by injectSri later.
+       * Idempotent via the src match. */
+      if (
+        partMatch &&
+        head &&
+        !root.querySelector(
+          'script[src*="@highlightjs/cdn-assets"][src*="typescript"]',
+        )
+      ) {
+        const hljsScript = root.querySelector(
+          'script[src*="@highlightjs/cdn-assets"][src$="/highlight.min.js"]',
+        )
+        const tsTag = `<script src="https://unpkg.com/@highlightjs/cdn-assets@11.10.0/languages/typescript.min.js" crossorigin="anonymous"></script>`
+        if (hljsScript) {
+          hljsScript.insertAdjacentHTML('afterend', `\n  ${tsTag}`)
+        } else {
+          head.insertAdjacentHTML('beforeend', `\n  ${tsTag}`)
+        }
+      }
+
+      /* Inject our scripts once (idempotent). The preload tags
+       * injected earlier also reference these paths, so use the
+       * `<script src=...>` selector (not preload's `<link
+       * as="script" href=...>`) to pick only real script tags.
+       * First module (boot.js) probed as the idempotency marker
+       * — if it's absent, emit the whole stack. */
+      if (body && !root.querySelector('script[src="/pages/boot.js"]')) {
+        body.insertAdjacentHTML('beforeend', `\n  ${pagesScriptTags}`)
       }
       /* comments.js is only useful on part pages — it binds to
        * per-section `data-part` markers emitted by meander. Doc
@@ -2504,6 +2605,141 @@ async function generate(
           block.setAttribute('id', anchor)
         }
         fileList.push({ path: pathText, anchor })
+      }
+      // Tag the first annotation-card on each file-block as a
+      // license card if its source text reads as a license
+      // preamble. CSS hides `.annotation-card-license` while
+      // keeping the cell in grid flow so the paired code-
+      // section stays in the right column. Pure @fileoverview
+      // cards without a license stay visible.
+      //
+      // Two-tier detection to avoid false positives on prose
+      // that merely *mentions* a license (e.g. "compatible
+      // with the MIT License"):
+      //   STRONG markers alone are enough — these phrases only
+      //   appear verbatim inside actual license text.
+      //   NAMED markers (MIT/Apache/BSD) need a supporting
+      //   Copyright or SPDX marker to count. On their own they
+      //   can appear in ordinary documentation.
+      const STRONG_LICENSE_MARKERS = [
+        /permission is hereby granted/i,
+        /\bSPDX-License-Identifier:/i,
+        /\blicensed under the\b/i,
+      ]
+      const COPYRIGHT_MARKER = /copyright\s*\(c\)/i
+      const NAMED_LICENSE_MARKERS = [
+        /\bthe MIT License\b/i,
+        /\bApache License\b/i,
+        /\bBSD License\b/i,
+      ]
+      const looksLikeLicense = (text: string): boolean => {
+        if (STRONG_LICENSE_MARKERS.some(re => re.test(text))) {
+          return true
+        }
+        if (COPYRIGHT_MARKER.test(text)) {
+          return true
+        }
+        return (
+          NAMED_LICENSE_MARKERS.some(re => re.test(text)) &&
+          COPYRIGHT_MARKER.test(text)
+        )
+      }
+      for (const block of fileBlocks) {
+        const firstCard = block.querySelector(
+          '.pair-grid > .annotation-card, .file-grid > .annotation-card',
+        )
+        if (!firstCard) {
+          continue
+        }
+        // Prefer the pre-hydration `<textarea class="annotation-
+        // md-source">` (exact source markdown). Fall back to the
+        // rendered `.annotation-md` text when meander's bundle
+        // doesn't emit the source textarea — detection still
+        // works on rendered prose, just less precise.
+        const src = firstCard.querySelector('.annotation-md-source')
+        const text =
+          src?.text ?? firstCard.querySelector('.annotation-md')?.text ?? ''
+        if (text && looksLikeLicense(text)) {
+          const existing = firstCard.getAttribute('class') ?? ''
+          if (!existing.includes('annotation-card-license')) {
+            firstCard.setAttribute(
+              'class',
+              (existing + ' annotation-card-license').trim(),
+            )
+          }
+        }
+      }
+      // Hide noise annotation-cards whose entire body is:
+      //   - A tool directive (lint/coverage/formatter): `v8
+      //     ignore start`, `c8 ignore next`, `eslint-disable-
+      //     next-line`, `oxlint-disable`, `biome-ignore`,
+      //     `prettier-ignore`, `@ts-ignore`, webpack/vite
+      //     magic comments. Instructions to tooling, not
+      //     commentary on the code.
+      //   - A decorative character label: `'*'`, `/*'?'*/`
+      //     etc. — inline comments used to identify the ASCII
+      //     glyph a char-code refers to, e.g. `code === 42
+      //     /*'*'*/`. Zero narrative value; pure mnemonic for
+      //     the reader of the source.
+      // Meander picks these up as annotations because they're
+      // comments attached to source lines; we filter them out
+      // here so the tour only surfaces human-written prose.
+      //
+      // Detection: match against the FULL trimmed source text.
+      // If the whole annotation is directive / noise (possibly
+      // multi-line for range directives like `v8 ignore
+      // start`/`v8 ignore stop`), flag the card. Mixed comments
+      // ("// TODO: fix this — eslint-disable-next-line") stay
+      // visible because the directive is embedded in prose.
+      const TOOL_DIRECTIVE_RE =
+        /^\s*(?:v8|c8|istanbul)\s+ignore(?:\s+\w+)?(?:\s+--[\s\S]*)?$|^\s*(?:eslint|oxlint|tslint|stylelint)[-\s](?:disable|enable)(?:-next-line|-line)?(?:\s+[\s\S]*)?$|^\s*(?:biome|prettier|oxfmt|oxlint|dprint)[-\s]ignore(?:\s+[\s\S]*)?$|^\s*@ts-(?:ignore|expect-error|nocheck|check)(?:\s+[\s\S]*)?$|^\s*#\s*@vite-ignore$|^\s*webpackChunkName:[\s\S]*$|^\s*eslint-env\b[\s\S]*$/i
+      // Decorative label: short inline block-comment content
+      // used as a mnemonic for the reader rather than prose —
+      // e.g. `code === 42 /*'*'*/`, `i++ /* n */`, `0xFF /*
+      // mask */`. Meander strips the `/* */` delimiters, so
+      // what lands here is the INTERIOR of the comment.
+      //
+      // Match anything with ≤4 non-whitespace characters
+      // (post-trim), whether quoted or bare. Covers the
+      // `/*'*'*/` glyph-label pattern AND plain short block
+      // comments like `/* n */` or `/* ok */`. Real prose is
+      // almost always longer than 4 chars, so false-positive
+      // risk on meaningful commentary is near zero.
+      const LABEL_NOISE_RE = /^\s*\S{1,4}\s*$/
+      const looksLikeNoise = (text: string): boolean => {
+        const trimmed = text.trim()
+        if (trimmed === '') {
+          return false
+        }
+        if (TOOL_DIRECTIVE_RE.test(trimmed) || LABEL_NOISE_RE.test(trimmed)) {
+          return true
+        }
+        // Multi-line: every non-empty line matches noise.
+        // Handles `// v8 ignore next 3` followed by blank then
+        // matching `// v8 ignore stop` etc. A prose line breaks
+        // the match and the card stays visible.
+        const lines = trimmed.split(/\r?\n/).filter(l => l.trim() !== '')
+        return (
+          lines.length > 0 &&
+          lines.every(l => TOOL_DIRECTIVE_RE.test(l) || LABEL_NOISE_RE.test(l))
+        )
+      }
+      for (const block of fileBlocks) {
+        const cards = block.querySelectorAll('.annotation-card')
+        for (const card of cards) {
+          const src = card.querySelector('.annotation-md-source')
+          const text =
+            src?.text ?? card.querySelector('.annotation-md')?.text ?? ''
+          if (text && looksLikeNoise(text)) {
+            const existing = card.getAttribute('class') ?? ''
+            if (!existing.includes('annotation-card-directive')) {
+              card.setAttribute(
+                'class',
+                (existing + ' annotation-card-directive').trim(),
+              )
+            }
+          }
+        }
       }
       // Second pass: wrap path + count in <details> dropdowns.
       for (const block of fileBlocks) {
@@ -2876,7 +3112,11 @@ async function shrinkInlineSvgs(buildDir: string): Promise<void> {
 }
 
 async function minifyEmittedAssets(buildDir: string): Promise<void> {
-  const jsFiles = ['comments.js', 'drag.js', 'sw.js']
+  const jsFiles = [
+    'comments.js',
+    'sw.js',
+    ...PAGES_SCRIPTS.map(n => path.posix.join('pages', n)),
+  ]
   const cssFiles = ['style.css']
 
   // Each minify op is independent — fan out across all files of both
@@ -3148,7 +3388,6 @@ async function watch(
   const sourcesToWatch: string[] = [
     path.join(repoRoot, configArg),
     path.join(repoRoot, 'comments.js'),
-    path.join(repoRoot, 'drag.js'),
     path.join(repoRoot, 'overrides.css'),
     path.join(repoRoot, 'sw.js'),
     path.join(repoRoot, 'src'),

@@ -49,36 +49,44 @@
 
 /* ── 2. Theme tokens ──────────────────────────────────────────────── */
 
-/* Light theme — default and the baseline other themes extend.
- * Contrast ladder: --ink (dead-serious black for headings and first
- * inline tokens) → --body (medium gray for prose) → --muted (lighter
- * gray for meta). That three-tier gray is the whole visual system. */
+/* Light theme — eggshell + warm-pastel palette. Neutrals lean
+ * WARM (hint of cream) instead of cool grey so the page reads
+ * as "off-white stationery" rather than "grey UI". Contrast
+ * ladder stays: --ink (near-black for headings) → --body
+ * (warm medium for prose) → --muted (lighter warm for meta).
+ * Pastels for accent/status so status badges stay gentle. */
 :root,
 html[data-theme='light'] {
-  --bg: #ffffff;
-  --bg-elev: #fafafa;
-  --bg-tint: #f5f5f5;
-  --surface: #ffffff;
-  --ink: #0a0a0a;
-  --body: #525866;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --border-strong: #d1d5db;
-  --accent: #1e40af;
-  --accent-fg: #1e40af;
-  --accent-bg: #e0ecff;
-  /* Nav state tokens — unified across parts strip + menu panels.
-   * Selected = lighter lift ("you are here"), hover = darker press
-   * ("about to pick"). The bg tokens should read differently from
-   * --bg-elev (the strip / menu container bg) so each state is
-   * visually distinct. Text always goes to the accent in both
-   * states — consistent signal, two different backgrounds. */
-  --nav-hover-bg: #e5e7eb;
-  --nav-selected-bg: #f0f5ff;
-  --danger: #b42318;
-  --success: #067647;
-  --code-bg: #0a0a0a;
-  --code-fg: #e5e7eb;
+  --bg: #fdfaf5;
+  --bg-elev: #fbf6ec;
+  --bg-tint: #f6efe0;
+  --surface: #fdfaf5;
+  --ink: #1a1714;
+  --body: #5a5248;
+  --muted: #8a8074;
+  --border: #ece3d2;
+  --border-strong: #d8cdb8;
+  /* Light-mode accent — warm brown rust. Less red, more
+   * hazelnut so the accent sits with the cream eggshell and
+   * sepia body text as one "spice" family rather than a red
+   * callout that fights the warm palette. */
+  --accent: #92551c;
+  --accent-fg: #7a4619;
+  --accent-bg: #f3e3ca;
+  /* Nav state tokens — warm eggshell tints of the page bg, one
+   * family so hover-over-selected doesn't clash. Selected is a
+   * touch deeper than hover so the active row still reads as the
+   * anchor when a sibling is hovered. */
+  --nav-hover-bg: #f2e8d2;
+  --nav-selected-bg: #ede2c8;
+  --danger: #c2410c;
+  --success: #15803d;
+  /* Code panel — warm starry-night charcoal, not ink-black.
+   * Lifts the right-panel tone off "hole in the page" into
+   * "deep dark room" so the cream light palette and the code
+   * surface share the same warmth family. */
+  --code-bg: #363230;
+  --code-fg: #f5e9c8;
   --code-comment: #8b949e;
   --code-keyword: #ff7b72;
   --code-string: #a5d6ff;
@@ -89,18 +97,21 @@ html[data-theme='light'] {
   --diff-del-bg: rgba(248, 81, 73, 0.15);
   --diff-add-mark: #2ea043;
   --diff-del-mark: #f85149;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 1px 2px rgba(90, 60, 30, 0.06);
+  --shadow-md: 0 2px 8px rgba(90, 60, 30, 0.08);
+  --shadow-lg: 0 8px 24px rgba(90, 60, 30, 0.1);
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --transition-fast: 120ms ease;
   --transition-med: 220ms ease;
   /* Universal tokens (theme-independent). --font-mono is the
-   * one mono stack every code surface uses. --col-split is the
+   * one mono stack every code surface uses — Geist Mono (self-
+   * hosted above), then system fallbacks. --col-split is the
    * splitter ratio drag.js writes back via inline style on :root. */
-  --font-mono: var(--font-mono);
+  --font-mono:
+    'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
+    'Liberation Mono', monospace;
   --col-split: 42;
 }
 
@@ -122,7 +133,10 @@ html[data-theme='light'] {
     --accent: #93c5fd;
     --accent-fg: #93c5fd;
     --accent-bg: #1a2540;
-    --code-bg: #000000;
+    /* Code panel — starry-night cool charcoal, not pure black.
+     * Sits above --bg (#0a0a0a) / --surface (#111111) so the
+     * code surface reads as lifted, not as void. */
+    --code-bg: #1c2028;
   }
 }
 
@@ -143,7 +157,10 @@ html[data-theme='dark'] {
   --accent-bg: #1a2540;
   --nav-hover-bg: #0a0a0a;
   --nav-selected-bg: #1e2a3a;
-  --code-bg: #000000;
+  /* Code panel — starry-night cool charcoal, not pure black.
+   * Sits above --bg (#0a0a0a) / --surface (#111111) so the
+   * code surface reads as lifted, not as void. */
+  --code-bg: #1c2028;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
@@ -178,7 +195,7 @@ html[data-theme='synthwave'] {
   --nav-selected-bg: #3d2a5a;
   --danger: #ff6b9d;
   --success: #4ade80;
-  --code-bg: #1a0f2e;
+  --code-bg: #22143a;
   --code-fg: #f8f0ff;
   --code-comment: #9080b0;
   --code-keyword: #ff7edb;
@@ -297,6 +314,129 @@ p > code:first-child,
 li > code:first-child {
   color: var(--ink);
   font-weight: 500;
+}
+
+/* Inline code that drag.js routed through hljs for syntax coloring
+ * (typically single-backtick `@example` spans inside .annotation-md).
+ * The github-dark theme adds its own block-level padding + background
+ * to .hljs; we want the span to read like regular inline code plus
+ * syntax tint, not a floating code block. Keep our own box + padding;
+ * let hljs's per-token colors flow through. */
+code.hljs.hljs-inline {
+  display: inline;
+  /* Tight internal padding so the pill hugs the text, plus
+   * generous horizontal + vertical margin so adjacent pills
+   * don't touch and wrapped pills stacking across lines get
+   * a clear row gap. Vertical margin is deliberately larger
+   * than horizontal so stacked pills read as separate rows
+   * even at cramped viewport widths. */
+  padding: 1px 6px;
+  margin: 4px 4px;
+  /* Starry-night charcoal — one notch lighter than the right-
+   * panel --code-bg so the pill reads as "mini right-panel"
+   * without punching a pure-black slot into the page. hljs
+   * tokens (blue numbers, purple types, red keywords, lilac
+   * functions) land on the dark pill the way they're designed
+   * to, matching the right-side code surface's language. One
+   * tone across every theme so inline pills keep a coherent
+   * identity when the user flips themes. */
+  background: #3e3a37;
+  color: var(--code-fg);
+  border: 1px solid color-mix(in srgb, var(--code-fg) 14%, transparent);
+  /* Keep inline code on a single line — a snippet split mid-
+   * token (`{ ca` / `che }`) reads worse than horizontal
+   * overflow. Same treatment as `.wt-purl`. */
+  white-space: nowrap;
+}
+
+/* PURL-shaped inline code (`pkg:npm/lodash@4.17.21` etc.) and bare
+ * identifier tokens (`arch`, `hex`, …). drag.js sniffs the content
+ * and tags these instead of running hljs — PURLs are a fixed-
+ * grammar identifier, not a language hljs can parse, and auto-
+ * detect mis-tokenizes them as stray punctuation. Render as the
+ * default inline-code box (monospace + tint + border) with no
+ * syntax coloring. Keep on a single line — a PURL split mid-token
+ * (e.g. `pkg:np` / `m/...`) is worse than horizontal overflow. */
+code.wt-purl,
+.annotation-md code.wt-purl {
+  /* Same deep-charcoal pill treatment as hljs inline. The
+   * second selector bumps specificity above meander's
+   * `.annotation-md code` default so the color/background
+   * aren't silently overridden. Since `.wt-purl` carries no
+   * hljs token classes, we paint the content in --code-fg
+   * (cream) directly — the pill reads as a single-tone quoted
+   * identifier. */
+  padding: 1px 6px;
+  margin: 4px 4px;
+  background: #3e3a37;
+  color: var(--code-fg);
+  border: 1px solid color-mix(in srgb, var(--code-fg) 14%, transparent);
+  white-space: nowrap;
+}
+
+/* Parameter-name pill on the `@param` top strip. The inline
+ * pill is a dark charcoal panel across all themes; --code-number
+ * (github-dark blue) renders as the hljs "params" token color
+ * on the right-side panel, so left/right reads as the same
+ * token. */
+code.wt-jsdoc-param-name {
+  color: var(--code-number);
+}
+
+/* @example code blocks in the annotation prose should match
+ * the right-side code panel exactly — both sides run through
+ * hljs with github-dark's stylesheet, so token colors already
+ * match. We only override the BACKGROUND so the left block
+ * sits on the same surface tone as the right panel (and picks
+ * up a faint outline to read as "a code panel, not a quote").
+ * Leave token classes (.hljs-keyword etc.) untouched — they
+ * resolve to the CDN github-dark values that the right side
+ * also uses. */
+.annotation-md pre:has(> code.hljs),
+.annotation-md pre code.hljs {
+  background: var(--code-bg);
+}
+
+/* Inline hljs pills in .annotation-md — meander's base CSS
+ * sets its own color/background on `.annotation-md code`, so
+ * this rule bumps specificity to keep our deep-charcoal pill
+ * from being silently overridden. Matches the base rule above. */
+.annotation-md code.hljs.hljs-inline {
+  background: #3e3a37;
+  color: var(--code-fg);
+  border: 1px solid color-mix(in srgb, var(--code-fg) 14%, transparent);
+}
+
+/* Identifier / class / builtin tokens inside inline pills — the
+ * github-dark CDN stylesheet paints these `#f0883e` (muddy
+ * amber) which reads as "too dark" on our lifted charcoal
+ * pill. Force identifier classes back to --code-fg so a lone
+ * class name like `PurlBuilder` reads cream instead of dim
+ * amber. Colored tokens (keyword / string / number / type)
+ * keep their github-dark palette since those provide the
+ * syntax signal the user expects. */
+code.hljs.hljs-inline .hljs-title,
+code.hljs.hljs-inline .hljs-title.class_,
+code.hljs.hljs-inline .hljs-title.function_,
+code.hljs.hljs-inline .hljs-built_in,
+code.hljs.hljs-inline .hljs-variable.language_,
+code.hljs.hljs-inline .hljs-attr,
+code.hljs.hljs-inline .hljs-name,
+code.hljs.hljs-inline .hljs-params,
+.annotation-md code.hljs.hljs-inline .hljs-title,
+.annotation-md code.hljs.hljs-inline .hljs-title.class_,
+.annotation-md code.hljs.hljs-inline .hljs-title.function_,
+.annotation-md code.hljs.hljs-inline .hljs-built_in,
+.annotation-md code.hljs.hljs-inline .hljs-variable.language_,
+.annotation-md code.hljs.hljs-inline .hljs-attr,
+.annotation-md code.hljs.hljs-inline .hljs-name,
+.annotation-md code.hljs.hljs-inline .hljs-params {
+  color: var(--code-fg);
+}
+
+.annotation-md pre:has(> code.hljs) {
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 pre {
@@ -429,7 +569,7 @@ html[data-theme='synthwave'] .topbar {
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1;
-  color: #8b6bb8;
+  color: var(--accent-fg);
 }
 
 .topbar p {
@@ -664,16 +804,23 @@ main.files-stack {
  * border and a faint fill. Same colors as .wt-badge-kind-code /
  * .wt-badge-kind-article so the connection reads. Only applies
  * to the non-active state; .active keeps its accent-fg framing. */
+/* Code-page pills (blue) and article-page pills (green) on
+ * hover — mirror the .wt-badge-size tier formula exactly so
+ * the menu hovers read as the same color language as the
+ * homepage TOC size chips (where "SMALL" is green). Text
+ * follows the border/ink side of the chip, not the full-
+ * saturation hue, so the pill stays readable on either the
+ * warm light bg or dark navbar. */
 .part-nav a:not(.wt-topic-doc):not(.active):hover {
-  border-color: color-mix(in srgb, #6aa1ff 45%, var(--border-strong));
-  background: color-mix(in srgb, #6aa1ff 10%, var(--nav-hover-bg));
-  color: #6aa1ff;
+  border-color: color-mix(in srgb, #7aa5c7 30%, var(--border-strong));
+  background: color-mix(in srgb, #7aa5c7 14%, var(--nav-hover-bg));
+  color: color-mix(in srgb, #7aa5c7 85%, var(--ink));
 }
 
 .wt-topic-doc:not(.active):hover {
-  border-color: color-mix(in srgb, #4fc48b 45%, var(--border-strong));
-  background: color-mix(in srgb, #4fc48b 10%, var(--nav-hover-bg));
-  color: #4fc48b;
+  border-color: color-mix(in srgb, #6ec3a5 30%, var(--border-strong));
+  background: color-mix(in srgb, #6ec3a5 14%, var(--nav-hover-bg));
+  color: color-mix(in srgb, #6ec3a5 85%, var(--ink));
 }
 
 /* Generic button — used by doc pages and any future CTA surface.
@@ -866,9 +1013,13 @@ tbody td:first-child {
   font-size: 0.9em;
   padding: 1px 5px;
   border-radius: 4px;
-  background: var(--bg-tint);
-  border: 1px solid var(--border);
-  color: var(--ink);
+  /* Starry-charcoal pill + cream code-fg — same language as
+   * the part-page inline pills and the .wt-contents-summary
+   * chips, so every inline code chip across the site reads as
+   * one "mini right-panel" surface. */
+  background: #3e3a37;
+  border: 1px solid color-mix(in srgb, var(--code-fg) 14%, transparent);
+  color: var(--code-fg);
   font-variant-ligatures: none;
   -webkit-font-feature-settings:
     'liga' 0,
@@ -892,6 +1043,17 @@ tbody td:first-child {
     text-decoration-color var(--transition-fast);
 }
 
+/* Code pills inside the hero links shouldn't carry the link's
+ * dotted underline — the underline peeks out on either side of
+ * the charcoal pill, which reads as a broken strike-through
+ * rather than the link affordance it was meant to be. Scope
+ * text-decoration: none to the pill; the non-code parts of the
+ * link keep the dotted underline. */
+.wt-intro-pkg code,
+.wt-intro-link code {
+  text-decoration: none;
+}
+
 .wt-intro-pkg:hover,
 .wt-intro-link:hover {
   color: var(--accent-fg);
@@ -900,8 +1062,7 @@ tbody td:first-child {
 }
 
 .wt-intro-pkg:hover code {
-  color: var(--accent-fg);
-  border-color: var(--accent-fg);
+  border-color: color-mix(in srgb, var(--code-fg) 40%, transparent);
 }
 
 /* Install snippet — reads as a runnable command, not prose.
@@ -971,9 +1132,23 @@ tbody td:first-child {
   font-size: 0.88em;
   padding: 1px 5px;
   border-radius: 4px;
-  background: var(--bg-tint);
-  border: 1px solid var(--border);
-  color: var(--ink);
+  /* Same starry-charcoal pill + cream code-fg as the part-page
+   * inline pills, so homepage and part pages share one "code
+   * chip" language. One step lighter than --code-bg to keep
+   * the "mini right-panel" read. */
+  background: #3e3a37;
+  border: 1px solid color-mix(in srgb, var(--code-fg) 14%, transparent);
+  color: var(--code-fg);
+  /* Allow mid-token wrapping on long single-word pills (e.g.
+   * `pkg:type/ns/name@version?q#sub`). Without this the pill
+   * stays one line and forces the TOC row wider than the
+   * viewport, shoving the right-edge kind/size badges off-
+   * screen. overflow-wrap on the prose surface picks a hyphen-
+   * free mid-char break so the pill stays intact as a single
+   * chip, just with visual line breaks where the content
+   * naturally wraps. */
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-variant-ligatures: none;
   -webkit-font-feature-settings:
     'liga' 0,
@@ -1025,11 +1200,11 @@ tbody td:first-child {
 }
 
 .wt-badge-kind-code {
-  color: color-mix(in srgb, #6aa1ff 75%, var(--muted));
+  color: color-mix(in srgb, #7aa5c7 75%, var(--muted));
 }
 
 .wt-badge-kind-article {
-  color: color-mix(in srgb, #4fc48b 75%, var(--muted));
+  color: color-mix(in srgb, #6ec3a5 75%, var(--muted));
 }
 
 /* Size badge — primary pill. Muted fill so the color reads as
@@ -1132,7 +1307,7 @@ tbody td:first-child {
     calc((100 - var(--col-split)) * 1%);
   gap: 0;
   align-items: start;
-  margin: 32px 0;
+  margin: 16px 0 32px;
   position: relative;
 }
 
@@ -1147,8 +1322,9 @@ tbody td:first-child {
 .file-grid > .annotation-card {
   /* Right padding gives the prose breathing room before the code
    * block starts — without it, italic descenders in the prose can
-   * touch the code-section's left border. */
-  padding: 20px 32px 20px 0;
+   * touch the code-section's left border. Top padding stays small
+   * so the first card sits close to the file-head bottom border. */
+  padding: 8px 32px 20px 0;
   background: transparent;
   border: none;
   border-radius: 0;
@@ -1198,7 +1374,7 @@ html:not([data-ua='safari']) .file-block {
   align-items: center;
   justify-content: space-between;
   padding: 12px 0;
-  margin-bottom: 16px;
+  margin-bottom: 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -1340,25 +1516,43 @@ html:not([data-ua='safari']) .file-block {
     color var(--transition-fast);
 }
 
-/* Hover = darker than panel bg, accent-colored text. Same
- * "pressed-in" semantic as parts-strip hover. */
+/* Zebra stripe — every other row gets a subtle tint so the
+ * reader's eye can track rows when the menu is long. Applied
+ * before :hover / active so those states still win. Uses
+ * `--ink` (theme-inverted text color) at a low tint — darker
+ * tint on light bg, lighter tint on dark bg, in both cases
+ * visible enough to read as a band without dominating. Light
+ * mode gets more tint (10%) because a grey-on-white stripe
+ * needs more contrast than a grey-on-dark stripe to read. */
+.wt-files-panel a:nth-child(even),
+.wt-sections-panel a:nth-child(even) {
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+html[data-theme='dark'] .wt-files-panel a:nth-child(even),
+html[data-theme='dark'] .wt-sections-panel a:nth-child(even),
+html[data-theme='synthwave'] .wt-files-panel a:nth-child(even),
+html[data-theme='synthwave'] .wt-sections-panel a:nth-child(even) {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+/* Hover = darker than panel bg, ink text. Same "pressed-in"
+ * semantic as parts-strip hover. Text stays ink (not accent) so
+ * the light-mode menu reads as warm cream, not a purple wall. */
 .wt-files-panel a:hover,
 .wt-sections-panel a:hover {
   background: var(--nav-hover-bg);
-  color: var(--accent-fg);
+  color: var(--ink);
 }
 
 /* Selected (current file / current section) = lighter than panel
- * bg, accent-colored text. Same "lit up" semantic as parts-strip
- * selected. Slight font-weight bump distinguishes "already-selected"
- * from "about-to-pick" for anyone moving fast between the two
- * states. The Sections panel's active entry is set by a scroll
- * observer in drag.js — whichever section is closest to the top
- * of the viewport gets the .active class. */
+ * bg, ink text with a weight bump. Same "lit up" semantic as
+ * parts-strip selected — weight + bg carry the signal so we don't
+ * need the accent color to do it too. */
 .wt-files-panel a.active,
 .wt-sections-panel a.active {
   background: var(--nav-selected-bg);
-  color: var(--accent-fg);
+  color: var(--ink);
   font-weight: 600;
 }
 
@@ -1613,15 +1807,35 @@ body.col-resizing * {
   padding: 6px 12px;
 }
 
-/* Italicize the first annotation-card on each file-block. These
- * are typically file-level prose (license header, @fileoverview,
- * module-level commentary) rather than per-section documentation.
- * Italic signals "this is preamble — skim it" and pushes the more
- * interesting per-section annotations to read more prominent. */
-.file-block .pair-grid > .annotation-card:first-of-type .annotation-md,
-.file-block .file-grid > .annotation-card:first-of-type .annotation-md {
-  font-style: italic;
-  color: var(--muted);
+/* Collapse noise annotation-cards — flagged by build-time
+ * content sniff in scripts/tour.mts:
+ *   `.annotation-card-license` — license preamble text
+ *     (Copyright + permission to use / SPDX id / named
+ *     license with copyright co-marker).
+ *   `.annotation-card-directive` — tool directive-only
+ *     comments: v8/c8/istanbul coverage ignores,
+ *     eslint/oxlint/tslint/stylelint disables, biome /
+ *     prettier / oxfmt / dprint ignores, ts-ignore /
+ *     ts-expect-error, vite/webpack chunking magic. Pure
+ *     directives are instructions to tooling, not commentary.
+ * Both kinds hide while keeping the cell in grid flow so
+ * left/right column pairing stays intact for every
+ * subsequent section.
+ *
+ * GOTCHA: `visibility: hidden; height: 0` keeps the grid cell
+ * but collapses its height to zero. The paired code-section
+ * on the right will render at its natural height only if the
+ * pair-grid uses `align-items: start` (or default). If a
+ * future change sets `align-items: stretch` or similar on
+ * `.pair-grid`, the right-column code panel will collapse to
+ * match the hidden left card and disappear. */
+.annotation-card.annotation-card-license,
+.annotation-card.annotation-card-directive {
+  visibility: hidden;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
 /* Annotation cards — prose that sits alongside code. Title + body. */
@@ -1671,7 +1885,88 @@ body.col-resizing * {
 .annotation-md {
   color: var(--body);
   font-size: 13px;
-  line-height: 1.6;
+  /* Generous line-height so wrapped inline code pills (which
+   * have margin: 4px) never visually crowd text above/below.
+   * 1.8 is airy for body prose but pays off at the pill rows. */
+  line-height: 1.8;
+  /* Skeleton placeholder while drag.js processes the
+   * annotation. Meander's inline script runs `marked.parse()`
+   * synchronously on every annotation, inserting raw markdown
+   * (including literal `@example`, `@param` text) into the
+   * DOM before `cleanupAnnotationProse()` has a chance to
+   * rewrite them into pills. Instead of flashing the unstyled
+   * state or opacity-0 emptiness, we hide the real content
+   * and paint a shimmering React-style skeleton that hints at
+   * shape. drag.js adds `.wt-annotation-md-ready` after the
+   * pills are built; CSS swaps skeleton → content in the same
+   * paint. */
+  position: relative;
+}
+.annotation-md:not(.wt-annotation-md-ready) > * {
+  visibility: hidden;
+}
+.annotation-md:not(.wt-annotation-md-ready)::before {
+  /* Three stacked bars (pill + wide body + medium body) built
+   * from layered gradients on a single pseudo-element. Each
+   * bar is a rounded strip of the shimmer gradient, masked to
+   * its own band of the element via background-position. The
+   * shimmer sweeps across via background-size + animation. */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(
+      100deg,
+      transparent 0%,
+      color-mix(in srgb, var(--code-comment) 6%, transparent) 20%,
+      color-mix(in srgb, var(--code-comment) 16%, transparent) 50%,
+      color-mix(in srgb, var(--code-comment) 6%, transparent) 80%,
+      transparent 100%
+    ),
+    linear-gradient(
+      color-mix(in srgb, var(--code-comment) 10%, transparent),
+      color-mix(in srgb, var(--code-comment) 10%, transparent)
+    );
+  background-size:
+    220% 100%,
+    100% 100%;
+  background-repeat: no-repeat;
+  background-position:
+    -50% 0,
+    0 0;
+  border-radius: 6px;
+  animation: wt-skeleton-shimmer 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes wt-skeleton-shimmer {
+  0% {
+    background-position:
+      -50% 0,
+      0 0;
+  }
+  100% {
+    background-position:
+      150% 0,
+      0 0;
+  }
+}
+/* Resilience fallback: if drag.js fails to add the ready
+ * class (SRI mismatch, network error, thrown exception), show
+ * the real content after 600ms so the page isn't stuck on
+ * the skeleton forever. The reader sees the one-frame raw
+ * markers but gets content instead of infinite shimmer. */
+@keyframes wt-annotation-md-fallback {
+  to {
+    visibility: visible;
+  }
+}
+.annotation-md:not(.wt-annotation-md-ready):not(:empty) > * {
+  animation: wt-annotation-md-fallback 0ms linear 600ms forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .annotation-md:not(.wt-annotation-md-ready)::before {
+    animation: none;
+  }
 }
 
 .annotation-md > *:first-child {
@@ -1680,6 +1975,18 @@ body.col-resizing * {
 
 .annotation-md > *:last-child {
   margin-bottom: 0;
+}
+
+/* Long URLs inside annotation prose — keep them on a single
+ * line and let the card scroll horizontally if they overflow.
+ * Breaking at `/` or `-` produces ugly wraps like `purl-\n
+ * spec/...` which reads as a broken word. `overflow-wrap:
+ * normal` + `word-break: keep-all` disables the aggressive
+ * break-everywhere marked applies to long tokens inside <a>. */
+.annotation-md a[href^='http'] {
+  overflow-wrap: normal;
+  word-break: keep-all;
+  white-space: nowrap;
 }
 
 .annotation-md p {
@@ -1692,13 +1999,202 @@ body.col-resizing * {
 
 /* JSDoc tag marker (@param, @returns, @throws, @example, …).
  * Set in annotation prose by drag.js's cleanupAnnotationProse
- * after meander hydrates. No color tint — pink/accent would
- * read as a link. Just plain muted grey + non-italic (to break
- * out of the italic treatment on the first annotation-card of
- * each file-block) so the tag reads as quiet metadata. */
+ * after meander hydrates. Monospace + slight weight bump so the
+ * tag reads as a code-like token, distinct from surrounding
+ * prose even inside the muted-italic first-card treatment —
+ * without the pink/accent that would read as a link. Meander
+ * collapses the newline after each JSDoc tag into a space, so
+ * the tag and its body end up on the same line — and a run of
+ * tags (`@param`, `@returns`, …) smushes into a wall of text.
+ * display:block puts each tag on its own line; its `{Type}`
+ * sibling + following prose flow back to the next line below. */
+/* JSDoc tag marker — pill in the shape/size of the homepage
+ * topic nav pills, tinted with the faded purple of unhighlighted
+ * line numbers (`--code-comment`). Reads as a quiet related
+ * label — kin to the code's gutter numerals — rather than a
+ * call-to-action. A pseudo line-break after the pill drops the
+ * body content to the next line. */
+/* JSDoc tag block — a card that groups an `@tag` pill with its
+ * body content. Two-tier: an outer frame carries the pill on a
+ * lighter top strip; the `.wt-jsdoc-body` child sits beneath
+ * the pill on a darker panel so the content reads as the
+ * primary surface and the tag reads as a label above it. */
+.wt-jsdoc-block {
+  display: block;
+  /* Tag cards sit flush against each other so they read as
+   * one stacked signature block rather than three separate
+   * cards. Adjacent-sibling rules below collapse duplicate
+   * borders and round only the outer corners. */
+  margin: 0;
+  /* Tight top strip — pill sits flush with equal 4px inset on
+   * top / bottom / left so it reads as a compact label tab.
+   * line-height matches pill height so the inline baseline
+   * doesn't push the pill up or down. */
+  padding: 4px 4px 0;
+  line-height: 16px;
+  background: color-mix(in srgb, var(--code-comment) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--code-comment) 18%, transparent);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* Stack-collapse adjacent tag cards: the second-and-later
+ * cards drop their top border (shared with the previous
+ * card's bottom) and their top corner-radius so the outer
+ * stack reads as one rounded container with horizontal rules
+ * between tags. */
+.wt-jsdoc-block + .wt-jsdoc-block {
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+/* Cards that have a following tag card lose their bottom
+ * corner-radius so the boundary with the next card stays
+ * square (the next card's border becomes the shared line). */
+.wt-jsdoc-block:has(+ .wt-jsdoc-block) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Hide `@param` and `@returns` cards — TypeScript signatures
+ * in the paired code panel already carry parameter names,
+ * types, and return types. The JSDoc tags duplicate that
+ * contract; keeping them costs vertical space and doubles the
+ * signature reader has to scan.
+ *
+ * GOTCHA: the `:first-child` constraint depends on drag.js
+ * appending `tagEl` as the first child of each `.wt-jsdoc-
+ * block` before the `.wt-jsdoc-body`. If that construction
+ * order is reshuffled (e.g. body first, then tag), every
+ * `@param`/`@returns` card silently reappears. Matching keys
+ * off `data-tag` (set on the tag span in drag.js) not text
+ * content, so rename-the-textContent refactors won't break
+ * it — but first-child assumption will. */
+.wt-jsdoc-block:has(
+  > .wt-jsdoc-tag:first-child:is([data-tag='param'], [data-tag='returns'])
+) {
+  display: none;
+}
+
+/* "Primary" tag blocks — @description (implicit or explicit)
+ * and @fileoverview. Both carry the narrative "what is this"
+ * prose, so they share the same warmer body fill so readers
+ * can spot the primary statement at a glance. The tagged
+ * contract cards (@param, @throws, @example, etc.) keep the
+ * neutral grey bodies.
+ *
+ * Cream = surface + a touch of warm yellow; reads as a gentle
+ * highlight rather than a flat grey panel. */
+/* "Narrative primary" cards — description / fileoverview /
+ * example. In light mode the tag strip (outer block) and the
+ * body (inner) both take one shade deeper than the neutral-grey
+ * tag cards so they read as a warm cream card, not a page-
+ * colored blend. Strip is a hair deeper than body so the pill
+ * still reads as a label tab above the content.
+ *
+ * Dark / synthwave themes keep the grey outer and only tint the
+ * inner body (rules below) — the light-only scope avoids
+ * leaking the cream hex into the dark palettes. */
+html[data-theme='light'] .wt-jsdoc-block-desc,
+html[data-theme='light']
+  .wt-jsdoc-block:has(> .wt-jsdoc-tag[data-tag='fileoverview']),
+html[data-theme='light']
+  .wt-jsdoc-block:has(> .wt-jsdoc-tag[data-tag='example']),
+:root:not([data-theme]) .wt-jsdoc-block-desc,
+:root:not([data-theme])
+  .wt-jsdoc-block:has(> .wt-jsdoc-tag[data-tag='fileoverview']),
+:root:not([data-theme])
+  .wt-jsdoc-block:has(> .wt-jsdoc-tag[data-tag='example']) {
+  background: #f2e7ce;
+}
+.wt-jsdoc-block-desc .wt-jsdoc-body,
+.wt-jsdoc-block:has(> .wt-jsdoc-tag[data-tag='fileoverview']) .wt-jsdoc-body,
+.wt-jsdoc-block:has(> .wt-jsdoc-tag[data-tag='example']) .wt-jsdoc-body {
+  background: #f7eedc;
+}
+
+/* Dark / synthwave themes — the cream would be too bright
+ * against the dark surface. Keep the "warmer than grey" feel
+ * by mixing a muted amber / lavender tint into surface at a
+ * lower ratio so the card still lifts off the others without
+ * turning into a glowing panel. */
+html[data-theme='dark'] .wt-jsdoc-block-desc .wt-jsdoc-body,
+html[data-theme='dark']
+  .wt-jsdoc-block:has(> .wt-jsdoc-tag[data-tag='fileoverview'])
+  .wt-jsdoc-body,
+html[data-theme='dark']
+  .wt-jsdoc-block:has(> .wt-jsdoc-tag[data-tag='example'])
+  .wt-jsdoc-body {
+  background: color-mix(in srgb, #8a7a4a 14%, var(--surface));
+}
+html[data-theme='synthwave'] .wt-jsdoc-block-desc .wt-jsdoc-body,
+html[data-theme='synthwave']
+  .wt-jsdoc-block:has(> .wt-jsdoc-tag[data-tag='fileoverview'])
+  .wt-jsdoc-body,
+html[data-theme='synthwave']
+  .wt-jsdoc-block:has(> .wt-jsdoc-tag[data-tag='example'])
+  .wt-jsdoc-body {
+  background: color-mix(in srgb, #c8a8ff 14%, var(--surface));
+}
+
+/* Kill default paragraph margins inside the description body
+ * so the box hugs the prose. */
+.wt-jsdoc-block-desc .wt-jsdoc-body > :first-child {
+  margin-top: 0;
+}
+.wt-jsdoc-block-desc .wt-jsdoc-body > :last-child {
+  margin-bottom: 0;
+}
+
+.wt-jsdoc-body {
+  display: block;
+  margin: 4px -4px 0;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--code-comment) 8%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--code-comment) 14%, transparent);
+}
+
 .wt-jsdoc-tag {
-  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 16px;
+  padding: 0 6px;
+  margin: 0 6px 0 0;
+  vertical-align: top;
+  /* Geist Mono — the `@tag` identifier is mechanical code-ish
+   * label language ("@param", "@throws"); typewriter face fits
+   * the shape better than the body face. Same font family as
+   * the file-head path. Small + faded so the pill reads as a
+   * quiet marker inside its block frame. */
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--code-comment) 80%, transparent);
+  background: color-mix(in srgb, var(--code-comment) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--code-comment) 30%, transparent);
+  border-radius: 4px;
   font-style: normal;
+}
+
+/* Light-mode tag pill — swap grey for a warm sepia brown so
+ * the label reads with the cream card instead of fighting it.
+ * Color pulled from --body (#5a5248) at full strength; the
+ * pill bg stays the neutral grey wash so it still reads as a
+ * subdued marker, not a chip. */
+html[data-theme='light'] .wt-jsdoc-tag,
+:root:not([data-theme]) .wt-jsdoc-tag {
+  color: var(--body);
+  background: color-mix(in srgb, var(--body) 8%, transparent);
+  border-color: color-mix(in srgb, var(--body) 24%, transparent);
+}
+
+/* First jsdoc-tag in a paragraph doesn't need the top margin —
+ * the paragraph's own margin already provides spacing. */
+.wt-jsdoc-tag:first-child {
+  margin-top: 0;
 }
 
 /* ── 8. Code / diff tables ───────────────────────────────────────── */
@@ -1840,6 +2336,16 @@ body.col-resizing * {
   font-size: 15px;
   line-height: 1.5;
   color: var(--body);
+}
+
+/* GFM task-list checkboxes — marked emits `<input disabled
+ * type="checkbox">` for `- [ ]` items, but we render these
+ * as plain bullet lists (no interactive state, just text).
+ * The disabled checkbox adds visual noise and implies the
+ * reader can't tick them (they can't — it's a static doc).
+ * Hide the input, keep the list-marker dot. */
+.doc-body li > input[type='checkbox'] {
+  display: none;
 }
 
 /* Code blocks in doc pages share the same dark-panel tone as the
@@ -2195,12 +2701,12 @@ body.col-resizing * {
 
 .theme-menu-item:hover {
   background: var(--nav-hover-bg);
-  color: var(--accent-fg);
+  color: var(--ink);
 }
 
 .theme-menu-item[aria-checked='true'] {
   background: var(--nav-selected-bg);
-  color: var(--accent-fg);
+  color: var(--ink);
 }
 
 .theme-menu-item[aria-checked='true'] .theme-menu-check {
@@ -2242,14 +2748,18 @@ body.col-resizing * {
  * animates the crescent's star. This only applies inside the
  * toggle button itself — menu icons always show everything so the
  * user can see each option's final visual at rest. */
+/* Rays / star start hidden; shown when its icon is the
+ * selected pref. Transition runs ONLY when <html> carries
+ * `.wt-theme-toggle-fired` — the class drag.js adds for the
+ * ~2.5s after a user-initiated switch. On initial page paint
+ * (theme restored from localStorage) the rays just appear at
+ * their final state without animating — the user didn't pick
+ * this theme now, they picked it on a previous visit. */
 .theme-toggle .theme-ray,
 .theme-toggle .theme-star {
   opacity: 0;
   transform: scale(0.5);
   transform-origin: 50% 50%;
-  transition:
-    opacity 280ms ease 60ms,
-    transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1) 60ms;
 }
 
 .theme-toggle-wrapper[data-pref='light'] .theme-icon-light .theme-ray,
@@ -2259,11 +2769,11 @@ body.col-resizing * {
   transform: scale(1);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .theme-toggle .theme-ray,
-  .theme-toggle .theme-star {
-    transition: none;
-  }
+html.wt-theme-toggle-fired .theme-toggle .theme-ray,
+html.wt-theme-toggle-fired .theme-toggle .theme-star {
+  transition:
+    opacity 280ms ease 60ms,
+    transform 360ms cubic-bezier(0.34, 1.56, 0.64, 1) 60ms;
 }
 
 /* Synthwave lightning — strike animation. When synthwave is the
@@ -2291,7 +2801,13 @@ body.col-resizing * {
   }
 }
 
-html[data-theme='synthwave'] .theme-icon-synthwave {
+/* Bolt strike + sparkle sequence fire ONLY on a live theme
+ * switch — gated by `.wt-theme-toggle-fired` on <html> which
+ * drag.js sets for ~2.5s after a user-initiated change. On
+ * initial page paint (synthwave loaded from localStorage) the
+ * icon just renders at rest — no entrance animation on a state
+ * the user didn't actively select. */
+html[data-theme='synthwave'].wt-theme-toggle-fired .theme-icon-synthwave {
   transform-origin: center;
   animation: wt-bolt-strike 520ms cubic-bezier(0.34, 1.56, 0.64, 1) 1 both;
 }
@@ -2520,8 +3036,18 @@ html[data-theme='synthwave'] .wt-modal {
  * stays where it was — fields don't reflow underneath their
  * cursor. */
 .wt-modal {
-  margin-top: 18vh;
-  margin-bottom: auto;
+  /* Pin to the current viewport, not the document. Native
+   * <dialog>.showModal() places the dialog in the top layer,
+   * but the browser's default block-level positioning still
+   * uses margin: auto, which varies by engine and can leave
+   * the dialog off-screen on a scrolled page. Explicit
+   * position:fixed + top offset keeps it anchored to the
+   * user's current viewport every time. */
+  position: fixed;
+  top: 18vh;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
   padding: 28px 32px 24px;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -2530,12 +3056,146 @@ html[data-theme='synthwave'] .wt-modal {
   box-shadow: var(--shadow-lg);
   max-width: 460px;
   width: calc(100% - 48px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
 }
 
 .wt-modal::backdrop {
   background: rgba(10, 10, 10, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+}
+
+/* Comment compose dialog — a native <dialog> injected by
+ * comments.js when a reader selects lines and clicks "Add
+ * comment". Uses the same card language as .wt-modal so the
+ * two dialogs read as one family. Anchored at viewport top-
+ * center so the user can still see the code they're
+ * commenting on. Transparent backdrop (no blur) so context
+ * stays visible while writing. */
+.wt-comment-form {
+  /* Same viewport-pin treatment as .wt-modal — default
+   * margin:auto placement on a scrolled document lands the
+   * dialog off-screen. */
+  position: fixed;
+  top: 12vh;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 20px 24px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--body);
+  box-shadow: var(--shadow-lg);
+  max-width: 520px;
+  width: calc(100% - 48px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.wt-comment-form::backdrop {
+  background: rgba(10, 10, 10, 0.35);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* Gmail-style "fill the area" variant — opt-in via the
+ * `.wt-comment-form-fill` class. Expands the dialog to cover
+ * most of the viewport (the writer gets room to draft a long
+ * comment without the tiny textarea feeling cramped). Header
+ * pins to top; textarea grows to fill; action row pins to
+ * bottom. Toggle from comments.js: `dialog.classList.add(
+ * 'wt-comment-form-fill')` on a "compose large" affordance. */
+.wt-comment-form.wt-comment-form-fill {
+  top: 4vh;
+  max-width: min(880px, calc(100% - 48px));
+  height: min(88vh, 720px);
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 28px 20px;
+}
+
+.wt-comment-form.wt-comment-form-fill > form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 14px;
+}
+
+.wt-comment-form.wt-comment-form-fill .wt-textarea {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+}
+
+.wt-comment-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.wt-comment-header strong {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink);
+}
+
+/* Size-toggle — flips composer between compact + fill modes.
+ * Lives in the header row, pushed to the right. Accent-
+ * colored (reads like a link) and a comfortable click target
+ * (34px) so the affordance is discoverable without dominating
+ * the header. Unicode expand/shrink arrows (⤢ / ⤡) carry the
+ * intent without needing SVG icons. */
+.wt-comment-size-toggle {
+  margin-left: auto;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.wt-comment-size-toggle:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.wt-comment-size-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.wt-comment-form .wt-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.wt-comment-form .wt-error {
+  margin: 10px 0 0;
+  color: var(--danger);
+  font-size: 13px;
+  min-height: 0;
+}
+.wt-comment-form .wt-error:empty {
+  display: none;
 }
 
 .wt-modal-close {
@@ -2684,16 +3344,16 @@ html[data-theme='synthwave'] .wt-modal {
   box-shadow: var(--shadow-md);
 }
 
-/* Disabled — no border, just a faint tinted fill + muted text.
- * The absence of a border is itself the signal: every actionable
- * surface on this modal has a visible outline (input, enabled
- * primary, secondary cancel); the borderless slab reads as inert
- * background, not a button waiting for a click. */
+/* Disabled — muted tint, dashed outline so the button still
+ * reads as a control (just not one that's currently actionable).
+ * The earlier "no border" version blended into the cream dialog
+ * bg; a subtle dashed border gives the shape back without
+ * implying "click me". */
 .wt-primary:disabled,
 .wt-primary[aria-disabled='true'] {
   color: var(--muted);
-  background: var(--bg-tint);
-  border: 1px solid transparent;
+  background: color-mix(in srgb, var(--ink) 6%, var(--bg-tint));
+  border: 1px dashed var(--border-strong);
   font-weight: 500;
   cursor: not-allowed;
   transform: none;
@@ -2733,6 +3393,59 @@ html[data-theme='synthwave'] .wt-modal {
 .wt-form .wt-primary + .wt-secondary,
 .wt-form .wt-secondary + .wt-primary {
   margin-top: 0;
+}
+
+/* Resend-code row — a small "Resend code" link-button + a
+ * live timer showing the remaining cooldown. Sits directly
+ * under the primary/cancel buttons in step 2. The link is
+ * accent-colored when active (reads as a link); when the
+ * cooldown is armed it's muted + disabled so users don't
+ * repeatedly request fresh codes and get rate-limited. */
+.wt-resend {
+  margin: 8px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.wt-resend-link {
+  padding: 0;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: 0;
+  cursor: pointer;
+  transition:
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.wt-resend-link:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.wt-resend-link:disabled {
+  color: var(--muted);
+  border-color: transparent;
+  cursor: default;
+}
+
+.wt-resend-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.wt-resend-timer {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
 }
 
 /* Inline error text below the form — live region announces to AT
@@ -2807,27 +3520,200 @@ html[data-theme='synthwave'] .wt-selection-popover {
  * .wt-comment-body (the row content), .wt-comment-meta (author +
  * time row above it), .wt-comment-form / .wt-comment-header (the
  * new-comment dialog wrapper). */
+/* Inside a .wt-comment card: meta (author + time + badge)
+ * sits on one tight line above the body. Body is plain prose,
+ * 13px to match the card's reading size. No extra margin
+ * between meta and body — the meta's `line-height` is the
+ * gap. */
 .wt-comment-body {
   flex: 1;
   min-width: 0;
   color: var(--body);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .wt-comment-meta {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 2px;
+  gap: 6px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .wt-comment-meta strong {
   font-weight: 600;
   color: var(--ink);
+  font-size: 12px;
+}
+
+/* Inline confirm — swaps in where the Delete/Resolve buttons
+ * sat. Uses the same opacity-on-hover rule as .wt-actions so
+ * the confirm panel also stays hidden when the card isn't
+ * hovered. Accent + danger colors match the two choices. */
+.wt-comment .wt-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--body);
+}
+
+.wt-comment .wt-confirm-msg {
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.wt-comment .wt-confirm > button {
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.wt-comment .wt-confirm .wt-confirm-yes {
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+.wt-comment .wt-confirm .wt-confirm-yes:hover {
+  background: color-mix(in srgb, var(--danger) 22%, transparent);
+}
+
+.wt-comment .wt-confirm .wt-confirm-no {
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.wt-comment .wt-confirm .wt-confirm-no:hover {
+  background: var(--nav-hover-bg);
+  color: var(--ink);
+}
+
+/* Comment card — the container a single comment lives in
+ * (and replies are nested cards with .wt-reply). Translucent
+ * surface so the code behind stays partly visible; the card
+ * reads as an overlay, not a page-sized interruption.
+ * Backdrop-filter adds a subtle blur so text inside stays
+ * legible even over tokenized code. Tight padding keeps the
+ * inline thread compact — most comments are one line. */
+.wt-comment {
+  display: block;
+  margin: 4px 0;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   font-size: 13px;
+  line-height: 1.45;
+}
+
+/* Replies — indented, a shade more transparent than top-level
+ * so the nesting reads without a left-rail line. */
+.wt-comment.wt-reply {
+  margin-left: 16px;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+}
+
+/* Resolved comments — dim the fill so the active thread
+ * stays visually dominant. */
+.wt-comment.wt-resolved {
+  opacity: 0.55;
+}
+.wt-comment.wt-resolved:hover {
+  opacity: 0.88;
+}
+
+/* Action row — hidden until the card is hovered / focused.
+ * The idle state is just author + body + time (compact
+ * reading surface); action buttons only appear when the
+ * reader is engaging with this specific comment. `focus-
+ * within` keeps buttons visible when a user is keyboard-
+ * navigating through them. Opacity transition (not display)
+ * so the row reserves space on first hover and the card
+ * doesn't jump. */
+.wt-comment .wt-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+}
+.wt-comment:hover .wt-actions,
+.wt-comment:focus-within .wt-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Compact action buttons — smaller than the primary row in
+ * the composer. Accent tint on Resolve, danger tint on
+ * Delete. Font-mono (12px) matches the rest of the thread
+ * chrome. */
+.wt-comment .wt-actions > button {
+  padding: 3px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  background: transparent;
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.wt-comment .wt-actions .wt-secondary {
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.wt-comment .wt-actions .wt-secondary:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: var(--accent);
+}
+
+.wt-comment .wt-actions .wt-danger {
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+}
+.wt-comment .wt-actions .wt-danger:hover {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  border-color: var(--danger);
+}
+
+.wt-comment .wt-actions button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Resolved badge — a tiny pill sitting on the meta row. */
+.wt-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 5px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 28%, transparent);
+  border-radius: 3px;
 }
 
 /* ── 12. Footer ──────────────────────────────────────────────────── */
