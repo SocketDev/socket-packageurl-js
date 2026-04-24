@@ -38,10 +38,8 @@ Thumbs.db
 #*#
 .#*
 
-# Cache directories
-**/.cache
-
-# Runtime
+# Runtime (includes node_modules/.cache/ where vitest etc.
+# store scratch dirs — cleared automatically by pnpm install).
 **/node_modules
 
 # Build and temporary
