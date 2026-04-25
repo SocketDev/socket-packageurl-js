@@ -14,5 +14,5 @@
     "verbatimModuleSyntax": false
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "coverage", "test"]
+  "exclude": [".cache", "coverage", "dist", "node_modules", "test"]
 }

@@ -13,5 +13,5 @@
     "verbatimModuleSyntax": false
   },
   "include": ["../src/**/*.ts", "../test/**/*.mts"],
-  "exclude": ["**/node_modules/**/*"]
+  "exclude": ["**/.cache/**", "**/node_modules/**/*"]
 }
