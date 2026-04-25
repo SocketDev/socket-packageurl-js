@@ -2906,7 +2906,7 @@ async function autonomousFixSession(
 
   // Determine which issues to auto-fix
   const toAutoFix = [...critical, ...high].filter(issue => {
-    // Auto-fix if type is in whitelist OR severity is critical
+    // Auto-fix if type is in allowlist OR severity is critical
     return issue.severity === 'critical' || autoFixableTypes.has(issue.type)
   })
 
