@@ -8,6 +8,12 @@ packages:
 
 allowBuilds:
   esbuild: true
+  # puppeteer ships a postinstall that downloads Chromium (~300MB).
+  # Required because `pnpm tour:build` (the GH Pages workflow) renders
+  # mermaid diagrams via puppeteer/Chromium. Disabling it would break
+  # the Tour pipeline. CI + Val Town pay the download cost as the
+  # uniform-install tradeoff for keeping all workflows symmetric.
+  puppeteer: true
 
 # Refuse to run if the pnpm version on PATH differs from the packageManager
 # field in package.json. Our setup action pins pnpm via external-tools.json;

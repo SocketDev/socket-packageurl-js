@@ -122,10 +122,5 @@
     "ignore-type-assertion": true,
     "ignore-files": "test/*",
     "strict": true
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "puppeteer"
-    ]
   }
 }
