@@ -1,4 +1,27 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(cat*)",
+      "Bash(cp*)",
+      "Bash(git*)",
+      "Bash(grep*)",
+      "Bash(ls*)",
+      "Bash(mkdir*)",
+      "Bash(mv*)",
+      "Bash(node*)",
+      "Bash(pnpm*)"
+    ],
+    "deny": [
+      "Bash(*> /dev/*)",
+      "Bash(chmod 777*)",
+      "Bash(chmod*)",
+      "Bash(curl*)",
+      "Bash(rm -rf*)",
+      "Bash(ssh*)",
+      "Bash(sudo*)",
+      "Bash(wget*)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
