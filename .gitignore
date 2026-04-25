@@ -41,6 +41,9 @@ Thumbs.db
 # Runtime (includes node_modules/.cache/ where vitest etc.
 # store scratch dirs — cleared automatically by pnpm install).
 **/node_modules
+# Defensive cache ignore — Node compile-cache, corepack, and other
+# tools occasionally drop scratch dirs into a project-local .cache/.
+**/.cache/
 
 # Build and temporary
 **/*.tgz
