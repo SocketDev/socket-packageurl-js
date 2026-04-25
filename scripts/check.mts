@@ -400,6 +400,31 @@ async function main(): Promise<void> {
       }
     }
 
+    // Run path-hygiene check (1 path, 1 reference). See
+    // .claude/skills/path-guard/ + .claude/hooks/path-guard/.
+    if (runAll) {
+      if (!quiet) {
+        logger.progress('Running path-hygiene check (1 path, 1 reference)')
+      }
+      exitCode = await runCommandQuiet('node', [
+        'scripts/check-paths.mts',
+        '--quiet',
+      ]).then((result: CheckCommandResult): number => result.exitCode)
+      if (exitCode !== 0) {
+        if (!quiet) {
+          logger.error(
+            'Path-hygiene check failed — rerun with --explain for details',
+          )
+        }
+        process.exitCode = exitCode
+        return
+      }
+      if (!quiet) {
+        logger.clearLine().done('Path-hygiene check passed')
+        logger.error('')
+      }
+    }
+
     if (!quiet) {
       logger.success('All checks passed')
       printFooter()

@@ -155,7 +155,7 @@ See `docs/references/error-messages.md` for worked examples and anti-patterns.
 
 - **Within a package**: every script imports its own path module. No script computes paths from raw segments.
 - **Across packages**: when package B consumes package A's artifact, B imports A's path module (or a typed helper exported from it) — never reconstructs the path from string segments. The classic failure: A adds a new path segment (e.g. inserts a `wasm/` directory), B's hand-built copy of the path drifts, builds break.
-- **Doc strings**: README "Output:" lines and `@fileoverview` comments describe the path; they don't *encode* it for tools to parse. The doc is for humans only — and even there, it must match what the path module actually produces, verified by running the function.
+- **Doc strings**: README "Output:" lines and `@fileoverview` comments describe the path; they don't _encode_ it for tools to parse. The doc is for humans only — and even there, it must match what the path module actually produces, verified by running the function.
 - **Workflows / Dockerfiles**: GitHub Actions YAML and Dockerfiles can't `import` TS, so they're allowed to reference the path string directly — but they MUST add a comment pointing at the canonical path module so the next person editing knows where the source of truth lives, and any path string must match the module byte-for-byte. If you find yourself writing the same path twice in one workflow, hoist it to a step output or a job-level env var; reference that everywhere downstream.
 - **Comments that re-state the path**: forbidden. A comment like `// Path mirrors getBuildPaths(): build/<mode>/<arch>/out/Final/...` is duplication wearing a comment costume. The import statement is the comment.
 
@@ -163,21 +163,22 @@ When you spot duplication, the answer is never "update both" — the answer is "
 
 ### Inclusive Language
 
-Use precise, neutral terms over historical metaphors that imply hierarchy or exclusion. The substitutes are not euphemisms — they're more *accurate* (a list of allowed values genuinely is an "allowlist"; "whitelist" is a metaphor that hides what the list does).
+Use precise, neutral terms over historical metaphors that imply hierarchy or exclusion. The substitutes are not euphemisms — they're more _accurate_ (a list of allowed values genuinely is an "allowlist"; "whitelist" is a metaphor that hides what the list does).
 
-| Replace                                  | With                                                  |
-| ---------------------------------------- | ----------------------------------------------------- |
-| `whitelist` / `whitelisted`              | `allowlist` / `allowed` / `allowlisted`               |
-| `blacklist` / `blacklisted`              | `denylist` / `denied` / `blocklisted` / `blocked`     |
-| `master` (branch, process, copy)         | `main` (branch); `primary` / `controller` (process)   |
-| `slave`                                  | `replica`, `worker`, `secondary`, `follower`          |
-| `grandfathered`                          | `legacy`, `pre-existing`, `exempted`                  |
-| `sanity check`                           | `quick check`, `confidence check`, `smoke test`       |
-| `dummy` (placeholder)                    | `placeholder`, `stub`                                 |
+| Replace                          | With                                                |
+| -------------------------------- | --------------------------------------------------- |
+| `whitelist` / `whitelisted`      | `allowlist` / `allowed` / `allowlisted`             |
+| `blacklist` / `blacklisted`      | `denylist` / `denied` / `blocklisted` / `blocked`   |
+| `master` (branch, process, copy) | `main` (branch); `primary` / `controller` (process) |
+| `slave`                          | `replica`, `worker`, `secondary`, `follower`        |
+| `grandfathered`                  | `legacy`, `pre-existing`, `exempted`                |
+| `sanity check`                   | `quick check`, `confidence check`, `smoke test`     |
+| `dummy` (placeholder)            | `placeholder`, `stub`                               |
 
 Apply across **code** (identifiers, comments, string literals), **docs** (READMEs, CLAUDE.md, markdown), **config files** (YAML, JSON), **commit messages**, **PR titles/descriptions**, and **CI logs** you control.
 
 Two exceptions where the legacy term must remain (because changing it breaks something external):
+
 - **Third-party APIs / upstream code**: when interfacing with an external API field literally named `whitelist`, keep the field name; rename your local variable. E.g. `const allowedDomains = response.whitelist`.
 - **Vendored upstream sources**: don't rewrite vendored code (`vendor/**`, `upstream/**`, `**/fixtures/**`). Patch around it if needed.
 

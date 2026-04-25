@@ -42,6 +42,7 @@
     "build": "node scripts/build.mts",
     "bump": "node scripts/bump.mts",
     "check": "node scripts/check.mts",
+    "check:paths": "node scripts/check-paths.mts",
     "ci:validate": "node scripts/ci-validate.mts",
     "clean": "node scripts/clean.mts",
     "cover": "node scripts/cover.mts",

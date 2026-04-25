@@ -317,6 +317,10 @@ importers:
         specifier: 24.9.2
         version: 24.9.2
 
+  .claude/hooks/path-guard: {}
+
+  .claude/hooks/token-guard: {}
+
 packages:
 
   '@antfu/install-pkg@1.1.0':
