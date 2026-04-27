@@ -11,7 +11,7 @@ import {
   ArrayPrototypeSome,
   StringPrototypeIncludes,
   encodeComponent,
-} from '../primordials.js'
+} from '@socketsecurity/lib/primordials'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'

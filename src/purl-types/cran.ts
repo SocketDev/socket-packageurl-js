@@ -10,7 +10,7 @@ import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
   encodeComponent,
-} from '../primordials.js'
+} from '@socketsecurity/lib/primordials'
 import {
   validateNoInjectionByType,
   validateRequiredByType,

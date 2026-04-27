@@ -10,7 +10,7 @@ import {
   ObjectIsFrozen,
   ReflectOwnKeys,
   WeakSetCtor,
-} from './primordials.js'
+} from '@socketsecurity/lib/primordials'
 
 /**
  * Recursively freeze an object and all nested objects.

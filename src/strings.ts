@@ -12,7 +12,7 @@ import {
   StringPrototypePadStart,
   StringPrototypeSlice,
   StringPrototypeToLowerCase,
-} from './primordials.js'
+} from '@socketsecurity/lib/primordials'
 
 /**
  * Check if string contains only whitespace characters.

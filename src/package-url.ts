@@ -67,7 +67,7 @@ import {
   StringPrototypeStartsWith,
   URLCtor,
   URLSearchParamsCtor,
-} from './primordials.js'
+} from '@socketsecurity/lib/primordials'
 import { PurlComponent } from './purl-component.js'
 import { PurlQualifierNames } from './purl-qualifier-names.js'
 import { PurlType } from './purl-type.js'

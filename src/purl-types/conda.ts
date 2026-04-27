@@ -10,7 +10,7 @@ import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
   encodeComponent,
-} from '../primordials.js'
+} from '@socketsecurity/lib/primordials'
 import { lowerName } from '../strings.js'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 

@@ -6,7 +6,10 @@
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { errorMessage, PurlError } from '../error.js'
-import { StringPrototypeIncludes, encodeComponent } from '../primordials.js'
+import {
+  StringPrototypeIncludes,
+  encodeComponent,
+} from '@socketsecurity/lib/primordials'
 import {
   validateNoInjectionByType,
   validateRequiredByType,

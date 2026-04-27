@@ -13,7 +13,7 @@ import {
   ArrayPrototypeSome,
   JSONStringify,
   StringPrototypeIncludes,
-} from '../primordials.js'
+} from '@socketsecurity/lib/primordials'
 import {
   isSemverString,
   lowerName,

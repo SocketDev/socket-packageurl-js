@@ -10,7 +10,7 @@ import {
   StringPrototypeSlice,
   URLSearchParamsCtor,
   encodeComponent,
-} from './primordials.js'
+} from '@socketsecurity/lib/primordials'
 import { isNonEmptyString } from './strings.js'
 
 // Module-private reusable `URLSearchParams` for `encodeQualifierParam`. Kept

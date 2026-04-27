@@ -11,7 +11,7 @@ import {
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   encodeComponent,
-} from '../primordials.js'
+} from '@socketsecurity/lib/primordials'
 import { lowerName, replaceDashesWithUnderscores } from '../strings.js'
 
 import type { ExistsResult, ExistsOptions } from './npm.js'

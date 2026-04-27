@@ -40,7 +40,7 @@ import {
   StringPrototypeSlice,
   StringPrototypeSplit,
   StringPrototypeToLowerCase,
-} from '../primordials.js'
+} from '@socketsecurity/lib/primordials'
 import { isSemverString } from '../strings.js'
 import { validateNoInjectionByType } from '../validate.js'
 

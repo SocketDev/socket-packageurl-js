@@ -14,7 +14,7 @@ import {
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
   URLSearchParamsCtor,
-} from './primordials.js'
+} from '@socketsecurity/lib/primordials'
 import { isBlank } from './strings.js'
 
 const EMPTY_ENTRIES: Iterable<[string, string]> = ObjectFreeze(

@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { ArrayPrototypePush } from './primordials.js'
+import { ArrayPrototypePush } from '@socketsecurity/lib/primordials'
 
 /**
  * @fileoverview Result type for functional error handling without exceptions.

@@ -12,7 +12,7 @@ import {
   StringPrototypeSlice,
   StringPrototypeStartsWith,
   StringPrototypeToLowerCase,
-} from './primordials.js'
+} from '@socketsecurity/lib/primordials'
 
 import type { PackageURL } from './package-url.js'
 

@@ -10,7 +10,7 @@ import {
   ReflectApply,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
-} from './primordials.js'
+} from '@socketsecurity/lib/primordials'
 import {
   findCommandInjectionCharCode,
   findInjectionCharCode,

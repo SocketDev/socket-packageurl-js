@@ -18,7 +18,7 @@ import {
   StringPrototypeStartsWith,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
-} from '../primordials.js'
+} from '@socketsecurity/lib/primordials'
 import { isBlank, lowerName, lowerNamespace } from '../strings.js'
 import { validateNoInjectionByType } from '../validate.js'
 

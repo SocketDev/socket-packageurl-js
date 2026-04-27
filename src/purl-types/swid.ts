@@ -9,7 +9,7 @@ import {
   RegExpPrototypeTest,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
-} from '../primordials.js'
+} from '@socketsecurity/lib/primordials'
 import { validateNoInjectionByType } from '../validate.js'
 
 const GUID_PATTERN = ObjectFreeze(

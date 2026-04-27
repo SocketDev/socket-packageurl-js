@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
  */
 
-import { StringPrototypeIncludes } from '../primordials.js'
+import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials'
 import { lowerName } from '../strings.js'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
