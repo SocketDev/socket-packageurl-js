@@ -2,8 +2,7 @@
 name: updating-npm-purl-package
 description: Syncs socket-packageurl-js feature parity with the purl npm package (https://github.com/ljharb/purl). Checks for new API features, URL type coverage, registry validation support, and normalization behaviors. Triggers when user mentions "sync purl package", "purl feature parity", or "check purl npm".
 user-invocable: true
-allowed-tools: Agent, Bash, Read, Write, Edit, Grep, Glob, WebFetch
----
+allowed-tools: Agent, Bash(pnpm:*), Bash(npm:*), Bash(git:*), Bash(node:*), Bash(rg:*), Bash(grep:*), Bash(find:*), Bash(ls:*), Bash(cat:*), Bash(head:*), Bash(tail:*), Bash(wc:*), Bash(diff:*), Read, Write, Edit, Grep, Glob, WebFetch---
 
 # updating-npm-purl-package
 

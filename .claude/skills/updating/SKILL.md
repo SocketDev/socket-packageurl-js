@@ -2,8 +2,7 @@
 name: updating
 description: Coordinates all dependency updates (npm packages, upstream spec sync, and purl package feature parity). Triggers when user asks to "update everything", "update dependencies", or prepare for a release.
 user-invocable: true
-allowed-tools: Task, Skill, Bash, Read, Grep, Glob, Edit
----
+allowed-tools: Task, Skill, Bash(pnpm:*), Bash(npm:*), Bash(git:*), Bash(node:*), Bash(rg:*), Bash(grep:*), Bash(find:*), Bash(ls:*), Bash(cat:*), Bash(head:*), Bash(tail:*), Bash(wc:*), Bash(diff:*), Read, Grep, Glob, Edit---
 
 # updating
 
