@@ -202,8 +202,8 @@ importers:
         specifier: 1.51.0
         version: 1.51.0(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)
       '@socketsecurity/lib':
-        specifier: 5.26.0
-        version: 5.26.0(typescript@5.9.2)
+        specifier: 5.25.1
+        version: 5.25.1(typescript@5.9.2)
       '@socketsecurity/registry':
         specifier: 2.0.2
         version: 2.0.2(typescript@5.9.2)
@@ -1474,8 +1474,8 @@ packages:
       typescript:
         optional: true
 
-  '@socketsecurity/lib@5.26.0':
-    resolution: {integrity: sha512-12diik0y7SQS2EO0IoASxJAd07/QJjLjENadmJi/bRpEOt7+6GuovXq7toPbSE84Q0Hyq3UZz1bqG4aiw9ZG9Q==}
+  '@socketsecurity/lib@5.25.1':
+    resolution: {integrity: sha512-I/sXk5FDOF7FVstzYn8tKtCvRe97KU/hl4p0e3OI1O9gma2uYypDiJT/n3axvtkqOyNFxWICWuXfy8Hnzeaw6Q==}
     engines: {node: '>=22', pnpm: '>=11.0.0-rc.0'}
     peerDependencies:
       typescript: '>=5.0.0'
@@ -4417,7 +4417,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.2
 
-  '@socketsecurity/lib@5.26.0(typescript@5.9.2)':
+  '@socketsecurity/lib@5.25.1(typescript@5.9.2)':
     optionalDependencies:
       typescript: 5.9.2
 
