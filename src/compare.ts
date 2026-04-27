@@ -4,6 +4,7 @@
  */
 
 import {
+  ErrorCtor,
   MapCtor,
   RegExpPrototypeTest,
   StringPrototypeIncludes,
@@ -31,7 +32,7 @@ function toCanonicalString(input: PurlInput): string {
   if (typeof input === 'string') {
     /* v8 ignore start -- PackageURL is always registered at module load time. */
     if (!_PackageURL) {
-      throw new Error(
+      throw new ErrorCtor(
         'PackageURL not registered. Import PackageURL before using string comparison.',
       )
     }

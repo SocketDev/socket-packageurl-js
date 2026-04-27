@@ -8,6 +8,7 @@ import { httpJson } from '@socketsecurity/lib/http-request'
 import { encodeComponent } from '../encode.js'
 import { errorMessage, PurlError } from '../error.js'
 import {
+  ErrorCtor,
   RegExpPrototypeTest,
   SetCtor,
   StringPrototypeCharCodeAt,
@@ -373,11 +374,11 @@ export async function npmExists(
  */
 export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
   if (typeof specifier !== 'string') {
-    throw new Error('npm package specifier string is required.')
+    throw new ErrorCtor('npm package specifier string is required.')
   }
 
   if (isBlank(specifier)) {
-    throw new Error('npm package specifier cannot be empty.')
+    throw new ErrorCtor('npm package specifier cannot be empty.')
   }
 
   // Handle scoped packages: `@scope/name@version`
@@ -390,7 +391,7 @@ export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
     // Find the second slash (after `@scope/`)
     const slashIndex = StringPrototypeIndexOf(specifier, '/')
     if (slashIndex === -1) {
-      throw new Error(
+      throw new ErrorCtor(
         'npm scoped specifier must contain "/" after scope (e.g. "@scope/name").',
       )
     }

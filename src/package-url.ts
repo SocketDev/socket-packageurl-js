@@ -48,12 +48,13 @@ import { isObject, recursiveFreeze } from './objects.js'
 import {
   ArrayIsArray,
   ArrayPrototypeAt,
+  ErrorCtor,
   JSONParse,
+  JSONStringify,
   MapCtor,
   ObjectCreate,
   ObjectFreeze,
   ObjectKeys,
-  JSONStringify,
   ReflectDefineProperty,
   ReflectGetOwnPropertyDescriptor,
   ReflectSetPrototypeOf,
@@ -443,7 +444,7 @@ class PackageURL {
    */
   static fromJSON(json: unknown): PackageURL {
     if (typeof json !== 'string') {
-      throw new Error('JSON string argument is required.')
+      throw new ErrorCtor('JSON string argument is required.')
     }
 
     // Size limit: 1MB to prevent memory exhaustion
@@ -451,7 +452,7 @@ class PackageURL {
     const MAX_JSON_SIZE = 1024 * 1024
     const byteSize = Buffer.byteLength(json, 'utf8')
     if (byteSize > MAX_JSON_SIZE) {
-      throw new Error(
+      throw new ErrorCtor(
         `JSON string exceeds maximum size limit of ${MAX_JSON_SIZE} bytes`,
       )
     }
@@ -468,7 +469,7 @@ class PackageURL {
 
     // Validate parsed result is an object
     if (!parsed || typeof parsed !== 'object' || ArrayIsArray(parsed)) {
-      throw new Error('JSON must parse to an object.')
+      throw new ErrorCtor('JSON must parse to an object.')
     }
 
     // Cast to record type for safe property access
@@ -495,7 +496,7 @@ class PackageURL {
    */
   static fromObject(obj: unknown): PackageURL {
     if (!isObject(obj)) {
-      throw new Error('Object argument is required.')
+      throw new ErrorCtor('Object argument is required.')
     }
     const typedObj = obj as Record<string, unknown>
     return new PackageURL(
@@ -628,7 +629,7 @@ class PackageURL {
         )
       }
       default:
-        throw new Error(
+        throw new ErrorCtor(
           `Unsupported package type: ${type}. Currently supported: npm`,
         )
     }
@@ -637,7 +638,7 @@ class PackageURL {
   static parseString(purlStr: unknown): ParsedPurlComponents {
     // https://github.com/package-url/purl-spec/blob/master/PURL-SPECIFICATION.rst#how-to-parse-a-purl-string-in-its-components
     if (typeof purlStr !== 'string') {
-      throw new Error('A purl string argument is required.')
+      throw new ErrorCtor('A purl string argument is required.')
     }
     if (isBlank(purlStr)) {
       return [undefined, undefined, undefined, undefined, undefined, undefined]
@@ -647,7 +648,7 @@ class PackageURL {
     // Reasonable limit for a package URL
     const MAX_PURL_LENGTH = 4096
     if (purlStr.length > MAX_PURL_LENGTH) {
-      throw new Error(
+      throw new ErrorCtor(
         `Package URL exceeds maximum length of ${MAX_PURL_LENGTH} characters.`,
       )
     }
