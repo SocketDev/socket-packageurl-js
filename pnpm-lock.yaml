@@ -185,6 +185,12 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@socketsecurity/lib':
+      specifier: 5.25.1
+      version: 5.25.1
+
 overrides:
   vite: 7.3.2
 
@@ -307,8 +313,8 @@ importers:
         specifier: 1.4.2
         version: 1.4.2
       '@socketsecurity/lib':
-        specifier: 5.24.0
-        version: 5.24.0(typescript@5.9.2)
+        specifier: 'catalog:'
+        version: 5.25.1(typescript@5.9.2)
       '@socketsecurity/sdk':
         specifier: 4.0.1
         version: 4.0.1
@@ -318,6 +324,24 @@ importers:
         version: 24.9.2
 
   .claude/hooks/path-guard: {}
+
+  .claude/hooks/private-name-guard:
+    devDependencies:
+      '@types/node':
+        specifier: 24.9.2
+        version: 24.9.2
+
+  .claude/hooks/public-surface-reminder:
+    devDependencies:
+      '@types/node':
+        specifier: 24.9.2
+        version: 24.9.2
+
+  .claude/hooks/release-workflow-guard:
+    devDependencies:
+      '@types/node':
+        specifier: 24.9.2
+        version: 24.9.2
 
   .claude/hooks/token-guard: {}
 
@@ -1464,15 +1488,6 @@ packages:
   '@socketregistry/packageurl-js@1.4.2':
     resolution: {integrity: sha512-yt9UfUzD02wZ7kwb67oe4jxG2D9JtgPqjrK/ans2BovFyeie0w8hvRR0MuOWM4mUt2371oFPp7NB6O5ZjYJmlw==}
     engines: {node: '>=18.20.8', pnpm: '>=11.0.0-rc.0'}
-
-  '@socketsecurity/lib@5.24.0':
-    resolution: {integrity: sha512-4Yar8oo4N12ESoNt/i2PNf08HRABUC0OcfUfwzIF3xjq89E5VMDN+aeOtnn6Oo4Y6u3TiuZRG7NgEBZ83LQ1Lw==}
-    engines: {node: '>=22', pnpm: '>=11.0.0-rc.0'}
-    peerDependencies:
-      typescript: '>=5.0.0'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
 
   '@socketsecurity/lib@5.25.1':
     resolution: {integrity: sha512-I/sXk5FDOF7FVstzYn8tKtCvRe97KU/hl4p0e3OI1O9gma2uYypDiJT/n3axvtkqOyNFxWICWuXfy8Hnzeaw6Q==}
@@ -4412,10 +4427,6 @@ snapshots:
   '@sindresorhus/merge-streams@2.3.0': {}
 
   '@socketregistry/packageurl-js@1.4.2': {}
-
-  '@socketsecurity/lib@5.24.0(typescript@5.9.2)':
-    optionalDependencies:
-      typescript: 5.9.2
 
   '@socketsecurity/lib@5.25.1(typescript@5.9.2)':
     optionalDependencies:

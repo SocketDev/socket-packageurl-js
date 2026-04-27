@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { ArrayPrototypePush } from '@socketsecurity/lib/primordials'
+import { ArrayPrototypePush, ErrorCtor } from '@socketsecurity/lib/primordials'
 
 /**
  * @fileoverview Result type for functional error handling without exceptions.
@@ -166,7 +166,7 @@ export class Err<E = Error> {
     if (this.error instanceof Error) {
       throw this.error
     }
-    throw new Error(String(this.error))
+    throw new ErrorCtor(String(this.error))
   }
 
   /**
@@ -235,7 +235,7 @@ export const ResultUtils = {
     results: T,
   ): T[number] {
     let lastError: Result<unknown, unknown> = err(
-      new Error('No results provided'),
+      new ErrorCtor('No results provided'),
     )
     for (const result of results) {
       if (result.isOk()) {
@@ -258,7 +258,7 @@ export const ResultUtils = {
     try {
       return ok(fn())
     } catch (e) {
-      return err(e instanceof Error ? e : new Error(String(e)))
+      return err(e instanceof Error ? e : new ErrorCtor(String(e)))
     }
   },
 
