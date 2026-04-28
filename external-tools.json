@@ -22,7 +22,7 @@
     },
     "pnpm": {
       "description": "pnpm — package manager used repo-wide.",
-      "version": "9+",
+      "version": "11+",
       "notes": [
         "Required: yes",
         "Install via `corepack enable pnpm` or `npm install -g pnpm`"
