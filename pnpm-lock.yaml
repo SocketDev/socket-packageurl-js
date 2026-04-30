@@ -190,6 +190,9 @@ catalogs:
     '@socketsecurity/lib':
       specifier: 5.25.1
       version: 5.25.1
+    '@types/node':
+      specifier: 24.9.2
+      version: 24.9.2
 
 overrides:
   vite: 7.3.2
@@ -307,6 +310,16 @@ importers:
         specifier: 2.1.3
         version: 2.1.3
 
+  .claude/hooks/auth-rotation-reminder:
+    dependencies:
+      '@socketsecurity/lib':
+        specifier: 'catalog:'
+        version: 5.25.1(typescript@5.9.2)
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.9.2
+
   .claude/hooks/check-new-deps:
     dependencies:
       '@socketregistry/packageurl-js':
@@ -321,6 +334,12 @@ importers:
     devDependencies:
       '@types/node':
         specifier: 24.9.2
+        version: 24.9.2
+
+  .claude/hooks/logger-guard:
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
         version: 24.9.2
 
   .claude/hooks/path-guard: {}
