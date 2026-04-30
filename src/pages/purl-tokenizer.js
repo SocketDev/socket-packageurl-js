@@ -26,6 +26,8 @@
  * `tokenizeHomepagePills()` walks the index-page surfaces
  * (.wt-contents-summary rows, .wt-intro-line lines) so pills
  * on the homepage share the same language as part-page pills. */
+
+import { StringPrototypeStartsWith } from '@socketsecurity/lib/primordials'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {
@@ -68,7 +70,7 @@
       emit(/^pkg:/, 'hljs-keyword')
       emit(/^[A-Za-z][A-Za-z0-9.+-]*/, 'hljs-type')
       while (rest.length > 0) {
-        if (rest.startsWith('/')) {
+        if (StringPrototypeStartsWith(rest, '/')) {
           appendPlain('/')
           rest = rest.slice(1)
           const segMatch = rest.match(/^[^/@?#]+/)
@@ -76,7 +78,7 @@
             code.appendChild(span('hljs-attr', segMatch[0]))
             rest = rest.slice(segMatch[0].length)
           }
-        } else if (rest.startsWith('@')) {
+        } else if (StringPrototypeStartsWith(rest, '@')) {
           const m = rest.match(/^@[^?#]+/)
           if (m) {
             code.appendChild(span('hljs-number', m[0]))
@@ -85,7 +87,7 @@
             appendPlain(rest)
             rest = ''
           }
-        } else if (rest.startsWith('?')) {
+        } else if (StringPrototypeStartsWith(rest, '?')) {
           const m = rest.match(/^\?[^#]+/)
           if (m) {
             code.appendChild(span('hljs-string', m[0]))
@@ -94,7 +96,7 @@
             appendPlain(rest)
             rest = ''
           }
-        } else if (rest.startsWith('#')) {
+        } else if (StringPrototypeStartsWith(rest, '#')) {
           code.appendChild(span('hljs-symbol', rest))
           rest = ''
         } else {

@@ -16,6 +16,13 @@
  * the already-highlighted span tree, not the raw text — hljs
  * splits text nodes, so any <a> we wrap before it runs would be
  * blown away. Uses `ns.onHljsReady` from boot.js to gate. */
+
+import {
+  JSONParse,
+  MapCtor,
+  StringPrototypeMatchAll,
+  StringPrototypeStartsWith,
+} from '@socketsecurity/lib/primordials'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {
@@ -24,10 +31,10 @@
 
   const installSourceLinks = () => {
     const rawAnchors = document.body.getAttribute('data-file-anchors')
-    const anchorByPath = new Map()
+    const anchorByPath = new MapCtor()
     if (rawAnchors) {
       try {
-        const entries = JSON.parse(rawAnchors)
+        const entries = JSONParse(rawAnchors)
         for (const [p, a] of entries) {
           anchorByPath.set(p, a)
         }
@@ -40,7 +47,7 @@
     /* Build a basename-swap fallback so `./compare.js` in source
      * resolves to `compare.ts` on disk. Keyed by `<dir>/<basename>`
      * without extension; value is the primary anchor. */
-    const anchorByStem = new Map()
+    const anchorByStem = new MapCtor()
     for (const [path, anchor] of anchorByPath) {
       const stem = path.replace(/\.[a-z0-9]+$/i, '')
       if (!anchorByStem.has(stem)) {
@@ -49,7 +56,10 @@
     }
 
     const resolveRelPath = (fromPath, ref) => {
-      if (!ref.startsWith('./') && !ref.startsWith('../')) {
+      if (
+        !StringPrototypeStartsWith(ref, './') &&
+        !StringPrototypeStartsWith(ref, '../')
+      ) {
         return null
       }
       const fromDir = fromPath.split('/').slice(0, -1)
@@ -85,7 +95,7 @@
         return
       }
       const matches = []
-      for (const m of text.matchAll(urlRe)) {
+      for (const m of StringPrototypeMatchAll(text, urlRe)) {
         matches.push({
           start: m.index,
           end: m.index + m[0].length,
@@ -94,7 +104,7 @@
           type: 'url',
         })
       }
-      for (const m of text.matchAll(quotedPathRe)) {
+      for (const m of StringPrototypeMatchAll(text, quotedPathRe)) {
         const pathRef = m[2]
         const anchor = filePath ? resolveRelPath(filePath, pathRef) : null
         if (!anchor) {

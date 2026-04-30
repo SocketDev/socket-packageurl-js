@@ -14,6 +14,8 @@
  *        [@fileoverview?, @description?, others…]
  *
  * Exposes ns.groupJsdocBlocks(container). */
+
+import { ArrayFrom } from '@socketsecurity/lib/primordials'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {
@@ -163,7 +165,7 @@
      * iteration wraps one tag's range and jumps the cursor past
      * the new block to pick up the next tag at the same sibling
      * level. Reverse-walking nested the cards inside each other. */
-    const tags = Array.from(container.querySelectorAll('.wt-jsdoc-tag'))
+    const tags = ArrayFrom(container.querySelectorAll('.wt-jsdoc-tag'))
     for (const tagEl of tags) {
       const parent = tagEl.parentElement
       if (!parent || parent.classList.contains('wt-jsdoc-block')) {
@@ -210,7 +212,7 @@
      * @returns / @throws"; the tour inverts this so the
      * description leads the stack and the tagged contract
      * supports it. */
-    const allBlocks = Array.from(container.querySelectorAll('.wt-jsdoc-block'))
+    const allBlocks = ArrayFrom(container.querySelectorAll('.wt-jsdoc-block'))
     /* Drop explicit @description blocks whose body is empty
      * (source was `@description` alone with no following prose,
      * or the prose ran directly into the next tag). Empty cards
@@ -264,7 +266,7 @@
       const descBody = document.createElement('span')
       descBody.className = 'wt-jsdoc-body'
       descBlock.appendChild(descBody)
-      for (const node of Array.from(container.childNodes)) {
+      for (const node of ArrayFrom(container.childNodes)) {
         if (node.nodeType === 1 && node.classList.contains('wt-jsdoc-block')) {
           continue
         }

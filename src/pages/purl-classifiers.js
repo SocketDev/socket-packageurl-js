@@ -14,13 +14,18 @@
  * tokenizer module can hand each code span to the right path:
  * PURL → hand-tokenize; bare ident / URL → .wt-purl (no
  * syntax pass); everything else → hljs as TypeScript. */
+
+import {
+  SetCtor,
+  StringPrototypeStartsWith,
+} from '@socketsecurity/lib/primordials'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {
     return
   }
 
-  const PURL_TYPES = new Set([
+  const PURL_TYPES = new SetCtor([
     'alpm',
     'apk',
     'bitbucket',
@@ -99,7 +104,7 @@
     return (
       /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ||
       /^[a-z][a-z0-9+.-]*:\/?$/i.test(trimmed) ||
-      trimmed.startsWith('//')
+      StringPrototypeStartsWith(trimmed, '//')
     )
   }
 })()

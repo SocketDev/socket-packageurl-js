@@ -6,6 +6,7 @@
 import { LOOP_SENTINEL } from './constants.js'
 import {
   ArrayIsArray,
+  ErrorCtor,
   ObjectFreeze,
   ObjectIsFrozen,
   ReflectOwnKeys,
@@ -34,7 +35,7 @@ function recursiveFreeze<T>(value_: T): T {
   while (pos < queueLength) {
     // Safety check to prevent processing excessively large object graphs
     if (pos === LOOP_SENTINEL) {
-      throw new Error('Object graph too large (exceeds 1,000,000 items).')
+      throw new ErrorCtor('Object graph too large (exceeds 1,000,000 items).')
     }
     const obj = queue[pos++]!
     ObjectFreeze(obj)

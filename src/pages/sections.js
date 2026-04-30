@@ -19,13 +19,20 @@
  *      the topmost intersecting card as "current" in the
  *      file-head menu (NOT the chip panels — those have their
  *      active row baked in at build time). */
+
+import {
+  MapCtor,
+  SetCtor,
+  WeakMapCtor,
+  WeakSetCtor,
+} from '@socketsecurity/lib/primordials'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {
     return
   }
 
-  const hydratedChips = new WeakSet()
+  const hydratedChips = new WeakSetCtor()
   const hydrateChip = chip => {
     if (hydratedChips.has(chip)) {
       return
@@ -100,7 +107,7 @@
   }
 
   const installSectionTracking = () => {
-    const menusByAnchor = new Map()
+    const menusByAnchor = new MapCtor()
     for (const panel of document.querySelectorAll('.wt-sections-panel')) {
       for (const link of panel.querySelectorAll('a[href^="#"]')) {
         const id = link.getAttribute('href').slice(1)
@@ -119,7 +126,7 @@
       return
     }
 
-    const currentByPanel = new WeakMap()
+    const currentByPanel = new WeakMapCtor()
     const setActive = (panel, id) => {
       if (currentByPanel.get(panel) === id) {
         return
@@ -140,7 +147,7 @@
       }
     }
 
-    const visibleCards = new Set()
+    const visibleCards = new SetCtor()
     const pickCurrentFor = panel => {
       let best = null
       let bestTop = Infinity

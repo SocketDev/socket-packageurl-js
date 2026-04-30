@@ -13,13 +13,19 @@
  * Exposes ns.wrapJsdocTags(container) so the group pass
  * (jsdoc-group.js) can call it in sequence. Kept separate so
  * each file handles one concern. */
+
+import {
+  ArrayFrom,
+  SetCtor,
+  StringPrototypeStartsWith,
+} from '@socketsecurity/lib/primordials'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {
     return
   }
 
-  const JSDOC_TAGS = new Set([
+  const JSDOC_TAGS = new SetCtor([
     'augments',
     'callback',
     'default',
@@ -68,8 +74,8 @@
       if (code.classList.contains('hljs')) {
         continue
       }
-      const hasLang = Array.from(code.classList).some(c =>
-        c.startsWith('language-'),
+      const hasLang = ArrayFrom(code.classList).some(c =>
+        StringPrototypeStartsWith(c, 'language-'),
       )
       if (!hasLang) {
         /* Default `@example` fences without an explicit language

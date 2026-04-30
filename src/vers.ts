@@ -16,6 +16,7 @@ import { PurlError } from './error.js'
 import {
   ArrayPrototypeJoin,
   ArrayPrototypePush,
+  MathMin,
   ObjectFreeze,
   RegExpPrototypeExec,
   RegExpPrototypeTest,
@@ -135,7 +136,7 @@ function comparePrereleases(a: string[], b: string[]): number {
     return -1
   }
 
-  const len = Math.min(a.length, b.length)
+  const len = MathMin(a.length, b.length)
   for (let i = 0; i < len; i += 1) {
     const ai = a[i]!
     const bi = b[i]!

@@ -48,6 +48,7 @@ import { isObject, recursiveFreeze } from './objects.js'
 import {
   ArrayIsArray,
   ArrayPrototypeAt,
+  BufferByteLength,
   ErrorCtor,
   JSONParse,
   JSONStringify,
@@ -66,6 +67,7 @@ import {
   StringPrototypeSlice,
   StringPrototypeSplit,
   StringPrototypeStartsWith,
+  SyntaxErrorCtor,
   URLCtor,
   URLSearchParamsCtor,
 } from '@socketsecurity/lib/primordials'
@@ -450,7 +452,7 @@ class PackageURL {
     // Size limit: 1MB to prevent memory exhaustion
     // Check actual byte size, not character length
     const MAX_JSON_SIZE = 1024 * 1024
-    const byteSize = Buffer.byteLength(json, 'utf8')
+    const byteSize = BufferByteLength!(json, 'utf8')
     if (byteSize > MAX_JSON_SIZE) {
       throw new ErrorCtor(
         `JSON string exceeds maximum size limit of ${MAX_JSON_SIZE} bytes`,
@@ -462,7 +464,7 @@ class PackageURL {
       parsed = JSONParse(json)
     } catch (e) {
       // For JSON parsing errors, throw a SyntaxError with the expected message
-      throw new SyntaxError('Failed to parse PackageURL from JSON', {
+      throw new SyntaxErrorCtor('Failed to parse PackageURL from JSON', {
         cause: e,
       })
     }

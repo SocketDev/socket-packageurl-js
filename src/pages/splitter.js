@@ -5,6 +5,8 @@
  * and pen. All reads of DOM geometry happen once at pointerdown;
  * onMove only writes, with rAF coalescing so multiple pointer
  * frames per refresh collapse into one DOM write. */
+
+import { MathMax } from '@socketsecurity/lib/primordials'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {
@@ -110,10 +112,7 @@
         dragState.lastPct = pct
       }
       if (pendingClientY !== null && handleHeight > 0) {
-        const y = Math.max(
-          0,
-          Math.min(handleHeight, pendingClientY - handleTop),
-        )
+        const y = MathMax(0, Math.min(handleHeight, pendingClientY - handleTop))
         hotspot.style.transform = `translate3d(-50%, ${y}px, 0)`
       }
       dragState.pendingClientX = null

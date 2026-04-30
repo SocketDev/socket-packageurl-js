@@ -6,7 +6,9 @@
 import {
   ErrorCtor,
   MapCtor,
+  RegExpCtor,
   RegExpPrototypeTest,
+  StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   StringPrototypeIndexOf,
   StringPrototypeReplace,
@@ -62,7 +64,7 @@ const MAX_WILDCARDS_PER_PATTERN = 32
 function countWildcards(pattern: string): number {
   let count = 0
   for (let i = 0, { length } = pattern; i < length; i += 1) {
-    const code = pattern.charCodeAt(i)
+    const code = StringPrototypeCharCodeAt(pattern, i)
     if (code === 42 /*'*'*/ || code === 63 /*'?'*/) {
       count += 1
     }
@@ -94,7 +96,7 @@ function matchWildcard(pattern: string, value: string): boolean {
     )
 
     // Collapse consecutive .* groups to prevent polynomial backtracking (ReDoS)
-    regex = new RegExp(
+    regex = new RegExpCtor(
       `^${StringPrototypeReplace(regexPattern, /(\.\*)+/g, '.*' as any)}$`,
     )
     if (wildcardRegexCache.size >= WILDCARD_CACHE_MAX) {

@@ -7,6 +7,8 @@
  * The DOM-building bit (the topbar toggle menu) is registered as a
  * boot phase so it runs after DOMContentLoaded — that's when
  * `.part-nav` exists to host it. */
+
+import { ObjectKeys } from '@socketsecurity/lib/primordials'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {
@@ -118,7 +120,7 @@
       partNav.appendChild(host)
     }
 
-    const prefs = Object.keys(THEME_ICONS)
+    const prefs = ObjectKeys(THEME_ICONS)
     const toggleIcons = prefs
       .map(p => themeIconSvg(p, `theme-icon theme-icon-${p}`))
       .join('\n        ')
