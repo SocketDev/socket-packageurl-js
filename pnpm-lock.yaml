@@ -211,7 +211,7 @@ importers:
         specifier: 1.51.0
         version: 1.51.0(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)
       '@socketsecurity/lib':
-        specifier: 5.25.1
+        specifier: 'catalog:'
         version: 5.25.1(typescript@5.9.2)
       '@socketsecurity/registry':
         specifier: 2.0.2
