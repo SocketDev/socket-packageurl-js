@@ -5,12 +5,14 @@
  */
 
 import { existsSync, promises as fs } from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import type { FlagValues } from '@socketsecurity/lib/argv/flags'
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import { safeDelete, safeDeleteSync } from '@socketsecurity/lib/fs'
 import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import type {
@@ -233,6 +235,34 @@ async function validateBuildArtifacts(): Promise<boolean> {
 /**
  * Publish a single package.
  */
+/**
+ * Stage publishable files into a fresh os.tmpdir() subdir. Returns
+ * the path of the staged copy. The caller publishes from there
+ * instead of the working tree, so an interrupted publish leaves
+ * `git status` clean.
+ */
+async function stageForPublish(): Promise<string> {
+  const stageRoot = await fs.mkdtemp(
+    path.join(os.tmpdir(), `socket-packageurl-js-publish-${process.pid}-`),
+  )
+  await fs.cp(rootPath, stageRoot, {
+    recursive: true,
+    dereference: true,
+    filter: src => {
+      const base = path.basename(src)
+      return (
+        base !== 'node_modules' &&
+        base !== '.git' &&
+        base !== '.gitignore' &&
+        base !== '.gitkeep' &&
+        !base.startsWith('.pnpm') &&
+        base !== 'pnpm-lock.yaml'
+      )
+    },
+  })
+  return stageRoot
+}
+
 async function publishPackage(options: PublishOptions = {}): Promise<boolean> {
   const { access = 'public', dryRun = false, otp, tag = 'latest' } = options
 
@@ -253,42 +283,85 @@ async function publishPackage(options: PublishOptions = {}): Promise<boolean> {
   }
   logger.done('Version check complete')
 
-  // Prepare publish args.
-  const publishArgs: string[] = ['publish', '--access', access, '--tag', tag]
-
-  // Add provenance attestation in CI only. `npm publish --provenance`
-  // requires the GitHub Actions OIDC id-token endpoint; running locally
-  // fails with "Provenance generation in GitHub Actions requires
-  // 'id-token: write' permission". Gated so local non-dry-run publishes
-  // (emergency cases) still work.
-  if (!dryRun && process.env['GITHUB_ACTIONS'] === 'true') {
-    publishArgs.push('--provenance')
+  // Stage to os.tmpdir() so the working tree never mutates during
+  // publish. Cleanup is unconditional via try/finally + signal
+  // handlers — a SIGINT mid-publish leaves no residue.
+  logger.progress('Staging package contents')
+  const stageRoot = await stageForPublish()
+  const cleanup = (): void => {
+    try {
+      safeDeleteSync(stageRoot)
+    } catch {
+      /* swallow during teardown */
+    }
   }
+  process.once('SIGINT', () => {
+    logger.warn('SIGINT — cleaning up staging root')
+    cleanup()
+    process.exit(130)
+  })
+  process.once('SIGTERM', () => {
+    logger.warn('SIGTERM — cleaning up staging root')
+    cleanup()
+    process.exit(143)
+  })
+  logger.done(`Staged to ${stageRoot}`)
 
-  if (dryRun) {
-    publishArgs.push('--dry-run')
+  try {
+    // Prepare publish args. Use pnpm publish (matches the fleet's
+    // package manager) with --no-git-checks (the staged tmpdir has
+    // no git history) and --ignore-scripts (the source's
+    // prepublishOnly guard exists to refuse direct working-tree
+    // publishes; this orchestrated publish is the legitimate path).
+    const publishArgs: string[] = [
+      'publish',
+      '--access',
+      access,
+      '--tag',
+      tag,
+      '--no-git-checks',
+      '--ignore-scripts',
+    ]
+
+    // Add provenance attestation in CI only. `pnpm publish
+    // --provenance` requires the GitHub Actions OIDC id-token
+    // endpoint; running locally fails with "Provenance generation
+    // in GitHub Actions requires 'id-token: write' permission".
+    // Gated so local non-dry-run publishes (emergency cases) still
+    // work.
+    if (!dryRun && process.env['GITHUB_ACTIONS'] === 'true') {
+      publishArgs.push('--provenance')
+    }
+
+    if (dryRun) {
+      publishArgs.push('--dry-run')
+    }
+
+    if (otp) {
+      publishArgs.push('--otp', otp)
+    }
+
+    // Publish from the staged copy, not the working tree.
+    logger.progress(dryRun ? 'Running dry-run publish' : 'Publishing to npm')
+    const publishCode: number = await runCommand('pnpm', publishArgs, {
+      cwd: stageRoot,
+    })
+
+    if (publishCode !== 0) {
+      logger.failed('Publish failed')
+      return false
+    }
+
+    if (dryRun) {
+      logger.done('Dry-run publish complete')
+    } else {
+      logger.done(`Published ${packageName}@${version} to npm`)
+    }
+
+    return true
+  } finally {
+    await safeDelete(stageRoot)
   }
-
-  if (otp) {
-    publishArgs.push('--otp', otp)
-  }
-
-  // Publish.
-  logger.progress(dryRun ? 'Running dry-run publish' : 'Publishing to npm')
-  const publishCode: number = await runCommand('npm', publishArgs)
-
-  if (publishCode !== 0) {
-    logger.failed('Publish failed')
-    return false
-  }
-
-  if (dryRun) {
-    logger.done('Dry-run publish complete')
-  } else {
-    logger.done(`Published ${packageName}@${version} to npm`)
-  }
-
-  return true
 }
 
 /**
