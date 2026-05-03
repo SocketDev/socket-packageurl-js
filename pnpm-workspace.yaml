@@ -6,7 +6,7 @@ trustPolicy: no-downgrade
 # entry — the .claude/hooks/check-new-deps hook references it via
 # "catalog:" so its manifest stays in lockstep with the root.
 catalog:
-  '@socketsecurity/lib': 5.25.1
+  '@socketsecurity/lib': 5.26.1
   '@types/node': 24.9.2
 
 # Register .claude/hooks/* as workspace packages so taze (run via
