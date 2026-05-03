@@ -70,7 +70,9 @@
     "tour:build": "node scripts/tour.mts generate tour.json",
     "tour:serve": "node scripts/tour.mts serve",
     "tour:watch": "node scripts/tour.mts watch tour.json",
-    "tour:valtown": "node scripts/tour.mts valtown"
+    "tour:valtown": "node scripts/tour.mts valtown",
+    "xport": "node scripts/xport.mts",
+    "xport:emit-schema": "node scripts/xport-emit-schema.mts"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "2.1.92",

@@ -1,3 +1,4 @@
+resolutionMode: highest
 trustPolicy: no-downgrade
 
 # Catalog: shared dependency versions referenced as "catalog:" in
