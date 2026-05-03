@@ -1,52 +1,89 @@
 /**
- * @fileoverview Security scan runner. Runs agentshield on Claude config then
- * optionally runs zizmor against .github/. Cross-platform replacement for the
- * previous inline shell script.
+ * @fileoverview Canonical fleet security-scan runner.
+ *
+ * Runs the two static-analysis tools the fleet uses for local security
+ * checks before push:
+ *
+ *   1. AgentShield — scans `.claude/` config for prompt-injection,
+ *      leaked secrets, and overly-permissive tool permissions.
+ *   2. zizmor      — static analysis for `.github/workflows/*.yml`
+ *      (unpinned actions, secret exposure, template injection,
+ *      permission issues).
+ *
+ * Either tool missing prints a "run pnpm run setup" hint (which
+ * downloads + verifies the pinned binary via the setup-security-tools
+ * hook) and skips that scan rather than failing the entire run.
+ *
+ * Cross-platform: uses `which` from npm for binary discovery (handles
+ * Windows .exe/.cmd resolution) and `spawn` from
+ * `@socketsecurity/lib/spawn` for proper async lifecycle.
+ *
+ * Wired in via `package.json`:
+ *
+ *   "security": "node scripts/security.mts"
+ *
+ * Byte-identical across every fleet repo. Sync-scaffolding flags
+ * drift.
  */
 
 import process from 'node:process'
 
+import which from 'which'
+
+import { WIN32 } from '@socketsecurity/lib/constants/platform'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
-import type { Logger } from '@socketsecurity/lib/logger'
-import { spawnSync } from '@socketsecurity/lib/spawn'
+import { spawn } from '@socketsecurity/lib/spawn'
 
-import { runCommand } from './utils/run-command.mts'
-import { errorMessage } from './utils/error-message.mts'
+const logger = getDefaultLogger()
 
-const logger: Logger = getDefaultLogger()
+async function hasExecutable(name: string): Promise<boolean> {
+  try {
+    await which(name)
+    return true
+  } catch {
+    return false
+  }
+}
 
-function hasCommand(command: string): boolean {
-  const probe = process.platform === 'win32' ? 'where' : 'command'
-  const args = process.platform === 'win32' ? [command] : ['-v', command]
-  const result = spawnSync(probe, args, {
-    stdio: 'ignore',
-    shell: process.platform === 'win32',
-  })
-  return result.status === 0
+async function runTool(command: string, args: string[]): Promise<number> {
+  try {
+    const result = await spawn(command, args, {
+      stdio: 'inherit',
+      shell: WIN32,
+    })
+    return result.code ?? 1
+  } catch (e) {
+    if (e && typeof e === 'object' && 'code' in e) {
+      const code = (e as { code: unknown }).code
+      return typeof code === 'number' ? code : 1
+    }
+    throw e
+  }
 }
 
 async function main(): Promise<void> {
-  const agentshieldCode = await runCommand('agentshield', ['scan'])
-  if (agentshieldCode !== 0) {
-    process.exitCode = agentshieldCode
+  if (!(await hasExecutable('agentshield'))) {
+    logger.info('agentshield not installed; run "pnpm run setup" to install')
+  } else {
+    const agentshieldCode = await runTool('agentshield', ['scan'])
+    if (agentshieldCode !== 0) {
+      process.exitCode = agentshieldCode
+      return
+    }
+  }
+
+  if (!(await hasExecutable('zizmor'))) {
+    logger.info('zizmor not installed; run "pnpm run setup" to install')
     return
   }
 
-  if (hasCommand('zizmor')) {
-    const zizmorCode = await runCommand('zizmor', ['.github/'])
-    if (zizmorCode !== 0) {
-      process.exitCode = zizmorCode
-      return
-    }
-  } else {
-    logger.info('zizmor not installed — run pnpm run setup to install')
+  const zizmorCode = await runTool('zizmor', ['.github/'])
+  if (zizmorCode !== 0) {
+    process.exitCode = zizmorCode
   }
-
-  process.exitCode = 0
 }
 
-void main().catch((e: unknown) => {
-  const message = errorMessage(e)
-  logger.error(`security scan failed: ${message}`)
+main().catch((e: unknown) => {
+  logger.error(e)
   process.exitCode = 1
 })
