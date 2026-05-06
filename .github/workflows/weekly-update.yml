@@ -24,7 +24,7 @@ jobs:
     outputs:
       has-updates: ${{ steps.check.outputs.has-updates }}
     steps:
-      - uses: SocketDev/socket-registry/.github/actions/setup-and-install@4c4b12cc32121314f56e2bc04e92eafa98e01104 # main
+      - uses: SocketDev/socket-registry/.github/actions/setup-and-install@780f6b678a99be879cfa066afc066a4104fe9d6e # main
 
       - name: Check for npm updates
         id: check
@@ -49,7 +49,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: SocketDev/socket-registry/.github/actions/setup-and-install@4c4b12cc32121314f56e2bc04e92eafa98e01104 # main
+      - uses: SocketDev/socket-registry/.github/actions/setup-and-install@780f6b678a99be879cfa066afc066a4104fe9d6e # main
 
       - name: Create update branch
         id: branch
@@ -62,7 +62,7 @@ jobs:
           git checkout -b "$BRANCH_NAME"
           echo "branch=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
-      - uses: SocketDev/socket-registry/.github/actions/setup-git-signing@4c4b12cc32121314f56e2bc04e92eafa98e01104 # main
+      - uses: SocketDev/socket-registry/.github/actions/setup-git-signing@780f6b678a99be879cfa066afc066a4104fe9d6e # main
         with:
           gpg-private-key: ${{ secrets.BOT_GPG_PRIVATE_KEY }}
 
@@ -309,7 +309,7 @@ jobs:
             test-output.log
           retention-days: 7
 
-      - uses: SocketDev/socket-registry/.github/actions/cleanup-git-signing@4c4b12cc32121314f56e2bc04e92eafa98e01104 # main
+      - uses: SocketDev/socket-registry/.github/actions/cleanup-git-signing@780f6b678a99be879cfa066afc066a4104fe9d6e # main
         if: always()
 
   notify:
