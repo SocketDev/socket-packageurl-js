@@ -14,6 +14,7 @@ import semver from 'semver'
 import colors from 'yoctocolors-cjs'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import { safeDelete } from '@socketsecurity/lib/fs'
 import type { Logger } from '@socketsecurity/lib/logger'
 import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
@@ -392,9 +393,7 @@ Be concise but informative. Group related changes together.`
   })
 
   // Clean up temp file
-  try {
-    await fs.unlink(promptPath)
-  } catch {}
+  await safeDelete(promptPath)
 
   if (claudeResult.exitCode !== 0) {
     logger.failed('Claude failed to generate changelog')

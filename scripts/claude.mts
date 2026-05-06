@@ -15,6 +15,7 @@ import { deleteAsync as del } from 'del'
 import colors from 'yoctocolors-cjs'
 
 import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import { safeDelete } from '@socketsecurity/lib/fs'
 import { LOG_SYMBOLS } from '@socketsecurity/lib/logger'
 import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
 import { spawn } from '@socketsecurity/lib/spawn'
@@ -5121,9 +5122,7 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
           })
 
           // Clean up temp file
-          try {
-            await fs.unlink(tmpFile)
-          } catch {}
+          await safeDelete(tmpFile)
 
           if (exitCode !== 0) {
             log.warn(`Claude fix exited with code ${exitCode}`)
@@ -5456,9 +5455,7 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
                 })
 
                 // Clean up temp file
-                try {
-                  await fs.unlink(tmpFile)
-                } catch {}
+                await safeDelete(tmpFile)
 
                 if (exitCode !== 0) {
                   log.warn(`Claude fix exited with code ${exitCode}`)
