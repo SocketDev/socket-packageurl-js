@@ -47,7 +47,6 @@ import {
 import { isObject, recursiveFreeze } from './objects.js'
 import {
   ArrayIsArray,
-  ArrayPrototypeAt,
   BufferByteLength,
   ErrorCtor,
   JSONParse,
@@ -792,24 +791,28 @@ class PackageURL {
       const searchParams = new URLSearchParamsCtor()
       const entries = StringPrototypeSplit(search, '&' as any)
       for (let i = 0, { length } = entries; i < length; i += 1) {
-        const pairs = StringPrototypeSplit(entries[i]!, '=' as any)
-        if (pairs) {
-          const key = pairs[0]!
-          // Validate qualifier key is not empty (reject malformed PURLs like ?&key=val or ?key=val&)
-          if (key.length === 0) {
-            throw new PurlError('qualifier key must not be empty')
-          }
-          const value = decodePurlComponent(
-            'qualifiers',
-            ArrayPrototypeAt(pairs, 1) ?? '',
-          )
-          // Use `URLSearchParams#append` to preserve plus signs
-          // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
-          /* v8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */ searchParams.append(
-            key,
-            value,
-          )
+        const entry = entries[i]!
+        // Slice on the FIRST '=' so values containing '=' (e.g.
+        // download_url=https://example.com/x?a=1, base64 padding `==`)
+        // round-trip intact. Splitting on '=' and indexing [1] silently
+        // truncates everything after the second '='.
+        const eqIndex = StringPrototypeIndexOf(entry, '=')
+        const key =
+          eqIndex === -1 ? entry : StringPrototypeSlice(entry, 0, eqIndex)
+        // Validate qualifier key is not empty (reject malformed PURLs like ?&key=val or ?key=val&)
+        if (key.length === 0) {
+          throw new PurlError('qualifier key must not be empty')
         }
+        const value = decodePurlComponent(
+          'qualifiers',
+          eqIndex === -1 ? '' : StringPrototypeSlice(entry, eqIndex + 1),
+        )
+        // Use `URLSearchParams#append` to preserve plus signs
+        // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
+        /* v8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */ searchParams.append(
+          key,
+          value,
+        )
       }
       // Split the remainder once from right on '?'
       rawQualifiers = searchParams
