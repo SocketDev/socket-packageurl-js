@@ -187,6 +187,9 @@ settings:
 
 catalogs:
   default:
+    '@sinclair/typebox':
+      specifier: 0.34.49
+      version: 0.34.49
     '@socketsecurity/lib':
       specifier: 5.28.0
       version: 5.28.0
@@ -210,6 +213,9 @@ importers:
       '@oxlint/migrate':
         specifier: 1.51.0
         version: 1.51.0(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)
+      '@sinclair/typebox':
+        specifier: 'catalog:'
+        version: 0.34.49
       '@socketsecurity/lib':
         specifier: 'catalog:'
         version: 5.28.0(typescript@5.9.2)
@@ -1504,6 +1510,9 @@ packages:
   '@sigstore/verify@3.1.0':
     resolution: {integrity: sha512-mNe0Iigql08YupSOGv197YdHpPPr+EzDZmfCgMc7RPNaZTw5aLN01nBl6CHJOh3BGtnMIj83EeN4butBchc8Ag==}
     engines: {node: ^20.17.0 || >=22.9.0}
+
+  '@sinclair/typebox@0.34.49':
+    resolution: {integrity: sha512-brySQQs7Jtn0joV8Xh9ZV/hZb9Ozb0pmazDIASBkYKCjXrXU3mpcFahmK/z4YDhGkQvP9mWJbVyahdtU5wQA+A==}
 
   '@sindresorhus/merge-streams@2.3.0':
     resolution: {integrity: sha512-LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==}
@@ -4448,6 +4457,8 @@ snapshots:
       '@sigstore/bundle': 4.0.0
       '@sigstore/core': 3.2.0
       '@sigstore/protobuf-specs': 0.5.0
+
+  '@sinclair/typebox@0.34.49': {}
 
   '@sindresorhus/merge-streams@2.3.0': {}
 

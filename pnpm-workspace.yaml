@@ -6,6 +6,7 @@ trustPolicy: no-downgrade
 # entry — the .claude/hooks/check-new-deps hook references it via
 # "catalog:" so its manifest stays in lockstep with the root.
 catalog:
+  '@sinclair/typebox': 0.34.49
   '@socketsecurity/lib': 5.28.0
   '@types/node': 24.9.2
 
