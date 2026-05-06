@@ -82,7 +82,10 @@ jobs:
 
           set +e
           claude --print \
-            --allowedTools "Bash(pnpm:*)" "Bash(git add:*)" "Bash(git commit:*)" "Bash(git status:*)" "Bash(git diff:*)" "Bash(git log:*)" "Bash(git rev-parse:*)" "Read" "Write" "Edit" "Glob" "Grep" \
+            --tools "Bash" "Read" "Glob" "Grep" \
+            --allowedTools "Bash(pnpm:*)" "Bash(git add:*)" "Bash(git commit:*)" "Bash(git status:*)" "Bash(git diff:*)" "Bash(git log:*)" "Bash(git rev-parse:*)" "Read" "Glob" "Grep" \
+            --disallowedTools "Agent" "Task" "NotebookEdit" "WebFetch" "WebSearch" "Edit" "Write" "Bash(rm:*)" "Bash(mv:*)" "Bash(curl:*)" "Bash(wget:*)" "Bash(sudo:*)" \
+            --permission-mode dontAsk \
             --model haiku \
             --max-turns 15 \
             "$(cat <<'PROMPT'
@@ -181,7 +184,10 @@ jobs:
             process.stdout.write(tmpl);
           ')
           claude --print \
-            --allowedTools "Bash(pnpm:*)" "Bash(git add:*)" "Bash(git commit:*)" "Bash(git status:*)" "Bash(git diff:*)" "Bash(git log:*)" "Bash(git rev-parse:*)" "Read" "Write" "Edit" "Glob" "Grep" \
+            --tools "Bash" "Read" "Glob" "Grep" \
+            --allowedTools "Bash(pnpm:*)" "Bash(git add:*)" "Bash(git commit:*)" "Bash(git status:*)" "Bash(git diff:*)" "Bash(git log:*)" "Bash(git rev-parse:*)" "Read" "Glob" "Grep" \
+            --disallowedTools "Agent" "Task" "NotebookEdit" "WebFetch" "WebSearch" "Edit" "Write" "Bash(rm:*)" "Bash(mv:*)" "Bash(curl:*)" "Bash(wget:*)" "Bash(sudo:*)" \
+            --permission-mode dontAsk \
             --model sonnet \
             --max-turns 25 \
             "$PROMPT_BODY" \
