@@ -20,6 +20,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import { safeDelete } from '@socketsecurity/lib/fs'
+import { httpJson, httpRequest } from '@socketsecurity/lib/http-request'
 
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'
@@ -1603,11 +1604,8 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
   if (existsSync(cachePath)) {
     return (await fs.readFile(cachePath, 'utf8')).trim()
   }
-  const res = await fetch(url)
-  if (!res.ok) {
-    throw new Error(`SRI fetch ${url} → HTTP ${res.status}`)
-  }
-  const integrity = computeIntegrity(new Uint8Array(await res.arrayBuffer()))
+  const res = await httpRequest(url, { throwOnError: true })
+  const integrity = computeIntegrity(new Uint8Array(res.arrayBuffer()))
   await fs.mkdir(cacheDir, { recursive: true })
   await fs.writeFile(cachePath, integrity + '\n')
   return integrity
@@ -3668,7 +3666,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
   const API = 'https://api.val.town'
   const authHeader = { Authorization: `Bearer ${token}` }
 
-  const meRes = await fetch(`${API}/v1/me`, { headers: authHeader })
+  const meRes = await httpRequest(`${API}/v1/me`, { headers: authHeader })
   if (!meRes.ok) {
     if (meRes.status === 401) {
       throw new Error(
@@ -3676,9 +3674,9 @@ async function deployValtown(args: readonly string[]): Promise<void> {
           'Run `pnpm tour token set` to store a fresh one.',
       )
     }
-    throw new Error(`GET /v1/me failed: ${meRes.status} ${await meRes.text()}`)
+    throw new Error(`GET /v1/me failed: ${meRes.status} ${meRes.text()}`)
   }
-  const me = (await meRes.json()) as { username?: string }
+  const me = meRes.json<{ username?: string }>()
   const username = me.username
   if (!username) {
     throw new Error('Val Town API returned no username')
@@ -3689,13 +3687,13 @@ async function deployValtown(args: readonly string[]): Promise<void> {
   // lowercased slug form that doesn't always match how Val Town stores
   // the canonical name, so /me/vals is more reliable.
   let valId: string | null = null
-  const listRes = await fetch(`${API}/v2/me/vals?limit=100`, {
+  const listRes = await httpRequest(`${API}/v2/me/vals?limit=100`, {
     headers: authHeader,
   })
   if (listRes.ok) {
-    const list = (await listRes.json()) as {
+    const list = listRes.json<{
       data?: Array<{ id: string; name: string }>
-    }
+    }>()
     const match = list.data?.find(
       v => v.name === valName || v.name.toLowerCase() === valName.toLowerCase(),
     )
@@ -3707,7 +3705,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
 
   if (!valId) {
     console.log(`Creating new val "${valName}"...`)
-    const createRes = await fetch(`${API}/v2/vals`, {
+    const created = await httpJson<{ id: string }>(`${API}/v2/vals`, {
       method: 'POST',
       headers: { ...authHeader, 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -3716,12 +3714,6 @@ async function deployValtown(args: readonly string[]): Promise<void> {
         description: 'Socket walkthrough comment backend',
       }),
     })
-    if (!createRes.ok) {
-      throw new Error(
-        `POST /v2/vals failed: ${createRes.status} ${await createRes.text()}`,
-      )
-    }
-    const created = (await createRes.json()) as { id: string }
     valId = created.id
     console.log(`Created val: ${valId}`)
   }
@@ -3765,7 +3757,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
     // only content + type. Try POST (create) first — if the file
     // already exists it 409s and we fall through to PUT (update).
     const qs = `?path=${encodeURIComponent(f.path)}`
-    const createRes = await fetch(`${API}/v2/vals/${valId}/files${qs}`, {
+    const createRes = await httpRequest(`${API}/v2/vals/${valId}/files${qs}`, {
       method: 'POST',
       headers: { ...authHeader, 'content-type': 'application/json' },
       body: JSON.stringify({ content, type: f.type }),
@@ -3775,20 +3767,15 @@ async function deployValtown(args: readonly string[]): Promise<void> {
       action = 'created'
     } else if (createRes.status === 409) {
       // File exists — PUT to update.
-      const updateRes = await fetch(`${API}/v2/vals/${valId}/files${qs}`, {
+      await httpJson(`${API}/v2/vals/${valId}/files${qs}`, {
         method: 'PUT',
         headers: { ...authHeader, 'content-type': 'application/json' },
         body: JSON.stringify({ content, type: f.type }),
       })
-      if (!updateRes.ok) {
-        throw new Error(
-          `update ${f.path} failed: ${updateRes.status} ${await updateRes.text()}`,
-        )
-      }
       action = 'updated'
     } else {
       throw new Error(
-        `create ${f.path} failed: ${createRes.status} ${await createRes.text()}`,
+        `create ${f.path} failed: ${createRes.status} ${createRes.text()}`,
       )
     }
     receipts.push({
@@ -3821,7 +3808,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
     if (!value) {
       continue
     }
-    const putRes = await fetch(
+    const putRes = await httpRequest(
       `${API}/v2/vals/${valId}/environment_variables/${encodeURIComponent(key)}`,
       {
         method: 'PUT',
@@ -3833,32 +3820,25 @@ async function deployValtown(args: readonly string[]): Promise<void> {
       console.log(`  Set env ${key}`)
       continue
     }
-    const postRes = await fetch(
-      `${API}/v2/vals/${valId}/environment_variables`,
-      {
-        method: 'POST',
-        headers: { ...authHeader, 'content-type': 'application/json' },
-        body: JSON.stringify({ key, value }),
-      },
-    )
-    if (!postRes.ok) {
-      throw new Error(
-        `env ${key} failed: ${postRes.status} ${await postRes.text()}`,
-      )
-    }
+    await httpJson(`${API}/v2/vals/${valId}/environment_variables`, {
+      method: 'POST',
+      headers: { ...authHeader, 'content-type': 'application/json' },
+      body: JSON.stringify({ key, value }),
+    })
     console.log(`  Created env ${key}`)
   }
 
   // Fetch the HTTP endpoint URL from Val Town — the file-id-based
   // hostname is what actually routes, not the friendly name.
-  const fileRes = await fetch(`${API}/v2/vals/${valId}/files?path=index.ts`, {
-    headers: authHeader,
-  })
+  const fileRes = await httpRequest(
+    `${API}/v2/vals/${valId}/files?path=index.ts`,
+    { headers: authHeader },
+  )
   let publicUrl = `https://${username}-${valName.toLowerCase()}.web.val.run`
   if (fileRes.ok) {
-    const fileList = (await fileRes.json()) as {
+    const fileList = fileRes.json<{
       data?: Array<{ links?: { endpoint?: string } }>
-    }
+    }>()
     const endpoint = fileList.data?.[0]?.links?.endpoint
     if (endpoint) {
       publicUrl = endpoint
