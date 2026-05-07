@@ -162,6 +162,10 @@ async function runLintOnFiles(
         'oxfmt',
         '--config',
         '.oxfmtrc.json',
+        // Don't error when every staged file lands in oxfmt's
+        // ignorePatterns (e.g. only `.claude/**` files staged). The
+        // tool exits 0 with "No files found" instead of throwing.
+        '--no-error-on-unmatched-pattern',
         ...(fix ? ['--write'] : ['--check']),
         ...files,
       ],
