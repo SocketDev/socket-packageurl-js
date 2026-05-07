@@ -60,7 +60,7 @@ jobs:
       contents: read
     steps:
       - name: Setup and install (checkout + Node + pnpm + install)
-        uses: SocketDev/socket-registry/.github/actions/setup-and-install@437c22d2db79a9a94f4bff64ebbbbe1e5170473a # main
+        uses: SocketDev/socket-registry/.github/actions/setup-and-install@91544bee74cc405a9aa6a287831ba25da1a464e3 # main
         with:
           checkout-fetch-depth: '1'
 

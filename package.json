@@ -1,7 +1,7 @@
 {
   "name": "@socketregistry/packageurl-js",
   "version": "1.4.2",
-  "packageManager": "pnpm@11.0.7",
+  "packageManager": "pnpm@11.0.8",
   "license": "MIT",
   "publishConfig": {
     "access": "public",
@@ -39,7 +39,7 @@
   ],
   "engines": {
     "node": ">=18.20.8",
-    "pnpm": ">=11.0.7"
+    "pnpm": ">=11.0.8"
   },
   "sideEffects": false,
   "scripts": {
