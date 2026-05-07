@@ -1,0 +1,6 @@
+{
+  "$schema": "./lockstep.schema.json",
+  "area": "socket-packageurl-js",
+  "description": "Lock-step manifest. socket-packageurl-js is a single npm package with no submodule upstreams or sibling language ports \u2014 empty rows is the expected state.",
+  "rows": []
+}

@@ -46,6 +46,6 @@
     "**/test/fixtures",
     "**/test/packages",
     "**/upstream",
-    "**/xport.schema.json"
+    "**/lockstep.schema.json"
   ]
 }
