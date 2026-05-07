@@ -74,7 +74,7 @@ jobs:
           echo "VALTOWN_TOKEN present (length: ${#VALTOWN_TOKEN})"
 
       - name: Setup and install (checkout + Node + pnpm + install)
-        uses: SocketDev/socket-registry/.github/actions/setup-and-install@5b672d3b8459e61bdd423c058a2e155f92f79389 # main
+        uses: SocketDev/socket-registry/.github/actions/setup-and-install@ba3d42dec13db8da746d695aac12f0d7d47f8719 # main
         with:
           checkout-fetch-depth: '1'
 
