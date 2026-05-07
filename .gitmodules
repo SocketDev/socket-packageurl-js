@@ -3,3 +3,4 @@
 	path = upstream/meander
 	url = https://github.com/divmain/meander.git
 	ignore = dirty
+	shallow = true
