@@ -1,181 +1,151 @@
-# updating Reference Documentation
+# updating reference
 
-This document provides detailed information about dependency update procedures, npm data synchronization, and troubleshooting for the updating skill.
+Long-form details for the `updating` umbrella skill — phase scripts, exit-code semantics, and per-mode contracts. The orchestration story lives in [`SKILL.md`](SKILL.md).
 
-## Table of Contents
+## Phase scripts
 
-1. [Update Targets](#update-targets)
-2. [npm Dependency Updates](#npm-dependency-updates)
-3. [npm Data Synchronization](#npm-data-synchronization)
-4. [Sub-Skills](#sub-skills)
-5. [Validation](#validation)
-6. [Troubleshooting](#troubleshooting)
-
----
-
-## Update Targets
-
-### npm Packages
-
-Updated via `pnpm run update` which runs `scripts/update.mjs`:
-
-- Uses **taze** for dependency version detection (recursive, write mode)
-- Force-updates Socket packages bypassing taze maturity period:
-  - `@socketsecurity/*`
-  - `@socketregistry/*`
-  - `@socketbin/*`
-- Installs updated packages via `pnpm install`
-
-### npm Validation Data
-
-Updated via `pnpm run update:data:npm` which runs `scripts/update-data-npm.mjs`:
-
-- **builtin-names.json** - Node.js builtin module names (requires Node >= next maintained version)
-- **legacy-names.json** - Legacy npm package names from `all-the-package-names` datasets
-
----
-
-## npm Dependency Updates
-
-### How `pnpm run update` Works
+### Phase 2 — npm packages
 
 ```bash
-# 1. Run taze recursively with write mode
-pnpm exec taze -r -w
+pnpm run update
 
-# 2. Force-update Socket scoped packages
-pnpm update @socketsecurity/* @socketregistry/* @socketbin/* --latest -r
+if [ -n "$(git status --porcelain)" ]; then
+  git add pnpm-lock.yaml package.json */package.json
+  git commit -m "chore: update npm dependencies
 
-# 3. Install updated packages
-pnpm install
+Updated npm packages via pnpm run update."
+  echo "npm packages updated"
+else
+  echo "npm packages already up to date"
+fi
 ```
 
-### Package.json Pinning
-
-All dependencies (dev and direct) are pinned to exact versions. The update script handles bumping these pins to latest.
-
-### After Update
-
-Files that may change:
-- `package.json` - Version pins
-- `pnpm-lock.yaml` - Lock file
-
----
-
-## npm Data Synchronization
-
-### builtin-names.json
-
-**Location:** `data/npm/builtin-names.json`
-
-**Source:** `Module.builtinModules` from Node.js runtime
-
-**Requirements:**
-- Node.js >= next maintained version (currently requires Node 23+)
-- Filters out `node:` prefixed modules without unprefixed equivalents (e.g., `node:sea`, `node:sqlite`, `node:test`)
-
-### legacy-names.json
-
-**Location:** `data/npm/legacy-names.json`
-
-**Sources:**
-- `all-the-package-names@2.0.0` (43.1MB names.json)
-- `all-the-package-names@1.3905.0` (24.7MB names.json, last v1 release)
-
-**Process:**
-1. Combines both name datasets (unique union)
-2. Filters out names that are not valid for old packages per `validate-npm-package-name`
-3. Filters out names that look like legacy but are actually new-style
-4. Verifies package existence via `pacote.manifest()` (3 concurrent, 4 retries)
-5. Writes sorted, validated results
-
-**Interactive prompts:** The script prompts for confirmation before each data update phase.
-
----
-
-## Sub-Skills
-
-The updating skill coordinates two additional skills after npm dependency updates:
-
-### updating-spec
-
-Syncs against upstream PURL and VERS specifications:
-- **purl-spec** - Core PURL grammar, type definitions, test suite
-- **vers-spec** - Version range specification
-- **TC54/ECMA-427** - Formal standard updates
-
-See `updating-spec/reference.md` for detailed spec comparison procedures.
-
-### updating-npm-purl-package
-
-Checks feature parity with the `purl` npm package (https://github.com/ljharb/purl):
-- **URL type coverage** - Registry URL generation for each ecosystem
-- **Registry validation** - Existence checking support
-- **Normalization behavior** - Type-specific encoding and casing rules
-
-See `updating-npm-purl-package/reference.md` for feature comparison matrix.
-
----
-
-## Validation
-
-### Post-Update Validation
+### Phase 3 — Validate lockstep manifest (if `lockstep.json` exists)
 
 ```bash
-# Fix lint issues
-pnpm run fix
+if [ -f lockstep.json ]; then
+  pnpm run lockstep
+  LOCKSTEP_EXIT=$?
 
-# Run all checks (lint + type check)
-pnpm run check
-
-# Run tests
-pnpm test
+  case $LOCKSTEP_EXIT in
+    0) echo "✓ lockstep clean — manifest valid, no drift; skip Phase 4 lockstep step" ;;
+    1) echo "✗ lockstep schema/structural error — stopping"; exit 1 ;;
+    2) echo "⚠ lockstep drift — Phase 4 will invoke updating-lockstep to act" ;;
+  esac
+fi
 ```
 
-### CI Mode
+#### Lockstep exit-code semantics
 
-In CI mode (`CI=true` or `GITHUB_ACTIONS` set):
-- Skip build validation (CI runs separately)
-- Create atomic commits only
-- Workflow handles push and PR creation
+| Exit | Meaning | Action |
+|---|---|---|
+| 0 | Manifest valid, no drift | Skip lockstep step in Phase 4 |
+| 1 | Schema violation, missing file, or unreachable baseline | Stop and investigate via `scripts/lockstep-schema.mts` and the failing row's `local_*`/`upstream` fields. Do not auto-retry. |
+| 2 | Drift detected | Phase 4 invokes `updating-lockstep`. Auto-bumps mechanical `version-pin` rows per `upgrade_policy`; everything else (`file-fork` / `feature-parity` / `spec-conformance` / `lang-parity` / `locked` version-pins) becomes advisory in the PR body. |
 
----
+`locked` version-pin rows never auto-bump — they need a coordinated upstream change first (e.g., `temporal-rs` is `locked` because Node vendors it and bumping is gated on a Node bump landing first).
 
-## Troubleshooting
+If `lockstep.json` does NOT exist, skip Phase 3 entirely.
 
-### taze Fails to Detect Updates
+### Phase 4 — Apply drift + non-lockstep submodules
 
-**Symptom:** `pnpm run update` reports no changes when updates exist.
+**4a. lockstep drift** — if Phase 3 reported exit 2:
 
-**Cause:** taze has a maturity period for new releases.
-
-**Solution:** Socket packages are force-updated separately via `pnpm update --latest`, bypassing taze maturity.
-
-### Node Version Too Low for builtin-names
-
-**Symptom:** `update:data:npm` skips builtin names with version warning.
-
-**Cause:** Script requires Node >= next maintained version for accurate builtin list.
-
-**Solution:** Use Node 23+ (or current "next" version) when running `pnpm run update:data:npm`.
-
-### Legacy Names Verification Timeouts
-
-**Symptom:** `update:data:npm` hangs or times out during package verification.
-
-**Cause:** Network issues or npm registry rate limiting.
-
-**Solution:**
-- Check network connectivity
-- Retry (script has built-in 4 retries per package)
-- Run during off-peak hours
-
-### Lock File Conflicts
-
-**Symptom:** `pnpm install` fails after update.
-
-**Solution:**
 ```bash
-rm pnpm-lock.yaml
-pnpm install
+if [ "$LOCKSTEP_EXIT" = "2" ]; then
+  # Invoke via the Skill tool / programmatic-claude flow used by the
+  # weekly-update workflow. Standalone runs can do `/updating-lockstep`.
+  echo "Invoking updating-lockstep for drift handling"
+fi
 ```
+
+`updating-lockstep` auto-bumps `version-pin` rows whose `upgrade_policy` is `track-latest` or `major-gate` (patch/minor only — majors → advisory), and emits an advisory block for everything else. Each auto-bumped row becomes its own atomic commit.
+
+**4b. Non-lockstep submodules** — invoke each repo-specific `updating-*` sub-skill (e.g. `updating-node`, `updating-curl`) for submodules NOT claimed by a lockstep `version-pin` row. These sub-skills handle build inputs that aren't tracked in lockstep (cache-versions bumps, patch regeneration, etc.).
+
+If no `.gitmodules` exists, skip 4b.
+
+### Phase 5 — Workflow SHA pins
+
+Resolve the default branch (per CLAUDE.md _Default branch fallback_), then compare:
+
+```bash
+BASE=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+if [ -z "$BASE" ] && git show-ref --verify --quiet refs/remotes/origin/main;   then BASE=main;   fi
+if [ -z "$BASE" ] && git show-ref --verify --quiet refs/remotes/origin/master; then BASE=master; fi
+BASE="${BASE:-main}"
+
+PINNED_SHA=$(grep -ohP '(?<=@)[0-9a-f]{40}' .github/workflows/_local-not-for-reuse-ci.yml 2>/dev/null | head -1)
+DEFAULT_SHA=$(git rev-parse "origin/$BASE" 2>/dev/null || echo "")
+
+if [ -n "$PINNED_SHA" ] && [ -n "$DEFAULT_SHA" ] && [ "$PINNED_SHA" != "$DEFAULT_SHA" ]; then
+  echo "Workflow SHA pins are stale: $PINNED_SHA → $DEFAULT_SHA (origin/$BASE)"
+  echo "Run the updating-workflows skill to cascade."
+else
+  echo "Workflow SHA pins are up to date (or no _local-not-for-reuse-*.yml pins in this repo)"
+fi
+```
+
+### Phase 6 — Final validation (skip in CI)
+
+```bash
+if [ "$CI" = "true" ] || [ -n "$GITHUB_ACTIONS" ]; then
+  echo "CI mode: skipping validation"
+else
+  pnpm run check --all
+  pnpm test
+  pnpm run build  # if this repo has a build step
+fi
+```
+
+### Phase 7 — Report
+
+```
+## Update Complete
+
+### Updates Applied:
+
+| Category           | Status                               |
+|--------------------|--------------------------------------|
+| npm packages       | Updated / Up to date                 |
+| lockstep manifest  | <ok>/<total> ok, <drift> drift, <error> error (exit <code>) — or n/a |
+| Other submodules   | K bumped — or n/a                    |
+| Workflow SHA pins  | Up to date / Stale                   |
+
+### Commits Created:
+- [list commits, if any]
+
+### Validation:
+- Build: SUCCESS / SKIPPED (CI mode)
+- Tests: PASS / SKIPPED (CI mode)
+
+### Next Steps:
+**Interactive mode:**
+1. Review changes: `git log --oneline -N`
+2. Push to remote: `git push origin "$BASE"` (where `$BASE` is the default branch resolved in Phase 5 — `main` for most fleet repos, `master` for legacy ones)
+
+**CI mode:**
+1. Workflow will push branch and create PR
+2. CI will run full build/test validation
+3. Review PR when CI passes
+```
+
+## Mode contracts
+
+### CI mode (`CI=true` or `GITHUB_ACTIONS`)
+
+- Create atomic commits per category (npm, lockstep auto-bumps, submodule bumps).
+- Skip Phase 6 build/test validation — CI validates separately.
+- Workflow handles push and PR creation.
+
+### Interactive mode (default)
+
+- Run Phase 6 build + test before reporting "complete."
+- Report validation results to the user.
+- Direct push by the user once they've reviewed.
+
+## Failure recovery
+
+- **Phase 3 exit 1 (schema error):** stop. Read `scripts/lockstep-schema.mts` output and the offending row's `local_*` / `upstream` fields. Fix the manifest, then re-run.
+- **Phase 4a (lockstep drift) commits but Phase 6 tests fail:** the per-row commits are atomic — `git revert <sha>` for the offending row, leave the others, file an advisory.
+- **Phase 5 stale SHA pin:** run `/updating-workflows` to cascade the bump.
