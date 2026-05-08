@@ -145,25 +145,41 @@ function isValidPackageSpecifier(specifier: string): boolean {
 }
 
 /**
+ * Strip /* ... *\/ block comments and leading // line comments so the
+ * import/require regex below doesn't match specifiers that appear
+ * inside JSDoc examples or doc comments. Rolldown preserves JSDoc in
+ * its output (esbuild stripped it), so the comment-aware pre-pass is
+ * load-bearing for accurate dep extraction.
+ */
+function stripComments(source: string): string {
+  // Remove /* ... */ blocks (greedy across lines).
+  let out = source.replace(/\/\*[\s\S]*?\*\//g, '')
+  // Remove leading whitespace + // line comments.
+  out = out.replace(/^\s*\/\/.*$/gm, '')
+  return out
+}
+
+/**
  * Extract external package names from require() and import statements in built files.
  */
 async function extractExternalPackages(filePath: string): Promise<Set<string>> {
-  const content = await fs.readFile(filePath, 'utf8')
+  const raw = await fs.readFile(filePath, 'utf8')
+  const content = stripComments(raw)
   const externals = new Set<string>()
 
-  // Match require('package') or require("package")
+  // Match require('package') / require("package").
   const requirePattern = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g
-  // Match import from 'package' or import from "package"
-  const importPattern = /(?:from|import)\s+['"]([^'"]+)['"]/g
-  // Match dynamic import() calls
+  // Match `from 'package'` / `from "package"` / `import 'package'`. Anchor
+  // to a non-identifier prefix so attribute strings (e.g. inside
+  // `User-Agent: "@socketregistry/packageurl-js"`) aren't matched.
+  const importPattern = /(?:^|[\s;,({[])(?:from|import)\s+['"]([^'"]+)['"]/g
+  // Dynamic import() calls.
   const dynamicImportPattern = /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g
 
   let match
 
-  // Extract from require()
   while ((match = requirePattern.exec(content)) !== null) {
     const specifier = match[1]
-    // Skip internal src/external/ wrapper paths (used by socket-lib pattern)
     if (specifier.includes('/external/')) {
       continue
     }
@@ -172,10 +188,8 @@ async function extractExternalPackages(filePath: string): Promise<Set<string>> {
     }
   }
 
-  // Extract from import statements
   while ((match = importPattern.exec(content)) !== null) {
     const specifier = match[1]
-    // Skip internal src/external/ wrapper paths (used by socket-lib pattern)
     if (specifier.includes('/external/')) {
       continue
     }
@@ -184,10 +198,8 @@ async function extractExternalPackages(filePath: string): Promise<Set<string>> {
     }
   }
 
-  // Extract from dynamic import()
   while ((match = dynamicImportPattern.exec(content)) !== null) {
     const specifier = match[1]
-    // Skip internal src/external/ wrapper paths (used by socket-lib pattern)
     if (specifier.includes('/external/')) {
       continue
     }

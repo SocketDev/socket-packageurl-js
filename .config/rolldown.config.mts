@@ -11,32 +11,12 @@ import { fileURLToPath } from 'node:url'
 
 import type { Plugin, RolldownOptions } from 'rolldown'
 
+import { createLibStubPlugin } from './rolldown/lib-stub.mts'
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.join(__dirname, '..')
 const srcPath = path.join(rootPath, 'src')
 const distPath = path.join(rootPath, 'dist')
-
-/**
- * Stub heavy `@socketsecurity/lib` internals that runtime code never
- * reaches. Same logic as esbuild's `createLibStubPlugin`.
- *
- * Why: exists.js → http-request → safeDelete pulls in `sorts.js` (semver
- * + npm-pack, ~2.5MB) and `globs.js` (picomatch, ~260KB) statically,
- * but neither is reachable along the actual httpJson → safeDelete path.
- * The stub returns an empty object so the bundler tree-shakes the rest.
- */
-function createLibStubPlugin(): Plugin {
-  const stubPattern = /@socketsecurity\/lib\/dist\/(globs|sorts)\.js$/
-  return {
-    name: 'stub-unused-lib-internals',
-    load(id) {
-      if (stubPattern.test(id)) {
-        return { code: 'module.exports = {}', moduleSideEffects: false }
-      }
-      return undefined
-    },
-  }
-}
 
 type PackageInfo = {
   packageName: string
@@ -192,7 +172,12 @@ const externals = [...builtinModules, ...builtinModules.map(m => `node:${m}`)]
 const baseConfig = {
   external: externals,
   platform: 'node' as const,
-  plugins: [createLibStubPlugin(), createPathShorteningPlugin()],
+  plugins: [
+    createLibStubPlugin({
+      stubPattern: /@socketsecurity\/lib\/dist\/(globs|sorts)\.js$/,
+    }),
+    createPathShorteningPlugin(),
+  ],
   treeshake: true,
 }
 
