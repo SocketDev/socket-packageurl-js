@@ -72,6 +72,16 @@ If acceptance passes for `socket-packageurl-js`:
    `socket-repo-template/template/.claude/skills/_shared/skill-authoring.md`)
    so future bundler swaps are one-line changes per fleet.
 
+## Stage 2 (optional, post-rolldown): comptime
+
+Once rolldown lands and stabilizes, evaluate [`comptime`](https://github.com/lukeed/comptime) — a Zig-inspired build-time evaluation plugin from `@lukeed` that exposes `comptime(() => pure())` as an identity helper, then statically replaces the call with the serialized result at build time. Available as both a Vite and Rolldown plugin.
+
+**Why it could fit:** `socket-packageurl-js` ships static data tables (PURL ecosystem definitions, parser rule sets) computed at module load. Replacing those with comptime calls would inline the result into the bundle — smaller runtime cost, smaller bundle (no parsing logic shipped for data that's known at build).
+
+**Why defer:** comptime is at v0.1.0 — early. Per the fleet's adoption rule (stable 1.0+), it doesn't meet the bar yet. The rolldown migration is independent and shouldn't be blocked on comptime maturity.
+
+**When to revisit:** when comptime hits 1.0 or when we have a concrete bundle-size finding that comptime would address. Until then, capture the idea here so it doesn't get lost.
+
 ## Roll-back
 
 If acceptance fails: drop the migration commits, file findings with the rolldown team, defer until the next stable release. The fleet stays on esbuild.
