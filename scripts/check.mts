@@ -288,23 +288,23 @@ async function main(): Promise<void> {
       }
     }
 
-    // Run esbuild minify validation check
+    // Run bundler minify validation check
     if (runAll) {
       if (!quiet) {
-        logger.progress('Validating esbuild minify setting')
+        logger.progress('Validating bundler minify setting')
       }
       exitCode = await runCommandQuiet('node', [
-        'scripts/validate/esbuild-minify.mts',
+        'scripts/validate/bundler-minify.mts',
       ]).then((result: CheckCommandResult): number => result.exitCode)
       if (exitCode !== 0) {
         if (!quiet) {
-          logger.error('esbuild minify validation failed')
+          logger.error('Bundler minify validation failed')
         }
         process.exitCode = exitCode
         return
       }
       if (!quiet) {
-        logger.clearLine().done('esbuild minify validated')
+        logger.clearLine().done('Bundler minify validated')
         logger.error('')
       }
     }

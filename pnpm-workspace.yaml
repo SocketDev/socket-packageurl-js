@@ -17,6 +17,8 @@ packages:
   - .claude/hooks/*
 
 allowBuilds:
+  # esbuild as a transitive of vite/vitest (test-time only, not the
+  # repo's bundler — see scripts/build.mts which uses rolldown).
   esbuild: true
   # puppeteer ships a postinstall that downloads Chromium (~300MB).
   # Required because `pnpm tour:build` (the GH Pages workflow) renders

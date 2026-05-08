@@ -44,7 +44,6 @@
   "sideEffects": false,
   "scripts": {
     "build": "node scripts/build.mts",
-    "build:rolldown": "node scripts/build-rolldown.mts",
     "bump": "node scripts/bump.mts",
     "check": "node scripts/check.mts",
     "check:paths": "node scripts/check-paths.mts",
@@ -77,7 +76,6 @@
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "2.1.92",
-    "@babel/parser": "7.29.0",
     "@oxlint/migrate": "1.51.0",
     "@sinclair/typebox": "catalog:",
     "@socketsecurity/lib": "catalog:",
@@ -91,12 +89,10 @@
     "del": "8.0.1",
     "dev-null-cli": "2.0.0",
     "ecc-agentshield": "1.4.0",
-    "esbuild": "0.25.11",
     "fast-glob": "3.3.3",
     "globals": "16.4.0",
     "husky": "9.1.7",
     "lightningcss": "1.32.0",
-    "magic-string": "0.30.21",
     "marked": "18.0.0",
     "mermaid": "11.14.0",
     "nock": "14.0.10",

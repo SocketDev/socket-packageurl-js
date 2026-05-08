@@ -20,9 +20,36 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.join(__dirname, '..', '..')
 
 // Node.js builtins to ignore (including node: prefix variants)
+/**
+ * `node:smol-*` modules are runtime-conditional builtins provided by
+ * socket-btm's smol Node binary. Stock Node won't have them, but the
+ * fleet's lazy-load pattern (`isBuiltin('node:smol-X') && require(...)`)
+ * leaves the require call in the bundle for the smol-Node code path.
+ * Treat them as builtins for the purpose of dependency validation.
+ *
+ * Source of truth: `socket-btm/packages/node-smol-builder/additions/
+ * source-patched/lib/smol-*.js`. When socket-btm adds a new smol module
+ * (`additions/source-patched/lib/smol-<name>.js` lands), append it here.
+ */
+const SMOL_BUILTIN_MODULES = [
+  'node:smol-ffi',
+  'node:smol-http',
+  'node:smol-https',
+  'node:smol-ilp',
+  'node:smol-manifest',
+  'node:smol-power',
+  'node:smol-primordial',
+  'node:smol-purl',
+  'node:smol-sql',
+  'node:smol-util',
+  'node:smol-versions',
+  'node:smol-vfs',
+]
+
 const BUILTIN_MODULES = new Set([
   ...builtinModules,
   ...builtinModules.map(m => `node:${m}`),
+  ...SMOL_BUILTIN_MODULES,
 ])
 
 type PackageJsonLike = {
