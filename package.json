@@ -44,6 +44,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "node scripts/build.mts",
+    "build:rolldown": "node scripts/build-rolldown.mts",
     "bump": "node scripts/bump.mts",
     "check": "node scripts/check.mts",
     "check:paths": "node scripts/check-paths.mts",
@@ -104,6 +105,7 @@
     "oxlint": "1.52.0",
     "pacote": "21.0.1",
     "puppeteer": "24.41.0",
+    "rolldown": "1.0.0",
     "semver": "7.7.2",
     "svgo": "4.0.1",
     "taze": "19.9.2",

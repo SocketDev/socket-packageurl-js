@@ -13,27 +13,27 @@ repos (`socket-lib`, `socket-sdk-js`).
 
 ## Why migrate
 
-| Dimension | esbuild today | Rolldown 1.0 |
-|---|---|---|
-| Bundle perf | ~1× baseline | ~2× faster on 500+ module projects (Evan You's benchmarks); roughly equal on simple library bundles. |
-| Plugin API | esbuild-specific | Rollup-compatible — opens the entire Rollup plugin ecosystem. |
-| Chunking control | Limited (esbuild's known weakness for code-splitting). | Full Rollup-style manualChunks + per-output controls. |
-| Tree-shaking | Aggressive but coarse. | Aggressive AND respects Rollup's pure-annotation conventions. |
-| Author | Single-maintainer (Evan Wallace) | VoidZero (Evan You + team), aligned with rest of our toolchain (Vite, Vitest, Oxc). |
-| Stability | 7+ years, very stable | 1.0 (May 2026); production-ready per release notes; default in Vite 8. |
+| Dimension        | esbuild today                                          | Rolldown 1.0                                                                                         |
+| ---------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Bundle perf      | ~1× baseline                                           | ~2× faster on 500+ module projects (Evan You's benchmarks); roughly equal on simple library bundles. |
+| Plugin API       | esbuild-specific                                       | Rollup-compatible — opens the entire Rollup plugin ecosystem.                                        |
+| Chunking control | Limited (esbuild's known weakness for code-splitting). | Full Rollup-style manualChunks + per-output controls.                                                |
+| Tree-shaking     | Aggressive but coarse.                                 | Aggressive AND respects Rollup's pure-annotation conventions.                                        |
+| Author           | Single-maintainer (Evan Wallace)                       | VoidZero (Evan You + team), aligned with rest of our toolchain (Vite, Vitest, Oxc).                  |
+| Stability        | 7+ years, very stable                                  | 1.0 (May 2026); production-ready per release notes; default in Vite 8.                               |
 
-**Concrete win for socket-packageurl-js:** the path-shortening plugin is straightforward; the lib-stub plugin avoids ~3MB of unreachable code via esbuild's `onLoad` hook. Rolldown's `load()` hook covers the same ground with less ceremony, and Rollup's tree-shaker may cut some of those unreachable paths *without* a custom plugin (the `@socketsecurity/lib` lazy-load pattern uses `require()` inside conditionals, which esbuild's bundler follows greedily but Rollup may not).
+**Concrete win for socket-packageurl-js:** the path-shortening plugin is straightforward; the lib-stub plugin avoids ~3MB of unreachable code via esbuild's `onLoad` hook. Rolldown's `load()` hook covers the same ground with less ceremony, and Rollup's tree-shaker may cut some of those unreachable paths _without_ a custom plugin (the `@socketsecurity/lib` lazy-load pattern uses `require()` inside conditionals, which esbuild's bundler follows greedily but Rollup may not).
 
 **Concrete risk:** rewrite cost. Both custom plugins must be re-implemented against the Rollup plugin API. Output byte-equivalence is unlikely; we trade equivalent-or-smaller bundles for some shape drift.
 
 ## What gets migrated
 
-| File | Today | After |
-|---|---|---|
-| `.config/esbuild.config.mjs` | 352 lines, two custom esbuild plugins. | `.config/rolldown.config.mts` — Rollup-API plugins (path-shortening, lib-stub). |
-| `scripts/build.mts` | 487 lines, imports `build`/`context` from `esbuild`. | Same shape, imports `rolldown`'s analogous APIs. CLI flag surface unchanged (`--analyze`, `--watch`, `--types`, `--src`). |
-| `package.json` `devDependencies` | `esbuild`. | `rolldown` (replaces). |
-| `pnpm-workspace.yaml` `catalog:` | `esbuild: <version>`. | `rolldown: <version>` added; `esbuild` entry kept until other fleet repos migrate, then removed fleet-wide. |
+| File                             | Today                                                | After                                                                                                                     |
+| -------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `.config/esbuild.config.mjs`     | 352 lines, two custom esbuild plugins.               | `.config/rolldown.config.mts` — Rollup-API plugins (path-shortening, lib-stub).                                           |
+| `scripts/build.mts`              | 487 lines, imports `build`/`context` from `esbuild`. | Same shape, imports `rolldown`'s analogous APIs. CLI flag surface unchanged (`--analyze`, `--watch`, `--types`, `--src`). |
+| `package.json` `devDependencies` | `esbuild`.                                           | `rolldown` (replaces).                                                                                                    |
+| `pnpm-workspace.yaml` `catalog:` | `esbuild: <version>`.                                | `rolldown: <version>` added; `esbuild` entry kept until other fleet repos migrate, then removed fleet-wide.               |
 
 ## Migration steps
 

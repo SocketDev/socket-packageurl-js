@@ -42,6 +42,27 @@ minimumReleaseAgeExclude:
   - '@socketbin/*'
   - '@socketregistry/*'
   - '@socketsecurity/*'
+  # Rolldown 1.0.0 (May 2026) — bundler migration from esbuild. User-approved
+  # local exclusion (versions pinned, no scope wildcards). Soak completes
+  # within a week; remove these entries after the window passes.
+  - 'rolldown@1.0.0'
+  - '@rolldown/pluginutils@1.0.0'
+  - '@rolldown/binding-darwin-arm64@1.0.0'
+  - '@rolldown/binding-darwin-x64@1.0.0'
+  - '@rolldown/binding-linux-arm-gnueabihf@1.0.0'
+  - '@rolldown/binding-linux-arm64-gnu@1.0.0'
+  - '@rolldown/binding-linux-arm64-musl@1.0.0'
+  - '@rolldown/binding-linux-ppc64-gnu@1.0.0'
+  - '@rolldown/binding-linux-s390x-gnu@1.0.0'
+  - '@rolldown/binding-linux-x64-gnu@1.0.0'
+  - '@rolldown/binding-linux-x64-musl@1.0.0'
+  - '@rolldown/binding-freebsd-x64@1.0.0'
+  - '@rolldown/binding-android-arm64@1.0.0'
+  - '@rolldown/binding-openharmony-arm64@1.0.0'
+  - '@rolldown/binding-wasm32-wasi@1.0.0'
+  - '@rolldown/binding-win32-arm64-msvc@1.0.0'
+  - '@rolldown/binding-win32-x64-msvc@1.0.0'
+  - '@oxc-project/types@0.129.0'
 
 # Refuse transitive dependencies declared via git/tarball/local-tarball
 # specs — an npm package shouldn't be allowed to drag in a git URL we
