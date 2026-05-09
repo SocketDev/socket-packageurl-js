@@ -41,7 +41,7 @@ type LintTarget =
       reason: string
     }
   | {
-      files: null
+      files: undefined
       mode: 'changed' | 'staged'
       reason: string
     }
@@ -429,7 +429,7 @@ async function main(): Promise<void> {
       // Get files to lint based on flags
       const { files, mode, reason } = await getFilesToLint(values)
 
-      if (files === null) {
+      if (files === undefined) {
         if (!quiet) {
           logger.step('Skipping lint')
           logger.substep(reason)
