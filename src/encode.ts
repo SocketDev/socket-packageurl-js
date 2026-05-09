@@ -122,12 +122,4 @@ export function prepareValueForSearchParams(value: unknown): string {
   return StringPrototypeReplaceAll(String(value), ' ', '%20')
 }
 
-export {
-  encodeComponent,
-  encodeName,
-  encodeNamespace,
-  encodeVersion,
-  encodeQualifiers,
-  encodeQualifierParam,
-  encodeSubpath,
-}
+export { encodeComponent }

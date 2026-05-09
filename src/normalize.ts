@@ -114,7 +114,7 @@ export function normalizeQualifiers(
       continue
     }
     if (qualifiers === undefined) {
-      qualifiers = ObjectCreate(undefined) as Record<string, string>
+      qualifiers = ObjectCreate(null) as Record<string, string>
     }
     // A key is case insensitive. The canonical form is lowercase
     qualifiers[StringPrototypeToLowerCase(key)] = trimmed
@@ -193,14 +193,4 @@ export function subpathFilter(segment: string): boolean {
     return false
   }
   return !isBlank(segment)
-}
-
-export {
-  normalizeName,
-  normalizeNamespace,
-  normalizePurlPath,
-  normalizeQualifiers,
-  normalizeSubpath,
-  normalizeType,
-  normalizeVersion,
 }

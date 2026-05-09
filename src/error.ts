@@ -99,4 +99,4 @@ class PurlInjectionError extends PurlError {
 }
 ObjectFreeze(PurlInjectionError.prototype)
 
-export { errorMessage, formatPurlErrorMessage, PurlError, PurlInjectionError }
+export { PurlError, PurlInjectionError }

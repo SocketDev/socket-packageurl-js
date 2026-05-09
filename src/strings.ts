@@ -439,20 +439,3 @@ export function trimLeadingSlashes(str: string): string {
   }
   return start === 0 ? str : StringPrototypeSlice(str, start)
 }
-
-export {
-  containsInjectionCharacters,
-  findCommandInjectionCharCode,
-  findInjectionCharCode,
-  formatInjectionChar,
-  isBlank,
-  isNonEmptyString,
-  isSemverString,
-  localeCompare,
-  lowerName,
-  lowerNamespace,
-  lowerVersion,
-  replaceDashesWithUnderscores,
-  replaceUnderscoresWithDashes,
-  trimLeadingSlashes,
-}

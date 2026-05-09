@@ -37,13 +37,11 @@ export function createHelpersNamespaceObject(
     ],
     comparator,
   )
-  const nsObject: Record<string, Record<string, unknown>> = ObjectCreate(
-    undefined,
-  )
+  const nsObject: Record<string, Record<string, unknown>> = ObjectCreate(null)
   // Build inverted structure: property -> {helper1: value1, helper2: value2}
   for (let i = 0, { length } = propNames; i < length; i += 1) {
     const propName = propNames[i]!
-    const helpersForProp: Record<string, unknown> = ObjectCreate(undefined)
+    const helpersForProp: Record<string, unknown> = ObjectCreate(null)
     for (
       let j = 0, { length: helperNamesLength } = helperNames;
       j < helperNamesLength;
@@ -60,5 +58,3 @@ export function createHelpersNamespaceObject(
   }
   return nsObject
 }
-
-export { createHelpersNamespaceObject }

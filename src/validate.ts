@@ -512,19 +512,3 @@ export function validateVersion(
 
   return true
 }
-
-export {
-  validateEmptyByType,
-  validateName,
-  validateNamespace,
-  validateNoInjectionByType,
-  validateQualifiers,
-  validateQualifierKey,
-  validateRequired,
-  validateRequiredByType,
-  validateStartsWithoutNumber,
-  validateStrings,
-  validateSubpath,
-  validateType,
-  validateVersion,
-}

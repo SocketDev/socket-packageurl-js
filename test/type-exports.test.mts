@@ -73,7 +73,7 @@ describe('Type exports accessibility', () => {
     const value1: QualifiersValue = 'string'
     const value2: QualifiersValue = 123
     const value3: QualifiersValue = true
-    const value4: QualifiersValue = undefined
+    const value4: QualifiersValue = null
     const value5: QualifiersValue = undefined
     expect(value1).toBe('string')
     expect(value2).toBe(123)

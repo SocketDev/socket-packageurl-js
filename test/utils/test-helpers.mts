@@ -29,8 +29,8 @@ export function createTestPurl(
   type: string,
   name: string,
   opts?: {
-    namespace?: string | null
-    qualifiers?: Record<string, string> | null
+    namespace?: string | null | undefined
+    qualifiers?: Record<string, string> | null | undefined
     subpath?: string
     version?: string
   },

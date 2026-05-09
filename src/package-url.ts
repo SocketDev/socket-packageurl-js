@@ -251,7 +251,7 @@ class PackageURL {
       result.version = this.version
     }
     if (this.qualifiers !== undefined) {
-      const qualifiersCopy = ObjectCreate(undefined) as QualifiersObject
+      const qualifiersCopy = ObjectCreate(null) as QualifiersObject
       for (const key of ObjectKeys(this.qualifiers)) {
         qualifiersCopy[key] = this.qualifiers[key]!
       }
@@ -897,7 +897,7 @@ for (const staticProp of ['Component', 'KnownQualifierNames', 'Type']) {
   })
 }
 
-ReflectSetPrototypeOf(PackageURL.prototype, undefined)
+ReflectSetPrototypeOf(PackageURL.prototype, null)
 
 // Register PackageURL with compare module for string-based comparison support.
 _registerPackageURL(PackageURL)

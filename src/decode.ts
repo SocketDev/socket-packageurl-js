@@ -19,5 +19,3 @@ export function decodePurlComponent(
     throw new PurlError(`unable to decode "${comp}" component`, { cause: e })
   }
 }
-
-export { decodePurlComponent }

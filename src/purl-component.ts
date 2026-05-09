@@ -135,11 +135,4 @@ const PurlComponent = createHelpersNamespaceObject(
   },
 )
 
-export {
-  PurlComponent,
-  PurlComponentEncoder,
-  PurlComponentStringNormalizer,
-  PurlComponentValidator,
-  componentComparator,
-  componentSortOrder,
-}
+export { PurlComponent }

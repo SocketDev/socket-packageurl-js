@@ -85,5 +85,3 @@ export function isObject(
 ): value is { [key: PropertyKey]: unknown } {
   return value !== null && typeof value === 'object'
 }
-
-export { isObject, recursiveFreeze }

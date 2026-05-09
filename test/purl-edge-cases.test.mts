@@ -602,7 +602,7 @@ describe('Edge cases and additional coverage', () => {
       const purl = createTestPurl('type', 'name')
       // Verify the instance is properly constructed with null prototype for security
       expect(Object.getPrototypeOf(purl)).toBe(PackageURL.prototype)
-      expect(Object.getPrototypeOf(PackageURL.prototype)).toBe(undefined)
+      expect(Object.getPrototypeOf(PackageURL.prototype)).toBe(null)
     })
   })
 
@@ -1853,7 +1853,7 @@ describe('Edge cases and additional coverage', () => {
     // Test objects.js line 33 - else branch with Object.values
     it('should test recursiveFreeze with plain objects', () => {
       // Force the else branch (not an array)
-      const obj = Object.create(undefined)
+      const obj = Object.create(null)
       obj.prop1 = { nested: 'value1' }
       obj.prop2 = { nested: 'value2' }
 
