@@ -141,6 +141,70 @@ const rule = {
       return false
     }
 
+    function isAssertionLibraryArg(node) {
+      // expect(x).toBe(null) / .toEqual(null) / .toStrictEqual(null) /
+      // assert.equal(x, null) / chai's .equal(null) — `null` is the
+      // semantic value being asserted and must not be auto-rewritten.
+      const parent = node.parent
+      if (!parent || parent.type !== 'CallExpression') {
+        return false
+      }
+      const callee = parent.callee
+      if (callee.type !== 'MemberExpression') {
+        return false
+      }
+      const prop =
+        callee.property.type === 'Identifier' ? callee.property.name : ''
+      const ASSERT_METHODS = new Set([
+        'toBe',
+        'toEqual',
+        'toStrictEqual',
+        'toMatchObject',
+        'equal',
+        'equals',
+        'deepEqual',
+        'deepStrictEqual',
+        'strictEqual',
+        'is',
+        'same',
+      ])
+      return ASSERT_METHODS.has(prop)
+    }
+
+    function isNullableTypeInitializer(node) {
+      // `const x: Foo | null = null` / `let y: Foo | null | undefined = null`
+      // — the developer explicitly opted into null in the type signature,
+      // signaling a deliberate distinction from undefined.
+      const parent = node.parent
+      if (!parent) {
+        return false
+      }
+      if (parent.type !== 'VariableDeclarator') {
+        return false
+      }
+      if (parent.init !== node) {
+        return false
+      }
+      // Look at the source text from the start of the declarator to the
+      // start of the literal — captures `name: Foo | null = ` etc. The
+      // AST shape for typeAnnotation differs across oxlint versions, so
+      // a textual scan is the most resilient option here.
+      const sourceCode = context.getSourceCode
+        ? context.getSourceCode()
+        : context.sourceCode
+      const declStart = parent.range
+        ? parent.range[0]
+        : (parent.start ?? parent.id?.range?.[0])
+      const litStart = node.range ? node.range[0] : node.start
+      if (typeof declStart !== 'number' || typeof litStart !== 'number') {
+        return false
+      }
+      const text = sourceCode.getText().slice(declStart, litStart)
+      // Require `: <typeexpr>... null ... =` — a colon (type annotation),
+      // a literal `null` token, then an `=` (initializer).
+      return /:[^=]*\bnull\b[^=]*=/.test(text)
+    }
+
     return {
       Literal(node) {
         if (node.value !== null || node.raw !== 'null') {
@@ -157,6 +221,12 @@ const rule = {
           return
         }
         if (isPrototypeApiArg(node)) {
+          return
+        }
+        if (isAssertionLibraryArg(node)) {
+          return
+        }
+        if (isNullableTypeInitializer(node)) {
           return
         }
 
