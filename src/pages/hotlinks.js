@@ -60,7 +60,7 @@ import {
         !StringPrototypeStartsWith(ref, './') &&
         !StringPrototypeStartsWith(ref, '../')
       ) {
-        return null
+        return undefined
       }
       const fromDir = fromPath.split('/').slice(0, -1)
       const segs = ref.split('/')
@@ -83,7 +83,7 @@ import {
       if (anchorByStem.has(stem)) {
         return anchorByStem.get(stem)
       }
-      return null
+      return undefined
     }
 
     const urlRe = /https?:\/\/[^\s'"`<>)]+/g
@@ -106,7 +106,7 @@ import {
       }
       for (const m of StringPrototypeMatchAll(text, quotedPathRe)) {
         const pathRef = m[2]
-        const anchor = filePath ? resolveRelPath(filePath, pathRef) : null
+        const anchor = filePath ? resolveRelPath(filePath, pathRef) : undefined
         if (!anchor) {
           continue
         }

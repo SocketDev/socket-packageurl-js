@@ -34,7 +34,7 @@ import { ArrayFrom } from '@socketsecurity/lib/primordials'
       }
       return node
     }
-    return null
+    return undefined
   }
 
   const absorbExampleBlock = (tagEl, block, body) => {
@@ -93,12 +93,14 @@ import { ArrayFrom } from '@socketsecurity/lib/primordials'
       return
     }
     const firstTextNode =
-      body.firstChild && body.firstChild.nodeType === 3 ? body.firstChild : null
+      body.firstChild && body.firstChild.nodeType === 3
+        ? body.firstChild
+        : undefined
     const nameMatch = firstTextNode
       ? (firstTextNode.nodeValue ?? '').match(
           /^\s*([A-Za-z_$][\w$]*)\s*[-—:]\s+/,
         )
-      : null
+      : undefined
     if (firstTextNode && nameMatch && nameMatch[1]) {
       const paramName = document.createElement('code')
       paramName.className = 'wt-purl wt-jsdoc-param-name'
@@ -145,7 +147,7 @@ import { ArrayFrom } from '@socketsecurity/lib/primordials'
       const nextTextNode =
         body.firstChild && body.firstChild.nodeType === 3
           ? body.firstChild
-          : null
+          : undefined
       if (nextTextNode) {
         nextTextNode.nodeValue = (nextTextNode.nodeValue ?? '').replace(
           /^\s*(?:[-—:]\s*)?/,
@@ -254,7 +256,7 @@ import { ArrayFrom } from '@socketsecurity/lib/primordials'
     /* Synthesize a @DESCRIPTION card from leftover prose when
      * no explicit one exists. Leftover prose = everything in
      * the container that isn't a .wt-jsdoc-block. */
-    let syntheticDesc = null
+    let syntheticDesc = undefined
     if (!explicitDesc) {
       const descBlock = document.createElement('span')
       descBlock.className = 'wt-jsdoc-block wt-jsdoc-block-desc'

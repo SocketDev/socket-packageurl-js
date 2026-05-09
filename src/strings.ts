@@ -17,7 +17,7 @@ import {
 /**
  * Check if string contains only whitespace characters.
  */
-function isBlank(str: string): boolean {
+export function isBlank(str: string): boolean {
   for (let i = 0, { length } = str; i < length; i += 1) {
     const code = StringPrototypeCharCodeAt(str, i)
     // biome-ignore format: newlines
@@ -88,7 +88,7 @@ function isBlank(str: string): boolean {
 /**
  * Check if value is a non-empty string.
  */
-function isNonEmptyString(value: unknown): value is string {
+export function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0
 }
 
@@ -101,7 +101,7 @@ const regexSemverNumberedGroups = ObjectFreeze(
 /**
  * Check if value is a valid semantic version string.
  */
-function isSemverString(value: unknown): value is string {
+export function isSemverString(value: unknown): value is string {
   return (
     typeof value === 'string' &&
     RegExpPrototypeTest(regexSemverNumberedGroups, value)
@@ -118,7 +118,7 @@ let _localeCompare: Intl.Collator['compare'] | undefined
 /**
  * Perform locale-aware string comparison.
  */
-function localeCompare(x: string, y: string): number {
+export function localeCompare(x: string, y: string): number {
   if (_localeCompare === undefined) {
     // Lazily call `new Intl.Collator()` because in Node it can take 10-14ms
     _localeCompare = new Intl.Collator().compare
@@ -129,14 +129,14 @@ function localeCompare(x: string, y: string): number {
 /**
  * Convert package name to lowercase.
  */
-function lowerName(purl: { name: string }): void {
+export function lowerName(purl: { name: string }): void {
   purl.name = StringPrototypeToLowerCase(purl.name)
 }
 
 /**
  * Convert package namespace to lowercase.
  */
-function lowerNamespace(purl: { namespace?: string | undefined }): void {
+export function lowerNamespace(purl: { namespace?: string | undefined }): void {
   const { namespace } = purl
   if (typeof namespace === 'string') {
     purl.namespace = StringPrototypeToLowerCase(namespace)
@@ -146,7 +146,7 @@ function lowerNamespace(purl: { namespace?: string | undefined }): void {
 /**
  * Convert package version to lowercase.
  */
-function lowerVersion(purl: { version?: string | undefined }): void {
+export function lowerVersion(purl: { version?: string | undefined }): void {
   const { version } = purl
   if (typeof version === 'string') {
     purl.version = StringPrototypeToLowerCase(version)
@@ -156,7 +156,7 @@ function lowerVersion(purl: { version?: string | undefined }): void {
 /**
  * Replace all dashes with underscores in string.
  */
-function replaceDashesWithUnderscores(str: string): string {
+export function replaceDashesWithUnderscores(str: string): string {
   // Replace all `"-"` with `"_"`
   let result = ''
   let fromIndex = 0
@@ -171,7 +171,7 @@ function replaceDashesWithUnderscores(str: string): string {
 /**
  * Replace all underscores with dashes in string.
  */
-function replaceUnderscoresWithDashes(str: string): string {
+export function replaceUnderscoresWithDashes(str: string): string {
   // Replace all `"_"` with `"-"`
   let result = ''
   let fromIndex = 0
@@ -202,7 +202,7 @@ function replaceUnderscoresWithDashes(str: string): string {
  *    `0x00`-`0x1f` (all C0 controls including NUL, tab, newline, CR, ESC, etc.)
  *    space (`0x20`), DEL (`0x7f`)
  */
-function isInjectionCharCode(code: number): boolean {
+export function isInjectionCharCode(code: number): boolean {
   // C0 control characters (0x00-0x1f)
   if (code <= 0x1f) {
     return true
@@ -315,7 +315,7 @@ function isInjectionCharCode(code: number): boolean {
  * Used for `version`, `subpath`, and qualifier value validation where the
  * full injection scanner would cause false positives.
  */
-function isCommandInjectionCharCode(code: number): boolean {
+export function isCommandInjectionCharCode(code: number): boolean {
   // C0 control characters except tab (`0x09`) — tab is used in some
   // version metadata but other controls are never legitimate
   if (code <= 0x1f && code !== 0x09) {
@@ -374,7 +374,7 @@ function isCommandInjectionCharCode(code: number): boolean {
  * Like `findInjectionCharCode` but uses the narrower command injection set.
  * Returns the character code found, or `-1`.
  */
-function findCommandInjectionCharCode(str: string): number {
+export function findCommandInjectionCharCode(str: string): number {
   for (let i = 0, { length } = str; i < length; i += 1) {
     const code = StringPrototypeCharCodeAt(str, i)
     if (isCommandInjectionCharCode(code)) {
@@ -396,7 +396,7 @@ function findCommandInjectionCharCode(str: string): number {
  * but we include them here for defense-in-depth so callers who skip the
  * base validators still get protection.
  */
-function findInjectionCharCode(str: string): number {
+export function findInjectionCharCode(str: string): number {
   for (let i = 0, { length } = str; i < length; i += 1) {
     const code = StringPrototypeCharCodeAt(str, i)
     if (isInjectionCharCode(code)) {
@@ -413,7 +413,7 @@ function findInjectionCharCode(str: string): number {
  * For detailed information about which character was found, use
  * {@link findInjectionCharCode} instead.
  */
-function containsInjectionCharacters(str: string): boolean {
+export function containsInjectionCharacters(str: string): boolean {
   return findInjectionCharCode(str) !== -1
 }
 
@@ -421,7 +421,7 @@ function containsInjectionCharacters(str: string): boolean {
  * Format an injection character code as a human-readable label for error messages.
  * Returns a string like `"|" (0x7c)` for printable chars or `0x1b` for control chars.
  */
-function formatInjectionChar(code: number): string {
+export function formatInjectionChar(code: number): string {
   const hex = NumberPrototypeToString(code, 16)
   if (code >= 0x20 && code <= 0x7e) {
     return `"${StringFromCharCode(code)}" (0x${hex})`
@@ -432,7 +432,7 @@ function formatInjectionChar(code: number): string {
 /**
  * Remove leading slashes from string.
  */
-function trimLeadingSlashes(str: string): string {
+export function trimLeadingSlashes(str: string): string {
   let start = 0
   while (StringPrototypeCharCodeAt(str, start) === 47 /*'/'*/) {
     start += 1

@@ -26,14 +26,14 @@ import type { QualifiersObject } from './purl-component.js'
 /**
  * Normalize package name by trimming whitespace.
  */
-function normalizeName(rawName: unknown): string | undefined {
+export function normalizeName(rawName: unknown): string | undefined {
   return typeof rawName === 'string' ? StringPrototypeTrim(rawName) : undefined
 }
 
 /**
  * Normalize package namespace by trimming and collapsing path separators.
  */
-function normalizeNamespace(rawNamespace: unknown): string | undefined {
+export function normalizeNamespace(rawNamespace: unknown): string | undefined {
   return typeof rawNamespace === 'string'
     ? normalizePurlPath(rawNamespace)
     : undefined
@@ -42,7 +42,7 @@ function normalizeNamespace(rawNamespace: unknown): string | undefined {
 /**
  * Normalize `purl` path component by collapsing separators and filtering segments.
  */
-function normalizePurlPath(
+export function normalizePurlPath(
   pathname: string,
   options?: { filter?: ((_segment: string) => boolean) | undefined },
 ): string {
@@ -89,7 +89,7 @@ function normalizePurlPath(
 /**
  * Normalize qualifiers by trimming values and lowercasing keys.
  */
-function normalizeQualifiers(
+export function normalizeQualifiers(
   rawQualifiers: unknown,
 ): Record<string, string> | undefined {
   let qualifiers: Record<string, string> | undefined
@@ -114,7 +114,7 @@ function normalizeQualifiers(
       continue
     }
     if (qualifiers === undefined) {
-      qualifiers = ObjectCreate(null) as Record<string, string>
+      qualifiers = ObjectCreate(undefined) as Record<string, string>
     }
     // A key is case insensitive. The canonical form is lowercase
     qualifiers[StringPrototypeToLowerCase(key)] = trimmed
@@ -125,7 +125,7 @@ function normalizeQualifiers(
 /**
  * Normalize subpath by filtering invalid segments.
  */
-function normalizeSubpath(rawSubpath: unknown): string | undefined {
+export function normalizeSubpath(rawSubpath: unknown): string | undefined {
   return typeof rawSubpath === 'string'
     ? normalizePurlPath(rawSubpath, { filter: subpathFilter })
     : undefined
@@ -134,7 +134,7 @@ function normalizeSubpath(rawSubpath: unknown): string | undefined {
 /**
  * Normalize package type to lowercase.
  */
-function normalizeType(rawType: unknown): string | undefined {
+export function normalizeType(rawType: unknown): string | undefined {
   // The type must NOT be percent-encoded
   // The type is case insensitive. The canonical form is lowercase
   return typeof rawType === 'string'
@@ -145,7 +145,7 @@ function normalizeType(rawType: unknown): string | undefined {
 /**
  * Normalize package version by trimming whitespace.
  */
-function normalizeVersion(rawVersion: unknown): string | undefined {
+export function normalizeVersion(rawVersion: unknown): string | undefined {
   return typeof rawVersion === 'string'
     ? StringPrototypeTrim(rawVersion)
     : undefined
@@ -154,7 +154,7 @@ function normalizeVersion(rawVersion: unknown): string | undefined {
 /**
  * Convert qualifiers to iterable entries.
  */
-function qualifiersToEntries(
+export function qualifiersToEntries(
   rawQualifiers: unknown,
 ): Iterable<[string, string]> {
   if (isObject(rawQualifiers)) {
@@ -177,7 +177,7 @@ function qualifiersToEntries(
 /**
  * Filter invalid subpath segments.
  */
-function subpathFilter(segment: string): boolean {
+export function subpathFilter(segment: string): boolean {
   // When percent-decoded, a segment
   //   - must not be any of `'.'` or `'..'`
   //   - must not be empty

@@ -81,7 +81,7 @@ import { ObjectKeys } from '@socketsecurity/lib/primordials'
     return t === 'dark' || t === 'light' || t === 'synthwave' ? t : 'system'
   }
   const persistTheme = theme =>
-    storageSet(THEME_KEY, theme === 'system' ? null : theme)
+    storageSet(THEME_KEY, theme === 'system' ? undefined : theme)
   const systemPrefersDark = () =>
     window.matchMedia &&
     window.matchMedia('(prefers-color-scheme: dark)').matches

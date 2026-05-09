@@ -144,7 +144,7 @@ const getNpmBuiltinSet = (() => {
 /**
  * Get `npm` package identifier with optional namespace.
  */
-function getNpmId(purl: PurlObject): string {
+export function getNpmId(purl: PurlObject): string {
   const { name, namespace } = purl
   return `${namespace && namespace.length > 0 ? `${namespace}/` : ''}${name}`
 }

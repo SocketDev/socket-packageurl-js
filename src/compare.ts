@@ -30,7 +30,7 @@ export function _registerPackageURL(ctor: typeof PackageURL): void {
   _PackageURL = ctor
 }
 
-function toCanonicalString(input: PurlInput): string {
+export function toCanonicalString(input: PurlInput): string {
   if (typeof input === 'string') {
     /* v8 ignore start -- PackageURL is always registered at module load time. */
     if (!_PackageURL) {
@@ -61,7 +61,7 @@ const MAX_PATTERN_LENGTH = 4096
 // under the overall length limit (e.g., `a*b*c*…*z` on a long non-match).
 const MAX_WILDCARDS_PER_PATTERN = 32
 
-function countWildcards(pattern: string): number {
+export function countWildcards(pattern: string): number {
   let count = 0
   for (let i = 0, { length } = pattern; i < length; i += 1) {
     const code = StringPrototypeCharCodeAt(pattern, i)
@@ -72,7 +72,7 @@ function countWildcards(pattern: string): number {
   return count
 }
 
-function matchWildcard(pattern: string, value: string): boolean {
+export function matchWildcard(pattern: string, value: string): boolean {
   // Reject excessively long patterns to prevent regex compilation DoS
   if (pattern.length > MAX_PATTERN_LENGTH) {
     return false
@@ -119,7 +119,7 @@ function matchWildcard(pattern: string, value: string): boolean {
  * Match a single component value against a pattern.
  * Handles wildcard matching for individual PURL components.
  */
-function matchComponent(
+export function matchComponent(
   patternValue: string | null | undefined,
   actualValue: string | null | undefined,
   matcher?: (_value: string) => boolean,
@@ -243,7 +243,7 @@ type ParsedPattern = {
  *
  * Returns `undefined` if the pattern is not a valid PURL pattern shape.
  */
-function parsePattern(pattern: string): ParsedPattern | undefined {
+export function parsePattern(pattern: string): ParsedPattern | undefined {
   if (!StringPrototypeStartsWith(pattern, 'pkg:')) {
     return undefined
   }

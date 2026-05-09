@@ -118,7 +118,7 @@ const PurlTypNormalizer = (purl: PurlObject): PurlObject => purl
  * This ensures all types (including newly added ones) get injection
  * protection by default — security is opt-out, not opt-in.
  */
-function PurlTypeValidator(purl: PurlObject, throws: boolean): boolean {
+export function PurlTypeValidator(purl: PurlObject, throws: boolean): boolean {
   const type = purl.type ?? 'unknown'
   if (typeof purl.namespace === 'string') {
     const nsCode = findInjectionCharCode(purl.namespace)

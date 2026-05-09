@@ -33,7 +33,7 @@ import { MathMax } from '@socketsecurity/lib/primordials'
 
   const readStored = () => {
     const v = parseFloat(storageGet(SPLIT_KEY) || '')
-    return isFinite(v) && v >= MIN && v <= MAX ? v : null
+    return isFinite(v) && v >= MIN && v <= MAX ? v : undefined
   }
   const persist = value => storageSet(SPLIT_KEY, String(value))
 
@@ -91,7 +91,7 @@ import { MathMax } from '@socketsecurity/lib/primordials'
      * the DOM (getBoundingClientRect after a style write forces a
      * synchronous layout). All reads happen once per drag here;
      * writes in onMove go straight to rAF-coalesced property sets. */
-    let dragState = null
+    let dragState = undefined
     let rafId = 0
     const flush = () => {
       rafId = 0
@@ -115,8 +115,8 @@ import { MathMax } from '@socketsecurity/lib/primordials'
         const y = MathMax(0, Math.min(handleHeight, pendingClientY - handleTop))
         hotspot.style.transform = `translate3d(-50%, ${y}px, 0)`
       }
-      dragState.pendingClientX = null
-      dragState.pendingClientY = null
+      dragState.pendingClientX = undefined
+      dragState.pendingClientY = undefined
     }
     const scheduleFlush = () => {
       if (rafId === 0) {
@@ -141,7 +141,7 @@ import { MathMax } from '@socketsecurity/lib/primordials'
         handleHeight: handleRect.height,
         pendingClientX: event.clientX,
         pendingClientY: event.clientY,
-        lastPct: null,
+        lastPct: undefined,
       }
       scheduleFlush()
       handle.classList.add('dragging')
@@ -168,7 +168,7 @@ import { MathMax } from '@socketsecurity/lib/primordials'
          * on every pointer frame are wasteful, and screen readers
          * don't usefully narrate mid-drag updates. */
         handle.setAttribute('aria-valuenow', String(Math.round(finalPct)))
-        dragState = null
+        dragState = undefined
         if (rafId !== 0) {
           cancelAnimationFrame(rafId)
           rafId = 0

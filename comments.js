@@ -32,21 +32,21 @@
   const isDocPage = document.body.getAttribute('data-page-type') === 'documents'
 
   const state = {
-    jwt: null,
-    email: null,
+    jwt: undefined,
+    email: undefined,
     comments: [],
     unresolvedCount: 0,
-    backendReachable: null,
+    backendReachable: undefined,
     expandedGroups: new Set(),
-    selection: null,
+    selection: undefined,
   }
 
   /* ─── storage ─────────────────────────────────────────────────── */
 
   const loadJwt = () => {
     try {
-      state.jwt = localStorage.getItem(JWT_KEY) || null
-      state.email = localStorage.getItem(EMAIL_KEY) || null
+      state.jwt = localStorage.getItem(JWT_KEY) || undefined
+      state.email = localStorage.getItem(EMAIL_KEY) || undefined
     } catch {
       /* private-mode — ignore */
     }
@@ -112,7 +112,7 @@
       signal: composeSignal(userSignal, timeoutMs),
     })
     if (res.status === 401) {
-      saveJwt(null, null)
+      saveJwt(undefined, undefined)
       throw new Error('unauthorized')
     }
     return res
@@ -647,7 +647,7 @@
     if (isBogusName(local) || looksLikeGibberish(local)) {
       return `That address looks suss. Use your personal ${SOCKET_BOLD} email.`
     }
-    return null
+    return undefined
   }
 
   const runAuthFlow = () =>
@@ -775,7 +775,7 @@
         const resendBtn = form.querySelector('.wt-resend-link')
         const resendTimer = form.querySelector('.wt-resend-timer')
         let cooldownSecs = 30
-        let resendInterval = null
+        let resendInterval = undefined
         const startCooldown = () => {
           cooldownSecs = 30
           resendBtn.disabled = true
@@ -785,7 +785,7 @@
             cooldownSecs -= 1
             if (cooldownSecs <= 0) {
               clearInterval(resendInterval)
-              resendInterval = null
+              resendInterval = undefined
               resendBtn.disabled = false
               resendTimer.textContent = ''
               return
@@ -899,7 +899,7 @@
       if (await silentCheck()) {
         return true
       }
-      saveJwt(null, null)
+      saveJwt(undefined, undefined)
     }
     return runAuthFlow()
   }
@@ -949,7 +949,7 @@
    * single-fire teardown is needed (composer, popover).
    */
 
-  let anchorLine = null
+  let anchorLine = undefined
 
   /* ─── DOM helpers ─────────────────────────────────────────────────
    * Shared lookups around meander's code-table structure. Every file
@@ -965,7 +965,7 @@
   const lineNumberOf = tr => {
     const text = tr.querySelector('td.line-num')?.textContent.trim()
     const n = Number.parseInt(text || '', 10)
-    return Number.isFinite(n) ? n : null
+    return Number.isFinite(n) ? n : undefined
   }
 
   // Find the <tr> whose line-num === line, scanning every table for
@@ -978,7 +978,7 @@
         }
       }
     }
-    return null
+    return undefined
   }
 
   const getLineInfo = el => {
@@ -988,11 +988,11 @@
     const row = el.closest?.('tr')
     const table = el.closest?.('table.code-table')
     if (!row || !table || row.classList.contains('wt-thread-row')) {
-      return null
+      return undefined
     }
     const line = lineNumberOf(row)
     if (line === null) {
-      return null
+      return undefined
     }
     return { file: table.dataset.file || '', line, row, table }
   }
@@ -1002,7 +1002,7 @@
       .querySelectorAll('tr.wt-selected, tr.wt-selected-range')
       .forEach(r => r.classList.remove('wt-selected', 'wt-selected-range'))
     document.querySelector('.wt-selection-popover')?.remove()
-    state.selection = null
+    state.selection = undefined
   }
 
   const selectRange = (file, fromLine, toLine) => {
@@ -1100,7 +1100,7 @@
         const lineTo = Number(pop?.dataset.lineTo)
         pop?._ctrl?.abort()
         pop?.remove()
-        showCommentForm(file, lineFrom, lineTo, null)
+        showCommentForm(file, lineFrom, lineTo, undefined)
         return
       }
       case 'clear-selection': {
@@ -1116,7 +1116,7 @@
           file,
           Number(lineFrom),
           Number(lineTo),
-          parentId || null,
+          parentId || undefined,
         )
         return
       }
@@ -1715,7 +1715,7 @@
       } catch {
         /* ignore — the localStorage clear below is the real signout */
       }
-      saveJwt(null, null)
+      saveJwt(undefined, undefined)
       dismiss()
       dd.remove()
       location.reload()

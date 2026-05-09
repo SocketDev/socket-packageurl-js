@@ -18,7 +18,7 @@ import {
  * Uses breadth-first traversal with a queue for memory efficiency.
  * @throws {Error} When object graph too large or circular reference detected.
  */
-function recursiveFreeze<T>(value_: T): T {
+export function recursiveFreeze<T>(value_: T): T {
   if (
     value_ === null ||
     !(typeof value_ === 'object' || typeof value_ === 'function') ||
@@ -80,7 +80,9 @@ function recursiveFreeze<T>(value_: T): T {
  * Inlined to avoid importing `@socketsecurity/lib/objects` which transitively
  * pulls in `sorts` → `semver` → `npm-pack` (2.5 MB).
  */
-function isObject(value: unknown): value is { [key: PropertyKey]: unknown } {
+export function isObject(
+  value: unknown,
+): value is { [key: PropertyKey]: unknown } {
   return value !== null && typeof value === 'object'
 }
 

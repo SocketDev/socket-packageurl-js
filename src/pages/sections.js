@@ -149,7 +149,7 @@ import {
 
     const visibleCards = new SetCtor()
     const pickCurrentFor = panel => {
-      let best = null
+      let best = undefined
       let bestTop = Infinity
       for (const card of visibleCards) {
         if (!panel.closest('.file-block')?.contains(card)) {
@@ -178,7 +178,7 @@ import {
           }
         }
       }
-      setActive(panel, best?.id ?? null)
+      setActive(panel, best?.id ?? undefined)
     }
 
     const io = new IntersectionObserver(

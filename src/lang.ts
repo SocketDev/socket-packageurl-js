@@ -6,7 +6,7 @@
 /**
  * Check if a value is `null`, `undefined`, or an empty string.
  */
-function isNullishOrEmptyString(value: unknown): boolean {
+export function isNullishOrEmptyString(value: unknown): boolean {
   return (
     value === null ||
     value === undefined ||

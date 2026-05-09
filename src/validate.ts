@@ -23,7 +23,7 @@ import type { QualifiersObject } from './purl-component.js'
 /**
  * Validate that component is empty for specific package type.
  */
-function validateEmptyByType(
+export function validateEmptyByType(
   type: string,
   name: string,
   value: unknown,
@@ -49,7 +49,7 @@ function validateEmptyByType(
  *   package type so callers can log, alert, or handle injection attempts
  *   at an elevated level.
  */
-function validateNoInjectionByType(
+export function validateNoInjectionByType(
   type: string,
   component: string,
   value: string | undefined,
@@ -76,7 +76,7 @@ function validateNoInjectionByType(
  * Validate package name component.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateName(
+export function validateName(
   name: unknown,
   options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
@@ -110,7 +110,7 @@ function validateName(
  * Validate package namespace component.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateNamespace(
+export function validateNamespace(
   namespace: unknown,
   options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
@@ -143,7 +143,7 @@ function validateNamespace(
  * Validate qualifier key format and characters.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateQualifierKey(
+export function validateQualifierKey(
   key: string,
   options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
@@ -207,7 +207,7 @@ function validateQualifierKey(
  * Validate qualifiers object structure and keys.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateQualifiers(
+export function validateQualifiers(
   qualifiers: unknown,
   options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
@@ -285,7 +285,7 @@ function validateQualifiers(
  * Validate that component is present and not empty.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateRequired(
+export function validateRequired(
   name: string,
   value: unknown,
   options?: { throws?: boolean | undefined } | boolean | undefined,
@@ -306,7 +306,7 @@ function validateRequired(
  * Validate that component is required for specific package type.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateRequiredByType(
+export function validateRequiredByType(
   type: string,
   name: string,
   value: unknown,
@@ -328,7 +328,7 @@ function validateRequiredByType(
  * Validate that value does not start with a number.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateStartsWithoutNumber(
+export function validateStartsWithoutNumber(
   name: string,
   value: string,
   options?: { throws?: boolean | undefined } | boolean | undefined,
@@ -352,7 +352,7 @@ function validateStartsWithoutNumber(
  * Validate that value is a string type.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateStrings(
+export function validateStrings(
   name: string,
   value: unknown,
   options?: { throws?: boolean | undefined } | boolean | undefined,
@@ -387,7 +387,7 @@ function validateStrings(
  * @throws {PurlInjectionError} When command injection characters found and `options.throws` is `true`.
  * @throws {PurlError} When validation fails and `options.throws` is `true`.
  */
-function validateSubpath(
+export function validateSubpath(
   subpath: unknown,
   options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
@@ -418,7 +418,7 @@ function validateSubpath(
  * Validate package type component format and characters.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
-function validateType(
+export function validateType(
   type: unknown,
   options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {
@@ -471,7 +471,7 @@ function validateType(
  * @throws {PurlInjectionError} When command injection characters found and `options.throws` is `true`.
  * @throws {PurlError} When validation fails and `options.throws` is `true`.
  */
-function validateVersion(
+export function validateVersion(
   version: unknown,
   options?: { throws?: boolean | undefined } | boolean | undefined,
 ): boolean {

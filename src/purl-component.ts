@@ -55,14 +55,14 @@ const componentSortOrderLookup = {
 /**
  * Compare two component names for sorting.
  */
-function componentComparator(compA: string, compB: string): number {
+export function componentComparator(compA: string, compB: string): number {
   return componentSortOrder(compA) - componentSortOrder(compB)
 }
 
 /**
  * Get numeric sort order for component name.
  */
-function componentSortOrder(comp: string): number {
+export function componentSortOrder(comp: string): number {
   return (
     (componentSortOrderLookup as unknown as Record<string, number>)[comp] ??
     // Unknown components sort after all known ones
@@ -73,21 +73,26 @@ function componentSortOrder(comp: string): number {
 /**
  * Encode PURL component value to string.
  */
-function PurlComponentEncoder(comp: unknown): string {
+export function PurlComponentEncoder(comp: unknown): string {
   return isNonEmptyString(comp) ? encodeComponent(comp) : ''
 }
 
 /**
  * Normalize PURL component to string or undefined.
  */
-function PurlComponentStringNormalizer(comp: unknown): string | undefined {
+export function PurlComponentStringNormalizer(
+  comp: unknown,
+): string | undefined {
   return typeof comp === 'string' ? comp : undefined
 }
 
 /**
  * Validate PURL component value.
  */
-function PurlComponentValidator(_comp: unknown, _throws: boolean): boolean {
+export function PurlComponentValidator(
+  _comp: unknown,
+  _throws: boolean,
+): boolean {
   return true
 }
 

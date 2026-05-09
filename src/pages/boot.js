@@ -31,7 +31,7 @@
     try {
       return localStorage.getItem(key)
     } catch {
-      return null
+      return undefined
     }
   }
   ns.storageSet = (key, value) => {
@@ -50,7 +50,7 @@
     try {
       fn()
     } catch (e) {
-      console.error(`[socket-pages] ${tag}:`, e)
+      logger.fail(`[socket-pages] ${tag}:`, e)
     }
   }
 

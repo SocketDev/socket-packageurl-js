@@ -23,7 +23,7 @@ const REUSED_SEARCH_PARAMS_OFFSET = 2
 /**
  * Encode package name component for URL.
  */
-function encodeName(name: unknown): string {
+export function encodeName(name: unknown): string {
   return isNonEmptyString(name)
     ? StringPrototypeReplaceAll(encodeComponent(name), '%3A', ':')
     : ''
@@ -32,7 +32,7 @@ function encodeName(name: unknown): string {
 /**
  * Encode package namespace component for URL.
  */
-function encodeNamespace(namespace: unknown): string {
+export function encodeNamespace(namespace: unknown): string {
   return isNonEmptyString(namespace)
     ? StringPrototypeReplaceAll(
         StringPrototypeReplaceAll(encodeComponent(namespace), '%3A', ':'),
@@ -45,7 +45,7 @@ function encodeNamespace(namespace: unknown): string {
 /**
  * Encode qualifier parameter key or value.
  */
-function encodeQualifierParam(param: unknown): string {
+export function encodeQualifierParam(param: unknown): string {
   if (isNonEmptyString(param)) {
     const value = prepareValueForSearchParams(param)
     // Use `URLSearchParams#set` to preserve plus signs
@@ -66,7 +66,7 @@ function encodeQualifierParam(param: unknown): string {
 /**
  * Encode qualifiers object as URL query string.
  */
-function encodeQualifiers(qualifiers: unknown): string {
+export function encodeQualifiers(qualifiers: unknown): string {
   if (isObject(qualifiers)) {
     // Sort this list of qualifier strings lexicographically
     const qualifiersKeys = ArrayPrototypeToSorted(ObjectKeys(qualifiers))
@@ -88,7 +88,7 @@ function encodeQualifiers(qualifiers: unknown): string {
 /**
  * Encode subpath component for URL.
  */
-function encodeSubpath(subpath: unknown): string {
+export function encodeSubpath(subpath: unknown): string {
   return isNonEmptyString(subpath)
     ? StringPrototypeReplaceAll(encodeComponent(subpath), '%2F', '/')
     : ''
@@ -97,7 +97,7 @@ function encodeSubpath(subpath: unknown): string {
 /**
  * Encode package version component for URL.
  */
-function encodeVersion(version: unknown): string {
+export function encodeVersion(version: unknown): string {
   return isNonEmptyString(version)
     ? StringPrototypeReplaceAll(encodeComponent(version), '%3A', ':')
     : ''
@@ -106,7 +106,7 @@ function encodeVersion(version: unknown): string {
 /**
  * Normalize `URLSearchParams` output for qualifier encoding.
  */
-function normalizeSearchParamsEncoding(encoded: string): string {
+export function normalizeSearchParamsEncoding(encoded: string): string {
   return StringPrototypeReplaceAll(
     StringPrototypeReplaceAll(encoded, '%2520', '%20'),
     '+',
@@ -117,7 +117,7 @@ function normalizeSearchParamsEncoding(encoded: string): string {
 /**
  * Prepare string value for `URLSearchParams` encoding.
  */
-function prepareValueForSearchParams(value: unknown): string {
+export function prepareValueForSearchParams(value: unknown): string {
   // Replace spaces with `%20`'s so they don't get converted to plus signs
   return StringPrototypeReplaceAll(String(value), ' ', '%20')
 }

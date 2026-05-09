@@ -19,7 +19,7 @@ import {
  * needs to surface a message (log lines, result payloads, API
  * responses) without a per-call-site type ladder.
  */
-function errorMessage(e: unknown): string {
+export function errorMessage(e: unknown): string {
   if (e instanceof Error) {
     return e.message || 'Unknown error'
   }
@@ -32,7 +32,7 @@ function errorMessage(e: unknown): string {
 /**
  * Format error message for PURL exceptions.
  */
-function formatPurlErrorMessage(message = ''): string {
+export function formatPurlErrorMessage(message = ''): string {
   const { length } = message
   let formatted = ''
   if (length) {

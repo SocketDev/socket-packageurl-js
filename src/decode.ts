@@ -9,7 +9,10 @@ import { decodeComponent } from '@socketsecurity/lib/primordials'
  * Decode PURL component value from URL encoding.
  * @throws {PurlError} When component cannot be decoded.
  */
-function decodePurlComponent(comp: string, encodedComponent: string): string {
+export function decodePurlComponent(
+  comp: string,
+  encodedComponent: string,
+): string {
   try {
     return decodeComponent(encodedComponent)
   } catch (e) {

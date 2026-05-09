@@ -67,7 +67,7 @@ self.addEventListener('install', event => {
       // and we keep the old SW. We use `add` per-URL with individual
       // catches so a single missing asset (comments shim on a build
       // without the commentBackend) doesn't abort install.
-      Promise.all(PRECACHE.map(url => cache.add(url).catch(() => null))),
+      Promise.all(PRECACHE.map(url => cache.add(url).catch(() => undefined))),
     ),
   )
   // Activate immediately on first install so the new worker starts
@@ -130,7 +130,7 @@ self.addEventListener('fetch', event => {
  * Network-first: try the network, fall back to cache only on failure.
  * Used for HTML navigations so a new deploy is always picked up.
  */
-async function networkFirst(request) {
+export async function networkFirst(request) {
   try {
     const response = await fetch(request)
     if (response.ok) {
@@ -154,7 +154,7 @@ async function networkFirst(request) {
  * to update the cache for the next load. Misses fall through to a
  * fresh network fetch and cache the result.
  */
-async function cacheFirst(request) {
+export async function cacheFirst(request) {
   const cache = await caches.open(CACHE_NAME)
   const cached = await cache.match(request)
   const networkFetch = fetch(request)
@@ -168,7 +168,7 @@ async function cacheFirst(request) {
       }
       return response
     })
-    .catch(() => null)
+    .catch(() => undefined)
 
   /* Cache hit wins. Otherwise await the network — if it resolved
    * (even to null on fetch failure), prefer it; fall back to a
