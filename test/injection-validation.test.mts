@@ -14,7 +14,7 @@ import {
 } from '../src/strings.js'
 
 /** Helper to catch and return a PurlInjectionError for property inspection. */
-function getInjectionError(fn: () => unknown): PurlInjectionError {
+export function getInjectionError(fn: () => unknown): PurlInjectionError {
   let caught: unknown
   try {
     fn()

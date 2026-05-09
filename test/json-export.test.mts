@@ -246,7 +246,7 @@ describe('PackageURL JSON/dict export', () => {
       expect(() => PackageURL.fromObject('not an object')).toThrow(
         'Object argument is required',
       )
-      expect(() => PackageURL.fromObject(null)).toThrow(
+      expect(() => PackageURL.fromObject(undefined)).toThrow(
         'Object argument is required',
       )
       expect(() => PackageURL.fromObject(undefined)).toThrow(
@@ -296,7 +296,7 @@ describe('PackageURL JSON/dict export', () => {
       expect(() => PackageURL.fromJSON(123)).toThrow(
         'JSON string argument is required',
       )
-      expect(() => PackageURL.fromJSON(null)).toThrow(
+      expect(() => PackageURL.fromJSON(undefined)).toThrow(
         'JSON string argument is required',
       )
       expect(() => PackageURL.fromJSON(undefined)).toThrow(

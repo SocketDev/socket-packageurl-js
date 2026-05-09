@@ -442,7 +442,14 @@ describe('Edge cases and additional coverage', () => {
   describe('Constructor parameter types', () => {
     it('should handle array as qualifiers (gets converted to undefined)', () => {
       // Tests qualifiers type checking (arrays treated as undefined)
-      const purl = new PackageURL('type', null, 'name', null, [], undefined)
+      const purl = new PackageURL(
+        'type',
+        undefined,
+        'name',
+        undefined,
+        [],
+        undefined,
+      )
       expect(purl.qualifiers).toBe(undefined)
     })
 
@@ -451,7 +458,14 @@ describe('Edge cases and additional coverage', () => {
       const testFn = () => {}
       expect(
         () =>
-          new PackageURL(testFn, null, 'name', undefined, undefined, undefined),
+          new PackageURL(
+            testFn,
+            undefined,
+            'name',
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow()
       expect(
         () =>
@@ -466,7 +480,14 @@ describe('Edge cases and additional coverage', () => {
       ).toThrow()
       expect(
         () =>
-          new PackageURL('type', null, testFn, undefined, undefined, undefined),
+          new PackageURL(
+            'type',
+            undefined,
+            testFn,
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow()
     })
 
@@ -475,7 +496,14 @@ describe('Edge cases and additional coverage', () => {
       const sym = Symbol('test')
       expect(
         () =>
-          new PackageURL(sym, null, 'name', undefined, undefined, undefined),
+          new PackageURL(
+            sym,
+            undefined,
+            'name',
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow()
       expect(
         () =>
@@ -483,7 +511,14 @@ describe('Edge cases and additional coverage', () => {
       ).toThrow()
       expect(
         () =>
-          new PackageURL('type', null, sym, undefined, undefined, undefined),
+          new PackageURL(
+            'type',
+            undefined,
+            sym,
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow()
     })
   })
@@ -513,14 +548,30 @@ describe('Edge cases and additional coverage', () => {
     it('should provide clear error message for missing type', () => {
       // Tests error message clarity (type validation)
       expect(
-        () => new PackageURL('', null, 'name', undefined, undefined, undefined),
+        () =>
+          new PackageURL(
+            '',
+            undefined,
+            'name',
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow(/"type" is a required component/)
     })
 
     it('should provide clear error message for missing name', () => {
       // Tests error message clarity (name validation)
       expect(
-        () => new PackageURL('type', null, '', undefined, undefined, undefined),
+        () =>
+          new PackageURL(
+            'type',
+            undefined,
+            '',
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow(/"name" is a required component/)
     })
 
@@ -529,7 +580,7 @@ describe('Edge cases and additional coverage', () => {
       expect(() => PackageURL.fromString(123)).toThrow(
         /purl string argument is required/,
       )
-      expect(() => PackageURL.fromString(null)).toThrow(
+      expect(() => PackageURL.fromString(undefined)).toThrow(
         /purl string argument is required/,
       )
       expect(() => PackageURL.fromString(undefined)).toThrow(
@@ -551,7 +602,7 @@ describe('Edge cases and additional coverage', () => {
       const purl = createTestPurl('type', 'name')
       // Verify the instance is properly constructed with null prototype for security
       expect(Object.getPrototypeOf(purl)).toBe(PackageURL.prototype)
-      expect(Object.getPrototypeOf(PackageURL.prototype)).toBe(null)
+      expect(Object.getPrototypeOf(PackageURL.prototype)).toBe(undefined)
     })
   })
 
@@ -670,13 +721,13 @@ describe('Edge cases and additional coverage', () => {
       expect(encodeQualifierParam('value+plus')).toBe('value%2Bplus')
       // Test with empty/non-string returns empty
       expect(encodeQualifierParam('')).toBe('')
-      expect(encodeQualifierParam(null)).toBe('')
+      expect(encodeQualifierParam(undefined)).toBe('')
       expect(encodeQualifierParam(undefined)).toBe('')
     })
 
     it('should test encodeSubpath with empty values', () => {
       expect(encodeSubpath('')).toBe('')
-      expect(encodeSubpath(null)).toBe('')
+      expect(encodeSubpath(undefined)).toBe('')
       expect(encodeSubpath(undefined)).toBe('')
     })
 
@@ -691,9 +742,9 @@ describe('Edge cases and additional coverage', () => {
       (_description, qualifiers, hasQualifiers) => {
         const purl = new PackageURL(
           'type',
-          null,
+          undefined,
           'name',
-          null,
+          undefined,
           qualifiers,
           undefined,
         )
@@ -760,11 +811,11 @@ describe('Edge cases and additional coverage', () => {
 
     it('should handle hackage type validation', () => {
       const purl = createTestPurl('hackage', 'package-name', {
-        namespace: null,
+        namespace: undefined,
         version: '1.0.0',
       })
       expect(purl.type).toBe('hackage')
-      expect(purl.namespace).toBe(null)
+      expect(purl.namespace).toBe(undefined)
     })
 
     it('should handle huggingface model type', () => {
@@ -817,7 +868,7 @@ describe('Edge cases and additional coverage', () => {
       expect(recursiveFreeze(frozen)).toBe(frozen)
 
       // Null and primitives
-      expect(recursiveFreeze(null)).toBe(null)
+      expect(recursiveFreeze(undefined)).toBe(undefined)
       expect(recursiveFreeze(42)).toBe(42)
       expect(recursiveFreeze('string')).toBe('string')
 
@@ -842,7 +893,7 @@ describe('Edge cases and additional coverage', () => {
         'validateRequired',
         validateRequired,
         'field',
-        null as unknown,
+        undefined as unknown,
         '"field" is a required component',
         'value' as unknown,
       ],
@@ -859,7 +910,7 @@ describe('Edge cases and additional coverage', () => {
         (_field: string, value: unknown, opts: any) =>
           validateRequiredByType('npm', 'name', value, opts),
         'name',
-        null as unknown,
+        undefined as unknown,
         'npm requires a "name" component',
         'value' as unknown,
       ],
@@ -894,7 +945,7 @@ describe('Edge cases and additional coverage', () => {
         (_field: string, value: unknown, opts: any) =>
           validateName(value, opts),
         'name',
-        null as unknown,
+        undefined as unknown,
         /"name" is a required component/,
         'valid' as unknown,
       ],
@@ -979,7 +1030,7 @@ describe('Edge cases and additional coverage', () => {
     it('should validate qualifiers with both option object and legacy boolean parameter', () => {
       // Test new API
       expect(validateQualifiers({ key: 'value' }, { throws: false })).toBe(true)
-      expect(validateQualifiers(null, { throws: false })).toBe(true)
+      expect(validateQualifiers(undefined, { throws: false })).toBe(true)
       expect(validateQualifiers([], { throws: false })).toBe(false)
       expect(() => validateQualifiers([], { throws: true })).toThrow(
         '"qualifiers" must be a plain object',
@@ -987,7 +1038,7 @@ describe('Edge cases and additional coverage', () => {
 
       // Test with undefined parameter
       expect(validateQualifiers({ key: 'value' }, undefined)).toBe(true)
-      expect(validateQualifiers(null, undefined)).toBe(true)
+      expect(validateQualifiers(undefined, undefined)).toBe(true)
       expect(validateQualifiers([], undefined)).toBe(false)
 
       // Test legacy boolean parameter
@@ -1355,7 +1406,7 @@ describe('Edge cases and additional coverage', () => {
     it('should test PurlComponentStringNormalizer with non-string values', () => {
       // Test line 36 - returns undefined for non-string
       expect(PurlComponentStringNormalizer(123)).toBe(undefined)
-      expect(PurlComponentStringNormalizer(null)).toBe(undefined)
+      expect(PurlComponentStringNormalizer(undefined)).toBe(undefined)
       expect(PurlComponentStringNormalizer(undefined)).toBe(undefined)
       expect(PurlComponentStringNormalizer({})).toBe(undefined)
       expect(PurlComponentStringNormalizer([])).toBe(undefined)
@@ -1486,7 +1537,7 @@ describe('Edge cases and additional coverage', () => {
     // Test normalize.js lines 73-84 - normalizeSubpath with non-string
     it('should test normalizeSubpath with non-string values', () => {
       expect(normalizeSubpath(123)).toBe(undefined)
-      expect(normalizeSubpath(null)).toBe(undefined)
+      expect(normalizeSubpath(undefined)).toBe(undefined)
       expect(normalizeSubpath(undefined)).toBe(undefined)
     })
 
@@ -1499,21 +1550,21 @@ describe('Edge cases and additional coverage', () => {
     // Test encode.js line 21 - encodeNamespace with empty string
     it('should test encodeNamespace with empty values', () => {
       expect(encodeNamespace('')).toBe('')
-      expect(encodeNamespace(null)).toBe('')
+      expect(encodeNamespace(undefined)).toBe('')
       expect(encodeNamespace(undefined)).toBe('')
     })
 
     // Test encode.js line 73 - encodeVersion with colons
     it('should test encodeVersion preserves colons', () => {
       expect(encodeVersion('')).toBe('')
-      expect(encodeVersion(null)).toBe('')
+      expect(encodeVersion(undefined)).toBe('')
       expect(encodeVersion('1.0.0:rc.1')).toBe('1.0.0:rc.1')
     })
 
     // Test purl-component.js line 33 - PurlComponentEncoder with empty
     it('should test PurlComponentEncoder with non-strings', () => {
       // Test the encode function with empty values
-      const encoded = PurlComponentEncoder(null)
+      const encoded = PurlComponentEncoder(undefined)
       expect(encoded).toBe('')
       const encoded2 = PurlComponentEncoder(0)
       expect(encoded2).toBe('')
@@ -1526,7 +1577,7 @@ describe('Edge cases and additional coverage', () => {
       // Test the validator function - it always returns true
       const result1 = PurlComponentValidator('test', true)
       expect(result1).toBe(true)
-      const result2 = PurlComponentValidator(null, false)
+      const result2 = PurlComponentValidator(undefined, false)
       expect(result2).toBe(true)
       const result3 = PurlComponentValidator(undefined, false)
       expect(result3).toBe(true)
@@ -1670,7 +1721,7 @@ describe('Edge cases and additional coverage', () => {
 
       // Test line 135 - validateSubpath empty check
       expect(validateSubpath('', { throws: false })).toBe(true)
-      expect(validateSubpath(null, { throws: false })).toBe(true)
+      expect(validateSubpath(undefined, { throws: false })).toBe(true)
 
       // Test line 156 - validateRequiredByType
       expect(
@@ -1716,7 +1767,7 @@ describe('Edge cases and additional coverage', () => {
       expect(result).toBe('vendor/package')
 
       // Test empty namespace
-      const result2 = normalizeNamespace(null)
+      const result2 = normalizeNamespace(undefined)
       expect(result2).toBe(undefined)
     })
 
@@ -1739,7 +1790,11 @@ describe('Edge cases and additional coverage', () => {
 
     // Test purl-type.js lines 194-197 - conan with namespace but no qualifiers
     it('should test conan validation with namespace but no qualifiers', () => {
-      const comp = { namespace: 'namespace', name: 'test', qualifiers: null }
+      const comp = {
+        namespace: 'namespace',
+        name: 'test',
+        qualifiers: undefined,
+      }
       const result = (PurlType.conan as any).validate(comp, false)
       expect(result).toBe(false)
 
@@ -1777,7 +1832,7 @@ describe('Edge cases and additional coverage', () => {
       })
 
       it('returns "Unknown error" for null', () => {
-        expect(errorMessage(null)).toBe('Unknown error')
+        expect(errorMessage(undefined)).toBe('Unknown error')
       })
 
       it('returns "Unknown error" for undefined', () => {
@@ -1798,7 +1853,7 @@ describe('Edge cases and additional coverage', () => {
     // Test objects.js line 33 - else branch with Object.values
     it('should test recursiveFreeze with plain objects', () => {
       // Force the else branch (not an array)
-      const obj = Object.create(null)
+      const obj = Object.create(undefined)
       obj.prop1 = { nested: 'value1' }
       obj.prop2 = { nested: 'value2' }
 
@@ -1852,7 +1907,7 @@ describe('Edge cases and additional coverage', () => {
     // Additional coverage tests for edge cases
     it('should test normalizeName with non-string input', () => {
       // Test with non-string input (line 7 branch)
-      expect(normalizeName(null)).toBe(undefined)
+      expect(normalizeName(undefined)).toBe(undefined)
       expect(normalizeName(undefined)).toBe(undefined)
       expect(normalizeName(123)).toBe(undefined)
     })
@@ -1937,7 +1992,7 @@ describe('Edge cases and additional coverage', () => {
         () =>
           new PackageURL(
             'npm',
-            null,
+            undefined,
             longName,
             undefined,
             undefined,
@@ -1951,7 +2006,7 @@ describe('Edge cases and additional coverage', () => {
         () =>
           new PackageURL(
             'npm',
-            null,
+            undefined,
             'worker_threads',
             undefined,
             undefined,
@@ -1966,7 +2021,7 @@ describe('Edge cases and additional coverage', () => {
         () =>
           new PackageURL(
             'pub',
-            null,
+            undefined,
             'name@with',
             undefined,
             undefined,
@@ -1983,7 +2038,7 @@ describe('Edge cases and additional coverage', () => {
       const func2: any = createTestFunction('test2')
       ;(func2 as any).nested = { data: 'nested' }
 
-      const arr = [func1, { method: func2 }, func2, null, 'string', 42]
+      const arr = [func1, { method: func2 }, func2, undefined, 'string', 42]
 
       const frozen = recursiveFreeze(arr)
       expect(Object.isFrozen(frozen)).toBe(true)
@@ -2028,29 +2083,53 @@ describe('Edge cases and additional coverage', () => {
     it('should validate cocoapods name restrictions', () => {
       // Test name with whitespace
       expect(
-        () => new PackageURL('cocoapods', null, 'Pod Name', null, null, null),
+        () =>
+          new PackageURL(
+            'cocoapods',
+            undefined,
+            'Pod Name',
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow('cocoapods "name" component contains injection character')
 
       // Test name with plus character
       expect(
-        () => new PackageURL('cocoapods', null, 'Pod+Name', null, null, null),
+        () =>
+          new PackageURL(
+            'cocoapods',
+            undefined,
+            'Pod+Name',
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow(
         'cocoapods "name" component cannot contain a plus (+) character',
       )
 
       // Test name beginning with period
       expect(
-        () => new PackageURL('cocoapods', null, '.PodName', null, null, null),
+        () =>
+          new PackageURL(
+            'cocoapods',
+            undefined,
+            '.PodName',
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow('cocoapods "name" component cannot begin with a period')
 
       // Test valid cocoapods name
       const validPurl = new PackageURL(
         'cocoapods',
-        null,
+        undefined,
         'AFNetworking',
         '4.0.0',
-        null,
-        null,
+        undefined,
+        undefined,
       )
       expect(validPurl.toString()).toBe('pkg:cocoapods/AFNetworking@4.0.0')
 
@@ -2077,12 +2156,28 @@ describe('Edge cases and additional coverage', () => {
     it('should validate cpan namespace requirements', () => {
       // Test lowercase namespace
       expect(
-        () => new PackageURL('cpan', 'author', 'Module-Name', null, null, null),
+        () =>
+          new PackageURL(
+            'cpan',
+            'author',
+            'Module-Name',
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow('cpan "namespace" component must be UPPERCASE')
 
       // Test mixed case namespace
       expect(
-        () => new PackageURL('cpan', 'Author', 'Module-Name', null, null, null),
+        () =>
+          new PackageURL(
+            'cpan',
+            'Author',
+            'Module-Name',
+            undefined,
+            undefined,
+            undefined,
+          ),
       ).toThrow('cpan "namespace" component must be UPPERCASE')
 
       // Test valid cpan with uppercase namespace
@@ -2091,19 +2186,19 @@ describe('Edge cases and additional coverage', () => {
         'AUTHOR',
         'Module-Name',
         '1.0.0',
-        null,
-        null,
+        undefined,
+        undefined,
       )
       expect(validPurl.toString()).toBe('pkg:cpan/AUTHOR/Module-Name@1.0.0')
 
       // Test valid cpan without namespace (namespace is optional)
       const validPurl2 = new PackageURL(
         'cpan',
-        null,
+        undefined,
         'DateTime',
         '1.55',
-        null,
-        null,
+        undefined,
+        undefined,
       )
       expect(validPurl2.toString()).toBe('pkg:cpan/DateTime@1.55')
 
@@ -2131,7 +2226,7 @@ describe('Edge cases and additional coverage', () => {
             'example.com/Enterprise+Server',
             '1.0.0',
             {},
-            null,
+            undefined,
           ),
       ).toThrow('swid requires a "tag_id" qualifier')
 
@@ -2144,7 +2239,7 @@ describe('Edge cases and additional coverage', () => {
             'example.com/Enterprise+Server',
             '1.0.0',
             { tag_id: '   ' },
-            null,
+            undefined,
           ),
       ).toThrow('swid requires a "tag_id" qualifier')
 
@@ -2157,7 +2252,7 @@ describe('Edge cases and additional coverage', () => {
             'example.com/Enterprise+Server',
             '1.0.0',
             { tag_id: '75B8C285-FA7B-485B-B199-4745E3004D0D' },
-            null,
+            undefined,
           ),
       ).toThrow('swid "tag_id" qualifier must be lowercase when it is a GUID')
 
@@ -2168,7 +2263,7 @@ describe('Edge cases and additional coverage', () => {
         'example.com/Enterprise+Server',
         '1.0.0',
         { tag_id: '75b8c285-fa7b-485b-b199-4745e3004d0d' },
-        null,
+        undefined,
       )
       expect(validPurl.toString()).toContain(
         'pkg:swid/Acme/example.com%2FEnterprise%2BServer@1.0.0?tag_id=75b8c285-fa7b-485b-b199-4745e3004d0d',
@@ -2181,7 +2276,7 @@ describe('Edge cases and additional coverage', () => {
         'example.com/Enterprise+Server',
         '1.0.0',
         { tag_id: 'CustomTagId123' },
-        null,
+        undefined,
       )
       expect(validPurl2.toString()).toContain('tag_id=CustomTagId123')
 

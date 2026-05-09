@@ -422,9 +422,9 @@ describe('createMatcher', () => {
 
       // createMatcher should be faster (though timing can vary)
       // We don't assert timing to avoid flaky tests, but log for informational purposes
-      console.log(`createMatcher time: ${matcherTime.toFixed(3)}ms`)
-      console.log(`matches() time: ${matchesTime.toFixed(3)}ms`)
-      console.log(`Speedup: ${(matchesTime / matcherTime).toFixed(2)}x faster`)
+      logger.log(`createMatcher time: ${matcherTime.toFixed(3)}ms`)
+      logger.log(`matches() time: ${matchesTime.toFixed(3)}ms`)
+      logger.log(`Speedup: ${(matchesTime / matcherTime).toFixed(2)}x faster`)
     })
   })
 

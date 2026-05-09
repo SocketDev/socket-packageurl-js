@@ -39,7 +39,7 @@ import {
 
 import { PackageURL } from '../src/package-url.js'
 
-function toUrlSearchParams(search: string) {
+export function toUrlSearchParams(search: string) {
   const searchParams = new URLSearchParams()
   const entries = search.split('&')
   for (let i = 0, { length } = entries; i < length; i += 1) {

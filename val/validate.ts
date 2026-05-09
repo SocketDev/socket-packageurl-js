@@ -110,7 +110,7 @@ export const validateCommentInput = (
   const rawBody = typeof raw.body === 'string' ? raw.body.trim() : ''
   const body = stripHtmlTags(rawBody).trim()
   const parentId =
-    typeof raw.parentId === 'string' && raw.parentId ? raw.parentId : null
+    typeof raw.parentId === 'string' && raw.parentId ? raw.parentId : undefined
 
   if (
     !Number.isFinite(partInt) ||

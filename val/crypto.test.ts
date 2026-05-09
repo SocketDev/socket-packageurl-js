@@ -85,7 +85,7 @@ test('jwt: rejects tampered payload', async () => {
   })
   const [h, p, s] = token.split('.')
   const tampered = `${h}.${p.slice(0, -1)}${p.endsWith('A') ? 'B' : 'A'}.${s}`
-  assert.equal(await verifyJwt(key, tampered), null)
+  assert.equal(await verifyJwt(key, tampered), undefined)
 })
 
 test('jwt: rejects expired token', async () => {
@@ -96,7 +96,7 @@ test('jwt: rejects expired token', async () => {
     iat: 0,
     jti: 'a',
   })
-  assert.equal(await verifyJwt(key, token), null)
+  assert.equal(await verifyJwt(key, token), undefined)
 })
 
 test('jwt: rejects alg=none header', async () => {
@@ -115,7 +115,7 @@ test('jwt: rejects alg=none header', async () => {
       }),
     ),
   )
-  assert.equal(await verifyJwt(key, `${hBad}.${pEnc}.`), null)
+  assert.equal(await verifyJwt(key, `${hBad}.${pEnc}.`), undefined)
 })
 
 test('jwt: rejects missing jti', async () => {
@@ -137,7 +137,7 @@ test('jwt: rejects missing jti', async () => {
     ),
   )
   const token = `${signingInput}.${b64urlEncode(sig)}`
-  assert.equal(await verifyJwt(key, token), null)
+  assert.equal(await verifyJwt(key, token), undefined)
 })
 
 test('jwt: rejects non-email in payload', async () => {
@@ -149,21 +149,21 @@ test('jwt: rejects non-email in payload', async () => {
     iat: nowSec,
     jti: 'a',
   })
-  assert.equal(await verifyJwt(key, token), null)
+  assert.equal(await verifyJwt(key, token), undefined)
 })
 
 test('jwt: rejects empty segments', async () => {
   const key = await importHmacKey(STRONG_KEY)
-  assert.equal(await verifyJwt(key, 'a.b.'), null)
-  assert.equal(await verifyJwt(key, '..c'), null)
-  assert.equal(await verifyJwt(key, 'a..c'), null)
+  assert.equal(await verifyJwt(key, 'a.b.'), undefined)
+  assert.equal(await verifyJwt(key, '..c'), undefined)
+  assert.equal(await verifyJwt(key, 'a..c'), undefined)
 })
 
 test('jwt: rejects wrong segment count', async () => {
   const key = await importHmacKey(STRONG_KEY)
-  assert.equal(await verifyJwt(key, 'onlyone'), null)
-  assert.equal(await verifyJwt(key, 'two.segments'), null)
-  assert.equal(await verifyJwt(key, 'four.seg.ments.here'), null)
+  assert.equal(await verifyJwt(key, 'onlyone'), undefined)
+  assert.equal(await verifyJwt(key, 'two.segments'), undefined)
+  assert.equal(await verifyJwt(key, 'four.seg.ments.here'), undefined)
 })
 
 test('jwt: rejects signature by different key', async () => {
@@ -176,7 +176,7 @@ test('jwt: rejects signature by different key', async () => {
     iat: nowSec,
     jti: 'a',
   })
-  assert.equal(await verifyJwt(keyB, token), null)
+  assert.equal(await verifyJwt(keyB, token), undefined)
 })
 
 test('generateCode: returns 6-digit string', () => {

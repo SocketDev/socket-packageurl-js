@@ -44,7 +44,7 @@ describe('Helpers utilities', () => {
     })
 
     it('should support custom comparator and null prototype', () => {
-      const helper1 = Object.create(null)
+      const helper1 = Object.create(undefined)
       helper1.zProp = 'z'
       helper1.aProp = 'a'
 

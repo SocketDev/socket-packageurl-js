@@ -52,7 +52,7 @@ export function testInvalidParam(
     paramName,
     paramMap,
     createArgs,
-    [0, false, 1, true, {}, null, undefined, ''],
+    [0, false, 1, true, {}, undefined, undefined, ''],
     true,
   )
 }
@@ -70,7 +70,7 @@ export function testValidStringParam(
     paramName,
     paramMap,
     createArgs,
-    [paramName, null, undefined, ''],
+    [paramName, undefined, undefined, ''],
     false,
   )
 }

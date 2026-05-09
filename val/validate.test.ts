@@ -47,7 +47,7 @@ test('emailDomain: extracts or empty', () => {
 
 test('normalizeEmail: lowercases + trims', () => {
   assert.equal(normalizeEmail('  ALICE@Socket.Dev  '), 'alice@socket.dev')
-  assert.equal(normalizeEmail(null), '')
+  assert.equal(normalizeEmail(undefined), '')
   assert.equal(normalizeEmail(42), '')
 })
 

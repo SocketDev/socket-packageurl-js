@@ -533,7 +533,7 @@ describe('encode edge cases', () => {
       undefined,
       'lodash',
       '1.0.0',
-      null,
+      undefined,
       undefined,
     )
     const str = purl.toString()
@@ -632,7 +632,7 @@ describe('UrlConverter unrecognized paths', () => {
 // ---------------------------------------------------------------------------
 describe('encodeQualifiers edge case', () => {
   it('returns empty string for non-object input', () => {
-    const result = encodeQualifiers(null)
+    const result = encodeQualifiers(undefined)
     expect(result).toBe('')
   })
 })

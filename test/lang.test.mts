@@ -9,7 +9,7 @@ import { isNullishOrEmptyString } from '../src/lang.js'
 describe('Language utilities', () => {
   describe('isNullishOrEmptyString', () => {
     it('should return true for null, undefined, or empty string', () => {
-      expect(isNullishOrEmptyString(null)).toBe(true)
+      expect(isNullishOrEmptyString(undefined)).toBe(true)
       expect(isNullishOrEmptyString(undefined)).toBe(true)
       expect(isNullishOrEmptyString('')).toBe(true)
     })

@@ -34,7 +34,7 @@ import { PackageURL } from '../src/package-url.js'
 import { validate as validateBazel } from '../src/purl-types/bazel.js'
 import { validate as validateVscodeExtension } from '../src/purl-types/vscode-extension.js'
 
-function getNpmId(purl: any) {
+export function getNpmId(purl: any) {
   const { name, namespace } = purl
   return `${namespace?.length > 0 ? `${namespace}/` : ''}${name}`
 }

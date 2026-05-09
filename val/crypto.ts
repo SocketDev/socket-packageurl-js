@@ -81,11 +81,11 @@ export const verifyJwt = async (
 ): Promise<JwtPayload | null> => {
   const parts = jwt.split('.')
   if (parts.length !== 3) {
-    return null
+    return undefined
   }
   const [hEnc, pEnc, sEnc] = parts
   if (!hEnc || !pEnc || !sEnc) {
-    return null
+    return undefined
   }
   try {
     const header = JSON.parse(decoder.decode(b64urlDecode(hEnc))) as {
@@ -93,10 +93,10 @@ export const verifyJwt = async (
       typ?: string
     }
     if (header.alg !== 'HS256' || header.typ !== 'JWT') {
-      return null
+      return undefined
     }
   } catch {
-    return null
+    return undefined
   }
   let ok = false
   try {
@@ -107,10 +107,10 @@ export const verifyJwt = async (
       encoder.encode(`${hEnc}.${pEnc}`),
     )
   } catch {
-    return null
+    return undefined
   }
   if (!ok) {
-    return null
+    return undefined
   }
   try {
     const payload = JSON.parse(decoder.decode(b64urlDecode(pEnc))) as Partial<
@@ -124,7 +124,7 @@ export const verifyJwt = async (
       typeof payload.jti !== 'string' ||
       payload.exp * 1000 < nowMs
     ) {
-      return null
+      return undefined
     }
     return {
       email: payload.email,
@@ -133,7 +133,7 @@ export const verifyJwt = async (
       jti: payload.jti,
     }
   } catch {
-    return null
+    return undefined
   }
 }
 

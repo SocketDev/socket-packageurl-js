@@ -12,10 +12,8 @@ import path from 'node:path'
  * @param {string} packagePath - Path to the package root directory.
  * @returns {Promise<{pkgPath: string}>}
  */
-async function isolatePackage(packagePath) {
+export async function isolatePackage(packagePath) {
   // For this repo, we just test the built dist directory directly
   const pkgPath = path.resolve(packagePath)
   return { pkgPath }
 }
-
-export { isolatePackage }

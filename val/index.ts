@@ -49,7 +49,7 @@ import { registerCommentRoutes } from './comment-routes.ts'
 import type { AppEnv } from './types.ts'
 
 const hmacKey = await importHmacKey(JWT_SIGNING_KEY).catch(err => {
-  console.error('[val] hmac key import failed', err)
+  logger.fail('[val] hmac key import failed', err)
   throw err
 })
 const requireAuth = makeRequireAuth(hmacKey)

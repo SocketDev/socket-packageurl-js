@@ -83,7 +83,7 @@ describe('PackageURL', () => {
     it('should return false for invalid PURLs', () => {
       expect(PackageURL.isValid('not a purl')).toBe(false)
       expect(PackageURL.isValid('')).toBe(false)
-      expect(PackageURL.isValid(null)).toBe(false)
+      expect(PackageURL.isValid(undefined)).toBe(false)
       expect(PackageURL.isValid(123)).toBe(false)
     })
   })
@@ -287,7 +287,7 @@ describe('PackageURL', () => {
       expect(
         createTestPurl('type', 'name', {
           namespace: 'namespace',
-          qualifiers: null,
+          qualifiers: undefined,
           subpath: '%21',
           version: '1.0',
         }).toString(),
@@ -711,7 +711,7 @@ describe('PackageURL', () => {
     })
 
     it('should reject non-string input', () => {
-      expect(() => PackageURL.fromNpm(null as unknown as string)).toThrow(
+      expect(() => PackageURL.fromNpm(undefined as unknown as string)).toThrow(
         'npm package specifier string is required',
       )
       expect(() => PackageURL.fromNpm(123 as unknown as string)).toThrow(
@@ -795,7 +795,7 @@ describe('PackageURL', () => {
 
     it('should validate npm specifier format', () => {
       expect(() =>
-        PackageURL.fromSpec('npm', null as unknown as string),
+        PackageURL.fromSpec('npm', undefined as unknown as string),
       ).toThrow('npm package specifier string is required')
 
       expect(() => PackageURL.fromSpec('npm', '')).toThrow(

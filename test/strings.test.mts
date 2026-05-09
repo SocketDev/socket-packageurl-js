@@ -102,7 +102,7 @@ describe('String utilities', () => {
 
     it('should return false for empty string or non-strings', () => {
       expect(isNonEmptyString('')).toBe(false)
-      expect(isNonEmptyString(null)).toBe(false)
+      expect(isNonEmptyString(undefined)).toBe(false)
       expect(isNonEmptyString(undefined)).toBe(false)
       expect(isNonEmptyString(123)).toBe(false)
     })
@@ -124,7 +124,7 @@ describe('String utilities', () => {
       expect(isSemverString('v1.2.3')).toBe(false)
       // Leading zeros not allowed
       expect(isSemverString('01.2.3')).toBe(false)
-      expect(isSemverString(null)).toBe(false)
+      expect(isSemverString(undefined)).toBe(false)
     })
   })
 

@@ -85,14 +85,14 @@ export const registerAuthRequest = (app: Hono<AppEnv>): void => {
         // Log-and-swallow. If the email provider hiccups we don't
         // reveal it to the client — the audit log preserves that we
         // tried, and the user realizes when their code doesn't arrive.
-        console.error('[val] email send failed', e)
+        logger.fail('[val] email send failed', e)
       }
       await audit(c, 'login_code_sent', { actor: rawEmail, success: true })
     } else {
       // Record why we refused so we can spot abuse patterns later, but
       // never tell the client. See the always-`{ok: true}` below.
       await audit(c, 'login_code_refused', {
-        actor: emailValid ? rawEmail : null,
+        actor: emailValid ? rawEmail : undefined,
         success: false,
         meta: {
           reason: !emailValid

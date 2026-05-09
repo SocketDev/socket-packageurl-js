@@ -26,8 +26,8 @@ export const getIp = (c: Context): string =>
     {
       get: name =>
         name.toLowerCase() === 'x-forwarded-for'
-          ? c.req.header('x-forwarded-for') || null
-          : c.req.header(name) || null,
+          ? c.req.header('x-forwarded-for') || undefined
+          : c.req.header(name) || undefined,
     },
     TRUSTED_PROXY_HOPS,
   )

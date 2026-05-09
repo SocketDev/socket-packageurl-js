@@ -89,7 +89,7 @@ export const securityHeadersMiddleware = async (
 export const corsMiddleware = cors({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   origin: (origin =>
-    origin && ALLOWED_ORIGINS.has(origin) ? origin : null) as any,
+    origin && ALLOWED_ORIGINS.has(origin) ? origin : undefined) as any,
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowHeaders: ['authorization', 'content-type', 'x-request-id'],
   exposeHeaders: ['x-request-id'],

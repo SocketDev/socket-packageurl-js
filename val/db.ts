@@ -95,7 +95,7 @@ export const ensureDb = (async () => {
       `CREATE INDEX IF NOT EXISTS idx_audit_action_ts ON audit_log(action, ts)`,
     )
   } catch (e) {
-    console.error('[val] ensureDb failed', e)
+    logger.fail('[val] ensureDb failed', e)
     throw e
   }
 })()
@@ -121,7 +121,7 @@ export const cleanOldRows = async (): Promise<void> => {
       args: { c: auditCutoff },
     })
   } catch (e) {
-    console.warn('[val] cleanup failed', e)
+    logger.warn('[val] cleanup failed', e)
   }
 }
 

@@ -18,7 +18,7 @@ export const rowToComment = (row: CommentRow) => ({
   lineTo: row.line_to,
   author: row.author,
   body: row.body,
-  parentId: row.parent_id || null,
+  parentId: row.parent_id || undefined,
   resolved: !!row.resolved,
   createdAt: row.created_at,
 })

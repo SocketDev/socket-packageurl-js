@@ -27,17 +27,17 @@ export const audit = async (
       sql: 'INSERT INTO audit_log (id, actor, action, target, slug, ip_prefix, req_id, success, meta) VALUES (:id, :actor, :action, :target, :slug, :ipPrefix, :reqId, :success, :meta)',
       args: {
         id: crypto.randomUUID(),
-        actor: opts.actor ?? null,
+        actor: opts.actor ?? undefined,
         action,
-        target: opts.target ?? null,
-        slug: opts.slug ?? null,
+        target: opts.target ?? undefined,
+        slug: opts.slug ?? undefined,
         ipPrefix: scrubIp(c.get('ip')),
         reqId: c.get('reqId'),
         success: opts.success ? 1 : 0,
-        meta: opts.meta ? JSON.stringify(opts.meta) : null,
+        meta: opts.meta ? JSON.stringify(opts.meta) : undefined,
       },
     })
   } catch (e) {
-    console.warn('[val] audit write failed', e)
+    logger.warn('[val] audit write failed', e)
   }
 }

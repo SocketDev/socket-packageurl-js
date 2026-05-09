@@ -14,7 +14,7 @@ const INJ = '\x00'
 /**
  * Helper: cast PurlType[typeName] to access .validate(purl, throws).
  */
-function getValidator(
+export function getValidator(
   typeName: string,
 ): (purl: Record<string, unknown>, throws: boolean) => boolean {
   return (PurlType as any)[typeName]?.validate
