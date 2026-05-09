@@ -21,7 +21,7 @@ type TestsToRunOptions = {
 type TestsToRunResult = {
   mode?: string
   reason?: string
-  tests: string[] | 'all' | null
+  tests: string[] | 'all' | undefined
 }
 
 const rootPath: string = path.resolve(process.cwd())

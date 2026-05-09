@@ -90,6 +90,57 @@ const rule = {
       )
     }
 
+    function isPrototypeApiArg(node) {
+      // Object.create(null) / Reflect.setPrototypeOf(_, null) /
+      // Object.setPrototypeOf(_, null) — `null` is the canonical
+      // "no prototype" sentinel; `undefined` would change semantics
+      // (Object.create(undefined) throws TypeError, setPrototypeOf
+      // with undefined is a no-op).
+      const parent = node.parent
+      if (!parent || parent.type !== 'CallExpression') {
+        return false
+      }
+      const callee = parent.callee
+      // Member call: Object.create(null) / Reflect.setPrototypeOf(_, null)
+      if (callee.type === 'MemberExpression') {
+        const obj =
+          callee.object.type === 'Identifier' ? callee.object.name : ''
+        const prop =
+          callee.property.type === 'Identifier' ? callee.property.name : ''
+        if (
+          obj === 'Object' &&
+          prop === 'create' &&
+          parent.arguments[0] === node
+        ) {
+          return true
+        }
+        if (
+          (obj === 'Reflect' || obj === 'Object') &&
+          prop === 'setPrototypeOf' &&
+          parent.arguments[1] === node
+        ) {
+          return true
+        }
+        return false
+      }
+      // Direct call: ObjectCreate(null) / ReflectSetPrototypeOf(_, null) —
+      // the socket-lib primordials surface.
+      if (callee.type === 'Identifier') {
+        const name = callee.name
+        if (name === 'ObjectCreate' && parent.arguments[0] === node) {
+          return true
+        }
+        if (
+          (name === 'ReflectSetPrototypeOf' ||
+            name === 'ObjectSetPrototypeOf') &&
+          parent.arguments[1] === node
+        ) {
+          return true
+        }
+      }
+      return false
+    }
+
     return {
       Literal(node) {
         if (node.value !== null || node.raw !== 'null') {
@@ -103,6 +154,9 @@ const rule = {
           return
         }
         if (isJsonStringifyReplacer(node)) {
+          return
+        }
+        if (isPrototypeApiArg(node)) {
           return
         }
 

@@ -290,7 +290,7 @@ export async function runTests(
   const { mode, reason, tests: testsToRun } = testInfo
 
   // No tests needed
-  if (testsToRun === null) {
+  if (testsToRun === undefined) {
     logger.substep('No relevant changes detected, skipping tests')
     return 0
   }
