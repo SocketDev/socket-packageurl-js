@@ -23,8 +23,13 @@ const nodeMajor = Number.parseInt(
   10,
 )
 if (nodeMajor < NODE_MIN_MAJOR) {
+  // @socketsecurity/lib requires Node >= 25; the canonical logger
+  // isn't importable here. Use raw process.stderr with ASCII (no
+  // status-emoji glyph) so the no-status-emoji lint rule stays clean
+  // — the lint rule's recommendation (use logger.fail()) doesn't
+  // apply when the entire branch is the logger-unavailable bail.
   process.stderr.write(
-    `\x1b[0;31m✗ Hook requires Node >= ${NODE_MIN_MAJOR}.0.0 (have v${process.versions.node})\x1b[0m\n`,
+    `\x1b[0;31mHook requires Node >= ${NODE_MIN_MAJOR}.0.0 (have v${process.versions.node})\x1b[0m\n`,
   )
   process.stderr.write(
     'Install Node 25+ — these hooks rely on stable .mts type stripping.\n',
