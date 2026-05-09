@@ -34,7 +34,7 @@ type StagedFileCountViolation = {
 /**
  * Check if too many files are staged for commit.
  */
-async function validateStagedFileCount(): Promise<StagedFileCountViolation | null> {
+export async function validateStagedFileCount(): Promise<StagedFileCountViolation | null> {
   try {
     // Check if we're in a git repository
     const { stdout: gitRoot } = await execAsync(
@@ -46,7 +46,7 @@ async function validateStagedFileCount(): Promise<StagedFileCountViolation | nul
 
     if (!gitRoot.trim()) {
       // Not a git repository
-      return null
+      return undefined
     }
 
     // Get list of staged files
@@ -67,10 +67,10 @@ async function validateStagedFileCount(): Promise<StagedFileCountViolation | nul
       }
     }
 
-    return null
+    return undefined
   } catch {
     // Not a git repo or git not available
-    return null
+    return undefined
   }
 }
 

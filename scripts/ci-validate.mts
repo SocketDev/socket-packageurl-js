@@ -19,7 +19,7 @@ const logger: Logger = getDefaultLogger()
 const __dirname: string = path.dirname(fileURLToPath(import.meta.url))
 const rootPath: string = path.resolve(__dirname, '..')
 
-async function runCommand(
+export async function runCommand(
   command: string,
   args: string[] = [],
 ): Promise<number> {

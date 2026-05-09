@@ -73,7 +73,7 @@ const rootPath: string = path.resolve(
 )
 const WIN32: boolean = process.platform === 'win32'
 
-async function runCommand(
+export async function runCommand(
   command: string,
   args: string[] = [],
   options: SpawnOptions = {},
@@ -95,7 +95,7 @@ async function runCommand(
   }
 }
 
-async function runCommandWithOutput(
+export async function runCommandWithOutput(
   command: string,
   args: string[] = [],
   options: SpawnOptions = {},
@@ -136,7 +136,7 @@ async function runCommandWithOutput(
 /**
  * Read package.json from the project.
  */
-async function readPackageJson(
+export async function readPackageJson(
   pkgPath: string = rootPath,
 ): Promise<PackageJson> {
   const packageJsonPath: string = path.join(pkgPath, 'package.json')
@@ -147,7 +147,7 @@ async function readPackageJson(
 /**
  * Get the current version from package.json.
  */
-async function getCurrentVersion(
+export async function getCurrentVersion(
   pkgPath: string = rootPath,
 ): Promise<string | undefined> {
   const pkgJson: PackageJson = await readPackageJson(pkgPath)
@@ -157,7 +157,7 @@ async function getCurrentVersion(
 /**
  * Check if a version exists on npm.
  */
-async function versionExists(
+export async function versionExists(
   packageName: string,
   version: string,
 ): Promise<boolean> {
@@ -173,7 +173,7 @@ async function versionExists(
 /**
  * Validate that build artifacts exist based on package.json exports.
  */
-async function validateBuildArtifacts(): Promise<boolean> {
+export async function validateBuildArtifacts(): Promise<boolean> {
   logger.step('Validating build artifacts')
 
   const pkgJson: PackageJson = await readPackageJson()
@@ -241,7 +241,7 @@ async function validateBuildArtifacts(): Promise<boolean> {
  * instead of the working tree, so an interrupted publish leaves
  * `git status` clean.
  */
-async function stageForPublish(): Promise<string> {
+export async function stageForPublish(): Promise<string> {
   const stageRoot = await fs.mkdtemp(
     path.join(os.tmpdir(), `socket-packageurl-js-publish-${process.pid}-`),
   )
@@ -263,7 +263,9 @@ async function stageForPublish(): Promise<string> {
   return stageRoot
 }
 
-async function publishPackage(options: PublishOptions = {}): Promise<boolean> {
+export async function publishPackage(
+  options: PublishOptions = {},
+): Promise<boolean> {
   const { access = 'public', dryRun = false, otp, tag = 'latest' } = options
 
   const pkgJson: PackageJson = await readPackageJson()
@@ -368,7 +370,7 @@ async function publishPackage(options: PublishOptions = {}): Promise<boolean> {
  * Push existing git tag if it exists locally but not remotely.
  * Tags should be created with version bump commits, not by this script.
  */
-async function pushExistingTag(
+export async function pushExistingTag(
   version: string,
   options: PushTagOptions = {},
 ): Promise<boolean> {
@@ -424,14 +426,14 @@ async function pushExistingTag(
 /**
  * Check if the git working tree is clean (no uncommitted changes).
  */
-async function checkGitStatus(): Promise<boolean> {
+export async function checkGitStatus(): Promise<boolean> {
   const result = await runCommandWithOutput('git', ['status', '--porcelain'])
   const stdout =
     typeof result.stdout === 'string' ? result.stdout : result.stdout.toString()
   if (stdout.trim()) {
     logger.error('Working directory is not clean')
     logger.info('Uncommitted changes:')
-    console.log(stdout)
+    logger.log(stdout)
     return false
   }
   return true
@@ -476,21 +478,19 @@ async function main(): Promise<void> {
 
     // Show help if requested.
     if (values.help) {
-      console.log('\nUsage: pnpm release [options]')
-      console.log('\nOptions:')
-      console.log('  --help         Show this help message')
-      console.log('  --dry-run      Perform a dry-run without publishing')
-      console.log('  --force        Force publish even with warnings')
-      console.log('  --skip-tag     Skip git tag push')
-      console.log('  --tag <tag>    npm dist-tag (default: latest)')
-      console.log('  --access <access>  Package access level (default: public)')
-      console.log('  --otp <otp>    npm one-time password')
-      console.log('\nExamples:')
-      console.log(
-        '  pnpm release              # Validate artifacts and publish',
-      )
-      console.log('  pnpm release --dry-run    # Dry-run to test')
-      console.log('  pnpm release --otp 123456 # Publish with OTP')
+      logger.log('\nUsage: pnpm release [options]')
+      logger.log('\nOptions:')
+      logger.log('  --help         Show this help message')
+      logger.log('  --dry-run      Perform a dry-run without publishing')
+      logger.log('  --force        Force publish even with warnings')
+      logger.log('  --skip-tag     Skip git tag push')
+      logger.log('  --tag <tag>    npm dist-tag (default: latest)')
+      logger.log('  --access <access>  Package access level (default: public)')
+      logger.log('  --otp <otp>    npm one-time password')
+      logger.log('\nExamples:')
+      logger.log('  pnpm release              # Validate artifacts and publish')
+      logger.log('  pnpm release --dry-run    # Dry-run to test')
+      logger.log('  pnpm release --otp 123456 # Publish with OTP')
       process.exitCode = 0
       return
     }

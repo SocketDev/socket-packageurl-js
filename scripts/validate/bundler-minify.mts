@@ -30,7 +30,7 @@ const logger = getDefaultLogger()
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootPath = path.join(__dirname, '..', '..')
 
-async function validateMinify(): Promise<MinifyViolation[]> {
+export async function validateMinify(): Promise<MinifyViolation[]> {
   const configPath = path.join(rootPath, '.config/rolldown.config.mts')
 
   try {

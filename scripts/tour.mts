@@ -89,18 +89,18 @@ const MIME: Record<string, string> = {
   '.map': 'application/json; charset=utf-8',
 }
 
-function run(cmd: string, args: readonly string[], cwd: string): void {
+export function run(cmd: string, args: readonly string[], cwd: string): void {
   execFileSync(cmd, args, { cwd, stdio: 'inherit' })
 }
 
-async function isEmptyDir(dir: string): Promise<boolean> {
+export async function isEmptyDir(dir: string): Promise<boolean> {
   if (!existsSync(dir)) {
     return true
   }
   return (await fs.readdir(dir)).length === 0
 }
 
-async function ensureMeander(refresh: boolean): Promise<void> {
+export async function ensureMeander(refresh: boolean): Promise<void> {
   if (await isEmptyDir(meanderDir)) {
     run(
       'git',
@@ -123,7 +123,7 @@ async function ensureMeander(refresh: boolean): Promise<void> {
  * trailing `/`. Empty input means "served at the origin root" (no
  * rewrite needed). Input of just `/` also normalizes to empty.
  */
-function normalizeBasePath(raw: string): string {
+export function normalizeBasePath(raw: string): string {
   let p = raw.trim()
   if (!p || p === '/') {
     return ''
@@ -143,7 +143,7 @@ function normalizeBasePath(raw: string): string {
  * tour.json manifest (titles, summaries) without pulling in a
  * full sanitizer dep.
  */
-function escapeHtml(s: string): string {
+export function escapeHtml(s: string): string {
   return s
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
@@ -172,7 +172,7 @@ function escapeHtml(s: string): string {
  * parsed the fence, language attribute, and raw source; we just
  * intercept the one token type we care about.
  */
-async function processMermaidTokens(
+export async function processMermaidTokens(
   markdown: string,
   renderer: MermaidRenderer,
 ): Promise<string> {
@@ -197,7 +197,7 @@ async function processMermaidTokens(
             text: `<figure class="wt-mermaid">${svg}</figure>`,
           }
         } catch (e) {
-          console.warn(
+          logger.warn(
             `[mermaid] render failed: ${errorMessage(e)}\n--- source ---\n${source}\n---`,
           )
           list[i] = {
@@ -239,7 +239,7 @@ async function processMermaidTokens(
  * All same-origin, covered by CSP `default-src 'self'`. No CSP
  * / SRI interactions — these are static text files.
  */
-async function emitAiArtifacts(
+export async function emitAiArtifacts(
   buildDir: string,
   repoRoot: string,
   slug: string,
@@ -342,13 +342,9 @@ async function emitAiArtifacts(
  * links, kbd, samp are left alone so numeric literals in code
  * don't get wrapped.
  */
-function highlightProseNumbers(html: string): string {
+export function highlightProseNumbers(html: string): string {
   const root = parseHtml(html)
   const allowed = new Set([
-    'P',
-    'LI',
-    'TD',
-    'TH',
     'BLOCKQUOTE',
     'DD',
     'DT',
@@ -356,8 +352,12 @@ function highlightProseNumbers(html: string): string {
     'H2',
     'H3',
     'H4',
+    'LI',
+    'P',
+    'TD',
+    'TH',
   ])
-  const skip = new Set(['CODE', 'PRE', 'A', 'KBD', 'SAMP'])
+  const skip = new Set(['A', 'CODE', 'KBD', 'PRE', 'SAMP'])
   /* Numeric token regex:
    *   - optional ≥/≤/~ prefix
    *   - one or more digit groups separated by `.` (so 11.0.0 is
@@ -424,7 +424,7 @@ function highlightProseNumbers(html: string): string {
  * title match so variants ("Further Reading", "Further reading:")
  * get caught too.
  */
-function stripFurtherReading(html: string): string {
+export function stripFurtherReading(html: string): string {
   const root = parseHtml(html)
   const headings = root.querySelectorAll('h2')
   for (const h of headings) {
@@ -470,7 +470,7 @@ function stripFurtherReading(html: string): string {
  * the trailing annotation column, disable hljs auto-highlight.
  * The block stays as real text; we just add a class hook.
  */
-function enhanceRepoTrees(html: string): string {
+export function enhanceRepoTrees(html: string): string {
   const root = parseHtml(html)
   const preBlocks = root.querySelectorAll('pre')
   for (const pre of preBlocks) {
@@ -500,7 +500,7 @@ function enhanceRepoTrees(html: string): string {
  * letters / numbers / whitespace, collapse whitespace to `-`.
  * Collisions within a doc get a `-2`, `-3`, … suffix.
  */
-function anchorifyHeadings(html: string): string {
+export function anchorifyHeadings(html: string): string {
   const root = parseHtml(html)
   const used = new Set<string>()
   const headings = root.querySelectorAll('h2, h3, h4')
@@ -548,9 +548,9 @@ function anchorifyHeadings(html: string): string {
  * and contain no parens/tags/quotes, so nested or complex
  * expressions fall through without being mangled.
  */
-function italicizeParentheticals(html: string): string {
+export function italicizeParentheticals(html: string): string {
   const root = parseHtml(html)
-  const allowed = new Set(['P', 'LI', 'TD', 'TH', 'BLOCKQUOTE', 'DD', 'DT'])
+  const allowed = new Set(['BLOCKQUOTE', 'DD', 'DT', 'LI', 'P', 'TD', 'TH'])
   const walk = (node: HTMLElement): void => {
     const tag = node.tagName
     if (
@@ -600,20 +600,20 @@ function italicizeParentheticals(html: string): string {
  * Ampersands stay intact inside multi-word first tokens but
  * aren't counted as their own word.
  */
-function firstSignificantWord(title: string): string {
+export function firstSignificantWord(title: string): string {
   const stop = new Set([
+    '&',
     'a',
     'an',
-    'the',
     'and',
-    'or',
-    'of',
     'for',
-    'to',
     'in',
+    'of',
     'on',
+    'or',
+    'the',
+    'to',
     'with',
-    '&',
   ])
   const words = title.split(/\s+/)
   for (const w of words) {
@@ -649,7 +649,7 @@ type DocEntry = {
  * is lowercase to pair cleanly with an uppercase `wt-contents-
  * badge-tier-<tier>` CSS class that colors it.
  */
-function sizeTier(lines: number): {
+export function sizeTier(lines: number): {
   label: string
   key: 'x-small' | 'small' | 'medium' | 'large' | 'x-large'
 } {
@@ -677,7 +677,7 @@ function sizeTier(lines: number): {
  * overwrite one with the other. Detecting it here is strictly better
  * than discovering it when the wrong page ships.
  */
-function validateDocFilenames(
+export function validateDocFilenames(
   docs: readonly DocEntry[],
   partFilenames: ReadonlyMap<number, string>,
   configPath: string,
@@ -777,7 +777,7 @@ const buildHomeLinkHtml = (active: boolean): string =>
  * selected-state treatment the current part pill gets on a part page
  * — so users see the home icon as their current location.
  */
-function renderPartsPillRow(
+export function renderPartsPillRow(
   slug: string,
   partFilenames: ReadonlyMap<number, string>,
   homeActive: boolean = false,
@@ -810,7 +810,7 @@ function renderPartsPillRow(
  * current doc's pill with class="active"; pass `undefined` from part
  * pages so no pill is active.
  */
-function renderTopicsPillRow(
+export function renderTopicsPillRow(
   docs: ReadonlyMap<string, DocEntry>,
   activeFilename: string | undefined,
 ): string {
@@ -834,7 +834,7 @@ type RenderDocsOptions = {
   mermaidRenderer?: MermaidRenderer | undefined
 }
 
-async function renderDocs(
+export async function renderDocs(
   docs: ReadonlyMap<string, DocEntry>,
   slug: string,
   partFilenames: ReadonlyMap<number, string>,
@@ -1016,7 +1016,7 @@ async function renderDocs(
  * Runs as part of generate()'s post-meander fix-ups. Idempotent via a
  * class marker on the replaced block.
  */
-async function rewriteIndexContents(
+export async function rewriteIndexContents(
   partFilenames: ReadonlyMap<number, string>,
   partTitles: ReadonlyMap<number, string>,
   partObjectives: ReadonlyMap<number, string>,
@@ -1080,7 +1080,7 @@ async function rewriteIndexContents(
    * open in a new tab with noopener; bare "/" paths stay same-tab. */
   const renderLinks = (escaped: string): string =>
     escaped.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
-      const safeHref = /^(https?:\/\/|\/)/.test(href) ? href : null
+      const safeHref = /^(https?:\/\/|\/)/.test(href) ? href : undefined
       if (!safeHref) {
         return `[${label}](${href})`
       }
@@ -1315,7 +1315,7 @@ async function rewriteIndexContents(
  * so the build reports every broken part in one pass, not just the
  * first one found.
  */
-function validatePartFilenames(
+export function validatePartFilenames(
   parts: ReadonlyArray<{ id: number; title: string; filename?: string }>,
   configPath: string,
 ): Map<number, string> {
@@ -1369,7 +1369,7 @@ function validatePartFilenames(
  * Operates via node-html-parser selectors + attribute reads/writes,
  * so attribute-order and quoting style in the source don't matter.
  */
-function applyBasePath(
+export function applyBasePath(
   root: HTMLElement,
   basePath: string,
   slug: string,
@@ -1450,7 +1450,7 @@ function applyBasePath(
  * sha256 hex. We only produce integrity here — browser SRI + CSP want
  * SRI format.
  */
-function computeIntegrity(bytes: Uint8Array): string {
+export function computeIntegrity(bytes: Uint8Array): string {
   return `sha512-${cryptoHash('sha512', bytes, 'base64')}`
 }
 
@@ -1471,7 +1471,10 @@ function computeIntegrity(bytes: Uint8Array): string {
  *   frame-ancestors         none (clickjacking protection)
  *   default-src             self (fallback for anything not listed)
  */
-function buildCspMeta(root: HTMLElement, commentBackend: string): string {
+export function buildCspMeta(
+  root: HTMLElement,
+  commentBackend: string,
+): string {
   // Collect each inline script body, hash it as sha512 — same algo
   // as our SRI attributes, consistent with the fleet convention.
   // Meander + our post-processor both emit inline scripts (no src
@@ -1598,7 +1601,10 @@ function buildCspMeta(root: HTMLElement, commentBackend: string): string {
  *
  * Returns a ready-to-paste `sha384-<base64>` string.
  */
-async function sriForUrl(url: string, cacheDir: string): Promise<string> {
+export async function sriForUrl(
+  url: string,
+  cacheDir: string,
+): Promise<string> {
   const key = Buffer.from(url).toString('base64url')
   const cachePath = path.join(cacheDir, `${key}.txt`)
   if (existsSync(cachePath)) {
@@ -1629,7 +1635,7 @@ async function sriForUrl(url: string, cacheDir: string): Promise<string> {
  *
  * Idempotent — tags that already carry `integrity=` are left alone.
  */
-async function injectSri(
+export async function injectSri(
   root: HTMLElement,
   tourDir: string,
   basePath: string,
@@ -1641,9 +1647,9 @@ async function injectSri(
 
   const resolveIntegrity = async (ref: string): Promise<string | null> => {
     if (integrityByRef.has(ref)) {
-      return integrityByRef.get(ref) || null
+      return integrityByRef.get(ref) || undefined
     }
-    let integrity: string | null = null
+    let integrity: string | null = undefined
     if (ref.startsWith('https://unpkg.com/')) {
       integrity = await sriForUrl(ref, cacheDir)
     } else if (ref.startsWith('/')) {
@@ -1672,23 +1678,23 @@ async function injectSri(
     if (el.rawTagName.toLowerCase() === 'script') {
       const src = el.getAttribute('src')
       if (!src) {
-        return null
+        return undefined
       }
       return src.startsWith('https://unpkg.com/') || src.startsWith('/')
         ? src
-        : null
+        : undefined
     }
     const rel = (el.getAttribute('rel') ?? '').toLowerCase()
     if (!/\b(?:stylesheet|preload|modulepreload)\b/.test(rel)) {
-      return null
+      return undefined
     }
     const href = el.getAttribute('href')
     if (!href) {
-      return null
+      return undefined
     }
     return href.startsWith('https://unpkg.com/') || href.startsWith('/')
       ? href
-      : null
+      : undefined
   }
 
   const candidates: HTMLElement[] = []
@@ -1727,14 +1733,14 @@ async function injectSri(
   }
 }
 
-async function generate(
+export async function generate(
   refresh: boolean,
   minify: boolean,
   basePath: string,
   rest: readonly string[],
 ): Promise<void> {
   if (rest.length === 0) {
-    console.error(
+    logger.fail(
       'Usage: pnpm tour [--refresh] [--minify] [--base-path=/prefix] generate <tour.json>',
     )
     process.exit(1)
@@ -2934,7 +2940,7 @@ async function generate(
     if (!process.env['SKIP_AUDIT']) {
       await auditCdnScripts(buildDir)
     } else {
-      console.warn('[audit-deps] SKIP_AUDIT=1 — CDN audit SKIPPED')
+      logger.warn('[audit-deps] SKIP_AUDIT=1 — CDN audit SKIPPED')
     }
 
     // Rename meander's emitted shared stylesheet to its served name
@@ -3040,7 +3046,7 @@ async function generate(
  * (authored SVG source in drag.js / tour.mts stays intact; just
  * the emitted .html copies get shrunk).
  */
-async function shrinkInlineSvgs(buildDir: string): Promise<void> {
+export async function shrinkInlineSvgs(buildDir: string): Promise<void> {
   const htmlFiles = (await fs.readdir(buildDir)).filter(e =>
     e.endsWith('.html'),
   )
@@ -3109,7 +3115,7 @@ async function shrinkInlineSvgs(buildDir: string): Promise<void> {
   )
 }
 
-async function minifyEmittedAssets(buildDir: string): Promise<void> {
+export async function minifyEmittedAssets(buildDir: string): Promise<void> {
   const jsFiles = [
     'comments.js',
     'sw.js',
@@ -3166,7 +3172,7 @@ async function minifyEmittedAssets(buildDir: string): Promise<void> {
     )
   }
 
-  console.log(`Minified assets — saved ${(savedBytes / 1024).toFixed(1)} KB`)
+  logger.log(`Minified assets — saved ${(savedBytes / 1024).toFixed(1)} KB`)
 }
 
 /**
@@ -3176,7 +3182,7 @@ async function minifyEmittedAssets(buildDir: string): Promise<void> {
  * collisions. Mutates the DOM in place; walks inline scripts and removes
  * the ones whose body matches.
  */
-function stripInlinedCommentScripts(
+export function stripInlinedCommentScripts(
   root: HTMLElement,
   markers: readonly string[],
 ): void {
@@ -3191,7 +3197,7 @@ function stripInlinedCommentScripts(
   }
 }
 
-async function readSlug(): Promise<string> {
+export async function readSlug(): Promise<string> {
   // Meander bakes Val-Town-shaped links (/<slug>/part/<n>) into the HTML even
   // though it writes flat file names. Read the slug from manifest.json so we
   // can route those URLs to the right file.
@@ -3211,7 +3217,7 @@ async function readSlug(): Promise<string> {
  * isn't present (e.g. invoked from a fresh checkout without the
  * source config) — the route table falls back to the legacy shape.
  */
-async function readPartFilenames(): Promise<Map<number, string>> {
+export async function readPartFilenames(): Promise<Map<number, string>> {
   const configPath = path.join(repoRoot, 'tour.json')
   if (!existsSync(configPath)) {
     return new Map()
@@ -3228,7 +3234,7 @@ async function readPartFilenames(): Promise<Map<number, string>> {
   return map
 }
 
-function routeToFile(
+export function routeToFile(
   slug: string,
   urlPath: string,
   partFilenames: ReadonlyMap<number, string>,
@@ -3260,12 +3266,15 @@ function routeToFile(
   return urlPath.replace(/^\//, '')
 }
 
-async function serve(basePath: string, args: readonly string[]): Promise<void> {
+export async function serve(
+  basePath: string,
+  args: readonly string[],
+): Promise<void> {
   const portArg = args.find(a => a.startsWith('--port='))
   const port = portArg ? Number(portArg.slice('--port='.length)) : 8080
 
   if (!existsSync(outputDir)) {
-    console.error(
+    logger.fail(
       `No pages/ directory found. Run \`pnpm tour generate tour.json\` first.`,
     )
     process.exit(1)
@@ -3331,17 +3340,17 @@ async function serve(basePath: string, args: readonly string[]): Promise<void> {
   })
 
   server.listen(port, '127.0.0.1', () => {
-    console.log(`Serving ${outputDir} (slug: ${slug})`)
-    console.log(`  index  → http://127.0.0.1:${port}/`)
+    logger.log(`Serving ${outputDir} (slug: ${slug})`)
+    logger.log(`  index  → http://127.0.0.1:${port}/`)
     const firstFilename = partFilenames.get(1)
     if (firstFilename) {
-      console.log(
+      logger.log(
         `  part 1 → http://127.0.0.1:${port}/${slug}/part/1  (alias of /${firstFilename}.html)`,
       )
     } else {
-      console.log(`  part 1 → http://127.0.0.1:${port}/${slug}/part/1`)
+      logger.log(`  part 1 → http://127.0.0.1:${port}/${slug}/part/1`)
     }
-    console.log(`  Press Ctrl+C to stop.`)
+    logger.log(`  Press Ctrl+C to stop.`)
   })
 }
 
@@ -3352,14 +3361,14 @@ async function serve(basePath: string, args: readonly string[]): Promise<void> {
  * — no chokidar dep — and debounces at 200 ms so an editor's
  * multi-save-in-quick-succession writes only trigger one rebuild.
  */
-async function watch(
+export async function watch(
   refresh: boolean,
   minify: boolean,
   basePath: string,
   rest: readonly string[],
 ): Promise<void> {
   if (rest.length === 0) {
-    console.error('Usage: pnpm tour watch <tour.json>')
+    logger.fail('Usage: pnpm tour watch <tour.json>')
     process.exit(1)
   }
 
@@ -3403,9 +3412,9 @@ async function watch(
     building = true
     try {
       await generate(refresh, minify, basePath, rest)
-      console.log(`[watch] rebuilt at ${new Date().toLocaleTimeString()}`)
+      logger.log(`[watch] rebuilt at ${new Date().toLocaleTimeString()}`)
     } catch (e) {
-      console.error(`[watch] rebuild failed:`, errorMessage(e))
+      logger.fail(`[watch] rebuild failed:`, errorMessage(e))
     } finally {
       building = false
       if (dirtyWhileBuilding) {
@@ -3440,7 +3449,7 @@ async function watch(
     })
   }
 
-  console.log(
+  logger.log(
     `[watch] watching ${sourcesToWatch.length} source targets — Ctrl+C to stop.`,
   )
 }
@@ -3452,7 +3461,7 @@ const failWith =
   (scope: string) =>
   (err: unknown): never => {
     const msg = errorMessage(err)
-    console.error(`[${scope}] failed:`, msg)
+    logger.fail(`[${scope}] failed:`, msg)
     process.exit(1)
   }
 
@@ -3539,7 +3548,7 @@ function main(): void {
       // POSIX convention: --help is a successful request. Stdout, exit 0 —
       // so `pnpm tour --help > help.txt` works and shell checks
       // can detect availability by capturing stdout.
-      console.log(HELP_TEXT)
+      logger.log(HELP_TEXT)
       return
     case 'generate':
       generate(refresh, minify, basePath, rest.slice(1)).catch(
@@ -3564,7 +3573,7 @@ function main(): void {
     default:
       // Unknown command — stderr + non-zero exit, with a pointer to
       // --help rather than dumping the full usage block here.
-      console.error(
+      logger.fail(
         `Unknown command: ${command}\n\nRun \`pnpm tour --help\` for usage.`,
       )
       process.exit(1)
@@ -3605,7 +3614,7 @@ type DeployReceiptRow = {
  * summary. The summary is written to `$GITHUB_STEP_SUMMARY` when
  * present, and always to stdout.
  */
-async function printDeployReceipt(
+export async function printDeployReceipt(
   valName: string,
   valId: string,
   receipts: readonly DeployReceiptRow[],
@@ -3623,13 +3632,13 @@ async function printDeployReceipt(
     `| **total** | | | **${total}** | |`,
   ]
   const summary = lines.join('\n')
-  console.log('\n' + summary)
+  logger.log('\n' + summary)
   const summaryPath = process.env['GITHUB_STEP_SUMMARY']
   if (summaryPath) {
     try {
       await fs.appendFile(summaryPath, summary + '\n')
     } catch (e) {
-      console.warn(
+      logger.warn(
         '[valtown] could not write GITHUB_STEP_SUMMARY:',
         (e as Error).message,
       )
@@ -3637,7 +3646,7 @@ async function printDeployReceipt(
   }
 }
 
-async function deployValtown(args: readonly string[]): Promise<void> {
+export async function deployValtown(args: readonly string[]): Promise<void> {
   const envFile = path.join(repoRoot, '.env.local')
   if (existsSync(envFile)) {
     await loadDotEnv(envFile)
@@ -3657,7 +3666,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
   if (!process.env['SKIP_AUDIT']) {
     await auditValDeps(repoRoot)
   } else {
-    console.warn('[audit-deps] SKIP_AUDIT=1 — malware audit SKIPPED')
+    logger.warn('[audit-deps] SKIP_AUDIT=1 — malware audit SKIPPED')
   }
 
   const nameArg = args.find(a => a.startsWith('--name='))
@@ -3681,12 +3690,12 @@ async function deployValtown(args: readonly string[]): Promise<void> {
   if (!username) {
     throw new Error('Val Town API returned no username')
   }
-  console.log(`Logged in as: ${username}`)
+  logger.log(`Logged in as: ${username}`)
 
   // Find existing val by name via /me/vals. Alias endpoint uses a
   // lowercased slug form that doesn't always match how Val Town stores
   // the canonical name, so /me/vals is more reliable.
-  let valId: string | null = null
+  let valId: string | null = undefined
   const listRes = await httpRequest(`${API}/v2/me/vals?limit=100`, {
     headers: authHeader,
   })
@@ -3699,12 +3708,12 @@ async function deployValtown(args: readonly string[]): Promise<void> {
     )
     if (match) {
       valId = match.id
-      console.log(`Found existing val: ${valId} (name: ${match.name})`)
+      logger.log(`Found existing val: ${valId} (name: ${match.name})`)
     }
   }
 
   if (!valId) {
-    console.log(`Creating new val "${valName}"...`)
+    logger.log(`Creating new val "${valName}"...`)
     const created = await httpJson<{ id: string }>(`${API}/v2/vals`, {
       method: 'POST',
       headers: { ...authHeader, 'content-type': 'application/json' },
@@ -3715,7 +3724,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
       }),
     })
     valId = created.id
-    console.log(`Created val: ${valId}`)
+    logger.log(`Created val: ${valId}`)
   }
 
   // Auto-discover `val/*.ts`: filesystem-as-manifest. Any file added
@@ -3785,7 +3794,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
       action,
       bytes: content.length,
     })
-    console.log(
+    logger.log(
       `  ${action} ${f.path} (${content.length}B, sha256:${sha256.slice(0, 12)}…)`,
     )
   }
@@ -3817,7 +3826,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
       },
     )
     if (putRes.ok) {
-      console.log(`  Set env ${key}`)
+      logger.log(`  Set env ${key}`)
       continue
     }
     await httpJson(`${API}/v2/vals/${valId}/environment_variables`, {
@@ -3825,7 +3834,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
       headers: { ...authHeader, 'content-type': 'application/json' },
       body: JSON.stringify({ key, value }),
     })
-    console.log(`  Created env ${key}`)
+    logger.log(`  Created env ${key}`)
   }
 
   // Fetch the HTTP endpoint URL from Val Town — the file-id-based
@@ -3844,11 +3853,11 @@ async function deployValtown(args: readonly string[]): Promise<void> {
       publicUrl = endpoint
     }
   }
-  console.log('')
-  console.log(`Deployed. Public URL:  ${publicUrl}`)
-  console.log(`Val ID:                ${valId}`)
-  console.log('')
-  console.log(`Update tour.json: "commentBackend": "${publicUrl}"`)
+  logger.log('')
+  logger.log(`Deployed. Public URL:  ${publicUrl}`)
+  logger.log(`Val ID:                ${valId}`)
+  logger.log('')
+  logger.log(`Update tour.json: "commentBackend": "${publicUrl}"`)
 }
 
 /**
@@ -3856,7 +3865,7 @@ async function deployValtown(args: readonly string[]): Promise<void> {
  * surrounding quotes. Does not handle multi-line or escape sequences;
  * for our use case (a few API tokens), that's fine.
  */
-async function loadDotEnv(filePath: string): Promise<void> {
+export async function loadDotEnv(filePath: string): Promise<void> {
   const text = await fs.readFile(filePath, 'utf8')
   for (const rawLine of text.split(/\r?\n/)) {
     const line = rawLine.trim()
@@ -3904,7 +3913,7 @@ const CRED_URL = `${CRED_PROTOCOL}://${CRED_HOST}`
  * Returns empty string when nothing is found so callers can give a
  * purpose-specific error message.
  */
-function resolveValTownToken(): string {
+export function resolveValTownToken(): string {
   const fromStore = gitCredentialRead()
   if (fromStore) {
     return fromStore
@@ -3916,7 +3925,7 @@ function resolveValTownToken(): string {
  * Read a credential via `git credential fill`. Returns the password,
  * or empty string when no credential is stored (or git errors out).
  */
-function gitCredentialRead(): string {
+export function gitCredentialRead(): string {
   try {
     // Input is the credential "description" (protocol+host). Output is
     // a set of key=value lines including `password=<token>`. Git will
@@ -3940,7 +3949,7 @@ function gitCredentialRead(): string {
  * the first configured helper; absent a helper, this is a no-op
  * (and we warn elsewhere).
  */
-function gitCredentialWrite(token: string): void {
+export function gitCredentialWrite(token: string): void {
   execFileSync('git', ['credential', 'approve'], {
     input: `protocol=${CRED_PROTOCOL}\nhost=${CRED_HOST}\nusername=walkthrough\npassword=${token}\n\n`,
     stdio: ['pipe', 'ignore', 'ignore'],
@@ -3954,7 +3963,7 @@ function gitCredentialWrite(token: string): void {
  * entry (tested on osxkeychain — see git-credential(1)). Safe to call
  * when no credential exists.
  */
-function gitCredentialClear(): void {
+export function gitCredentialClear(): void {
   try {
     execFileSync('git', ['credential', 'reject'], {
       input: `protocol=${CRED_PROTOCOL}\nhost=${CRED_HOST}\nusername=walkthrough\n\n`,
@@ -3972,7 +3981,7 @@ function gitCredentialClear(): void {
  * git-credential silently succeeds but stores nothing, which is a
  * foot-gun worth flagging up-front.
  */
-function describeCredentialHelper(): string {
+export function describeCredentialHelper(): string {
   try {
     const helpers = execFileSync(
       'git',
@@ -4003,7 +4012,7 @@ function describeCredentialHelper(): string {
  *   status — reports which resolution source will be used next time
  *            a deploy runs.
  */
-async function tokenCli(args: readonly string[]): Promise<void> {
+export async function tokenCli(args: readonly string[]): Promise<void> {
   const sub = args[0] ?? 'status'
 
   if (sub === 'status') {
@@ -4021,12 +4030,12 @@ async function tokenCli(args: readonly string[]): Promise<void> {
       source = 'VALTOWN_TOKEN env var (from shell or .env.local)'
       hasToken = true
     }
-    console.log(`Platform:     ${process.platform} (${process.arch})`)
-    console.log(`Token source: ${source}`)
+    logger.log(`Platform:     ${process.platform} (${process.arch})`)
+    logger.log(`Token source: ${source}`)
     if (!hasToken) {
-      console.log('')
-      console.log('To store one (recommended):')
-      console.log('  pnpm tour token set')
+      logger.log('')
+      logger.log('To store one (recommended):')
+      logger.log('  pnpm tour token set')
     }
     return
   }
@@ -4083,14 +4092,14 @@ async function tokenCli(args: readonly string[]): Promise<void> {
       )
     }
     gitCredentialWrite(token)
-    console.log(`Stored via: ${helper}`)
-    console.log('To verify: `pnpm tour token status`.')
+    logger.log(`Stored via: ${helper}`)
+    logger.log('To verify: `pnpm tour token status`.')
     return
   }
 
   if (sub === 'clear') {
     gitCredentialClear()
-    console.log('Cleared (if present) via git credential reject.')
+    logger.log('Cleared (if present) via git credential reject.')
     return
   }
 
@@ -4102,7 +4111,7 @@ async function tokenCli(args: readonly string[]): Promise<void> {
  * is a TTY we flip the terminal to non-echo raw mode so the paste is
  * invisible; when piped (tests, scripts) we just read the line.
  */
-async function readTokenFromStdin(): Promise<string> {
+export async function readTokenFromStdin(): Promise<string> {
   const stdin = process.stdin
   const isTty = stdin.isTTY === true
 
@@ -4179,18 +4188,18 @@ type ExternalToolsManifest = {
  * all listed tools are treated as optional (the script itself falls
  * back when a tool is absent).
  */
-async function doctor(): Promise<void> {
+export async function doctor(): Promise<void> {
   const manifestPath = path.join(repoRoot, 'external-tools.json')
   if (!existsSync(manifestPath)) {
-    console.log('No external-tools.json found — skipping.')
+    logger.log('No external-tools.json found — skipping.')
     return
   }
   const manifest = JSON.parse(
     await fs.readFile(manifestPath, 'utf8'),
   ) as ExternalToolsManifest
 
-  console.log(`Platform: ${process.platform} (${process.arch})`)
-  console.log('')
+  logger.log(`Platform: ${process.platform} (${process.arch})`)
+  logger.log('')
 
   const entries = Object.entries(manifest.tools)
   const present: string[] = []
@@ -4206,36 +4215,34 @@ async function doctor(): Promise<void> {
 
   for (const name of present) {
     const tool = manifest.tools[name]
-    console.log(`  ✓ ${name}${tool.version ? ` (need ${tool.version})` : ''}`)
+    logger.log(`  ✓ ${name}${tool.version ? ` (need ${tool.version})` : ''}`)
   }
 
   if (missing.length === 0) {
-    console.log('')
-    console.log('All listed tools are on PATH.')
+    logger.log('')
+    logger.log('All listed tools are on PATH.')
     return
   }
 
-  console.log('')
-  console.log('Missing (or not on PATH):')
+  logger.log('')
+  logger.log('Missing (or not on PATH):')
   for (const [name, tool] of missing) {
-    console.log(
-      `  ✗ ${name}${tool.description ? ` — ${tool.description}` : ''}`,
-    )
+    logger.log(`  ✗ ${name}${tool.description ? ` — ${tool.description}` : ''}`)
     const notes = tool.notes
     if (notes) {
       const lines = Array.isArray(notes) ? notes : [notes]
       for (const line of lines) {
-        console.log(`      ${line}`)
+        logger.log(`      ${line}`)
       }
     }
   }
-  console.log('')
-  console.log(
+  logger.log('')
+  logger.log(
     'All listed tools are optional — the tour script falls back when they are absent.',
   )
 }
 
-function isOnPath(cmd: string): boolean {
+export function isOnPath(cmd: string): boolean {
   // On Windows, `where` is a real binary and works with execFileSync.
   // Elsewhere, `command -v` is a shell builtin, so spawn a shell and
   // pass the command as the single argv (not split — avoids the

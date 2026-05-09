@@ -45,7 +45,7 @@ const CORE_FILES = [
 /**
  * Map source files to their corresponding test files.
  */
-function mapSourceToTests(filepath: string): string[] {
+export function mapSourceToTests(filepath: string): string[] {
   const normalized: string = normalizePath(filepath)
 
   // Skip non-code files
@@ -123,7 +123,7 @@ export function getTestsToRun(
 
   if (changedFiles.length === 0) {
     // No changes, skip tests
-    return { tests: null, mode }
+    return { tests: undefined, mode }
   }
 
   const testFiles = new Set<string>()
@@ -189,7 +189,7 @@ export function getTestsToRun(
   }
 
   if (testFiles.size === 0) {
-    return { tests: null, mode }
+    return { tests: undefined, mode }
   }
 
   return { tests: Array.from(testFiles), mode }

@@ -62,49 +62,44 @@ const CDN_PATTERNS = [
 
 // Directories to skip
 const SKIP_DIRS = new Set([
-  'node_modules',
-  '.git',
-  'dist',
-  'build',
   '.cache',
-  'coverage',
+  '.git',
   '.next',
   '.nuxt',
   '.output',
   '.turbo',
   '.type-coverage',
   '.yarn',
-  // Vendored third-party submodule — meander's own code legitimately
-  // ships CDN references that we don't control and shouldn't rewrite.
-  'upstream',
-  // Generated output — the docs-site HTML loads unpkg bundles for
-  // marked + highlight.js by design. Integrity + CSP hashes protect
-  // those loads; the bare URL strings are expected.
+  'build',
+  'coverage',
+  'dist',
+  'node_modules',
   'pages',
+  'upstream',
 ])
 
 // File extensions to check
 const TEXT_EXTENSIONS = new Set([
-  '.js',
-  '.mjs',
-  '.cjs',
-  '.ts',
-  '.mts',
-  '.cts',
-  '.jsx',
-  '.tsx',
-  '.json',
-  '.md',
-  '.html',
-  '.htm',
-  '.css',
-  '.yml',
-  '.yaml',
-  '.xml',
-  '.svg',
-  '.txt',
-  '.sh',
   '.bash',
+  '.cjs',
+  '.css',
+  '.cts',
+  '.htm',
+  '.html',
+  '.js',
+  '.json',
+  '.jsx',
+  '.md',
+  '.mjs',
+  '.mts',
+  '.sh',
+  '.svg',
+  '.ts',
+  '.tsx',
+  '.txt',
+  '.xml',
+  '.yaml',
+  '.yml',
 ])
 
 type CdnViolation = {
@@ -121,7 +116,7 @@ type NodeError = Error & {
 /**
  * Check if file should be scanned.
  */
-function shouldScanFile(filename: string): boolean {
+export function shouldScanFile(filename: string): boolean {
   const ext = path.extname(filename).toLowerCase()
   return TEXT_EXTENSIONS.has(ext)
 }
@@ -129,7 +124,7 @@ function shouldScanFile(filename: string): boolean {
 /**
  * Recursively find all text files to scan.
  */
-async function findTextFiles(
+export async function findTextFiles(
   dir: string,
   files: string[] = [],
 ): Promise<string[]> {
@@ -178,7 +173,9 @@ const ALLOWED_FILES = [
   /scripts[\\/]audit-deps\.mts$/,
 ]
 
-async function checkFileForCdnRefs(filePath: string): Promise<CdnViolation[]> {
+export async function checkFileForCdnRefs(
+  filePath: string,
+): Promise<CdnViolation[]> {
   if (ALLOWED_FILES.some(re => re.test(filePath))) {
     return []
   }
@@ -222,7 +219,7 @@ async function checkFileForCdnRefs(filePath: string): Promise<CdnViolation[]> {
 /**
  * Validate all files for CDN references.
  */
-async function validateNoCdnRefs(): Promise<CdnViolation[]> {
+export async function validateNoCdnRefs(): Promise<CdnViolation[]> {
   const files = await findTextFiles(rootPath)
   const allViolations: CdnViolation[] = []
 

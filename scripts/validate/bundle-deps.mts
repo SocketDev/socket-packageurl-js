@@ -73,7 +73,7 @@ type BundleDependencyResult = {
 /**
  * Find all JavaScript files in dist directory.
  */
-async function findDistFiles(distPath: string): Promise<string[]> {
+export async function findDistFiles(distPath: string): Promise<string[]> {
   const files: string[] = []
 
   try {
@@ -103,7 +103,7 @@ async function findDistFiles(distPath: string): Promise<string[]> {
 /**
  * Check if a string is a valid package specifier.
  */
-function isValidPackageSpecifier(specifier: string): boolean {
+export function isValidPackageSpecifier(specifier: string): boolean {
   // Relative imports
   if (specifier.startsWith('.') || specifier.startsWith('/')) {
     return false
@@ -151,7 +151,7 @@ function isValidPackageSpecifier(specifier: string): boolean {
  * its output (esbuild stripped it), so the comment-aware pre-pass is
  * load-bearing for accurate dep extraction.
  */
-function stripComments(source: string): string {
+export function stripComments(source: string): string {
   // Remove /* ... */ blocks (greedy across lines).
   let out = source.replace(/\/\*[\s\S]*?\*\//g, '')
   // Remove leading whitespace + // line comments.
@@ -162,7 +162,9 @@ function stripComments(source: string): string {
 /**
  * Extract external package names from require() and import statements in built files.
  */
-async function extractExternalPackages(filePath: string): Promise<Set<string>> {
+export async function extractExternalPackages(
+  filePath: string,
+): Promise<Set<string>> {
   const raw = await fs.readFile(filePath, 'utf8')
   const content = stripComments(raw)
   const externals = new Set<string>()
@@ -214,7 +216,9 @@ async function extractExternalPackages(filePath: string): Promise<Set<string>> {
 /**
  * Extract bundled package names from node_modules paths in comments and code.
  */
-async function extractBundledPackages(filePath: string): Promise<Set<string>> {
+export async function extractBundledPackages(
+  filePath: string,
+): Promise<Set<string>> {
   const content = await fs.readFile(filePath, 'utf8')
   const bundled = new Set<string>()
 
@@ -276,15 +280,15 @@ async function extractBundledPackages(filePath: string): Promise<Set<string>> {
 /**
  * Get package name from a module specifier (strip subpaths).
  */
-function getPackageName(specifier: string): string | null {
+export function getPackageName(specifier: string): string | null {
   // Relative imports are not packages
   if (specifier.startsWith('.') || specifier.startsWith('/')) {
-    return null
+    return undefined
   }
 
   // Subpath imports (Node.js internal imports starting with #)
   if (specifier.startsWith('#')) {
-    return null
+    return undefined
   }
 
   // Filter out template strings, boolean strings, and other non-package patterns
@@ -309,7 +313,7 @@ function getPackageName(specifier: string): string | null {
     specifier.includes("'") ||
     specifier.includes('\\')
   ) {
-    return null
+    return undefined
   }
 
   // Scoped package: @scope/package or @scope/package/subpath
@@ -318,7 +322,7 @@ function getPackageName(specifier: string): string | null {
     if (parts.length >= 2) {
       return `${parts[0]}/${parts[1]}`
     }
-    return null
+    return undefined
   }
 
   // Regular package: package or package/subpath
@@ -329,7 +333,7 @@ function getPackageName(specifier: string): string | null {
 /**
  * Read and parse package.json.
  */
-async function readPackageJson(): Promise<PackageJsonLike> {
+export async function readPackageJson(): Promise<PackageJsonLike> {
   const packageJsonPath = path.join(rootPath, 'package.json')
   const content = await fs.readFile(packageJsonPath, 'utf8')
   return JSON.parse(content)
@@ -338,7 +342,7 @@ async function readPackageJson(): Promise<PackageJsonLike> {
 /**
  * Validate bundle dependencies.
  */
-async function validateBundleDeps(): Promise<BundleDependencyResult> {
+export async function validateBundleDeps(): Promise<BundleDependencyResult> {
   const distPath = path.join(rootPath, 'dist')
   const pkg = await readPackageJson()
 
@@ -350,7 +354,7 @@ async function validateBundleDeps(): Promise<BundleDependencyResult> {
   const distFiles = await findDistFiles(distPath)
 
   if (distFiles.length === 0) {
-    console.log('ℹ No dist files found - run build first')
+    logger.log('ℹ No dist files found - run build first')
     return { violations: [], warnings: [] }
   }
 
@@ -420,27 +424,27 @@ async function main(): Promise<void> {
     const { violations, warnings } = await validateBundleDeps()
 
     if (violations.length === 0 && warnings.length === 0) {
-      console.log('✓ Bundle dependencies validation passed')
+      logger.success('Bundle dependencies validation passed')
       process.exitCode = 0
       return
     }
 
     if (violations.length > 0) {
-      console.error('❌ Bundle dependencies validation failed\n')
+      logger.fail('Bundle dependencies validation failed\n')
 
       for (const violation of violations) {
-        console.error(`  ${violation.message}`)
-        console.error(`  ${violation.fix}`)
-        console.error('')
+        logger.fail(`  ${violation.message}`)
+        logger.fail(`  ${violation.fix}`)
+        logger.fail('')
       }
     }
 
     if (warnings.length > 0) {
-      console.log('⚠ Warnings:\n')
+      logger.warn('Warnings:\n')
 
       for (const warning of warnings) {
-        console.log(`  ${warning.message}`)
-        console.log(`  ${warning.fix}\n`)
+        logger.log(`  ${warning.message}`)
+        logger.log(`  ${warning.fix}\n`)
       }
     }
 
@@ -448,7 +452,7 @@ async function main(): Promise<void> {
     process.exitCode = violations.length > 0 ? 1 : 0
   } catch (e) {
     const message = errorMessage(e)
-    console.error('Validation failed:', message)
+    logger.fail('Validation failed:', message)
     process.exitCode = 1
   }
 }

@@ -50,7 +50,7 @@ const rootPath = path.resolve(
 /**
  * Clean specific directories.
  */
-async function cleanDirectories(
+export async function cleanDirectories(
   tasks: CleanTask[],
   options: CleanOptions = {},
 ): Promise<number> {
@@ -88,7 +88,7 @@ async function cleanDirectories(
       if (!quiet) {
         logger.error(`Failed to clean ${name}`)
         const message = errorMessage(e)
-        console.error(message)
+        logger.fail(message)
       }
       return 1
     }
@@ -145,26 +145,24 @@ async function main(): Promise<void> {
 
     // Show help if requested
     if (values.help) {
-      console.log('Clean Runner')
-      console.log('\nUsage: pnpm clean [options]')
-      console.log('\nOptions:')
-      console.log('  --help              Show this help message')
-      console.log(
-        '  --all               Clean everything (default if no flags)',
-      )
-      console.log('  --cache             Clean cache directories')
-      console.log('  --coverage          Clean coverage reports')
-      console.log('  --dist              Clean build output')
-      console.log('  --types             Clean TypeScript declarations only')
-      console.log('  --modules           Clean node_modules')
-      console.log('  --quiet, --silent   Suppress progress messages')
-      console.log('\nExamples:')
-      console.log(
+      logger.log('Clean Runner')
+      logger.log('\nUsage: pnpm clean [options]')
+      logger.log('\nOptions:')
+      logger.log('  --help              Show this help message')
+      logger.log('  --all               Clean everything (default if no flags)')
+      logger.log('  --cache             Clean cache directories')
+      logger.log('  --coverage          Clean coverage reports')
+      logger.log('  --dist              Clean build output')
+      logger.log('  --types             Clean TypeScript declarations only')
+      logger.log('  --modules           Clean node_modules')
+      logger.log('  --quiet, --silent   Suppress progress messages')
+      logger.log('\nExamples:')
+      logger.log(
         '  pnpm clean                  # Clean everything except node_modules',
       )
-      console.log('  pnpm clean --dist           # Clean build output only')
-      console.log('  pnpm clean --cache --coverage  # Clean cache and coverage')
-      console.log(
+      logger.log('  pnpm clean --dist           # Clean build output only')
+      logger.log('  pnpm clean --cache --coverage  # Clean cache and coverage')
+      logger.log(
         '  pnpm clean --all --modules  # Clean everything including node_modules',
       )
       process.exitCode = 0
@@ -216,7 +214,7 @@ async function main(): Promise<void> {
     }
 
     if (!quiet) {
-      console.log(
+      logger.log(
         createSectionHeader('Clean Runner', { width: 56, borderChar: '=' }),
       )
       logger.step('Cleaning project directories')

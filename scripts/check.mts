@@ -40,7 +40,9 @@ type CheckScriptValues = {
 
 const logger: Logger = getDefaultLogger()
 
-function isNoCdnRefsSelfScanFailure(result: CheckCommandResult): boolean {
+export function isNoCdnRefsSelfScanFailure(
+  result: CheckCommandResult,
+): boolean {
   const output = `${result.stdout}\n${result.stderr}`
   const violationFiles = Array.from(
     output.matchAll(/^\s{2}(.+):\d+$/gm),
@@ -60,7 +62,9 @@ function isNoCdnRefsSelfScanFailure(result: CheckCommandResult): boolean {
 /**
  * Run oxlint check via lint script.
  */
-async function runOxlintCheck(options: CheckRunOptions = {}): Promise<number> {
+export async function runOxlintCheck(
+  options: CheckRunOptions = {},
+): Promise<number> {
   const {
     all = false,
     changed = false,
@@ -88,10 +92,10 @@ async function runOxlintCheck(options: CheckRunOptions = {}): Promise<number> {
       logger.error('oxlint check failed')
     }
     if (result.stdout) {
-      console.log(result.stdout)
+      logger.log(result.stdout)
     }
     if (result.stderr) {
-      console.error(result.stderr)
+      logger.fail(result.stderr)
     }
     return result.exitCode
   }
@@ -108,7 +112,9 @@ async function runOxlintCheck(options: CheckRunOptions = {}): Promise<number> {
 /**
  * Run TypeScript type check.
  */
-async function runTypeCheck(options: CheckRunOptions = {}): Promise<number> {
+export async function runTypeCheck(
+  options: CheckRunOptions = {},
+): Promise<number> {
   const { quiet = false } = options
 
   if (!quiet) {
@@ -126,10 +132,10 @@ async function runTypeCheck(options: CheckRunOptions = {}): Promise<number> {
       logger.error('TypeScript check failed')
     }
     if (result.stdout) {
-      console.log(result.stdout)
+      logger.log(result.stdout)
     }
     if (result.stderr) {
-      console.error(result.stderr)
+      logger.fail(result.stderr)
     }
     return result.exitCode
   }
@@ -187,22 +193,22 @@ async function main(): Promise<void> {
 
     // Show help if requested
     if (values.help) {
-      console.log('Check Runner')
-      console.log('\nUsage: pnpm check [options]')
-      console.log('\nOptions:')
-      console.log('  --help         Show this help message')
-      console.log('  --lint         Run oxlint check only')
-      console.log('  --types        Run TypeScript check only')
-      console.log('  --all          Check all files (passes to lint)')
-      console.log('  --staged       Check staged files (passes to lint)')
-      console.log('  --changed      Check changed files (passes to lint)')
-      console.log('  --quiet, --silent  Suppress progress messages')
-      console.log('\nExamples:')
-      console.log('  pnpm check             # Run all checks on changed files')
-      console.log('  pnpm check --all       # Run all checks on all files')
-      console.log('  pnpm check --lint      # Run oxlint only')
-      console.log('  pnpm check --types     # Run TypeScript only')
-      console.log('  pnpm check --lint --staged  # Run oxlint on staged files')
+      logger.log('Check Runner')
+      logger.log('\nUsage: pnpm check [options]')
+      logger.log('\nOptions:')
+      logger.log('  --help         Show this help message')
+      logger.log('  --lint         Run oxlint check only')
+      logger.log('  --types        Run TypeScript check only')
+      logger.log('  --all          Check all files (passes to lint)')
+      logger.log('  --staged       Check staged files (passes to lint)')
+      logger.log('  --changed      Check changed files (passes to lint)')
+      logger.log('  --quiet, --silent  Suppress progress messages')
+      logger.log('\nExamples:')
+      logger.log('  pnpm check             # Run all checks on changed files')
+      logger.log('  pnpm check --all       # Run all checks on all files')
+      logger.log('  pnpm check --lint      # Run oxlint only')
+      logger.log('  pnpm check --types     # Run TypeScript only')
+      logger.log('  pnpm check --lint --staged  # Run oxlint on staged files')
       process.exitCode = 0
       return
     }
@@ -323,10 +329,10 @@ async function main(): Promise<void> {
           logger.error('CDN references validation failed')
         }
         if (result.stdout) {
-          console.log(result.stdout)
+          logger.log(result.stdout)
         }
         if (result.stderr) {
-          console.error(result.stderr)
+          logger.fail(result.stderr)
         }
         process.exitCode = exitCode
         return

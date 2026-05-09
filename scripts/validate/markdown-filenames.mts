@@ -36,8 +36,8 @@ const ALLOWED_SCREAMING_CASE = new Set([
   'CITATION',
   'CLAUDE',
   'CODE_OF_CONDUCT',
-  'CONTRIBUTORS',
   'CONTRIBUTING',
+  'CONTRIBUTORS',
   'COPYING',
   'CREDITS',
   'GOVERNANCE',
@@ -52,20 +52,18 @@ const ALLOWED_SCREAMING_CASE = new Set([
 
 // Directories to skip
 const SKIP_DIRS = new Set([
-  'node_modules',
-  '.git',
-  'dist',
-  'build',
   '.cache',
-  'coverage',
+  '.git',
   '.next',
   '.nuxt',
   '.output',
-  'reports',
-  // Vendored submodule — we don't control filenames in upstream code.
-  'upstream',
-  // Tour build output — generated HTML, not hand-authored markdown.
+  'build',
+  'coverage',
+  'dist',
+  'node_modules',
   'pages',
+  'reports',
+  'upstream',
 ])
 
 type MarkdownFilenameViolation = {
@@ -78,7 +76,7 @@ type MarkdownFilenameViolation = {
 /**
  * Check if a filename is in SCREAMING_CASE (all uppercase with optional underscores).
  */
-function isScreamingCase(filename: string): boolean {
+export function isScreamingCase(filename: string): boolean {
   // Remove extension for checking
   const nameWithoutExt = filename.replace(/\.(md|MD)$/, '')
 
@@ -89,7 +87,7 @@ function isScreamingCase(filename: string): boolean {
 /**
  * Check if a filename is lowercase-with-hyphens.
  */
-function isLowercaseHyphenated(filename: string): boolean {
+export function isLowercaseHyphenated(filename: string): boolean {
   // Remove extension for checking
   const nameWithoutExt = filename.replace(/\.md$/, '')
 
@@ -100,7 +98,7 @@ function isLowercaseHyphenated(filename: string): boolean {
 /**
  * Recursively find all markdown files.
  */
-async function findMarkdownFiles(
+export async function findMarkdownFiles(
   dir: string,
   files: string[] = [],
 ): Promise<string[]> {
@@ -132,7 +130,7 @@ async function findMarkdownFiles(
  * Check if file is in an allowed location for SCREAMING_CASE files.
  * SCREAMING_CASE files can only be at: root, docs/, or .claude/ (top level only).
  */
-function isInAllowedLocationForScreamingCase(filePath: string): boolean {
+export function isInAllowedLocationForScreamingCase(filePath: string): boolean {
   const relativePath = path.relative(rootPath, filePath)
   const dir = path.dirname(relativePath)
 
@@ -158,7 +156,7 @@ function isInAllowedLocationForScreamingCase(filePath: string): boolean {
  * Check if file is in an allowed location for regular markdown files.
  * Regular .md files must be within docs/ or .claude/ directories.
  */
-function isInAllowedLocationForRegularMd(filePath: string): boolean {
+export function isInAllowedLocationForRegularMd(filePath: string): boolean {
   const relativePath = path.relative(rootPath, filePath)
   const dir = path.dirname(relativePath)
 
@@ -178,7 +176,9 @@ function isInAllowedLocationForRegularMd(filePath: string): boolean {
 /**
  * Validate a markdown filename.
  */
-function validateFilename(filePath: string): MarkdownFilenameViolation | null {
+export function validateFilename(
+  filePath: string,
+): MarkdownFilenameViolation | null {
   const filename = path.basename(filePath)
   const nameWithoutExt = filename.replace(/\.(md|MD)$/, '')
   const relativePath = path.relative(rootPath, filePath)
@@ -186,7 +186,7 @@ function validateFilename(filePath: string): MarkdownFilenameViolation | null {
   // README.md and LICENSE are special - allowed anywhere
   if (nameWithoutExt === 'README' || nameWithoutExt === 'LICENSE') {
     // Valid - allowed in any location
-    return null
+    return undefined
   }
 
   // Check if it's an allowed SCREAMING_CASE file
@@ -201,7 +201,7 @@ function validateFilename(filePath: string): MarkdownFilenameViolation | null {
       }
     }
     // Valid
-    return null
+    return undefined
   }
 
   // Check if it's in SCREAMING_CASE but not allowed
@@ -252,13 +252,13 @@ function validateFilename(filePath: string): MarkdownFilenameViolation | null {
   }
 
   // Valid
-  return null
+  return undefined
 }
 
 /**
  * Validate all markdown filenames.
  */
-async function validateMarkdownFilenames(): Promise<
+export async function validateMarkdownFilenames(): Promise<
   MarkdownFilenameViolation[]
 > {
   const files = await findMarkdownFiles(rootPath)

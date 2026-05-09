@@ -34,7 +34,7 @@ type LinkDependencyViolation = {
 /**
  * Find all package.json files in the repository.
  */
-async function findPackageJsonFiles(dir: string): Promise<string[]> {
+export async function findPackageJsonFiles(dir: string): Promise<string[]> {
   const files: string[] = []
   const entries = await fs.readdir(dir, { withFileTypes: true })
 
@@ -64,7 +64,7 @@ async function findPackageJsonFiles(dir: string): Promise<string[]> {
 /**
  * Check if a package.json contains link: dependencies.
  */
-async function checkPackageJson(
+export async function checkPackageJson(
   filePath: string,
 ): Promise<LinkDependencyViolation[]> {
   const content = await fs.readFile(filePath, 'utf8')
@@ -141,34 +141,34 @@ async function main(): Promise<void> {
   }
 
   if (allViolations.length > 0) {
-    console.error('❌ Found link: dependencies (prohibited)')
-    console.error('')
-    console.error(
+    logger.fail('Found link: dependencies (prohibited)')
+    logger.fail('')
+    logger.fail(
       'Use workspace: protocol for monorepo packages or catalog: for centralized versions.',
     )
-    console.error('')
+    logger.fail('')
 
     for (const violation of allViolations) {
       const relativePath = path.relative(rootPath, violation.file)
-      console.error(`  ${relativePath}`)
-      console.error(
+      logger.fail(`  ${relativePath}`)
+      logger.fail(
         `    ${violation.field}.${violation.package}: "${violation.value}"`,
       )
     }
 
-    console.error('')
-    console.error('Replace link: with:')
-    console.error('  - workspace: for monorepo packages')
-    console.error('  - catalog: for centralized version management')
-    console.error('')
+    logger.fail('')
+    logger.fail('Replace link: with:')
+    logger.fail('  - workspace: for monorepo packages')
+    logger.fail('  - catalog: for centralized version management')
+    logger.fail('')
 
     process.exitCode = 1
   } else {
-    console.log('✓ No link: dependencies found')
+    logger.success('No link: dependencies found')
   }
 }
 
 main().catch((error: unknown) => {
-  console.error('Validation failed:', error)
+  logger.fail('Validation failed:', error)
   process.exitCode = 1
 })

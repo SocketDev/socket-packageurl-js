@@ -107,7 +107,7 @@ export async function createMermaidRenderer(
   /* Lazy-launch puppeteer — only pay the Chromium boot cost
    * (~1-2s) when we actually have a cache miss. A build where
    * every diagram is unchanged returns pure file reads. */
-  let browser: Browser | null = null
+  let browser: Browser | null = undefined
   const ensureBrowser = async (): Promise<Browser> => {
     if (!browser) {
       browser = await puppeteer.launch({
@@ -233,7 +233,7 @@ export async function createMermaidRenderer(
   const close = async (): Promise<void> => {
     if (browser) {
       await browser.close()
-      browser = null
+      browser = undefined
     }
   }
 

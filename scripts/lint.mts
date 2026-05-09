@@ -73,9 +73,9 @@ const CORE_FILES = new Set([
   'src/helpers.ts',
   'src/lang.ts',
   'src/objects.ts',
+  'src/purl-type.ts',
   'src/strings.ts',
   'src/validate.ts',
-  'src/purl-type.ts',
 ])
 
 // Config patterns that trigger a full lint
@@ -91,7 +91,7 @@ const CONFIG_PATTERNS = [
 /**
  * Check if we should run all linters based on changed files.
  */
-function shouldRunAllLinters(
+export function shouldRunAllLinters(
   changedFiles: readonly string[],
 ): RunAllLintResult {
   for (const file of changedFiles) {
@@ -114,15 +114,15 @@ function shouldRunAllLinters(
 /**
  * Filter files to only those that should be linted.
  */
-function filterLintableFiles(files: readonly string[]): string[] {
+export function filterLintableFiles(files: readonly string[]): string[] {
   // Only include extensions actually supported by oxfmt/oxlint
   const lintableExtensions = new Set([
+    '.cjs',
+    '.cts',
     '.js',
     '.mjs',
-    '.cjs',
-    '.ts',
-    '.cts',
     '.mts',
+    '.ts',
   ])
 
   return files.filter((file: string): boolean => {
@@ -139,7 +139,7 @@ function filterLintableFiles(files: readonly string[]): string[] {
 /**
  * Run linters on specific files.
  */
-async function runLintOnFiles(
+export async function runLintOnFiles(
   files: readonly string[],
   options: LintRunOptions = {},
 ): Promise<number> {
@@ -204,10 +204,10 @@ async function runLintOnFiles(
           logger.error(`${name} failed`)
         }
         if (result.stderr) {
-          console.error(result.stderr)
+          logger.fail(result.stderr)
         }
         if (result.stdout && !fix) {
-          console.log(result.stdout)
+          logger.log(result.stdout)
         }
         return result.exitCode
       }
@@ -226,7 +226,9 @@ async function runLintOnFiles(
 /**
  * Run linters on all files.
  */
-async function runLintOnAll(options: LintRunOptions = {}): Promise<number> {
+export async function runLintOnAll(
+  options: LintRunOptions = {},
+): Promise<number> {
   const { fix = false, quiet = false } = options
 
   if (!quiet) {
@@ -272,10 +274,10 @@ async function runLintOnAll(options: LintRunOptions = {}): Promise<number> {
           logger.error(`${name} failed`)
         }
         if (result.stderr) {
-          console.error(result.stderr)
+          logger.fail(result.stderr)
         }
         if (result.stdout && !fix) {
-          console.log(result.stdout)
+          logger.log(result.stdout)
         }
         return result.exitCode
       }
@@ -294,7 +296,7 @@ async function runLintOnAll(options: LintRunOptions = {}): Promise<number> {
 /**
  * Get files to lint based on options.
  */
-async function getFilesToLint(
+export async function getFilesToLint(
   options: Pick<LintScriptValues, 'all' | 'changed' | 'staged'>,
 ): Promise<LintTarget> {
   const { all, changed, staged } = options
@@ -313,20 +315,20 @@ async function getFilesToLint(
     mode = 'staged'
     changedFiles = await getStagedFiles({ absolute: false })
     if (!changedFiles.length) {
-      return { files: null, reason: 'no staged files', mode }
+      return { files: undefined, reason: 'no staged files', mode }
     }
   } else if (changed) {
     mode = 'changed'
     changedFiles = await getChangedFiles({ absolute: false })
     if (!changedFiles.length) {
-      return { files: null, reason: 'no changed files', mode }
+      return { files: undefined, reason: 'no changed files', mode }
     }
   } else {
     // Default to changed files if no specific flag
     mode = 'changed'
     changedFiles = await getChangedFiles({ absolute: false })
     if (!changedFiles.length) {
-      return { files: null, reason: 'no changed files', mode }
+      return { files: undefined, reason: 'no changed files', mode }
     }
   }
 
@@ -339,10 +341,10 @@ async function getFilesToLint(
   // Filter to lintable files
   const lintableFiles = filterLintableFiles(changedFiles)
   if (!lintableFiles.length) {
-    return { files: null, reason: 'no lintable files changed', mode }
+    return { files: undefined, reason: 'no lintable files changed', mode }
   }
 
-  return { files: lintableFiles, reason: null, mode }
+  return { files: lintableFiles, reason: undefined, mode }
 }
 
 async function main(): Promise<void> {
@@ -385,23 +387,21 @@ async function main(): Promise<void> {
 
     // Show help if requested
     if (values.help) {
-      console.log('Lint Runner')
-      console.log('\nUsage: pnpm lint [options] [files...]')
-      console.log('\nOptions:')
-      console.log('  --help         Show this help message')
-      console.log('  --fix          Automatically fix problems')
-      console.log('  --all          Lint all files')
-      console.log('  --changed      Lint changed files (default behavior)')
-      console.log('  --staged       Lint staged files')
-      console.log('  --quiet, --silent  Suppress progress messages')
-      console.log('\nExamples:')
-      console.log(
-        '  pnpm lint                   # Lint changed files (default)',
-      )
-      console.log('  pnpm lint --fix             # Fix issues in changed files')
-      console.log('  pnpm lint --all             # Lint all files')
-      console.log('  pnpm lint --staged --fix    # Fix issues in staged files')
-      console.log('  pnpm lint src/index.ts      # Lint specific file(s)')
+      logger.log('Lint Runner')
+      logger.log('\nUsage: pnpm lint [options] [files...]')
+      logger.log('\nOptions:')
+      logger.log('  --help         Show this help message')
+      logger.log('  --fix          Automatically fix problems')
+      logger.log('  --all          Lint all files')
+      logger.log('  --changed      Lint changed files (default behavior)')
+      logger.log('  --staged       Lint staged files')
+      logger.log('  --quiet, --silent  Suppress progress messages')
+      logger.log('\nExamples:')
+      logger.log('  pnpm lint                   # Lint changed files (default)')
+      logger.log('  pnpm lint --fix             # Fix issues in changed files')
+      logger.log('  pnpm lint --all             # Lint all files')
+      logger.log('  pnpm lint --staged --fix    # Fix issues in staged files')
+      logger.log('  pnpm lint src/index.ts      # Lint specific file(s)')
       process.exitCode = 0
       return
     }
@@ -410,7 +410,7 @@ async function main(): Promise<void> {
 
     if (!quiet) {
       printHeader('Lint Runner')
-      console.log('')
+      logger.log('')
     }
 
     let exitCode = 0
@@ -458,12 +458,12 @@ async function main(): Promise<void> {
     if (exitCode !== 0) {
       if (!quiet) {
         logger.error('')
-        console.log('Lint failed')
+        logger.log('Lint failed')
       }
       process.exitCode = exitCode
     } else {
       if (!quiet) {
-        console.log('')
+        logger.log('')
         logger.success('All lint checks passed!')
       }
     }

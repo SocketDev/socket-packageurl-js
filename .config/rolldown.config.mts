@@ -27,7 +27,7 @@ type PackageInfo = {
 /**
  * Extract package info from a pnpm node_modules path.
  */
-function extractPackageInfo(longPath: string): PackageInfo | undefined {
+export function extractPackageInfo(longPath: string): PackageInfo | undefined {
   // Scoped: node_modules/.pnpm/@scope+pkg@version/node_modules/@scope/pkg/path
   const scopedMatch = longPath.match(
     /node_modules\/\.pnpm\/@[^+/]+\+[^@/]+@([^/]+)\/node_modules\/(@[^/]+\/[^/]+)\/(.+)/,
@@ -60,7 +60,9 @@ function extractPackageInfo(longPath: string): PackageInfo | undefined {
  * version only when multiple versions of the same package would
  * collapse to the same short path.
  */
-function buildPathMap(modulePaths: ReadonlySet<string>): Map<string, string> {
+export function buildPathMap(
+  modulePaths: ReadonlySet<string>,
+): Map<string, string> {
   const shortPathGroups = new Map<
     string,
     Array<{ info: PackageInfo; longPath: string }>
@@ -109,7 +111,7 @@ function buildPathMap(modulePaths: ReadonlySet<string>): Map<string, string> {
  * dependency graph lean (no @babel/parser, no magic-string at build
  * time).
  */
-function createPathShorteningPlugin(): Plugin {
+export function createPathShorteningPlugin(): Plugin {
   return {
     name: 'shorten-module-paths',
     generateBundle(_options, bundle) {

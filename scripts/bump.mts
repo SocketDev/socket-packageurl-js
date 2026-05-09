@@ -63,7 +63,7 @@ const packagePromptsPath = path.join(
   'prompts.js',
 )
 
-let promptsPath: string | null = null
+let promptsPath: string | null = undefined
 if (existsSync(localPromptsPath)) {
   promptsPath = localPromptsPath
 } else if (existsSync(packagePromptsPath)) {
@@ -74,7 +74,7 @@ const hasInteractivePrompts: boolean = !!promptsPath
 
 // Conditionally import interactive prompts
 let prompts: Record<string, (...args: unknown[]) => Promise<unknown>> | null =
-  null
+  undefined
 if (hasInteractivePrompts) {
   try {
     prompts = (await import(promptsPath!)) as typeof prompts
@@ -86,7 +86,7 @@ if (hasInteractivePrompts) {
 /**
  * Create readline interface for user input.
  */
-function createReadline(): readline.Interface {
+export function createReadline(): readline.Interface {
   return readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -96,7 +96,7 @@ function createReadline(): readline.Interface {
 /**
  * Prompt user for input.
  */
-async function prompt(
+export async function prompt(
   question: string,
   defaultValue: string = '',
 ): Promise<string> {
@@ -113,7 +113,7 @@ async function prompt(
 /**
  * Prompt user for yes/no confirmation.
  */
-async function confirm(
+export async function confirm(
   question: string,
   defaultYes: boolean = true,
 ): Promise<boolean> {
@@ -125,7 +125,7 @@ async function confirm(
   return answer.toLowerCase().startsWith('y')
 }
 
-async function runCommand(
+export async function runCommand(
   command: string,
   args: string[] = [],
   options: SpawnOptions = {},
@@ -150,7 +150,7 @@ async function runCommand(
   })
 }
 
-async function runCommandWithOutput(
+export async function runCommandWithOutput(
   command: string,
   args: string[] = [],
   options: SpawnOptions & { input?: string } = {},
@@ -192,7 +192,7 @@ async function runCommandWithOutput(
 /**
  * Check if claude-console is available.
  */
-async function checkClaude(): Promise<string | false> {
+export async function checkClaude(): Promise<string | false> {
   const checkCommand: string = WIN32 ? 'where' : 'which'
   const result: CommandResult = await runCommandWithOutput(checkCommand, [
     'claude-console',
@@ -215,7 +215,7 @@ async function checkClaude(): Promise<string | false> {
 /**
  * Read package.json from the project.
  */
-async function readPackageJson(
+export async function readPackageJson(
   pkgPath: string = rootPath,
 ): Promise<PackageJson> {
   const packageJsonPath: string = path.join(pkgPath, 'package.json')
@@ -226,7 +226,7 @@ async function readPackageJson(
 /**
  * Write package.json to the project.
  */
-async function writePackageJson(
+export async function writePackageJson(
   pkgJson: PackageJson,
   pkgPath: string = rootPath,
 ): Promise<void> {
@@ -237,7 +237,7 @@ async function writePackageJson(
 /**
  * Get the current version from package.json.
  */
-async function getCurrentVersion(
+export async function getCurrentVersion(
   pkgPath: string = rootPath,
 ): Promise<string | undefined> {
   const pkgJson: PackageJson = await readPackageJson(pkgPath)
@@ -247,7 +247,7 @@ async function getCurrentVersion(
 /**
  * Determine the new version based on bump type.
  */
-function getNewVersion(
+export function getNewVersion(
   currentVersion: string,
   bumpType: string,
 ): string | null {
@@ -278,12 +278,12 @@ function getNewVersion(
 /**
  * Check if the working directory is clean.
  */
-async function checkGitStatus(): Promise<boolean> {
+export async function checkGitStatus(): Promise<boolean> {
   const result = await runCommandWithOutput('git', ['status', '--porcelain'])
   if (result.stdout.trim()) {
     logger.error('Working directory is not clean')
     logger.info('Uncommitted changes:')
-    console.log(result.stdout)
+    logger.log(result.stdout)
     return false
   }
   return true
@@ -292,7 +292,7 @@ async function checkGitStatus(): Promise<boolean> {
 /**
  * Check if we're on the main/master branch.
  */
-async function checkGitBranch(): Promise<boolean> {
+export async function checkGitBranch(): Promise<boolean> {
   const result = await runCommandWithOutput('git', [
     'rev-parse',
     '--abbrev-ref',
@@ -309,7 +309,7 @@ async function checkGitBranch(): Promise<boolean> {
 /**
  * Get the last few commits for context.
  */
-async function getRecentCommits(count: number = 20): Promise<string> {
+export async function getRecentCommits(count: number = 20): Promise<string> {
   const result = await runCommandWithOutput('git', [
     'log',
     '--oneline',
@@ -322,14 +322,14 @@ async function getRecentCommits(count: number = 20): Promise<string> {
 /**
  * Check if this is the registry package.
  */
-function isRegistryPackage(): boolean {
+export function isRegistryPackage(): boolean {
   return existsSync(path.join(rootPath, 'registry', 'package.json'))
 }
 
 /**
  * Get package name for commit message.
  */
-async function getPackageName(): Promise<string> {
+export async function getPackageName(): Promise<string> {
   if (isRegistryPackage()) {
     return 'registry package'
   }
@@ -340,7 +340,7 @@ async function getPackageName(): Promise<string> {
 /**
  * Generate changelog using Claude.
  */
-async function generateChangelog(
+export async function generateChangelog(
   claudeCmd: string,
   currentVersion: string,
   newVersion: string,
@@ -407,7 +407,7 @@ Be concise but informative. Group related changes together.`
 /**
  * Update CHANGELOG.md with new entry.
  */
-async function updateChangelog(changelogEntry: string): Promise<void> {
+export async function updateChangelog(changelogEntry: string): Promise<void> {
   const changelogPath = path.join(rootPath, 'CHANGELOG.md')
 
   let existingContent = ''
@@ -442,16 +442,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
  * Review and refine changelog with user feedback.
  * Uses interactive prompts if available, falls back to basic readline prompts.
  */
-async function reviewChangelog(
+export async function reviewChangelog(
   claudeCmd: string,
   changelogEntry: string,
   interactive: boolean = false,
 ): Promise<string> {
-  console.log(`\n${colors.blue('━'.repeat(60))}`)
-  console.log(colors.blue('Proposed Changelog Entry:'))
-  console.log(colors.blue('━'.repeat(60)))
-  console.log(changelogEntry)
-  console.log(`${colors.blue('━'.repeat(60))}\n`)
+  logger.log(`\n${colors.blue('━'.repeat(60))}`)
+  logger.log(colors.blue('Proposed Changelog Entry:'))
+  logger.log(colors.blue('━'.repeat(60)))
+  logger.log(changelogEntry)
+  logger.log(`${colors.blue('━'.repeat(60))}\n`)
 
   // Use interactive prompts if available and requested
   if (interactive && prompts) {
@@ -496,11 +496,11 @@ Provide the refined changelog entry in the same format.`
         changelogEntry = refineResult.stdout.trim()
         logger.done('Changelog refined')
 
-        console.log(`\n${colors.blue('━'.repeat(60))}`)
-        console.log(colors.blue('Refined Changelog Entry:'))
-        console.log(colors.blue('━'.repeat(60)))
-        console.log(changelogEntry)
-        console.log(`${colors.blue('━'.repeat(60))}\n`)
+        logger.log(`\n${colors.blue('━'.repeat(60))}`)
+        logger.log(colors.blue('Refined Changelog Entry:'))
+        logger.log(colors.blue('━'.repeat(60)))
+        logger.log(changelogEntry)
+        logger.log(`${colors.blue('━'.repeat(60))}\n`)
       } else {
         logger.failed('Failed to refine changelog')
       }
@@ -521,7 +521,7 @@ Provide the refined changelog entry in the same format.`
  * Interactive review using advanced prompts.
  * Provides a better user experience with select menus and structured feedback.
  */
-async function interactiveReviewChangelog(
+export async function interactiveReviewChangelog(
   claudeCmd: string,
   changelogEntry: string,
 ): Promise<string> {
@@ -530,10 +530,10 @@ async function interactiveReviewChangelog(
 
   while (true) {
     // Show the current changelog
-    console.log(`\n${colors.cyan('Current Changelog Entry:')}`)
-    console.log(colors.dim('─'.repeat(60)))
-    console.log(currentEntry)
-    console.log(`${colors.dim('─'.repeat(60))}\n`)
+    logger.log(`\n${colors.cyan('Current Changelog Entry:')}`)
+    logger.log(colors.dim('─'.repeat(60)))
+    logger.log(currentEntry)
+    logger.log(`${colors.dim('─'.repeat(60))}\n`)
 
     // Offer action choices
     const action = await prompts.select({
@@ -569,7 +569,7 @@ async function interactiveReviewChangelog(
     }
 
     if (action === 'manual') {
-      console.log(
+      logger.log(
         '\nEnter the changelog manually (paste and press Enter twice when done):',
       )
       const rl = createReadline()
@@ -721,41 +721,41 @@ async function main(): Promise<void> {
 
     // Show help if requested
     if (values.help) {
-      console.log('\nUsage: pnpm bump [options]')
-      console.log('\nOptions:')
-      console.log('  --help           Show this help message')
-      console.log('  --bump <type>    Version bump type (default: patch)')
-      console.log(
+      logger.log('\nUsage: pnpm bump [options]')
+      logger.log('\nOptions:')
+      logger.log('  --help           Show this help message')
+      logger.log('  --bump <type>    Version bump type (default: patch)')
+      logger.log(
         '                   Can be: major, minor, patch, premajor, preminor,',
       )
-      console.log(
+      logger.log(
         '                   prepatch, prerelease, or a specific version',
       )
-      console.log('  --interactive    Force interactive changelog review')
-      console.log('  --no-interactive Disable interactive mode')
-      console.log('  --skip-changelog Skip changelog generation with Claude')
-      console.log('  --skip-checks    Skip git status/branch checks')
-      console.log('  --no-push        Do not push changes to remote')
-      console.log('  --force          Force bump even with warnings')
-      console.log('\nExamples:')
-      console.log(
+      logger.log('  --interactive    Force interactive changelog review')
+      logger.log('  --no-interactive Disable interactive mode')
+      logger.log('  --skip-changelog Skip changelog generation with Claude')
+      logger.log('  --skip-checks    Skip git status/branch checks')
+      logger.log('  --no-push        Do not push changes to remote')
+      logger.log('  --force          Force bump even with warnings')
+      logger.log('\nExamples:')
+      logger.log(
         '  pnpm bump                    # Bump patch (interactive by default)',
       )
-      console.log('  pnpm bump --bump=minor       # Bump minor version')
-      console.log('  pnpm bump --no-interactive   # Use basic prompts')
-      console.log('  pnpm bump --bump=2.0.0       # Set specific version')
-      console.log(
+      logger.log('  pnpm bump --bump=minor       # Bump minor version')
+      logger.log('  pnpm bump --no-interactive   # Use basic prompts')
+      logger.log('  pnpm bump --bump=2.0.0       # Set specific version')
+      logger.log(
         '  pnpm bump --skip-changelog   # Skip AI changelog generation',
       )
-      console.log('\nRequires:')
-      console.log('  - claude-console (or claude) CLI tool installed')
-      console.log('  - Clean git working directory')
-      console.log('  - Main/master branch (unless --force)')
+      logger.log('\nRequires:')
+      logger.log('  - claude-console (or claude) CLI tool installed')
+      logger.log('  - Clean git working directory')
+      logger.log('  - Main/master branch (unless --force)')
       if (hasInteractivePrompts) {
-        console.log('\nInteractive mode: Available ✓ (default)')
+        logger.log('\nInteractive mode: Available ✓ (default)')
       } else {
-        console.log('\nInteractive mode: Not available')
-        console.log('  (install @socketsecurity/lib or build local registry)')
+        logger.log('\nInteractive mode: Not available')
+        logger.log('  (install @socketsecurity/lib or build local registry)')
       }
       process.exitCode = 0
       return
@@ -792,7 +792,7 @@ async function main(): Promise<void> {
     }
 
     // Check for Claude if not skipping changelog
-    let claudeCmd: string | false | null = null
+    let claudeCmd: string | false | null = undefined
     if (!values['skip-changelog']) {
       logger.progress('Checking for Claude CLI')
       claudeCmd = await checkClaude()
@@ -859,7 +859,7 @@ async function main(): Promise<void> {
     }
 
     // Generate and review changelog
-    let changelogEntry = null
+    let changelogEntry = undefined
     if (!values['skip-changelog'] && claudeCmd) {
       changelogEntry = await generateChangelog(
         claudeCmd,

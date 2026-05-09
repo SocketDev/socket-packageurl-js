@@ -61,7 +61,7 @@ const sdk = new SocketSdk(SOCKET_PUBLIC_API_TOKEN, { timeout: API_TIMEOUT_MS })
  * unreadable file doesn't abort the scan — failures collect into a
  * composite error and throw after the successful results are drained.
  */
-async function extractDepsFromDir(
+export async function extractDepsFromDir(
   dir: string,
   suffix: string,
   pattern: RegExp,
@@ -107,14 +107,14 @@ async function extractDepsFromDir(
  * by `name@version` string. Only direct deps — transitives come from
  * the pacote walk.
  */
-async function extractNpmDepsFromDir(dir: string): Promise<NpmDep[]> {
+export async function extractNpmDepsFromDir(dir: string): Promise<NpmDep[]> {
   return extractDepsFromDir(dir, '.ts', NPM_SPECIFIER_RE, 'direct')
 }
 
 /**
  * Extract unpkg script deps from generated HTML files.
  */
-async function extractCdnDepsFromDir(dir: string): Promise<NpmDep[]> {
+export async function extractCdnDepsFromDir(dir: string): Promise<NpmDep[]> {
   return extractDepsFromDir(dir, '.html', UNPKG_SCRIPT_RE, 'cdn')
 }
 
@@ -130,7 +130,7 @@ async function extractCdnDepsFromDir(dir: string): Promise<NpmDep[]> {
  * satisfied by the consumer; skip unless they land in the graph by
  * being declared as regular dependencies elsewhere.
  */
-async function walkTransitiveClosure(
+export async function walkTransitiveClosure(
   directs: readonly NpmDep[],
 ): Promise<NpmDep[]> {
   const closure = new Map<string, NpmDep>()
@@ -181,7 +181,7 @@ type AuditFinding = {
   alerts: Array<{ type: string; severity: string | undefined }>
 }
 
-async function checkMalwareBatched(
+export async function checkMalwareBatched(
   deps: readonly NpmDep[],
 ): Promise<AuditFinding[]> {
   const findings: AuditFinding[] = []
@@ -232,14 +232,14 @@ export async function auditValDeps(repoRoot: string): Promise<void> {
   const valDir = path.join(repoRoot, 'val')
   const directs = await extractNpmDepsFromDir(valDir)
   if (directs.length === 0) {
-    console.log('[audit-deps] no npm specifiers found in val/')
+    logger.log('[audit-deps] no npm specifiers found in val/')
     return
   }
-  console.log(
+  logger.log(
     `[audit-deps] val direct deps: ${directs.map(d => `${d.name}@${d.version}`).join(', ')}`,
   )
   const closure = await walkTransitiveClosure(directs)
-  console.log(
+  logger.log(
     `[audit-deps] resolved closure: ${closure.length} package${closure.length === 1 ? '' : 's'} (${closure.filter(c => c.source === 'direct').length} direct, ${closure.filter(c => c.source === 'transitive').length} transitive)`,
   )
   const findings = await checkMalwareBatched(closure)
@@ -254,27 +254,27 @@ export async function auditValDeps(repoRoot: string): Promise<void> {
 export async function auditCdnScripts(tourDir: string): Promise<void> {
   const cdnDeps = await extractCdnDepsFromDir(tourDir)
   if (cdnDeps.length === 0) {
-    console.log('[audit-deps] no unpkg CDN scripts in tour HTML')
+    logger.log('[audit-deps] no unpkg CDN scripts in tour HTML')
     return
   }
-  console.log(
+  logger.log(
     `[audit-deps] CDN scripts: ${cdnDeps.map(d => `${d.name}@${d.version}`).join(', ')}`,
   )
   const findings = await checkMalwareBatched(cdnDeps)
   reportAndThrow(findings, 'tour generation')
 }
 
-function reportAndThrow(findings: AuditFinding[], scope: string): void {
+export function reportAndThrow(findings: AuditFinding[], scope: string): void {
   if (findings.length === 0) {
-    console.log(`[audit-deps] ${scope}: clean`)
+    logger.log(`[audit-deps] ${scope}: clean`)
     return
   }
-  console.error(`[audit-deps] ${scope}: BLOCKED by Socket.dev`)
+  logger.fail(`[audit-deps] ${scope}: BLOCKED by Socket.dev`)
   for (const f of findings) {
     const alertsStr = f.alerts
       .map(a => `${a.type} (${a.severity ?? 'unspecified'})`)
       .join(', ')
-    console.error(
+    logger.fail(
       `  ${f.dep.name}@${f.dep.version} [${f.dep.source}] — ${alertsStr}`,
     )
   }

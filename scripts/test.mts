@@ -113,14 +113,14 @@ const removeExitHandler = onExit(
     }
 
     if (signal) {
-      console.log(`\nReceived ${signal}, cleaning up...`)
+      logger.log(`\nReceived ${signal}, cleaning up...`)
       // Let onExit handle the exit with proper code
       process.exitCode = 128 + (signal === 'SIGINT' ? 2 : 15)
     }
   },
 )
 
-async function runCommand(
+export async function runCommand(
   command: string,
   args: string[] = [],
   options: CommandOptions = {},
@@ -148,7 +148,7 @@ async function runCommand(
   })
 }
 
-async function runCommandWithOutput(
+export async function runCommandWithOutput(
   command: string,
   args: string[] = [],
   options: CommandOptions = {},
@@ -190,7 +190,7 @@ async function runCommandWithOutput(
   })
 }
 
-async function runCheck(): Promise<number> {
+export async function runCheck(): Promise<number> {
   logger.step('Running checks')
 
   // Run fix (auto-format) quietly since it has its own output
@@ -269,7 +269,7 @@ async function runCheck(): Promise<number> {
   return exitCode
 }
 
-async function runBuild(): Promise<number> {
+export async function runBuild(): Promise<number> {
   const distIndexPath = path.join(rootPath, 'dist', 'index.js')
   if (!existsSync(distIndexPath)) {
     logger.step('Building project')
@@ -278,7 +278,7 @@ async function runBuild(): Promise<number> {
   return 0
 }
 
-async function runTests(
+export async function runTests(
   options: TestSelectionOptions,
   positionals: string[] = [],
 ): Promise<number> {
@@ -395,7 +395,7 @@ async function runTests(
   return result.code
 }
 
-async function runIsolatedTests(): Promise<number> {
+export async function runIsolatedTests(): Promise<number> {
   // Check if there are any isolated tests
   const isolatedTests = await glob('test/**/*.isolated.test.mts', {
     cwd: rootPath,
@@ -481,30 +481,28 @@ async function main(): Promise<void> {
 
     // Show help if requested
     if (values.help) {
-      console.log('Test Runner')
-      console.log('\nUsage: pnpm test [options] [-- vitest-args...]')
-      console.log('\nOptions:')
-      console.log('  --help              Show this help message')
-      console.log(
+      logger.log('Test Runner')
+      logger.log('\nUsage: pnpm test [options] [-- vitest-args...]')
+      logger.log('\nOptions:')
+      logger.log('  --help              Show this help message')
+      logger.log(
         '  --fast, --quick     Skip lint/type checks for faster execution',
       )
-      console.log('  --cover, --coverage Run tests with code coverage')
-      console.log('  --update            Update test snapshots')
-      console.log('  --all, --force      Run all tests regardless of changes')
-      console.log('  --staged            Run tests affected by staged changes')
-      console.log('  --skip-build        Skip the build step')
-      console.log('\nExamples:')
-      console.log(
+      logger.log('  --cover, --coverage Run tests with code coverage')
+      logger.log('  --update            Update test snapshots')
+      logger.log('  --all, --force      Run all tests regardless of changes')
+      logger.log('  --staged            Run tests affected by staged changes')
+      logger.log('  --skip-build        Skip the build step')
+      logger.log('\nExamples:')
+      logger.log(
         '  pnpm test                  # Run checks, build, and tests for changed files',
       )
-      console.log('  pnpm test --all            # Run all tests')
-      console.log(
-        '  pnpm test --fast           # Skip checks for quick testing',
-      )
-      console.log('  pnpm test --cover          # Run with coverage report')
-      console.log('  pnpm test --fast --cover   # Quick test with coverage')
-      console.log('  pnpm test --update         # Update test snapshots')
-      console.log('  pnpm test -- --reporter=dot # Pass args to vitest')
+      logger.log('  pnpm test --all            # Run all tests')
+      logger.log('  pnpm test --fast           # Skip checks for quick testing')
+      logger.log('  pnpm test --cover          # Run with coverage report')
+      logger.log('  pnpm test --fast --cover   # Quick test with coverage')
+      logger.log('  pnpm test --update         # Update test snapshots')
+      logger.log('  pnpm test -- --reporter=dot # Pass args to vitest')
       process.exitCode = 0
       return
     }
@@ -577,6 +575,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  console.error(error)
+  logger.fail(error)
   process.exit(1)
 })

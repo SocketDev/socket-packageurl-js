@@ -82,7 +82,7 @@ const rootPath = path.resolve(
 )
 const distPath = path.join(rootPath, 'dist')
 
-function getErrorMessage(error: unknown): string {
+export function getErrorMessage(error: unknown): string {
   return errorMessage(error)
 }
 
@@ -92,7 +92,7 @@ function getErrorMessage(error: unknown): string {
  * metafile by default, and the only consumer is this --analyze CLI
  * flag, so reading the produced files directly is enough.
  */
-function getBuildAnalysis(): BuildAnalysis {
+export function getBuildAnalysis(): BuildAnalysis {
   const files: Array<{ name: string; size: string }> = []
   let totalBytes = 0
 
@@ -121,7 +121,7 @@ function getBuildAnalysis(): BuildAnalysis {
  * Build source code with rolldown.
  * Returns { exitCode, buildTime, outputs } for external logging.
  */
-async function buildSource(
+export async function buildSource(
   options: BuildSourceOptions = {},
 ): Promise<BuildSourceResult> {
   const { quiet = false, skipClean = false } = options
@@ -164,7 +164,7 @@ async function buildSource(
   } catch (e) {
     if (!quiet) {
       logger.error('Source build failed')
-      console.error(e)
+      logger.fail(e)
     }
     return { buildTime: 0, exitCode: 1, outputs: [] }
   }
@@ -174,7 +174,9 @@ async function buildSource(
  * Build TypeScript declarations.
  * Returns exitCode for external logging.
  */
-async function buildTypes(options: BuildTypesOptions = {}): Promise<number> {
+export async function buildTypes(
+  options: BuildTypesOptions = {},
+): Promise<number> {
   const {
     quiet = false,
     skipClean = false,
@@ -216,7 +218,9 @@ async function buildTypes(options: BuildTypesOptions = {}): Promise<number> {
 /**
  * Watch mode for development with incremental builds (68% faster rebuilds).
  */
-async function watchBuild(options: WatchBuildOptions = {}): Promise<number> {
+export async function watchBuild(
+  options: WatchBuildOptions = {},
+): Promise<number> {
   const { quiet = false, verbose = false } = options
 
   if (!quiet) {
@@ -237,7 +241,7 @@ async function watchBuild(options: WatchBuildOptions = {}): Promise<number> {
           }
         } else if (event.code === 'ERROR' && !quiet) {
           logger.error('Rebuild failed')
-          console.error(event.error)
+          logger.fail(event.error)
         }
       })
     }
@@ -260,7 +264,7 @@ async function watchBuild(options: WatchBuildOptions = {}): Promise<number> {
 /**
  * Check if build is needed.
  */
-function isBuildNeeded(): boolean {
+export function isBuildNeeded(): boolean {
   const distPath = path.join(rootPath, 'dist', 'index.js')
   const distTypesPath = path.join(rootPath, 'dist', 'types', 'index.d.ts')
 
@@ -460,9 +464,9 @@ async function main(): Promise<void> {
     // Print final status and footer
     if (!quiet) {
       if (exitCode === 0) {
-        logger.log(colors.green('✓ Build completed successfully!'))
+        logger.log(colors.green('Build completed successfully!'))
       } else {
-        logger.error(colors.red('✗ Build failed'))
+        logger.error(colors.red('Build failed'))
       }
       printFooter()
     }
