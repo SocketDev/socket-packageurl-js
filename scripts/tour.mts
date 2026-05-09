@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url'
 
 import { safeDelete } from '@socketsecurity/lib/fs'
 import { httpJson, httpRequest } from '@socketsecurity/lib/http-request'
+import { getDefaultLogger } from '@socketsecurity/lib/logger'
 
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'
@@ -34,6 +35,8 @@ import {
   type MermaidRenderer,
 } from './render-mermaid.mts'
 import { errorMessage } from './utils/error-message.mts'
+
+const logger = getDefaultLogger()
 
 const MEANDER_PATH = 'upstream/meander'
 

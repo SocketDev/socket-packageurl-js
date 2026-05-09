@@ -21,10 +21,13 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
 import { SOCKET_PUBLIC_API_TOKEN } from '@socketsecurity/lib/constants/socket'
+import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import { SocketSdk } from '@socketsecurity/sdk'
 import type { MalwareCheckPackage } from '@socketsecurity/sdk'
 import pacote from 'pacote'
 import semver from 'semver'
+
+const logger = getDefaultLogger()
 
 // Matches `npm:<scope?>/<name>@<version>(/subpath)?` — the Deno npm
 // specifier shape. `version` may be a semver range (we normalize it
