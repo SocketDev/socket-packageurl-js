@@ -124,10 +124,7 @@ const rule = {
         ) {
           return
         }
-        if (
-          obj.object.type !== 'Identifier' ||
-          obj.object.name !== 'process'
-        ) {
+        if (obj.object.type !== 'Identifier' || obj.object.name !== 'process') {
           return
         }
         if (hasBypassComment(node)) {

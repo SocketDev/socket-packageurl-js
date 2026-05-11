@@ -1,479 +1,196 @@
 /**
- * @fileoverview Unified lint runner with flag-based configuration.
- * Provides smart linting that can target affected files or lint everything.
+ * @fileoverview Canonical minimal lint runner for socket-* repos.
+ *
+ * Scope modes:
+ *   (default)   Lint files modified in the working tree vs HEAD.
+ *   --staged    Lint files in the git index (used by .husky/pre-commit).
+ *   --all       Lint the entire workspace.
+ *
+ * Flags:
+ *   --fix       Auto-fix issues.
+ *   --quiet     Suppress progress output.
+ *
+ * If the chosen scope has no lintable files, the script is a no-op.
+ *
+ * Config or infrastructure changes (.config/oxlintrc.json,
+ * .config/oxfmtrc.json, tsconfig*.json, pnpm-lock.yaml, .config/**,
+ * scripts/**, package.json) escalate to `--all` automatically, since they
+ * can affect everything.
+ *
+ * This is the minimal zero-dependency reference implementation. Larger repos
+ * (socket-lib, socket-registry, socket-sdk-js, etc.) use a richer version
+ * based on @socketsecurity/lib-stable helpers; this one keeps the same CLI
+ * contract so pre-commit hooks and CI work identically across repos.
  */
 
+import { execFileSync, execSync } from 'node:child_process'
+import type { ExecSyncOptions } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 
-import { isQuiet } from '@socketsecurity/lib/argv/flags'
-import type { FlagValues } from '@socketsecurity/lib/argv/flags'
-import { parseArgs } from '@socketsecurity/lib/argv/parse'
-import { getChangedFiles, getStagedFiles } from '@socketsecurity/lib/git'
-import type { Logger } from '@socketsecurity/lib/logger'
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
-import { printHeader } from '@socketsecurity/lib/stdio/header'
+const args = process.argv.slice(2)
+const mode: 'staged' | 'all' | 'modified' = args.includes('--all')
+  ? 'all'
+  : args.includes('--staged')
+    ? 'staged'
+    : 'modified'
+const fix = args.includes('--fix')
+const quiet = args.includes('--quiet') || args.includes('--silent')
+const stdio: ExecSyncOptions['stdio'] = quiet ? 'pipe' : 'inherit'
 
-import { runCommandQuiet } from './utils/run-command.mts'
-import { errorMessage } from './utils/error-message.mts'
+const LINTABLE_EXTS = new Set(['.js', '.mjs', '.cjs', '.ts', '.cts', '.mts'])
 
-type LintResult = {
-  exitCode: number
-  stderr: string
-  stdout: string
-}
-
-type RunAllLintResult =
-  | {
-      reason: 'core files changed' | 'config files changed'
-      runAll: true
-    }
-  | {
-      reason?: never
-      runAll: false
-    }
-
-type LintTarget =
-  | {
-      files: 'all'
-      mode: 'all'
-      reason: string
-    }
-  | {
-      files: undefined
-      mode: 'changed' | 'staged'
-      reason: string
-    }
-  | {
-      files: string[]
-      mode: 'changed' | 'staged'
-      reason: null
-    }
-
-type LintRunOptions = {
-  fix?: boolean
-  quiet?: boolean
-}
-
-type LintScriptValues = FlagValues & {
-  all: boolean
-  changed: boolean
-  fix: boolean
-  help: boolean
-  staged: boolean
-}
-
-const logger: Logger = getDefaultLogger()
-
-// Files that trigger a full lint when changed
-const CORE_FILES = new Set([
-  'src/constants.ts',
-  'src/error.ts',
-  'src/helpers.ts',
-  'src/lang.ts',
-  'src/objects.ts',
-  'src/purl-type.ts',
-  'src/strings.ts',
-  'src/validate.ts',
-])
-
-// Config patterns that trigger a full lint
-const CONFIG_PATTERNS = [
-  '.config/**',
-  'scripts/utils/**',
-  'pnpm-lock.yaml',
-  
-
-
+// Paths that, when touched, force a full-workspace lint.
+const ESCALATION_PATTERNS = [
+  /^\.config\//,
+  /^scripts\//,
+  /^pnpm-lock\.yaml$/,
+  /^tsconfig.*\.json$/,
+  /^package\.json$/,
+  /^lockstep\.schema\.json$/,
 ]
 
-/**
- * Filter files to only those that should be linted.
- */
-export function filterLintableFiles(files: readonly string[]): string[] {
-  // Only include extensions actually supported by oxfmt/oxlint
-  const lintableExtensions = new Set([
-    '.cjs',
-    '.cts',
-    '.js',
-    '.mjs',
-    '.mts',
-    '.ts',
-  ])
-
-  return files.filter((file: string): boolean => {
-    const ext = path.extname(file)
-    // Only lint files that have lintable extensions AND still exist.
-    if (!lintableExtensions.has(ext) || !existsSync(file)) {
-      return false
-    }
-
-    return true
-  })
-}
-
-/**
- * Get files to lint based on options.
- */
-export async function getFilesToLint(
-  options: Pick<LintScriptValues, 'all' | 'changed' | 'staged'>,
-): Promise<LintTarget> {
-  const { all, changed, staged } = options
-
-  // If --all, return early
-  if (all) {
-    return { files: 'all', reason: 'all flag specified', mode: 'all' }
-  }
-
-  // Get changed files
-  let changedFiles: string[] = []
-  // Track what mode we're in
-  let mode = 'changed'
-
-  if (staged) {
-    mode = 'staged'
-    changedFiles = await getStagedFiles({ absolute: false })
-    if (!changedFiles.length) {
-      return { files: undefined, reason: 'no staged files', mode }
-    }
-  } else if (changed) {
-    mode = 'changed'
-    changedFiles = await getChangedFiles({ absolute: false })
-    if (!changedFiles.length) {
-      return { files: undefined, reason: 'no changed files', mode }
-    }
-  } else {
-    // Default to changed files if no specific flag
-    mode = 'changed'
-    changedFiles = await getChangedFiles({ absolute: false })
-    if (!changedFiles.length) {
-      return { files: undefined, reason: 'no changed files', mode }
-    }
-  }
-
-  // Check if we should run all based on changed files
-  const { reason, runAll } = shouldRunAllLinters(changedFiles)
-  if (runAll) {
-    return { files: 'all', reason, mode: 'all' }
-  }
-
-  // Filter to lintable files
-  const lintableFiles = filterLintableFiles(changedFiles)
-  if (!lintableFiles.length) {
-    return { files: undefined, reason: 'no lintable files changed', mode }
-  }
-
-  return { files: lintableFiles, reason: undefined, mode }
-}
-
-/**
- * Run linters on all files.
- */
-export async function runLintOnAll(
-  options: LintRunOptions = {},
-): Promise<number> {
-  const { fix = false, quiet = false } = options
-
+function log(msg: string): void {
   if (!quiet) {
-    logger.progress('Linting all files')
+    console.log(msg)
   }
+}
 
-  const linters = [
-    {
-      args: [
-        'exec',
-        'oxfmt',
-        '--config',
-      
-        ...(fix ? ['--write'] : ['--check']),
-        '.',
-      ],
-      name: 'oxfmt',
-    },
-    {
-      args: [
-        'exec',
-        'oxlint',
-        '--config',
-      
-        '--tsconfig',
-        '.config/tsconfig.check.json',
-        '--import-plugin',
-        '--node-plugin',
-        ...(fix ? ['--fix'] : []),
-        '.',
-      ],
-      name: 'oxlint',
-    },
-  ]
+function gitFiles(command: string): string[] {
+  try {
+    const out = execSync(command, {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+    return out
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+  } catch {
+    return []
+  }
+}
 
-  for (const { args, name } of linters) {
-    const result: LintResult = await runCommandQuiet('pnpm', args)
+function getStagedFiles(): string[] {
+  return gitFiles('git diff --cached --name-only --diff-filter=ACMR')
+}
 
-    if (result.exitCode !== 0) {
-      // When fixing, non-zero exit codes are normal if fixes were applied.
-      if (!fix || (result.stderr && result.stderr.trim().length > 0)) {
-        if (!quiet) {
-          logger.error(`${name} failed`)
-        }
-        if (result.stderr) {
-          logger.fail(result.stderr)
-        }
-        if (result.stdout && !fix) {
-          logger.log(result.stdout)
-        }
-        return result.exitCode
+function getModifiedFiles(): string[] {
+  return gitFiles('git diff --name-only --diff-filter=ACMR HEAD')
+}
+
+function shouldEscalate(files: string[]): boolean {
+  for (const f of files) {
+    for (const pattern of ESCALATION_PATTERNS) {
+      if (pattern.test(f)) {
+        return true
       }
     }
   }
+  return false
+}
 
-  if (!quiet) {
-    logger.clearLine().done('Linting passed')
-    // Add newline after message (use error to write to same stream)
-    logger.error('')
+function filterLintable(files: string[]): string[] {
+  return files.filter(f => LINTABLE_EXTS.has(path.extname(f)) && existsSync(f))
+}
+
+function runAll(): number {
+  log('Formatting all files...')
+  try {
+    execSync(
+      `pnpm exec oxfmt -c .config/oxfmtrc.json ${fix ? '--write' : '--check'} .`,
+      { stdio },
+    )
+  } catch {
+    return 1
   }
-
+  log('Running oxlint on all files...')
+  try {
+    execSync(
+      `pnpm exec oxlint -c .config/oxlintrc.json${fix ? ' --fix' : ''}`,
+      { stdio },
+    )
+  } catch {
+    return 1
+  }
   return 0
 }
 
-/**
- * Run linters on specific files.
- */
-export async function runLintOnFiles(
-  files: readonly string[],
-  options: LintRunOptions = {},
-): Promise<number> {
-  const { fix = false, quiet = false } = options
-
-  if (!files.length) {
-    logger.substep('No files to lint')
+function runFiles(files: string[]): number {
+  if (files.length === 0) {
+    log('No lintable files; skipping.')
     return 0
   }
-
-  if (!quiet) {
-    logger.progress(`Linting ${files.length} file(s)`)
-  }
-
-  // Build the linter configurations.
-  const linters = [
-    {
-      args: [
-        'exec',
-        'oxfmt',
-        '--config',
-      
-        // Don't error when every staged file lands in oxfmt's
-        // ignorePatterns (e.g. only `.claude/**` files staged). The
-        // tool exits 0 with "No files found" instead of throwing.
-        '--no-error-on-unmatched-pattern',
-        ...(fix ? ['--write'] : ['--check']),
-        ...files,
-      ],
-      name: 'oxfmt',
-      enabled: true,
-    },
-    {
-      args: [
-        'exec',
-        'oxlint',
-        '--config',
-      
-        '--tsconfig',
-        '.config/tsconfig.check.json',
-        '--import-plugin',
-        '--node-plugin',
-        ...(fix ? ['--fix'] : []),
-        ...files,
-      ],
-      name: 'oxlint',
-      enabled: true,
-    },
+  log(`Formatting ${files.length} file(s)...`)
+  const oxfmtArgs = [
+    'exec',
+    'oxfmt',
+    '-c',
+    '.config/oxfmtrc.json',
+    fix ? '--write' : '--check',
+    '--no-error-on-unmatched-pattern',
+    ...files,
   ]
-
-  for (const { args, enabled, name } of linters) {
-    if (!enabled) {
-      continue
-    }
-
-    const result: LintResult = await runCommandQuiet('pnpm', args)
-
-    if (result.exitCode !== 0) {
-      // When fixing, non-zero exit codes are normal if fixes were applied.
-      if (!fix || (result.stderr && result.stderr.trim().length > 0)) {
-        if (!quiet) {
-          logger.error(`${name} failed`)
-        }
-        if (result.stderr) {
-          logger.fail(result.stderr)
-        }
-        if (result.stdout && !fix) {
-          logger.log(result.stdout)
-        }
-        return result.exitCode
-      }
-    }
+  try {
+    execFileSync('pnpm', oxfmtArgs, { stdio })
+  } catch {
+    return 1
   }
-
-  if (!quiet) {
-    logger.clearLine().done('Linting passed')
-    // Add newline after message (use error to write to same stream)
-    logger.error('')
+  log(`Running oxlint on ${files.length} file(s)...`)
+  const oxlintArgs = ['exec', 'oxlint', '-c', '.config/oxlintrc.json']
+  if (fix) {
+    oxlintArgs.push('--fix')
   }
-
+  oxlintArgs.push(...files)
+  try {
+    execFileSync('pnpm', oxlintArgs, { stdio })
+  } catch {
+    return 1
+  }
   return 0
 }
 
-/**
- * Check if we should run all linters based on changed files.
- */
-export function shouldRunAllLinters(
-  changedFiles: readonly string[],
-): RunAllLintResult {
-  for (const file of changedFiles) {
-    // Core library files
-    if (CORE_FILES.has(file)) {
-      return { runAll: true, reason: 'core files changed' }
+function main(): void {
+  if (mode === 'all') {
+    log('Lint scope: all')
+    process.exitCode = runAll()
+    if (process.exitCode === 0) {
+      log('Lint passed')
+    } else {
+      log('Lint failed')
     }
-
-    // Config or infrastructure files
-    for (const pattern of CONFIG_PATTERNS) {
-      if (file.includes(pattern.replace('**', ''))) {
-        return { runAll: true, reason: 'config files changed' }
-      }
-    }
+    return
   }
 
-  return { runAll: false }
-}
+  const files = mode === 'staged' ? getStagedFiles() : getModifiedFiles()
 
-async function main(): Promise<void> {
-  try {
-    // Parse arguments
-    const { positionals, values } = parseArgs<LintScriptValues>({
-      options: {
-        help: {
-          type: 'boolean',
-          default: false,
-        },
-        fix: {
-          type: 'boolean',
-          default: false,
-        },
-        all: {
-          type: 'boolean',
-          default: false,
-        },
-        changed: {
-          type: 'boolean',
-          default: false,
-        },
-        staged: {
-          type: 'boolean',
-          default: false,
-        },
-        quiet: {
-          type: 'boolean',
-          default: false,
-        },
-        silent: {
-          type: 'boolean',
-          default: false,
-        },
-      },
-      allowPositionals: true,
-      strict: false,
-    })
+  if (files.length === 0) {
+    log(`No ${mode} files; skipping lint.`)
+    return
+  }
 
-    // Show help if requested
-    if (values.help) {
-      logger.log('Lint Runner')
-      logger.log('\nUsage: pnpm lint [options] [files...]')
-      logger.log('\nOptions:')
-      logger.log('  --help         Show this help message')
-      logger.log('  --fix          Automatically fix problems')
-      logger.log('  --all          Lint all files')
-      logger.log('  --changed      Lint changed files (default behavior)')
-      logger.log('  --staged       Lint staged files')
-      logger.log('  --quiet, --silent  Suppress progress messages')
-      logger.log('\nExamples:')
-      logger.log('  pnpm lint                   # Lint changed files (default)')
-      logger.log('  pnpm lint --fix             # Fix issues in changed files')
-      logger.log('  pnpm lint --all             # Lint all files')
-      logger.log('  pnpm lint --staged --fix    # Fix issues in staged files')
-      logger.log('  pnpm lint src/index.ts      # Lint specific file(s)')
-      process.exitCode = 0
-      return
-    }
-
-    const quiet = isQuiet(values)
-
-    if (!quiet) {
-      printHeader('Lint Runner')
-      logger.log('')
-    }
-
-    let exitCode = 0
-
-    // Handle positional arguments (specific files)
-    if (positionals.length > 0) {
-      const files = filterLintableFiles(positionals)
-      if (!quiet) {
-        logger.step('Linting specified files')
-      }
-      exitCode = await runLintOnFiles(files, {
-        fix: values.fix,
-        quiet,
-      })
+  if (shouldEscalate(files)) {
+    log(`Config files changed; escalating to full lint.`)
+    process.exitCode = runAll()
+    if (process.exitCode === 0) {
+      log('Lint passed')
     } else {
-      // Get files to lint based on flags
-      const { files, mode, reason } = await getFilesToLint(values)
-
-      if (files === undefined) {
-        if (!quiet) {
-          logger.step('Skipping lint')
-          logger.substep(reason)
-        }
-        exitCode = 0
-      } else if (files === 'all') {
-        if (!quiet) {
-          logger.step(`Linting all files (${reason})`)
-        }
-        exitCode = await runLintOnAll({
-          fix: values.fix,
-          quiet,
-        })
-      } else {
-        if (!quiet) {
-          const modeText = mode === 'staged' ? 'staged' : 'changed'
-          logger.step(`Linting ${modeText} files`)
-        }
-        exitCode = await runLintOnFiles(files, {
-          fix: values.fix,
-          quiet,
-        })
-      }
+      log('Lint failed')
     }
+    return
+  }
 
-    if (exitCode !== 0) {
-      if (!quiet) {
-        logger.error('')
-        logger.log('Lint failed')
-      }
-      process.exitCode = exitCode
-    } else {
-      if (!quiet) {
-        logger.log('')
-        logger.success('All lint checks passed!')
-      }
-    }
-  } catch (e) {
-    logger.error(`Lint runner failed: ${errorMessage(e)}`)
-    process.exitCode = 1
+  const lintable = filterLintable(files)
+  log(
+    `Lint scope: ${mode} (${lintable.length} of ${files.length} files lintable)`,
+  )
+  process.exitCode = runFiles(lintable)
+  if (process.exitCode === 0) {
+    log('Lint passed')
+  } else {
+    log('Lint failed')
   }
 }
 
-main().catch((error: unknown) => {
-  logger.error(error)
-  process.exitCode = 1
-})
+main()

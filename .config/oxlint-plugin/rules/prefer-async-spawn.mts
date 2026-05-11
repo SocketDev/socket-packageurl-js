@@ -148,10 +148,7 @@ const rule = {
       // spawnSync` themselves if they really need a name). For the
       // common case (single `spawnSync` import), rewrite to `spawn`
       // and let the call sites get separately handled.
-      return fixer.replaceText(
-        node,
-        `import { spawn } from '${LIB_SPECIFIER}'`,
-      )
+      return fixer.replaceText(node, `import { spawn } from '${LIB_SPECIFIER}'`)
     }
 
     return {

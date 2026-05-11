@@ -34,15 +34,9 @@ import { appendImportFixes, summarizeImportTarget } from './_inject-import.mts'
 
 const ACCESS_METHODS = new Set(['access', 'accessSync'])
 const STAT_METHODS = new Set(['stat', 'statSync', 'lstat', 'lstatSync'])
-const WRAPPER_NAMES = new Set([
-  'fileExists',
-  'pathExists',
-  'isFile',
-  'isDir',
-])
+const WRAPPER_NAMES = new Set(['fileExists', 'pathExists', 'isFile', 'isDir'])
 
-const EXISTS_SYNC_IMPORT_LINE =
-  "import { existsSync } from 'node:fs'"
+const EXISTS_SYNC_IMPORT_LINE = "import { existsSync } from 'node:fs'"
 
 /** @type {import('eslint').Rule.RuleModule} */
 const rule = {
@@ -76,11 +70,7 @@ const rule = {
       if (summary) {
         return summary
       }
-      summary = summarizeImportTarget(
-        sourceCode.ast,
-        'node:fs',
-        'existsSync',
-      )
+      summary = summarizeImportTarget(sourceCode.ast, 'node:fs', 'existsSync')
       return summary
     }
 
