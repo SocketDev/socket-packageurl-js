@@ -1,3 +1,4 @@
+/* oxlint-disable socket/no-fetch-prefer-http-request -- service-worker; `fetch` is the platform primitive, no Node lib available. */
 /* ------------------------------------------------------------------
  * Docs-site service worker.
  *

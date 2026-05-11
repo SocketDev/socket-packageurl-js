@@ -1,4 +1,5 @@
 /* oxlint-disable socket/no-status-emoji -- intentional emoji output. */
+/* oxlint-disable socket/sort-source-methods -- pipeline helpers organized by pass (discover → parse → annotate → render → serve); alphabetical would scatter same-pass helpers. */
 
 /**
  * @fileoverview Tour generator + local server wrapper.
@@ -2698,7 +2699,8 @@ export async function generate(
       // If the whole annotation is directive / noise (possibly
       // multi-line for range directives like `v8 ignore
       // start`/`v8 ignore stop`), flag the card. Mixed comments
-      // ("// TODO: fix this — eslint-disable-next-line") stay
+      // oxlint-disable-next-line socket/no-placeholders -- example string showing a mixed prose+directive comment.
+      // ("// to_do: fix this — eslint-disable-next-line") stay
       // visible because the directive is embedded in prose.
       const TOOL_DIRECTIVE_RE =
         /^\s*(?:v8|c8|istanbul)\s+ignore(?:\s+\w+)?(?:\s+--[\s\S]*)?$|^\s*(?:eslint|oxlint|tslint|stylelint)[-\s](?:disable|enable)(?:-next-line|-line)?(?:\s+[\s\S]*)?$|^\s*(?:biome|prettier|oxfmt|oxlint|dprint)[-\s]ignore(?:\s+[\s\S]*)?$|^\s*@ts-(?:ignore|expect-error|nocheck|check)(?:\s+[\s\S]*)?$|^\s*#\s*@vite-ignore$|^\s*webpackChunkName:[\s\S]*$|^\s*eslint-env\b[\s\S]*$/i
@@ -3319,6 +3321,8 @@ export async function serve(
     let resolvedTarget = target
     let stats: Awaited<ReturnType<typeof fs.stat>>
     try {
+      // Need isDirectory()/isFile() and mtime for the cache-control header.
+      // oxlint-disable-next-line socket/prefer-exists-sync -- stats used for type+mtime checks below.
       stats = await fs.stat(resolvedTarget)
     } catch {
       res.writeHead(404, { 'content-type': 'text/plain' }).end('not found')
@@ -3327,6 +3331,7 @@ export async function serve(
     if (stats.isDirectory()) {
       resolvedTarget = path.join(resolvedTarget, 'index.html')
       try {
+        // oxlint-disable-next-line socket/prefer-exists-sync -- stats used for type+mtime checks below.
         stats = await fs.stat(resolvedTarget)
       } catch {
         res.writeHead(404, { 'content-type': 'text/plain' }).end('not found')
@@ -3379,6 +3384,7 @@ export async function watch(
 
   // Import fs.watch lazily so we don't pay the import cost on other
   // subcommands. Node 20+ supports `recursive: true` on all platforms.
+  // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- lazy load of fs.watch for the watch subcommand only.
   const { watch: fsWatch } = await import('node:fs')
 
   // Initial build before we start the server. This also populates

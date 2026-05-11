@@ -1,3 +1,4 @@
+/* oxlint-disable socket/sort-source-methods -- scanner helpers ordered by pipeline phase (discover → match → report). */
 /**
  * @fileoverview Fails `pnpm run check` when hardcoded CDN URLs land in
  * the codebase. Run as part of the repo's standard lint pipeline.

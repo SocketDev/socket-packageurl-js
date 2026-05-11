@@ -1,3 +1,4 @@
+/* oxlint-disable socket/sort-source-methods -- helpers ordered to match the audit pipeline (parse → resolve → score → report). */
 /**
  * @fileoverview Socket.dev malware audit for the tour pilot.
  *

@@ -75,10 +75,12 @@ if (existsSync(localPromptsPath)) {
 const hasInteractivePrompts: boolean = !!promptsPath
 
 // Conditionally import interactive prompts
-let prompts: Record<string, (...args: unknown[]) => Promise<unknown>> | null =
-  undefined
+let prompts:
+  | Record<string, (...args: unknown[]) => Promise<unknown>>
+  | undefined
 if (hasInteractivePrompts) {
   try {
+    // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- optional dependency path resolved at runtime.
     prompts = (await import(promptsPath!)) as typeof prompts
   } catch {
     // Fall back to basic prompts if import fails

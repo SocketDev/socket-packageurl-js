@@ -34,6 +34,7 @@ export async function validateMinify(): Promise<MinifyViolation[]> {
   const configPath = path.join(rootPath, '.config/rolldown.config.mts')
 
   try {
+    // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- loads the build config module at runtime.
     const mod = (await import(configPath)) as RolldownConfigModule
     const configs = mod.configs ?? mod.default
 

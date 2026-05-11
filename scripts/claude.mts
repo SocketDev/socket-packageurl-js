@@ -1,4 +1,5 @@
 /* oxlint-disable socket/no-status-emoji -- intentional emoji output. */
+/* oxlint-disable socket/sort-source-methods -- subcommand helpers grouped by domain (snapshot, cache, review, validate) and ordered to match the dispatch table at the bottom. */
 
 /**
  * @fileoverview Claude Code-powered utilities for Socket projects.
@@ -279,6 +280,7 @@ export async function cleanupOldData(): Promise<void> {
     const toDelete = []
     for (const snap of snapshots) {
       const snapPath = path.join(REPO_STORAGE.snapshots, snap)
+      // oxlint-disable-next-line socket/prefer-exists-sync -- mtime is the retention signal.
       const stats = await fs.stat(snapPath)
       if (now - stats.mtime.getTime() > RETENTION.snapshots) {
         toDelete.push(snapPath)
@@ -298,6 +300,7 @@ export async function cleanupOldData(): Promise<void> {
     const toDelete = []
     for (const file of cached) {
       const filePath = path.join(STORAGE_PATHS.cache, file)
+      // oxlint-disable-next-line socket/prefer-exists-sync -- mtime is the retention signal.
       const stats = await fs.stat(filePath)
       if (now - stats.mtime.getTime() > RETENTION.cache) {
         toDelete.push(filePath)
@@ -4199,7 +4202,8 @@ export async function validateBeforePush(cwd: string): Promise<boolean> {
     warnings.push(`${colors.yellow('')} Debugger statement detected`)
   }
 
-  // Check 4: No TODO/FIXME without issue link
+  // Check 4: deferral markers without issue link.
+  // oxlint-disable-next-line socket/no-placeholders -- regex detects placeholder markers in diffs.
   const todoMatches = diff.match(/^\+.*\/\/\s*(TODO|FIXME)(?!\s*\(#\d+\))/gim)
   if (todoMatches && todoMatches.length > 0) {
     warnings.push(

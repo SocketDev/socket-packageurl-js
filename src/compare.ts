@@ -1,3 +1,4 @@
+/* oxlint-disable socket/sort-source-methods -- comparators grouped by component (name → version → qualifiers → full purl) to mirror PURL spec walk order. */
 /**
  * @fileoverview PURL comparison utilities.
  * Functions for comparing `PackageURL` instances or PURL strings.

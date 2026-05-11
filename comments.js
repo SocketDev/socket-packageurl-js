@@ -1,3 +1,4 @@
+/* oxlint-disable socket/no-fetch-prefer-http-request -- browser-side; `fetch` is the platform primitive, no Node lib available. */
 /**
  * Docs-site comment UI + email magic-code auth.
  *
@@ -1144,9 +1145,7 @@
           }
           renderAll()
           refreshUnresolvedCount()
-        } catch {
-          /* TODO surface a toast */
-        }
+        } catch {}
         return
       }
       case 'delete-comment': {

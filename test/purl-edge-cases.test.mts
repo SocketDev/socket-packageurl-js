@@ -2639,6 +2639,7 @@ describe('Edge cases and additional coverage', () => {
     it('should reject whitespace-only tag_id via direct validate call', async () => {
       // Import swid validate directly to hit whitespace-only tag_id branch
       // (PackageURL constructor normalizes qualifiers before validation)
+      // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- lazy reach into a sibling module to exercise an internal branch.
       const swidMod = await import('../src/purl-types/swid.js')
       const mockPurl = { name: 'test', qualifiers: { tag_id: '   ' } }
 

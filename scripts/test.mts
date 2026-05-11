@@ -155,7 +155,7 @@ export async function runCheck(): Promise<number> {
       'exec',
       'oxlint',
       '--config',
-      '.oxlintrc.json',
+      '.config/oxlintrc.json',
       '--tsconfig',
       '.config/tsconfig.check.json',
       '--import-plugin',
@@ -174,7 +174,7 @@ export async function runCheck(): Promise<number> {
       'exec',
       'oxlint',
       '--config',
-      '.oxlintrc.json',
+      '.config/oxlintrc.json',
       '--tsconfig',
       '.config/tsconfig.check.json',
       '--import-plugin',
@@ -388,6 +388,7 @@ export async function runTests(
   // Use interactive runner for interactive Ctrl+O experience when appropriate
   if (process.stdout.isTTY) {
     const { runTests: runInteractiveTests } =
+      // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- lazy load TTY-only runner.
       (await import('./utils/interactive-runner.mts')) as InteractiveRunnerModule
     return runInteractiveTests(vitestPath, vitestArgs, {
       env: spawnOptions.env,

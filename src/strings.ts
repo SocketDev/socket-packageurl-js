@@ -1,3 +1,4 @@
+/* oxlint-disable socket/sort-source-methods -- helpers grouped by domain (predicates, mutators, transforms, injection-detection) — reordering alphabetically scatters tightly-related functions. */
 /**
  * @fileoverview String utility functions for PURL processing.
  * Includes whitespace detection, semver validation, locale comparison, and character replacement.
