@@ -251,7 +251,8 @@ class PackageURL {
       result.version = this.version
     }
     if (this.qualifiers !== undefined) {
-      const qualifiersCopy = ObjectCreate(undefined) as QualifiersObject
+      // oxlint-disable-next-line socket/prefer-undefined-over-null -- Object.create(null) / Reflect.setPrototypeOf(_, null) require the null sentinel.
+      const qualifiersCopy = ObjectCreate(null) as QualifiersObject
       for (const key of ObjectKeys(this.qualifiers)) {
         qualifiersCopy[key] = this.qualifiers[key]!
       }
@@ -897,7 +898,8 @@ for (const staticProp of ['Component', 'KnownQualifierNames', 'Type']) {
   })
 }
 
-ReflectSetPrototypeOf(PackageURL.prototype, undefined)
+// oxlint-disable-next-line socket/prefer-undefined-over-null -- Object.create(null) / Reflect.setPrototypeOf(_, null) require the null sentinel.
+ReflectSetPrototypeOf(PackageURL.prototype, null)
 
 // Register PackageURL with compare module for string-based comparison support.
 _registerPackageURL(PackageURL)

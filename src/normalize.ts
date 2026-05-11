@@ -114,7 +114,8 @@ export function normalizeQualifiers(
       continue
     }
     if (qualifiers === undefined) {
-      qualifiers = ObjectCreate(undefined) as Record<string, string>
+      // oxlint-disable-next-line socket/prefer-undefined-over-null -- Object.create(null) / Reflect.setPrototypeOf(_, null) require the null sentinel.
+      qualifiers = ObjectCreate(null) as Record<string, string>
     }
     // A key is case insensitive. The canonical form is lowercase
     qualifiers[StringPrototypeToLowerCase(key)] = trimmed

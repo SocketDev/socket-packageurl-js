@@ -37,11 +37,13 @@ export function createHelpersNamespaceObject(
     ],
     comparator,
   )
-  const nsObject: Record<string, Record<string, unknown>> = ObjectCreate(undefined)
+  // oxlint-disable-next-line socket/prefer-undefined-over-null -- Object.create(null) / Reflect.setPrototypeOf(_, null) require the null sentinel.
+  const nsObject: Record<string, Record<string, unknown>> = ObjectCreate(null)
   // Build inverted structure: property -> {helper1: value1, helper2: value2}
   for (let i = 0, { length } = propNames; i < length; i += 1) {
     const propName = propNames[i]!
-    const helpersForProp: Record<string, unknown> = ObjectCreate(undefined)
+    // oxlint-disable-next-line socket/prefer-undefined-over-null -- Object.create(null) / Reflect.setPrototypeOf(_, null) require the null sentinel.
+    const helpersForProp: Record<string, unknown> = ObjectCreate(null)
     for (
       let j = 0, { length: helperNamesLength } = helperNames;
       j < helperNamesLength;
