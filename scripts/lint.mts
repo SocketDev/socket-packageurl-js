@@ -83,9 +83,9 @@ const CONFIG_PATTERNS = [
   '.config/**',
   'scripts/utils/**',
   'pnpm-lock.yaml',
-  'tsconfig*.json',
-  '.oxlintrc.json',
-  '.oxfmtrc.json',
+  
+
+
 ]
 
 /**
@@ -185,7 +185,7 @@ export async function runLintOnAll(
         'exec',
         'oxfmt',
         '--config',
-        '.oxfmtrc.json',
+      
         ...(fix ? ['--write'] : ['--check']),
         '.',
       ],
@@ -196,7 +196,7 @@ export async function runLintOnAll(
         'exec',
         'oxlint',
         '--config',
-        '.oxlintrc.json',
+      
         '--tsconfig',
         '.config/tsconfig.check.json',
         '--import-plugin',
@@ -262,7 +262,7 @@ export async function runLintOnFiles(
         'exec',
         'oxfmt',
         '--config',
-        '.oxfmtrc.json',
+      
         // Don't error when every staged file lands in oxfmt's
         // ignorePatterns (e.g. only `.claude/**` files staged). The
         // tool exits 0 with "No files found" instead of throwing.
@@ -278,7 +278,7 @@ export async function runLintOnFiles(
         'exec',
         'oxlint',
         '--config',
-        '.oxlintrc.json',
+      
         '--tsconfig',
         '.config/tsconfig.check.json',
         '--import-plugin',

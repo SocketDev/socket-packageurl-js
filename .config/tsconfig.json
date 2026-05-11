@@ -1,13 +1,14 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "declaration": true,
     "declarationMap": false,
-    "emitDeclarationOnly": true,
     "module": "commonjs",
     "moduleResolution": "bundler",
+    "noEmit": false,
+    "noEmitOnError": false,
     "outDir": "../dist",
     "rootDir": "../src",
+    "skipLibCheck": true,
     "sourceMap": false,
     "types": [
       "node"
@@ -16,5 +17,12 @@
   },
   "include": [
     "../src/**/*.ts"
+  ],
+  "exclude": [
+    "../.cache",
+    "../coverage",
+    "../dist",
+    "../node_modules",
+    "../test"
   ]
 }
