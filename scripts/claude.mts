@@ -1,3 +1,5 @@
+/* oxlint-disable socket/no-status-emoji -- intentional emoji output. */
+
 /**
  * @fileoverview Claude Code-powered utilities for Socket projects.
  * Provides various AI-assisted development tools and automations using Claude Code CLI.

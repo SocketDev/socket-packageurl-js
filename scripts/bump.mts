@@ -1,3 +1,5 @@
+/* oxlint-disable socket/no-status-emoji -- intentional emoji output. */
+
 /**
  * @fileoverview Version bump script with AI-powered changelog generation.
  * Creates version bump commits with package.json, lockfile, and changelog updates.
