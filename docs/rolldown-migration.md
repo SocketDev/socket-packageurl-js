@@ -69,7 +69,7 @@ If acceptance passes for `socket-packageurl-js`:
 1. Apply the same migration to `socket-sdk-js` (similar shape, same lib-stub trick may apply).
 2. Apply to `socket-lib` (more complex — the build is monorepo-aware).
 3. Migrate the `_shared/scripts/` resolver (per the Vite+ inspiration in
-   `socket-repo-template/template/.claude/skills/_shared/skill-authoring.md`)
+   `socket-wheelhouse/template/.claude/skills/_shared/skill-authoring.md`)
    so future bundler swaps are one-line changes per fleet.
 
 ## Stage 2 (optional, post-rolldown): comptime
@@ -93,4 +93,4 @@ If acceptance fails: drop the migration commits, file findings with the rolldown
 - [VoidZero — announcing rolldown](https://voidzero.dev/posts/announcing-rolldown)
 - esbuild config (current): [`.config/esbuild.config.mjs`](../.config/esbuild.config.mjs)
 - Build runner (current): [`scripts/build.mts`](../scripts/build.mts)
-- Fleet build-tool decision: [`socket-repo-template/template/.claude/skills/_shared/skill-authoring.md`](https://github.com/SocketDev/socket-repo-template/blob/main/template/.claude/skills/_shared/skill-authoring.md)
+- Fleet build-tool decision: [`socket-wheelhouse/template/.claude/skills/_shared/skill-authoring.md`](https://github.com/SocketDev/socket-wheelhouse/blob/main/template/.claude/skills/_shared/skill-authoring.md)

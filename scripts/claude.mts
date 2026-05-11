@@ -2391,9 +2391,9 @@ Output ONLY the updated CLAUDE.md content, nothing else.`
 
   return `You are updating the CLAUDE.md file in the ${projectName} project.
 
-The socket-repo-template/template/CLAUDE.md is the CANONICAL source for all cross-project standards (the FLEET-CANONICAL block). Your task:
+The socket-wheelhouse/template/CLAUDE.md is the CANONICAL source for all cross-project standards (the FLEET-CANONICAL block). Your task:
 
-1. Read the canonical socket-repo-template/template/CLAUDE.md (fleet block).
+1. Read the canonical socket-wheelhouse/template/CLAUDE.md (fleet block).
 2. Read the current CLAUDE.md in ${projectName}
 3. Update ${projectName}/CLAUDE.md to:
    - Keep the fleet-canonical block byte-identical (synced via sync-scaffolding).
@@ -2410,7 +2410,7 @@ The ${projectName}/CLAUDE.md should contain:
 Start the file with something like:
 # CLAUDE.md
 
-The fleet-canonical block is synced from socket-repo-template's template/CLAUDE.md.
+The fleet-canonical block is synced from socket-wheelhouse's template/CLAUDE.md.
 
 Then include only PROJECT-SPECIFIC content.
 
