@@ -169,7 +169,7 @@ async function main(): Promise<void> {
   // existsSync follows the link and returns false if the target is
   // gone, leaving the stale link in place. We need to delete it
   // before the new symlink call.
-  // oxlint-disable-next-line socket/prefer-exists-sync
+  // oxlint-disable-next-line socket/prefer-exists-sync -- lstat needed to detect broken symlinks (existsSync follows the link).
   const linkExists = await fsPromises
     .lstat(linkPath)
     .then(() => true)
