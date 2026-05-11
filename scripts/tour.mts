@@ -1,4 +1,3 @@
-/* oxlint-disable socket/no-status-emoji -- intentional emoji output. */
 /* oxlint-disable socket/sort-source-methods -- pipeline helpers organized by pass (discover → parse → annotate → render → serve); alphabetical would scatter same-pass helpers. */
 
 /**
@@ -15,7 +14,12 @@
 
 import { execFileSync } from 'node:child_process'
 import { hash as cryptoHash, randomUUID } from 'node:crypto'
-import { createReadStream, existsSync, promises as fs } from 'node:fs'
+import {
+  createReadStream,
+  existsSync,
+  promises as fs,
+  watch as fsWatch,
+} from 'node:fs'
 import { createServer } from 'node:http'
 import os from 'node:os'
 import path from 'node:path'
@@ -3382,11 +3386,6 @@ export async function watch(
     process.exit(1)
   }
 
-  // Import fs.watch lazily so we don't pay the import cost on other
-  // subcommands. Node 20+ supports `recursive: true` on all platforms.
-  // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- lazy load of fs.watch for the watch subcommand only.
-  const { watch: fsWatch } = await import('node:fs')
-
   // Initial build before we start the server. This also populates
   // outputDir so `serve` has something to serve on first request.
   await generate(refresh, minify, basePath, rest)
@@ -4226,7 +4225,7 @@ export async function doctor(): Promise<void> {
 
   for (const name of present) {
     const tool = manifest.tools[name]
-    logger.log(`  ✓ ${name}${tool.version ? ` (need ${tool.version})` : ''}`)
+    logger.success(`${name}${tool.version ? ` (need ${tool.version})` : ''}`)
   }
 
   if (missing.length === 0) {
@@ -4238,7 +4237,7 @@ export async function doctor(): Promise<void> {
   logger.log('')
   logger.log('Missing (or not on PATH):')
   for (const [name, tool] of missing) {
-    logger.log(`  ✗ ${name}${tool.description ? ` — ${tool.description}` : ''}`)
+    logger.fail(`${name}${tool.description ? ` — ${tool.description}` : ''}`)
     const notes = tool.notes
     if (notes) {
       const lines = Array.isArray(notes) ? notes : [notes]

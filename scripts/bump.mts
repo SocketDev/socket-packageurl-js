@@ -1,5 +1,3 @@
-/* oxlint-disable socket/no-status-emoji -- intentional emoji output. */
-
 /**
  * @fileoverview Version bump script with AI-powered changelog generation.
  * Creates version bump commits with package.json, lockfile, and changelog updates.
@@ -320,6 +318,7 @@ export async function interactiveReviewChangelog(
     const action = await prompts.select({
       message: 'What would you like to do?',
       choices: [
+        // oxlint-disable-next-line socket/no-status-emoji -- interactive prompt menu labels need glyphs, not logger calls.
         { value: 'accept', name: '✅ Accept this changelog' },
         {
           value: 'regenerate',
@@ -330,6 +329,7 @@ export async function interactiveReviewChangelog(
         { value: 'simplify', name: '📝 Simplify and make more concise' },
         { value: 'technical', name: '🔧 Make more technical/detailed' },
         { value: 'manual', name: '✍️  Write manually' },
+        // oxlint-disable-next-line socket/no-status-emoji -- interactive prompt menu label needs glyph, not logger call.
         { value: 'cancel', name: '❌ Cancel' },
       ],
     })
@@ -756,7 +756,8 @@ async function main(): Promise<void> {
       logger.log('  - Clean git working directory')
       logger.log('  - Main/master branch (unless --force)')
       if (hasInteractivePrompts) {
-        logger.log('\nInteractive mode: Available ✓ (default)')
+        logger.log('')
+        logger.success('Interactive mode: Available (default)')
       } else {
         logger.log('\nInteractive mode: Not available')
         logger.log('  (install @socketsecurity/lib or build local registry)')

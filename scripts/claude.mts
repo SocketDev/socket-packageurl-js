@@ -1,4 +1,3 @@
-/* oxlint-disable socket/no-status-emoji -- intentional emoji output. */
 /* oxlint-disable socket/sort-source-methods -- subcommand helpers grouped by domain (snapshot, cache, review, validate) and ordered to match the dispatch table at the bottom. */
 
 /**
@@ -1062,10 +1061,9 @@ export function displayAnalysis(analysis: RootCauseAnalysis | null): void {
   logger.log(`  Category: ${analysis.category}`)
 
   if (analysis.isEnvironmental) {
-    logger.log(
-      colors.yellow(
-        '\n  ⚠ This appears to be an environmental issue (runner/network/external)',
-      ),
+    logger.log('')
+    logger.warn(
+      'This appears to be an environmental issue (runner/network/external)',
     )
     if (analysis.environmentalFactors.length > 0) {
       logger.log(colors.yellow('  Factors to check:'))
@@ -2070,7 +2068,9 @@ export function filterCILogs(rawLogs: string): string {
       continue
     }
 
-    // Detect error sections
+    // Detect error sections — these emoji are scanned from existing log
+    // output (CI runners, test reporters), not emitted by us.
+    /* oxlint-disable socket/no-status-emoji -- pattern matcher for emoji emitted by external tooling. */
     if (
       line.includes('##[error]') ||
       line.includes('Error:') ||
@@ -2081,6 +2081,7 @@ export function filterCILogs(rawLogs: string): string {
       line.includes('failed') ||
       line.includes('ELIFECYCLE')
     ) {
+      /* oxlint-enable socket/no-status-emoji */
       inErrorSection = true
       relevantLines.push(line)
     } else if (inErrorSection && line.trim() !== '') {
