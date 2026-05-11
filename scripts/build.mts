@@ -82,41 +82,6 @@ const rootPath = path.resolve(
 )
 const distPath = path.join(rootPath, 'dist')
 
-export function getErrorMessage(error: unknown): string {
-  return errorMessage(error)
-}
-
-/**
- * Walk the on-disk dist/ output and report file sizes. Replaces
- * esbuild's metafile analyzer — rolldown doesn't ship an equivalent
- * metafile by default, and the only consumer is this --analyze CLI
- * flag, so reading the produced files directly is enough.
- */
-export function getBuildAnalysis(): BuildAnalysis {
-  const files: Array<{ name: string; size: string }> = []
-  let totalBytes = 0
-
-  if (existsSync(distPath)) {
-    for (const name of ['index.js', 'exists.js']) {
-      const filePath = path.join(distPath, name)
-      if (!existsSync(filePath)) {
-        continue
-      }
-      const bytes = statSync(filePath).size
-      totalBytes += bytes
-      files.push({
-        name: path.relative(rootPath, filePath),
-        size: `${(bytes / 1024).toFixed(2)} KB`,
-      })
-    }
-  }
-
-  return {
-    files,
-    totalSize: `${(totalBytes / 1024).toFixed(2)} KB`,
-  }
-}
-
 /**
  * Build source code with rolldown.
  * Returns { exitCode, buildTime, outputs } for external logging.
@@ -216,6 +181,51 @@ export async function buildTypes(
 }
 
 /**
+ * Walk the on-disk dist/ output and report file sizes. Replaces
+ * esbuild's metafile analyzer — rolldown doesn't ship an equivalent
+ * metafile by default, and the only consumer is this --analyze CLI
+ * flag, so reading the produced files directly is enough.
+ */
+export function getBuildAnalysis(): BuildAnalysis {
+  const files: Array<{ name: string; size: string }> = []
+  let totalBytes = 0
+
+  if (existsSync(distPath)) {
+    for (const name of ['index.js', 'exists.js']) {
+      const filePath = path.join(distPath, name)
+      if (!existsSync(filePath)) {
+        continue
+      }
+      const bytes = statSync(filePath).size
+      totalBytes += bytes
+      files.push({
+        name: path.relative(rootPath, filePath),
+        size: `${(bytes / 1024).toFixed(2)} KB`,
+      })
+    }
+  }
+
+  return {
+    files,
+    totalSize: `${(totalBytes / 1024).toFixed(2)} KB`,
+  }
+}
+
+export function getErrorMessage(error: unknown): string {
+  return errorMessage(error)
+}
+
+/**
+ * Check if build is needed.
+ */
+export function isBuildNeeded(): boolean {
+  const distPath = path.join(rootPath, 'dist', 'index.js')
+  const distTypesPath = path.join(rootPath, 'dist', 'types', 'index.d.ts')
+
+  return !existsSync(distPath) || !existsSync(distTypesPath)
+}
+
+/**
  * Watch mode for development with incremental builds (68% faster rebuilds).
  */
 export async function watchBuild(
@@ -259,16 +269,6 @@ export async function watchBuild(
     }
     return 1
   }
-}
-
-/**
- * Check if build is needed.
- */
-export function isBuildNeeded(): boolean {
-  const distPath = path.join(rootPath, 'dist', 'index.js')
-  const distTypesPath = path.join(rootPath, 'dist', 'types', 'index.d.ts')
-
-  return !existsSync(distPath) || !existsSync(distTypesPath)
 }
 
 async function main(): Promise<void> {

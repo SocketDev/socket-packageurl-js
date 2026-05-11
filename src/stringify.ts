@@ -17,6 +17,27 @@ import type { PackageURL } from './package-url.js'
 import type { QualifiersObject } from './purl-component.js'
 
 /**
+ * Convert `PackageURL` instance to canonical PURL string.
+ *
+ * Serializes a `PackageURL` object into its canonical string representation
+ * according to the PURL specification.
+ *
+ * @param purl - `PackageURL` instance to stringify
+ * @returns Canonical PURL string (e.g., `'pkg:npm/lodash@4.17.21'`)
+ *
+ * @example
+ * ```typescript
+ * const purl = new PackageURL('npm', undefined, 'lodash', '4.17.21')
+ * stringify(purl)
+ * // -> 'pkg:npm/lodash@4.17.21'
+ * ```
+ */
+export function stringify(purl: PackageURL): string {
+  const type = isNonEmptyString(purl.type) ? encodeComponent(purl.type) : ''
+  return `pkg:${type}/${stringifySpec(purl)}`
+}
+
+/**
  * Convert `PackageURL` instance to spec string (without scheme and type).
  *
  * Returns the package identity portion: `namespace/name@version?qualifiers#subpath`
@@ -62,25 +83,4 @@ export function stringifySpec(purl: PackageURL): string {
     specStr = `${specStr}#${encodeSubpath(subpath)}`
   }
   return specStr
-}
-
-/**
- * Convert `PackageURL` instance to canonical PURL string.
- *
- * Serializes a `PackageURL` object into its canonical string representation
- * according to the PURL specification.
- *
- * @param purl - `PackageURL` instance to stringify
- * @returns Canonical PURL string (e.g., `'pkg:npm/lodash@4.17.21'`)
- *
- * @example
- * ```typescript
- * const purl = new PackageURL('npm', undefined, 'lodash', '4.17.21')
- * stringify(purl)
- * // -> 'pkg:npm/lodash@4.17.21'
- * ```
- */
-export function stringify(purl: PackageURL): string {
-  const type = isNonEmptyString(purl.type) ? encodeComponent(purl.type) : ''
-  return `pkg:${type}/${stringifySpec(purl)}`
 }

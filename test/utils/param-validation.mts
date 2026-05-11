@@ -13,6 +13,36 @@ type CreateArgsFn = (
 ) => [unknown, unknown, unknown, unknown, unknown, unknown]
 
 /**
+ * Test that required parameters are validated correctly.
+ * Tests various invalid inputs that should all throw.
+ */
+export function testInvalidParam(
+  paramName: string,
+  paramMap: Record<string, number>,
+  createArgs: CreateArgsFn,
+) {
+  testParam(
+    paramName,
+    paramMap,
+    createArgs,
+    [0, false, 1, true, {}, undefined, undefined, ''],
+    true,
+  )
+}
+
+/**
+ * Test that string parameters reject non-string values.
+ * Tests various invalid type inputs that should all throw.
+ */
+export function testInvalidStringParam(
+  paramName: string,
+  paramMap: Record<string, number>,
+  createArgs: CreateArgsFn,
+) {
+  testParam(paramName, paramMap, createArgs, [0, false, 1, true, {}], true)
+}
+
+/**
  * Test parameter validation with various test values.
  * @param paramName - Name of the parameter to test
  * @param paramMap - Map of parameter names to argument positions
@@ -40,21 +70,14 @@ export function testParam(
 }
 
 /**
- * Test that required parameters are validated correctly.
- * Tests various invalid inputs that should all throw.
+ * Test that required parameters accept valid values.
  */
-export function testInvalidParam(
+export function testValidParam(
   paramName: string,
   paramMap: Record<string, number>,
   createArgs: CreateArgsFn,
 ) {
-  testParam(
-    paramName,
-    paramMap,
-    createArgs,
-    [0, false, 1, true, {}, undefined, undefined, ''],
-    true,
-  )
+  testParam(paramName, paramMap, createArgs, [paramName], false)
 }
 
 /**
@@ -73,27 +96,4 @@ export function testValidStringParam(
     [paramName, undefined, undefined, ''],
     false,
   )
-}
-
-/**
- * Test that string parameters reject non-string values.
- * Tests various invalid type inputs that should all throw.
- */
-export function testInvalidStringParam(
-  paramName: string,
-  paramMap: Record<string, number>,
-  createArgs: CreateArgsFn,
-) {
-  testParam(paramName, paramMap, createArgs, [0, false, 1, true, {}], true)
-}
-
-/**
- * Test that required parameters accept valid values.
- */
-export function testValidParam(
-  paramName: string,
-  paramMap: Record<string, number>,
-  createArgs: CreateArgsFn,
-) {
-  testParam(paramName, paramMap, createArgs, [paramName], false)
 }

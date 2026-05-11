@@ -89,29 +89,6 @@ const CONFIG_PATTERNS = [
 ]
 
 /**
- * Check if we should run all linters based on changed files.
- */
-export function shouldRunAllLinters(
-  changedFiles: readonly string[],
-): RunAllLintResult {
-  for (const file of changedFiles) {
-    // Core library files
-    if (CORE_FILES.has(file)) {
-      return { runAll: true, reason: 'core files changed' }
-    }
-
-    // Config or infrastructure files
-    for (const pattern of CONFIG_PATTERNS) {
-      if (file.includes(pattern.replace('**', ''))) {
-        return { runAll: true, reason: 'config files changed' }
-      }
-    }
-  }
-
-  return { runAll: false }
-}
-
-/**
  * Filter files to only those that should be linted.
  */
 export function filterLintableFiles(files: readonly string[]): string[] {
@@ -134,6 +111,130 @@ export function filterLintableFiles(files: readonly string[]): string[] {
 
     return true
   })
+}
+
+/**
+ * Get files to lint based on options.
+ */
+export async function getFilesToLint(
+  options: Pick<LintScriptValues, 'all' | 'changed' | 'staged'>,
+): Promise<LintTarget> {
+  const { all, changed, staged } = options
+
+  // If --all, return early
+  if (all) {
+    return { files: 'all', reason: 'all flag specified', mode: 'all' }
+  }
+
+  // Get changed files
+  let changedFiles: string[] = []
+  // Track what mode we're in
+  let mode = 'changed'
+
+  if (staged) {
+    mode = 'staged'
+    changedFiles = await getStagedFiles({ absolute: false })
+    if (!changedFiles.length) {
+      return { files: undefined, reason: 'no staged files', mode }
+    }
+  } else if (changed) {
+    mode = 'changed'
+    changedFiles = await getChangedFiles({ absolute: false })
+    if (!changedFiles.length) {
+      return { files: undefined, reason: 'no changed files', mode }
+    }
+  } else {
+    // Default to changed files if no specific flag
+    mode = 'changed'
+    changedFiles = await getChangedFiles({ absolute: false })
+    if (!changedFiles.length) {
+      return { files: undefined, reason: 'no changed files', mode }
+    }
+  }
+
+  // Check if we should run all based on changed files
+  const { reason, runAll } = shouldRunAllLinters(changedFiles)
+  if (runAll) {
+    return { files: 'all', reason, mode: 'all' }
+  }
+
+  // Filter to lintable files
+  const lintableFiles = filterLintableFiles(changedFiles)
+  if (!lintableFiles.length) {
+    return { files: undefined, reason: 'no lintable files changed', mode }
+  }
+
+  return { files: lintableFiles, reason: undefined, mode }
+}
+
+/**
+ * Run linters on all files.
+ */
+export async function runLintOnAll(
+  options: LintRunOptions = {},
+): Promise<number> {
+  const { fix = false, quiet = false } = options
+
+  if (!quiet) {
+    logger.progress('Linting all files')
+  }
+
+  const linters = [
+    {
+      args: [
+        'exec',
+        'oxfmt',
+        '--config',
+        '.oxfmtrc.json',
+        ...(fix ? ['--write'] : ['--check']),
+        '.',
+      ],
+      name: 'oxfmt',
+    },
+    {
+      args: [
+        'exec',
+        'oxlint',
+        '--config',
+        '.oxlintrc.json',
+        '--tsconfig',
+        '.config/tsconfig.check.json',
+        '--import-plugin',
+        '--node-plugin',
+        ...(fix ? ['--fix'] : []),
+        '.',
+      ],
+      name: 'oxlint',
+    },
+  ]
+
+  for (const { args, name } of linters) {
+    const result: LintResult = await runCommandQuiet('pnpm', args)
+
+    if (result.exitCode !== 0) {
+      // When fixing, non-zero exit codes are normal if fixes were applied.
+      if (!fix || (result.stderr && result.stderr.trim().length > 0)) {
+        if (!quiet) {
+          logger.error(`${name} failed`)
+        }
+        if (result.stderr) {
+          logger.fail(result.stderr)
+        }
+        if (result.stdout && !fix) {
+          logger.log(result.stdout)
+        }
+        return result.exitCode
+      }
+    }
+  }
+
+  if (!quiet) {
+    logger.clearLine().done('Linting passed')
+    // Add newline after message (use error to write to same stream)
+    logger.error('')
+  }
+
+  return 0
 }
 
 /**
@@ -224,127 +325,26 @@ export async function runLintOnFiles(
 }
 
 /**
- * Run linters on all files.
+ * Check if we should run all linters based on changed files.
  */
-export async function runLintOnAll(
-  options: LintRunOptions = {},
-): Promise<number> {
-  const { fix = false, quiet = false } = options
+export function shouldRunAllLinters(
+  changedFiles: readonly string[],
+): RunAllLintResult {
+  for (const file of changedFiles) {
+    // Core library files
+    if (CORE_FILES.has(file)) {
+      return { runAll: true, reason: 'core files changed' }
+    }
 
-  if (!quiet) {
-    logger.progress('Linting all files')
-  }
-
-  const linters = [
-    {
-      args: [
-        'exec',
-        'oxfmt',
-        '--config',
-        '.oxfmtrc.json',
-        ...(fix ? ['--write'] : ['--check']),
-        '.',
-      ],
-      name: 'oxfmt',
-    },
-    {
-      args: [
-        'exec',
-        'oxlint',
-        '--config',
-        '.oxlintrc.json',
-        '--tsconfig',
-        '.config/tsconfig.check.json',
-        '--import-plugin',
-        '--node-plugin',
-        ...(fix ? ['--fix'] : []),
-        '.',
-      ],
-      name: 'oxlint',
-    },
-  ]
-
-  for (const { args, name } of linters) {
-    const result: LintResult = await runCommandQuiet('pnpm', args)
-
-    if (result.exitCode !== 0) {
-      // When fixing, non-zero exit codes are normal if fixes were applied.
-      if (!fix || (result.stderr && result.stderr.trim().length > 0)) {
-        if (!quiet) {
-          logger.error(`${name} failed`)
-        }
-        if (result.stderr) {
-          logger.fail(result.stderr)
-        }
-        if (result.stdout && !fix) {
-          logger.log(result.stdout)
-        }
-        return result.exitCode
+    // Config or infrastructure files
+    for (const pattern of CONFIG_PATTERNS) {
+      if (file.includes(pattern.replace('**', ''))) {
+        return { runAll: true, reason: 'config files changed' }
       }
     }
   }
 
-  if (!quiet) {
-    logger.clearLine().done('Linting passed')
-    // Add newline after message (use error to write to same stream)
-    logger.error('')
-  }
-
-  return 0
-}
-
-/**
- * Get files to lint based on options.
- */
-export async function getFilesToLint(
-  options: Pick<LintScriptValues, 'all' | 'changed' | 'staged'>,
-): Promise<LintTarget> {
-  const { all, changed, staged } = options
-
-  // If --all, return early
-  if (all) {
-    return { files: 'all', reason: 'all flag specified', mode: 'all' }
-  }
-
-  // Get changed files
-  let changedFiles: string[] = []
-  // Track what mode we're in
-  let mode = 'changed'
-
-  if (staged) {
-    mode = 'staged'
-    changedFiles = await getStagedFiles({ absolute: false })
-    if (!changedFiles.length) {
-      return { files: undefined, reason: 'no staged files', mode }
-    }
-  } else if (changed) {
-    mode = 'changed'
-    changedFiles = await getChangedFiles({ absolute: false })
-    if (!changedFiles.length) {
-      return { files: undefined, reason: 'no changed files', mode }
-    }
-  } else {
-    // Default to changed files if no specific flag
-    mode = 'changed'
-    changedFiles = await getChangedFiles({ absolute: false })
-    if (!changedFiles.length) {
-      return { files: undefined, reason: 'no changed files', mode }
-    }
-  }
-
-  // Check if we should run all based on changed files
-  const { reason, runAll } = shouldRunAllLinters(changedFiles)
-  if (runAll) {
-    return { files: 'all', reason, mode: 'all' }
-  }
-
-  // Filter to lintable files
-  const lintableFiles = filterLintableFiles(changedFiles)
-  if (!lintableFiles.length) {
-    return { files: undefined, reason: 'no lintable files changed', mode }
-  }
-
-  return { files: lintableFiles, reason: undefined, mode }
+  return { runAll: false }
 }
 
 async function main(): Promise<void> {

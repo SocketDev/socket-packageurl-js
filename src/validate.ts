@@ -42,37 +42,6 @@ export function validateEmptyByType(
 }
 
 /**
- * Validate that a component does not contain injection characters.
- * Shared helper to eliminate boilerplate across per-type validators.
- * @throws {PurlInjectionError} When validation fails and `throws` is `true`.
- *   The error includes the specific character code, component name, and
- *   package type so callers can log, alert, or handle injection attempts
- *   at an elevated level.
- */
-export function validateNoInjectionByType(
-  type: string,
-  component: string,
-  value: string | undefined,
-  throws: boolean,
-): boolean {
-  if (typeof value === 'string') {
-    const code = findInjectionCharCode(value)
-    if (code !== -1) {
-      if (throws) {
-        throw new PurlInjectionError(
-          type,
-          component,
-          code,
-          formatInjectionChar(code),
-        )
-      }
-      return false
-    }
-  }
-  return true
-}
-
-/**
  * Validate package name component.
  * @throws {PurlError} When validation fails and options.throws is true.
  */
@@ -136,6 +105,37 @@ export function validateNamespace(
     return false
   }
 
+  return true
+}
+
+/**
+ * Validate that a component does not contain injection characters.
+ * Shared helper to eliminate boilerplate across per-type validators.
+ * @throws {PurlInjectionError} When validation fails and `throws` is `true`.
+ *   The error includes the specific character code, component name, and
+ *   package type so callers can log, alert, or handle injection attempts
+ *   at an elevated level.
+ */
+export function validateNoInjectionByType(
+  type: string,
+  component: string,
+  value: string | undefined,
+  throws: boolean,
+): boolean {
+  if (typeof value === 'string') {
+    const code = findInjectionCharCode(value)
+    if (code !== -1) {
+      if (throws) {
+        throw new PurlInjectionError(
+          type,
+          component,
+          code,
+          formatInjectionChar(code),
+        )
+      }
+      return false
+    }
+  }
   return true
 }
 

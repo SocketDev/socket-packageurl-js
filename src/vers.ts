@@ -90,37 +90,6 @@ const regexSemverNumberedGroups = ObjectFreeze(
 )
 
 /**
- * Parse a semver string into comparable components.
- */
-export function parseSemver(version: string): SemverParts {
-  const match = RegExpPrototypeExec(regexSemverNumberedGroups, version)
-  if (!match) {
-    throw new PurlError(
-      `semver version "${version}" must match MAJOR.MINOR.PATCH (e.g. "1.2.3")`,
-    )
-  }
-  const major = Number(match[1])
-  const minor = Number(match[2])
-  const patch = Number(match[3])
-  // Guard against precision loss with numbers above `MAX_SAFE_INTEGER`
-  if (
-    major > Number.MAX_SAFE_INTEGER ||
-    minor > Number.MAX_SAFE_INTEGER ||
-    patch > Number.MAX_SAFE_INTEGER
-  ) {
-    throw new PurlError(
-      `version component exceeds maximum safe integer in "${version}"`,
-    )
-  }
-  return {
-    major,
-    minor,
-    patch,
-    prerelease: match[4] ? StringPrototypeSplit(match[4], '.' as any) : [],
-  }
-}
-
-/**
  * Compare two prerelease identifier arrays per semver spec.
  * Returns `-1`, `0`, or `1`.
  */
@@ -237,6 +206,37 @@ export function parseConstraint(raw: string): VersConstraint {
     comparator: '=',
     version: trimmed,
   } as VersConstraint)
+}
+
+/**
+ * Parse a semver string into comparable components.
+ */
+export function parseSemver(version: string): SemverParts {
+  const match = RegExpPrototypeExec(regexSemverNumberedGroups, version)
+  if (!match) {
+    throw new PurlError(
+      `semver version "${version}" must match MAJOR.MINOR.PATCH (e.g. "1.2.3")`,
+    )
+  }
+  const major = Number(match[1])
+  const minor = Number(match[2])
+  const patch = Number(match[3])
+  // Guard against precision loss with numbers above `MAX_SAFE_INTEGER`
+  if (
+    major > Number.MAX_SAFE_INTEGER ||
+    minor > Number.MAX_SAFE_INTEGER ||
+    patch > Number.MAX_SAFE_INTEGER
+  ) {
+    throw new PurlError(
+      `version component exceeds maximum safe integer in "${version}"`,
+    )
+  }
+  return {
+    major,
+    minor,
+    patch,
+    prerelease: match[4] ? StringPrototypeSplit(match[4], '.' as any) : [],
+  }
 }
 
 /**

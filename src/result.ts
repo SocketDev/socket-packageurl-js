@@ -185,17 +185,17 @@ export class Err<E = Error> {
 }
 
 /**
- * Create a successful result.
- */
-export function ok<T>(value: T): Ok<T> {
-  return new Ok(value)
-}
-
-/**
  * Create an error result.
  */
 export function err<E = Error>(error: E): Err<E> {
   return new Err(error)
+}
+
+/**
+ * Create a successful result.
+ */
+export function ok<T>(value: T): Ok<T> {
+  return new Ok(value)
 }
 
 /**

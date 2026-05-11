@@ -74,28 +74,6 @@ type MarkdownFilenameViolation = {
 }
 
 /**
- * Check if a filename is in SCREAMING_CASE (all uppercase with optional underscores).
- */
-export function isScreamingCase(filename: string): boolean {
-  // Remove extension for checking
-  const nameWithoutExt = filename.replace(/\.(md|MD)$/, '')
-
-  // Check if it contains any lowercase letters
-  return /^[A-Z0-9_]+$/.test(nameWithoutExt) && /[A-Z]/.test(nameWithoutExt)
-}
-
-/**
- * Check if a filename is lowercase-with-hyphens.
- */
-export function isLowercaseHyphenated(filename: string): boolean {
-  // Remove extension for checking
-  const nameWithoutExt = filename.replace(/\.md$/, '')
-
-  // Must be lowercase letters, numbers, and hyphens only
-  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(nameWithoutExt)
-}
-
-/**
  * Recursively find all markdown files.
  */
 export async function findMarkdownFiles(
@@ -127,6 +105,27 @@ export async function findMarkdownFiles(
 }
 
 /**
+ * Check if file is in an allowed location for regular markdown files.
+ * Regular .md files must be within docs/ or .claude/ directories.
+ */
+export function isInAllowedLocationForRegularMd(filePath: string): boolean {
+  const relativePath = path.relative(rootPath, filePath)
+  const dir = path.dirname(relativePath)
+
+  // Must be within docs/ (any depth)
+  if (dir === 'docs' || dir.startsWith('docs/')) {
+    return true
+  }
+
+  // Must be within .claude/ (any depth)
+  if (dir === '.claude' || dir.startsWith('.claude/')) {
+    return true
+  }
+
+  return false
+}
+
+/**
  * Check if file is in an allowed location for SCREAMING_CASE files.
  * SCREAMING_CASE files can only be at: root, docs/, or .claude/ (top level only).
  */
@@ -153,24 +152,25 @@ export function isInAllowedLocationForScreamingCase(filePath: string): boolean {
 }
 
 /**
- * Check if file is in an allowed location for regular markdown files.
- * Regular .md files must be within docs/ or .claude/ directories.
+ * Check if a filename is lowercase-with-hyphens.
  */
-export function isInAllowedLocationForRegularMd(filePath: string): boolean {
-  const relativePath = path.relative(rootPath, filePath)
-  const dir = path.dirname(relativePath)
+export function isLowercaseHyphenated(filename: string): boolean {
+  // Remove extension for checking
+  const nameWithoutExt = filename.replace(/\.md$/, '')
 
-  // Must be within docs/ (any depth)
-  if (dir === 'docs' || dir.startsWith('docs/')) {
-    return true
-  }
+  // Must be lowercase letters, numbers, and hyphens only
+  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(nameWithoutExt)
+}
 
-  // Must be within .claude/ (any depth)
-  if (dir === '.claude' || dir.startsWith('.claude/')) {
-    return true
-  }
+/**
+ * Check if a filename is in SCREAMING_CASE (all uppercase with optional underscores).
+ */
+export function isScreamingCase(filename: string): boolean {
+  // Remove extension for checking
+  const nameWithoutExt = filename.replace(/\.(md|MD)$/, '')
 
-  return false
+  // Check if it contains any lowercase letters
+  return /^[A-Z0-9_]+$/.test(nameWithoutExt) && /[A-Z]/.test(nameWithoutExt)
 }
 
 /**

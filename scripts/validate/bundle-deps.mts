@@ -76,149 +76,6 @@ type BundleDependencyResult = {
 }
 
 /**
- * Find all JavaScript files in dist directory.
- */
-export async function findDistFiles(distPath: string): Promise<string[]> {
-  const files: string[] = []
-
-  try {
-    const entries = await fs.readdir(distPath, { withFileTypes: true })
-
-    for (const entry of entries) {
-      const fullPath = path.join(distPath, entry.name)
-
-      if (entry.isDirectory()) {
-        files.push(...(await findDistFiles(fullPath)))
-      } else if (
-        entry.name.endsWith('.js') ||
-        entry.name.endsWith('.mjs') ||
-        entry.name.endsWith('.cjs')
-      ) {
-        files.push(fullPath)
-      }
-    }
-  } catch {
-    // Directory doesn't exist or can't be read
-    return []
-  }
-
-  return files
-}
-
-/**
- * Check if a string is a valid package specifier.
- */
-export function isValidPackageSpecifier(specifier: string): boolean {
-  // Relative imports
-  if (specifier.startsWith('.') || specifier.startsWith('/')) {
-    return false
-  }
-
-  // Subpath imports (Node.js internal imports starting with #)
-  if (specifier.startsWith('#')) {
-    return false
-  }
-
-  // Filter out invalid patterns
-  if (
-    specifier.includes('${') ||
-    specifier.includes('"}') ||
-    specifier.includes('`') ||
-    specifier === 'true' ||
-    specifier === 'false' ||
-    specifier === 'null' ||
-    specifier === 'undefined' ||
-    specifier === 'name' ||
-    specifier === 'dependencies' ||
-    specifier === 'devDependencies' ||
-    specifier === 'peerDependencies' ||
-    specifier === 'version' ||
-    specifier === 'description' ||
-    specifier.length === 0 ||
-    // Filter out strings that look like code fragments
-    specifier.includes('\n') ||
-    specifier.includes(';') ||
-    specifier.includes('function') ||
-    specifier.includes('const ') ||
-    specifier.includes('let ') ||
-    specifier.includes('var ')
-  ) {
-    return false
-  }
-
-  return true
-}
-
-/**
- * Strip /* ... *\/ block comments and leading // line comments so the
- * import/require regex below doesn't match specifiers that appear
- * inside JSDoc examples or doc comments. Rolldown preserves JSDoc in
- * its output (esbuild stripped it), so the comment-aware pre-pass is
- * load-bearing for accurate dep extraction.
- */
-export function stripComments(source: string): string {
-  // Remove /* ... */ blocks (greedy across lines).
-  let out = source.replace(/\/\*[\s\S]*?\*\//g, '')
-  // Remove leading whitespace + // line comments.
-  out = out.replace(/^\s*\/\/.*$/gm, '')
-  return out
-}
-
-/**
- * Extract external package names from require() and import statements in built files.
- */
-export async function extractExternalPackages(
-  filePath: string,
-): Promise<Set<string>> {
-  const raw = await fs.readFile(filePath, 'utf8')
-  const content = stripComments(raw)
-  const externals = new Set<string>()
-
-  // Match require('package') / require("package").
-  const requirePattern = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g
-  // Match `from 'package'` / `from "package"` / `import 'package'`. Anchor
-  // to a non-identifier prefix so attribute strings (e.g. inside
-  // `User-Agent: "@socketregistry/packageurl-js"`) aren't matched.
-  const importPattern = /(?:^|[\s;,({[])(?:from|import)\s+['"]([^'"]+)['"]/g
-  // Dynamic import() calls.
-  const dynamicImportPattern = /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g
-
-  let match
-
-  while ((match = requirePattern.exec(content)) !== null) {
-    const specifier = match[1]
-    if (specifier.includes('/external/')) {
-      continue
-    }
-    if (isValidPackageSpecifier(specifier)) {
-      externals.add(specifier)
-    }
-  }
-
-  while ((match = importPattern.exec(content)) !== null) {
-    const specifier = match[1]
-    if (specifier.includes('/external/')) {
-      continue
-    }
-    if (isValidPackageSpecifier(specifier)) {
-      externals.add(specifier)
-    }
-  }
-
-  while ((match = dynamicImportPattern.exec(content)) !== null) {
-    const specifier = match[1]
-    if (specifier.includes('/external/')) {
-      continue
-    }
-    if (isValidPackageSpecifier(specifier)) {
-      externals.add(specifier)
-    }
-  }
-
-  return externals
-}
-
-/**
  * Extract bundled package names from node_modules paths in comments and code.
  */
 export async function extractBundledPackages(
@@ -283,6 +140,90 @@ export async function extractBundledPackages(
 }
 
 /**
+ * Extract external package names from require() and import statements in built files.
+ */
+export async function extractExternalPackages(
+  filePath: string,
+): Promise<Set<string>> {
+  const raw = await fs.readFile(filePath, 'utf8')
+  const content = stripComments(raw)
+  const externals = new Set<string>()
+
+  // Match require('package') / require("package").
+  const requirePattern = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g
+  // Match `from 'package'` / `from "package"` / `import 'package'`. Anchor
+  // to a non-identifier prefix so attribute strings (e.g. inside
+  // `User-Agent: "@socketregistry/packageurl-js"`) aren't matched.
+  const importPattern = /(?:^|[\s;,({[])(?:from|import)\s+['"]([^'"]+)['"]/g
+  // Dynamic import() calls.
+  const dynamicImportPattern = /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g
+
+  let match
+
+  while ((match = requirePattern.exec(content)) !== null) {
+    const specifier = match[1]
+    if (specifier.includes('/external/')) {
+      continue
+    }
+    if (isValidPackageSpecifier(specifier)) {
+      externals.add(specifier)
+    }
+  }
+
+  while ((match = importPattern.exec(content)) !== null) {
+    const specifier = match[1]
+    if (specifier.includes('/external/')) {
+      continue
+    }
+    if (isValidPackageSpecifier(specifier)) {
+      externals.add(specifier)
+    }
+  }
+
+  while ((match = dynamicImportPattern.exec(content)) !== null) {
+    const specifier = match[1]
+    if (specifier.includes('/external/')) {
+      continue
+    }
+    if (isValidPackageSpecifier(specifier)) {
+      externals.add(specifier)
+    }
+  }
+
+  return externals
+}
+
+/**
+ * Find all JavaScript files in dist directory.
+ */
+export async function findDistFiles(distPath: string): Promise<string[]> {
+  const files: string[] = []
+
+  try {
+    const entries = await fs.readdir(distPath, { withFileTypes: true })
+
+    for (const entry of entries) {
+      const fullPath = path.join(distPath, entry.name)
+
+      if (entry.isDirectory()) {
+        files.push(...(await findDistFiles(fullPath)))
+      } else if (
+        entry.name.endsWith('.js') ||
+        entry.name.endsWith('.mjs') ||
+        entry.name.endsWith('.cjs')
+      ) {
+        files.push(fullPath)
+      }
+    }
+  } catch {
+    // Directory doesn't exist or can't be read
+    return []
+  }
+
+  return files
+}
+
+/**
  * Get package name from a module specifier (strip subpaths).
  */
 export function getPackageName(specifier: string): string | null {
@@ -336,12 +277,71 @@ export function getPackageName(specifier: string): string | null {
 }
 
 /**
+ * Check if a string is a valid package specifier.
+ */
+export function isValidPackageSpecifier(specifier: string): boolean {
+  // Relative imports
+  if (specifier.startsWith('.') || specifier.startsWith('/')) {
+    return false
+  }
+
+  // Subpath imports (Node.js internal imports starting with #)
+  if (specifier.startsWith('#')) {
+    return false
+  }
+
+  // Filter out invalid patterns
+  if (
+    specifier.includes('${') ||
+    specifier.includes('"}') ||
+    specifier.includes('`') ||
+    specifier === 'true' ||
+    specifier === 'false' ||
+    specifier === 'null' ||
+    specifier === 'undefined' ||
+    specifier === 'name' ||
+    specifier === 'dependencies' ||
+    specifier === 'devDependencies' ||
+    specifier === 'peerDependencies' ||
+    specifier === 'version' ||
+    specifier === 'description' ||
+    specifier.length === 0 ||
+    // Filter out strings that look like code fragments
+    specifier.includes('\n') ||
+    specifier.includes(';') ||
+    specifier.includes('function') ||
+    specifier.includes('const ') ||
+    specifier.includes('let ') ||
+    specifier.includes('var ')
+  ) {
+    return false
+  }
+
+  return true
+}
+
+/**
  * Read and parse package.json.
  */
 export async function readPackageJson(): Promise<PackageJsonLike> {
   const packageJsonPath = path.join(rootPath, 'package.json')
   const content = await fs.readFile(packageJsonPath, 'utf8')
   return JSON.parse(content)
+}
+
+/**
+ * Strip /* ... *\/ block comments and leading // line comments so the
+ * import/require regex below doesn't match specifiers that appear
+ * inside JSDoc examples or doc comments. Rolldown preserves JSDoc in
+ * its output (esbuild stripped it), so the comment-aware pre-pass is
+ * load-bearing for accurate dep extraction.
+ */
+export function stripComments(source: string): string {
+  // Remove /* ... */ blocks (greedy across lines).
+  let out = source.replace(/\/\*[\s\S]*?\*\//g, '')
+  // Remove leading whitespace + // line comments.
+  out = out.replace(/^\s*\/\/.*$/gm, '')
+  return out
 }
 
 /**

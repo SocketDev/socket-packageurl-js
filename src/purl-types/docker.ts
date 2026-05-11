@@ -25,31 +25,6 @@ interface PurlObject {
 }
 
 /**
- * Normalize Docker package URL.
- * Lowercases `name` only (`namespace` is case-sensitive for registry hosts).
- */
-export function normalize(purl: PurlObject): PurlObject {
-  lowerName(purl)
-  return purl
-}
-
-/**
- * Validate Docker package URL.
- * `name` and `namespace` must not contain injection characters.
- */
-export function validate(purl: PurlObject, throws: boolean): boolean {
-  if (
-    !validateNoInjectionByType('docker', 'namespace', purl.namespace, throws)
-  ) {
-    return false
-  }
-  if (!validateNoInjectionByType('docker', 'name', purl.name, throws)) {
-    return false
-  }
-  return true
-}
-
-/**
  * Check if a Docker image exists in Docker Hub.
  *
  * Queries Docker Hub API at https://hub.docker.com/v2/repositories to verify
@@ -174,4 +149,29 @@ export async function dockerExists(
   }
 
   return result
+}
+
+/**
+ * Normalize Docker package URL.
+ * Lowercases `name` only (`namespace` is case-sensitive for registry hosts).
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  lowerName(purl)
+  return purl
+}
+
+/**
+ * Validate Docker package URL.
+ * `name` and `namespace` must not contain injection characters.
+ */
+export function validate(purl: PurlObject, throws: boolean): boolean {
+  if (
+    !validateNoInjectionByType('docker', 'namespace', purl.namespace, throws)
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('docker', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

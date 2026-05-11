@@ -17,36 +17,6 @@ const packagePath = path.resolve(__dirname, '..')
 const distPath = path.join(packagePath, 'dist')
 
 /**
- * Check if content contains absolute paths.
- * Detects paths like /Users/, C:\, /home/, etc.
- */
-export function hasAbsolutePaths(content: string): {
-  hasIssue: boolean
-  matches: string[]
-} {
-  // Match absolute paths but exclude URLs and node: protocol.
-  const patterns = [
-    // Match require('/abs/path') or require('C:\\path').
-    /require\(["'](?:\/[^"'\n]+|[A-Z]:\\[^"'\n]+)["']\)/g,
-    // Match import from '/abs/path'.
-    /import\s+.*?from\s+["'](?:\/[^"'\n]+|[A-Z]:\\[^"'\n]+)["']/g,
-  ]
-
-  const matches: string[] = []
-  for (const pattern of patterns) {
-    const found = content.match(pattern)
-    if (found) {
-      matches.push(...found)
-    }
-  }
-
-  return {
-    hasIssue: matches.length > 0,
-    matches,
-  }
-}
-
-/**
  * Check if bundle contains inlined dependencies.
  * Reads package.json dependencies and ensures they are NOT bundled inline.
  */
@@ -106,6 +76,36 @@ export async function checkBundledDependencies(content: string): Promise<{
   return {
     bundledDeps,
     hasNoBundledDeps: bundledDeps.length === 0,
+  }
+}
+
+/**
+ * Check if content contains absolute paths.
+ * Detects paths like /Users/, C:\, /home/, etc.
+ */
+export function hasAbsolutePaths(content: string): {
+  hasIssue: boolean
+  matches: string[]
+} {
+  // Match absolute paths but exclude URLs and node: protocol.
+  const patterns = [
+    // Match require('/abs/path') or require('C:\\path').
+    /require\(["'](?:\/[^"'\n]+|[A-Z]:\\[^"'\n]+)["']\)/g,
+    // Match import from '/abs/path'.
+    /import\s+.*?from\s+["'](?:\/[^"'\n]+|[A-Z]:\\[^"'\n]+)["']/g,
+  ]
+
+  const matches: string[] = []
+  for (const pattern of patterns) {
+    const found = content.match(pattern)
+    if (found) {
+      matches.push(...found)
+    }
+  }
+
+  return {
+    hasIssue: matches.length > 0,
+    matches,
   }
 }
 

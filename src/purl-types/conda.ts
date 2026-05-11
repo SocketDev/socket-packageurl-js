@@ -26,33 +26,6 @@ interface PurlObject {
 }
 
 /**
- * Normalize Conda package URL.
- * Lowercases `name` only.
- */
-export function normalize(purl: PurlObject): PurlObject {
-  lowerName(purl)
-  return purl
-}
-
-/**
- * Validate Conda package URL.
- * Conda packages must not have a `namespace`. `name` must not contain injection characters.
- */
-export function validate(purl: PurlObject, throws: boolean): boolean {
-  if (
-    !validateEmptyByType('conda', 'namespace', purl.namespace, {
-      throws,
-    })
-  ) {
-    return false
-  }
-  if (!validateNoInjectionByType('conda', 'name', purl.name, throws)) {
-    return false
-  }
-  return true
-}
-
-/**
  * Check if a Conda package exists in Anaconda.org.
  *
  * Queries Anaconda.org at https://api.anaconda.org/package to verify package
@@ -171,4 +144,31 @@ export async function condaExists(
   }
 
   return result
+}
+
+/**
+ * Normalize Conda package URL.
+ * Lowercases `name` only.
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  lowerName(purl)
+  return purl
+}
+
+/**
+ * Validate Conda package URL.
+ * Conda packages must not have a `namespace`. `name` must not contain injection characters.
+ */
+export function validate(purl: PurlObject, throws: boolean): boolean {
+  if (
+    !validateEmptyByType('conda', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('conda', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

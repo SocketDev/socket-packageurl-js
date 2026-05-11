@@ -120,74 +120,13 @@ const removeExitHandler = onExit(
   },
 )
 
-export async function runCommand(
-  command: string,
-  args: string[] = [],
-  options: CommandOptions = {},
-): Promise<number> {
-  return new Promise<number>((resolve, reject): void => {
-    const spawnPromise = spawn(command, args, {
-      stdio: 'inherit',
-      ...(process.platform === 'win32' && { shell: true }),
-      ...options,
-    })
-
-    const child = spawnPromise.process
-
-    runningProcesses.add(child)
-
-    child.on('exit', (code: number | null): void => {
-      runningProcesses.delete(child)
-      resolve(code || 0)
-    })
-
-    child.on('error', (error: Error): void => {
-      runningProcesses.delete(child)
-      reject(error)
-    })
-  })
-}
-
-export async function runCommandWithOutput(
-  command: string,
-  args: string[] = [],
-  options: CommandOptions = {},
-): Promise<CommandOutput> {
-  return new Promise<CommandOutput>((resolve, reject): void => {
-    let stdout = ''
-    let stderr = ''
-
-    const spawnPromise = spawn(command, args, {
-      ...(process.platform === 'win32' && { shell: true }),
-      ...options,
-    })
-
-    const child = spawnPromise.process
-
-    runningProcesses.add(child)
-
-    if (child.stdout) {
-      child.stdout.on('data', (data: Buffer | string): void => {
-        stdout += data.toString()
-      })
-    }
-
-    if (child.stderr) {
-      child.stderr.on('data', (data: Buffer | string): void => {
-        stderr += data.toString()
-      })
-    }
-
-    child.on('exit', (code: number | null): void => {
-      runningProcesses.delete(child)
-      resolve({ code: code || 0, stdout, stderr })
-    })
-
-    child.on('error', (error: Error): void => {
-      runningProcesses.delete(child)
-      reject(error)
-    })
-  })
+export async function runBuild(): Promise<number> {
+  const distIndexPath = path.join(rootPath, 'dist', 'index.js')
+  if (!existsSync(distIndexPath)) {
+    logger.step('Building project')
+    return runCommand('pnpm', ['run', 'build'])
+  }
+  return 0
 }
 
 export async function runCheck(): Promise<number> {
@@ -269,13 +208,108 @@ export async function runCheck(): Promise<number> {
   return exitCode
 }
 
-export async function runBuild(): Promise<number> {
-  const distIndexPath = path.join(rootPath, 'dist', 'index.js')
-  if (!existsSync(distIndexPath)) {
-    logger.step('Building project')
-    return runCommand('pnpm', ['run', 'build'])
+export async function runCommand(
+  command: string,
+  args: string[] = [],
+  options: CommandOptions = {},
+): Promise<number> {
+  return new Promise<number>((resolve, reject): void => {
+    const spawnPromise = spawn(command, args, {
+      stdio: 'inherit',
+      ...(process.platform === 'win32' && { shell: true }),
+      ...options,
+    })
+
+    const child = spawnPromise.process
+
+    runningProcesses.add(child)
+
+    child.on('exit', (code: number | null): void => {
+      runningProcesses.delete(child)
+      resolve(code || 0)
+    })
+
+    child.on('error', (error: Error): void => {
+      runningProcesses.delete(child)
+      reject(error)
+    })
+  })
+}
+
+export async function runCommandWithOutput(
+  command: string,
+  args: string[] = [],
+  options: CommandOptions = {},
+): Promise<CommandOutput> {
+  return new Promise<CommandOutput>((resolve, reject): void => {
+    let stdout = ''
+    let stderr = ''
+
+    const spawnPromise = spawn(command, args, {
+      ...(process.platform === 'win32' && { shell: true }),
+      ...options,
+    })
+
+    const child = spawnPromise.process
+
+    runningProcesses.add(child)
+
+    if (child.stdout) {
+      child.stdout.on('data', (data: Buffer | string): void => {
+        stdout += data.toString()
+      })
+    }
+
+    if (child.stderr) {
+      child.stderr.on('data', (data: Buffer | string): void => {
+        stderr += data.toString()
+      })
+    }
+
+    child.on('exit', (code: number | null): void => {
+      runningProcesses.delete(child)
+      resolve({ code: code || 0, stdout, stderr })
+    })
+
+    child.on('error', (error: Error): void => {
+      runningProcesses.delete(child)
+      reject(error)
+    })
+  })
+}
+
+export async function runIsolatedTests(): Promise<number> {
+  // Check if there are any isolated tests
+  const isolatedTests = await glob('test/**/*.isolated.test.mts', {
+    cwd: rootPath,
+  } satisfies FastGlobOptions)
+
+  if (isolatedTests.length === 0) {
+    return 0
   }
-  return 0
+
+  logger.step(`Running ${isolatedTests.length} isolated test file(s)`)
+  isolatedTests.forEach((test: string): void => logger.substep(test))
+
+  const vitestCmd = WIN32 ? 'vitest.cmd' : 'vitest'
+  const vitestPath = path.join(nodeModulesBinPath, vitestCmd)
+
+  const spawnOptions: SpawnOptions = {
+    cwd: rootPath,
+    env: {
+      ...process.env,
+      NODE_OPTIONS:
+        `${process.env['NODE_OPTIONS'] || ''} --max-old-space-size=${process.env['CI'] ? 8192 : 4096} --max-semi-space-size=512 --unhandled-rejections=warn`.trim(),
+      VITEST: '1',
+    },
+    stdio: 'inherit',
+  }
+
+  return runCommand(
+    vitestPath,
+    ['--config', '.config/vitest.config.isolated.mts', 'run', ...isolatedTests],
+    spawnOptions,
+  )
 }
 
 export async function runTests(
@@ -393,40 +427,6 @@ export async function runTests(
   }
 
   return result.code
-}
-
-export async function runIsolatedTests(): Promise<number> {
-  // Check if there are any isolated tests
-  const isolatedTests = await glob('test/**/*.isolated.test.mts', {
-    cwd: rootPath,
-  } satisfies FastGlobOptions)
-
-  if (isolatedTests.length === 0) {
-    return 0
-  }
-
-  logger.step(`Running ${isolatedTests.length} isolated test file(s)`)
-  isolatedTests.forEach((test: string): void => logger.substep(test))
-
-  const vitestCmd = WIN32 ? 'vitest.cmd' : 'vitest'
-  const vitestPath = path.join(nodeModulesBinPath, vitestCmd)
-
-  const spawnOptions: SpawnOptions = {
-    cwd: rootPath,
-    env: {
-      ...process.env,
-      NODE_OPTIONS:
-        `${process.env['NODE_OPTIONS'] || ''} --max-old-space-size=${process.env['CI'] ? 8192 : 4096} --max-semi-space-size=512 --unhandled-rejections=warn`.trim(),
-      VITEST: '1',
-    },
-    stdio: 'inherit',
-  }
-
-  return runCommand(
-    vitestPath,
-    ['--config', '.config/vitest.config.isolated.mts', 'run', ...isolatedTests],
-    spawnOptions,
-  )
 }
 
 async function main(): Promise<void> {

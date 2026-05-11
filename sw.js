@@ -127,28 +127,6 @@ self.addEventListener('fetch', event => {
 })
 
 /**
- * Network-first: try the network, fall back to cache only on failure.
- * Used for HTML navigations so a new deploy is always picked up.
- */
-export async function networkFirst(request) {
-  try {
-    const response = await fetch(request)
-    if (response.ok) {
-      const cache = await caches.open(CACHE_NAME)
-      cache.put(request, response.clone()).catch(() => {})
-    }
-    return response
-  } catch {
-    const cache = await caches.open(CACHE_NAME)
-    const cached = await cache.match(request)
-    if (cached) {
-      return cached
-    }
-    throw new Error('offline and no cached copy')
-  }
-}
-
-/**
  * Cache-first with stale-while-revalidate: serve the cached response
  * immediately (instant), kick off a network refresh in the background
  * to update the cache for the next load. Misses fall through to a
@@ -181,4 +159,26 @@ export async function cacheFirst(request) {
   }
   const fresh = await networkFetch
   return fresh ?? Response.error()
+}
+
+/**
+ * Network-first: try the network, fall back to cache only on failure.
+ * Used for HTML navigations so a new deploy is always picked up.
+ */
+export async function networkFirst(request) {
+  try {
+    const response = await fetch(request)
+    if (response.ok) {
+      const cache = await caches.open(CACHE_NAME)
+      cache.put(request, response.clone()).catch(() => {})
+    }
+    return response
+  } catch {
+    const cache = await caches.open(CACHE_NAME)
+    const cached = await cache.match(request)
+    if (cached) {
+      return cached
+    }
+    throw new Error('offline and no cached copy')
+  }
 }

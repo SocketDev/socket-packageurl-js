@@ -53,24 +53,6 @@ const componentSortOrderLookup = {
 }
 
 /**
- * Compare two component names for sorting.
- */
-export function componentComparator(compA: string, compB: string): number {
-  return componentSortOrder(compA) - componentSortOrder(compB)
-}
-
-/**
- * Get numeric sort order for component name.
- */
-export function componentSortOrder(comp: string): number {
-  return (
-    (componentSortOrderLookup as unknown as Record<string, number>)[comp] ??
-    // Unknown components sort after all known ones
-    8
-  )
-}
-
-/**
  * Encode PURL component value to string.
  */
 export function PurlComponentEncoder(comp: unknown): string {
@@ -94,6 +76,24 @@ export function PurlComponentValidator(
   _throws: boolean,
 ): boolean {
   return true
+}
+
+/**
+ * Compare two component names for sorting.
+ */
+export function componentComparator(compA: string, compB: string): number {
+  return componentSortOrder(compA) - componentSortOrder(compB)
+}
+
+/**
+ * Get numeric sort order for component name.
+ */
+export function componentSortOrder(comp: string): number {
+  return (
+    (componentSortOrderLookup as unknown as Record<string, number>)[comp] ??
+    // Unknown components sort after all known ones
+    8
+  )
 }
 
 // Rules for each purl component:

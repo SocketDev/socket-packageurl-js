@@ -43,17 +43,6 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate PyPI package URL.
- * `name` must not contain injection characters.
- */
-export function validate(purl: PurlObject, throws: boolean): boolean {
-  if (!validateNoInjectionByType('pypi', 'name', purl.name, throws)) {
-    return false
-  }
-  return true
-}
-
-/**
  * Check if a PyPI package exists in the registry.
  *
  * Queries PyPI at https://pypi.org/pypi to verify package existence and
@@ -157,4 +146,15 @@ export async function pypiExists(
   }
 
   return result
+}
+
+/**
+ * Validate PyPI package URL.
+ * `name` must not contain injection characters.
+ */
+export function validate(purl: PurlObject, throws: boolean): boolean {
+  if (!validateNoInjectionByType('pypi', 'name', purl.name, throws)) {
+    return false
+  }
+  return true
 }

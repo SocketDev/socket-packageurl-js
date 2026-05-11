@@ -10,6 +10,24 @@ import { expect } from 'vitest'
 import type { PackageURL } from '../../src/package-url.js'
 
 /**
+ * Assert that two PackageURL instances are equal in all properties.
+ *
+ * @example
+ * const original = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+ * const restored = PackageURL.fromJSON(original.toJSONString())
+ * expectPurlEquality(restored, original)
+ */
+export function expectPurlEquality(purl1: PackageURL, purl2: PackageURL): void {
+  expect(purl1.type).toBe(purl2.type)
+  expect(purl1.namespace).toBe(purl2.namespace)
+  expect(purl1.name).toBe(purl2.name)
+  expect(purl1.version).toBe(purl2.version)
+  expect(purl1.qualifiers).toStrictEqual(purl2.qualifiers)
+  expect(purl1.subpath).toBe(purl2.subpath)
+  expect(purl1.toString()).toBe(purl2.toString())
+}
+
+/**
  * Assert that a PackageURL instance has expected properties.
  *
  * @example
@@ -61,24 +79,6 @@ export function expectPurlProperties(
   } else {
     expect(purl.subpath).toBe(undefined)
   }
-}
-
-/**
- * Assert that two PackageURL instances are equal in all properties.
- *
- * @example
- * const original = PackageURL.fromString('pkg:npm/lodash@4.17.21')
- * const restored = PackageURL.fromJSON(original.toJSONString())
- * expectPurlEquality(restored, original)
- */
-export function expectPurlEquality(purl1: PackageURL, purl2: PackageURL): void {
-  expect(purl1.type).toBe(purl2.type)
-  expect(purl1.namespace).toBe(purl2.namespace)
-  expect(purl1.name).toBe(purl2.name)
-  expect(purl1.version).toBe(purl2.version)
-  expect(purl1.qualifiers).toStrictEqual(purl2.qualifiers)
-  expect(purl1.subpath).toBe(purl2.subpath)
-  expect(purl1.toString()).toBe(purl2.toString())
 }
 
 /**

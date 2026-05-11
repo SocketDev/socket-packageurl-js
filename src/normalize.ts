@@ -114,7 +114,7 @@ export function normalizeQualifiers(
       continue
     }
     if (qualifiers === undefined) {
-      qualifiers = ObjectCreate(null) as Record<string, string>
+      qualifiers = ObjectCreate(undefined) as Record<string, string>
     }
     // A key is case insensitive. The canonical form is lowercase
     qualifiers[StringPrototypeToLowerCase(key)] = trimmed

@@ -25,37 +25,6 @@ type PackageInfo = {
 }
 
 /**
- * Extract package info from a pnpm node_modules path.
- */
-export function extractPackageInfo(longPath: string): PackageInfo | undefined {
-  // Scoped: node_modules/.pnpm/@scope+pkg@version/node_modules/@scope/pkg/path
-  const scopedMatch = longPath.match(
-    /node_modules\/\.pnpm\/@[^+/]+\+[^@/]+@([^/]+)\/node_modules\/(@[^/]+\/[^/]+)\/(.+)/,
-  )
-  if (scopedMatch) {
-    const [, version, packageName, subpath] = scopedMatch
-    if (!version || !packageName || !subpath) {
-      return undefined
-    }
-    return { packageName, subpath, version }
-  }
-
-  // Non-scoped: node_modules/.pnpm/pkg@version/node_modules/pkg/path
-  const match = longPath.match(
-    /node_modules\/\.pnpm\/[^@/]+@([^/]+)\/node_modules\/([^/]+)\/(.+)/,
-  )
-  if (match) {
-    const [, version, packageName, subpath] = match
-    if (!version || !packageName || !subpath) {
-      return undefined
-    }
-    return { packageName, subpath, version }
-  }
-
-  return undefined
-}
-
-/**
  * Build a map from original paths to shortened paths. Includes the
  * version only when multiple versions of the same package would
  * collapse to the same short path.
@@ -160,6 +129,37 @@ export function createPathShorteningPlugin(): Plugin {
       }
     },
   }
+}
+
+/**
+ * Extract package info from a pnpm node_modules path.
+ */
+export function extractPackageInfo(longPath: string): PackageInfo | undefined {
+  // Scoped: node_modules/.pnpm/@scope+pkg@version/node_modules/@scope/pkg/path
+  const scopedMatch = longPath.match(
+    /node_modules\/\.pnpm\/@[^+/]+\+[^@/]+@([^/]+)\/node_modules\/(@[^/]+\/[^/]+)\/(.+)/,
+  )
+  if (scopedMatch) {
+    const [, version, packageName, subpath] = scopedMatch
+    if (!version || !packageName || !subpath) {
+      return undefined
+    }
+    return { packageName, subpath, version }
+  }
+
+  // Non-scoped: node_modules/.pnpm/pkg@version/node_modules/pkg/path
+  const match = longPath.match(
+    /node_modules\/\.pnpm\/[^@/]+@([^/]+)\/node_modules\/([^/]+)\/(.+)/,
+  )
+  if (match) {
+    const [, version, packageName, subpath] = match
+    if (!version || !packageName || !subpath) {
+      return undefined
+    }
+    return { packageName, subpath, version }
+  }
+
+  return undefined
 }
 
 const externals = [...builtinModules, ...builtinModules.map(m => `node:${m}`)]

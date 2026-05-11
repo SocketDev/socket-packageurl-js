@@ -73,75 +73,20 @@ const rootPath: string = path.resolve(
 )
 const WIN32: boolean = process.platform === 'win32'
 
-export async function runCommand(
-  command: string,
-  args: string[] = [],
-  options: SpawnOptions = {},
-): Promise<number> {
-  try {
-    const result = await spawn(command, args, {
-      cwd: rootPath,
-      stdio: 'inherit',
-      ...(WIN32 && { shell: true }),
-      ...options,
-    })
-    return result.code
-  } catch (e) {
-    // spawn() throws on non-zero exit
-    if (e && typeof e === 'object' && 'code' in e) {
-      return (e as SpawnError).code
-    }
-    throw e
-  }
-}
-
-export async function runCommandWithOutput(
-  command: string,
-  args: string[] = [],
-  options: SpawnOptions = {},
-): Promise<CommandResult> {
-  try {
-    const result = await spawn(command, args, {
-      cwd: rootPath,
-      stdio: 'pipe',
-      stdioString: true,
-      ...(WIN32 && { shell: true }),
-      ...options,
-    })
-    return {
-      exitCode: result.code,
-      stderr: result.stderr,
-      stdout: result.stdout,
-    }
-  } catch (e) {
-    // spawn() throws on non-zero exit
-    if (
-      e &&
-      typeof e === 'object' &&
-      'code' in e &&
-      'stdout' in e &&
-      'stderr' in e
-    ) {
-      const spawnError: SpawnErrorWithOutputString = e
-      return {
-        exitCode: spawnError.code,
-        stderr: spawnError.stderr,
-        stdout: spawnError.stdout,
-      }
-    }
-    throw e
-  }
-}
-
 /**
- * Read package.json from the project.
+ * Check if the git working tree is clean (no uncommitted changes).
  */
-export async function readPackageJson(
-  pkgPath: string = rootPath,
-): Promise<PackageJson> {
-  const packageJsonPath: string = path.join(pkgPath, 'package.json')
-  const content: string = await fs.readFile(packageJsonPath, 'utf8')
-  return JSON.parse(content) as PackageJson
+export async function checkGitStatus(): Promise<boolean> {
+  const result = await runCommandWithOutput('git', ['status', '--porcelain'])
+  const stdout =
+    typeof result.stdout === 'string' ? result.stdout : result.stdout.toString()
+  if (stdout.trim()) {
+    logger.error('Working directory is not clean')
+    logger.info('Uncommitted changes:')
+    logger.log(stdout)
+    return false
+  }
+  return true
 }
 
 /**
@@ -152,115 +97,6 @@ export async function getCurrentVersion(
 ): Promise<string | undefined> {
   const pkgJson: PackageJson = await readPackageJson(pkgPath)
   return pkgJson.version
-}
-
-/**
- * Check if a version exists on npm.
- */
-export async function versionExists(
-  packageName: string,
-  version: string,
-): Promise<boolean> {
-  const result: CommandResult = await runCommandWithOutput(
-    'npm',
-    ['view', `${packageName}@${version}`, 'version'],
-    { stdio: 'pipe' },
-  )
-
-  return result.exitCode === 0
-}
-
-/**
- * Validate that build artifacts exist based on package.json exports.
- */
-export async function validateBuildArtifacts(): Promise<boolean> {
-  logger.step('Validating build artifacts')
-
-  const pkgJson: PackageJson = await readPackageJson()
-  const missing: string[] = []
-
-  // Check exports from package.json.
-  if (pkgJson.exports) {
-    for (const [exportPath, exportValue] of Object.entries(pkgJson.exports)) {
-      // Skip package.json export.
-      if (exportPath === './package.json') {
-        continue
-      }
-
-      // Handle both string and object export values.
-      const files: string[] =
-        typeof exportValue === 'string'
-          ? [exportValue]
-          : Object.values(exportValue).filter(
-              (v): v is string => typeof v === 'string',
-            )
-
-      for (const file of files) {
-        const filePath: string = path.join(rootPath, file)
-        if (!existsSync(filePath)) {
-          missing.push(file)
-        }
-      }
-    }
-  }
-
-  // Check main entry point.
-  if (pkgJson.main) {
-    const mainPath: string = path.join(rootPath, pkgJson.main)
-    if (!existsSync(mainPath)) {
-      missing.push(pkgJson.main)
-    }
-  }
-
-  // Check types entry point.
-  if (pkgJson.types) {
-    const typesPath: string = path.join(rootPath, pkgJson.types)
-    if (!existsSync(typesPath)) {
-      missing.push(pkgJson.types)
-    }
-  }
-
-  if (missing.length > 0) {
-    logger.error('Missing build artifacts:')
-    for (const file of missing) {
-      logger.substep(`  ${file}`)
-    }
-    return false
-  }
-
-  logger.success('Build artifacts validated')
-  return true
-}
-
-/**
- * Publish a single package.
- */
-/**
- * Stage publishable files into a fresh os.tmpdir() subdir. Returns
- * the path of the staged copy. The caller publishes from there
- * instead of the working tree, so an interrupted publish leaves
- * `git status` clean.
- */
-export async function stageForPublish(): Promise<string> {
-  const stageRoot = await fs.mkdtemp(
-    path.join(os.tmpdir(), `socket-packageurl-js-publish-${process.pid}-`),
-  )
-  await fs.cp(rootPath, stageRoot, {
-    recursive: true,
-    dereference: true,
-    filter: src => {
-      const base = path.basename(src)
-      return (
-        base !== 'node_modules' &&
-        base !== '.git' &&
-        base !== '.gitignore' &&
-        base !== '.gitkeep' &&
-        !base.startsWith('.pnpm') &&
-        base !== 'pnpm-lock.yaml'
-      )
-    },
-  })
-  return stageRoot
 }
 
 export async function publishPackage(
@@ -424,19 +260,183 @@ export async function pushExistingTag(
 }
 
 /**
- * Check if the git working tree is clean (no uncommitted changes).
+ * Read package.json from the project.
  */
-export async function checkGitStatus(): Promise<boolean> {
-  const result = await runCommandWithOutput('git', ['status', '--porcelain'])
-  const stdout =
-    typeof result.stdout === 'string' ? result.stdout : result.stdout.toString()
-  if (stdout.trim()) {
-    logger.error('Working directory is not clean')
-    logger.info('Uncommitted changes:')
-    logger.log(stdout)
+export async function readPackageJson(
+  pkgPath: string = rootPath,
+): Promise<PackageJson> {
+  const packageJsonPath: string = path.join(pkgPath, 'package.json')
+  const content: string = await fs.readFile(packageJsonPath, 'utf8')
+  return JSON.parse(content) as PackageJson
+}
+
+export async function runCommand(
+  command: string,
+  args: string[] = [],
+  options: SpawnOptions = {},
+): Promise<number> {
+  try {
+    const result = await spawn(command, args, {
+      cwd: rootPath,
+      stdio: 'inherit',
+      ...(WIN32 && { shell: true }),
+      ...options,
+    })
+    return result.code
+  } catch (e) {
+    // spawn() throws on non-zero exit
+    if (e && typeof e === 'object' && 'code' in e) {
+      return (e as SpawnError).code
+    }
+    throw e
+  }
+}
+
+export async function runCommandWithOutput(
+  command: string,
+  args: string[] = [],
+  options: SpawnOptions = {},
+): Promise<CommandResult> {
+  try {
+    const result = await spawn(command, args, {
+      cwd: rootPath,
+      stdio: 'pipe',
+      stdioString: true,
+      ...(WIN32 && { shell: true }),
+      ...options,
+    })
+    return {
+      exitCode: result.code,
+      stderr: result.stderr,
+      stdout: result.stdout,
+    }
+  } catch (e) {
+    // spawn() throws on non-zero exit
+    if (
+      e &&
+      typeof e === 'object' &&
+      'code' in e &&
+      'stdout' in e &&
+      'stderr' in e
+    ) {
+      const spawnError: SpawnErrorWithOutputString = e
+      return {
+        exitCode: spawnError.code,
+        stderr: spawnError.stderr,
+        stdout: spawnError.stdout,
+      }
+    }
+    throw e
+  }
+}
+
+/**
+ * Publish a single package.
+ */
+/**
+ * Stage publishable files into a fresh os.tmpdir() subdir. Returns
+ * the path of the staged copy. The caller publishes from there
+ * instead of the working tree, so an interrupted publish leaves
+ * `git status` clean.
+ */
+export async function stageForPublish(): Promise<string> {
+  const stageRoot = await fs.mkdtemp(
+    path.join(os.tmpdir(), `socket-packageurl-js-publish-${process.pid}-`),
+  )
+  await fs.cp(rootPath, stageRoot, {
+    recursive: true,
+    dereference: true,
+    filter: src => {
+      const base = path.basename(src)
+      return (
+        base !== 'node_modules' &&
+        base !== '.git' &&
+        base !== '.gitignore' &&
+        base !== '.gitkeep' &&
+        !base.startsWith('.pnpm') &&
+        base !== 'pnpm-lock.yaml'
+      )
+    },
+  })
+  return stageRoot
+}
+
+/**
+ * Validate that build artifacts exist based on package.json exports.
+ */
+export async function validateBuildArtifacts(): Promise<boolean> {
+  logger.step('Validating build artifacts')
+
+  const pkgJson: PackageJson = await readPackageJson()
+  const missing: string[] = []
+
+  // Check exports from package.json.
+  if (pkgJson.exports) {
+    for (const [exportPath, exportValue] of Object.entries(pkgJson.exports)) {
+      // Skip package.json export.
+      if (exportPath === './package.json') {
+        continue
+      }
+
+      // Handle both string and object export values.
+      const files: string[] =
+        typeof exportValue === 'string'
+          ? [exportValue]
+          : Object.values(exportValue).filter(
+              (v): v is string => typeof v === 'string',
+            )
+
+      for (const file of files) {
+        const filePath: string = path.join(rootPath, file)
+        if (!existsSync(filePath)) {
+          missing.push(file)
+        }
+      }
+    }
+  }
+
+  // Check main entry point.
+  if (pkgJson.main) {
+    const mainPath: string = path.join(rootPath, pkgJson.main)
+    if (!existsSync(mainPath)) {
+      missing.push(pkgJson.main)
+    }
+  }
+
+  // Check types entry point.
+  if (pkgJson.types) {
+    const typesPath: string = path.join(rootPath, pkgJson.types)
+    if (!existsSync(typesPath)) {
+      missing.push(pkgJson.types)
+    }
+  }
+
+  if (missing.length > 0) {
+    logger.error('Missing build artifacts:')
+    for (const file of missing) {
+      logger.substep(`  ${file}`)
+    }
     return false
   }
+
+  logger.success('Build artifacts validated')
   return true
+}
+
+/**
+ * Check if a version exists on npm.
+ */
+export async function versionExists(
+  packageName: string,
+  version: string,
+): Promise<boolean> {
+  const result: CommandResult = await runCommandWithOutput(
+    'npm',
+    ['view', `${packageName}@${version}`, 'version'],
+    { stdio: 'pipe' },
+  )
+
+  return result.exitCode === 0
 }
 
 async function main(): Promise<void> {
