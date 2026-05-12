@@ -160,7 +160,7 @@ export async function runCheck(): Promise<number> {
       '--config',
       '.config/oxlintrc.json',
       '--tsconfig',
-      '.config/tsconfig.check.json',
+      'tsconfig.check.json',
       '--import-plugin',
       '--node-plugin',
       '.',
@@ -179,7 +179,7 @@ export async function runCheck(): Promise<number> {
       '--config',
       '.config/oxlintrc.json',
       '--tsconfig',
-      '.config/tsconfig.check.json',
+      'tsconfig.check.json',
       '--import-plugin',
       '--node-plugin',
       '.',
@@ -193,7 +193,7 @@ export async function runCheck(): Promise<number> {
   spinner.start('Checking TypeScript...')
   exitCode = await runCommand(
     'tsgo',
-    ['--noEmit', '-p', '.config/tsconfig.check.json'],
+    ['--noEmit', '-p', 'tsconfig.check.json'],
     {
       stdio: 'pipe',
     },
@@ -202,7 +202,7 @@ export async function runCheck(): Promise<number> {
     spinner.stop()
     logger.error('TypeScript check failed')
     // Re-run with output to show errors
-    await runCommand('tsgo', ['--noEmit', '-p', '.config/tsconfig.check.json'])
+    await runCommand('tsgo', ['--noEmit', '-p', 'tsconfig.check.json'])
     return exitCode
   }
   spinner.stop()

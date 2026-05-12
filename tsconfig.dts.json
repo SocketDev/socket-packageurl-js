@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "./.config/tsconfig.base.json",
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declaration": true,
@@ -7,11 +7,11 @@
     "emitDeclarationOnly": true,
     "module": "commonjs",
     "moduleResolution": "bundler",
-    "outDir": "../dist",
-    "rootDir": "../src",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "sourceMap": false,
     "types": ["node"],
     "verbatimModuleSyntax": false
   },
-  "include": ["../src/**/*.ts"]
+  "include": ["src/**/*.ts"]
 }

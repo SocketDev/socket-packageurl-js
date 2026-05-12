@@ -63,7 +63,7 @@
     "claude": "node scripts/claude.mts",
     "test": "node scripts/test.mts",
     "test:val": "node --test val/*.test.ts",
-    "type": "tsgo --noEmit -p .config/tsconfig.check.json",
+    "type": "tsgo --noEmit -p tsconfig.check.json",
     "update": "node scripts/update.mts",
     "update:data:npm": "node scripts/update-data-npm.mts",
     "tour": "node scripts/tour.mts",

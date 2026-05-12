@@ -124,7 +124,7 @@ export async function runTypeCheck(
   const result: CheckCommandResult = await runCommandQuiet('tsgo', [
     '--noEmit',
     '-p',
-    '.config/tsconfig.check.json',
+    'tsconfig.check.json',
   ])
 
   if (result.exitCode !== 0) {
