@@ -16,10 +16,10 @@ import { audit } from './audit.ts'
 import { jsonError, readBoundedJson } from './util.ts'
 import type { AppEnv } from './types.ts'
 
-export const registerCommentCreateRoute = (
+export function registerCommentCreateRoute(
   app: Hono<AppEnv>,
   requireAuth: (c: Context<AppEnv>, n: Next) => Promise<Response | void>,
-): void => {
+) {
   app.post('/:slug/api/comments', requireAuth, async c => {
     await ensureDb
     const slug = c.req.param('slug')

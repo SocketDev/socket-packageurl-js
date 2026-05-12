@@ -1,6 +1,6 @@
 /**
  * @fileoverview Yocto-specific PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
  *
  * Yocto Project packages (recipes) for embedded Linux distributions.
  * Package names are typically lowercase with hyphens.

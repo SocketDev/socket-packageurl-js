@@ -1,6 +1,6 @@
 /**
  * @fileoverview Hugging Face PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#huggingface
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#huggingface
  */
 
 import { lowerVersion } from '../strings.js'

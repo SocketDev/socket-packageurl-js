@@ -237,7 +237,8 @@ export const ResultUtils = {
     let lastError: Result<unknown, unknown> = err(
       new ErrorCtor('No results provided'),
     )
-    for (const result of results) {
+    for (let i = 0, { length } = results; i < length; i += 1) {
+      const result = results[i]
       if (result.isOk()) {
         return result
       }

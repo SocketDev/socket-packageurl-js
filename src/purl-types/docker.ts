@@ -1,6 +1,6 @@
 /**
  * @fileoverview Docker-specific PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#docker
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#docker
  */
 
 import { errorMessage } from '../error.js'

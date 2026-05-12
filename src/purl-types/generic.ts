@@ -1,6 +1,6 @@
 /**
  * @fileoverview Generic PURL type (minimal implementation).
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#generic
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#generic
  *
  * The generic type is used when no specific package type applies.
  * It has no specific normalization or validation rules beyond the base PURL spec.

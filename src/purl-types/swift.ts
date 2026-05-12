@@ -1,6 +1,6 @@
 /**
  * @fileoverview Swift PURL validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#swift
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#swift
  */
 
 import {

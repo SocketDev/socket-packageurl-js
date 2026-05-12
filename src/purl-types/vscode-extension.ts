@@ -1,6 +1,6 @@
 /**
  * @fileoverview VSCode extension PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
  *
  * VSCode extensions use the Visual Studio Marketplace for distribution.
  * The `namespace` is the publisher name, and the `name` is the extension name.
@@ -8,7 +8,7 @@
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { errorMessage, PurlError } from '../error.js'
+import { PurlError, errorMessage } from '../error.js'
 import {
   ArrayPrototypeSome,
   JSONStringify,

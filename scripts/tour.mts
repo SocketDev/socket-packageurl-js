@@ -1,4 +1,6 @@
+/* max-file-lines: legitimate -- single-purpose tour generator + local-preview server; the discover/parse/annotate/render/serve passes share state and splitting would scatter the pipeline. */
 /* oxlint-disable socket/sort-source-methods -- pipeline helpers organized by pass (discover → parse → annotate → render → serve); alphabetical would scatter same-pass helpers. */
+/* oxlint-disable socket/prefer-cached-for-loop -- iterables are predominantly Maps, Sets, generators, and destructured entries; cached-length rewrite is unsafe or meaningless for these shapes. */
 
 /**
  * @fileoverview Tour generator + local server wrapper.
@@ -13,7 +15,7 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { hash as cryptoHash, randomUUID } from 'node:crypto'
+import crypto from 'node:crypto'
 import {
   createReadStream,
   existsSync,
@@ -37,10 +39,8 @@ import { HTMLElement, parse as parseHtml } from 'node-html-parser'
 import { optimize as svgoOptimize } from 'svgo'
 
 import { auditCdnScripts, auditValDeps } from './audit-deps.mts'
-import {
-  createMermaidRenderer,
-  type MermaidRenderer,
-} from './render-mermaid.mts'
+import { createMermaidRenderer } from './render-mermaid.mts'
+import type { MermaidRenderer } from './render-mermaid.mts'
 import { errorMessage } from './utils/error-message.mts'
 
 const logger = getDefaultLogger()
@@ -379,7 +379,7 @@ export function highlightProseNumbers(html: string): string {
    * Skips numbers that are the bold-marker at the start of a
    * list item — those are conventional enumeration, not counts. */
   const pattern =
-    /(?<!&#)(?<!&#x)(?<![\w.-])([≥≤~]?\s?\d+(?:\.\d+)+(?:-[a-z]+(?:\.\d+)*)?[+%]?|[≥≤~]?\s?\d+[+%]?)(?![\w-])(?!\.\s|\.\d)/gi
+    /(?<!&#)(?<!&#x)(?<![\w.-])([≥≤~]?\s?\d+(?:\.\d+)+(?:-[a-z]+(?:\.\d+)*)?[+%]?|[≥≤~]?\s?\d+[+%]?)(?![\w-])(?!\.\d|\.\s)/gi
   const walk = (node: HTMLElement): void => {
     if (skip.has(node.tagName)) {
       return
@@ -399,7 +399,8 @@ export function highlightProseNumbers(html: string): string {
       return
     }
     const children = Array.from(node.childNodes)
-    for (const child of children) {
+    for (let i = 0, { length } = children; i < length; i += 1) {
+      const child = children[i]
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const any = child as any
       if (any.nodeType === 3) {
@@ -437,7 +438,8 @@ export function highlightProseNumbers(html: string): string {
 export function stripFurtherReading(html: string): string {
   const root = parseHtml(html)
   const headings = root.querySelectorAll('h2')
-  for (const h of headings) {
+  for (let i = 0, { length } = headings; i < length; i += 1) {
+    const h = headings[i]
     const text = h.text
       .trim()
       .toLowerCase()
@@ -483,7 +485,8 @@ export function stripFurtherReading(html: string): string {
 export function enhanceRepoTrees(html: string): string {
   const root = parseHtml(html)
   const preBlocks = root.querySelectorAll('pre')
-  for (const pre of preBlocks) {
+  for (let i = 0, { length } = preBlocks; i < length; i += 1) {
+    const pre = preBlocks[i]
     const text = pre.text
     if (!/[├└│]/.test(text)) {
       continue
@@ -514,7 +517,8 @@ export function anchorifyHeadings(html: string): string {
   const root = parseHtml(html)
   const used = new Set<string>()
   const headings = root.querySelectorAll('h2, h3, h4')
-  for (const h of headings) {
+  for (let i = 0, { length } = headings; i < length; i += 1) {
+    const h = headings[i]
     if (h.getAttribute('id')) {
       continue
     }
@@ -564,11 +568,11 @@ export function italicizeParentheticals(html: string): string {
   const walk = (node: HTMLElement): void => {
     const tag = node.tagName
     if (
+      tag === 'A' ||
       tag === 'CODE' ||
-      tag === 'PRE' ||
       tag === 'KBD' ||
-      tag === 'SAMP' ||
-      tag === 'A'
+      tag === 'PRE' ||
+      tag === 'SAMP'
     ) {
       return
     }
@@ -626,7 +630,8 @@ export function firstSignificantWord(title: string): string {
     'with',
   ])
   const words = title.split(/\s+/)
-  for (const w of words) {
+  for (let i = 0, { length } = words; i < length; i += 1) {
+    const w = words[i]
     const cleaned = w.replace(/[,:;.!?]+$/, '')
     if (cleaned && !stop.has(cleaned.toLowerCase())) {
       return cleaned
@@ -695,7 +700,8 @@ export function validateDocFilenames(
   const errors: string[] = []
   const seen = new Map<string, DocEntry>()
   const partFilenameSet = new Set(partFilenames.values())
-  for (const d of docs) {
+  for (let i = 0, { length } = docs; i < length; i += 1) {
+    const d = docs[i]
     if (!d.filename) {
       errors.push(
         `${configPath}: doc "${d.title ?? '<untitled>'}" is missing "filename". Add a single-word lowercase filename (e.g. "architecture") to this doc.`,
@@ -765,8 +771,9 @@ export function validateDocFilenames(
 const HOME_ICON_SVG =
   '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V22h-6v-7h-6v7H3z"/></svg>'
 
-const buildHomeLinkHtml = (active: boolean): string =>
-  `<a class="wt-home-link${active ? ' active' : ''}" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"${active ? ' aria-current="page"' : ''}>${HOME_ICON_SVG}</a>`
+export function buildHomeLinkHtml(active: boolean) {
+  return `<a class="wt-home-link${active ? ' active' : ''}" href="/" aria-label="Back to the table of contents" title="Back to the table of contents"${active ? ' aria-current="page"' : ''}>${HOME_ICON_SVG}</a>`
+}
 
 /**
  * Render the "[home] Topics: 1 2 3 … 8 Architecture Builders …"
@@ -1090,7 +1097,7 @@ export async function rewriteIndexContents(
    * open in a new tab with noopener; bare "/" paths stay same-tab. */
   const renderLinks = (escaped: string): string =>
     escaped.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
-      const safeHref = /^(https?:\/\/|\/)/.test(href) ? href : undefined
+      const safeHref = /^(\/|https?:\/\/)/.test(href) ? href : undefined
       if (!safeHref) {
         return `[${label}](${href})`
       }
@@ -1225,7 +1232,8 @@ export async function rewriteIndexContents(
     // replaceWith takes a plain string on node-html-parser.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(firstCard as any).replaceWith(blockHtml)
-    for (const card of cardsToRemove) {
+    for (let i = 0, { length } = cardsToRemove; i < length; i += 1) {
+      const card = cardsToRemove[i]
       if (card !== firstCard) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(card as any).remove()
@@ -1331,7 +1339,8 @@ export function validatePartFilenames(
 ): Map<number, string> {
   const errors: string[] = []
   const seen = new Map<string, number>()
-  for (const p of parts) {
+  for (let i = 0, { length } = parts; i < length; i += 1) {
+    const p = parts[i]
     if (!p.filename) {
       errors.push(
         `${configPath}: part ${p.id} ("${p.title}") is missing "filename". Add a single-word lowercase filename (e.g. "anatomy") to this part — one per part is required to route /<slug>/part/${p.id} at publish time.`,
@@ -1359,7 +1368,8 @@ export function validatePartFilenames(
     )
   }
   const map = new Map<number, string>()
-  for (const p of parts) {
+  for (let i = 0, { length } = parts; i < length; i += 1) {
+    const p = parts[i]
     map.set(p.id, p.filename!)
   }
   return map
@@ -1695,7 +1705,7 @@ export async function injectSri(
         : undefined
     }
     const rel = (el.getAttribute('rel') ?? '').toLowerCase()
-    if (!/\b(?:stylesheet|preload|modulepreload)\b/.test(rel)) {
+    if (!/\b(?:modulepreload|preload|stylesheet)\b/.test(rel)) {
       return undefined
     }
     const href = el.getAttribute('href')
@@ -1728,7 +1738,8 @@ export async function injectSri(
     }),
   )
 
-  for (const el of candidates) {
+  for (let i = 0, { length } = candidates; i < length; i += 1) {
+    const el = candidates[i]
     const ref = getRef(el)!
     const integrity = integrityByRef.get(ref)
     if (!integrity) {
@@ -1803,7 +1814,8 @@ export async function generate(
     const pagesBuildDir = path.join(buildDir, 'pages')
     if (existsSync(pagesSrcDir)) {
       await fs.mkdir(pagesBuildDir, { recursive: true })
-      for (const name of PAGES_SCRIPTS) {
+      for (let i = 0, { length } = PAGES_SCRIPTS; i < length; i += 1) {
+        const name = PAGES_SCRIPTS[i]
         const src = path.join(pagesSrcDir, name)
         if (existsSync(src)) {
           await fs.copyFile(src, path.join(pagesBuildDir, name))
@@ -2608,7 +2620,8 @@ export async function generate(
       // sibling. Also assign the anchor id to each block while we
       // have it in hand.
       const fileList: Array<{ path: string; anchor: string }> = []
-      for (const block of fileBlocks) {
+      for (let i = 0, { length } = fileBlocks; i < length; i += 1) {
+        const block = fileBlocks[i]
         const pathSpan = block.querySelector('.file-head .path')
         if (!pathSpan) {
           continue
@@ -2658,7 +2671,8 @@ export async function generate(
           COPYRIGHT_MARKER.test(text)
         )
       }
-      for (const block of fileBlocks) {
+      for (let i = 0, { length } = fileBlocks; i < length; i += 1) {
+        const block = fileBlocks[i]
         const firstCard = block.querySelector(
           '.pair-grid > .annotation-card, .file-grid > .annotation-card',
         )
@@ -2707,7 +2721,7 @@ export async function generate(
       // ("// to_do: fix this — eslint-disable-next-line") stay
       // visible because the directive is embedded in prose.
       const TOOL_DIRECTIVE_RE =
-        /^\s*(?:v8|c8|istanbul)\s+ignore(?:\s+\w+)?(?:\s+--[\s\S]*)?$|^\s*(?:eslint|oxlint|tslint|stylelint)[-\s](?:disable|enable)(?:-next-line|-line)?(?:\s+[\s\S]*)?$|^\s*(?:biome|prettier|oxfmt|oxlint|dprint)[-\s]ignore(?:\s+[\s\S]*)?$|^\s*@ts-(?:ignore|expect-error|nocheck|check)(?:\s+[\s\S]*)?$|^\s*#\s*@vite-ignore$|^\s*webpackChunkName:[\s\S]*$|^\s*eslint-env\b[\s\S]*$/i
+        /^\s*(?:c8|istanbul|v8)\s+ignore(?:\s+\w+)?(?:\s+--[\s\S]*)?$|^\s*(?:eslint|oxlint|stylelint|tslint)[-\s](?:disable|enable)(?:-line|-next-line)?(?:\s+[\s\S]*)?$|^\s*(?:biome|dprint|oxfmt|oxlint|prettier)[-\s]ignore(?:\s+[\s\S]*)?$|^\s*@ts-(?:check|expect-error|ignore|nocheck)(?:\s+[\s\S]*)?$|^\s*#\s*@vite-ignore$|^\s*webpackChunkName:[\s\S]*$|^\s*eslint-env\b[\s\S]*$/i
       // Decorative label: short inline block-comment content
       // used as a mnemonic for the reader rather than prose —
       // e.g. `code === 42 /*'*'*/`, `i++ /* n */`, `0xFF /*
@@ -2739,7 +2753,8 @@ export async function generate(
           lines.every(l => TOOL_DIRECTIVE_RE.test(l) || LABEL_NOISE_RE.test(l))
         )
       }
-      for (const block of fileBlocks) {
+      for (let i = 0, { length } = fileBlocks; i < length; i += 1) {
+        const block = fileBlocks[i]
         const cards = block.querySelectorAll('.annotation-card')
         for (const card of cards) {
           const src = card.querySelector('.annotation-md-source')
@@ -2757,7 +2772,8 @@ export async function generate(
         }
       }
       // Second pass: wrap path + count in <details> dropdowns.
-      for (const block of fileBlocks) {
+      for (let i = 0, { length } = fileBlocks; i < length; i += 1) {
+        const block = fileBlocks[i]
         const head = block.querySelector('.file-head')
         if (!head) {
           continue
@@ -3103,7 +3119,8 @@ export async function shrinkInlineSvgs(buildDir: string): Promise<void> {
         return
       }
       let changed = false
-      for (const svg of svgs) {
+      for (let i = 0, { length } = svgs; i < length; i += 1) {
+        const svg = svgs[i]
         const before = svg.toString()
         let after: string
         try {
@@ -3170,7 +3187,8 @@ export async function minifyEmittedAssets(buildDir: string): Promise<void> {
   const results = await Promise.allSettled([...jsTasks, ...cssTasks])
   let savedBytes = 0
   const failures: string[] = []
-  for (const r of results) {
+  for (let i = 0, { length } = results; i < length; i += 1) {
+    const r = results[i]
     if (r.status === 'fulfilled') {
       savedBytes += r.value
     } else {
@@ -3257,7 +3275,7 @@ export function routeToFile(
   // /<slug>/part/<n>            → <partFilenames[n]>.html (e.g. anatomy.html)
   // /<slug>/documents           → documents.html
   // anything else               → as-is (e.g. /style.css)
-  if (urlPath === '/' || urlPath === '') {
+  if (urlPath === '' || urlPath === '/') {
     return 'index.html'
   }
   if (urlPath === `/${slug}` || urlPath === `/${slug}/`) {
@@ -3445,7 +3463,8 @@ export async function watch(
     }, 200)
   }
 
-  for (const target of sourcesToWatch) {
+  for (let i = 0, { length } = sourcesToWatch; i < length; i += 1) {
+    const target = sourcesToWatch[i]
     if (!existsSync(target)) {
       continue
     }
@@ -3467,13 +3486,13 @@ export async function watch(
 // Shared fail-handler for async subcommands. `err.message || err` was
 // duplicated at every call site; a named helper also guarantees the
 // prefix format and exit code stay in sync across commands.
-const failWith =
-  (scope: string) =>
-  (err: unknown): never => {
+export function failWith(scope: string) {
+  return (err: unknown): never => {
     const msg = errorMessage(err)
     logger.fail(`[${scope}] failed:`, msg)
     process.exit(1)
   }
+}
 
 // Preset shorthand — sets minify + base-path in one flag.
 //   --prod  ≈  --minify --base-path=/socket-packageurl-js (GH Pages layout)
@@ -3768,7 +3787,8 @@ export async function deployValtown(args: readonly string[]): Promise<void> {
   }
   const receipts: Receipt[] = []
 
-  for (const f of files) {
+  for (let i = 0, { length } = files; i < length; i += 1) {
+    const f = files[i]
     const srcPath = path.join(valDir, f.path)
     const content = await fs.readFile(srcPath, 'utf8')
     const sha256 = cryptoHash('sha256', content, 'hex')
@@ -4063,7 +4083,7 @@ export async function tokenCli(args: readonly string[]): Promise<void> {
       )
     }
 
-    // Sanity check: a user with no credential.helper configured would
+    // Quick check: a user with no credential.helper configured would
     // see `git credential approve` silently swallow the secret. Warn.
     const helper = describeCredentialHelper()
     if (helper === 'no credential.helper configured') {
@@ -4144,9 +4164,10 @@ export async function readTokenFromStdin(): Promise<string> {
   return await new Promise<string>(resolve => {
     let buf = ''
     const onData = (chunk: string) => {
-      for (const ch of chunk) {
+      for (let i = 0, { length } = chunk; i < length; i += 1) {
+        const ch = chunk[i]
         // Enter = done; Ctrl-C = abort.
-        if (ch === '\r' || ch === '\n') {
+        if (ch === '\n' || ch === '\r') {
           stdin.setRawMode(false)
           stdin.pause()
           stdin.off('data', onData)
@@ -4223,7 +4244,8 @@ export async function doctor(): Promise<void> {
     }
   }
 
-  for (const name of present) {
+  for (let i = 0, { length } = present; i < length; i += 1) {
+    const name = present[i]
     const tool = manifest.tools[name]
     logger.success(`${name}${tool.version ? ` (need ${tool.version})` : ''}`)
   }
@@ -4241,7 +4263,8 @@ export async function doctor(): Promise<void> {
     const notes = tool.notes
     if (notes) {
       const lines = Array.isArray(notes) ? notes : [notes]
-      for (const line of lines) {
+      for (let i = 0, { length } = lines; i < length; i += 1) {
+        const line = lines[i]
         logger.log(`      ${line}`)
       }
     }

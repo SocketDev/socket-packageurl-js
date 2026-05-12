@@ -1,3 +1,4 @@
+/* max-file-lines: table -- per-type URL converter test matrix. */
 /*!
 Copyright (c) the purl authors
 

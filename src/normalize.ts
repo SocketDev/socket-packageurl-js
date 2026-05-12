@@ -94,6 +94,7 @@ export function normalizeQualifiers(
 ): Record<string, string> | undefined {
   let qualifiers: Record<string, string> | undefined
   // Use `for-of` to work with entries iterators
+  // oxlint-disable-next-line socket/prefer-cached-for-loop -- `qualifiersToEntries` returns a generic `Iterable`, not an indexable array.
   for (const { 0: key, 1: value } of qualifiersToEntries(rawQualifiers)) {
     // Skip non-string keys — `validateQualifiers` rejects these with `PurlError`.
     if (typeof key !== 'string') {

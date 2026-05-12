@@ -12,22 +12,7 @@ const decoder = new TextDecoder()
 
 const EMAIL_RE = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/
 
-export const sha256Hex = async (input: string): Promise<string> => {
-  const buf = await crypto.subtle.digest('SHA-256', encoder.encode(input))
-  return [...new Uint8Array(buf)]
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
-}
-
-export const b64urlEncode = (bytes: Uint8Array): string => {
-  let s = ''
-  for (const b of bytes) {
-    s += String.fromCharCode(b)
-  }
-  return btoa(s).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '')
-}
-
-export const b64urlDecode = (s: string): Uint8Array => {
+export function b64urlDecode(s: string) {
   const pad = 4 - (s.length % 4)
   const padded =
     s.replaceAll('-', '+').replaceAll('_', '/') +
@@ -40,6 +25,29 @@ export const b64urlDecode = (s: string): Uint8Array => {
   return out
 }
 
+export function b64urlEncode(bytes: Uint8Array) {
+  let s = ''
+  for (let i = 0, { length } = bytes; i < length; i += 1) {
+    s += String.fromCharCode(bytes[i]!)
+  }
+  return btoa(s).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '')
+}
+
+export function generateCode(
+  randomValues = crypto.getRandomValues.bind(crypto),
+) {
+  // Rejection-sample to eliminate modulo bias with a hard cap on iterations.
+  const max = 1_000_000
+  const cap = Math.floor(0xffffffff / max) * max
+  for (let i = 0; i < 100; i++) {
+    const n = randomValues(new Uint32Array(1))[0]
+    if (n < cap) {
+      return String(n % max).padStart(6, '0')
+    }
+  }
+  throw new Error('generateCode: RNG returned biased values 100x in a row')
+}
+
 export type JwtPayload = {
   email: string
   exp: number
@@ -47,7 +55,7 @@ export type JwtPayload = {
   jti: string
 }
 
-export const importHmacKey = async (signingKey: string): Promise<CryptoKey> => {
+export async function importHmacKey(signingKey: string) {
   if (encoder.encode(signingKey).length < 32) {
     throw new Error('signing key must encode at least 32 bytes')
   }
@@ -60,10 +68,14 @@ export const importHmacKey = async (signingKey: string): Promise<CryptoKey> => {
   )
 }
 
-export const signJwt = async (
-  key: CryptoKey,
-  payload: JwtPayload,
-): Promise<string> => {
+export async function sha256Hex(input: string) {
+  const buf = await crypto.subtle.digest('SHA-256', encoder.encode(input))
+  return [...new Uint8Array(buf)]
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+}
+
+export async function signJwt(key: CryptoKey, payload: JwtPayload) {
   const header = { alg: 'HS256', typ: 'JWT' }
   const hEnc = b64urlEncode(encoder.encode(JSON.stringify(header)))
   const pEnc = b64urlEncode(encoder.encode(JSON.stringify(payload)))
@@ -74,11 +86,11 @@ export const signJwt = async (
   return `${signingInput}.${b64urlEncode(sig)}`
 }
 
-export const verifyJwt = async (
+export async function verifyJwt(
   key: CryptoKey,
   jwt: string,
   nowMs = Date.now(),
-): Promise<JwtPayload | null> => {
+) {
   const parts = jwt.split('.')
   if (parts.length !== 3) {
     return undefined
@@ -135,19 +147,4 @@ export const verifyJwt = async (
   } catch {
     return undefined
   }
-}
-
-export const generateCode = (
-  randomValues = crypto.getRandomValues.bind(crypto),
-): string => {
-  // Rejection-sample to eliminate modulo bias with a hard cap on iterations.
-  const max = 1_000_000
-  const cap = Math.floor(0xffffffff / max) * max
-  for (let i = 0; i < 100; i++) {
-    const n = randomValues(new Uint32Array(1))[0]
-    if (n < cap) {
-      return String(n % max).padStart(6, '0')
-    }
-  }
-  throw new Error('generateCode: RNG returned biased values 100x in a row')
 }

@@ -1,11 +1,11 @@
 /**
  * @fileoverview Pub (Dart/Flutter) PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pub
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#pub
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { errorMessage, PurlError } from '../error.js'
+import { PurlError, errorMessage } from '../error.js'
 import {
   ArrayPrototypeSome,
   StringPrototypeCharCodeAt,
@@ -14,7 +14,7 @@ import {
 } from '@socketsecurity/lib/primordials'
 import { lowerName, replaceDashesWithUnderscores } from '../strings.js'
 
-import type { ExistsResult, ExistsOptions } from './npm.js'
+import type { ExistsOptions, ExistsResult } from './npm.js'
 
 interface PurlObject {
   name: string

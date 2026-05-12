@@ -106,7 +106,7 @@ try {
     const ansiRegex = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g')
     const output = (codeCoverageResult.stdout + codeCoverageResult.stderr)
       .replace(ansiRegex, '')
-      .replace(/(?:✧|︎|⚡)\s*/g, '')
+      .replace(/(?:⚡|✧|︎)\s*/g, '')
       .trim()
 
     // Extract and display test summary
@@ -166,7 +166,7 @@ try {
     const ansiRegex = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g')
     const output = (codeCoverageResult.stdout + codeCoverageResult.stderr)
       .replace(ansiRegex, '')
-      .replace(/(?:✧|︎|⚡)\s*/g, '')
+      .replace(/(?:⚡|✧|︎)\s*/g, '')
       .trim()
 
     // Extract test summary

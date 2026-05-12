@@ -12,8 +12,8 @@ import {
   sha256Hex,
   signJwt,
   verifyJwt,
-  type JwtPayload,
 } from './crypto.ts'
+import type { JwtPayload } from './crypto.ts'
 
 const STRONG_KEY = 'x'.repeat(32)
 const WEAK_KEY = 'short'
@@ -192,7 +192,8 @@ test('generateCode: reasonable distribution', () => {
     const n = Number(generateCode())
     buckets[Math.floor(n / 100_000)]++
   }
-  for (const b of buckets) {
+  for (let i = 0, { length } = buckets; i < length; i += 1) {
+    const b = buckets[i]
     assert.ok(b > 700 && b < 1300, `bucket out of range: ${b}`)
   }
 })

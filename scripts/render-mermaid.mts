@@ -23,7 +23,7 @@
  * stale output automatically.
  */
 
-import { hash as cryptoHash } from 'node:crypto'
+import crypto from 'node:crypto'
 import { existsSync, promises as fs } from 'node:fs'
 import path from 'node:path'
 

@@ -14,10 +14,10 @@ import { registerCommentMutateRoutes } from './comments-mutate.ts'
 import { registerCommentReadRoutes } from './comments-read.ts'
 import type { AppEnv } from './types.ts'
 
-export const registerCommentRoutes = (
+export function registerCommentRoutes(
   app: Hono<AppEnv>,
   requireAuth: (c: Context<AppEnv>, n: Next) => Promise<Response | void>,
-): void => {
+) {
   registerCommentReadRoutes(app, requireAuth)
   registerCommentCreateRoute(app, requireAuth)
   registerCommentMutateRoutes(app, requireAuth)

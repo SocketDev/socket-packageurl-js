@@ -1,6 +1,6 @@
 /**
  * @fileoverview Conan (C/C++) PURL validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#conan
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#conan
  */
 
 import { PurlError } from '../error.js'

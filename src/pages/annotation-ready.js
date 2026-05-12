@@ -1,3 +1,4 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* Annotation-md cleanup orchestrator + homepage pill pass.
  *
  * For each .annotation-md container: mark ready (reveals the

@@ -1,3 +1,4 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* Cmd/Ctrl-click links inside code lines. Two flavors:
  *   - URLs: any http:// or https:// substring becomes an <a>
  *     that opens in a new tab when Cmd/Ctrl-clicked.
@@ -65,8 +66,9 @@ import {
       const fromDir = fromPath.split('/').slice(0, -1)
       const segs = ref.split('/')
       const out = [...fromDir]
-      for (const seg of segs) {
-        if (seg === '.' || seg === '') {
+      for (let i = 0, { length } = segs; i < length; i += 1) {
+        const seg = segs[i]
+        if (seg === '' || seg === '.') {
           continue
         }
         if (seg === '..') {
@@ -130,7 +132,8 @@ import {
       }
       let cursor = 0
       const frag = document.createDocumentFragment()
-      for (const m of matches) {
+      for (let i = 0, { length } = matches; i < length; i += 1) {
+        const m = matches[i]
         if (m.start < cursor) {
           continue
         }
@@ -165,7 +168,8 @@ import {
           textNodes.push(node)
           node = walker.nextNode()
         }
-        for (const t of textNodes) {
+        for (let i = 0, { length } = textNodes; i < length; i += 1) {
+          const t = textNodes[i]
           wrapMatches(t, filePath)
         }
       }
@@ -189,7 +193,7 @@ import {
     addEventListener(
       'keydown',
       e => {
-        if (e.key === 'Meta' || e.key === 'Control') {
+        if (e.key === 'Control' || e.key === 'Meta') {
           setMod(true)
         }
       },
@@ -198,7 +202,7 @@ import {
     addEventListener(
       'keyup',
       e => {
-        if (e.key === 'Meta' || e.key === 'Control') {
+        if (e.key === 'Control' || e.key === 'Meta') {
           setMod(false)
         }
       },

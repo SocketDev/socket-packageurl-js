@@ -68,6 +68,7 @@ app.get('/health', async c => {
   const timeout = new Promise<'timeout'>(resolve =>
     setTimeout(() => resolve('timeout'), 2000),
   )
+  // oxlint-disable-next-line socket/no-promise-race -- single-shot health probe (no per-request handler accumulation); val.town sqlite client has no AbortSignal hook.
   const winner = await Promise.race([probe, timeout])
   const elapsed = Date.now() - start
   if (winner === 'timeout') {
@@ -79,4 +80,5 @@ app.get('/health', async c => {
 registerAuthRoutes(app, hmacKey, requireAuth)
 registerCommentRoutes(app, requireAuth)
 
+// oxlint-disable-next-line socket/no-default-export -- val.town runtime expects `export default <fetch handler>`.
 export default app.fetch

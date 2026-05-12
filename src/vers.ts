@@ -395,7 +395,7 @@ class Vers {
     const ranges: VersConstraint[] = []
     for (let i = 0, { length } = constraints; i < length; i += 1) {
       const c = constraints[i]!
-      if (c.comparator !== '=' && c.comparator !== '!=') {
+      if (c.comparator !== '!=' && c.comparator !== '=') {
         ArrayPrototypePush(ranges, c)
       }
     }

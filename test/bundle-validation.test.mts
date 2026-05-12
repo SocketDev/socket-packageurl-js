@@ -1,3 +1,4 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- one-shot validation script, not a hot path. */
 /**
  * @fileoverview Bundle validation tests to ensure build output quality.
  * Verifies that dist files don't contain absolute paths or external dependencies.
@@ -46,7 +47,8 @@ export async function checkBundledDependencies(content: string): Promise<{
       /@socketregistry\/packageurl-js/,
     ]
 
-    for (const pattern of bundledPackagePatterns) {
+    for (let i = 0, { length } = bundledPackagePatterns; i < length; i += 1) {
+      const pattern = bundledPackagePatterns[i]
       // Check if package name appears in context that suggests bundling.
       // Look for: var import_package = require("package") without the actual require call.
       // This would indicate the package code is bundled inline.
@@ -90,13 +92,14 @@ export function hasAbsolutePaths(content: string): {
   // Match absolute paths but exclude URLs and node: protocol.
   const patterns = [
     // Match require('/abs/path') or require('C:\\path').
-    /require\(["'](?:\/[^"'\n]+|[A-Z]:\\[^"'\n]+)["']\)/g,
+    /require\(["'](?:[A-Z]:\\[^"'\n]+|\/[^"'\n]+)["']\)/g,
     // Match import from '/abs/path'.
-    /import\s+.*?from\s+["'](?:\/[^"'\n]+|[A-Z]:\\[^"'\n]+)["']/g,
+    /import\s+.*?from\s+["'](?:[A-Z]:\\[^"'\n]+|\/[^"'\n]+)["']/g,
   ]
 
   const matches: string[] = []
-  for (const pattern of patterns) {
+  for (let i = 0, { length } = patterns; i < length; i += 1) {
+    const pattern = patterns[i]
     const found = content.match(pattern)
     if (found) {
       matches.push(...found)

@@ -18,10 +18,10 @@ import { audit } from './audit.ts'
 import { jsonError, readBoundedJson } from './util.ts'
 import type { AppEnv } from './types.ts'
 
-export const registerCommentMutateRoutes = (
+export function registerCommentMutateRoutes(
   app: Hono<AppEnv>,
   requireAuth: (c: Context<AppEnv>, n: Next) => Promise<Response | void>,
-): void => {
+) {
   app.patch('/:slug/api/comments/:id', requireAuth, async c => {
     await ensureDb
     const slug = c.req.param('slug')

@@ -1,3 +1,4 @@
+/* max-file-lines: parser -- PURL parser/serializer with tightly-coupled state; splitting would scatter the spec round-trip invariants. */
 /*!
 Copyright (c) the purl authors
 
@@ -253,7 +254,9 @@ class PackageURL {
     if (this.qualifiers !== undefined) {
       // oxlint-disable-next-line socket/prefer-undefined-over-null -- Object.create(null) / Reflect.setPrototypeOf(_, null) require the null sentinel.
       const qualifiersCopy = ObjectCreate(null) as QualifiersObject
-      for (const key of ObjectKeys(this.qualifiers)) {
+      const keys = ObjectKeys(this.qualifiers)
+      for (let i = 0, { length } = keys; i < length; i += 1) {
+        const key = keys[i]
         qualifiersCopy[key] = this.qualifiers[key]!
       }
       result.qualifiers = qualifiersCopy
@@ -638,7 +641,7 @@ class PackageURL {
   }
 
   static parseString(purlStr: unknown): ParsedPurlComponents {
-    // https://github.com/package-url/purl-spec/blob/master/PURL-SPECIFICATION.rst#how-to-parse-a-purl-string-in-its-components
+    // https://github.com/package-url/purl-spec/blob/main/PURL-SPECIFICATION.rst#how-to-parse-a-purl-string-in-its-components
     if (typeof purlStr !== 'string') {
       throw new ErrorCtor('A purl string argument is required.')
     }
@@ -891,7 +894,9 @@ class PackageURL {
   }
 }
 
-for (const staticProp of ['Component', 'KnownQualifierNames', 'Type']) {
+const staticProps = ['Component', 'KnownQualifierNames', 'Type']
+for (let i = 0, { length } = staticProps; i < length; i += 1) {
+  const staticProp = staticProps[i]
   ReflectDefineProperty(PackageURL, staticProp, {
     ...ReflectGetOwnPropertyDescriptor(PackageURL, staticProp),
     writable: false,

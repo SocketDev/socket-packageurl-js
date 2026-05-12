@@ -1,6 +1,6 @@
 /**
  * @fileoverview MLflow PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#mlflow
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#mlflow
  */
 
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials'

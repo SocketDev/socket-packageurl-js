@@ -110,7 +110,9 @@ interface PurlObject {
 /**
  * Default normalizer for PURL types without specific normalization rules.
  */
-const PurlTypNormalizer = (purl: PurlObject): PurlObject => purl
+export function PurlTypNormalizer(purl: PurlObject) {
+  return purl
+}
 
 /**
  * Default validator for PURL types without specific validation rules.
@@ -150,7 +152,7 @@ export function PurlTypeValidator(purl: PurlObject, throws: boolean): boolean {
 }
 
 // PURL types:
-// https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
+// https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
 const PurlType = createHelpersNamespaceObject(
   {
     normalize: {

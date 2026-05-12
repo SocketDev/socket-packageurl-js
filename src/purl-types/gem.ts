@@ -1,6 +1,6 @@
 /**
  * @fileoverview RubyGems-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/master/types-doc/gem-definition.md
+ * https://github.com/package-url/purl-spec/blob/main/types-doc/gem-definition.md
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -14,7 +14,7 @@ import {
 } from '@socketsecurity/lib/primordials'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
-import type { ExistsResult, ExistsOptions } from './npm.js'
+import type { ExistsOptions, ExistsResult } from './npm.js'
 
 interface PurlObject {
   name: string

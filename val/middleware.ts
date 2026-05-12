@@ -20,9 +20,8 @@ import type { AppEnv } from './types.ts'
 //   4. Stash the email + jti on the Hono context so handlers can
 //      read c.get('auth') without redoing the work.
 // Any failure returns 401 and stops the middleware chain.
-export const makeRequireAuth =
-  (hmacKey: CryptoKey) =>
-  async (c: Context<AppEnv>, next: Next): Promise<Response | void> => {
+export function makeRequireAuth(hmacKey: CryptoKey) {
+  return async (c: Context<AppEnv>, next: Next): Promise<Response | void> => {
     const header = c.req.header('authorization') || ''
     const match = header.match(/^Bearer\s+(.+)$/i)
     if (!match) {
@@ -42,12 +41,13 @@ export const makeRequireAuth =
     c.set('auth', { email: payload.email, jti: payload.jti })
     await next()
   }
+}
 
 // Trust the client's x-request-id if provided (for tracing across
 // multiple services), otherwise mint a fresh UUID. Capped at 64 chars
 // so a misbehaving client can't pollute our logs with a giant string.
 // We echo it back on the response so the client can correlate too.
-export const requestIdMiddleware = async (c: Context<AppEnv>, next: Next) => {
+export async function requestIdMiddleware(c: Context<AppEnv>, next: Next) {
   const reqId =
     c.req.header('x-request-id')?.slice(0, 64) || crypto.randomUUID()
   c.set('reqId', reqId)
@@ -64,10 +64,10 @@ export const requestIdMiddleware = async (c: Context<AppEnv>, next: Next) => {
 // Auth endpoints also get no-store so credentials never land in a
 // browser cache. Wrapped in try/finally so the headers apply even
 // when a handler throws.
-export const securityHeadersMiddleware = async (
+export async function securityHeadersMiddleware(
   c: Context<AppEnv>,
   next: Next,
-) => {
+) {
   try {
     await next()
   } finally {

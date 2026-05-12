@@ -12,17 +12,13 @@ import { extractClientIp } from './validate.ts'
 import { TRUSTED_PROXY_HOPS } from './config.ts'
 import type { HttpStatus } from './types.ts'
 
-// Seconds-since-epoch (UNIX time). Most of our DB columns + JWT
-// fields use seconds; Date.now() returns milliseconds so we divide.
-export const now = (): number => Math.floor(Date.now() / 1000)
-
 // The direct client IP on a forwarded request is always Val Town's
 // edge proxy. `extractClientIp` walks the x-forwarded-for header and
 // picks the N-th-from-the-right address, where N = TRUSTED_PROXY_HOPS.
 // We wrap it so routes/middleware don't have to know about the header
 // extraction shape.
-export const getIp = (c: Context): string =>
-  extractClientIp(
+export function getIp(c: Context) {
+  return extractClientIp(
     {
       get: name =>
         name.toLowerCase() === 'x-forwarded-for'
@@ -31,6 +27,25 @@ export const getIp = (c: Context): string =>
     },
     TRUSTED_PROXY_HOPS,
   )
+}
+
+// Standard error envelope. Clients that want a machine-readable
+// reason pass `code` (e.g. 'rate_limit'); the human message always
+// goes in `error`.
+export function jsonError(
+  c: Context,
+  status: HttpStatus,
+  error: string,
+  code?: string,
+) {
+  return c.json(code ? { error, code } : { error }, status)
+}
+
+// Seconds-since-epoch (UNIX time). Most of our DB columns + JWT
+// fields use seconds; Date.now() returns milliseconds so we divide.
+export function now() {
+  return Math.floor(Date.now() / 1000)
+}
 
 // Read a JSON body with a hard byte cap. A client can't DOS us by
 // streaming an enormous request — anything over `maxBytes` returns
@@ -38,10 +53,7 @@ export const getIp = (c: Context): string =>
 // too so call sites only check for one failure mode. Using undefined
 // (not null) keeps the absent-value signal consistent with TS defaults
 // (optional fields, early returns, etc.).
-export const readBoundedJson = async <T>(
-  c: Context,
-  maxBytes: number,
-): Promise<T | undefined> => {
+export async function readBoundedJson<T>(c: Context, maxBytes: number) {
   try {
     const text = await c.req.text()
     if (text.length > maxBytes) {
@@ -52,13 +64,3 @@ export const readBoundedJson = async <T>(
     return undefined
   }
 }
-
-// Standard error envelope. Clients that want a machine-readable
-// reason pass `code` (e.g. 'rate_limit'); the human message always
-// goes in `error`.
-export const jsonError = (
-  c: Context,
-  status: HttpStatus,
-  error: string,
-  code?: string,
-) => c.json(code ? { error, code } : { error }, status)

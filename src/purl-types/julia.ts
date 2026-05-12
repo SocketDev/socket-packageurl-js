@@ -1,6 +1,6 @@
 /**
  * @fileoverview Julia-specific PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
  *
  * Julia packages are distributed through the Julia General registry.
  * Package names are case-sensitive and typically CamelCase.

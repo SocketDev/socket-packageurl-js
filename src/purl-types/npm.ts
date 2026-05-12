@@ -1,3 +1,4 @@
+/* max-file-lines: legitimate -- single domain (npm PURL rules); built-in/legacy name sets + normalize + validate cohere as one unit. */
 /**
  * @fileoverview `npm`-specific PURL normalization and validation.
  * Implements npm package naming rules from the PURL specification.
@@ -6,7 +7,7 @@
 import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { encodeComponent } from '../encode.js'
-import { errorMessage, PurlError } from '../error.js'
+import { PurlError, errorMessage } from '../error.js'
 import {
   ErrorCtor,
   RegExpPrototypeTest,
@@ -187,17 +188,20 @@ const getNpmLegacySet = (() => {
 /**
  * Check if `npm` identifier is a Node.js built-in module name.
  */
-const isNpmBuiltinName = (id: string): boolean =>
-  getNpmBuiltinSet().has(StringPrototypeToLowerCase(id))
+export function isNpmBuiltinName(id: string) {
+  return getNpmBuiltinSet().has(StringPrototypeToLowerCase(id))
+}
 
 /**
  * Check if `npm` identifier is a legacy package name.
  */
-const isNpmLegacyName = (id: string): boolean => getNpmLegacySet().has(id)
+export function isNpmLegacyName(id: string) {
+  return getNpmLegacySet().has(id)
+}
 
 /**
  * Normalize `npm` package URL.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#npm
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#npm
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -520,7 +524,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
     }
   }
   const loweredId = StringPrototypeToLowerCase(id)
-  if (loweredId === 'node_modules' || loweredId === 'favicon.ico') {
+  if (loweredId === 'favicon.ico' || loweredId === 'node_modules') {
     if (throws) {
       throw new PurlError(
         `npm "${compName}" component of "${loweredId}" is not allowed`,

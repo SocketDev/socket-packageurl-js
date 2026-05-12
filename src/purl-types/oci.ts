@@ -1,6 +1,6 @@
 /**
  * @fileoverview OCI (Open Container Initiative) PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#oci
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#oci
  */
 
 import { lowerName, lowerVersion } from '../strings.js'

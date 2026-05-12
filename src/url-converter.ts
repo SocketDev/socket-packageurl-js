@@ -1,3 +1,4 @@
+/* max-file-lines: table -- per-ecosystem URL conversion table; splitting per type would fragment the dispatch table. */
 /*!
 Copyright (c) the purl authors
 
@@ -628,7 +629,7 @@ export function parseCpan(url: URL): PackageURL | undefined {
   if (segments.length < 2) {
     return undefined
   }
-  if (segments[0] === 'pod' || segments[0] === 'dist') {
+  if (segments[0] === 'dist' || segments[0] === 'pod') {
     // Rejoin remaining segments for nested module names like `Foo/Bar`
     const name = ArrayPrototypeJoin(ArrayPrototypeSlice(segments, 1), '::')
     return tryCreatePurl('cpan', undefined, name, undefined)

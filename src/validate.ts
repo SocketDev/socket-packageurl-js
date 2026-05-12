@@ -1,3 +1,4 @@
+/* max-file-lines: table -- centralized PURL component validators; per-type tables share injection-character logic. */
 /**
  * @fileoverview Validation functions for PURL components.
  * Ensures compliance with Package URL specification requirements and constraints.
@@ -235,6 +236,7 @@ export function validateQualifiers(
     ) as Iterable<string>
   // Use `for-of` to work with `URLSearchParams#keys` iterators
   // type-coverage:ignore-next-line -- TypeScript correctly infers the iteration type
+  // oxlint-disable-next-line socket/prefer-cached-for-loop -- `keysIterable` is a generic `Iterable<string>` (URLSearchParams keys iterator), not an indexable array.
   for (const key of keysIterable) {
     if (typeof key !== 'string') {
       if (throws) {

@@ -1,3 +1,4 @@
+/* max-file-lines: table -- URL→PURL conversion test matrix. */
 /*!
 Copyright (c) the purl authors
 

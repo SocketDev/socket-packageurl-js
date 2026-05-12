@@ -1,6 +1,6 @@
 /**
  * @fileoverview Golang-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#golang
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#golang
  *
  * ## Case Sensitivity in Go Module Names
  *
@@ -25,26 +25,28 @@
  * - `pkg:golang/github.com/Masterminds/semver@v3.2.1` - Correct (preserves case)
  * - `pkg:golang/github.com/masterminds/semver@v3.2.1` - Wrong (loses case)
  *
+ * inclusive-language: external-api — `Masterminds` is a real GitHub org name.
+ *
  * See: https://go.dev/ref/mod#module-path
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { errorMessage, PurlError } from '../error.js'
+import { PurlError, errorMessage } from '../error.js'
 import {
   ArrayPrototypeJoin,
-  encodeComponent,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   StringPrototypeReplace,
   StringPrototypeSlice,
   StringPrototypeSplit,
   StringPrototypeToLowerCase,
+  encodeComponent,
 } from '@socketsecurity/lib/primordials'
 import { isSemverString } from '../strings.js'
 import { validateNoInjectionByType } from '../validate.js'
 
-import type { ExistsResult, ExistsOptions } from './npm.js'
+import type { ExistsOptions, ExistsResult } from './npm.js'
 
 interface PurlObject {
   name: string

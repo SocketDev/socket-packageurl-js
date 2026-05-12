@@ -28,7 +28,7 @@ import { audit } from './audit.ts'
 import { now, readBoundedJson } from './util.ts'
 import type { AppEnv } from './types.ts'
 
-export const registerAuthRequest = (app: Hono<AppEnv>): void => {
+export function registerAuthRequest(app: Hono<AppEnv>) {
   app.post('/auth/request', async c => {
     await ensureDb
     // Piggyback retention cleanup on code-request. It's the lowest-

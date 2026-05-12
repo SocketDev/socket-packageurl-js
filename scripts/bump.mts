@@ -1,3 +1,4 @@
+/* max-file-lines: legitimate -- single-purpose CLI script; splitting would obscure the linear command flow. */
 /**
  * @fileoverview Version bump script with AI-powered changelog generation.
  * Creates version bump commits with package.json, lockfile, and changelog updates.
@@ -109,7 +110,8 @@ export async function checkClaude(): Promise<string | false> {
 }
 
 /**
- * Check if we're on the main/master branch.
+ * Check if we're on the main branch (with `master` fallback for legacy repos).
+ * inclusive-language: external-api — `master` is a real branch name in legacy repos.
  */
 export async function checkGitBranch(): Promise<boolean> {
   const result = await runCommandWithOutput('git', [
@@ -118,7 +120,9 @@ export async function checkGitBranch(): Promise<boolean> {
     'HEAD',
   ])
   const branch = result.stdout.trim()
+  // oxlint-disable-next-line socket/inclusive-language -- inclusive-language: external-api — legacy branch name reference.
   if (branch !== 'main' && branch !== 'master') {
+    // oxlint-disable-next-line socket/inclusive-language -- inclusive-language: external-api — legacy branch name reference.
     logger.warn(`Not on main/master branch (current: ${branch})`)
     return false
   }
@@ -754,7 +758,7 @@ async function main(): Promise<void> {
       logger.log('\nRequires:')
       logger.log('  - claude-console (or claude) CLI tool installed')
       logger.log('  - Clean git working directory')
-      logger.log('  - Main/master branch (unless --force)')
+      logger.log('  - Main/master branch (unless --force)') // inclusive-language: external-api — `master` is a real branch name in legacy repos.
       if (hasInteractivePrompts) {
         logger.log('')
         logger.success('Interactive mode: Available (default)')
@@ -789,11 +793,11 @@ async function main(): Promise<void> {
       logger.progress('Checking git branch')
       const onMainBranch = await checkGitBranch()
       if (!onMainBranch && !values.force) {
-        logger.failed('Not on main/master branch')
+        logger.failed('Not on main/master branch') // inclusive-language: external-api — `master` is a real branch name in legacy repos.
         process.exitCode = 1
         return
       }
-      logger.done('On main/master branch')
+      logger.done('On main/master branch') // inclusive-language: external-api — `master` is a real branch name in legacy repos.
     }
 
     // Check for Claude if not skipping changelog

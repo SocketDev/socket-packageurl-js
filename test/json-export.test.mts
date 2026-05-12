@@ -379,7 +379,8 @@ describe('PackageURL JSON/dict export', () => {
         (p: PackageURL) => PackageURL.fromJSON(p.toJSONString()),
       ],
     ])('should preserve data through %s round-trip', (_method, roundTrip) => {
-      for (const original of testCases) {
+      for (let i = 0, { length } = testCases; i < length; i += 1) {
+        const original = testCases[i]
         const restored = roundTrip(original)
         expectPurlEquality(restored, original)
       }

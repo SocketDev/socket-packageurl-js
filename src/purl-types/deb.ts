@@ -1,6 +1,6 @@
 /**
  * @fileoverview Debian package PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#deb
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#deb
  */
 
 import { lowerName, lowerNamespace } from '../strings.js'

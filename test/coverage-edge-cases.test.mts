@@ -1,3 +1,4 @@
+/* max-file-lines: table -- edge-case test matrix; co-locating keeps it scannable. */
 /**
  * @fileoverview Edge-case tests that cover uncovered branches in
  * validate.ts, strings.ts, url-converter.ts, compare.ts, encode.ts,

@@ -1,4 +1,6 @@
 /* oxlint-disable socket/no-fetch-prefer-http-request -- browser-side; `fetch` is the platform primitive, no Node lib available. */
+/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
+/* max-file-lines: state-machine -- docs-site comment widget with auth state machine; splitting scatters the state transitions. */
 /**
  * Docs-site comment UI + email magic-code auth.
  *
@@ -316,7 +318,7 @@
     'asdf',
     'bogus',
     'demo',
-    'dummy',
+    'placeholder',
     'example',
     'fake',
     'faker',
@@ -513,7 +515,8 @@
     if (!local) {
       return false
     }
-    for (const target of list) {
+    for (let i = 0, { length } = list; i < length; i += 1) {
+      const target = list[i]
       if (local === target) {
         return true
       }
@@ -538,7 +541,8 @@
     /* Long stems (≥4 chars) — substring match on the normalized
      * local-part. Safe to treat as a raw includes() because the
      * stem is long enough that a chance collision is unlikely. */
-    for (const stem of stems) {
+    for (let i = 0, { length } = stems; i < length; i += 1) {
+      const stem = stems[i]
       if (stem.length >= 4 && norm.includes(stem)) {
         return true
       }
@@ -1384,7 +1388,8 @@
       '.right-pane, .left-pane',
     )
     const initialContainerY = new Map()
-    for (const el of scrollContainers) {
+    for (let i = 0, { length } = scrollContainers; i < length; i += 1) {
+      const el = scrollContainers[i]
       initialContainerY.set(el, el.scrollTop)
     }
     const onScroll = () => {
@@ -1540,7 +1545,8 @@
         group.filter(c => c.parentId),
         c => c.parentId,
       )
-      for (const root of roots) {
+      for (let i = 0, { length } = roots; i < length; i += 1) {
+        const root = roots[i]
         // Thread lives in a full-width <tr> so the DOM stays valid
         // table structure — inserting a plain <div> into <tbody>
         // causes the browser to auto-reparent it, which was breaking

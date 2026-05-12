@@ -1,6 +1,6 @@
 /**
  * @fileoverview Conda-specific PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#conda
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#conda
  */
 
 import { errorMessage } from '../error.js'

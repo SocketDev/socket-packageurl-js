@@ -1,4 +1,6 @@
 /* oxlint-disable socket/sort-source-methods -- subcommand helpers grouped by domain (snapshot, cache, review, validate) and ordered to match the dispatch table at the bottom. */
+/* oxlint-disable socket/prefer-cached-for-loop -- one-shot CLI utility, not a hot path. */
+/* max-file-lines: table -- subcommand dispatch table; splitting would scatter the table. */
 
 /**
  * @fileoverview Claude Code-powered utilities for Socket projects.
@@ -277,7 +279,8 @@ export async function cleanupOldData(): Promise<void> {
   try {
     const snapshots = await fs.readdir(REPO_STORAGE.snapshots)
     const toDelete = []
-    for (const snap of snapshots) {
+    for (let i = 0, { length } = snapshots; i < length; i += 1) {
+      const snap = snapshots[i]
       const snapPath = path.join(REPO_STORAGE.snapshots, snap)
       // oxlint-disable-next-line socket/prefer-exists-sync -- mtime is the retention signal.
       const stats = await fs.stat(snapPath)
@@ -297,7 +300,8 @@ export async function cleanupOldData(): Promise<void> {
   try {
     const cached = await fs.readdir(STORAGE_PATHS.cache)
     const toDelete = []
-    for (const file of cached) {
+    for (let i = 0, { length } = cached; i < length; i += 1) {
+      const file = cached[i]
       const filePath = path.join(STORAGE_PATHS.cache, file)
       // oxlint-disable-next-line socket/prefer-exists-sync -- mtime is the retention signal.
       const stats = await fs.stat(filePath)
@@ -555,7 +559,8 @@ class ProgressTracker {
     )
 
     let total = 0
-    for (const phase of remaining) {
+    for (let i = 0, { length } = remaining; i < length; i += 1) {
+      const phase = remaining[i]
       const eta = this.estimateETA(phase)
       if (eta) {
         total += eta
@@ -596,13 +601,14 @@ class ProgressTracker {
     // Show completed phases.
     if (this.phases.length > 0) {
       logger.log(colors.gray('  Completed:'))
-      this.phases.forEach(p => {
+      for (let i = 0, { length } = this.phases; i < length; i += 1) {
+        const p = this.phases[i]
         logger.log(
           colors.gray(
             `    ${colors.green('')} ${p.name} (${formatDuration(p.duration)})`,
           ),
         )
-      })
+      }
     }
   }
 
@@ -674,12 +680,13 @@ class SnapshotManager {
 
   listSnapshots(): void {
     logger.log(colors.cyan('\n📸 Available Snapshots:'))
-    this.snapshots.forEach((snap, i) => {
+    for (let i = 0, { length } = this.snapshots; i < length; i += 1) {
+      const snap = this.snapshots[i]
       const age = formatDuration(Date.now() - snap.timestamp)
       logger.log(
         `  ${i + 1}. ${snap.label} ${colors.gray(`(${age} ago, ${snap.sha.substring(0, 7)})`)}`,
       )
-    })
+    }
   }
 }
 
@@ -1067,9 +1074,14 @@ export function displayAnalysis(analysis: RootCauseAnalysis | null): void {
     )
     if (analysis.environmentalFactors.length > 0) {
       logger.log(colors.yellow('  Factors to check:'))
-      analysis.environmentalFactors.forEach(factor => {
+      for (
+        let i = 0, { length } = analysis.environmentalFactors;
+        i < length;
+        i += 1
+      ) {
+        const factor = analysis.environmentalFactors[i]
         logger.log(colors.yellow(`    - ${factor}`))
-      })
+      }
     }
   }
 
@@ -1077,13 +1089,14 @@ export function displayAnalysis(analysis: RootCauseAnalysis | null): void {
     logger.log(
       colors.cyan('\n💡 Fix Strategies (ranked by success probability):'),
     )
-    analysis.strategies.forEach((strategy, i) => {
+    for (let i = 0, { length } = analysis.strategies; i < length; i += 1) {
+      const strategy = analysis.strategies[i]
       logger.log(
         `  ${i + 1}. ${colors.bold(strategy.name)} ${colors.gray(`(${strategy.probability}%)`)}`,
       )
       logger.log(`     ${strategy.description}`)
       logger.log(colors.gray(`     ${strategy.reasoning}`))
-    })
+    }
   }
 
   if (analysis.explanation) {
@@ -1315,6 +1328,7 @@ export async function runClaude(
       }
 
       // Run command with timeout
+      // oxlint-disable-next-line socket/no-promise-race -- one-shot script timeout; no per-request handler accumulation; spawnSync alternative would block the event loop.
       result = await Promise.race([
         runCommandWithOutput(claudeCmd, args, {
           ...opts,
@@ -1834,9 +1848,10 @@ export async function getSmartContext(
 
   // Find hotspots (files that change frequently)
   const frequency = {}
-  context.recent.forEach(file => {
+  for (let i = 0, { length } = context.recent; i < length; i += 1) {
+    const file = context.recent[i]
     frequency[file] = (frequency[file] || 0) + 1
-  })
+  }
 
   context.hotspots = Object.entries(frequency)
     .filter(([_, count]) => count > 1)
@@ -1891,13 +1906,14 @@ export function inferIntent(messages: string[]): string[] {
   }
 
   const intents = new Set()
-  messages.forEach(msg => {
+  for (let i = 0, { length } = messages; i < length; i += 1) {
+    const msg = messages[i]
     Object.entries(patterns).forEach(([intent, pattern]) => {
       if (pattern.test(msg)) {
         intents.add(intent)
       }
     })
-  })
+  }
 
   return Array.from(intents)
 }
@@ -2047,7 +2063,8 @@ export function filterCILogs(rawLogs: string): string {
   const relevantLines = []
   let inErrorSection = false
 
-  for (const line of lines) {
+  for (let i = 0, { length } = lines; i < length; i += 1) {
+    const line = lines[i]
     // Skip runner metadata and setup
     if (
       line.includes('Current runner version:') ||
@@ -2155,7 +2172,8 @@ export async function executeParallel(
   if (workers === 1 || tasks.length === 1) {
     // Sequential execution
     const results = []
-    for (const task of tasks) {
+    for (let i = 0, { length } = tasks; i < length; i += 1) {
+      const task = tasks[i]
       results.push(await task())
     }
     return results
@@ -2188,7 +2206,8 @@ export async function executeParallel(
     })
   }
 
-  for (const task of tasks) {
+  for (let i = 0, { length } = tasks; i < length; i += 1) {
+    const task = tasks[i]
     await waitForSlot()
     inFlight++
     const promise = task().then(
@@ -2287,12 +2306,13 @@ export async function runParallel(
       `Completed in ${totalElapsed}s: ${succeeded} succeeded, ${failed} failed`,
     )
     // Log errors with task names
-    results.forEach((result, index) => {
+    for (let index = 0, { length } = results; index < length; index += 1) {
+      const result = results[index]
       if (result.status === 'rejected') {
         const name = taskNames[index] || `Task ${index + 1}`
         log.error(`[${name}] failed: ${result.reason}`)
       }
-    })
+    }
   } else {
     log.success(
       `All ${succeeded} ${description} completed successfully in ${totalElapsed}s`,
@@ -2318,8 +2338,8 @@ export async function ensureClaudeInGitignore(): Promise<void> {
       const trimmed = line.trim()
       return (
         trimmed === '.claude' ||
-        trimmed === '/.claude' ||
         trimmed === '.claude/' ||
+        trimmed === '/.claude' ||
         trimmed === '/.claude/'
       )
     })
@@ -2349,7 +2369,8 @@ export async function ensureClaudeInGitignore(): Promise<void> {
 export async function findSocketProjects(): Promise<SocketProject[]> {
   const projects = []
 
-  for (const projectName of SOCKET_PROJECTS) {
+  for (let i = 0, { length } = SOCKET_PROJECTS; i < length; i += 1) {
+    const projectName = SOCKET_PROJECTS[i]
     const projectPath = path.join(parentPath, projectName)
     const claudeMdPath = path.join(projectPath, 'CLAUDE.md')
 
@@ -2559,9 +2580,10 @@ export async function syncClaudeMd(
   if (projects.length === 0) {
     log.failed('No Socket projects found')
     log.error('Expected projects in parent directory:')
-    SOCKET_PROJECTS.forEach(p => {
+    for (let i = 0, { length } = SOCKET_PROJECTS; i < length; i += 1) {
+      const p = SOCKET_PROJECTS[i]
       log.substep(path.join(parentPath, p))
-    })
+    }
     return false
   }
   log.done(`Found ${projects.length} Socket projects`)
@@ -2597,7 +2619,8 @@ export async function syncClaudeMd(
     const results = await runParallel(tasks, 'CLAUDE.md updates', taskNames)
 
     // Check for failures
-    results.forEach(result => {
+    for (let i = 0, { length } = results; i < length; i += 1) {
+      const result = results[i]
       if (
         result.status === 'fulfilled' &&
         !result.value.success &&
@@ -2605,10 +2628,11 @@ export async function syncClaudeMd(
       ) {
         log.error(`Failed to update ${result.value.project}/CLAUDE.md`)
       }
-    })
+    }
   } else {
     // Run sequentially
-    for (const project of otherProjects) {
+    for (let i = 0, { length } = otherProjects; i < length; i += 1) {
+      const project = otherProjects[i]
       const success = await updateProjectClaudeMd(claudeCmd, project, options)
       if (!success && !opts['dry-run']) {
         log.error(`Failed to update ${project.name}/CLAUDE.md`)
@@ -2628,7 +2652,8 @@ export async function syncClaudeMd(
       await runParallel(tasks, 'commits', taskNames)
     } else {
       // Run sequentially
-      for (const project of projects) {
+      for (let i = 0, { length } = projects; i < length; i += 1) {
+        const project = projects[i]
         await commitChanges(project)
       }
     }
@@ -2658,16 +2683,18 @@ export async function syncClaudeMd(
       const results = await runParallel(tasks, 'pushes')
 
       // Report results
-      results.forEach(result => {
+      for (let i = 0, { length } = results; i < length; i += 1) {
+        const result = results[i]
         if (result.status === 'fulfilled' && result.value.success) {
           log.done(`Pushed ${result.value.project}`)
         } else {
           log.failed(`Failed to push ${result.value.project}`)
         }
-      })
+      }
     } else {
       // Run sequentially
-      for (const project of projects) {
+      for (let i = 0, { length } = projects; i < length; i += 1) {
+        const project = projects[i]
         log.progress(`Pushing ${project.name}`)
         const pushResult = await runCommandWithOutput('git', ['push'], {
           cwd: project.path,
@@ -2723,7 +2750,8 @@ export async function scanProjectForIssues(
     try {
       const entries = await fs.readdir(dir, { withFileTypes: true })
 
-      for (const entry of entries) {
+      for (let i = 0, { length } = entries; i < length; i += 1) {
+        const entry = entries[i]
         const fullPath = path.join(dir, entry.name)
 
         // Skip common directories to ignore.
@@ -2899,7 +2927,8 @@ export async function autonomousFixSession(
 
   for (const project in scanResults) {
     const issues = scanResults[project] || []
-    for (const issue of issues) {
+    for (let i = 0, { length } = issues; i < length; i += 1) {
+      const issue = issues[i]
       issue.project = project
       switch (issue.severity) {
         case 'critical':
@@ -2994,11 +3023,12 @@ Apply the fix and return ONLY the fixed code snippet.`
   // Report issues that need review
   if (toReview.length > 0) {
     logger.log(`\n${colors.yellow('Issues requiring manual review:')}`)
-    toReview.forEach((issue, i) => {
+    for (let i = 0, { length } = toReview; i < length; i += 1) {
+      const issue = toReview[i]
       logger.log(
         `${i + 1}. [${issue.severity}] ${issue.file}:${issue.line} - ${issue.description}`,
       )
-    })
+    }
     logger.log('\nRun with --prompt to fix these interactively')
   }
 
@@ -3025,7 +3055,8 @@ export async function interactiveFixSession(
 
   for (const project in scanResults) {
     const issues = scanResults[project] || []
-    for (const issue of issues) {
+    for (let i = 0, { length } = issues; i < length; i += 1) {
+      const issue = issues[i]
       issue.project = project
       switch (issue.severity) {
         case 'critical':
@@ -3120,7 +3151,8 @@ export async function runSecurityScan(
     log.info('Scanning current project only')
   } else {
     // With --cross-repo: Scan all Socket projects.
-    for (const projectName of SOCKET_PROJECTS) {
+    for (let i = 0, { length } = SOCKET_PROJECTS; i < length; i += 1) {
+      const projectName = SOCKET_PROJECTS[i]
       const projectPath = path.join(parentPath, projectName)
       if (existsSync(projectPath)) {
         projects.push({
@@ -3154,14 +3186,16 @@ export async function runSecurityScan(
     const results = await runParallel(tasks, 'security scans', taskNames)
 
     // Collect results
-    results.forEach(result => {
+    for (let i = 0, { length } = results; i < length; i += 1) {
+      const result = results[i]
       if (result.status === 'fulfilled' && result.value.issues) {
         scanResults[result.value.project] = result.value.issues
       }
-    })
+    }
   } else {
     // Run sequentially
-    for (const project of projects) {
+    for (let i = 0, { length } = projects; i < length; i += 1) {
+      const project = projects[i]
       const issues = await scanProjectForIssues(claudeCmd, project, options)
       if (issues) {
         scanResults[project.name] = issues
@@ -3221,7 +3255,8 @@ export async function runClaudeCommit(
     log.info('Committing in current project only')
   } else {
     // With --cross-repo: Commit in all Socket projects with changes.
-    for (const projectName of SOCKET_PROJECTS) {
+    for (let i = 0, { length } = SOCKET_PROJECTS; i < length; i += 1) {
+      const projectName = SOCKET_PROJECTS[i]
       const projectPath = path.join(parentPath, projectName)
       if (existsSync(projectPath)) {
         // Check if project has changes.
@@ -3262,9 +3297,14 @@ export async function runClaudeCommit(
         if (project.changes) {
           log.substep('Changes detected:')
           const changeLines = project.changes.split('\n')
-          changeLines.slice(0, 10).forEach(line => {
+          for (
+            let i = 0, { length } = changeLines.slice(0, 10);
+            i < length;
+            i += 1
+          ) {
+            const line = changeLines.slice(0, 10)[i]
             log.substep(`  ${line}`)
-          })
+          }
           if (changeLines.length > 10) {
             log.substep(`  ... and ${changeLines.length - 10} more`)
           }
@@ -3317,16 +3357,22 @@ Remember: small commits, follow project standards, no AI attribution.`
     await runParallel(tasks, 'commits')
   } else {
     // Run sequentially
-    for (const project of projects) {
+    for (let i = 0, { length } = projects; i < length; i += 1) {
+      const project = projects[i]
       log.step(`Processing ${project.name}`)
 
       // Show current changes.
       if (project.changes) {
         log.substep('Changes detected:')
         const changeLines = project.changes.split('\n')
-        changeLines.slice(0, 10).forEach(line => {
+        for (
+          let i = 0, { length } = changeLines.slice(0, 10);
+          i < length;
+          i += 1
+        ) {
+          const line = changeLines.slice(0, 10)[i]
           log.substep(`  ${line}`)
-        })
+        }
         if (changeLines.length > 10) {
           log.substep(`  ... and ${changeLines.length - 10} more`)
         }
@@ -3397,16 +3443,18 @@ Remember: small commits, follow project standards, no AI attribution.`
       const results = await runParallel(tasks, 'pushes')
 
       // Report results
-      results.forEach(result => {
+      for (let i = 0, { length } = results; i < length; i += 1) {
+        const result = results[i]
         if (result.status === 'fulfilled' && result.value.success) {
           log.done(`Pushed ${result.value.project}`)
         } else {
           log.failed(`Failed to push ${result.value.project}`)
         }
-      })
+      }
     } else {
       // Run sequentially
-      for (const project of projects) {
+      for (let i = 0, { length } = projects; i < length; i += 1) {
+        const project = projects[i]
         log.progress(`Pushing ${project.name}`)
         const pushResult = await runCommandWithOutput('git', ['push'], {
           cwd: project.path,
@@ -4087,7 +4135,8 @@ Commit message:`
   const lines = result.split('\n').filter(line => line.trim())
 
   // Return the first substantial line that looks like a commit message
-  for (const line of lines) {
+  for (let i = 0, { length } = lines; i < length; i += 1) {
+    const line = lines[i]
     const trimmed = line.trim()
     // Skip common Claude preamble phrases
     if (
@@ -4205,7 +4254,7 @@ export async function validateBeforePush(cwd: string): Promise<boolean> {
 
   // Check 4: deferral markers without issue link.
   // oxlint-disable-next-line socket/no-placeholders -- regex detects placeholder markers in diffs.
-  const todoMatches = diff.match(/^\+.*\/\/\s*(TODO|FIXME)(?!\s*\(#\d+\))/gim)
+  const todoMatches = diff.match(/^\+.*\/\/\s*(FIXME|TODO)(?!\s*\(#\d+\))/gim)
   if (todoMatches && todoMatches.length > 0) {
     warnings.push(
       `${colors.yellow('')} ${todoMatches.length} TODO/FIXME comment(s) without issue links`,
@@ -4263,13 +4312,14 @@ export async function runGreen(
 
     if (scanResult && !scanResult.safe) {
       log.warn('Pre-commit scan detected potential issues:')
-      scanResult.issues.forEach(issue => {
+      for (let i = 0, { length } = scanResult.issues; i < length; i += 1) {
+        const issue = scanResult.issues[i]
         const icon =
           issue.severity === 'high' ? colors.red('') : colors.yellow('')
         log.substep(
           `${icon} ${issue.type}: ${issue.description} ${colors.gray(`(${issue.confidence}% confidence)`)}`,
         )
-      })
+      }
 
       // Ask if user wants to continue.
       log.info('Continue anyway? (Ctrl+C to abort)')
@@ -4303,7 +4353,8 @@ export async function runGreen(
   let lastAnalysis = undefined
   let lastErrorHash = undefined
 
-  for (const check of localChecks) {
+  for (let i = 0, { length } = localChecks; i < length; i += 1) {
+    const check = localChecks[i]
     log.progress(`[${repoName}] ${check.name}`)
 
     if (isDryRun) {
@@ -4616,9 +4667,10 @@ Let's work through this together to get CI passing.`
       const validation = await validateBeforePush(rootPath)
       if (!validation.valid) {
         log.warn('Pre-push validation warnings:')
-        validation.warnings.forEach(warning => {
+        for (let i = 0, { length } = validation.warnings; i < length; i += 1) {
+          const warning = validation.warnings[i]
           log.substep(warning)
-        })
+        }
         log.substep('Continuing with push (warnings are non-blocking)...')
       }
 
@@ -4640,9 +4692,10 @@ Let's work through this together to get CI passing.`
       const validation = await validateBeforePush(rootPath)
       if (!validation.valid) {
         log.warn('Pre-push validation warnings:')
-        validation.warnings.forEach(warning => {
+        for (let i = 0, { length } = validation.warnings; i < length; i += 1) {
+          const warning = validation.warnings[i]
           log.substep(warning)
-        })
+        }
         log.substep('Continuing with push (warnings are non-blocking)...')
       }
 
@@ -4828,7 +4881,8 @@ Let's work through this together to get CI passing.`
     }
 
     // First, try exact SHA match (both directions for robustness)
-    for (const run of runs) {
+    for (let i = 0, { length } = runs; i < length; i += 1) {
+      const run = runs[i]
       if (
         run.headSha === currentSha ||
         run.headSha?.startsWith(currentSha.substring(0, 7)) ||
@@ -4842,7 +4896,8 @@ Let's work through this together to get CI passing.`
 
     // If no exact match, look for runs created after our push
     if (!matchingRun && runs.length > 0) {
-      for (const run of runs) {
+      for (let i = 0, { length } = runs; i < length; i += 1) {
+        const run = runs[i]
         if (run.createdAt) {
           const runTime = new Date(run.createdAt).getTime()
           // Check if run was created within 2 minutes BEFORE or after push
@@ -4914,11 +4969,16 @@ Let's work through this together to get CI passing.`
         const snapshotList = snapshots.listSnapshots()
         if (snapshotList.length > 0) {
           logger.log(colors.cyan('\n📸 Available Snapshots:'))
-          snapshotList.slice(0, 5).forEach(snap => {
+          for (
+            let i = 0, { length } = snapshotList.slice(0, 5);
+            i < length;
+            i += 1
+          ) {
+            const snap = snapshotList.slice(0, 5)[i]
             logger.log(
               `  ${snap.label} ${colors.gray(`(${formatDuration(Date.now() - snap.timestamp)} ago)`)}`,
             )
-          })
+          }
           if (snapshotList.length > 5) {
             logger.log(colors.gray(`  ... and ${snapshotList.length - 5} more`))
           }
@@ -4986,7 +5046,8 @@ Let's work through this together to get CI passing.`
 
         const logLines = filteredLogs.split('\n').slice(0, 10)
         log.substep('Error summary:')
-        for (const line of logLines) {
+        for (let i = 0, { length } = logLines; i < length; i += 1) {
+          const line = logLines[i]
           if (line.trim()) {
             log.substep(`  ${line.trim().substring(0, 100)}`)
           }
@@ -5146,7 +5207,8 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
         log.progress('Running local checks after fixes')
         // Add newline after progress indicator before command output
         logger.log('')
-        for (const check of localChecks) {
+        for (let i = 0, { length } = localChecks; i < length; i += 1) {
+          const check = localChecks[i]
           await runCommandWithOutput(check.cmd, check.args, {
             cwd: rootPath,
             stdio: 'inherit',
@@ -5191,9 +5253,14 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
           const validation = await validateBeforePush(rootPath)
           if (!validation.valid) {
             log.warn('Pre-commit validation warnings:')
-            validation.warnings.forEach(warning => {
+            for (
+              let i = 0, { length } = validation.warnings;
+              i < length;
+              i += 1
+            ) {
+              const warning = validation.warnings[i]
               log.substep(warning)
-            })
+            }
           }
 
           // Commit with generated message
@@ -5279,7 +5346,7 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
           // Check for any failed or cancelled jobs
           const failedJobs = jobs.filter(
             job =>
-              job.conclusion === 'failure' || job.conclusion === 'cancelled',
+              job.conclusion === 'cancelled' || job.conclusion === 'failure',
           )
 
           // Find new failures we haven't fixed yet
@@ -5298,14 +5365,16 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
 
             if (sortedFailures.length > 1) {
               log.substep('Processing in priority order (highest first):')
-              sortedFailures.forEach(job => {
+              for (let i = 0, { length } = sortedFailures; i < length; i += 1) {
+                const job = sortedFailures[i]
                 const priority = getJobPriority(job.name)
                 log.substep(`  [Priority ${priority}] ${job.name}`)
-              })
+              }
             }
 
             // Fix each failed job immediately
-            for (const job of sortedFailures) {
+            for (let i = 0, { length } = sortedFailures; i < length; i += 1) {
+              const job = sortedFailures[i]
               log.substep(`${colors.red('')} ${job.name}: ${job.conclusion}`)
 
               // Fetch logs for this specific failed job using job ID
@@ -5334,7 +5403,8 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
               // Show summary to user (not full logs)
               const logLines = filteredLogs.split('\n').slice(0, 10)
               log.substep('Error summary:')
-              for (const line of logLines) {
+              for (let i = 0, { length } = logLines; i < length; i += 1) {
+                const line = logLines[i]
                 if (line.trim()) {
                   log.substep(`  ${line.trim().substring(0, 100)}`)
                 }
@@ -5478,7 +5548,8 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
               // Run local checks
               log.progress('Running local checks after fix')
               logger.log('')
-              for (const check of localChecks) {
+              for (let i = 0, { length } = localChecks; i < length; i += 1) {
+                const check = localChecks[i]
                 await runCommandWithOutput(check.cmd, check.args, {
                   cwd: rootPath,
                   stdio: 'inherit',
@@ -5522,9 +5593,14 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
                 const validation = await validateBeforePush(rootPath)
                 if (!validation.valid) {
                   log.warn('Pre-commit validation warnings:')
-                  validation.warnings.forEach(warning => {
+                  for (
+                    let i = 0, { length } = validation.warnings;
+                    i < length;
+                    i += 1
+                  ) {
+                    const warning = validation.warnings[i]
                     log.substep(warning)
-                  })
+                  }
                 }
 
                 // Commit with generated message
@@ -5613,7 +5689,8 @@ export async function runWatchMode(
   // File watcher for each project
   const watchers = []
 
-  for (const project of projects) {
+  for (let i = 0, { length } = projects; i < length; i += 1) {
+    const project = projects[i]
     log.substep(`Watching: ${project.name}`)
 
     const watcher = fs.watch(
@@ -5685,7 +5762,8 @@ export async function runWatchMode(
     async () => {
       log.step('Running periodic full scan')
 
-      for (const project of projects) {
+      for (let i = 0, { length } = projects; i < length; i += 1) {
+        const project = projects[i]
         try {
           const scanResults = await scanProjectForIssues(
             claudeCmd,
@@ -5719,7 +5797,8 @@ export async function runWatchMode(
     logger.log(`\n${colors.yellow('Stopping watch mode...')}`)
 
     // Clean up watchers
-    for (const watcher of watchers) {
+    for (let i = 0, { length } = watchers; i < length; i += 1) {
+      const watcher = watchers[i]
       watcher.close()
     }
 

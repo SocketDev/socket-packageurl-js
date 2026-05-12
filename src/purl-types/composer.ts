@@ -1,6 +1,6 @@
 /**
  * @fileoverview Composer (PHP) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#composer
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#composer
  */
 
 import { errorMessage } from '../error.js'
@@ -13,7 +13,7 @@ import {
 } from '@socketsecurity/lib/primordials'
 import { lowerName, lowerNamespace } from '../strings.js'
 
-import type { ExistsResult, ExistsOptions } from './npm.js'
+import type { ExistsOptions, ExistsResult } from './npm.js'
 
 interface PurlObject {
   name: string
@@ -103,7 +103,8 @@ export async function packagistExists(
 
       // Find the latest stable version (highest `version_normalized` without `dev` suffix)
       let latestVersion: string | undefined
-      for (const pkg of packageVersions) {
+      for (let i = 0, { length } = packageVersions; i < length; i += 1) {
+        const pkg = packageVersions[i]
         const ver = pkg.version
         if (ver && !StringPrototypeIncludes(ver, 'dev-')) {
           latestVersion = ver

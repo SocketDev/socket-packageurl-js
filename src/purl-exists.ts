@@ -21,7 +21,7 @@ import { pubExists } from './purl-types/pub.js'
 import { pypiExists } from './purl-types/pypi.js'
 
 import type { PackageURL } from './package-url.js'
-import type { ExistsResult, ExistsOptions } from './purl-types/npm.js'
+import type { ExistsOptions, ExistsResult } from './purl-types/npm.js'
 
 /**
  * Check if a package exists in its registry.

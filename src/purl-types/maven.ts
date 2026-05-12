@@ -1,11 +1,11 @@
 /**
  * @fileoverview Maven-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/master/types-doc/maven-definition.md
+ * https://github.com/package-url/purl-spec/blob/main/types-doc/maven-definition.md
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { errorMessage, PurlError } from '../error.js'
+import { PurlError, errorMessage } from '../error.js'
 import {
   StringPrototypeIncludes,
   encodeComponent,
@@ -15,7 +15,7 @@ import {
   validateRequiredByType,
 } from '../validate.js'
 
-import type { ExistsResult, ExistsOptions } from './npm.js'
+import type { ExistsOptions, ExistsResult } from './npm.js'
 
 interface PurlObject {
   name: string

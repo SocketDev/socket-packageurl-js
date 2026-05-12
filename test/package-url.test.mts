@@ -1,3 +1,5 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- test code, not a hot path. */
+/* max-file-lines: table -- comprehensive purl-spec compliance test matrix. */
 /*!
 Copyright (c) the purl authors
 
@@ -516,7 +518,8 @@ describe('PackageURL', () => {
         'golang/github.com/gin-gonic/gin@v1.9.0',
       ]
 
-      for (const testCase of testCases) {
+      for (let i = 0, { length } = testCases; i < length; i += 1) {
+        const testCase = testCases[i]
         const purl = PackageURL.fromString(testCase)
         const withPkgPrefix = PackageURL.fromString(`pkg:${testCase}`)
 

@@ -1,3 +1,4 @@
+/* max-file-lines: table -- edge-case test matrix; co-locating keeps it scannable. */
 /*!
 Copyright (c) the purl authors
 

@@ -1,6 +1,6 @@
 /**
  * @fileoverview ALPM (Arch Linux Package Manager) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#alpm
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#alpm
  */
 
 import { lowerName, lowerNamespace } from '../strings.js'

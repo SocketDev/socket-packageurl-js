@@ -1,6 +1,6 @@
 /**
  * @fileoverview LuaRocks PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#luarocks
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#luarocks
  */
 
 import { lowerVersion } from '../strings.js'

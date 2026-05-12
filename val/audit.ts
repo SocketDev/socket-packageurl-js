@@ -11,7 +11,7 @@ import type { Context } from 'npm:hono@4.12.14'
 import { scrubIp } from './validate.ts'
 import type { AppEnv } from './types.ts'
 
-export const audit = async (
+export async function audit(
   c: Context<AppEnv>,
   action: string,
   opts: {
@@ -21,7 +21,7 @@ export const audit = async (
     success: boolean
     meta?: Record<string, unknown>
   },
-): Promise<void> => {
+) {
   try {
     await sqlite.execute({
       sql: 'INSERT INTO audit_log (id, actor, action, target, slug, ip_prefix, req_id, success, meta) VALUES (:id, :actor, :action, :target, :slug, :ipPrefix, :reqId, :success, :meta)',

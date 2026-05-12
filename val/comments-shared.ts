@@ -9,16 +9,18 @@
 
 import type { CommentRow } from './types.ts'
 
-export const rowToComment = (row: CommentRow) => ({
-  id: row.id,
-  slug: row.slug,
-  part: row.part,
-  file: row.file,
-  lineFrom: row.line_from,
-  lineTo: row.line_to,
-  author: row.author,
-  body: row.body,
-  parentId: row.parent_id || undefined,
-  resolved: !!row.resolved,
-  createdAt: row.created_at,
-})
+export function rowToComment(row: CommentRow) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    part: row.part,
+    file: row.file,
+    lineFrom: row.line_from,
+    lineTo: row.line_to,
+    author: row.author,
+    body: row.body,
+    parentId: row.parent_id || undefined,
+    resolved: !!row.resolved,
+    createdAt: row.created_at,
+  }
+}

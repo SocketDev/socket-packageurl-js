@@ -35,6 +35,7 @@ if (isCoverageEnabled) {
   process.env.COVERAGE = 'true'
 }
 
+// oxlint-disable-next-line socket/no-default-export -- vitest config requires default export.
 export default defineConfig({
   cacheDir: './node_modules/.cache/vitest',
   test: {

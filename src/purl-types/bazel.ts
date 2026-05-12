@@ -1,6 +1,6 @@
 /**
  * @fileoverview Bazel-specific PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
  *
  * Bazel is a build system. Bazel packages represent external dependencies
  * in Bazel `BUILD` files.

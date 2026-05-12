@@ -4,7 +4,7 @@
  */
 
 // Known qualifiers:
-// https://github.com/package-url/purl-spec/blob/master/PURL-SPECIFICATION.rst#known-qualifiers-keyvalue-pairs
+// https://github.com/package-url/purl-spec/blob/main/PURL-SPECIFICATION.rst#known-qualifiers-keyvalue-pairs
 const PurlQualifierNames = {
   __proto__: null,
   Checksum: 'checksum',

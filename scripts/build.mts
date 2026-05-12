@@ -1,3 +1,4 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- one-shot build script, not a hot path. */
 /**
  * @fileoverview Build runner. Wraps rolldown's programmatic API behind
  * the same CLI surface (--src, --types, --watch, --analyze, --needed)
@@ -114,7 +115,8 @@ export async function buildSource(
     const startTime = Date.now()
     const outputs: RolldownOutput[] = []
 
-    for (const config of rolldownConfigs) {
+    for (let i = 0, { length } = rolldownConfigs; i < length; i += 1) {
+      const config = rolldownConfigs[i]
       const bundle = await rolldown(config)
       const output = config.output
       if (!output || Array.isArray(output)) {
@@ -241,7 +243,8 @@ export async function watchBuild(
   try {
     const watchers = rolldownConfigs.map(config => rolldownWatch(config))
 
-    for (const watcher of watchers) {
+    for (let i = 0, { length } = watchers; i < length; i += 1) {
+      const watcher = watchers[i]
       watcher.on('event', event => {
         if (event.code === 'BUNDLE_END' && !quiet) {
           logger.success(`Rebuild succeeded (${event.duration}ms)`)

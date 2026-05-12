@@ -1,3 +1,4 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- one-shot validation script, not a hot path. */
 /**
  * @fileoverview Validates that the bundler configuration has
  * minify: false. Minification breaks ESM/CJS interop and makes
@@ -83,7 +84,8 @@ async function main(): Promise<void> {
 
   logger.fail('Bundler minify validation failed')
 
-  for (const violation of violations) {
+  for (let i = 0, { length } = violations; i < length; i += 1) {
+    const violation = violations[i]
     logger.log(`  ${violation.message}`)
     logger.log(`  Found: minify: ${String(violation.value)}`)
     logger.log('  Expected: minify: false')

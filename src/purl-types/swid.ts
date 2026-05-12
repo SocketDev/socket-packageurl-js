@@ -1,6 +1,6 @@
 /**
  * @fileoverview SWID (Software Identification Tag) PURL validation.
- * https://github.com/package-url/purl-spec/blob/master/types-doc/swid-definition.md
+ * https://github.com/package-url/purl-spec/blob/main/types-doc/swid-definition.md
  */
 
 import { PurlError } from '../error.js'

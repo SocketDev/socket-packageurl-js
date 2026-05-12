@@ -132,7 +132,8 @@ export async function findTextFiles(
   try {
     const entries = await fs.readdir(dir, { withFileTypes: true })
 
-    for (const entry of entries) {
+    for (let i = 0, { length } = entries; i < length; i += 1) {
+      const entry = entries[i]
       const fullPath = path.join(dir, entry.name)
 
       if (entry.isDirectory()) {
@@ -165,7 +166,7 @@ export async function findTextFiles(
 // ("no accidental CDN runtime dependencies") doesn't apply here.
 const ALLOWED_FILES = [
   // Self-skip — this file mentions CDN domains to describe the rule.
-  /no-cdn-refs\.(m?[jt]s|cjs)$/,
+  /no-cdn-refs\.(cjs|m?[jt]s)$/,
   // Build tooling for the tour pilot — these files enumerate, fetch,
   // hash, and rewrite CDN references so they can ship with integrity
   // + CSP hashes. Any CDN reference in them is in the scanner /
@@ -190,7 +191,8 @@ export async function checkFileForCdnRefs(
       const line = lines[i]
       const lineNumber = i + 1
 
-      for (const pattern of CDN_PATTERNS) {
+      for (let i = 0, { length } = CDN_PATTERNS; i < length; i += 1) {
+        const pattern = CDN_PATTERNS[i]
         if (pattern.test(line)) {
           const match: RegExpMatchArray | null = line.match(pattern)
           if (match) {
@@ -224,7 +226,8 @@ export async function validateNoCdnRefs(): Promise<CdnViolation[]> {
   const files = await findTextFiles(rootPath)
   const allViolations: CdnViolation[] = []
 
-  for (const file of files) {
+  for (let i = 0, { length } = files; i < length; i += 1) {
+    const file = files[i]
     const violations = await checkFileForCdnRefs(file)
     allViolations.push(...violations)
   }
@@ -257,7 +260,8 @@ async function main(): Promise<void> {
     logger.log('Violations:')
     logger.log('')
 
-    for (const violation of violations) {
+    for (let i = 0, { length } = violations; i < length; i += 1) {
+      const violation = violations[i]
       logger.log(`  ${violation.file}:${violation.line}`)
       logger.log(`    Domain: ${violation.cdnDomain}`)
       logger.log(`    Content: ${violation.content}`)

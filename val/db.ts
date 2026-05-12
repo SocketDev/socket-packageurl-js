@@ -100,7 +100,7 @@ export const ensureDb = (async () => {
   }
 })()
 
-export const cleanOldRows = async (): Promise<void> => {
+export async function cleanOldRows() {
   const auditCutoff = now() - AUDIT_RETENTION_SECONDS
   const authCutoff = now() - LOGIN_CODE_RETENTION_SECONDS
   try {
@@ -125,7 +125,7 @@ export const cleanOldRows = async (): Promise<void> => {
   }
 }
 
-export const isJtiRevoked = async (jti: string): Promise<boolean> => {
+export async function isJtiRevoked(jti: string) {
   const r = await sqlite.execute({
     sql: 'SELECT 1 FROM revoked_jtis WHERE jti = :jti AND expires_at > :now LIMIT 1',
     args: { jti, now: now() },

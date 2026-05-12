@@ -1,4 +1,5 @@
 /* oxlint-disable socket/sort-source-methods -- helpers ordered to match the audit pipeline (parse → resolve → score → report). */
+/* oxlint-disable socket/prefer-cached-for-loop -- one-shot audit script, not a hot path. */
 /**
  * @fileoverview Socket.dev malware audit for the tour pilot.
  *
@@ -35,7 +36,7 @@ const logger = getDefaultLogger()
 // to the resolved exact version via pacote). Scope is optional but
 // if present starts with `@`.
 const NPM_SPECIFIER_RE =
-  /npm:(?<spec>(?:@[a-z0-9][a-z0-9._~-]*\/)?[a-z0-9][a-z0-9._~-]*@[a-z0-9.+~-]+)(?:\/|['"])/gi
+  /npm:(?<spec>(?:@[a-z0-9][a-z0-9._~-]*\/)?[a-z0-9][a-z0-9._~-]*@[a-z0-9.+~-]+)(?:['"]|\/)/gi
 
 // Matches `<script src="https://unpkg.com/<scope?>/<name>@<version>/...`.
 // unpkg is the convention meander uses; extend the regex if we ever
@@ -82,7 +83,8 @@ export async function extractDepsFromDir(
   )
   const failures: string[] = []
   const seen = new Map<string, NpmDep>()
-  for (const r of reads) {
+  for (let i = 0, { length } = reads; i < length; i += 1) {
+    const r = reads[i]
     if (r.status === 'rejected') {
       failures.push(String((r.reason as Error)?.message ?? r.reason))
       continue
@@ -206,7 +208,8 @@ export async function checkMalwareBatched(
       const key = `${pkg.name ?? ''}@${pkg.version ?? ''}`
       byKey.set(key, pkg)
     }
-    for (const dep of batch) {
+    for (let i = 0, { length } = batch; i < length; i += 1) {
+      const dep = batch[i]
       const pkg = byKey.get(`${dep.name}@${dep.version}`)
       if (!pkg?.alerts?.length) {
         continue
@@ -274,7 +277,8 @@ export function reportAndThrow(findings: AuditFinding[], scope: string): void {
     return
   }
   logger.fail(`[audit-deps] ${scope}: BLOCKED by Socket.dev`)
-  for (const f of findings) {
+  for (let i = 0, { length } = findings; i < length; i += 1) {
+    const f = findings[i]
     const alertsStr = f.alerts
       .map(a => `${a.type} (${a.severity ?? 'unspecified'})`)
       .join(', ')

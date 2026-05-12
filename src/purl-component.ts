@@ -97,7 +97,7 @@ export function componentSortOrder(comp: string): number {
 }
 
 // Rules for each purl component:
-// https://github.com/package-url/purl-spec/blob/master/PURL-SPECIFICATION.rst#rules-for-each-purl-component
+// https://github.com/package-url/purl-spec/blob/main/PURL-SPECIFICATION.rst#rules-for-each-purl-component
 const PurlComponent = createHelpersNamespaceObject(
   {
     encode: {

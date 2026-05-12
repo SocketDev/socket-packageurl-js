@@ -1,6 +1,6 @@
 /**
  * @fileoverview Hex (Erlang/Elixir) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#hex
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#hex
  */
 
 import { errorMessage } from '../error.js'
@@ -14,7 +14,7 @@ import {
 import { lowerName, lowerNamespace } from '../strings.js'
 import { validateNoInjectionByType } from '../validate.js'
 
-import type { ExistsResult, ExistsOptions } from './npm.js'
+import type { ExistsOptions, ExistsResult } from './npm.js'
 
 interface PurlObject {
   name: string

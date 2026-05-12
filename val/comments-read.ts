@@ -16,10 +16,10 @@ import { jsonError } from './util.ts'
 import { rowToComment } from './comments-shared.ts'
 import type { AppEnv, CommentRow } from './types.ts'
 
-export const registerCommentReadRoutes = (
+export function registerCommentReadRoutes(
   app: Hono<AppEnv>,
   requireAuth: (c: Context<AppEnv>, n: Next) => Promise<Response | void>,
-): void => {
+) {
   // Unresolved top-level comments, newest first. "Top-level" = rows
   // without a parent_id, so replies don't show up here. Used by the
   // topbar unresolved-count badge.

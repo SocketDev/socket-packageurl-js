@@ -1,3 +1,4 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* JSDoc block grouping + ordering — second half of the
  * annotation-md cleanup.
  *
@@ -168,7 +169,8 @@ import { ArrayFrom } from '@socketsecurity/lib/primordials'
      * the new block to pick up the next tag at the same sibling
      * level. Reverse-walking nested the cards inside each other. */
     const tags = ArrayFrom(container.querySelectorAll('.wt-jsdoc-tag'))
-    for (const tagEl of tags) {
+    for (let i = 0, { length } = tags; i < length; i += 1) {
+      const tagEl = tags[i]
       const parent = tagEl.parentElement
       if (!parent || parent.classList.contains('wt-jsdoc-block')) {
         continue
@@ -229,7 +231,8 @@ import { ArrayFrom } from '@socketsecurity/lib/primordials'
       const body = b.querySelector(':scope > .wt-jsdoc-body')
       return !body || (body.textContent ?? '').trim() === ''
     })
-    for (const b of emptyDescs) {
+    for (let i = 0, { length } = emptyDescs; i < length; i += 1) {
+      const b = emptyDescs[i]
       b.remove()
     }
     const liveBlocks = allBlocks.filter(b => !emptyDescs.includes(b))
@@ -248,7 +251,8 @@ import { ArrayFrom } from '@socketsecurity/lib/primordials'
      * the end of the source). Without this lift,
      * container.childNodes still holds the original `<p>`
      * wrappers and the synthesis loop mistakes them for prose. */
-    for (const b of liveBlocks) {
+    for (let i = 0, { length } = liveBlocks; i < length; i += 1) {
+      const b = liveBlocks[i]
       if (b.parentElement !== container) {
         container.appendChild(b)
       }

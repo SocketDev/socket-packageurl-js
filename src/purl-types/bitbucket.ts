@@ -1,6 +1,6 @@
 /**
  * @fileoverview Bitbucket PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#bitbucket
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#bitbucket
  */
 
 import { lowerName, lowerNamespace } from '../strings.js'

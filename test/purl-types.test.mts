@@ -1,3 +1,4 @@
+/* max-file-lines: table -- per-type test matrix for every supported PURL ecosystem. */
 /*!
 Copyright (c) the purl authors
 
@@ -46,7 +47,8 @@ describe('PackageURL type-specific tests', () => {
       // Some legacy names contain injection characters (!, *, ~) that are now
       // caught by the injection scanner before reaching npm-specific validation.
       const injectionCharPattern = /[!*~]/
-      for (const legacyName of npmLegacyNames) {
+      for (let i = 0, { length } = npmLegacyNames; i < length; i += 1) {
+        const legacyName = npmLegacyNames[i]
         const parts = legacyName.split('/')
         const namespace = parts.length > 1 ? parts[0] : ''
         const name = parts.at(-1)
@@ -89,7 +91,8 @@ describe('PackageURL type-specific tests', () => {
 
     it('should not allow non-legacy builtin names', () => {
       // Tests npm builtin module validation (only legacy builtins allowed)
-      for (const builtinName of npmBuiltinNames) {
+      for (let i = 0, { length } = npmBuiltinNames; i < length; i += 1) {
+        const builtinName = npmBuiltinNames[i]
         if (!npmLegacyNames.includes(builtinName)) {
           expect(() => {
             const parts = builtinName.split('/')
@@ -686,7 +689,8 @@ describe('PackageURL type-specific tests', () => {
           'win32-x64',
           'win32-arm64',
         ]
-        for (const platform of platforms) {
+        for (let i = 0, { length } = platforms; i < length; i += 1) {
+          const platform = platforms[i]
           expect(
             validateVscodeExtension(
               {
@@ -734,7 +738,8 @@ describe('PackageURL type-specific tests', () => {
 
       it('should reject illegal characters in namespace', () => {
         const illegal = ['ns|x', 'ns&x', 'ns;x', 'ns`x`', 'ns$(x)', 'ns x']
-        for (const namespace of illegal) {
+        for (let i = 0, { length } = illegal; i < length; i += 1) {
+          const namespace = illegal[i]
           expect(
             validateVscodeExtension({ name: 'ext', namespace }, false),
           ).toBe(false)
@@ -746,7 +751,8 @@ describe('PackageURL type-specific tests', () => {
 
       it('should reject illegal characters in name', () => {
         const illegal = ['ext|x', 'ext&x', 'ext;x', 'ext<x>', 'ext{x}']
-        for (const name of illegal) {
+        for (let i = 0, { length } = illegal; i < length; i += 1) {
+          const name = illegal[i]
           expect(
             validateVscodeExtension({ name, namespace: 'ms-python' }, false),
           ).toBe(false)
@@ -761,7 +767,8 @@ describe('PackageURL type-specific tests', () => {
 
       it('should reject non-semver version strings', () => {
         const invalid = ['not-semver', 'latest', '1.0', '1']
-        for (const version of invalid) {
+        for (let i = 0, { length } = invalid; i < length; i += 1) {
+          const version = invalid[i]
           expect(
             validateVscodeExtension(
               { name: 'python', namespace: 'ms-python', version },
@@ -779,7 +786,8 @@ describe('PackageURL type-specific tests', () => {
 
       it('should reject illegal characters in platform qualifier', () => {
         const illegal = ['linux x64', 'linux|x64', 'linux&x64', 'linux;x64']
-        for (const platform of illegal) {
+        for (let i = 0, { length } = illegal; i < length; i += 1) {
+          const platform = illegal[i]
           expect(
             validateVscodeExtension(
               {

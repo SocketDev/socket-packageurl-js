@@ -1,6 +1,6 @@
 /**
  * @fileoverview Hackage (Haskell) registry existence check.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#hackage
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#hackage
  */
 
 import { errorMessage } from '../error.js'
@@ -12,7 +12,7 @@ import {
   encodeComponent,
 } from '@socketsecurity/lib/primordials'
 
-import type { ExistsResult, ExistsOptions } from './npm.js'
+import type { ExistsOptions, ExistsResult } from './npm.js'
 
 /**
  * Check if a Haskell package exists on Hackage.

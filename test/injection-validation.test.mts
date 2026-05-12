@@ -1,3 +1,5 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- test code, not a hot path. */
+/* max-file-lines: table -- per-type validator test matrix; splitting fragments it. */
 /**
  * @fileoverview Unit tests for injection character validation in per-type validators.
  * Tests that per-type validate functions reject shell/URL injection characters
@@ -104,7 +106,8 @@ describe('Per-type injection character validation', () => {
 
     for (const { type, name, ns, version } of allTypes) {
       it(`should reject injection characters in ${type} name`, () => {
-        for (const char of INJECTION_CHARS) {
+        for (let i = 0, { length } = INJECTION_CHARS; i < length; i += 1) {
+          const char = INJECTION_CHARS[i]
           expect(
             () =>
               new PackageURL(
@@ -125,7 +128,8 @@ describe('Per-type injection character validation', () => {
   describe('Namespace injection rejection across types', () => {
     for (const { type, namespace, name, version } of TYPES_WITH_NAMESPACE) {
       it(`should reject injection characters in ${type} namespace`, () => {
-        for (const char of INJECTION_CHARS) {
+        for (let i = 0, { length } = INJECTION_CHARS; i < length; i += 1) {
+          const char = INJECTION_CHARS[i]
           expect(
             () =>
               new PackageURL(

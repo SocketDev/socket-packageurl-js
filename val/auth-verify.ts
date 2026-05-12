@@ -23,10 +23,7 @@ import { audit } from './audit.ts'
 import { jsonError, now, readBoundedJson } from './util.ts'
 import type { AppEnv } from './types.ts'
 
-export const registerAuthVerify = (
-  app: Hono<AppEnv>,
-  hmacKey: CryptoKey,
-): void => {
+export function registerAuthVerify(app: Hono<AppEnv>, hmacKey: CryptoKey) {
   app.post('/auth/verify', async c => {
     await ensureDb
     const body = await readBoundedJson<{ email?: unknown; code?: unknown }>(

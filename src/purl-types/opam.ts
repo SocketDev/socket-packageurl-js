@@ -1,6 +1,6 @@
 /**
  * @fileoverview OPAM-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
  *
  * OPAM is the OCaml package manager. Package names are lowercase.
  */

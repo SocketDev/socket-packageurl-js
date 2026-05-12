@@ -6,18 +6,18 @@
  * owns its own sqlite + Hono imports — this file is just a dispatcher.
  */
 
-import type { Hono, Next, Context } from 'npm:hono@4.12.14'
+import type { Context, Hono, Next } from 'npm:hono@4.12.14'
 
 import { registerAuthRequest } from './auth-request.ts'
 import { registerAuthVerify } from './auth-verify.ts'
 import { registerAuthSession } from './auth-session.ts'
 import type { AppEnv } from './types.ts'
 
-export const registerAuthRoutes = (
+export function registerAuthRoutes(
   app: Hono<AppEnv>,
   hmacKey: CryptoKey,
   requireAuth: (c: Context<AppEnv>, n: Next) => Promise<Response | void>,
-): void => {
+) {
   registerAuthRequest(app)
   registerAuthVerify(app, hmacKey)
   registerAuthSession(app, hmacKey, requireAuth)

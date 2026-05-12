@@ -1,3 +1,4 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* JSDoc tag wrapping — first half of the annotation-md cleanup.
  *
  * Takes the markdown meander rendered into .annotation-md and:
@@ -116,7 +117,8 @@ import {
      * it is. Any whitespace between tag and type is preserved
      * as a text node. */
     const tagPattern = /@([A-Za-z]+)\b(\s*)(\{[^}]*\})?/g
-    for (const node of textNodes) {
+    for (let i = 0, { length } = textNodes; i < length; i += 1) {
+      const node = textNodes[i]
       const text = node.nodeValue ?? ''
       if (!text.includes('@')) {
         continue
@@ -167,7 +169,8 @@ import {
         parts.push(document.createTextNode(text.slice(cursor)))
       }
       const frag = document.createDocumentFragment()
-      for (const p of parts) {
+      for (let i = 0, { length } = parts; i < length; i += 1) {
+        const p = parts[i]
         frag.appendChild(p)
       }
       node.parentNode?.replaceChild(frag, node)

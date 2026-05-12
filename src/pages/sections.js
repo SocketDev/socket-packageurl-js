@@ -1,3 +1,4 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* Sections navigation — the per-file-block dropdown that lists
  * each .annotation-card[id], plus the scroll-position observer
  * that tracks "which card am I reading" and lights the matching
@@ -151,7 +152,8 @@ import {
     const pickCurrentFor = panel => {
       let best = undefined
       let bestTop = Infinity
-      for (const card of visibleCards) {
+      for (let i = 0, { length } = visibleCards; i < length; i += 1) {
+        const card = visibleCards[i]
         if (!panel.closest('.file-block')?.contains(card)) {
           continue
         }
@@ -167,7 +169,8 @@ import {
        * top — the last card the user scrolled past. */
       if (!best) {
         let bestNegTop = -Infinity
-        for (const card of visibleCards) {
+        for (let i = 0, { length } = visibleCards; i < length; i += 1) {
+          const card = visibleCards[i]
           if (!panel.closest('.file-block')?.contains(card)) {
             continue
           }
@@ -183,7 +186,8 @@ import {
 
     const io = new IntersectionObserver(
       entries => {
-        for (const entry of entries) {
+        for (let i = 0, { length } = entries; i < length; i += 1) {
+          const entry = entries[i]
           if (entry.isIntersecting) {
             visibleCards.add(entry.target)
           } else {

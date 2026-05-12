@@ -1,3 +1,4 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- test code, not a hot path. */
 /**
  * @fileoverview Tests for VERS (VErsion Range Specifier) implementation.
  * Tests parsing, serialization, containment, and validation.

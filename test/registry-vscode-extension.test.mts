@@ -1,3 +1,4 @@
+/* max-file-lines: table -- registry-API response fixture table; co-located for clarity. */
 /**
  * @fileoverview Tests for VS Marketplace registry existence checks.
  * Based on actual VS Marketplace API format: https://gist.github.com/scottmwyant/70f5fd296a935a15c8fbb9b9d646e6ca

@@ -1,3 +1,4 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- one-shot build config, not a hot path. */
 /**
  * @fileoverview Rolldown configuration. Mirrors the esbuild config in
  * `esbuild.config.mjs` for byte-equivalent output during the migration
@@ -37,7 +38,8 @@ export function buildPathMap(
     Array<{ info: PackageInfo; longPath: string }>
   >()
 
-  for (const longPath of modulePaths) {
+  for (let i = 0, { length } = modulePaths; i < length; i += 1) {
+    const longPath = modulePaths[i]
     const info = extractPackageInfo(longPath)
     if (!info) {
       continue
@@ -118,7 +120,8 @@ export function createPathShorteningPlugin(): Plugin {
           (a, b) => b.length - a.length,
         )
         let next = code
-        for (const key of sortedKeys) {
+        for (let i = 0, { length } = sortedKeys; i < length; i += 1) {
+          const key = sortedKeys[i]
           const value = pathMap.get(key)!
           if (key === value) {
             continue
@@ -207,4 +210,4 @@ const existsConfig: RolldownOptions = {
 
 export const configs: readonly RolldownOptions[] = [indexConfig, existsConfig]
 
-export default configs
+export { configs }

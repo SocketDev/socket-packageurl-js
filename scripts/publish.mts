@@ -1,3 +1,5 @@
+/* oxlint-disable socket/prefer-cached-for-loop -- one-shot publish script, not a hot path. */
+/* max-file-lines: legitimate -- single-purpose CLI script; splitting would obscure the linear publish flow. */
 /**
  * @fileoverview Publish runner for Socket packageurl-js.
  * Validates build artifacts exist, then publishes to npm.
@@ -386,7 +388,8 @@ export async function validateBuildArtifacts(): Promise<boolean> {
               (v): v is string => typeof v === 'string',
             )
 
-      for (const file of files) {
+      for (let i = 0, { length } = files; i < length; i += 1) {
+        const file = files[i]
         const filePath: string = path.join(rootPath, file)
         if (!existsSync(filePath)) {
           missing.push(file)
@@ -413,7 +416,8 @@ export async function validateBuildArtifacts(): Promise<boolean> {
 
   if (missing.length > 0) {
     logger.error('Missing build artifacts:')
-    for (const file of missing) {
+    for (let i = 0, { length } = missing; i < length; i += 1) {
+      const file = missing[i]
       logger.substep(`  ${file}`)
     }
     return false

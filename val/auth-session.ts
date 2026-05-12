@@ -6,7 +6,7 @@
  * we just echo info (check) or revoke it (logout).
  */
 
-import type { Hono, Next, Context } from 'npm:hono@4.12.14'
+import type { Context, Hono, Next } from 'npm:hono@4.12.14'
 import { sqlite } from 'https://esm.town/v/std/sqlite/main.ts'
 
 import { verifyJwt } from './crypto.ts'
@@ -15,11 +15,11 @@ import { audit } from './audit.ts'
 import { jsonError } from './util.ts'
 import type { AppEnv } from './types.ts'
 
-export const registerAuthSession = (
+export function registerAuthSession(
   app: Hono<AppEnv>,
   hmacKey: CryptoKey,
   requireAuth: (c: Context<AppEnv>, n: Next) => Promise<Response | void>,
-): void => {
+) {
   // Client-facing "am I still logged in?" probe. The middleware
   // already verified the JWT; if control reaches the handler, yes.
   app.get('/auth/check', requireAuth, c => {

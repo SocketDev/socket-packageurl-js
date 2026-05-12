@@ -1,6 +1,6 @@
 /**
  * @fileoverview CRAN (R packages) PURL validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#cran
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#cran
  */
 
 import { errorMessage } from '../error.js'
@@ -16,7 +16,7 @@ import {
   validateRequiredByType,
 } from '../validate.js'
 
-import type { ExistsResult, ExistsOptions } from './npm.js'
+import type { ExistsOptions, ExistsResult } from './npm.js'
 
 interface PurlObject {
   name: string

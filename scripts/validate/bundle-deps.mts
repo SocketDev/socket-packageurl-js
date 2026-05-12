@@ -154,7 +154,7 @@ export async function extractExternalPackages(
   // Match `from 'package'` / `from "package"` / `import 'package'`. Anchor
   // to a non-identifier prefix so attribute strings (e.g. inside
   // `User-Agent: "@socketregistry/packageurl-js"`) aren't matched.
-  const importPattern = /(?:^|[\s;,({[])(?:from|import)\s+['"]([^'"]+)['"]/g
+  const importPattern = /(?:[\s;,({[]|^)(?:from|import)\s+['"]([^'"]+)['"]/g
   // Dynamic import() calls.
   const dynamicImportPattern = /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g
 
@@ -202,7 +202,8 @@ export async function findDistFiles(distPath: string): Promise<string[]> {
   try {
     const entries = await fs.readdir(distPath, { withFileTypes: true })
 
-    for (const entry of entries) {
+    for (let i = 0, { length } = entries; i < length; i += 1) {
+      const entry = entries[i]
       const fullPath = path.join(distPath, entry.name)
 
       if (entry.isDirectory()) {
@@ -367,18 +368,21 @@ export async function validateBundleDeps(): Promise<BundleDependencyResult> {
   const allExternals = new Set<string>()
   const allBundled = new Set<string>()
 
-  for (const file of distFiles) {
+  for (let i = 0, { length } = distFiles; i < length; i += 1) {
+    const file = distFiles[i]
     const externals = await extractExternalPackages(file)
     const bundled = await extractBundledPackages(file)
 
-    for (const ext of externals) {
+    for (let i = 0, { length } = externals; i < length; i += 1) {
+      const ext = externals[i]
       const packageName = getPackageName(ext)
       if (packageName && !BUILTIN_MODULES.has(packageName)) {
         allExternals.add(packageName)
       }
     }
 
-    for (const bun of bundled) {
+    for (let i = 0, { length } = bundled; i < length; i += 1) {
+      const bun = bundled[i]
       allBundled.add(bun)
     }
   }
@@ -387,7 +391,8 @@ export async function validateBundleDeps(): Promise<BundleDependencyResult> {
   const warnings: BundleDependencyMessage[] = []
 
   // Validate external packages are in dependencies or peerDependencies
-  for (const packageName of allExternals) {
+  for (let i = 0, { length } = allExternals; i < length; i += 1) {
+    const packageName = allExternals[i]
     if (!dependencies.has(packageName) && !peerDependencies.has(packageName)) {
       violations.push({
         type: 'external-not-in-deps',
@@ -401,7 +406,8 @@ export async function validateBundleDeps(): Promise<BundleDependencyResult> {
   }
 
   // Validate bundled packages are in devDependencies (not dependencies)
-  for (const packageName of allBundled) {
+  for (let i = 0, { length } = allBundled; i < length; i += 1) {
+    const packageName = allBundled[i]
     if (dependencies.has(packageName)) {
       violations.push({
         type: 'bundled-in-deps',
@@ -437,7 +443,8 @@ async function main(): Promise<void> {
     if (violations.length > 0) {
       logger.fail('Bundle dependencies validation failed\n')
 
-      for (const violation of violations) {
+      for (let i = 0, { length } = violations; i < length; i += 1) {
+        const violation = violations[i]
         logger.fail(`  ${violation.message}`)
         logger.fail(`  ${violation.fix}`)
         logger.fail('')
@@ -447,7 +454,8 @@ async function main(): Promise<void> {
     if (warnings.length > 0) {
       logger.warn('Warnings:\n')
 
-      for (const warning of warnings) {
+      for (let i = 0, { length } = warnings; i < length; i += 1) {
+        const warning = warnings[i]
         logger.log(`  ${warning.message}`)
         logger.log(`  ${warning.fix}\n`)
       }

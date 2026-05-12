@@ -1,6 +1,6 @@
 /**
  * @fileoverview NuGet-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/master/types-doc/nuget-definition.md
+ * https://github.com/package-url/purl-spec/blob/main/types-doc/nuget-definition.md
  */
 
 import { errorMessage } from '../error.js'
@@ -15,7 +15,7 @@ import {
 } from '@socketsecurity/lib/primordials'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.js'
 
-import type { ExistsResult, ExistsOptions } from './npm.js'
+import type { ExistsOptions, ExistsResult } from './npm.js'
 
 interface PurlObject {
   name: string
@@ -88,9 +88,17 @@ export async function nugetExists(
 
       // Get all versions from all pages
       const versions: string[] = []
-      for (const page of data.items) {
+      const pages = data.items
+      for (let i = 0, { length } = pages; i < length; i += 1) {
+        const page = pages[i]
         if (page.items) {
-          for (const item of page.items) {
+          const items = page.items
+          for (
+            let j = 0, { length: itemLength } = items;
+            j < itemLength;
+            j += 1
+          ) {
+            const item = items[j]
             const ver = item.catalogEntry?.['version']
             if (ver) {
               ArrayPrototypePush(versions, ver)

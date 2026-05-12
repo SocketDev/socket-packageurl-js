@@ -1,6 +1,6 @@
 /**
  * @fileoverview APK (Alpine Package Manager) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#apk
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#apk
  */
 
 import { lowerName, lowerNamespace } from '../strings.js'

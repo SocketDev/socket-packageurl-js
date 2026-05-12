@@ -1,6 +1,6 @@
 /**
  * @fileoverview GitHub PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#github
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#github
  */
 
 import { lowerName, lowerNamespace } from '../strings.js'

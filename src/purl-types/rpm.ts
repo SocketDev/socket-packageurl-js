@@ -1,6 +1,6 @@
 /**
  * @fileoverview RPM (Red Hat Package Manager) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#rpm
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#rpm
  */
 
 import { lowerNamespace } from '../strings.js'

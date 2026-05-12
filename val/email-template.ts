@@ -16,7 +16,7 @@
 
 import { htmlEscape } from './validate.ts'
 
-export const renderLoginEmail = (code: string): string => {
+export function renderLoginEmail(code: string): string {
   const safeCode = htmlEscape(code)
   const digits = safeCode
     .split('')
@@ -40,6 +40,9 @@ export const renderLoginEmail = (code: string): string => {
 </html>`
 }
 
-export const renderLoginEmailText = (code: string): string =>
-  `Your Socket tour login code is ${code}. It expires in 10 minutes.\n\n` +
-  `Didn't request this code? Please report it to security@socket.dev.`
+export function renderLoginEmailText(code: string): string {
+  return (
+    `Your Socket tour login code is ${code}. It expires in 10 minutes.\n\n` +
+    `Didn't request this code? Please report it to security@socket.dev.`
+  )
+}

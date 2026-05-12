@@ -1,6 +1,6 @@
 /**
  * @fileoverview PyPI-specific PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#pypi
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#pypi
  */
 
 import { errorMessage } from '../error.js'
@@ -18,7 +18,7 @@ import {
 } from '../strings.js'
 import { validateNoInjectionByType } from '../validate.js'
 
-import type { ExistsResult, ExistsOptions } from './npm.js'
+import type { ExistsOptions, ExistsResult } from './npm.js'
 
 interface PurlObject {
   name: string

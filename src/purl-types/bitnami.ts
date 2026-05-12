@@ -1,6 +1,6 @@
 /**
  * @fileoverview Bitnami PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#bitnami
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#bitnami
  */
 
 import { lowerName } from '../strings.js'

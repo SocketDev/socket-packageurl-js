@@ -1,6 +1,6 @@
 /**
  * @fileoverview QPKG (QNAP package) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst#qpkg
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#qpkg
  */
 
 import { lowerNamespace } from '../strings.js'

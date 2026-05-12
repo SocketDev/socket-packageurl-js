@@ -1,6 +1,6 @@
 /**
  * @fileoverview OTP (Erlang/OTP) PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/master/PURL-TYPES.rst
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
  *
  * OTP packages are Erlang/OTP libraries and applications.
  * Package names are typically lowercase.
