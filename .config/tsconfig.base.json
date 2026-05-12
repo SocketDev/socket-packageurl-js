@@ -1,10 +1,7 @@
 {
   "compilerOptions": {
-    "allowImportingTsExtensions": false,
     "allowJs": false,
-    "allowSyntheticDefaultImports": true,
     "composite": false,
-    "declaration": true,
     "declarationMap": false,
     "erasableSyntaxOnly": true,
     "esModuleInterop": true,
@@ -22,7 +19,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "resolveJsonModule": true,
-    "rewriteRelativeImportExtensions": false,
     "skipLibCheck": true,
     "sourceMap": false,
     "strict": true,

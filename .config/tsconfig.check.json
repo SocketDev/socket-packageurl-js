@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "declarationMap": false,
     "module": "esnext",
     "moduleResolution": "bundler",
