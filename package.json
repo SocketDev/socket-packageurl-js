@@ -91,7 +91,6 @@
     "ecc-agentshield": "1.4.0",
     "fast-glob": "3.3.3",
     "globals": "16.4.0",
-    "husky": "9.1.7",
     "lightningcss": "1.32.0",
     "marked": "18.0.0",
     "mermaid": "11.14.0",
