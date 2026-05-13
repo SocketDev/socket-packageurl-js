@@ -1,5 +1,8 @@
 resolutionMode: highest
 trustPolicy: no-downgrade
+trustPolicyExclude:
+  - 'compromise@14.15.0'
+
 
 # Catalog: shared dependency versions referenced as "catalog:" in
 # package.json. Currently only @socketsecurity/lib needs a catalog
