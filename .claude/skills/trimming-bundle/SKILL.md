@@ -33,7 +33,7 @@ Before doing anything else:
   echo "ERROR: .config/rolldown/lib-stub.mts is missing."
   echo "Cascade it from socket-wheelhouse:"
   echo "  cd /Users/<user>/projects/socket-wheelhouse &&" # socket-hook: allow cross-repo
-  echo "  node scripts/sync-scaffolding/main.mts --target <this-repo> --fix"
+  echo "  node scripts/sync-scaffolding/cli.mts --target <this-repo> --fix"
   exit 1
 }
 ```
