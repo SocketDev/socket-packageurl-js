@@ -90,10 +90,10 @@ export async function packagistExists(
       const data = await httpJson<{
         packages?: {
           [key: string]: Array<{
-            version?: string
-            version_normalized?: string
+            version?: string | undefined
+            version_normalized?: string | undefined
           }>
-        }
+        } | undefined
       }>(url)
 
       const packageVersions = data.packages?.[packageName]

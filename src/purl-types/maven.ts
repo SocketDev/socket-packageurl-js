@@ -84,9 +84,9 @@ export async function mavenExists(
 
       const data = await httpJson<{
         response?: {
-          numFound?: number
-          docs?: Array<{ latestVersion?: string; v?: string }>
-        }
+          numFound?: number | undefined
+          docs?: Array<{ latestVersion?: string | undefined; v?: string | undefined }> | undefined
+        } | undefined
       }>(url)
 
       const numFound = data.response?.['numFound'] || 0
@@ -100,7 +100,7 @@ export async function mavenExists(
       if (version) {
         const versionUrl = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}+AND+v:${encodeComponent(version)}&rows=1&wt=json`
         const versionData = await httpJson<{
-          response?: { numFound?: number }
+          response?: { numFound?: number | undefined } | undefined
         }>(versionUrl)
 
         const versionFound = versionData.response?.['numFound'] || 0

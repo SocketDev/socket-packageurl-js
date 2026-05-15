@@ -81,11 +81,11 @@ export async function pubExists(
 
       const data = await httpJson<{
         latest?: {
-          version?: string
-        }
+          version?: string | undefined
+        } | undefined
         versions?: Array<{
-          version?: string
-        }>
+          version?: string | undefined
+        }> | undefined
       }>(url)
 
       const latestVersion = data.latest?.['version']

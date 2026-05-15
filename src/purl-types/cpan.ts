@@ -70,7 +70,7 @@ export async function cpanExists(
       const url = `https://fastapi.metacpan.org/v1/module/${encodeComponent(name)}`
 
       const data = await httpJson<{
-        version?: string
+        version?: string | undefined
       }>(url)
 
       const latestVersion = data.version

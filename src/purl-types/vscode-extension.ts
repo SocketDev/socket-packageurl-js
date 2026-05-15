@@ -192,10 +192,10 @@ export async function vscodeExtensionExists(
         results?: Array<{
           extensions?: Array<{
             versions?: Array<{
-              version?: string
-            }>
-          }>
-        }>
+              version?: string | undefined
+            }> | undefined
+          }> | undefined
+        }> | undefined
       }>(url, {
         method: 'POST',
         headers: {

@@ -40,8 +40,8 @@ interface PurlObject {
  */
 export type ExistsResult = {
   exists: boolean
-  latestVersion?: string
-  error?: string
+  latestVersion?: string | undefined
+  error?: string | undefined
 }
 
 /**
@@ -61,7 +61,7 @@ export type ExistsOptions = {
    * const result = await npmExists('lodash', undefined, undefined, { cache })
    * ```
    */
-  cache?: TtlCache
+  cache?: TtlCache | undefined
 }
 
 /**
@@ -85,7 +85,7 @@ const getNpmBuiltinSet = (() => {
       /* v8 ignore start - Error handling for module access. */
       try {
         // Try to use Node.js `builtinModules` first
-        builtinNames = (module.constructor as { builtinModules?: string[] })
+        builtinNames = (module.constructor as { builtinModules?: string[] | undefined })
           ?.builtinModules
       } catch {}
       /* v8 ignore stop */
@@ -279,8 +279,8 @@ export async function npmExists(
       const url = `https://registry.npmjs.org/${encodedName}`
 
       const data = await httpJson<{
-        'dist-tags'?: { latest?: string }
-        versions?: Record<string, unknown>
+        'dist-tags'?: { latest?: string | undefined } | undefined
+        versions?: Record<string, unknown> | undefined
       }>(url)
 
       const latestVersion = data['dist-tags']?.['latest']

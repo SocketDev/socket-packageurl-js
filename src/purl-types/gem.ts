@@ -79,7 +79,7 @@ export async function gemExists(
     try {
       const url = `https://rubygems.org/api/v1/versions/${encodeComponent(name)}.json`
 
-      const data = await httpJson<Array<{ number?: string }>>(url)
+      const data = await httpJson<Array<{ number?: string | undefined }>>(url)
 
       if (!ArrayIsArray(data) || data.length === 0) {
         return {

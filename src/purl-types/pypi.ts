@@ -97,8 +97,8 @@ export async function pypiExists(
       const url = `https://pypi.org/pypi/${encodeComponent(name)}/json`
 
       const data = await httpJson<{
-        info?: { version?: string }
-        releases?: Record<string, unknown[]>
+        info?: { version?: string | undefined } | undefined
+        releases?: Record<string, unknown[]> | undefined
       }>(url)
 
       const latestVersion = data.info?.['version']

@@ -93,7 +93,7 @@ export async function dockerExists(
       const url = `https://hub.docker.com/v2/repositories/${encodedRepo}`
 
       const data = await httpJson<{
-        name?: string
+        name?: string | undefined
       }>(url)
 
       // Docker Hub doesn't provide a simple `"latest version"` - tags need separate API call

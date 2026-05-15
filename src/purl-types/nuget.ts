@@ -75,11 +75,11 @@ export async function nugetExists(
         items?: Array<{
           items?: Array<{
             catalogEntry?: {
-              version?: string
-            }
-          }>
-          upper?: string
-        }>
+              version?: string | undefined
+            } | undefined
+          }> | undefined
+          upper?: string | undefined
+        }> | undefined
       }>(url)
 
       if (!data.items || data.items.length === 0) {

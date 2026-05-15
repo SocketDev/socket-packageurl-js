@@ -70,10 +70,10 @@ export async function hexExists(
       const url = `https://hex.pm/api/packages/${encodeComponent(name)}`
 
       const data = await httpJson<{
-        latest_version?: string
+        latest_version?: string | undefined
         releases?: Array<{
-          version?: string
-        }>
+          version?: string | undefined
+        }> | undefined
       }>(url)
 
       const latestVersion = data.latest_version

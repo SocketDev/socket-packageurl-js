@@ -73,7 +73,7 @@ export async function cocoapodsExists(
       const url = `https://trunk.cocoapods.org/api/v1/pods/${encodeComponent(name)}`
 
       const data = await httpJson<{
-        versions?: Array<{ name?: string }>
+        versions?: Array<{ name?: string | undefined }> | undefined
       }>(url)
 
       const versions = data.versions

@@ -126,8 +126,8 @@ export async function golangExists(
       const url = `https://proxy.golang.org/${encodedPath}/@latest`
 
       const data = await httpJson<{
-        Version?: string
-        Time?: string
+        Version?: string | undefined
+        Time?: string | undefined
       }>(url)
 
       const latestVersion = data.Version

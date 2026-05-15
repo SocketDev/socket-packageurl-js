@@ -316,10 +316,12 @@ export async function interactiveReviewChangelog(
 
   while (true) {
     // Show the current changelog
-    logger.log(`\n${colors.cyan('Current Changelog Entry:')}`)
+    logger.log('')
+    logger.log(`${colors.cyan('Current Changelog Entry:')}`)
     logger.log(colors.dim('─'.repeat(60)))
     logger.log(currentEntry)
-    logger.log(`${colors.dim('─'.repeat(60))}\n`)
+    logger.log(`${colors.dim('─'.repeat(60))}`)
+    logger.log('')
 
     // Offer action choices
     const action = await prompts.select({
@@ -357,9 +359,8 @@ export async function interactiveReviewChangelog(
     }
 
     if (action === 'manual') {
-      logger.log(
-        '\nEnter the changelog manually (paste and press Enter twice when done):',
-      )
+      logger.log('')
+      logger.log('Enter the changelog manually (paste and press Enter twice when done):')
       const rl = createReadline()
       let manualEntry = ''
       return new Promise((resolve, reject) => {
@@ -508,11 +509,13 @@ export async function reviewChangelog(
   changelogEntry: string,
   interactive: boolean = false,
 ): Promise<string> {
-  logger.log(`\n${colors.blue('━'.repeat(60))}`)
+  logger.log('')
+  logger.log(`${colors.blue('━'.repeat(60))}`)
   logger.log(colors.blue('Proposed Changelog Entry:'))
   logger.log(colors.blue('━'.repeat(60)))
   logger.log(changelogEntry)
-  logger.log(`${colors.blue('━'.repeat(60))}\n`)
+  logger.log(`${colors.blue('━'.repeat(60))}`)
+  logger.log('')
 
   // Use interactive prompts if available and requested
   if (interactive && prompts) {
@@ -557,11 +560,13 @@ Provide the refined changelog entry in the same format.`
         changelogEntry = refineResult.stdout.trim()
         logger.done('Changelog refined')
 
-        logger.log(`\n${colors.blue('━'.repeat(60))}`)
+        logger.log('')
+        logger.log(`${colors.blue('━'.repeat(60))}`)
         logger.log(colors.blue('Refined Changelog Entry:'))
         logger.log(colors.blue('━'.repeat(60)))
         logger.log(changelogEntry)
-        logger.log(`${colors.blue('━'.repeat(60))}\n`)
+        logger.log(`${colors.blue('━'.repeat(60))}`)
+        logger.log('')
       } else {
         logger.failed('Failed to refine changelog')
       }
@@ -732,8 +737,10 @@ async function main(): Promise<void> {
 
     // Show help if requested
     if (values.help) {
-      logger.log('\nUsage: pnpm bump [options]')
-      logger.log('\nOptions:')
+      logger.log('')
+      logger.log('Usage: pnpm bump [options]')
+      logger.log('')
+      logger.log('Options:')
       logger.log('  --help           Show this help message')
       logger.log('  --bump <type>    Version bump type (default: patch)')
       logger.log(
@@ -748,7 +755,8 @@ async function main(): Promise<void> {
       logger.log('  --skip-checks    Skip git status/branch checks')
       logger.log('  --no-push        Do not push changes to remote')
       logger.log('  --force          Force bump even with warnings')
-      logger.log('\nExamples:')
+      logger.log('')
+      logger.log('Examples:')
       logger.log(
         '  pnpm bump                    # Bump patch (interactive by default)',
       )
@@ -758,7 +766,8 @@ async function main(): Promise<void> {
       logger.log(
         '  pnpm bump --skip-changelog   # Skip AI changelog generation',
       )
-      logger.log('\nRequires:')
+      logger.log('')
+      logger.log('Requires:')
       logger.log('  - claude-console (or claude) CLI tool installed')
       logger.log('  - Clean git working directory')
       logger.log('  - Main/master branch (unless --force)') // inclusive-language: external-api — `master` is a real branch name in legacy repos.
@@ -766,7 +775,8 @@ async function main(): Promise<void> {
         logger.log('')
         logger.success('Interactive mode: Available (default)')
       } else {
-        logger.log('\nInteractive mode: Not available')
+        logger.log('')
+        logger.log('Interactive mode: Not available')
         logger.log('  (install @socketsecurity/lib or build local registry)')
       }
       process.exitCode = 0
@@ -931,7 +941,8 @@ async function main(): Promise<void> {
 
     printFooter(`Version bumped to ${newVersion}!`)
 
-    logger.info('\nNext steps:')
+    logger.error('')
+    logger.info('Next steps:')
     logger.substep('1. Run `pnpm release` to publish to npm')
     logger.substep('2. Create GitHub release if needed')
 

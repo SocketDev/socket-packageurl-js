@@ -194,8 +194,10 @@ async function main(): Promise<void> {
     // Show help if requested
     if (values.help) {
       logger.log('Check Runner')
-      logger.log('\nUsage: pnpm check [options]')
-      logger.log('\nOptions:')
+      logger.log('')
+      logger.log('Usage: pnpm check [options]')
+      logger.log('')
+      logger.log('Options:')
       logger.log('  --help         Show this help message')
       logger.log('  --lint         Run oxlint check only')
       logger.log('  --types        Run TypeScript check only')
@@ -203,7 +205,8 @@ async function main(): Promise<void> {
       logger.log('  --staged       Check staged files (passes to lint)')
       logger.log('  --changed      Check changed files (passes to lint)')
       logger.log('  --quiet, --silent  Suppress progress messages')
-      logger.log('\nExamples:')
+      logger.log('')
+      logger.log('Examples:')
       logger.log('  pnpm check             # Run all checks on changed files')
       logger.log('  pnpm check --all       # Run all checks on all files')
       logger.log('  pnpm check --lint      # Run oxlint only')

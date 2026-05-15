@@ -81,8 +81,8 @@ export async function cargoExists(
       const url = `https://crates.io/api/v1/crates/${encodeComponent(name)}`
 
       const data = await httpJson<{
-        crate?: { max_version?: string }
-        versions?: Array<{ num?: string }>
+        crate?: { max_version?: string | undefined } | undefined
+        versions?: Array<{ num?: string | undefined }> | undefined
       }>(url, {
         headers: {
           'User-Agent': '@socketregistry/packageurl-js',

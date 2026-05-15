@@ -75,8 +75,8 @@ export async function cranExists(
       const url = `https://cran.r-universe.dev/api/packages/${encodeComponent(name)}`
 
       const data = await httpJson<{
-        Version?: string
-        versions?: string[]
+        Version?: string | undefined
+        versions?: string[] | undefined
       }>(url)
 
       const latestVersion = data.Version

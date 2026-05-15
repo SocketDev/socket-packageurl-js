@@ -482,8 +482,10 @@ async function main(): Promise<void> {
 
     // Show help if requested.
     if (values.help) {
-      logger.log('\nUsage: pnpm release [options]')
-      logger.log('\nOptions:')
+      logger.log('')
+      logger.log('Usage: pnpm release [options]')
+      logger.log('')
+      logger.log('Options:')
       logger.log('  --help         Show this help message')
       logger.log('  --dry-run      Perform a dry-run without publishing')
       logger.log('  --force        Force publish even with warnings')
@@ -491,7 +493,8 @@ async function main(): Promise<void> {
       logger.log('  --tag <tag>    npm dist-tag (default: latest)')
       logger.log('  --access <access>  Package access level (default: public)')
       logger.log('  --otp <otp>    npm one-time password')
-      logger.log('\nExamples:')
+      logger.log('')
+      logger.log('Examples:')
       logger.log('  pnpm release              # Validate artifacts and publish')
       logger.log('  pnpm release --dry-run    # Dry-run to test')
       logger.log('  pnpm release --otp 123456 # Publish with OTP')

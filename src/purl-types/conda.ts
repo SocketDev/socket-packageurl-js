@@ -95,8 +95,8 @@ export async function condaExists(
       const url = `https://api.anaconda.org/package/${encodedChannel}/${encodedName}`
 
       const data = await httpJson<{
-        latest_version?: string
-        versions?: string[]
+        latest_version?: string | undefined
+        versions?: string[] | undefined
       }>(url)
 
       const latestVersion = data.latest_version
