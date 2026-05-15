@@ -256,7 +256,7 @@ class PackageURL {
       const qualifiersCopy = ObjectCreate(null) as QualifiersObject
       const keys = ObjectKeys(this.qualifiers)
       for (let i = 0, { length } = keys; i < length; i += 1) {
-        const key = keys[i]
+        const key = keys[i]!
         qualifiersCopy[key] = this.qualifiers[key]!
       }
       result.qualifiers = qualifiersCopy
