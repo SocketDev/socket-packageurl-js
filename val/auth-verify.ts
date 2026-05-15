@@ -26,10 +26,10 @@ import type { AppEnv } from './types.ts'
 export function registerAuthVerify(app: Hono<AppEnv>, hmacKey: CryptoKey) {
   app.post('/auth/verify', async c => {
     await ensureDb
-    const body = await readBoundedJson<{ email?: unknown; code?: unknown }>(
-      c,
-      MAX_BODY_BYTES_AUTH,
-    )
+    const body = await readBoundedJson<{
+      email?: unknown | undefined
+      code?: unknown | undefined
+    }>(c, MAX_BODY_BYTES_AUTH)
     const email = normalizeEmail(body?.email)
     const code = typeof body?.code === 'string' ? body.code.trim() : ''
 
@@ -51,7 +51,7 @@ export function registerAuthVerify(app: Hono<AppEnv>, hmacKey: CryptoKey) {
       args: { email, since: windowStart },
     })
     const attempts = Number(
-      (attemptCount.rows[0] as { n?: number | bigint })?.n ?? 0,
+      (attemptCount.rows[0] as { n?: number | bigint | undefined })?.n ?? 0,
     )
     if (attempts >= VERIFY_RATE_LIMIT_PER_EMAIL) {
       await audit(c, 'login_verify_rate_limited', {

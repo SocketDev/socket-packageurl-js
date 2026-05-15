@@ -15,11 +15,11 @@ export async function audit(
   c: Context<AppEnv>,
   action: string,
   opts: {
-    actor?: string | null
-    target?: string
-    slug?: string
+    actor?: string | null | undefined
+    target?: string | undefined
+    slug?: string | undefined
     success: boolean
-    meta?: Record<string, unknown>
+    meta?: Record<string, unknown> | undefined
   },
 ) {
   try {

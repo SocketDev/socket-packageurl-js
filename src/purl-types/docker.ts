@@ -4,12 +4,12 @@
  */
 
 import { errorMessage } from '../error.js'
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib-stable/http-request'
 
 import {
   StringPrototypeIncludes,
   encodeComponent,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib-stable/primordials'
 import { lowerName } from '../strings.js'
 import { validateNoInjectionByType } from '../validate.js'
 

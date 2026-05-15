@@ -7,11 +7,11 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import type { Logger } from '@socketsecurity/lib/logger'
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
-import type { SpawnResult } from '@socketsecurity/lib/spawn'
-import { spawn } from '@socketsecurity/lib/spawn'
-import { printHeader } from '@socketsecurity/lib/stdio/header'
+import type { Logger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import type { SpawnResult } from '@socketsecurity/lib-stable/spawn'
+import { spawn } from '@socketsecurity/lib-stable/spawn'
+import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'
 
 const logger: Logger = getDefaultLogger()

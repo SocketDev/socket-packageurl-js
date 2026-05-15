@@ -38,7 +38,7 @@ export function registerAuthRequest(app: Hono<AppEnv>) {
 
     // Cap the body size. Without this, a client could POST a huge JSON
     // blob and OOM the val. 4 KB is plenty for `{ email: "..." }`.
-    const body = await readBoundedJson<{ email?: unknown }>(
+    const body = await readBoundedJson<{ email?: unknown | undefined }>(
       c,
       MAX_BODY_BYTES_AUTH,
     )
@@ -57,7 +57,9 @@ export function registerAuthRequest(app: Hono<AppEnv>) {
       sql: 'SELECT COUNT(*) AS n FROM login_codes WHERE ip = :ip AND created_at > :since',
       args: { ip, since: windowStart },
     })
-    const ipHits = Number((ipCount.rows[0] as { n?: number | bigint })?.n ?? 0)
+    const ipHits = Number(
+      (ipCount.rows[0] as { n?: number | bigint | undefined })?.n ?? 0,
+    )
     const rateLimited = ipHits >= CODE_RATE_LIMIT_PER_IP
 
     if (emailValid && domainOk && !rateLimited) {

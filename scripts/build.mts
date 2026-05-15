@@ -14,13 +14,13 @@ import { rolldown, watch as rolldownWatch } from 'rolldown'
 import type { RolldownOutput } from 'rolldown'
 import colors from 'yoctocolors-cjs'
 
-import { isQuiet } from '@socketsecurity/lib/argv/flags'
-import type { FlagValues } from '@socketsecurity/lib/argv/flags'
-import { parseArgs } from '@socketsecurity/lib/argv/parse'
-import type { Logger } from '@socketsecurity/lib/logger'
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
-import { printFooter } from '@socketsecurity/lib/stdio/footer'
-import { printHeader } from '@socketsecurity/lib/stdio/header'
+import { isQuiet } from '@socketsecurity/lib-stable/argv/flags'
+import type { FlagValues } from '@socketsecurity/lib-stable/argv/flags'
+import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import type { Logger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
+import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'
 
 const logger: Logger = getDefaultLogger()
@@ -46,21 +46,21 @@ type BuildScriptValues = FlagValues & {
 }
 
 type BuildSourceOptions = {
-  analyze?: boolean
-  quiet?: boolean
-  skipClean?: boolean
-  verbose?: boolean
+  analyze?: boolean | undefined
+  quiet?: boolean | undefined
+  skipClean?: boolean | undefined
+  verbose?: boolean | undefined
 }
 
 type BuildTypesOptions = {
-  quiet?: boolean
-  skipClean?: boolean
-  verbose?: boolean
+  quiet?: boolean | undefined
+  skipClean?: boolean | undefined
+  verbose?: boolean | undefined
 }
 
 type WatchBuildOptions = {
-  quiet?: boolean
-  verbose?: boolean
+  quiet?: boolean | undefined
+  verbose?: boolean | undefined
 }
 
 type BuildSourceResult = {
@@ -70,11 +70,13 @@ type BuildSourceResult = {
 }
 
 type SequenceCommand = {
-  args?: string[]
+  args?: string[] | undefined
   command: string
-  options?: {
-    shell?: boolean
-  }
+  options?:
+    | {
+        shell?: boolean | undefined
+      }
+    | undefined
 }
 
 const rootPath = path.resolve(

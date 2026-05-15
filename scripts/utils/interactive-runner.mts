@@ -5,15 +5,15 @@
 
 import process from 'node:process'
 
-import { runWithMask } from '@socketsecurity/lib/stdio/mask'
+import { runWithMask } from '@socketsecurity/lib-stable/stdio/mask'
 
 type RunWithOutputOptions = {
-  cwd?: string
-  env?: NodeJS.ProcessEnv
-  message?: string
-  showOnError?: boolean
-  toggleText?: string
-  verbose?: boolean
+  cwd?: string | undefined
+  env?: NodeJS.ProcessEnv | undefined
+  message?: string | undefined
+  showOnError?: boolean | undefined
+  toggleText?: string | undefined
+  verbose?: boolean | undefined
 }
 
 /**

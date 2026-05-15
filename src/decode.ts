@@ -3,7 +3,7 @@
  * Provides proper error handling for invalid encoded strings.
  */
 import { PurlError } from './error.js'
-import { decodeComponent } from '@socketsecurity/lib/primordials'
+import { decodeComponent } from '@socketsecurity/lib-stable/primordials'
 
 /**
  * Decode PURL component value from URL encoding.

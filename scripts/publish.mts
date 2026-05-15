@@ -12,19 +12,19 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import type { FlagValues } from '@socketsecurity/lib/argv/flags'
-import { parseArgs } from '@socketsecurity/lib/argv/parse'
-import { safeDelete, safeDeleteSync } from '@socketsecurity/lib/fs'
-import type { Logger } from '@socketsecurity/lib/logger'
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import type { FlagValues } from '@socketsecurity/lib-stable/argv/flags'
+import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import { safeDelete, safeDeleteSync } from '@socketsecurity/lib-stable/fs'
+import type { Logger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 import type {
   SpawnError,
   SpawnErrorWithOutputString,
   SpawnOptions,
-} from '@socketsecurity/lib/spawn'
-import { spawn } from '@socketsecurity/lib/spawn'
-import { printFooter } from '@socketsecurity/lib/stdio/footer'
-import { printHeader } from '@socketsecurity/lib/stdio/header'
+} from '@socketsecurity/lib-stable/spawn'
+import { spawn } from '@socketsecurity/lib-stable/spawn'
+import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
+import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 
 import { errorMessage } from './utils/error-message.mts'
 
@@ -37,26 +37,26 @@ type CommandResult = {
 }
 
 type PackageJson = {
-  dependencies?: Record<string, string>
-  devDependencies?: Record<string, string>
-  exports?: Record<string, string | Record<string, string>>
-  main?: string
-  name?: string
-  peerDependencies?: Record<string, string>
-  types?: string
-  version?: string
+  dependencies?: Record<string, string> | undefined
+  devDependencies?: Record<string, string> | undefined
+  exports?: Record<string, string | Record<string, string>> | undefined
+  main?: string | undefined
+  name?: string | undefined
+  peerDependencies?: Record<string, string> | undefined
+  types?: string | undefined
+  version?: string | undefined
 }
 
 type PublishOptions = {
-  access?: string
-  dryRun?: boolean
-  force?: boolean
-  otp?: string
-  tag?: string
+  access?: string | undefined
+  dryRun?: boolean | undefined
+  force?: boolean | undefined
+  otp?: string | undefined
+  tag?: string | undefined
 }
 
 type PushTagOptions = {
-  force?: boolean
+  force?: boolean | undefined
 }
 
 type PublishScriptValues = FlagValues & {
@@ -64,7 +64,7 @@ type PublishScriptValues = FlagValues & {
   'dry-run': boolean
   force: boolean
   help: boolean
-  otp?: string
+  otp?: string | undefined
   'skip-tag': boolean
   tag: string
 }

@@ -4,7 +4,7 @@
 
 import { PackageURL } from '../../src/package-url.js'
 
-import type { TtlCache } from '@socketsecurity/lib/cache-with-ttl'
+import type { TtlCache } from '@socketsecurity/lib-stable/cache-with-ttl'
 
 /**
  * Create a minimal mock TtlCache for testing.
@@ -70,8 +70,8 @@ export function createTestPurl(
   opts?: {
     namespace?: string | null | undefined
     qualifiers?: Record<string, string> | null | undefined
-    subpath?: string
-    version?: string
+    subpath?: string | undefined
+    version?: string | undefined
   },
 ): PackageURL {
   return new PackageURL(

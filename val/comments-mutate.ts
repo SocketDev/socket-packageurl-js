@@ -30,7 +30,7 @@ export function registerCommentMutateRoutes(
       return jsonError(c, 400, 'invalid slug or id')
     }
     const auth = c.get('auth')
-    const body = await readBoundedJson<{ resolved?: unknown }>(
+    const body = await readBoundedJson<{ resolved?: unknown | undefined }>(
       c,
       MAX_BODY_BYTES_AUTH,
     )

@@ -30,7 +30,7 @@
  * See: https://go.dev/ref/mod#module-path
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib-stable/http-request'
 
 import { PurlError, errorMessage } from '../error.js'
 import {
@@ -42,7 +42,7 @@ import {
   StringPrototypeSplit,
   StringPrototypeToLowerCase,
   encodeComponent,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib-stable/primordials'
 import { isSemverString } from '../strings.js'
 import { validateNoInjectionByType } from '../validate.js'
 

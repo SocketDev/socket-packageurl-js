@@ -35,7 +35,7 @@ const TYPES_WITH_NAMESPACE: Array<{
   type: string
   namespace: string
   name: string
-  version?: string
+  version?: string | undefined
 }> = [
   {
     type: 'maven',
@@ -73,7 +73,7 @@ const TYPES_WITH_NAMESPACE: Array<{
 const TYPES_WITHOUT_NAMESPACE: Array<{
   type: string
   name: string
-  version?: string
+  version?: string | undefined
 }> = [
   { type: 'cargo', name: 'serde', version: '1.0.0' },
   { type: 'gem', name: 'rails', version: '7.0.0' },

@@ -6,14 +6,14 @@
  * The `namespace` is the publisher name, and the `name` is the extension name.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib-stable/http-request'
 
 import { PurlError, errorMessage } from '../error.js'
 import {
   ArrayPrototypeSome,
   JSONStringify,
   StringPrototypeIncludes,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib-stable/primordials'
 import {
   isSemverString,
   lowerName,

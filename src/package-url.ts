@@ -70,7 +70,7 @@ import {
   SyntaxErrorCtor,
   URLCtor,
   URLSearchParamsCtor,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib-stable/primordials'
 import { PurlComponent } from './purl-component.js'
 import { PurlQualifierNames } from './purl-qualifier-names.js'
 import { PurlType } from './purl-type.js'

@@ -11,13 +11,13 @@ import { fileURLToPath } from 'node:url'
 
 import type { RolldownOptions } from 'rolldown'
 
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 
 import { errorMessage } from '../utils/error-message.mts'
 
 type RolldownConfigModule = {
-  configs?: readonly RolldownOptions[]
-  default?: readonly RolldownOptions[]
+  configs?: readonly RolldownOptions[] | undefined
+  default?: readonly RolldownOptions[] | undefined
 }
 
 type MinifyViolation = {
@@ -54,7 +54,7 @@ export async function validateMinify(): Promise<MinifyViolation[]> {
       if (!out || Array.isArray(out)) {
         continue
       }
-      const minify = (out as { minify?: unknown }).minify
+      const minify = (out as { minify?: unknown | undefined }).minify
       if (minify !== false) {
         violations.push({
           config: `configs[${index}].output`,

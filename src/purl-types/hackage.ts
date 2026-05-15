@@ -4,13 +4,13 @@
  */
 
 import { errorMessage } from '../error.js'
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib-stable/http-request'
 
 import {
   ArrayPrototypeIncludes,
   StringPrototypeIncludes,
   encodeComponent,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib-stable/primordials'
 
 import type { ExistsOptions, ExistsResult } from './npm.js'
 

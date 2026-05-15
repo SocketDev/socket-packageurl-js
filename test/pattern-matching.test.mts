@@ -3,7 +3,7 @@
  * Tests wildcard matching for type, namespace, name, and version components.
  */
 
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 import { describe, expect, it } from 'vitest'
 
 const logger = getDefaultLogger()

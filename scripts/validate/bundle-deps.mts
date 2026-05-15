@@ -15,7 +15,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 
 import { errorMessage } from '../utils/error-message.mts'
 
@@ -58,9 +58,9 @@ const BUILTIN_MODULES = new Set([
 ])
 
 type PackageJsonLike = {
-  dependencies?: Record<string, string>
-  devDependencies?: Record<string, string>
-  peerDependencies?: Record<string, string>
+  dependencies?: Record<string, string> | undefined
+  devDependencies?: Record<string, string> | undefined
+  peerDependencies?: Record<string, string> | undefined
 }
 
 type BundleDependencyMessage = {

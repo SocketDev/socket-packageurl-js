@@ -3,7 +3,7 @@ import {
   StringPrototypeCharCodeAt,
   StringPrototypeSlice,
   StringPrototypeToLowerCase,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib-stable/primordials'
 
 /**
  * @fileoverview Custom `PurlError` class for Package URL parsing and validation errors.

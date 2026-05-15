@@ -28,9 +28,9 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import { safeDelete } from '@socketsecurity/lib/fs'
-import { httpJson, httpRequest } from '@socketsecurity/lib/http-request'
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import { safeDelete } from '@socketsecurity/lib-stable/fs'
+import { httpJson, httpRequest } from '@socketsecurity/lib-stable/http-request'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'
@@ -258,8 +258,8 @@ export async function emitAiArtifacts(
   parts: ReadonlyArray<{
     id: number
     title: string
-    filename?: string
-    objective?: string
+    filename?: string | undefined
+    objective?: string | undefined
   }>,
 ): Promise<void> {
   const base = slug ? `/${slug}` : ''
@@ -1334,7 +1334,11 @@ export async function rewriteIndexContents(
  * first one found.
  */
 export function validatePartFilenames(
-  parts: ReadonlyArray<{ id: number; title: string; filename?: string }>,
+  parts: ReadonlyArray<{
+    id: number
+    title: string
+    filename?: string | undefined
+  }>,
   configPath: string,
 ): Map<number, string> {
   const errors: string[] = []
@@ -1900,21 +1904,25 @@ export async function generate(
     const configPath = rest[0]
     const tourConfig = configPath
       ? (JSON.parse(await fs.readFile(path.resolve(configPath), 'utf8')) as {
-          slug?: string
-          commentBackend?: string
-          parts?: Array<{
-            id: number
-            title: string
-            filename?: string
-            objective?: string
-            files?: string[]
-          }>
-          docs?: Array<{
-            filename?: string | undefined
-            title?: string | undefined
-            source?: string | undefined
-            summary?: string | undefined
-          }>
+          slug?: string | undefined
+          commentBackend?: string | undefined
+          parts?:
+            | Array<{
+                id: number
+                title: string
+                filename?: string | undefined
+                objective?: string | undefined
+                files?: string[] | undefined
+              }>
+            | undefined
+          docs?:
+            | Array<{
+                filename?: string | undefined
+                title?: string | undefined
+                source?: string | undefined
+                summary?: string | undefined
+              }>
+            | undefined
         })
       : {}
     const commentBackend = tourConfig.commentBackend || ''
@@ -3252,7 +3260,7 @@ export async function readPartFilenames(): Promise<Map<number, string>> {
     return new Map()
   }
   const config = JSON.parse(await fs.readFile(configPath, 'utf8')) as {
-    parts?: Array<{ id: number; filename?: string }>
+    parts?: Array<{ id: number; filename?: string | undefined }> | undefined
   }
   const map = new Map<number, string>()
   for (const p of config.parts ?? []) {
@@ -3714,7 +3722,7 @@ export async function deployValtown(args: readonly string[]): Promise<void> {
     }
     throw new Error(`GET /v1/me failed: ${meRes.status} ${meRes.text()}`)
   }
-  const me = meRes.json<{ username?: string }>()
+  const me = meRes.json<{ username?: string | undefined }>()
   const username = me.username
   if (!username) {
     throw new Error('Val Town API returned no username')
@@ -3730,7 +3738,7 @@ export async function deployValtown(args: readonly string[]): Promise<void> {
   })
   if (listRes.ok) {
     const list = listRes.json<{
-      data?: Array<{ id: string; name: string }>
+      data?: Array<{ id: string; name: string }> | undefined
     }>()
     const match = list.data?.find(
       v => v.name === valName || v.name.toLowerCase() === valName.toLowerCase(),
@@ -3876,7 +3884,9 @@ export async function deployValtown(args: readonly string[]): Promise<void> {
   let publicUrl = `https://${username}-${valName.toLowerCase()}.web.val.run`
   if (fileRes.ok) {
     const fileList = fileRes.json<{
-      data?: Array<{ links?: { endpoint?: string } }>
+      data?:
+        | Array<{ links?: { endpoint?: string | undefined } | undefined }>
+        | undefined
     }>()
     const endpoint = fileList.data?.[0]?.links?.endpoint
     if (endpoint) {
@@ -4202,13 +4212,13 @@ export async function readTokenFromStdin(): Promise<string> {
 /* ------------------------------------------------------------------ */
 
 type ExternalTool = {
-  description?: string
-  version?: string
-  notes?: string | readonly string[]
+  description?: string | undefined
+  version?: string | undefined
+  notes?: string | readonly string[] | undefined
 }
 
 type ExternalToolsManifest = {
-  description?: string
+  description?: string | undefined
   tools: Record<string, ExternalTool>
 }
 

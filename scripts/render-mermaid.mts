@@ -97,7 +97,7 @@ export async function createMermaidRenderer(
   const mermaidVersion = existsSync(mermaidPkgPath)
     ? ((
         JSON.parse(await fs.readFile(mermaidPkgPath, 'utf8')) as {
-          version?: string
+          version?: string | undefined
         }
       ).version ?? '0')
     : '0'

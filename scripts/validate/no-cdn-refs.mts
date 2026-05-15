@@ -44,7 +44,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import loggerPkg from '@socketsecurity/lib/logger'
+import loggerPkg from '@socketsecurity/lib-stable/logger'
 import { errorMessage } from '../utils/error-message.mts'
 
 const logger = loggerPkg.getDefaultLogger()
@@ -111,7 +111,7 @@ type CdnViolation = {
 }
 
 type NodeError = Error & {
-  code?: string
+  code?: string | undefined
 }
 
 /**

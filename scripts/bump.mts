@@ -14,14 +14,17 @@ import { fileURLToPath } from 'node:url'
 import semver from 'semver'
 import colors from 'yoctocolors-cjs'
 
-import { parseArgs } from '@socketsecurity/lib/argv/parse'
-import { safeDelete } from '@socketsecurity/lib/fs'
-import type { Logger } from '@socketsecurity/lib/logger'
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
-import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
-import { spawn } from '@socketsecurity/lib/spawn'
-import { printFooter } from '@socketsecurity/lib/stdio/footer'
-import { printHeader } from '@socketsecurity/lib/stdio/header'
+import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import { safeDelete } from '@socketsecurity/lib-stable/fs'
+import type { Logger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import type {
+  SpawnOptions,
+  SpawnResult,
+} from '@socketsecurity/lib-stable/spawn'
+import { spawn } from '@socketsecurity/lib-stable/spawn'
+import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
+import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'
 
 type CommandResult = {
@@ -31,8 +34,8 @@ type CommandResult = {
 }
 
 type PackageJson = Record<string, unknown> & {
-  name?: string
-  version?: string
+  name?: string | undefined
+  version?: string | undefined
 }
 
 const logger: Logger = getDefaultLogger()
@@ -603,7 +606,7 @@ export async function runCommand(
 export async function runCommandWithOutput(
   command: string,
   args: string[] = [],
-  options: SpawnOptions & { input?: string } = {},
+  options: SpawnOptions & { input?: string | undefined } = {},
 ): Promise<CommandResult> {
   return new Promise<CommandResult>((resolve, reject) => {
     let stdout: string = ''

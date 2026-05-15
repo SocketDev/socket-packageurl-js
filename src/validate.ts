@@ -11,7 +11,7 @@ import {
   ReflectApply,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib-stable/primordials'
 import {
   findCommandInjectionCharCode,
   findInjectionCharCode,

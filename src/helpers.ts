@@ -9,7 +9,7 @@ import {
   ObjectKeys,
   ObjectValues,
   SetCtor,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib-stable/primordials'
 
 /**
  * Create namespace object organizing helpers by property names.

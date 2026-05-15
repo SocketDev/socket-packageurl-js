@@ -18,11 +18,14 @@ import { fileURLToPath } from 'node:url'
 import { deleteAsync as del } from 'del'
 import colors from 'yoctocolors-cjs'
 
-import { parseArgs } from '@socketsecurity/lib/argv/parse'
-import { safeDelete } from '@socketsecurity/lib/fs'
-import { LOG_SYMBOLS } from '@socketsecurity/lib/logger'
-import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
-import { spawn } from '@socketsecurity/lib/spawn'
+import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import { safeDelete } from '@socketsecurity/lib-stable/fs'
+import { LOG_SYMBOLS } from '@socketsecurity/lib-stable/logger'
+import type {
+  SpawnOptions,
+  SpawnResult,
+} from '@socketsecurity/lib-stable/spawn'
+import { spawn } from '@socketsecurity/lib-stable/spawn'
 import { errorMessage } from './utils/error-message.mts'
 
 type CommandResult = {
@@ -32,27 +35,27 @@ type CommandResult = {
 }
 
 type ClaudeOptions = SpawnOptions & {
-  _selectedMode?: string
-  _selectedModel?: string
-  cache?: boolean
-  'cross-repo'?: boolean
-  cwd?: string
-  'dry-run'?: boolean
-  input?: string
-  interactive?: boolean
-  lastError?: string
-  'no-darkwing'?: boolean
-  pinky?: boolean
-  prompt?: string
-  command?: string
-  push?: boolean
-  seq?: boolean
-  showProgress?: boolean
-  silent?: boolean
-  smartContext?: boolean
-  'skip-commit'?: boolean
-  'the-brain'?: boolean
-  timeout?: number
+  _selectedMode?: string | undefined
+  _selectedModel?: string | undefined
+  cache?: boolean | undefined
+  'cross-repo'?: boolean | undefined
+  cwd?: string | undefined
+  'dry-run'?: boolean | undefined
+  input?: string | undefined
+  interactive?: boolean | undefined
+  lastError?: string | undefined
+  'no-darkwing'?: boolean | undefined
+  pinky?: boolean | undefined
+  prompt?: string | undefined
+  command?: string | undefined
+  push?: boolean | undefined
+  seq?: boolean | undefined
+  showProgress?: boolean | undefined
+  silent?: boolean | undefined
+  smartContext?: boolean | undefined
+  'skip-commit'?: boolean | undefined
+  'the-brain'?: boolean | undefined
+  timeout?: number | undefined
 }
 
 type ScanResult = {
@@ -96,11 +99,11 @@ type SmartContext = {
   priority: string[]
   recent: string[]
   uncommitted: string[]
-  ciErrors?: string[]
-  projectName?: string
-  projectType?: string
-  targetFiles?: string[]
-  testFramework?: string
+  ciErrors?: string[] | undefined
+  projectName?: string | undefined
+  projectType?: string | undefined
+  targetFiles?: string[] | undefined
+  testFramework?: string | undefined
 }
 
 type SocketProject = {
@@ -117,7 +120,7 @@ type Snapshot = {
 }
 
 type PhaseRecord = {
-  duration?: number
+  duration?: number | undefined
   name: string
   start: number
 }
@@ -138,10 +141,10 @@ type SessionStats = {
 }
 
 type UsageData = {
-  cache_creation_input_tokens?: number
-  cache_read_input_tokens?: number
-  input_tokens?: number
-  output_tokens?: number
+  cache_creation_input_tokens?: number | undefined
+  cache_read_input_tokens?: number | undefined
+  input_tokens?: number | undefined
+  output_tokens?: number | undefined
 }
 
 type ModelPricing = {
@@ -152,8 +155,8 @@ type ModelPricing = {
 }
 
 type SelectModeOptions = {
-  forceModel?: string | null
-  lastError?: string
+  forceModel?: string | null | undefined
+  lastError?: string | undefined
 }
 
 const __dirname: string = path.dirname(fileURLToPath(import.meta.url))
@@ -792,7 +795,7 @@ ${diff.stdout}
  */
 export async function celebrateSuccess(
   costTracker: CostTracker | null,
-  stats: { fixCount?: number; retries?: number } = {},
+  stats: { fixCount?: number | undefined; retries?: number | undefined } = {},
 ): Promise<void> {
   const messages = [
     "🎉 CI is green! You're a legend!",
@@ -1594,9 +1597,9 @@ export async function checkIfCommitIsPartOfPR(
   repo: string,
 ): Promise<{
   isPR: boolean
-  prNumber?: number
-  prTitle?: string
-  prState?: string
+  prNumber?: number | undefined
+  prTitle?: string | undefined
+  prState?: string | undefined
 }> {
   try {
     const result = await runCommandWithOutput('gh', [

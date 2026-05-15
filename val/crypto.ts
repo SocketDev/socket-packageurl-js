@@ -101,8 +101,8 @@ export async function verifyJwt(
   }
   try {
     const header = JSON.parse(decoder.decode(b64urlDecode(hEnc))) as {
-      alg?: string
-      typ?: string
+      alg?: string | undefined
+      typ?: string | undefined
     }
     if (header.alg !== 'HS256' || header.typ !== 'JWT') {
       return undefined

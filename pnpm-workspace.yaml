@@ -3,7 +3,6 @@ trustPolicy: no-downgrade
 trustPolicyExclude:
   - 'compromise@14.15.0'
 
-
 # Catalog: shared dependency versions referenced as "catalog:" in
 # package.json. Currently only @socketsecurity/lib needs a catalog
 # entry — the .claude/hooks/check-new-deps hook references it via
@@ -20,11 +19,15 @@ catalog:
   '@types/mdast': 4.0.4
   '@types/node': 24.9.2
   '@typescript/native-preview': 7.0.0-dev.20260415.1
+  '@vitest/coverage-v8': 4.1.6
+  '@vitest/ui': 4.1.6
   'ecc-agentshield': 1.4.0
   'mdast-util-from-markdown': 2.0.3
   'micromark': 4.0.2
   'oxfmt': 0.37.0
   'oxlint': 1.52.0
+  'taze': 19.9.2
+  'vitest': 4.1.6
 
 # Register .claude/hooks/* as workspace packages so taze (run via
 # `pnpm run update`) sees and bumps their package.json manifests

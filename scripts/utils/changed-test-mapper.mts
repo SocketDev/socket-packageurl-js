@@ -10,17 +10,17 @@ import process from 'node:process'
 import {
   getChangedFilesSync,
   getStagedFilesSync,
-} from '@socketsecurity/lib/git'
-import { normalizePath } from '@socketsecurity/lib/paths/normalize'
+} from '@socketsecurity/lib-stable/git'
+import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 
 type TestsToRunOptions = {
-  all?: boolean
-  staged?: boolean
+  all?: boolean | undefined
+  staged?: boolean | undefined
 }
 
 type TestsToRunResult = {
-  mode?: string
-  reason?: string
+  mode?: string | undefined
+  reason?: string | undefined
   tests: string[] | 'all' | undefined
 }
 

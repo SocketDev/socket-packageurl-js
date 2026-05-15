@@ -41,11 +41,11 @@ export function expectPurlProperties(
   purl: PackageURL,
   expected: {
     type: string
-    namespace?: string
+    namespace?: string | undefined
     name: string
-    version?: string
-    qualifiers?: Record<string, string> | null
-    subpath?: string
+    version?: string | undefined
+    qualifiers?: Record<string, string> | null | undefined
+    subpath?: string | undefined
   },
 ): void {
   expect(purl.type).toBe(expected.type)

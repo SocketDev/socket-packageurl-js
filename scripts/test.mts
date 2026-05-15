@@ -13,15 +13,18 @@ import { fileURLToPath } from 'node:url'
 import glob from 'fast-glob'
 import type { Options as FastGlobOptions } from 'fast-glob'
 
-import { parseArgs } from '@socketsecurity/lib/argv/parse'
-import type { Logger } from '@socketsecurity/lib/logger'
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
-import { onExit } from '@socketsecurity/lib/signal-exit'
-import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
-import { spawn } from '@socketsecurity/lib/spawn'
-import type { Spinner } from '@socketsecurity/lib/spinner'
-import { getDefaultSpinner } from '@socketsecurity/lib/spinner'
-import { printHeader } from '@socketsecurity/lib/stdio/header'
+import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import type { Logger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import { onExit } from '@socketsecurity/lib-stable/signal-exit'
+import type {
+  SpawnOptions,
+  SpawnResult,
+} from '@socketsecurity/lib-stable/spawn'
+import { spawn } from '@socketsecurity/lib-stable/spawn'
+import type { Spinner } from '@socketsecurity/lib-stable/spinner'
+import { getDefaultSpinner } from '@socketsecurity/lib-stable/spinner'
+import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 
 import { getTestsToRun } from './utils/changed-test-mapper.mts'
 import { errorMessage } from './utils/error-message.mts'
@@ -62,9 +65,9 @@ type InteractiveRunnerModule = {
     command: string,
     args: string[],
     options?: {
-      cwd?: string
-      env?: NodeJS.ProcessEnv
-      verbose?: boolean
+      cwd?: string | undefined
+      env?: NodeJS.ProcessEnv | undefined
+      verbose?: boolean | undefined
     },
   ) => Promise<number>
 }

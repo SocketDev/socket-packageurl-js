@@ -41,7 +41,7 @@ import {
   StringPrototypeSplit,
   StringPrototypeStartsWith,
   URLCtor,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib-stable/primordials'
 
 import type { PackageURL } from './package-url.js'
 

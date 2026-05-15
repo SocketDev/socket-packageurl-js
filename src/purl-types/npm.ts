@@ -4,7 +4,7 @@
  * Implements npm package naming rules from the PURL specification.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib-stable/http-request'
 
 import { encodeComponent } from '../encode.js'
 import { PurlError, errorMessage } from '../error.js'
@@ -20,11 +20,11 @@ import {
   StringPrototypeStartsWith,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib-stable/primordials'
 import { isBlank, lowerName, lowerNamespace } from '../strings.js'
 import { validateNoInjectionByType } from '../validate.js'
 
-import type { TtlCache } from '@socketsecurity/lib/cache-with-ttl'
+import type { TtlCache } from '@socketsecurity/lib-stable/cache-with-ttl'
 
 interface PurlObject {
   name: string
