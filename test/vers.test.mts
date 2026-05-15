@@ -5,8 +5,8 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { PurlError } from '../src/error.js'
-import { Vers } from '../src/vers.js'
+import { PurlError } from '../src/error.mjs'
+import { Vers } from '../src/vers.mjs'
 
 describe('Vers', () => {
   describe('parse', () => {

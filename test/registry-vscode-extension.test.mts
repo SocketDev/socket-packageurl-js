@@ -7,7 +7,7 @@ import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { createMockCache } from './utils/test-helpers.mjs'
-import { vscodeExtensionExists } from '../src/purl-types/vscode-extension.js'
+import { vscodeExtensionExists } from '../src/purl-types/vscode-extension.mjs'
 
 describe('vscodeExtensionExists', () => {
   beforeEach(() => {

@@ -107,7 +107,7 @@ export default defineConfig({
         'dist/**',
         'scripts/**',
         'test/**',
-        'src/index.ts',
+        'src/index.mts',
         'perf/**',
         // Explicit root-level exclusions
         '/scripts/**',
@@ -125,7 +125,7 @@ export default defineConfig({
       },
       // Coverage should report on src files.
       reportsDirectory: './coverage',
-      include: ['src/**/*.ts'],
+      include: ['src/**/*.mts'],
     },
   },
 })

@@ -17,7 +17,7 @@ import {
   equals,
   parseNpmSpecifier,
   stringify,
-} from '../src/index.js'
+} from '../src/index.mjs'
 
 describe('Package exports', () => {
   describe('core exports', () => {

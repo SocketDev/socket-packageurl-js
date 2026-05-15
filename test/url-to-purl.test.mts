@@ -26,10 +26,10 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
-import { UrlConverter } from '../src/url-converter.js'
+import { UrlConverter } from '../src/url-converter.mjs'
 
 // Import PackageURL to trigger registration
-import '../src/package-url.js'
+import '../src/package-url.mjs'
 
 describe('UrlConverter.fromUrl', () => {
   describe('npm — registry.npmjs.org', () => {

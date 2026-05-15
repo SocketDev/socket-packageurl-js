@@ -5,7 +5,7 @@ import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { createMockCache } from './utils/test-helpers.mjs'
-import { dockerExists } from '../src/purl-types/docker.js'
+import { dockerExists } from '../src/purl-types/docker.mjs'
 
 describe('dockerExists', () => {
   beforeEach(() => {

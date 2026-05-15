@@ -5,7 +5,7 @@ import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { createMockCache } from './utils/test-helpers.mjs'
-import { pypiExists } from '../src/purl-types/pypi.js'
+import { pypiExists } from '../src/purl-types/pypi.mjs'
 
 describe('pypiExists', () => {
   beforeEach(() => {

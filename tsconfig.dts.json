@@ -13,5 +13,5 @@
     "types": ["node"],
     "verbatimModuleSyntax": false
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.mts"]
 }

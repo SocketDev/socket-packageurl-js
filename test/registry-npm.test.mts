@@ -5,7 +5,7 @@ import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { createMockCache } from './utils/test-helpers.mjs'
-import { npmExists } from '../src/purl-types/npm.js'
+import { npmExists } from '../src/purl-types/npm.mjs'
 
 describe('npmExists', () => {
   beforeEach(() => {

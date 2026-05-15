@@ -25,7 +25,7 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PurlBuilder } from '../src/package-url-builder.js'
+import { PurlBuilder } from '../src/package-url-builder.mjs'
 import { createTestPurl } from './utils/test-helpers.mjs'
 
 describe('PurlBuilder', () => {

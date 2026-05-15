@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { PurlType } from '../src/purl-type.js'
+import { PurlType } from '../src/purl-type.mjs'
 
 // A null byte triggers findInjectionCharCode reliably across all validators.
 const INJ = '\x00'

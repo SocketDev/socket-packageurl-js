@@ -7,13 +7,13 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { PurlError, PurlInjectionError } from '../src/error.js'
-import { PackageURL } from '../src/package-url.js'
+import { PurlError, PurlInjectionError } from '../src/error.mjs'
+import { PackageURL } from '../src/package-url.mjs'
 import {
   containsInjectionCharacters,
   findInjectionCharCode,
   formatInjectionChar,
-} from '../src/strings.js'
+} from '../src/strings.mjs'
 
 /** Helper to catch and return a PurlInjectionError for property inspection. */
 export function getInjectionError(fn: () => unknown): PurlInjectionError {

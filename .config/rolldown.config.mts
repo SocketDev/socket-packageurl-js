@@ -198,16 +198,14 @@ const baseOutput = {
 
 const indexConfig: RolldownOptions = {
   ...baseConfig,
-  input: { index: path.join(srcPath, 'index.ts') },
+  input: { index: path.join(srcPath, 'index.mts') },
   output: baseOutput,
 }
 
 const existsConfig: RolldownOptions = {
   ...baseConfig,
-  input: { exists: path.join(srcPath, 'exists.ts') },
+  input: { exists: path.join(srcPath, 'exists.mts') },
   output: baseOutput,
 }
 
 export const configs: readonly RolldownOptions[] = [indexConfig, existsConfig]
-
-export { configs }

@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../src/package-url'
+import { PackageURL } from '../src/package-url.mjs'
 
 describe('PackageURL.fromJSON security features', () => {
   describe('size limit protection', () => {

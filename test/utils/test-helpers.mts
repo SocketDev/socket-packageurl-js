@@ -2,7 +2,7 @@
  * @fileoverview Test helper utilities for creating test functions and data
  */
 
-import { PackageURL } from '../../src/package-url.js'
+import { PackageURL } from '../../src/package-url.mjs'
 
 import type { TtlCache } from '@socketsecurity/lib-stable/cache-with-ttl'
 

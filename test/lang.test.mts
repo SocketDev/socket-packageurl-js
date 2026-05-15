@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { isNullishOrEmptyString } from '../src/lang.js'
+import { isNullishOrEmptyString } from '../src/lang.mjs'
 
 describe('Language utilities', () => {
   describe('isNullishOrEmptyString', () => {

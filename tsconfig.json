@@ -15,6 +15,6 @@
     "types": ["node"],
     "verbatimModuleSyntax": false
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.mts"],
   "exclude": [".cache", "coverage", "dist", "node_modules", "test"]
 }

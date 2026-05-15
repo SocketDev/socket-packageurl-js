@@ -6,26 +6,26 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { createMatcher, matches } from '../src/compare.js'
-import { PurlError, PurlInjectionError } from '../src/error.js'
-import { PackageURL } from '../src/package-url.js'
-import { PurlType } from '../src/purl-type.js'
+import { createMatcher, matches } from '../src/compare.mjs'
+import { PurlError, PurlInjectionError } from '../src/error.mjs'
+import { PackageURL } from '../src/package-url.mjs'
+import { PurlType } from '../src/purl-type.mjs'
 import {
   containsInjectionCharacters,
   findCommandInjectionCharCode,
-} from '../src/strings.js'
-import { encodeQualifiers } from '../src/encode.js'
-import { normalizeQualifiers } from '../src/normalize.js'
-import { stringify } from '../src/stringify.js'
-import { UrlConverter } from '../src/url-converter.js'
+} from '../src/strings.mjs'
+import { encodeQualifiers } from '../src/encode.mjs'
+import { normalizeQualifiers } from '../src/normalize.mjs'
+import { stringify } from '../src/stringify.mjs'
+import { UrlConverter } from '../src/url-converter.mjs'
 import {
   validateQualifierKey,
   validateQualifiers,
   validateSubpath,
   validateType,
   validateVersion,
-} from '../src/validate.js'
-import { Vers } from '../src/vers.js'
+} from '../src/validate.mjs'
+import { Vers } from '../src/vers.mjs'
 
 // ---------------------------------------------------------------------------
 // validate.ts

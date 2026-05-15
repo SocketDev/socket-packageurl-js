@@ -4,7 +4,7 @@
 
 import { expect } from 'vitest'
 
-import { PackageURL } from '../../src/package-url.js'
+import { PackageURL } from '../../src/package-url.mjs'
 
 type ParamValue = unknown
 type CreateArgsFn = (

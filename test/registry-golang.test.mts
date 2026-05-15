@@ -5,7 +5,7 @@ import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { createMockCache } from './utils/test-helpers.mjs'
-import { golangExists } from '../src/purl-types/golang.js'
+import { golangExists } from '../src/purl-types/golang.mjs'
 
 describe('golangExists', () => {
   beforeEach(() => {

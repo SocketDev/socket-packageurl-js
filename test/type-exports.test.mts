@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../src/index.js'
+import { PackageURL } from '../src/index.mjs'
 
 import type {
   ComponentEncoder,
@@ -19,7 +19,7 @@ import type {
   QualifiersValue,
   RepositoryUrl,
   Result,
-} from '../src/index.js'
+} from '../src/index.mjs'
 
 describe('Type exports accessibility', () => {
   it('should export PackageURLObject type', () => {

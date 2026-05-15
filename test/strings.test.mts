@@ -17,7 +17,7 @@ import {
   replaceDashesWithUnderscores,
   replaceUnderscoresWithDashes,
   trimLeadingSlashes,
-} from '../src/strings.js'
+} from '../src/strings.mjs'
 
 describe('String utilities', () => {
   describe('containsInjectionCharacters', () => {

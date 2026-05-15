@@ -13,6 +13,6 @@
     "types": ["vitest/globals", "node"],
     "verbatimModuleSyntax": false
   },
-  "include": ["src/**/*.ts", "test/**/*.mts"],
+  "include": ["src/**/*.mts", "test/**/*.mts"],
   "exclude": ["**/.cache/**", "**/node_modules/**/*"]
 }

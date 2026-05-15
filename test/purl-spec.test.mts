@@ -37,7 +37,7 @@ import {
   toSortedObjectFromEntries,
 } from '@socketsecurity/lib-stable/objects'
 
-import { PackageURL } from '../src/package-url.js'
+import { PackageURL } from '../src/package-url.mjs'
 
 export function toUrlSearchParams(search: string) {
   const searchParams = new URLSearchParams()

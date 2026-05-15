@@ -7,7 +7,7 @@
 
 import { expect } from 'vitest'
 
-import type { PackageURL } from '../../src/package-url.js'
+import type { PackageURL } from '../../src/package-url.mjs'
 
 /**
  * Assert that two PackageURL instances are equal in all properties.

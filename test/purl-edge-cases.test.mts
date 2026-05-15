@@ -36,12 +36,12 @@ import {
   encodeQualifierParam,
   encodeSubpath,
   encodeVersion,
-} from '../src/encode.js'
+} from '../src/encode.mjs'
 import {
   PurlError,
   errorMessage,
   formatPurlErrorMessage,
-} from '../src/error.js'
+} from '../src/error.mjs'
 import {
   normalizeName,
   normalizeNamespace,
@@ -49,9 +49,9 @@ import {
   normalizeSubpath,
   normalizeType,
   normalizeVersion,
-} from '../src/normalize.js'
-import { recursiveFreeze } from '../src/objects.js'
-import { PackageURL } from '../src/package-url.js'
+} from '../src/normalize.mjs'
+import { recursiveFreeze } from '../src/objects.mjs'
+import { PackageURL } from '../src/package-url.mjs'
 import {
   PurlComponent,
   PurlComponentEncoder,
@@ -59,13 +59,13 @@ import {
   PurlComponentValidator,
   componentComparator,
   componentSortOrder,
-} from '../src/purl-component.js'
-import { PurlQualifierNames } from '../src/purl-qualifier-names.js'
-import { PurlType } from '../src/purl-type.js'
-import { compare, equals } from '../src/compare.js'
-import { PurlBuilder } from '../src/package-url-builder.js'
-import { purlExists } from '../src/purl-exists.js'
-import { UrlConverter } from '../src/url-converter.js'
+} from '../src/purl-component.mjs'
+import { PurlQualifierNames } from '../src/purl-qualifier-names.mjs'
+import { PurlType } from '../src/purl-type.mjs'
+import { compare, equals } from '../src/compare.mjs'
+import { PurlBuilder } from '../src/package-url-builder.mjs'
+import { purlExists } from '../src/purl-exists.mjs'
+import { UrlConverter } from '../src/url-converter.mjs'
 import {
   validateEmptyByType,
   validateName,
@@ -79,7 +79,7 @@ import {
   validateSubpath,
   validateType,
   validateVersion,
-} from '../src/validate.js'
+} from '../src/validate.mjs'
 import { createTestFunction, createTestPurl } from './utils/test-helpers.mjs'
 
 describe('Edge cases and additional coverage', () => {
@@ -2641,7 +2641,7 @@ describe('Edge cases and additional coverage', () => {
       // Import swid validate directly to hit whitespace-only tag_id branch
       // (PackageURL constructor normalizes qualifiers before validation)
       // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- lazy reach into a sibling module to exercise an internal branch.
-      const swidMod = await import('../src/purl-types/swid.js')
+      const swidMod = await import('../src/purl-types/swid.mjs')
       const mockPurl = { name: 'test', qualifiers: { tag_id: '   ' } }
 
       expect(() => swidMod.validate(mockPurl as any, true)).toThrow(

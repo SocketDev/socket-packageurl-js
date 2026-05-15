@@ -30,10 +30,10 @@ import { describe, expect, it } from 'vitest'
 
 import npmBuiltinNames from '../data/npm/builtin-names.json'
 import npmLegacyNames from '../data/npm/legacy-names.json'
-import { PurlError } from '../src/error.js'
-import { PackageURL } from '../src/package-url.js'
-import { validate as validateBazel } from '../src/purl-types/bazel.js'
-import { validate as validateVscodeExtension } from '../src/purl-types/vscode-extension.js'
+import { PurlError } from '../src/error.mjs'
+import { PackageURL } from '../src/package-url.mjs'
+import { validate as validateBazel } from '../src/purl-types/bazel.mjs'
+import { validate as validateVscodeExtension } from '../src/purl-types/vscode-extension.mjs'
 
 export function getNpmId(purl: any) {
   const { name, namespace } = purl

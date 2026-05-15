@@ -5,7 +5,7 @@ import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { createMockCache } from './utils/test-helpers.mjs'
-import { hexExists } from '../src/purl-types/hex.js'
+import { hexExists } from '../src/purl-types/hex.mjs'
 
 describe('hexExists', () => {
   beforeEach(() => {

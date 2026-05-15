@@ -5,7 +5,7 @@ import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { createMockCache } from './utils/test-helpers.mjs'
-import { condaExists } from '../src/purl-types/conda.js'
+import { condaExists } from '../src/purl-types/conda.mjs'
 
 describe('condaExists', () => {
   beforeEach(() => {

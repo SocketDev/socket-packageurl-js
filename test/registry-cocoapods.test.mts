@@ -5,7 +5,7 @@ import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { createMockCache } from './utils/test-helpers.mjs'
-import { cocoapodsExists } from '../src/purl-types/cocoapods.js'
+import { cocoapodsExists } from '../src/purl-types/cocoapods.mjs'
 
 describe('cocoapodsExists', () => {
   beforeEach(() => {

@@ -5,7 +5,7 @@ import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { createMockCache } from './utils/test-helpers.mjs'
-import { mavenExists } from '../src/purl-types/maven.js'
+import { mavenExists } from '../src/purl-types/maven.mjs'
 
 describe('mavenExists', () => {
   beforeEach(() => {

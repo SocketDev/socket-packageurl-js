@@ -8,7 +8,7 @@ import { describe, expect, it } from 'vitest'
 
 const logger = getDefaultLogger()
 
-import { createMatcher, matches } from '../src/index.js'
+import { createMatcher, matches } from '../src/index.mjs'
 import { createTestPurl } from './utils/test-helpers.mjs'
 
 describe('matches', () => {

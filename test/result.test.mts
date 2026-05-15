@@ -25,8 +25,8 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../src/package-url.js'
-import { Err, Ok, ResultUtils, err, ok } from '../src/result.js'
+import { PackageURL } from '../src/package-url.mjs'
+import { Err, Ok, ResultUtils, err, ok } from '../src/result.mjs'
 
 describe('Result types', () => {
   describe('Ok', () => {

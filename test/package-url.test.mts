@@ -30,7 +30,7 @@ SOFTWARE.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../src/package-url.js'
+import { PackageURL } from '../src/package-url.mjs'
 import {
   testInvalidParam,
   testInvalidStringParam,

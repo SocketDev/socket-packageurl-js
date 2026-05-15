@@ -35,7 +35,7 @@ SOFTWARE.
 
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../src/package-url.js'
+import { PackageURL } from '../src/package-url.mjs'
 
 describe('Global object mocking tests', () => {
   describe('Primordials protect against global tampering', () => {

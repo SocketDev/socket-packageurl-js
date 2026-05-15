@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { createHelpersNamespaceObject } from '../src/helpers.js'
+import { createHelpersNamespaceObject } from '../src/helpers.mjs'
 
 describe('Helpers utilities', () => {
   describe('createHelpersNamespaceObject', () => {
