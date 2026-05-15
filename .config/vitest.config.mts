@@ -59,11 +59,15 @@ export default defineConfig({
         isolate: true,
       },
       threads: {
-        // Use single thread to prevent worker termination errors.
-        // Multiple threads with isolate: false can cause race conditions in tinypool cleanup.
-        singleThread: true,
-        maxThreads: 1,
-        minThreads: 1,
+        // Multi-threaded runs are safe on vitest 4+ — the historical
+        // tinypool cleanup race that motivated singleThread:true here
+        // was fixed upstream. Thread count tuned to physical CPUs;
+        // GH Actions ubuntu-latest has 4 cores, dev laptops typically
+        // 8-16. Use `'CI' in process.env` (not truthy `process.env.CI`)
+        // so self-hosted runners with CI="" or CI=0 still count.
+        singleThread: false,
+        maxThreads: 'CI' in process.env ? 4 : 8,
+        minThreads: 2,
         // IMPORTANT: isolate: false for performance and test compatibility
         //
         // Tradeoff Analysis:
