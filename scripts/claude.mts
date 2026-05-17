@@ -18,14 +18,11 @@ import { fileURLToPath } from 'node:url'
 import { deleteAsync as del } from 'del'
 import colors from 'yoctocolors-cjs'
 
-import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
-import { safeDelete } from '@socketsecurity/lib-stable/fs'
-import { LOG_SYMBOLS } from '@socketsecurity/lib-stable/logger'
-import type {
-  SpawnOptions,
-  SpawnResult,
-} from '@socketsecurity/lib-stable/spawn'
-import { spawn } from '@socketsecurity/lib-stable/spawn'
+import { parseArgs } from '@socketsecurity/lib/argv/parse'
+import { safeDelete } from '@socketsecurity/lib/fs'
+import { LOG_SYMBOLS } from '@socketsecurity/lib/logger'
+import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib/spawn'
+import { spawn } from '@socketsecurity/lib/spawn'
 import { errorMessage } from './utils/error-message.mts'
 
 type CommandResult = {
@@ -3101,7 +3098,9 @@ export async function interactiveFixSession(
 
   // Start interactive session.
   logger.log('')
-  logger.log(`${colors.blue('Starting interactive fix session with Claude...')}`)
+  logger.log(
+    `${colors.blue('Starting interactive fix session with Claude...')}`,
+  )
   logger.log('Claude will help you fix these issues.')
   logger.log('Commands: fix <issue-number>, commit, push, exit')
   logger.log('')

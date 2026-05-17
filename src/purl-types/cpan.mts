@@ -3,14 +3,14 @@
  * https://github.com/package-url/purl-spec/blob/main/types-doc/cpan-definition.md
  */
 
-import { httpJson } from '@socketsecurity/lib-stable/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
 import {
   StringPrototypeIncludes,
   StringPrototypeToUpperCase,
   encodeComponent,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import { validateNoInjectionByType } from '../validate.mjs'
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'

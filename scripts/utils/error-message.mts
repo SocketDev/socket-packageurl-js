@@ -10,4 +10,4 @@
  * file is only for build-time scripts outside the published surface.
  */
 
-export { errorMessage } from '@socketsecurity/lib-stable/errors'
+export { errorMessage } from '@socketsecurity/lib/errors'

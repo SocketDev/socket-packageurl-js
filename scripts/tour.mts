@@ -28,9 +28,9 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import { safeDelete } from '@socketsecurity/lib-stable/fs'
-import { httpJson, httpRequest } from '@socketsecurity/lib-stable/http-request'
-import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import { safeDelete } from '@socketsecurity/lib/fs'
+import { httpJson, httpRequest } from '@socketsecurity/lib/http-request'
+import { getDefaultLogger } from '@socketsecurity/lib/logger'
 
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'

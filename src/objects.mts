@@ -11,7 +11,7 @@ import {
   ObjectIsFrozen,
   ReflectOwnKeys,
   WeakSetCtor,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 
 /**
  * Check if value is a non-null object.

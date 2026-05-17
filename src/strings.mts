@@ -13,7 +13,7 @@ import {
   StringPrototypePadStart,
   StringPrototypeSlice,
   StringPrototypeToLowerCase,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 
 /**
  * Check if string contains only whitespace characters.

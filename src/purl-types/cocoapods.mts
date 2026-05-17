@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/main/types-doc/cocoapods-definition.md
  */
 
-import { httpJson } from '@socketsecurity/lib-stable/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
 import {
@@ -11,7 +11,7 @@ import {
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   encodeComponent,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import { validateNoInjectionByType } from '../validate.mjs'
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'

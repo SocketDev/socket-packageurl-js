@@ -31,11 +31,11 @@ import path from 'node:path'
 import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 
-import { readJson } from '@socketsecurity/lib-stable/fs'
+import { readJson } from '@socketsecurity/lib/fs'
 import {
   isObject,
   toSortedObjectFromEntries,
-} from '@socketsecurity/lib-stable/objects'
+} from '@socketsecurity/lib/objects'
 
 import { PackageURL } from '../src/package-url.mjs'
 

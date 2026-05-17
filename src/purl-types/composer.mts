@@ -4,13 +4,13 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib-stable/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import {
   ArrayPrototypeSome,
   StringPrototypeIncludes,
   encodeComponent,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import { lowerName, lowerNamespace } from '../strings.mjs'
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'
@@ -88,12 +88,14 @@ export async function packagistExists(
       const url = `https://repo.packagist.org/p2/${encodeComponent(packageName)}.json`
 
       const data = await httpJson<{
-        packages?: {
-          [key: string]: Array<{
-            version?: string | undefined
-            version_normalized?: string | undefined
-          }>
-        } | undefined
+        packages?:
+          | {
+              [key: string]: Array<{
+                version?: string | undefined
+                version_normalized?: string | undefined
+              }>
+            }
+          | undefined
       }>(url)
 
       const packageVersions = data.packages?.[packageName]

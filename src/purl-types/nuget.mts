@@ -4,7 +4,7 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib-stable/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import {
   ArrayPrototypeIncludes,
@@ -12,7 +12,7 @@ import {
   StringPrototypeIncludes,
   StringPrototypeToLowerCase,
   encodeComponent,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.mjs'
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'
@@ -72,14 +72,20 @@ export async function nugetExists(
       const url = `https://api.nuget.org/v3/registration5-semver1/${encodeComponent(lowerName)}/index.json`
 
       const data = await httpJson<{
-        items?: Array<{
-          items?: Array<{
-            catalogEntry?: {
-              version?: string | undefined
-            } | undefined
-          }> | undefined
-          upper?: string | undefined
-        }> | undefined
+        items?:
+          | Array<{
+              items?:
+                | Array<{
+                    catalogEntry?:
+                      | {
+                          version?: string | undefined
+                        }
+                      | undefined
+                  }>
+                | undefined
+              upper?: string | undefined
+            }>
+          | undefined
       }>(url)
 
       if (!data.items || data.items.length === 0) {

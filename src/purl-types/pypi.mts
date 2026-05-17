@@ -4,12 +4,12 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib-stable/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import {
   StringPrototypeIncludes,
   encodeComponent,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import {
   lowerName,
   lowerNamespace,

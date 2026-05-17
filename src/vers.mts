@@ -27,7 +27,7 @@ import {
   StringPrototypeStartsWith,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import { isSemverString } from './strings.mjs'
 
 /**

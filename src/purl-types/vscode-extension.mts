@@ -6,14 +6,14 @@
  * The `namespace` is the publisher name, and the `name` is the extension name.
  */
 
-import { httpJson } from '@socketsecurity/lib-stable/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
 import {
   ArrayPrototypeSome,
   JSONStringify,
   StringPrototypeIncludes,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import {
   isSemverString,
   lowerName,
@@ -189,13 +189,19 @@ export async function vscodeExtensionExists(
       }
 
       const data = await httpJson<{
-        results?: Array<{
-          extensions?: Array<{
-            versions?: Array<{
-              version?: string | undefined
-            }> | undefined
-          }> | undefined
-        }> | undefined
+        results?:
+          | Array<{
+              extensions?:
+                | Array<{
+                    versions?:
+                      | Array<{
+                          version?: string | undefined
+                        }>
+                      | undefined
+                  }>
+                | undefined
+            }>
+          | undefined
       }>(url, {
         method: 'POST',
         headers: {

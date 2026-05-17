@@ -28,7 +28,7 @@ import {
   ArrayPrototypeMap,
   ObjectEntries,
   ObjectFromEntries,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 
 import type { QualifiersObject } from './purl-component.mjs'
 

@@ -16,7 +16,7 @@ import {
   StringPrototypeSlice,
   StringPrototypeStartsWith,
   StringPrototypeToLowerCase,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 
 import type { PackageURL } from './package-url.mjs'
 

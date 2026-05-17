@@ -3,13 +3,13 @@
  * https://github.com/package-url/purl-spec/blob/main/types-doc/maven-definition.md
  */
 
-import { httpJson } from '@socketsecurity/lib-stable/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
 import {
   StringPrototypeIncludes,
   encodeComponent,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import {
   validateNoInjectionByType,
   validateRequiredByType,
@@ -83,10 +83,17 @@ export async function mavenExists(
       const url = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}&rows=1&wt=json`
 
       const data = await httpJson<{
-        response?: {
-          numFound?: number | undefined
-          docs?: Array<{ latestVersion?: string | undefined; v?: string | undefined }> | undefined
-        } | undefined
+        response?:
+          | {
+              numFound?: number | undefined
+              docs?:
+                | Array<{
+                    latestVersion?: string | undefined
+                    v?: string | undefined
+                  }>
+                | undefined
+            }
+          | undefined
       }>(url)
 
       const numFound = data.response?.['numFound'] || 0

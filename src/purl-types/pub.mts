@@ -3,7 +3,7 @@
  * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#pub
  */
 
-import { httpJson } from '@socketsecurity/lib-stable/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
 import {
@@ -11,7 +11,7 @@ import {
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   encodeComponent,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import { lowerName, replaceDashesWithUnderscores } from '../strings.mjs'
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'
@@ -80,12 +80,16 @@ export async function pubExists(
       const url = `https://pub.dev/api/packages/${encodeComponent(name)}`
 
       const data = await httpJson<{
-        latest?: {
-          version?: string | undefined
-        } | undefined
-        versions?: Array<{
-          version?: string | undefined
-        }> | undefined
+        latest?:
+          | {
+              version?: string | undefined
+            }
+          | undefined
+        versions?:
+          | Array<{
+              version?: string | undefined
+            }>
+          | undefined
       }>(url)
 
       const latestVersion = data.latest?.['version']

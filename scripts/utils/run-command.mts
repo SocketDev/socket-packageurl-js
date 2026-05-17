@@ -3,15 +3,15 @@
 
 import process from 'node:process'
 
-import type { Logger } from '@socketsecurity/lib-stable/logger'
-import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import type { Logger } from '@socketsecurity/lib/logger'
+import { getDefaultLogger } from '@socketsecurity/lib/logger'
 import type {
   SpawnErrorWithOutputString,
   SpawnOptions,
   SpawnSyncOptions,
   SpawnSyncReturns,
-} from '@socketsecurity/lib-stable/spawn'
-import { spawn, spawnSync } from '@socketsecurity/lib-stable/spawn'
+} from '@socketsecurity/lib/spawn'
+import { spawn, spawnSync } from '@socketsecurity/lib/spawn'
 
 const logger: Logger = getDefaultLogger()
 

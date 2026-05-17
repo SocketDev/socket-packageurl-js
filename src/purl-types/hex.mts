@@ -4,13 +4,13 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib-stable/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import {
   ArrayPrototypeSome,
   StringPrototypeIncludes,
   encodeComponent,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import { lowerName, lowerNamespace } from '../strings.mjs'
 import { validateNoInjectionByType } from '../validate.mjs'
 
@@ -71,9 +71,11 @@ export async function hexExists(
 
       const data = await httpJson<{
         latest_version?: string | undefined
-        releases?: Array<{
-          version?: string | undefined
-        }> | undefined
+        releases?:
+          | Array<{
+              version?: string | undefined
+            }>
+          | undefined
       }>(url)
 
       const latestVersion = data.latest_version

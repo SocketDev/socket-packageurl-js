@@ -4,7 +4,7 @@
  * Implements npm package naming rules from the PURL specification.
  */
 
-import { httpJson } from '@socketsecurity/lib-stable/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { encodeComponent } from '../encode.mjs'
 import { PurlError, errorMessage } from '../error.mjs'
@@ -20,11 +20,11 @@ import {
   StringPrototypeStartsWith,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
-} from '@socketsecurity/lib-stable/primordials'
+} from '@socketsecurity/lib/primordials'
 import { isBlank, lowerName, lowerNamespace } from '../strings.mjs'
 import { validateNoInjectionByType } from '../validate.mjs'
 
-import type { TtlCache } from '@socketsecurity/lib-stable/cache-with-ttl'
+import type { TtlCache } from '@socketsecurity/lib/cache-with-ttl'
 
 interface PurlObject {
   name: string
@@ -85,8 +85,9 @@ const getNpmBuiltinSet = (() => {
       /* v8 ignore start - Error handling for module access. */
       try {
         // Try to use Node.js `builtinModules` first
-        builtinNames = (module.constructor as { builtinModules?: string[] | undefined })
-          ?.builtinModules
+        builtinNames = (
+          module.constructor as { builtinModules?: string[] | undefined }
+        )?.builtinModules
       } catch {}
       /* v8 ignore stop */
       if (!builtinNames) {
