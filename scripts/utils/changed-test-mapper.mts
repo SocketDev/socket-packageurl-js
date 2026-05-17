@@ -9,8 +9,8 @@ import path from 'node:path'
 import {
   getChangedFilesSync,
   getStagedFilesSync,
-} from '@socketsecurity/lib/git'
-import { normalizePath } from '@socketsecurity/lib/paths/normalize'
+} from '@socketsecurity/lib-stable/git'
+import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 
 import { REPO_ROOT } from '../paths.mts'
 

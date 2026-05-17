@@ -28,9 +28,9 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import { safeDelete } from '@socketsecurity/lib/fs'
-import { httpJson, httpRequest } from '@socketsecurity/lib/http-request'
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import { safeDelete } from '@socketsecurity/lib-stable/fs'
+import { httpJson, httpRequest } from '@socketsecurity/lib-stable/http-request'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'
@@ -1201,7 +1201,7 @@ export async function rewriteIndexContents(
   }
   /* Intro block: the npm package name. The tour title
    * ("Socket PackageURL.js") is a product name — the actual npm
-   * coordinates live in @socketregistry/packageurl-js, a Socket
+   * coordinates live in @socketregistry/packageurl-js-stable, a Socket
    * Optimized override of the upstream packageurl-js package.
    * Showing install coordinates above the TOC answers the first
    * question a new visitor asks without making them chase through
@@ -1210,12 +1210,12 @@ export async function rewriteIndexContents(
     `    <div class="wt-intro">\n` +
     `      <p class="wt-intro-line">` +
     `Published on npm as ` +
-    `<a class="wt-intro-pkg" href="https://socket.dev/npm/package/@socketregistry/packageurl-js" target="_blank" rel="noopener noreferrer">` +
-    `<code>@socketregistry/packageurl-js</code></a>` +
+    `<a class="wt-intro-pkg" href="https://socket.dev/npm/package/@socketregistry/packageurl-js-stable" target="_blank" rel="noopener noreferrer">` +
+    `<code>@socketregistry/packageurl-js-stable</code></a>` +
     ` — a <a class="wt-intro-link" href="https://socket.dev/blog/introducing-socket-optimize" target="_blank" rel="noopener noreferrer">Socket Optimized</a> override of the upstream ` +
     `<a class="wt-intro-link" href="https://socket.dev/npm/package/packageurl-js" target="_blank" rel="noopener noreferrer"><code>packageurl-js</code></a>.` +
     `</p>\n` +
-    `      <pre class="wt-intro-install"><code>npm install @socketregistry/packageurl-js</code></pre>\n` +
+    `      <pre class="wt-intro-install"><code>npm install @socketregistry/packageurl-js-stable</code></pre>\n` +
     `    </div>`
   const blockHtml =
     introHtml +
@@ -1470,7 +1470,7 @@ export function applyBasePath(
 /**
  * Build the `sha512-<base64>` SRI attribute value for a byte stream.
  *
- * Fleet convention (see @socketsecurity/lib/dlx/integrity): integrity
+ * Fleet convention (see @socketsecurity/lib-stable/dlx/integrity): integrity
  * is sha512 SRI, matching what the npm registry returns; checksum is
  * sha256 hex. We only produce integrity here — browser SRI + CSP want
  * SRI format.
@@ -2326,7 +2326,7 @@ export async function generate(
         }
         if (!description && entry === 'index.html') {
           description =
-            'A guided walkthrough of @socketregistry/packageurl-js — a Socket Optimized override of the upstream packageurl-js npm package.'
+            'A guided walkthrough of @socketregistry/packageurl-js-stable — a Socket Optimized override of the upstream packageurl-js npm package.'
         }
         if (description) {
           head.insertAdjacentHTML(

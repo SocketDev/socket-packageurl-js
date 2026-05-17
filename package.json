@@ -1,7 +1,7 @@
 {
   "name": "@socketregistry/packageurl-js",
   "version": "1.4.2",
-  "packageManager": "pnpm@11.1.2",
+  "packageManager": "pnpm@11.0.8",
   "license": "MIT",
   "publishConfig": {
     "access": "public",
@@ -72,15 +72,20 @@
     "tour:watch": "node scripts/tour.mts watch tour.json",
     "tour:valtown": "node scripts/tour.mts valtown",
     "lockstep": "node scripts/lockstep.mts",
-    "lockstep:emit-schema": "node scripts/lockstep-emit-schema.mts"
+    "lockstep:emit-schema": "node scripts/lockstep-emit-schema.mts",
+    "setup-security-tools": "node .claude/hooks/setup-security-tools/install.mts"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "2.1.92",
     "@oxlint/migrate": "1.51.0",
     "@sinclair/typebox": "catalog:",
+    "@socketregistry/packageurl-js-stable": "catalog:",
     "@socketsecurity/lib": "catalog:",
+    "@socketsecurity/lib-stable": "catalog:",
     "@socketsecurity/registry": "2.0.2",
+    "@socketsecurity/registry-stable": "catalog:",
     "@socketsecurity/sdk": "catalog:",
+    "@socketsecurity/sdk-stable": "catalog:",
     "@types/node": "24.9.2",
     "@typescript/native-preview": "7.0.0-dev.20260415.1",
     "@vitest/coverage-v8": "4.0.3",

@@ -3,15 +3,15 @@
 
 import process from 'node:process'
 
-import type { Logger } from '@socketsecurity/lib/logger'
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import type { Logger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 import type {
   SpawnErrorWithOutputString,
   SpawnOptions,
   SpawnSyncOptions,
   SpawnSyncReturns,
-} from '@socketsecurity/lib/spawn'
-import { spawn, spawnSync } from '@socketsecurity/lib/spawn'
+} from '@socketsecurity/lib-stable/spawn'
+import { spawn, spawnSync } from '@socketsecurity/lib-stable/spawn'
 
 const logger: Logger = getDefaultLogger()
 
@@ -58,7 +58,7 @@ export async function runCommand(
     })
     return result.code
   } catch (e) {
-    // spawn() from @socketsecurity/lib throws on non-zero exit
+    // spawn() from @socketsecurity/lib-stable throws on non-zero exit
     // Return the exit code from the error
     if (e && typeof e === 'object' && 'code' in e) {
       return e.code as number
@@ -89,7 +89,7 @@ export async function runCommandQuiet(
       stdout: result.stdout as string,
     }
   } catch (e) {
-    // spawn() from @socketsecurity/lib throws on non-zero exit
+    // spawn() from @socketsecurity/lib-stable throws on non-zero exit
     // Return the exit code and output from the error
     if (
       e &&

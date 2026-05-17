@@ -5,11 +5,11 @@
 
 import process from 'node:process'
 
-import { parseArgs } from '@socketsecurity/lib/argv/parse'
-import type { Logger } from '@socketsecurity/lib/logger'
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
-import { printFooter } from '@socketsecurity/lib/stdio/footer'
-import { printHeader } from '@socketsecurity/lib/stdio/header'
+import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import type { Logger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
+import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 
 import { runCommandQuiet } from './utils/run-command.mts'
 import { errorMessage } from './utils/error-message.mts'

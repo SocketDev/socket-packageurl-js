@@ -15,7 +15,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import { getDefaultLogger } from '@socketsecurity/lib/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 
 import { errorMessage } from '../utils/error-message.mts'
 
@@ -153,7 +153,7 @@ export async function extractExternalPackages(
   const requirePattern = /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g
   // Match `from 'package'` / `from "package"` / `import 'package'`. Anchor
   // to a non-identifier prefix so attribute strings (e.g. inside
-  // `User-Agent: "@socketregistry/packageurl-js"`) aren't matched.
+  // `User-Agent: "@socketregistry/packageurl-js-stable"`) aren't matched.
   const importPattern = /(?:[\s;,({[]|^)(?:from|import)\s+['"]([^'"]+)['"]/g
   // Dynamic import() calls.
   const dynamicImportPattern = /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g
