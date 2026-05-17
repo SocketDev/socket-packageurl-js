@@ -229,7 +229,10 @@ const log = {
   info: msg => logger.log(msg),
   error: msg => logger.fail(`${colors.red('')} ${msg}`),
   success: msg => logger.log(`${colors.green('')} ${msg}`),
-  step: msg => logger.log(`\n${msg}`),
+  step: (msg: string) => {
+    logger.log('')
+    logger.log(msg)
+  },
   substep: msg => logger.log(`  ${msg}`),
   progress: msg => {
     process.stdout.write('\r\x1b[K')

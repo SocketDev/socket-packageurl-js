@@ -5,13 +5,14 @@
 
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import process from 'node:process'
 
 import {
   getChangedFilesSync,
   getStagedFilesSync,
 } from '@socketsecurity/lib/git'
 import { normalizePath } from '@socketsecurity/lib/paths/normalize'
+
+import { REPO_ROOT } from '../paths.mts'
 
 type TestsToRunOptions = {
   all?: boolean | undefined
@@ -24,7 +25,7 @@ type TestsToRunResult = {
   tests: string[] | 'all' | undefined
 }
 
-const rootPath: string = path.resolve(process.cwd())
+const rootPath: string = REPO_ROOT
 
 /**
  * Core files that require running all tests when changed.

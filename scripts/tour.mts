@@ -208,6 +208,7 @@ export async function processMermaidTokens(
           }
         } catch (e) {
           logger.warn(
+            // oxlint-disable-next-line socket/no-logger-newline-literal -- multi-line diagnostic showing source between fences; splitting into separate calls would scramble the error/source pairing.
             `[mermaid] render failed: ${errorMessage(e)}\n--- source ---\n${source}\n---`,
           )
           list[i] = {
@@ -2999,7 +3000,7 @@ export async function generate(
     // hashes are disk-cached under .cache/sri/; local ones hash the
     // files in `buildDir` directly. Any `<script>` / `<link>`
     // (CDN or same-origin) ends up with `integrity="sha384-..."`.
-    const sriCacheDir = path.join(repoRoot, '.cache', 'sri')
+    const sriCacheDir = path.join(repoRoot, 'node_modules', '.cache', 'sri')
     const sriEntries = (await fs.readdir(buildDir)).filter(e =>
       e.endsWith('.html'),
     )
@@ -3610,9 +3611,9 @@ function main(): void {
     default:
       // Unknown command — stderr + non-zero exit, with a pointer to
       // --help rather than dumping the full usage block here.
-      logger.fail(
-        `Unknown command: ${command}\n\nRun \`pnpm tour --help\` for usage.`,
-      )
+      logger.fail(`Unknown command: ${command}`)
+      logger.error('')
+      logger.info('Run `pnpm tour --help` for usage.')
       process.exit(1)
   }
 }
