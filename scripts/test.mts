@@ -98,9 +98,9 @@ const removeExitHandler = onExit(
       spinner.stop()
     } catch {}
 
-    // Kill all running processes
-    for (let i = 0, { length } = runningProcesses; i < length; i += 1) {
-      const child = runningProcesses[i]
+    // Kill all running processes. `runningProcesses` is a Set —
+    // use for...of, not the cached-length for-loop.
+    for (const child of runningProcesses) {
       try {
         child.kill('SIGTERM')
       } catch {}

@@ -38,8 +38,9 @@ export function buildPathMap(
     Array<{ info: PackageInfo; longPath: string }>
   >()
 
-  for (let i = 0, { length } = modulePaths; i < length; i += 1) {
-    const longPath = modulePaths[i]
+  // `modulePaths` is a ReadonlySet — use for...of, not the
+  // cached-length for-loop.
+  for (const longPath of modulePaths) {
     const info = extractPackageInfo(longPath)
     if (!info) {
       continue

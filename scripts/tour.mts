@@ -1233,8 +1233,9 @@ export async function rewriteIndexContents(
     // replaceWith takes a plain string on node-html-parser.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(firstCard as any).replaceWith(blockHtml)
-    for (let i = 0, { length } = cardsToRemove; i < length; i += 1) {
-      const card = cardsToRemove[i]
+    // `cardsToRemove` is a Set — use for...of, not the
+    // cached-length for-loop.
+    for (const card of cardsToRemove) {
       if (card !== firstCard) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ;(card as any).remove()

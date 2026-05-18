@@ -373,8 +373,10 @@ export async function validateBundleDeps(): Promise<BundleDependencyResult> {
     const externals = await extractExternalPackages(file)
     const bundled = await extractBundledPackages(file)
 
+    // `externals` and `bundled` are Sets — use for...of, the
+    // canonical fix for set / map / iterable iteration.
     for (let i = 0, { length } = externals; i < length; i += 1) {
-      const ext = externals[i]
+      const ext = externals[i]!
       const packageName = getPackageName(ext)
       if (packageName && !BUILTIN_MODULES.has(packageName)) {
         allExternals.add(packageName)
@@ -382,7 +384,7 @@ export async function validateBundleDeps(): Promise<BundleDependencyResult> {
     }
 
     for (let i = 0, { length } = bundled; i < length; i += 1) {
-      const bun = bundled[i]
+      const bun = bundled[i]!
       allBundled.add(bun)
     }
   }
@@ -390,9 +392,10 @@ export async function validateBundleDeps(): Promise<BundleDependencyResult> {
   const violations: BundleDependencyMessage[] = []
   const warnings: BundleDependencyMessage[] = []
 
-  // Validate external packages are in dependencies or peerDependencies
+  // Validate external packages are in dependencies or peerDependencies.
+  // `allExternals` / `allBundled` are Sets — use for...of.
   for (let i = 0, { length } = allExternals; i < length; i += 1) {
-    const packageName = allExternals[i]
+    const packageName = allExternals[i]!
     if (!dependencies.has(packageName) && !peerDependencies.has(packageName)) {
       violations.push({
         type: 'external-not-in-deps',
@@ -407,7 +410,7 @@ export async function validateBundleDeps(): Promise<BundleDependencyResult> {
 
   // Validate bundled packages are in devDependencies (not dependencies)
   for (let i = 0, { length } = allBundled; i < length; i += 1) {
-    const packageName = allBundled[i]
+    const packageName = allBundled[i]!
     if (dependencies.has(packageName)) {
       violations.push({
         type: 'bundled-in-deps',
