@@ -17,7 +17,10 @@ import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
 import type { Logger } from '@socketsecurity/lib-stable/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 import { onExit } from '@socketsecurity/lib-stable/signal-exit'
-import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib-stable/spawn'
+import type {
+  SpawnOptions,
+  SpawnResult,
+} from '@socketsecurity/lib-stable/spawn'
 import { spawn } from '@socketsecurity/lib-stable/spawn'
 import type { Spinner } from '@socketsecurity/lib-stable/spinner'
 import { getDefaultSpinner } from '@socketsecurity/lib-stable/spinner'

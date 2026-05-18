@@ -21,7 +21,10 @@ import colors from 'yoctocolors-cjs'
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
 import { safeDelete } from '@socketsecurity/lib-stable/fs'
 import { LOG_SYMBOLS } from '@socketsecurity/lib-stable/logger'
-import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib-stable/spawn'
+import type {
+  SpawnOptions,
+  SpawnResult,
+} from '@socketsecurity/lib-stable/spawn'
 import { spawn } from '@socketsecurity/lib-stable/spawn'
 import { errorMessage } from './utils/error-message.mts'
 

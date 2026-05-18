@@ -18,7 +18,10 @@ import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
 import { safeDelete } from '@socketsecurity/lib-stable/fs'
 import type { Logger } from '@socketsecurity/lib-stable/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
-import type { SpawnOptions, SpawnResult } from '@socketsecurity/lib-stable/spawn'
+import type {
+  SpawnOptions,
+  SpawnResult,
+} from '@socketsecurity/lib-stable/spawn'
 import { spawn } from '@socketsecurity/lib-stable/spawn'
 import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
@@ -776,7 +779,9 @@ async function main(): Promise<void> {
       } else {
         logger.log('')
         logger.log('Interactive mode: Not available')
-        logger.log('  (install @socketsecurity/lib-stable or build local registry)')
+        logger.log(
+          '  (install @socketsecurity/lib-stable or build local registry)',
+        )
       }
       process.exitCode = 0
       return
