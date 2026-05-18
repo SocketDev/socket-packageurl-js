@@ -96,7 +96,8 @@ export async function nugetExists(
       const versions: string[] = []
       const pages = data.items
       for (let i = 0, { length } = pages; i < length; i += 1) {
-        const page = pages[i]
+        // Loop bound guarantees i < length, so pages[i] is defined.
+        const page = pages[i]!
         if (page.items) {
           const items = page.items
           for (
@@ -104,7 +105,8 @@ export async function nugetExists(
             j < itemLength;
             j += 1
           ) {
-            const item = items[j]
+            // Loop bound guarantees j < itemLength, so items[j] is defined.
+            const item = items[j]!
             const ver = item.catalogEntry?.['version']
             if (ver) {
               ArrayPrototypePush(versions, ver)

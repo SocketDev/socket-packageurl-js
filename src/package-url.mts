@@ -896,7 +896,8 @@ class PackageURL {
 
 const staticProps = ['Component', 'KnownQualifierNames', 'Type']
 for (let i = 0, { length } = staticProps; i < length; i += 1) {
-  const staticProp = staticProps[i]
+  // Loop bound guarantees i < length, so staticProps[i] is defined.
+  const staticProp = staticProps[i]!
   ReflectDefineProperty(PackageURL, staticProp, {
     ...ReflectGetOwnPropertyDescriptor(PackageURL, staticProp),
     writable: false,

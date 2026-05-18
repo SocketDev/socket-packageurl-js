@@ -106,7 +106,8 @@ export async function packagistExists(
       // Find the latest stable version (highest `version_normalized` without `dev` suffix)
       let latestVersion: string | undefined
       for (let i = 0, { length } = packageVersions; i < length; i += 1) {
-        const pkg = packageVersions[i]
+        // Loop bound guarantees i < length, so packageVersions[i] is defined.
+        const pkg = packageVersions[i]!
         const ver = pkg.version
         if (ver && !StringPrototypeIncludes(ver, 'dev-')) {
           latestVersion = ver

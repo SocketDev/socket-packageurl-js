@@ -238,9 +238,10 @@ export const ResultUtils = {
       new ErrorCtor('No results provided'),
     )
     for (let i = 0, { length } = results; i < length; i += 1) {
-      const result = results[i]
+      // Loop bound guarantees i < length, so results[i] is defined.
+      const result = results[i]!
       if (result.isOk()) {
-        return result
+        return result as T[number]
       }
       lastError = result
     }
