@@ -57,18 +57,6 @@ type TestScriptValues = {
   update: boolean
 }
 
-type InteractiveRunnerModule = {
-  runTests: (
-    command: string,
-    args: string[],
-    options?: {
-      cwd?: string | undefined
-      env?: NodeJS.ProcessEnv | undefined
-      verbose?: boolean | undefined
-    },
-  ) => Promise<number>
-}
-
 const logger: Logger = getDefaultLogger()
 const spinner: Spinner = getDefaultSpinner()
 
@@ -389,19 +377,7 @@ export async function runTests(
     stdio: 'inherit',
   }
 
-  // Use interactive runner for interactive Ctrl+O experience when appropriate
-  if (process.stdout.isTTY) {
-    const { runTests: runInteractiveTests } =
-      // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- lazy load TTY-only runner.
-      (await import('./utils/interactive-runner.mts')) as InteractiveRunnerModule
-    return runInteractiveTests(vitestPath, vitestArgs, {
-      env: spawnOptions.env,
-      cwd: typeof spawnOptions.cwd === 'string' ? spawnOptions.cwd : rootPath,
-      verbose: false,
-    })
-  }
-
-  // Fallback to execution with output capture to handle worker termination errors
+  // Capture output so vitest worker-termination noise can be filtered below.
   const result = await runCommandWithOutput(vitestPath, vitestArgs, {
     ...spawnOptions,
     stdio: ['inherit', 'pipe', 'pipe'],
