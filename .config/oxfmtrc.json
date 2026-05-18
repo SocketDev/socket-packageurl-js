@@ -47,7 +47,6 @@
     "**/test/packages",
     "**/upstream",
     "**/lockstep.schema.json",
-    "**/socket-wheelhouse-schema.json",
     "#fleet-canonical-begin (managed by socket-wheelhouse sync)",
     "**/.claude/worktrees/**",
     "**/.config/oxlint-plugin/**",
