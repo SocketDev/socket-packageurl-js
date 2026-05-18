@@ -139,13 +139,7 @@ export async function extractCdnDepsFromDir(dir: string): Promise<NpmDep[]> {
 export async function walkTransitiveClosure(
   directs: readonly NpmDep[],
 ): Promise<NpmDep[]> {
-  // Renamed from `closure` to `closureMap` to avoid name collision
-  // with the array `closure = await walkTransitiveClosure(...)` at
-  // the outer call site, which confused the
-  // socket/no-cached-for-on-iterable rule's scope-blind kind
-  // tracking into reporting `closure.length` on the Array as a
-  // Map-style .length read.
-  const closureMap = new Map<string, NpmDep>()
+  const closure = new Map<string, NpmDep>()
   const queue: Array<{ spec: string; source: NpmDep['source'] }> = directs.map(
     d => ({ spec: `${d.name}@${d.version}`, source: 'direct' }),
   )
@@ -164,10 +158,10 @@ export async function walkTransitiveClosure(
       continue
     }
     const key = `${manifest.name}@${manifest.version}`
-    if (closureMap.has(key)) {
+    if (closure.has(key)) {
       continue
     }
-    closureMap.set(key, {
+    closure.set(key, {
       name: manifest.name,
       version: manifest.version,
       source,
@@ -183,7 +177,7 @@ export async function walkTransitiveClosure(
       queue.push({ spec: `${depName}@${depRange}`, source: 'transitive' })
     }
   }
-  return [...closureMap.values()]
+  return [...closure.values()]
 }
 
 // --- Socket.dev malware check ---
