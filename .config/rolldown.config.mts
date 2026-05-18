@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- one-shot build config, not a hot path. */
 /**
  * @file Rolldown configuration. Mirrors the esbuild config in
  *   `esbuild.config.mjs` for byte-equivalent output during the migration

@@ -1,3 +1,4 @@
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- domain-grouped layout (pipeline flow / dispatch table); per-call would scatter the grouping with many redundant disables. */
 /* oxlint-disable socket/sort-source-methods -- ordered as path resolution flow (resolver → primary roots → derived constants → helpers); alphabetizing would scatter the flow. */
 /**
  * @file Canonical path constants + resolvers for this package. Mantra: 1 path,

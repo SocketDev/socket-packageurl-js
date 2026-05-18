@@ -1,4 +1,3 @@
-/* oxlint-disable socket/no-fetch-prefer-http-request -- service-worker; `fetch` is the platform primitive, no Node lib available. */
 /* ------------------------------------------------------------------
  * Docs-site service worker.
  *
@@ -136,6 +135,7 @@ self.addEventListener('fetch', event => {
 export async function cacheFirst(request) {
   const cache = await caches.open(CACHE_NAME)
   const cached = await cache.match(request)
+  // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- service worker; @socketsecurity/lib-stable not available in the SW bundle, and fetch IS the SW intercept primitive.
   const networkFetch = fetch(request)
     .then(response => {
       // Only cache successful responses — don't poison the cache with
@@ -168,6 +168,7 @@ export async function cacheFirst(request) {
  */
 export async function networkFirst(request) {
   try {
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- service worker; @socketsecurity/lib-stable not available in the SW bundle, and fetch IS the SW intercept primitive.
     const response = await fetch(request)
     if (response.ok) {
       const cache = await caches.open(CACHE_NAME)

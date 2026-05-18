@@ -1,4 +1,6 @@
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- domain-grouped layout (pipeline flow / dispatch table); per-call would scatter the grouping with many redundant disables. */
 /* oxlint-disable socket/sort-source-methods -- helpers ordered to match the audit pipeline (parse → resolve → score → report). */
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- one-shot script / file iterates non-array iterables predominantly; per-call would produce many redundant disables. */
 /* oxlint-disable socket/prefer-cached-for-loop -- one-shot audit script, not a hot path. */
 /**
  * @file Socket.dev malware audit for the tour pilot. Two entry points:

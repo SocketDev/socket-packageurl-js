@@ -1,5 +1,3 @@
-/* oxlint-disable socket/no-fetch-prefer-http-request -- browser-side; `fetch` is the platform primitive, no Node lib available. */
-/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* max-file-lines: state-machine -- docs-site comment widget with auth state machine; splitting scatters the state transitions. */
 /**
  * Docs-site comment UI + email magic-code auth.
@@ -106,6 +104,7 @@
       headers.set('content-type', 'application/json')
     }
     const { timeoutMs = DEFAULT_TIMEOUT_MS, signal: userSignal, ...rest } = init
+    // oxlint-disable-next-line socket/no-fetch-prefer-http-request -- browser-side JS; @socketsecurity/lib-stable not available in the browser bundle.
     const res = await fetch(BACKEND + path, {
       ...rest,
       headers,
@@ -1000,6 +999,7 @@
   }
 
   const clearSelectionUi = () => {
+    // oxlint-disable-next-line socket/prefer-cached-for-loop -- NodeList from DOM API; the cached-length rewrite is awkward with chained .querySelectorAll, and this is a one-shot UI sweep, not a hot path.
     document
       .querySelectorAll('tr.wt-selected, tr.wt-selected-range')
       .forEach(r => r.classList.remove('wt-selected', 'wt-selected-range'))
@@ -1502,6 +1502,7 @@
   const renderAll = () => {
     // Wipe everything we previously rendered. Thread rows live inside
     // tbody as <tr>, indicators in line-num cells.
+    // oxlint-disable-next-line socket/prefer-cached-for-loop -- NodeList from DOM API; the cached-length rewrite is awkward with chained .querySelectorAll, and this is a render-pass setup, not a hot path.
     document
       .querySelectorAll('tr.wt-thread-row, .wt-indicator')
       .forEach(el => el.remove())

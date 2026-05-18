@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- one-shot validation script, not a hot path. */
 /**
  * @file Bundle validation tests to ensure build output quality. Verifies that
  *   dist files don't contain absolute paths or external dependencies.

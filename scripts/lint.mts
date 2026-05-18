@@ -1,4 +1,3 @@
-/* oxlint-disable socket/sort-source-methods -- helpers ordered by lint-runner pipeline phase. */
 /**
  * @file Canonical minimal lint runner for socket-* repos. Scope modes:
  *   (default) Lint files modified in the working tree vs HEAD. --staged Lint

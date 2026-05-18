@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* Cmd/Ctrl-click links inside code lines. Two flavors:
  *   - URLs: any http:// or https:// substring becomes an <a>
  *     that opens in a new tab when Cmd/Ctrl-clicked.

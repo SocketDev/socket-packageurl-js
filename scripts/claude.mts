@@ -1,4 +1,6 @@
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- domain-grouped layout (pipeline flow / dispatch table); per-call would scatter the grouping with many redundant disables. */
 /* oxlint-disable socket/sort-source-methods -- subcommand helpers grouped by domain (snapshot, cache, review, validate) and ordered to match the dispatch table at the bottom. */
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- one-shot script / file iterates non-array iterables predominantly; per-call would produce many redundant disables. */
 /* oxlint-disable socket/prefer-cached-for-loop -- one-shot CLI utility, not a hot path. */
 /* max-file-lines: table -- subcommand dispatch table; splitting would scatter the table. */
 
@@ -2102,18 +2104,18 @@ export function filterCILogs(rawLogs: string): string {
 
     // Detect error sections — these emoji are scanned from existing log
     // output (CI runners, test reporters), not emitted by us.
-    /* oxlint-disable socket/no-status-emoji -- pattern matcher for emoji emitted by external tooling. */
     if (
       line.includes('##[error]') ||
       line.includes('Error:') ||
       line.includes('error TS') ||
       line.includes('FAIL') ||
+      // oxlint-disable-next-line socket/no-status-emoji -- pattern matcher: scans for emoji emitted by external tooling, not output.
       line.includes('✗') ||
+      // oxlint-disable-next-line socket/no-status-emoji -- pattern matcher: scans for emoji emitted by external tooling, not output.
       line.includes('❌') ||
       line.includes('failed') ||
       line.includes('ELIFECYCLE')
     ) {
-      /* oxlint-enable socket/no-status-emoji */
       inErrorSection = true
       relevantLines.push(line)
     } else if (inErrorSection && line.trim() !== '') {

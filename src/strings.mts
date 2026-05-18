@@ -1,3 +1,4 @@
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- domain-grouped layout (pipeline flow / dispatch table); per-call would scatter the grouping with many redundant disables. */
 /* oxlint-disable socket/sort-source-methods -- helpers grouped by domain (predicates, mutators, transforms, injection-detection) — reordering alphabetically scatters tightly-related functions. */
 /**
  * @file String utility functions for PURL processing. Includes whitespace

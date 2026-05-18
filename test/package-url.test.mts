@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- test code, not a hot path. */
 /* max-file-lines: table -- comprehensive purl-spec compliance test matrix. */
 /*!
 Copyright (c) the purl authors

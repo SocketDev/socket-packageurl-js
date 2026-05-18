@@ -1,5 +1,7 @@
 /* max-file-lines: legitimate -- single-purpose tour generator + local-preview server; the discover/parse/annotate/render/serve passes share state and splitting would scatter the pipeline. */
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- domain-grouped layout (pipeline flow / dispatch table); per-call would scatter the grouping with many redundant disables. */
 /* oxlint-disable socket/sort-source-methods -- pipeline helpers organized by pass (discover → parse → annotate → render → serve); alphabetical would scatter same-pass helpers. */
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- one-shot script / file iterates non-array iterables predominantly; per-call would produce many redundant disables. */
 /* oxlint-disable socket/prefer-cached-for-loop -- iterables are predominantly Maps, Sets, generators, and destructured entries; cached-length rewrite is unsafe or meaningless for these shapes. */
 
 /**

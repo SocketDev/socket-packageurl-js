@@ -1,3 +1,4 @@
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- domain-grouped layout (pipeline flow / dispatch table); per-call would scatter the grouping with many redundant disables. */
 /* oxlint-disable socket/sort-source-methods -- comparators grouped by component (name → version → qualifiers → full purl) to mirror PURL spec walk order. */
 /**
  * @file PURL comparison utilities. Functions for comparing `PackageURL`

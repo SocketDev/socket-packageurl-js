@@ -1,4 +1,3 @@
-/* oxlint-disable socket/no-dynamic-import-outside-bundle -- dynamic import resolves the isolated built artifact path at runtime. */
 /**
  * @file Integration tests for built package. Tests the package in the dist
  *   directory to verify build output.
@@ -19,6 +18,7 @@ describe('Integration tests', () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
     // Test that we can import the package
+    // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- integration test loads the built bundle from a runtime-computed path (${pkgPath}/dist/index.js) to verify the published artifact.
     const { PackageURL } = await import(`${pkgPath}/dist/index.js`)
     expect(PackageURL).toBeDefined()
     expect(typeof PackageURL).toBe('function')
@@ -31,6 +31,7 @@ describe('Integration tests', () => {
   it('should load PurlBuilder and work correctly', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
+    // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- integration test loads the built bundle from a runtime-computed path (${pkgPath}/dist/index.js) to verify the published artifact.
     const { PurlBuilder } = await import(`${pkgPath}/dist/index.js`)
     expect(PurlBuilder).toBeDefined()
     expect(typeof PurlBuilder.create).toBe('function')
@@ -47,6 +48,7 @@ describe('Integration tests', () => {
   it('should load UrlConverter and work correctly', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
+    // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- integration test loads the built bundle from a runtime-computed path (${pkgPath}/dist/index.js) to verify the published artifact.
     const { PackageURL, UrlConverter } = await import(
       `${pkgPath}/dist/index.js`
     )
@@ -66,6 +68,7 @@ describe('Integration tests', () => {
   it('should have all entry points working together', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
+    // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- integration test loads the built bundle from a runtime-computed path (${pkgPath}/dist/index.js) to verify the published artifact.
     const { PackageURL, PurlBuilder, UrlConverter } = await import(
       `${pkgPath}/dist/index.js`
     )

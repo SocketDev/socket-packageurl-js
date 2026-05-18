@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- one-shot validation script, not a hot path. */
 /**
  * @file Validates that no package.json files contain link: dependencies. Link
  *   dependencies are prohibited - use workspace: or catalog: instead.

@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- test code, not a hot path. */
 /* max-file-lines: table -- per-type validator test matrix; splitting fragments it. */
 /**
  * @file Unit tests for injection character validation in per-type validators.

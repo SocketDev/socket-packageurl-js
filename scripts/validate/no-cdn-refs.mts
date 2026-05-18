@@ -1,3 +1,4 @@
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- domain-grouped layout (pipeline flow / dispatch table); per-call would scatter the grouping with many redundant disables. */
 /* oxlint-disable socket/sort-source-methods -- scanner helpers ordered by pipeline phase (discover → match → report). */
 /**
  * @file ## Fails `pnpm run check` when hardcoded CDN URLs land in

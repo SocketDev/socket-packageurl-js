@@ -21,6 +21,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- domain-grouped layout (pipeline flow / dispatch table); per-call would scatter the grouping with many redundant disables. */
 /* oxlint-disable socket/sort-source-methods -- parsers grouped by ecosystem affinity (npm registry+website, github/gitlab/bitbucket) so the FROM_URL_PARSERS map below reads in the same order as the definitions. */
 /**
  * @file URL conversion utilities for converting Package URLs to repository and

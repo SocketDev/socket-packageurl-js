@@ -1,3 +1,4 @@
+/* max-file-lines: legitimate — PURL builder for every ecosystem (npm, maven, nuget, etc.); the per-type encoding rules share enough state (qualifiers, subpath, name validation) that splitting per-type would scatter the dispatch. */
 /*!
 Copyright (c) the purl authors
 

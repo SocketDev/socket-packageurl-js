@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* Sections navigation — the per-file-block dropdown that lists
  * each .annotation-card[id], plus the scroll-position observer
  * that tracks "which card am I reading" and lights the matching

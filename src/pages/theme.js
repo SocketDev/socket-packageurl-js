@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* Theme toggle — system / light / dark / synthwave.
  *
  * Synchronous bits (resolve stored pref, apply to <html data-theme>,

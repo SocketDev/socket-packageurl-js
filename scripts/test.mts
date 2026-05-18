@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- one-shot test runner, not a hot path. */
 /* max-file-lines: legitimate -- single-purpose CLI script; splitting would obscure the linear test runner flow. */
 /**
  * @file Unified test runner that provides a smooth, single-script experience.
@@ -284,6 +283,7 @@ export async function runIsolatedTests(): Promise<number> {
   }
 
   logger.step(`Running ${isolatedTests.length} isolated test file(s)`)
+  // oxlint-disable-next-line socket/prefer-cached-for-loop -- one-shot logger sweep on a small list (test files); the cached-length form is noise here.
   isolatedTests.forEach((test: string): void => logger.substep(test))
 
   const vitestCmd = WIN32 ? 'vitest.cmd' : 'vitest'
@@ -360,6 +360,7 @@ export async function runTests(
   } else {
     const modeText = mode === 'staged' ? 'staged' : 'changed'
     logger.step(`Running tests for ${modeText} files:`)
+    // oxlint-disable-next-line socket/prefer-cached-for-loop -- one-shot logger sweep on a small list (changed test files); the cached-length form is noise here.
     testsToRun.forEach((test: string): void => logger.substep(test))
     vitestArgs.push(...testsToRun)
   }

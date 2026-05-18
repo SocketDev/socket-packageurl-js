@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* JSDoc tag wrapping — first half of the annotation-md cleanup.
  *
  * Takes the markdown meander rendered into .annotation-md and:

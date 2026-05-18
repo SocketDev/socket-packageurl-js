@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- one-shot script utility, not a hot path. */
 /**
  * @file Utility for running shell commands with proper error handling.
  */

@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- one-shot publish script, not a hot path. */
 /* max-file-lines: legitimate -- single-purpose CLI script; splitting would obscure the linear publish flow. */
 /**
  * @file Publish runner for Socket packageurl-js. Validates build artifacts

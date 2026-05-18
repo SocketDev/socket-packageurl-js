@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* JSDoc block grouping + ordering — second half of the
  * annotation-md cleanup.
  *

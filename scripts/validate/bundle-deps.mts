@@ -332,11 +332,11 @@ export async function readPackageJson(): Promise<PackageJsonLike> {
 }
 
 /**
- * Strip /* ... */ block comments and leading // line comments so the
- * import/require regex below doesn't match specifiers that appear inside JSDoc
- * examples or doc comments. Rolldown preserves JSDoc in its output (esbuild
- * stripped it), so the comment-aware pre-pass is load-bearing for accurate dep
- * extraction.
+ * Strip block comments (slash-star) and leading line comments (slash-slash) so
+ * the import/require regex below doesn't match specifiers that appear inside
+ * JSDoc examples or doc comments. Rolldown preserves JSDoc in its output
+ * (esbuild stripped it), so the comment-aware pre-pass is load-bearing for
+ * accurate dep extraction.
  */
 export function stripComments(source: string): string {
   // Remove /* ... */ blocks (greedy across lines).
@@ -376,6 +376,7 @@ export async function validateBundleDeps(): Promise<BundleDependencyResult> {
 
     // `externals` and `bundled` are Sets — use for...of, the
     // canonical fix for set / map / iterable iteration.
+    // oxlint-disable-next-line socket/prefer-cached-for-loop -- iterates a Set<string> (Promise<Set<string>> return type); cached-length would be incorrect.
     for (const ext of externals) {
       const packageName = getPackageName(ext)
       if (packageName && !BUILTIN_MODULES.has(packageName)) {
@@ -383,6 +384,7 @@ export async function validateBundleDeps(): Promise<BundleDependencyResult> {
       }
     }
 
+    // oxlint-disable-next-line socket/prefer-cached-for-loop -- iterates a Set<string> (Promise<Set<string>> return type); cached-length would be incorrect.
     for (const bun of bundled) {
       allBundled.add(bun)
     }

@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* PURL tokenizer + inline-code pill pass.
  *
  * `tokenizePurl(code, text)` hand-tokenizes a PURL string into

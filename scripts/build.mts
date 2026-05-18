@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- one-shot build script, not a hot path. */
 /**
  * @file Build runner. Wraps rolldown's programmatic API behind the same CLI
  *   surface (--src, --types, --watch, --analyze, --needed) the rest of the

@@ -1,3 +1,4 @@
+/* max-file-lines: legitimate — single-file VERS spec implementation; the tokenizer, parser, and version-range matcher share an internal state machine that splitting would tangle. */
 /**
  * @file VERS (VErsion Range Specifier) implementation. Implements the VERS
  *   specification for version range matching. VERS is a companion standard to

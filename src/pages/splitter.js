@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- browser-side UI code; not a hot path. */
 /* Column splitter — per-file prose/code pane resize handle.
  *
  * Stores the split as a --col-split CSS var (percent 20..80).

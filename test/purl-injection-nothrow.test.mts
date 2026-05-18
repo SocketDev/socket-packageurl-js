@@ -1,4 +1,3 @@
-/* oxlint-disable socket/prefer-cached-for-loop -- test fixtures iterate destructured arrays; clarity wins over the micro-optimization. */
 /**
  * @file Tests for per-type injection validation `return false` branches. These
  *   tests call each type's validate() with throws=false so the non-throwing
