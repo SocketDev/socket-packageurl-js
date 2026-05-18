@@ -1,6 +1,6 @@
 /**
- * @fileoverview Pub (Dart/Flutter) PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#pub
+ * @file Pub (Dart/Flutter) PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#pub.
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -26,8 +26,8 @@ interface PurlObject {
 }
 
 /**
- * Normalize Pub package URL.
- * Lowercases `name` and replaces dashes with underscores.
+ * Normalize Pub package URL. Lowercases `name` and replaces dashes with
+ * underscores.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -38,28 +38,29 @@ export function normalize(purl: PurlObject): PurlObject {
 /**
  * Check if a Dart/Flutter package exists on pub.dev.
  *
- * Queries pub.dev API to verify package existence and retrieve
- * the latest version.
+ * Queries pub.dev API to verify package existence and retrieve the latest
+ * version.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if package exists
+ *   const result = await pubExists('flutter_bloc')
+ *   // -> { exists: true, latestVersion: '8.1.3' }
+ *
+ *   // Validate specific version
+ *   const result = await pubExists('flutter_bloc', '8.1.3')
+ *   // -> { exists: true, latestVersion: '8.1.3' }
+ *
+ *   // Non-existent package
+ *   const result = await pubExists('fake_package')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
  *
  * @param name - Package name (e.g., `'flutter_bloc'`)
  * @param version - Optional version to validate (e.g., `'8.1.3'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if package exists
- * const result = await pubExists('flutter_bloc')
- * // -> { exists: true, latestVersion: '8.1.3' }
- *
- * // Validate specific version
- * const result = await pubExists('flutter_bloc', '8.1.3')
- * // -> { exists: true, latestVersion: '8.1.3' }
- *
- * // Non-existent package
- * const result = await pubExists('fake_package')
- * // -> { exists: false, error: 'Package not found' }
- * ```
  */
 export async function pubExists(
   name: string,
@@ -140,8 +141,7 @@ export async function pubExists(
 }
 
 /**
- * Validate Pub package URL.
- * `name` may only contain `[a-z0-9_]` characters.
+ * Validate Pub package URL. `name` may only contain `[a-z0-9_]` characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name } = purl

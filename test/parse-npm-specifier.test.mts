@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for parseNpmSpecifier standalone function
+ * @file Tests for parseNpmSpecifier standalone function
  */
 
 import { describe, expect, it } from 'vitest'

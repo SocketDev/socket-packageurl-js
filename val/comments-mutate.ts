@@ -1,11 +1,9 @@
 /**
- * @fileoverview PATCH + DELETE endpoints on a single comment.
- *
- * Both are author-only: only the person who posted the comment can
- * resolve/unresolve it or delete it. Any other authed user gets 403.
- * The author check is a SELECT + string compare — simple enough to
- * not warrant a stored procedure, low enough frequency that two
- * round-trips per request is fine.
+ * @file PATCH + DELETE endpoints on a single comment. Both are author-only:
+ *   only the person who posted the comment can resolve/unresolve it or delete
+ *   it. Any other authed user gets 403. The author check is a SELECT + string
+ *   compare — simple enough to not warrant a stored procedure, low enough
+ *   frequency that two round-trips per request is fine.
  */
 
 import type { Context, Hono, Next } from 'npm:hono@4.12.14'

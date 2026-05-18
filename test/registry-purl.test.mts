@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for generic PURL registry existence checks.
+ * @file Tests for generic PURL registry existence checks.
  */
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'

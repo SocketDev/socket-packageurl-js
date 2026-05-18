@@ -1,6 +1,6 @@
 /**
- * @fileoverview APK (Alpine Package Manager) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#apk
+ * @file APK (Alpine Package Manager) PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#apk.
  */
 
 import { lowerName, lowerNamespace } from '../strings.mjs'
@@ -15,8 +15,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize APK package URL.
- * Lowercases both `namespace` and `name`.
+ * Normalize APK package URL. Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)

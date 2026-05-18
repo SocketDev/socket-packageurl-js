@@ -1,6 +1,6 @@
 /**
- * @fileoverview Docker-specific PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#docker
+ * @file Docker-specific PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#docker.
  */
 
 import { errorMessage } from '../error.mjs'
@@ -34,37 +34,40 @@ interface PurlObject {
  * **Note:** Docker Hub has rate limits for unauthenticated requests.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
- * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
- *
- * @param name - Image name (e.g., `'nginx'`, `'redis'`)
- * @param namespace - Optional namespace/repository (e.g., `'library'` for official images)
- * @param version - Optional tag to validate (e.g., `'latest'`, `'1.25.3'`)
- * @param options - Optional configuration including `cache`
- * @returns `Promise` resolving to existence result with latest tag
+ * requests. Pass `{ cache }` option with a cache instance from
+ * `createTtlCache()`.
  *
  * @example
- * ```typescript
- * // Check if official image exists
- * const result = await dockerExists('nginx', 'library')
- * // -> { exists: true, latestVersion: 'latest' }
+ *   ```typescript
+ *   // Check if official image exists
+ *   const result = await dockerExists('nginx', 'library')
+ *   // -> { exists: true, latestVersion: 'latest' }
  *
- * // Check user image
- * const result = await dockerExists('myapp', 'myuser')
- * // -> { exists: true, latestVersion: 'v1.0.0' }
+ *   // Check user image
+ *   const result = await dockerExists('myapp', 'myuser')
+ *   // -> { exists: true, latestVersion: 'v1.0.0' }
  *
- * // Validate specific tag
- * const result = await dockerExists('nginx', 'library', '1.25.3')
- * // -> { exists: true, latestVersion: 'latest' }
+ *   // Validate specific tag
+ *   const result = await dockerExists('nginx', 'library', '1.25.3')
+ *   // -> { exists: true, latestVersion: 'latest' }
  *
- * // With caching
- * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
- * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'docker' })
- * const result = await dockerExists('nginx', 'library', undefined, { cache })
+ *   // With caching
+ *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'docker' })
+ *   const result = await dockerExists('nginx', 'library', undefined, { cache })
  *
- * // Non-existent image
- * const result = await dockerExists('this-image-does-not-exist', 'library')
- * // -> { exists: false, error: 'Image not found' }
- * ```
+ *   // Non-existent image
+ *   const result = await dockerExists('this-image-does-not-exist', 'library')
+ *   // -> { exists: false, error: 'Image not found' }
+ *   ```
+ *
+ * @param name - Image name (e.g., `'nginx'`, `'redis'`)
+ * @param namespace - Optional namespace/repository (e.g., `'library'` for
+ *   official images)
+ * @param version - Optional tag to validate (e.g., `'latest'`, `'1.25.3'`)
+ * @param options - Optional configuration including `cache`
+ *
+ * @returns `Promise` resolving to existence result with latest tag
  */
 export async function dockerExists(
   name: string,
@@ -152,8 +155,8 @@ export async function dockerExists(
 }
 
 /**
- * Normalize Docker package URL.
- * Lowercases `name` only (`namespace` is case-sensitive for registry hosts).
+ * Normalize Docker package URL. Lowercases `name` only (`namespace` is
+ * case-sensitive for registry hosts).
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -161,8 +164,8 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate Docker package URL.
- * `name` and `namespace` must not contain injection characters.
+ * Validate Docker package URL. `name` and `namespace` must not contain
+ * injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

@@ -21,7 +21,7 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Unit tests for JSON/dict export functionality.
+ * @file Unit tests for JSON/dict export functionality.
  */
 import { describe, expect, it } from 'vitest'
 

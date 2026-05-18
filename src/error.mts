@@ -6,18 +6,17 @@ import {
 } from '@socketsecurity/lib/primordials'
 
 /**
- * @fileoverview Custom `PurlError` class for Package URL parsing and validation errors.
- * Provides consistent error message formatting for PURL-related exceptions.
+ * @file Custom `PurlError` class for Package URL parsing and validation errors.
+ *   Provides consistent error message formatting for PURL-related exceptions.
  */
 
 /**
  * Extract a readable message string from any thrown value.
  *
  * Returns `e.message` for `Error` instances, a coerced string for other
- * non-nullish values, and `'Unknown error'` for nullish or
- * empty-message cases. Use at boundaries where `catch (e: unknown)`
- * needs to surface a message (log lines, result payloads, API
- * responses) without a per-call-site type ladder.
+ * non-nullish values, and `'Unknown error'` for nullish or empty-message cases.
+ * Use at boundaries where `catch (e: unknown)` needs to surface a message (log
+ * lines, result payloads, API responses) without a per-call-site type ladder.
  */
 export function errorMessage(e: unknown): string {
   if (e instanceof Error) {
@@ -67,15 +66,14 @@ class PurlError extends Error {
 }
 
 /**
- * Specialized error for injection character detection.
- * Developers can catch this specifically to distinguish injection rejections
- * from other PURL validation errors and handle them at an elevated level
- * (e.g., logging, alerting, blocking).
+ * Specialized error for injection character detection. Developers can catch
+ * this specifically to distinguish injection rejections from other PURL
+ * validation errors and handle them at an elevated level (e.g., logging,
+ * alerting, blocking).
  *
- * Properties:
- * - `component` — which PURL component was rejected (`"name"`, `"namespace"`)
- * - `charCode` — the character code of the injection character found
- * - `purlType` — the package type (e.g., `"npm"`, `"maven"`)
+ * Properties: - `component` — which PURL component was rejected (`"name"`,
+ * `"namespace"`) - `charCode` — the character code of the injection character
+ * found - `purlType` — the package type (e.g., `"npm"`, `"maven"`)
  */
 class PurlInjectionError extends PurlError {
   readonly charCode: number

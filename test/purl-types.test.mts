@@ -22,9 +22,10 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Unit tests for type-specific PackageURL behavior.
- * Tests package-type-specific normalizations and validations for npm (legacy names, builtins),
- * pub (dash-to-underscore), and pypi (lowercase, underscore-to-dash) package types.
+ * @file Unit tests for type-specific PackageURL behavior. Tests
+ *   package-type-specific normalizations and validations for npm (legacy names,
+ *   builtins), pub (dash-to-underscore), and pypi (lowercase,
+ *   underscore-to-dash) package types.
  */
 import { describe, expect, it } from 'vitest'
 

@@ -1,6 +1,6 @@
 /**
- * @fileoverview RPM (Red Hat Package Manager) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#rpm
+ * @file RPM (Red Hat Package Manager) PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#rpm.
  */
 
 import { lowerNamespace } from '../strings.mjs'
@@ -15,8 +15,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize RPM package URL.
- * Lowercases `namespace` only.
+ * Normalize RPM package URL. Lowercases `namespace` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)

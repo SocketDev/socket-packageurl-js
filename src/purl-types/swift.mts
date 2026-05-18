@@ -1,6 +1,6 @@
 /**
- * @fileoverview Swift PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#swift
+ * @file Swift PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#swift.
  */
 
 import {
@@ -18,9 +18,8 @@ interface PurlObject {
 }
 
 /**
- * Validate Swift package URL.
- * Swift packages require both `namespace` and `version`. `name` and `namespace` must
- * not contain injection characters.
+ * Validate Swift package URL. Swift packages require both `namespace` and
+ * `version`. `name` and `namespace` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

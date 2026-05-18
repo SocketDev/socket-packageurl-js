@@ -1,8 +1,7 @@
 /**
- * @fileoverview Unknown PURL type (minimal implementation).
- *
- * The unknown type is used when the package type cannot be determined.
- * It has no specific normalization or validation rules beyond the base PURL spec.
+ * @file Unknown PURL type (minimal implementation). The unknown type is used
+ *   when the package type cannot be determined. It has no specific
+ *   normalization or validation rules beyond the base PURL spec.
  */
 
 interface PurlObject {
@@ -15,8 +14,8 @@ interface PurlObject {
 }
 
 /**
- * Normalize unknown package URL.
- * No type-specific normalization for unknown packages.
+ * Normalize unknown package URL. No type-specific normalization for unknown
+ * packages.
  */
 export function normalize(purl: PurlObject): PurlObject {
   return purl

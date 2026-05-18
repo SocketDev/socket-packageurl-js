@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for CRAN registry existence checks.
+ * @file Tests for CRAN registry existence checks.
  */
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'

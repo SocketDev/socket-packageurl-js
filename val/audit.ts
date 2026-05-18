@@ -1,9 +1,7 @@
 /**
- * @fileoverview Audit-log writer.
- *
- * All "significant" events (logins, comment mutations, forbidden
- * attempts) route through `audit()`. Failures to write are logged
- * but never fail the request.
+ * @file Audit-log writer. All "significant" events (logins, comment mutations,
+ *   forbidden attempts) route through `audit()`. Failures to write are logged
+ *   but never fail the request.
  */
 
 import { sqlite } from 'https://esm.town/v/std/sqlite/main.ts'

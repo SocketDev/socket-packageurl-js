@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for Go module proxy existence checks.
+ * @file Tests for Go module proxy existence checks.
  */
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'

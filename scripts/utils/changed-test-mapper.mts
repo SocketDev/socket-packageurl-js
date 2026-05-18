@@ -1,6 +1,6 @@
 /**
- * @fileoverview Maps changed source files to test files for affected test running.
- * Uses git utilities from socket-registry to detect changes.
+ * @file Maps changed source files to test files for affected test running. Uses
+ *   git utilities from socket-registry to detect changes.
  */
 
 import { existsSync } from 'node:fs'
@@ -45,10 +45,13 @@ const CORE_FILES = [
 
 /**
  * Get affected test files to run based on changed files.
+ *
  * @param {Object} options
- * @param {boolean} options.staged - Use staged files instead of all changes
- * @param {boolean} options.all - Run all tests
- * @returns {{tests: string[] | 'all' | null, reason?: string, mode?: string}} Object with test patterns, reason, and mode
+ * @param {boolean} options.staged - Use staged files instead of all changes.
+ * @param {boolean} options.all - Run all tests.
+ *
+ * @returns {{ tests: string[] | 'all' | null; reason?: string; mode?: string }}
+ *   Object with test patterns, reason, and mode.
  */
 export function getTestsToRun(
   options: TestsToRunOptions = {},

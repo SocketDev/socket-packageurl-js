@@ -1,6 +1,6 @@
 /**
- * @fileoverview Normalization functions for PURL components.
- * Handles path normalization, qualifier processing, and canonical form conversion.
+ * @file Normalization functions for PURL components. Handles path
+ *   normalization, qualifier processing, and canonical form conversion.
  */
 import { isObject } from './objects.mjs'
 import {
@@ -40,7 +40,8 @@ export function normalizeNamespace(rawNamespace: unknown): string | undefined {
 }
 
 /**
- * Normalize `purl` path component by collapsing separators and filtering segments.
+ * Normalize `purl` path component by collapsing separators and filtering
+ * segments.
  */
 export function normalizePurlPath(
   pathname: string,

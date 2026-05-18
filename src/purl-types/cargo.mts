@@ -1,6 +1,6 @@
 /**
- * @fileoverview Cargo-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/types-doc/cargo-definition.md
+ * @file Cargo-specific PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/types-doc/cargo-definition.md.
  */
 
 import { errorMessage } from '../error.mjs'
@@ -28,38 +28,40 @@ interface PurlObject {
  * Check if a Cargo crate exists in crates.io.
  *
  * Queries `crates.io` at https://crates.io/api/v1/crates to verify crate
- * existence and optionally validate a specific version. Returns the `max_version`
- * from crate metadata.
+ * existence and optionally validate a specific version. Returns the
+ * `max_version` from crate metadata.
  *
  * **Note:** `crates.io` requires a `User-Agent` header for API requests.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
- * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
+ * requests. Pass `{ cache }` option with a cache instance from
+ * `createTtlCache()`.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if crate exists
+ *   const result = await cargoExists('serde')
+ *   // -> { exists: true, latestVersion: '1.0.197' }
+ *
+ *   // Validate specific version
+ *   const result = await cargoExists('tokio', '1.35.0')
+ *   // -> { exists: true, latestVersion: '1.36.0' }
+ *
+ *   // With caching
+ *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'cargo' })
+ *   const result = await cargoExists('serde', undefined, { cache })
+ *
+ *   // Non-existent crate
+ *   const result = await cargoExists('this-crate-does-not-exist')
+ *   // -> { exists: false, error: 'Crate not found' }
+ *   ```
  *
  * @param name - Crate name (e.g., `'serde'`, `'tokio'`)
  * @param version - Optional version to validate (e.g., `'1.0.152'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if crate exists
- * const result = await cargoExists('serde')
- * // -> { exists: true, latestVersion: '1.0.197' }
- *
- * // Validate specific version
- * const result = await cargoExists('tokio', '1.35.0')
- * // -> { exists: true, latestVersion: '1.36.0' }
- *
- * // With caching
- * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
- * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'cargo' })
- * const result = await cargoExists('serde', undefined, { cache })
- *
- * // Non-existent crate
- * const result = await cargoExists('this-crate-does-not-exist')
- * // -> { exists: false, error: 'Crate not found' }
- * ```
  */
 export async function cargoExists(
   name: string,
@@ -142,8 +144,8 @@ export async function cargoExists(
 }
 
 /**
- * Validate Cargo package URL.
- * Cargo packages must not have a `namespace`. `name` must not contain injection characters.
+ * Validate Cargo package URL. Cargo packages must not have a `namespace`.
+ * `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

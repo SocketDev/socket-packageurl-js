@@ -1,8 +1,8 @@
 /* oxlint-disable socket/prefer-cached-for-loop -- one-shot build script, not a hot path. */
 /**
- * @fileoverview Build runner. Wraps rolldown's programmatic API behind
- * the same CLI surface (--src, --types, --watch, --analyze, --needed)
- * the rest of the fleet's build scripts use.
+ * @file Build runner. Wraps rolldown's programmatic API behind the same CLI
+ *   surface (--src, --types, --watch, --analyze, --needed) the rest of the
+ *   fleet's build scripts use.
  */
 
 import { existsSync, statSync } from 'node:fs'
@@ -86,8 +86,8 @@ const rootPath = path.resolve(
 const distPath = path.join(rootPath, 'dist')
 
 /**
- * Build source code with rolldown.
- * Returns { exitCode, buildTime, outputs } for external logging.
+ * Build source code with rolldown. Returns { exitCode, buildTime, outputs } for
+ * external logging.
  */
 export async function buildSource(
   options: BuildSourceOptions = {},
@@ -140,8 +140,7 @@ export async function buildSource(
 }
 
 /**
- * Build TypeScript declarations.
- * Returns exitCode for external logging.
+ * Build TypeScript declarations. Returns exitCode for external logging.
  */
 export async function buildTypes(
   options: BuildTypesOptions = {},
@@ -185,10 +184,10 @@ export async function buildTypes(
 }
 
 /**
- * Walk the on-disk dist/ output and report file sizes. Replaces
- * esbuild's metafile analyzer — rolldown doesn't ship an equivalent
- * metafile by default, and the only consumer is this --analyze CLI
- * flag, so reading the produced files directly is enough.
+ * Walk the on-disk dist/ output and report file sizes. Replaces esbuild's
+ * metafile analyzer — rolldown doesn't ship an equivalent metafile by default,
+ * and the only consumer is this --analyze CLI flag, so reading the produced
+ * files directly is enough.
  */
 export function getBuildAnalysis(): BuildAnalysis {
   const files: Array<{ name: string; size: string }> = []

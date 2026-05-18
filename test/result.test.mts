@@ -21,7 +21,7 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Unit tests for Result type and functional error handling.
+ * @file Unit tests for Result type and functional error handling.
  */
 import { describe, expect, it } from 'vitest'
 

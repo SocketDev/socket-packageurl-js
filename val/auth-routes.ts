@@ -1,9 +1,8 @@
 /**
- * @fileoverview Auth-route orchestrator.
- *
- * Composes the three auth-endpoint modules onto a shared Hono app so
- * the entry point can register everything with one call. Each module
- * owns its own sqlite + Hono imports — this file is just a dispatcher.
+ * @file Auth-route orchestrator. Composes the three auth-endpoint modules onto
+ *   a shared Hono app so the entry point can register everything with one call.
+ *   Each module owns its own sqlite + Hono imports — this file is just a
+ *   dispatcher.
  */
 
 import type { Context, Hono, Next } from 'npm:hono@4.12.14'

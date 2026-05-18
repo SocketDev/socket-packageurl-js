@@ -65,7 +65,7 @@ A build-time validator in `scripts/tour.mts` enforces the
 - **Content-bearing, not generic.** `page`, `doc`, `content`, `item`
   are FORBIDDEN. Pick a word that would still be meaningful if you
   only saw it in a URL with no context.
-</constraints>
+  </constraints>
 
 <instructions>
 ## Decision procedure
@@ -291,11 +291,11 @@ again.
   pretty — use whatever the code naturally emits.
 - The filename is **code-shaped**, not content-shaped. TypeScript
   source files follow the convention of the ecosystem (kebab-case,
-  matching export names). This skill is for *content* filenames only.
+  matching export names). This skill is for _content_ filenames only.
 - The manifest exposes a **hash** or **date-based identifier** (e.g.
   a release slug, a git-sha-addressable blob). Use the hash; it's
   already optimal.
-</when-not-to-use>
+  </when-not-to-use>
 
 <further-reading>
 - [reference.md](./reference.md) — extended reference: edge cases,

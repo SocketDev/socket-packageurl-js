@@ -1,6 +1,6 @@
 /**
- * @fileoverview CPAN (Perl) PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/types-doc/cpan-definition.md
+ * @file CPAN (Perl) PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/types-doc/cpan-definition.md.
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -27,28 +27,29 @@ interface PurlObject {
 /**
  * Check if a Perl module exists on CPAN.
  *
- * Queries MetaCPAN API to verify module existence and retrieve
- * the latest version.
+ * Queries MetaCPAN API to verify module existence and retrieve the latest
+ * version.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if module exists
+ *   const result = await cpanExists('Moose')
+ *   // -> { exists: true, latestVersion: '2.2206' }
+ *
+ *   // Validate specific version
+ *   const result = await cpanExists('Moose', '2.2206')
+ *   // -> { exists: true, latestVersion: '2.2206' }
+ *
+ *   // Non-existent module
+ *   const result = await cpanExists('FakeModule')
+ *   // -> { exists: false, error: 'Module not found' }
+ *   ```
  *
  * @param name - Module name (e.g., `'Moose'`)
  * @param version - Optional version to validate (e.g., `'2.2206'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if module exists
- * const result = await cpanExists('Moose')
- * // -> { exists: true, latestVersion: '2.2206' }
- *
- * // Validate specific version
- * const result = await cpanExists('Moose', '2.2206')
- * // -> { exists: true, latestVersion: '2.2206' }
- *
- * // Non-existent module
- * const result = await cpanExists('FakeModule')
- * // -> { exists: false, error: 'Module not found' }
- * ```
  */
 export async function cpanExists(
   name: string,
@@ -122,8 +123,8 @@ export async function cpanExists(
 }
 
 /**
- * Validate CPAN package URL.
- * CPAN `namespace` (author/publisher ID) must be uppercase when present.
+ * Validate CPAN package URL. CPAN `namespace` (author/publisher ID) must be
+ * uppercase when present.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { namespace } = purl

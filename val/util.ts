@@ -1,10 +1,8 @@
 /**
- * @fileoverview Small helpers used across routes and middleware.
- *
- * `now` — seconds-since-epoch.
- * `getIp` — extract client IP honoring the TRUSTED_PROXY_HOPS setting.
- * `readBoundedJson` — read a request body, reject anything oversized.
- * `jsonError` — standard error envelope.
+ * @file Small helpers used across routes and middleware. `now` —
+ *   seconds-since-epoch. `getIp` — extract client IP honoring the
+ *   TRUSTED_PROXY_HOPS setting. `readBoundedJson` — read a request body, reject
+ *   anything oversized. `jsonError` — standard error envelope.
  */
 
 import type { Context } from 'npm:hono@4.12.14'

@@ -1,22 +1,18 @@
 /* oxlint-disable socket/sort-source-methods -- helpers ordered to match the audit pipeline (parse → resolve → score → report). */
 /* oxlint-disable socket/prefer-cached-for-loop -- one-shot audit script, not a hot path. */
 /**
- * @fileoverview Socket.dev malware audit for the tour pilot.
- *
- * Two entry points: `auditValDeps()` runs before the Val Town deploy
- * (scans the transitive closure of `npm:` specifiers imported by our
- * val files), and `auditCdnScripts()` runs after HTML generation
- * (scans the third-party scripts meander emits `<script src=>` tags for
- * — marked, highlight.js). Both fail-closed: a malware alert aborts
- * the deploy / generate step.
- *
- * Closure resolution is done locally via `pacote.manifest()` so we
- * don't depend on Val Town exposing its own deno.lock via API (it
- * doesn't). Same npm registry + semver resolution Deno uses at
- * runtime, so the local pacote tree matches what the val will load.
- *
- * API uses the built-in `SOCKET_PUBLIC_API_TOKEN` — no user secret
- * required, same pattern as socket-sdk-js's `check-new-deps` hook.
+ * @file Socket.dev malware audit for the tour pilot. Two entry points:
+ *   `auditValDeps()` runs before the Val Town deploy (scans the transitive
+ *   closure of `npm:` specifiers imported by our val files), and
+ *   `auditCdnScripts()` runs after HTML generation (scans the third-party
+ *   scripts meander emits `<script src=>` tags for — marked, highlight.js).
+ *   Both fail-closed: a malware alert aborts the deploy / generate step.
+ *   Closure resolution is done locally via `pacote.manifest()` so we don't
+ *   depend on Val Town exposing its own deno.lock via API (it doesn't). Same
+ *   npm registry + semver resolution Deno uses at runtime, so the local pacote
+ *   tree matches what the val will load. API uses the built-in
+ *   `SOCKET_PUBLIC_API_TOKEN` — no user secret required, same pattern as
+ *   socket-sdk-js's `check-new-deps` hook.
  */
 
 import { promises as fs } from 'node:fs'
@@ -59,12 +55,12 @@ const sdk = new SocketSdk(SOCKET_PUBLIC_API_TOKEN, { timeout: API_TIMEOUT_MS })
 // --- specifier extraction ---
 
 /**
- * Scan every file in `dir` matching `suffix`, read each in parallel,
- * and collect matches of `pattern` as `NpmDep`s tagged `source`. The
- * shared pipeline for both extractors below so all dedupe/parallelism
- * logic lives in one place. Reads are `Promise.allSettled` so a single
- * unreadable file doesn't abort the scan — failures collect into a
- * composite error and throw after the successful results are drained.
+ * Scan every file in `dir` matching `suffix`, read each in parallel, and
+ * collect matches of `pattern` as `NpmDep`s tagged `source`. The shared
+ * pipeline for both extractors below so all dedupe/parallelism logic lives in
+ * one place. Reads are `Promise.allSettled` so a single unreadable file doesn't
+ * abort the scan — failures collect into a composite error and throw after the
+ * successful results are drained.
  */
 export async function extractDepsFromDir(
   dir: string,
@@ -109,9 +105,9 @@ export async function extractDepsFromDir(
 }
 
 /**
- * Parse `npm:` specifiers out of every `.ts` file in `dir`. Deduped
- * by `name@version` string. Only direct deps — transitives come from
- * the pacote walk.
+ * Parse `npm:` specifiers out of every `.ts` file in `dir`. Deduped by
+ * `name@version` string. Only direct deps — transitives come from the pacote
+ * walk.
  */
 export async function extractNpmDepsFromDir(dir: string): Promise<NpmDep[]> {
   return extractDepsFromDir(dir, '.ts', NPM_SPECIFIER_RE, 'direct')
@@ -127,14 +123,14 @@ export async function extractCdnDepsFromDir(dir: string): Promise<NpmDep[]> {
 // --- transitive closure via pacote ---
 
 /**
- * Resolve each direct dep's transitive closure via pacote and return
- * a flat deduped list. Versions are resolved to exact (pacote returns
- * the manifest for the resolved version even when the spec is a range).
+ * Resolve each direct dep's transitive closure via pacote and return a flat
+ * deduped list. Versions are resolved to exact (pacote returns the manifest for
+ * the resolved version even when the spec is a range).
  *
- * We don't attempt to reach devDependencies — only runtime deps are
- * what Deno will actually fetch. Peer deps are optional and usually
- * satisfied by the consumer; skip unless they land in the graph by
- * being declared as regular dependencies elsewhere.
+ * We don't attempt to reach devDependencies — only runtime deps are what Deno
+ * will actually fetch. Peer deps are optional and usually satisfied by the
+ * consumer; skip unless they land in the graph by being declared as regular
+ * dependencies elsewhere.
  */
 export async function walkTransitiveClosure(
   directs: readonly NpmDep[],
@@ -232,8 +228,8 @@ export async function checkMalwareBatched(
 // --- public entry points ---
 
 /**
- * Audit the val's transitive npm dep closure. Throws on finding,
- * caller aborts the deploy.
+ * Audit the val's transitive npm dep closure. Throws on finding, caller aborts
+ * the deploy.
  */
 export async function auditValDeps(repoRoot: string): Promise<void> {
   const valDir = path.join(repoRoot, 'val')
@@ -254,9 +250,9 @@ export async function auditValDeps(repoRoot: string): Promise<void> {
 }
 
 /**
- * Audit the CDN scripts the generated tour HTML loads via
- * `<script src=https://unpkg.com/...>`. No transitive walk — CDN
- * bundles are preflight-built, their deps don't ship separately.
+ * Audit the CDN scripts the generated tour HTML loads via `<script
+ * src=https://unpkg.com/...>`. No transitive walk — CDN bundles are
+ * preflight-built, their deps don't ship separately.
  */
 export async function auditCdnScripts(tourDir: string): Promise<void> {
   const cdnDeps = await extractCdnDepsFromDir(tourDir)

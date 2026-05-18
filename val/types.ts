@@ -1,8 +1,6 @@
 /**
- * @fileoverview Shared types for the val.
- *
- * Keeps type signatures near the boundary so route modules and
- * middleware can share them without circular imports.
+ * @file Shared types for the val. Keeps type signatures near the boundary so
+ *   route modules and middleware can share them without circular imports.
  */
 
 export type AuthContext = { email: string; jti: string }

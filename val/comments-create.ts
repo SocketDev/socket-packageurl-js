@@ -1,9 +1,8 @@
 /**
- * @fileoverview POST /:slug/api/comments — create a new comment.
- *
- * Author is set from the JWT email (not from request body) so clients
- * cannot spoof identity. Comment body is validated for shape + length
- * before insertion; slug is validated against the path param regex.
+ * @file POST /:slug/api/comments — create a new comment. Author is set from the
+ *   JWT email (not from request body) so clients cannot spoof identity. Comment
+ *   body is validated for shape + length before insertion; slug is validated
+ *   against the path param regex.
  */
 
 import type { Context, Hono, Next } from 'npm:hono@4.12.14'

@@ -1,6 +1,6 @@
 /**
- * @fileoverview LuaRocks PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#luarocks
+ * @file LuaRocks PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#luarocks.
  */
 
 import { lowerVersion } from '../strings.mjs'
@@ -15,8 +15,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize LuaRocks package URL.
- * Lowercases `version` only.
+ * Normalize LuaRocks package URL. Lowercases `version` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerVersion(purl)

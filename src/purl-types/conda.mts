@@ -1,6 +1,6 @@
 /**
- * @fileoverview Conda-specific PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#conda
+ * @file Conda-specific PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#conda.
  */
 
 import { errorMessage } from '../error.mjs'
@@ -36,37 +36,39 @@ interface PurlObject {
  * other channels like `'defaults'`, `'anaconda'`, etc.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
- * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
+ * requests. Pass `{ cache }` option with a cache instance from
+ * `createTtlCache()`.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if package exists (defaults to conda-forge)
+ *   const result = await condaExists('numpy')
+ *   // -> { exists: true, latestVersion: '1.26.3' }
+ *
+ *   // Check with custom channel
+ *   const result = await condaExists('numpy', undefined, 'defaults')
+ *   // -> { exists: true, latestVersion: '1.26.3' }
+ *
+ *   // Validate specific version
+ *   const result = await condaExists('pandas', '2.1.4')
+ *   // -> { exists: true, latestVersion: '2.2.0' }
+ *
+ *   // With caching
+ *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'conda' })
+ *   const result = await condaExists('numpy', undefined, undefined, { cache })
+ *
+ *   // Non-existent package
+ *   const result = await condaExists('this-package-does-not-exist')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
  *
  * @param name - Package name (e.g., `'numpy'`, `'pandas'`)
  * @param version - Optional version to validate (e.g., `'1.24.3'`)
  * @param channel - Optional channel name (defaults to `'conda-forge'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if package exists (defaults to conda-forge)
- * const result = await condaExists('numpy')
- * // -> { exists: true, latestVersion: '1.26.3' }
- *
- * // Check with custom channel
- * const result = await condaExists('numpy', undefined, 'defaults')
- * // -> { exists: true, latestVersion: '1.26.3' }
- *
- * // Validate specific version
- * const result = await condaExists('pandas', '2.1.4')
- * // -> { exists: true, latestVersion: '2.2.0' }
- *
- * // With caching
- * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
- * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'conda' })
- * const result = await condaExists('numpy', undefined, undefined, { cache })
- *
- * // Non-existent package
- * const result = await condaExists('this-package-does-not-exist')
- * // -> { exists: false, error: 'Package not found' }
- * ```
  */
 export async function condaExists(
   name: string,
@@ -147,8 +149,7 @@ export async function condaExists(
 }
 
 /**
- * Normalize Conda package URL.
- * Lowercases `name` only.
+ * Normalize Conda package URL. Lowercases `name` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -156,8 +157,8 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate Conda package URL.
- * Conda packages must not have a `namespace`. `name` must not contain injection characters.
+ * Validate Conda package URL. Conda packages must not have a `namespace`.
+ * `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

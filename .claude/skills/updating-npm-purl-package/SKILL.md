@@ -141,6 +141,7 @@ Test key normalization differences:
 </action>
 
 For each supported type, compare how purl and our implementation normalize:
+
 - Type casing
 - Namespace casing and encoding
 - Name casing and encoding
@@ -163,14 +164,17 @@ For each identified gap, implement the feature:
 </action>
 
 For each missing URL type:
+
 1. Add case handler to `src/url-converter.ts` (both `toRepositoryUrl` and `toDownloadUrl`)
 2. Add test cases to `test/url-converter.test.mts`
 
 For each missing registry validator:
+
 1. Add function to `src/purl-exists.ts`
 2. Add test cases to corresponding `test/registry-*.test.mts`
 
 For normalization fixes:
+
 1. Update type handler in `src/purl-types/{type}.ts`
 2. Add edge case tests
 

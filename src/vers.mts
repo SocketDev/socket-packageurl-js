@@ -1,13 +1,11 @@
 /**
- * @fileoverview VERS (VErsion Range Specifier) implementation.
- *
- * Implements the VERS specification for version range matching.
- * VERS is a companion standard to PURL, currently in pre-standard draft
- * with Ecma submission planned for late 2026.
- *
- * **Early adoption warning:** The VERS spec is not yet finalized. This
- * implementation covers the semver scheme and common aliases (`npm`, `cargo`,
- * `golang`, etc.). Additional version schemes may be added as the spec matures.
+ * @file VERS (VErsion Range Specifier) implementation. Implements the VERS
+ *   specification for version range matching. VERS is a companion standard to
+ *   PURL, currently in pre-standard draft with Ecma submission planned for late
+ *   2026. **Early adoption warning:** The VERS spec is not yet finalized. This
+ *   implementation covers the semver scheme and common aliases (`npm`, `cargo`,
+ *   `golang`, etc.). Additional version schemes may be added as the spec
+ *   matures.
  *
  * @see https://github.com/package-url/vers-spec
  */
@@ -90,8 +88,8 @@ const regexSemverNumberedGroups = ObjectFreeze(
 )
 
 /**
- * Compare two prerelease identifier arrays per semver spec.
- * Returns `-1`, `0`, or `1`.
+ * Compare two prerelease identifier arrays per semver spec. Returns `-1`, `0`,
+ * or `1`.
  */
 export function comparePrereleases(a: string[], b: string[]): number {
   // No prerelease has higher precedence than any prerelease
@@ -142,9 +140,8 @@ export function comparePrereleases(a: string[], b: string[]): number {
 }
 
 /**
- * Compare two semver version strings.
- * Returns `-1` if `a < b`, `0` if `a === b`, `1` if `a > b`.
- * Build metadata is ignored per semver spec.
+ * Compare two semver version strings. Returns `-1` if `a < b`, `0` if `a ===
+ * b`, `1` if `a > b`. Build metadata is ignored per semver spec.
  */
 export function compareSemver(a: string, b: string): -1 | 0 | 1 {
   const pa = parseSemver(a)
@@ -243,19 +240,19 @@ export function parseSemver(version: string): SemverParts {
  * VERS (VErsion Range Specifier) parser and evaluator.
  *
  * **Early adoption:** The VERS spec is pre-standard draft. This implementation
- * supports semver-based schemes (`npm`, `cargo`, `golang`, `gem`, etc.). Additional
- * version schemes may be added as the spec matures.
+ * supports semver-based schemes (`npm`, `cargo`, `golang`, `gem`, etc.).
+ * Additional version schemes may be added as the spec matures.
  *
  * @example
- * ```typescript
- * const range = Vers.parse('vers:npm/>=1.0.0|<2.0.0')
- * range.contains('1.5.0')  // true
- * range.contains('2.0.0')  // false
- * range.toString()          // 'vers:npm/>=1.0.0|<2.0.0'
+ *   ```typescript
+ *   const range = Vers.parse('vers:npm/>=1.0.0|<2.0.0')
+ *   range.contains('1.5.0') // true
+ *   range.contains('2.0.0') // false
+ *   range.toString() // 'vers:npm/>=1.0.0|<2.0.0'
  *
- * // Wildcard matches all versions
- * Vers.parse('vers:semver/*').contains('999.0.0')  // true
- * ```
+ *   // Wildcard matches all versions
+ *   Vers.parse('vers:semver/*').contains('999.0.0') // true
+ *   ```
  */
 class Vers {
   readonly scheme: string
@@ -271,7 +268,9 @@ class Vers {
    * Parse a VERS string.
    *
    * @param versStr - VERS string (e.g., `'vers:npm/>=1.0.0|<2.0.0'`)
+   *
    * @returns `Vers` instance
+   *
    * @throws {PurlError} If the string is not a valid VERS
    */
   static parse(versStr: string): Vers {
@@ -282,7 +281,9 @@ class Vers {
    * Parse a VERS string.
    *
    * @param versStr - VERS string (e.g., `'vers:npm/>=1.0.0|<2.0.0'`)
+   *
    * @returns `Vers` instance
+   *
    * @throws {PurlError} If the string is not a valid VERS
    */
   static fromString(versStr: string): Vers {
@@ -357,8 +358,10 @@ class Vers {
    *
    * Implements the VERS containment algorithm for semver-based schemes.
    *
-   * @param version - Version string to check
+   * @param version - Version string to check.
+   *
    * @returns `true` if the version matches the range
+   *
    * @throws {PurlError} If the scheme is not supported
    */
   contains(version: string): boolean {

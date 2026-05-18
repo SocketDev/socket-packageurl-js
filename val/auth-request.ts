@@ -1,11 +1,9 @@
 /**
- * @fileoverview POST /auth/request — step 1 of email-login.
- *
- * User submits their email; we generate a 6-digit code, store a hash
- * of it in sqlite, and email the plaintext code. The response is
- * always `{ok: true}` regardless of whether the email was accepted,
- * so an attacker can't use this endpoint to enumerate which addresses
- * exist in our system.
+ * @file POST /auth/request — step 1 of email-login. User submits their email;
+ *   we generate a 6-digit code, store a hash of it in sqlite, and email the
+ *   plaintext code. The response is always `{ok: true}` regardless of whether
+ *   the email was accepted, so an attacker can't use this endpoint to enumerate
+ *   which addresses exist in our system.
  */
 
 import type { Hono } from 'npm:hono@4.12.14'

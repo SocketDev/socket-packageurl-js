@@ -1,6 +1,6 @@
 /**
- * @fileoverview Conan (C/C++) PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#conan
+ * @file Conan (C/C++) PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#conan.
  */
 
 import { PurlError } from '../error.mjs'
@@ -17,9 +17,8 @@ interface PurlObject {
 }
 
 /**
- * Validate Conan package URL.
- * If `namespace` is present, `qualifiers` are required.
- * If `channel` qualifier is present, `namespace` is required.
+ * Validate Conan package URL. If `namespace` is present, `qualifiers` are
+ * required. If `channel` qualifier is present, `namespace` is required.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (isNullishOrEmptyString(purl.namespace)) {

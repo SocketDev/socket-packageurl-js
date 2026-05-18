@@ -129,9 +129,9 @@ self.addEventListener('fetch', event => {
 
 /**
  * Cache-first with stale-while-revalidate: serve the cached response
- * immediately (instant), kick off a network refresh in the background
- * to update the cache for the next load. Misses fall through to a
- * fresh network fetch and cache the result.
+ * immediately (instant), kick off a network refresh in the background to update
+ * the cache for the next load. Misses fall through to a fresh network fetch and
+ * cache the result.
  */
 export async function cacheFirst(request) {
   const cache = await caches.open(CACHE_NAME)
@@ -163,8 +163,8 @@ export async function cacheFirst(request) {
 }
 
 /**
- * Network-first: try the network, fall back to cache only on failure.
- * Used for HTML navigations so a new deploy is always picked up.
+ * Network-first: try the network, fall back to cache only on failure. Used for
+ * HTML navigations so a new deploy is always picked up.
  */
 export async function networkFirst(request) {
   try {

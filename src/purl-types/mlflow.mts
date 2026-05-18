@@ -1,6 +1,6 @@
 /**
- * @fileoverview MLflow PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#mlflow
+ * @file MLflow PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#mlflow.
  */
 
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials'
@@ -17,8 +17,8 @@ interface PurlObject {
 }
 
 /**
- * Normalize MLflow package URL.
- * Lowercases `name` only if `repository_url` qualifier contains `'databricks'`.
+ * Normalize MLflow package URL. Lowercases `name` only if `repository_url`
+ * qualifier contains `'databricks'`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   const repoUrl = purl.qualifiers?.['repository_url']
@@ -29,8 +29,7 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate MLflow package URL.
- * MLflow packages must not have a `namespace`.
+ * Validate MLflow package URL. MLflow packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

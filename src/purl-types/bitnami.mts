@@ -1,6 +1,6 @@
 /**
- * @fileoverview Bitnami PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#bitnami
+ * @file Bitnami PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#bitnami.
  */
 
 import { lowerName } from '../strings.mjs'
@@ -15,8 +15,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize Bitnami package URL.
- * Lowercases `name` only.
+ * Normalize Bitnami package URL. Lowercases `name` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)

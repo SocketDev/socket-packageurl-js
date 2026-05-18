@@ -21,23 +21,21 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Main entry point for the `socket-packageurl-js` library.
+ * @file Main entry point for the `socket-packageurl-js` library. This library
+ *   provides a complete implementation of the Package URL (`purl`)
+ *   specification. Package URLs are used to identify and locate software
+ *   packages in a standardized way across different package management systems
+ *   and ecosystems. Core exports:
  *
- * This library provides a complete implementation of the Package URL (`purl`) specification.
- * Package URLs are used to identify and locate software packages in a standardized way
- * across different package management systems and ecosystems.
- *
- * Core exports:
- * - `PackageURL`: Main class for parsing and constructing package URLs
- * - `PurlBuilder`: Builder pattern for constructing package URLs
- * - `PurlType`: Type-specific normalization and validation rules
- * - `PurlComponent`: Component encoding/decoding utilities
- * - `PurlQualifierNames`: Known qualifier names from the specification
- *
- * Utility exports:
- * - `UrlConverter`: Convert between `purl`s and repository/download URLs
- * - `Result` utilities: Functional error handling with `Ok`/`Err` pattern
- * - Parsers: Modular parsers for ecosystem-specific package specifiers
+ *   - `PackageURL`: Main class for parsing and constructing package URLs
+ *   - `PurlBuilder`: Builder pattern for constructing package URLs
+ *   - `PurlType`: Type-specific normalization and validation rules
+ *   - `PurlComponent`: Component encoding/decoding utilities
+ *   - `PurlQualifierNames`: Known qualifier names from the specification Utility
+ *     exports:
+ *   - `UrlConverter`: Convert between `purl`s and repository/download URLs
+ *   - `Result` utilities: Functional error handling with `Ok`/`Err` pattern
+ *   - Parsers: Modular parsers for ecosystem-specific package specifiers
  */
 
 /* v8 ignore start - Re-export only file, no logic to test */

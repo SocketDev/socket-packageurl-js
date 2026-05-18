@@ -1,7 +1,7 @@
 /* oxlint-disable socket/prefer-cached-for-loop -- test code, not a hot path. */
 /**
- * @fileoverview Tests for VERS (VErsion Range Specifier) implementation.
- * Tests parsing, serialization, containment, and validation.
+ * @file Tests for VERS (VErsion Range Specifier) implementation. Tests parsing,
+ *   serialization, containment, and validation.
  */
 import { describe, expect, it } from 'vitest'
 

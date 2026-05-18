@@ -1,7 +1,7 @@
 /* max-file-lines: table -- centralized PURL component validators; per-type tables share injection-character logic. */
 /**
- * @fileoverview Validation functions for PURL components.
- * Ensures compliance with Package URL specification requirements and constraints.
+ * @file Validation functions for PURL components. Ensures compliance with
+ *   Package URL specification requirements and constraints.
  */
 import { PurlError, PurlInjectionError } from './error.mjs'
 import { isNullishOrEmptyString } from './lang.mjs'
@@ -44,6 +44,7 @@ export function validateEmptyByType(
 
 /**
  * Validate package name component.
+ *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 export function validateName(
@@ -78,6 +79,7 @@ export function validateName(
 
 /**
  * Validate package namespace component.
+ *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 export function validateNamespace(
@@ -110,12 +112,13 @@ export function validateNamespace(
 }
 
 /**
- * Validate that a component does not contain injection characters.
- * Shared helper to eliminate boilerplate across per-type validators.
+ * Validate that a component does not contain injection characters. Shared
+ * helper to eliminate boilerplate across per-type validators.
+ *
  * @throws {PurlInjectionError} When validation fails and `throws` is `true`.
- *   The error includes the specific character code, component name, and
- *   package type so callers can log, alert, or handle injection attempts
- *   at an elevated level.
+ *   The error includes the specific character code, component name, and package
+ *   type so callers can log, alert, or handle injection attempts at an elevated
+ *   level.
  */
 export function validateNoInjectionByType(
   type: string,
@@ -142,6 +145,7 @@ export function validateNoInjectionByType(
 
 /**
  * Validate qualifier key format and characters.
+ *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 export function validateQualifierKey(
@@ -206,6 +210,7 @@ export function validateQualifierKey(
 
 /**
  * Validate qualifiers object structure and keys.
+ *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 export function validateQualifiers(
@@ -285,6 +290,7 @@ export function validateQualifiers(
 
 /**
  * Validate that component is present and not empty.
+ *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 export function validateRequired(
@@ -306,6 +312,7 @@ export function validateRequired(
 
 /**
  * Validate that component is required for specific package type.
+ *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 export function validateRequiredByType(
@@ -328,6 +335,7 @@ export function validateRequiredByType(
 
 /**
  * Validate that value does not start with a number.
+ *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 export function validateStartsWithoutNumber(
@@ -352,6 +360,7 @@ export function validateStartsWithoutNumber(
 
 /**
  * Validate that value is a string type.
+ *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 export function validateStrings(
@@ -382,11 +391,13 @@ export function validateStrings(
 }
 
 /**
- * Validate subpath component.
- * Rejects command injection characters (`|`, `;`, `` ` ``, `$`, `<`, `>`, `\`) while allowing
- * characters that are legitimate in decoded subpaths (`?`, `#`, space, etc. which
- * get percent-encoded in the PURL string representation).
- * @throws {PurlInjectionError} When command injection characters found and `options.throws` is `true`.
+ * Validate subpath component. Rejects command injection characters (`|`, `;`,
+ * `` ` ``, `$`, `<`, `>`, `\`) while allowing characters that are legitimate in
+ * decoded subpaths (`?`, `#`, space, etc. which get percent-encoded in the PURL
+ * string representation).
+ *
+ * @throws {PurlInjectionError} When command injection characters found and
+ *   `options.throws` is `true`.
  * @throws {PurlError} When validation fails and `options.throws` is `true`.
  */
 export function validateSubpath(
@@ -418,6 +429,7 @@ export function validateSubpath(
 
 /**
  * Validate package type component format and characters.
+ *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
 export function validateType(
@@ -467,10 +479,12 @@ export function validateType(
 }
 
 /**
- * Validate package version component.
- * Rejects command injection characters (`|`, `;`, `` ` ``, `$`, `<`, `>`, `\`) while allowing
- * characters legitimate in version strings (`!`, `+`, `-`, `.`, `_`, `~`, space, `%`, `?`, `#`).
- * @throws {PurlInjectionError} When command injection characters found and `options.throws` is `true`.
+ * Validate package version component. Rejects command injection characters
+ * (`|`, `;`, `` ` ``, `$`, `<`, `>`, `\`) while allowing characters legitimate
+ * in version strings (`!`, `+`, `-`, `.`, `_`, `~`, space, `%`, `?`, `#`).
+ *
+ * @throws {PurlInjectionError} When command injection characters found and
+ *   `options.throws` is `true`.
  * @throws {PurlError} When validation fails and `options.throws` is `true`.
  */
 export function validateVersion(

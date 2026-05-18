@@ -1,6 +1,6 @@
 /**
- * @fileoverview RubyGems-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/types-doc/gem-definition.md
+ * @file RubyGems-specific PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/types-doc/gem-definition.md.
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -33,32 +33,34 @@ interface PurlObject {
  * version from the versions array.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
- * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
+ * requests. Pass `{ cache }` option with a cache instance from
+ * `createTtlCache()`.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if gem exists
+ *   const result = await gemExists('rails')
+ *   // -> { exists: true, latestVersion: '7.1.3' }
+ *
+ *   // Validate specific version
+ *   const result = await gemExists('rake', '13.0.0')
+ *   // -> { exists: true, latestVersion: '13.1.0' }
+ *
+ *   // With caching
+ *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'gem' })
+ *   const result = await gemExists('rails', undefined, { cache })
+ *
+ *   // Non-existent gem
+ *   const result = await gemExists('this-gem-does-not-exist')
+ *   // -> { exists: false, error: 'Gem not found' }
+ *   ```
  *
  * @param name - Gem name (e.g., `'rails'`, `'rake'`)
  * @param version - Optional version to validate (e.g., `'7.0.0'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if gem exists
- * const result = await gemExists('rails')
- * // -> { exists: true, latestVersion: '7.1.3' }
- *
- * // Validate specific version
- * const result = await gemExists('rake', '13.0.0')
- * // -> { exists: true, latestVersion: '13.1.0' }
- *
- * // With caching
- * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
- * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'gem' })
- * const result = await gemExists('rails', undefined, { cache })
- *
- * // Non-existent gem
- * const result = await gemExists('this-gem-does-not-exist')
- * // -> { exists: false, error: 'Gem not found' }
- * ```
  */
 export async function gemExists(
   name: string,
@@ -138,8 +140,8 @@ export async function gemExists(
 }
 
 /**
- * Validate RubyGem package URL.
- * Gem packages must not have a `namespace`. `name` must not contain injection characters.
+ * Validate RubyGem package URL. Gem packages must not have a `namespace`.
+ * `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

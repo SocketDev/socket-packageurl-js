@@ -1,8 +1,7 @@
 /**
- * @fileoverview OPAM-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
- *
- * OPAM is the OCaml package manager. Package names are lowercase.
+ * @file OPAM-specific PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst OPAM is
+ *   the OCaml package manager. Package names are lowercase.
  */
 
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.mjs'
@@ -17,8 +16,7 @@ interface PurlObject {
 }
 
 /**
- * Validate OPAM package URL.
- * OPAM packages must not have a `namespace`.
+ * Validate OPAM package URL. OPAM packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

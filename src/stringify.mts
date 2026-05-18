@@ -1,6 +1,6 @@
 /**
- * @fileoverview PURL string serialization.
- * Converts `PackageURL` instances to canonical PURL string format.
+ * @file PURL string serialization. Converts `PackageURL` instances to canonical
+ *   PURL string format.
  */
 
 import {
@@ -22,15 +22,16 @@ import type { QualifiersObject } from './purl-component.mjs'
  * Serializes a `PackageURL` object into its canonical string representation
  * according to the PURL specification.
  *
- * @param purl - `PackageURL` instance to stringify
- * @returns Canonical PURL string (e.g., `'pkg:npm/lodash@4.17.21'`)
- *
  * @example
- * ```typescript
- * const purl = new PackageURL('npm', undefined, 'lodash', '4.17.21')
- * stringify(purl)
- * // -> 'pkg:npm/lodash@4.17.21'
- * ```
+ *   ```typescript
+ *   const purl = new PackageURL('npm', undefined, 'lodash', '4.17.21')
+ *   stringify(purl)
+ *   // -> 'pkg:npm/lodash@4.17.21'
+ *   ```
+ *
+ * @param purl - `PackageURL` instance to stringify.
+ *
+ * @returns Canonical PURL string (e.g., `'pkg:npm/lodash@4.17.21'`)
  */
 export function stringify(purl: PackageURL): string {
   const type = isNonEmptyString(purl.type) ? encodeComponent(purl.type) : ''
@@ -40,19 +41,21 @@ export function stringify(purl: PackageURL): string {
 /**
  * Convert `PackageURL` instance to spec string (without scheme and type).
  *
- * Returns the package identity portion: `namespace/name@version?qualifiers#subpath`
- * This is the `purl` equivalent of an npm "spec" — the package identity without
- * the ecosystem prefix.
- *
- * @param purl - `PackageURL` instance to stringify
- * @returns Spec string (e.g., `'%40babel/core@7.0.0'` for `pkg:npm/%40babel/core@7.0.0`)
+ * Returns the package identity portion:
+ * `namespace/name@version?qualifiers#subpath` This is the `purl` equivalent of
+ * an npm "spec" — the package identity without the ecosystem prefix.
  *
  * @example
- * ```typescript
- * const purl = new PackageURL('npm', '@babel', 'core', '7.0.0')
- * stringifySpec(purl)
- * // -> '%40babel/core@7.0.0'
- * ```
+ *   ```typescript
+ *   const purl = new PackageURL('npm', '@babel', 'core', '7.0.0')
+ *   stringifySpec(purl)
+ *   // -> '%40babel/core@7.0.0'
+ *   ```
+ *
+ * @param purl - `PackageURL` instance to stringify.
+ *
+ * @returns Spec string (e.g., `'%40babel/core@7.0.0'` for
+ *   `pkg:npm/%40babel/core@7.0.0`)
  */
 export function stringifySpec(purl: PackageURL): string {
   const {

@@ -138,6 +138,7 @@ gh api repos/package-url/purl-spec/contents/PURL-TYPES.rst --jq '.content' | bas
 ```
 
 Compare the lists to identify:
+
 - New types in spec not yet implemented
 - Types we implement that may have changed rules
 - Deprecated types
@@ -159,6 +160,7 @@ diff <(cat test/data/spec/specification-test.json | python3 -m json.tool) <(cat 
 ```
 
 If changes exist:
+
 1. Review the diff for new test cases
 2. Copy updated test suite to `test/data/spec/specification-test.json`
 3. Run tests to identify failures
@@ -173,6 +175,7 @@ Check for spec clarifications affecting normalization or validation:
 </action>
 
 For each type with spec changes, review:
+
 - Case normalization rules (type, namespace, name)
 - Required vs optional qualifiers
 - Namespace separator rules
@@ -190,6 +193,7 @@ Apply necessary code changes (interactive mode: confirm with user first):
 </action>
 
 For each required change:
+
 1. Update type handler in `src/purl-types/`
 2. Add or update tests in `test/`
 3. Update type-specific test data in `test/data/types/`

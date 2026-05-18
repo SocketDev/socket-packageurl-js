@@ -1,8 +1,8 @@
 /* oxlint-disable socket/prefer-cached-for-loop -- one-shot build config, not a hot path. */
 /**
- * @fileoverview Rolldown configuration. Mirrors the esbuild config in
- * `esbuild.config.mjs` for byte-equivalent output during the migration
- * dual-build phase. See `docs/rolldown-migration.md`.
+ * @file Rolldown configuration. Mirrors the esbuild config in
+ *   `esbuild.config.mjs` for byte-equivalent output during the migration
+ *   dual-build phase. See `docs/rolldown-migration.md`.
  */
 
 import { builtinModules } from 'node:module'
@@ -26,9 +26,9 @@ type PackageInfo = {
 }
 
 /**
- * Build a map from original paths to shortened paths. Includes the
- * version only when multiple versions of the same package would
- * collapse to the same short path.
+ * Build a map from original paths to shortened paths. Includes the version only
+ * when multiple versions of the same package would collapse to the same short
+ * path.
  */
 export function buildPathMap(
   modulePaths: ReadonlySet<string>,
@@ -72,16 +72,15 @@ export function buildPathMap(
 }
 
 /**
- * Replace pnpm node_modules paths with short package-relative paths in
- * the rendered bundle. Mirrors esbuild's `createPathShorteningPlugin`.
+ * Replace pnpm node_modules paths with short package-relative paths in the
+ * rendered bundle. Mirrors esbuild's `createPathShorteningPlugin`.
  *
- * Uses `generateBundle` so the rewrite happens in memory before write.
- * Operates on the rendered chunk text directly (not an AST round-trip)
- * because rolldown's CJS output uses path strings inside string
- * literals + comment markers, both reachable via plain regex/string
- * scanning. Avoiding the AST cost trims build time and keeps the
- * dependency graph lean (no @babel/parser, no magic-string at build
- * time).
+ * Uses `generateBundle` so the rewrite happens in memory before write. Operates
+ * on the rendered chunk text directly (not an AST round-trip) because
+ * rolldown's CJS output uses path strings inside string literals + comment
+ * markers, both reachable via plain regex/string scanning. Avoiding the AST
+ * cost trims build time and keeps the dependency graph lean (no @babel/parser,
+ * no magic-string at build time).
  */
 export function createPathShorteningPlugin(): Plugin {
   return {
@@ -170,10 +169,10 @@ const externals = [...builtinModules, ...builtinModules.map(m => `node:${m}`)]
 
 /**
  * Two standalone configs, one per public entry point. Mirrors esbuild's
- * `splitting: false` behavior: each entry gets a self-contained bundle
- * with no shared chunks. socket-packageurl-js publishes `dist/index.js`
- * and `dist/exists.js` as separate require()-able files; consumers
- * shouldn't have to know about a shared chunk in `dist/chunks/`.
+ * `splitting: false` behavior: each entry gets a self-contained bundle with no
+ * shared chunks. socket-packageurl-js publishes `dist/index.js` and
+ * `dist/exists.js` as separate require()-able files; consumers shouldn't have
+ * to know about a shared chunk in `dist/chunks/`.
  */
 const baseConfig = {
   external: externals,

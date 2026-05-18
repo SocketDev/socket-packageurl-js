@@ -1,10 +1,8 @@
 /**
- * @fileoverview POST /auth/verify — step 2 of email-login.
- *
- * User submits the email + the 6-digit code they received. We check
- * the hash matches a pending login_codes row that hasn't expired or
- * been used yet. If so, we mint a JWT and mark the code consumed so
- * it can't be re-used.
+ * @file POST /auth/verify — step 2 of email-login. User submits the email + the
+ *   6-digit code they received. We check the hash matches a pending login_codes
+ *   row that hasn't expired or been used yet. If so, we mint a JWT and mark the
+ *   code consumed so it can't be re-used.
  */
 
 import type { Hono } from 'npm:hono@4.12.14'

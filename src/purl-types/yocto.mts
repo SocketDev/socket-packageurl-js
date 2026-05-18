@@ -1,9 +1,8 @@
 /**
- * @fileoverview Yocto-specific PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
- *
- * Yocto Project packages (recipes) for embedded Linux distributions.
- * Package names are typically lowercase with hyphens.
+ * @file Yocto-specific PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst Yocto
+ *   Project packages (recipes) for embedded Linux distributions. Package names
+ *   are typically lowercase with hyphens.
  */
 
 import { lowerName } from '../strings.mjs'
@@ -19,8 +18,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize Yocto package URL.
- * Lowercases `name`.
+ * Normalize Yocto package URL. Lowercases `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -28,8 +26,7 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate Yocto package URL.
- * Yocto packages must not have a `namespace`.
+ * Validate Yocto package URL. Yocto packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

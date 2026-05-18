@@ -1,6 +1,6 @@
 /**
- * @fileoverview Hugging Face PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#huggingface
+ * @file Hugging Face PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#huggingface.
  */
 
 import { lowerVersion } from '../strings.mjs'
@@ -15,8 +15,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize Hugging Face package URL.
- * Lowercases `version` only.
+ * Normalize Hugging Face package URL. Lowercases `version` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerVersion(purl)

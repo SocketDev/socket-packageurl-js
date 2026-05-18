@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for Cargo (crates.io) registry existence checks.
+ * @file Tests for Cargo (crates.io) registry existence checks.
  */
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'

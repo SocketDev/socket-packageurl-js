@@ -1,9 +1,8 @@
 /**
- * @fileoverview Socket-specific PURL type (minimal implementation).
- *
- * The socket type is a non-standard type used internally by Socket.dev
- * for package identification. It has no specific normalization or validation
- * rules beyond the base PURL spec.
+ * @file Socket-specific PURL type (minimal implementation). The socket type is
+ *   a non-standard type used internally by Socket.dev for package
+ *   identification. It has no specific normalization or validation rules beyond
+ *   the base PURL spec.
  */
 
 interface PurlObject {
@@ -16,8 +15,8 @@ interface PurlObject {
 }
 
 /**
- * Normalize socket package URL.
- * No type-specific normalization for socket packages.
+ * Normalize socket package URL. No type-specific normalization for socket
+ * packages.
  */
 export function normalize(purl: PurlObject): PurlObject {
   return purl

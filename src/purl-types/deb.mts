@@ -1,6 +1,6 @@
 /**
- * @fileoverview Debian package PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#deb
+ * @file Debian package PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#deb.
  */
 
 import { lowerName, lowerNamespace } from '../strings.mjs'
@@ -15,8 +15,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize Debian package URL.
- * Lowercases both `namespace` and `name`.
+ * Normalize Debian package URL. Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)

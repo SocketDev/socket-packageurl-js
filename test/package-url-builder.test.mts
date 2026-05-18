@@ -21,7 +21,7 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Unit tests for PurlBuilder class.
+ * @file Unit tests for PurlBuilder class.
  */
 import { describe, expect, it } from 'vitest'
 

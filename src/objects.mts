@@ -1,6 +1,6 @@
 /**
- * @fileoverview Object utility functions for type checking and immutable object creation.
- * Provides object validation and recursive freezing utilities.
+ * @file Object utility functions for type checking and immutable object
+ *   creation. Provides object validation and recursive freezing utilities.
  */
 
 import { LOOP_SENTINEL } from './constants.mjs'
@@ -14,9 +14,9 @@ import {
 } from '@socketsecurity/lib/primordials'
 
 /**
- * Check if value is a non-null object.
- * Inlined to avoid importing `@socketsecurity/lib/objects` which transitively
- * pulls in `sorts` → `semver` → `npm-pack` (2.5 MB).
+ * Check if value is a non-null object. Inlined to avoid importing
+ * `@socketsecurity/lib/objects` which transitively pulls in `sorts` → `semver`
+ * → `npm-pack` (2.5 MB).
  */
 export function isObject(
   value: unknown,
@@ -25,8 +25,9 @@ export function isObject(
 }
 
 /**
- * Recursively freeze an object and all nested objects.
- * Uses breadth-first traversal with a queue for memory efficiency.
+ * Recursively freeze an object and all nested objects. Uses breadth-first
+ * traversal with a queue for memory efficiency.
+ *
  * @throws {Error} When object graph too large or circular reference detected.
  */
 export function recursiveFreeze<T>(value_: T): T {

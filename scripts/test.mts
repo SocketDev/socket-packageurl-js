@@ -1,8 +1,8 @@
 /* oxlint-disable socket/prefer-cached-for-loop -- one-shot test runner, not a hot path. */
 /* max-file-lines: legitimate -- single-purpose CLI script; splitting would obscure the linear test runner flow. */
 /**
- * @fileoverview Unified test runner that provides a smooth, single-script experience.
- * Combines check, build, and test steps with clean, consistent output.
+ * @file Unified test runner that provides a smooth, single-script experience.
+ *   Combines check, build, and test steps with clean, consistent output.
  */
 
 import { existsSync } from 'node:fs'

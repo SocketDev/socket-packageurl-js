@@ -1,6 +1,6 @@
 /**
- * @fileoverview Maven-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/types-doc/maven-definition.md
+ * @file Maven-specific PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/types-doc/maven-definition.md.
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -29,30 +29,35 @@ interface PurlObject {
 /**
  * Check if a Maven package exists in Maven Central.
  *
- * Queries `search.maven.org` API to verify package existence and retrieve
- * the latest version. Maven packages are identified by group ID (`namespace`)
- * and artifact ID (`name`).
+ * Queries `search.maven.org` API to verify package existence and retrieve the
+ * latest version. Maven packages are identified by group ID (`namespace`) and
+ * artifact ID (`name`).
+ *
+ * @example
+ *   ```typescript
+ *   // Check if package exists
+ *   const result = await mavenExists('commons-lang3', 'org.apache.commons')
+ *   // -> { exists: true, latestVersion: '3.12.0' }
+ *
+ *   // Validate specific version
+ *   const result = await mavenExists(
+ *     'commons-lang3',
+ *     'org.apache.commons',
+ *     '3.12.0',
+ *   )
+ *   // -> { exists: true, latestVersion: '3.12.0' }
+ *
+ *   // Non-existent package
+ *   const result = await mavenExists('fake-artifact', 'com.example')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
  *
  * @param name - Artifact ID (e.g., `'commons-lang3'`)
  * @param namespace - Group ID (e.g., `'org.apache.commons'`)
  * @param version - Optional version to validate (e.g., `'3.12.0'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if package exists
- * const result = await mavenExists('commons-lang3', 'org.apache.commons')
- * // -> { exists: true, latestVersion: '3.12.0' }
- *
- * // Validate specific version
- * const result = await mavenExists('commons-lang3', 'org.apache.commons', '3.12.0')
- * // -> { exists: true, latestVersion: '3.12.0' }
- *
- * // Non-existent package
- * const result = await mavenExists('fake-artifact', 'com.example')
- * // -> { exists: false, error: 'Package not found' }
- * ```
  */
 export async function mavenExists(
   name: string,
@@ -151,9 +156,8 @@ export async function mavenExists(
 }
 
 /**
- * Validate Maven package URL.
- * Maven packages require a `namespace` (`groupId`). `name` and `namespace` must not
- * contain injection characters.
+ * Validate Maven package URL. Maven packages require a `namespace` (`groupId`).
+ * `name` and `namespace` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

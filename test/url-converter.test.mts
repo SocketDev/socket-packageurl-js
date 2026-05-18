@@ -22,7 +22,7 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Unit tests for URL conversion functionality.
+ * @file Unit tests for URL conversion functionality.
  */
 import { describe, expect, it } from 'vitest'
 

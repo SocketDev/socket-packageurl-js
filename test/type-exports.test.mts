@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for TypeScript type exports accessibility
+ * @file Tests for TypeScript type exports accessibility
  */
 
 import { describe, expect, it } from 'vitest'

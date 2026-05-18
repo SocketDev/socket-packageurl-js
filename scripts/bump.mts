@@ -1,8 +1,9 @@
 /* max-file-lines: legitimate -- single-purpose CLI script; splitting would obscure the linear command flow. */
 /**
- * @fileoverview Version bump script with AI-powered changelog generation.
- * Creates version bump commits with package.json, lockfile, and changelog updates.
- * Includes interactive mode for reviewing and refining AI-generated changelogs.
+ * @file Version bump script with AI-powered changelog generation. Creates
+ *   version bump commits with package.json, lockfile, and changelog updates.
+ *   Includes interactive mode for reviewing and refining AI-generated
+ *   changelogs.
  */
 
 import { existsSync, promises as fs } from 'node:fs'
@@ -114,7 +115,8 @@ export async function checkClaude(): Promise<string | false> {
 
 /**
  * Check if we're on the main branch (with `master` fallback for legacy repos).
- * inclusive-language: external-api — `master` is a real branch name in legacy repos.
+ * inclusive-language: external-api — `master` is a real branch name in legacy
+ * repos.
  */
 export async function checkGitBranch(): Promise<boolean> {
   const result = await runCommandWithOutput('git', [
@@ -304,8 +306,8 @@ export async function getRecentCommits(count: number = 20): Promise<string> {
 }
 
 /**
- * Interactive review using advanced prompts.
- * Provides a better user experience with select menus and structured feedback.
+ * Interactive review using advanced prompts. Provides a better user experience
+ * with select menus and structured feedback.
  */
 export async function interactiveReviewChangelog(
   claudeCmd: string,
@@ -503,8 +505,8 @@ export async function readPackageJson(
 }
 
 /**
- * Review and refine changelog with user feedback.
- * Uses interactive prompts if available, falls back to basic readline prompts.
+ * Review and refine changelog with user feedback. Uses interactive prompts if
+ * available, falls back to basic readline prompts.
  */
 export async function reviewChangelog(
   claudeCmd: string,

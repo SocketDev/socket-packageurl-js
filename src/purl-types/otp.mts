@@ -1,9 +1,8 @@
 /**
- * @fileoverview OTP (Erlang/OTP) PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
- *
- * OTP packages are Erlang/OTP libraries and applications.
- * Package names are typically lowercase.
+ * @file OTP (Erlang/OTP) PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst OTP
+ *   packages are Erlang/OTP libraries and applications. Package names are
+ *   typically lowercase.
  */
 
 import { lowerName } from '../strings.mjs'
@@ -19,8 +18,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize OTP package URL.
- * Lowercases `name`.
+ * Normalize OTP package URL. Lowercases `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -28,8 +26,7 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate OTP package URL.
- * OTP packages must not have a `namespace`.
+ * Validate OTP package URL. OTP packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

@@ -1,24 +1,23 @@
 /**
- * @fileoverview Main Vitest configuration for concurrent test execution.
+ * @file Main Vitest configuration for concurrent test execution. USE THIS
+ *   CONFIG FOR:
  *
- * USE THIS CONFIG FOR:
- * - Standard test files (*.test.mts)
- * - Tests that don't modify global objects
- * - Tests that don't require vi.doMock() or dynamic module mocking
- * - All tests that can run concurrently without interference
- *
- * PERFORMANCE OPTIMIZATIONS:
- * - pool: 'threads' - Fast worker threads vs slower process forks
- * - isolate: false - Shared worker context for better nock/vi.mock() compatibility
- * - concurrent: true - Tests run in parallel within suites
- * - Adaptive thread count - More threads in dev, single thread for coverage
- *
- * FOR ISOLATED TESTS:
- * Use .config/vitest.config.isolated.mts for tests requiring:
- * - Global object mocking (global.URL, global.process, etc.)
- * - vi.doMock() with dynamic module replacement
- * - Full process isolation between tests
- * - File naming: *.isolated.test.mts suffix
+ *   - Standard test files (*.test.mts)
+ *   - Tests that don't modify global objects
+ *   - Tests that don't require vi.doMock() or dynamic module mocking
+ *   - All tests that can run concurrently without interference PERFORMANCE
+ *     OPTIMIZATIONS:
+ *   - pool: 'threads' - Fast worker threads vs slower process forks
+ *   - isolate: false - Shared worker context for better nock/vi.mock()
+ *     compatibility
+ *   - concurrent: true - Tests run in parallel within suites
+ *   - Adaptive thread count - More threads in dev, single thread for coverage FOR
+ *     ISOLATED TESTS: Use .config/vitest.config.isolated.mts for tests
+ *     requiring:
+ *   - Global object mocking (global.URL, global.process, etc.)
+ *   - vi.doMock() with dynamic module replacement
+ *   - Full process isolation between tests
+ *   - File naming: *.isolated.test.mts suffix
  */
 import process from 'node:process'
 

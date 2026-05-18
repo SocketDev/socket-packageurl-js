@@ -1,6 +1,6 @@
 /**
- * @fileoverview Unified check runner with flag-based configuration.
- * Runs code quality checks: ESLint and TypeScript type checking.
+ * @file Unified check runner with flag-based configuration. Runs code quality
+ *   checks: ESLint and TypeScript type checking.
  */
 
 import process from 'node:process'

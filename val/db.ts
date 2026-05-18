@@ -1,13 +1,10 @@
 /**
- * @fileoverview Database init + retention cleanup.
- *
- * `ensureDb` is an awaitable module-level Promise that creates tables
- * if missing. Route handlers `await ensureDb` at the top so cold
- * starts build the schema before the first query.
- *
- * `cleanOldRows` purges expired login codes, verify-attempt history,
- * stale revocations, and old audit log entries. Called from
- * `/auth/request` (low frequency) so we don't need a separate cron.
+ * @file Database init + retention cleanup. `ensureDb` is an awaitable
+ *   module-level Promise that creates tables if missing. Route handlers `await
+ *   ensureDb` at the top so cold starts build the schema before the first
+ *   query. `cleanOldRows` purges expired login codes, verify-attempt history,
+ *   stale revocations, and old audit log entries. Called from `/auth/request`
+ *   (low frequency) so we don't need a separate cron.
  */
 
 import { sqlite } from 'https://esm.town/v/std/sqlite/main.ts'

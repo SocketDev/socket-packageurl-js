@@ -1,10 +1,8 @@
 /**
- * @fileoverview Pure crypto helpers — JWT sign/verify, SHA-256, base64url,
- * 6-digit login code generation.
- *
- * No platform dependencies (Val Town or Deno). Web Crypto API is available
- * in Node 20+ and all modern runtimes, so this module is directly testable
- * under node:test.
+ * @file Pure crypto helpers — JWT sign/verify, SHA-256, base64url, 6-digit
+ *   login code generation. No platform dependencies (Val Town or Deno). Web
+ *   Crypto API is available in Node 20+ and all modern runtimes, so this module
+ *   is directly testable under node:test.
  */
 
 const encoder = new TextEncoder()

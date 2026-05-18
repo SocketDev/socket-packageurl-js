@@ -1,8 +1,8 @@
 /**
- * @fileoverview Tests for PurlBuilder static factory methods.
- * Covers all type-specific factory methods not exercised by the existing
- * package-url-builder.test.mts (which only tests npm, pypi, maven, gem,
- * golang, cargo, nuget, composer via it.each).
+ * @file Tests for PurlBuilder static factory methods. Covers all type-specific
+ *   factory methods not exercised by the existing package-url-builder.test.mts
+ *   (which only tests npm, pypi, maven, gem, golang, cargo, nuget, composer via
+ *   it.each).
  */
 import { describe, expect, it } from 'vitest'
 

@@ -1,14 +1,16 @@
 /**
- * @fileoverview Registry existence check functions.
- *
- * This module provides functions to check if packages exist in their
- * respective registries. Separated from the core module to allow
- * consumers to import the parser without pulling in HTTP dependencies.
+ * @file Registry existence check functions. This module provides functions to
+ *   check if packages exist in their respective registries. Separated from the
+ *   core module to allow consumers to import the parser without pulling in HTTP
+ *   dependencies.
  *
  * @example
- * ```typescript
- * import { npmExists, purlExists } from '@socketregistry/packageurl-js/exists'
- * ```
+ *   ```typescript
+ *   import {
+ *     npmExists,
+ *     purlExists,
+ *   } from '@socketregistry/packageurl-js/exists'
+ *   ```
  */
 
 /* v8 ignore start - Re-export only file, no logic to test */

@@ -26,12 +26,12 @@ This document provides detailed information about upstream PURL and VERS specifi
 
 **Key files to monitor:**
 
-| File | Purpose |
-|------|---------|
-| `PURL-SPECIFICATION.rst` | Core PURL grammar and rules |
-| `PURL-TYPES.rst` | Type definitions and normalization rules |
-| `test-suite-data.json` | Official compliance test suite |
-| `CONTRIBUTING.md` | Contribution and type registration process |
+| File                     | Purpose                                    |
+| ------------------------ | ------------------------------------------ |
+| `PURL-SPECIFICATION.rst` | Core PURL grammar and rules                |
+| `PURL-TYPES.rst`         | Type definitions and normalization rules   |
+| `test-suite-data.json`   | Official compliance test suite             |
+| `CONTRIBUTING.md`        | Contribution and type registration process |
 
 **Fetching spec content:**
 
@@ -52,11 +52,11 @@ gh api repos/package-url/purl-spec/contents/test-suite-data.json --jq '.content'
 
 **Key files:**
 
-| File | Purpose |
-|------|---------|
-| `VERSION-RANGE-SPEC.rst` | Version range specification |
-| `specification.md` | Updated specification format |
-| `tests.md` | Test overview and cases |
+| File                     | Purpose                      |
+| ------------------------ | ---------------------------- |
+| `VERSION-RANGE-SPEC.rst` | Version range specification  |
+| `specification.md`       | Updated specification format |
+| `tests.md`               | Test overview and cases      |
 
 **Fetching:**
 
@@ -71,6 +71,7 @@ gh api repos/package-url/vers-spec/contents/VERSION-RANGE-SPEC.rst --jq '.conten
 **Standard:** ECMA-427, Edition 1st (published December 10, 2025)
 
 **What to check:**
+
 - New editions or errata
 - TC54-TG2 meeting notes for upcoming changes
 - Ratified amendments
@@ -82,6 +83,7 @@ gh api repos/package-url/vers-spec/contents/VERSION-RANGE-SPEC.rst --jq '.conten
 **Author:** Jordan Harband
 
 **What to check:**
+
 - New version releases and changelogs
 - API additions (functions, methods)
 - Type support changes
@@ -112,6 +114,7 @@ vscode-extension, yocto
 ### Type Handler Location
 
 Each type has a handler at `src/purl-types/{type}.ts` implementing:
+
 - Normalization rules (case, separators)
 - Validation rules (required components, constraints)
 - Registry existence checking
@@ -147,27 +150,27 @@ diff <(gh api repos/package-url/purl-spec/contents/PURL-TYPES.rst --jq '.content
 scheme:type/namespace/name@version?qualifiers#subpath
 ```
 
-| Component | Required | Rules |
-|-----------|----------|-------|
-| scheme | Yes | Always `pkg` |
-| type | Yes | Lowercase, no encoding |
-| namespace | No | Type-specific case rules |
-| name | Yes | Type-specific case rules |
-| version | No | Type-specific encoding |
-| qualifiers | No | Key=value pairs, sorted |
-| subpath | No | Path segments, no leading/trailing `/` |
+| Component  | Required | Rules                                  |
+| ---------- | -------- | -------------------------------------- |
+| scheme     | Yes      | Always `pkg`                           |
+| type       | Yes      | Lowercase, no encoding                 |
+| namespace  | No       | Type-specific case rules               |
+| name       | Yes      | Type-specific case rules               |
+| version    | No       | Type-specific encoding                 |
+| qualifiers | No       | Key=value pairs, sorted                |
+| subpath    | No       | Path segments, no leading/trailing `/` |
 
 ### Known Qualifier Names
 
 From `src/purl-qualifier-names.ts`:
 
-| Qualifier | Purpose |
-|-----------|---------|
+| Qualifier        | Purpose                    |
+| ---------------- | -------------------------- |
 | `repository_url` | Alternative repository URL |
-| `download_url` | Direct download URL |
-| `vcs_url` | Version control URL |
-| `file_name` | File name |
-| `checksum` | Integrity checksum |
+| `download_url`   | Direct download URL        |
+| `vcs_url`        | Version control URL        |
+| `file_name`      | File name                  |
+| `checksum`       | Integrity checksum         |
 
 ### Encoding Rules
 
@@ -219,6 +222,7 @@ VERS is **not yet implemented** in socket-packageurl-js. When implementing:
 ### What Differs from purl-spec
 
 ECMA-427 formalizes the purl-spec with:
+
 - Formal grammar definitions
 - Normative encoding requirements
 - Standardized error handling
@@ -232,6 +236,7 @@ ECMA-427 formalizes the purl-spec with:
 ```
 
 Key events to watch:
+
 - TC54-TG2 meetings (regular cadence)
 - PURL Community meetings
 - New ECMA-427 editions
@@ -243,6 +248,7 @@ Key events to watch:
 ### Overview
 
 The `purl` npm package (by Jordan Harband) is a reference implementation worth monitoring for:
+
 - New API patterns we should consider
 - Type support additions
 - Normalization behavior differences
@@ -252,24 +258,25 @@ The `purl` npm package (by Jordan Harband) is a reference implementation worth m
 
 ```typescript
 // Key functions
-parse(purlString)      // Parse PURL string
-stringify(purlObject)  // Serialize to string
-normalize(purl)        // Normalize PURL
-validate(purl)         // Validate PURL
-eq(a, b)               // Equality comparison
-compare(a, b)          // Ordering comparison
+parse(purlString) // Parse PURL string
+stringify(purlObject) // Serialize to string
+normalize(purl) // Normalize PURL
+validate(purl) // Validate PURL
+eq(a, b) // Equality comparison
+compare(a, b) // Ordering comparison
 
 // Component accessors
-type, namespace, name, version, qualifiers, subpath
+;(type, namespace, name, version, qualifiers, subpath)
 
 // Registry features
-registryUrl(purl)      // Generate registry URL
-exists(purl)           // Check registry existence
+registryUrl(purl) // Generate registry URL
+exists(purl) // Check registry existence
 ```
 
 ### Comparison Points
 
 When syncing, compare:
+
 - Which types does `purl` support that we don't?
 - Do normalization behaviors differ?
 - Are there new qualifier conventions?
@@ -285,6 +292,7 @@ When syncing, compare:
 **Local copy:** `test/data/spec/specification-test.json`
 
 **Structure:**
+
 ```json
 [
   {
@@ -327,6 +335,7 @@ These are additional tests beyond the official suite. They are maintained locall
 **Location:** `test/data/types/{type}.json` (35 files)
 
 These contain ecosystem-specific edge cases. Update when:
+
 - A new type is added
 - Type normalization rules change
 - New edge cases are discovered
@@ -337,27 +346,27 @@ These contain ecosystem-specific edge cases. Update when:
 
 ### Case Normalization by Type
 
-| Type | Namespace | Name | Notes |
-|------|-----------|------|-------|
-| npm | as-is | lowercase (adaptive) | Legacy names preserve case |
-| pypi | N/A | lowercase, `-` → `-` | PEP 503 normalization |
-| maven | as-is | as-is | Case-sensitive |
-| golang | lowercase | lowercase | Per Go module spec |
-| github | lowercase | lowercase | GitHub is case-insensitive |
-| gitlab | lowercase | lowercase | GitLab is case-insensitive |
-| bitbucket | lowercase | lowercase | Bitbucket is case-insensitive |
-| docker/oci | lowercase | lowercase | OCI spec requires lowercase |
-| composer | lowercase | lowercase | Packagist normalizes |
-| hex | N/A | lowercase | Hex.pm normalizes |
-| cargo | N/A | lowercase | Crates.io normalizes |
-| nuget | lowercase | lowercase | NuGet is case-insensitive |
-| gem | N/A | as-is | RubyGems preserves case |
-| deb | N/A | lowercase | Debian convention |
-| rpm | as-is | as-is | RPM preserves case |
-| cocoapods | N/A | as-is | CocoaPods preserves case |
-| swift | as-is | as-is | Swift PM preserves case |
-| pub | N/A | lowercase | pub.dev normalizes |
-| huggingface | as-is | as-is | HF preserves case |
+| Type        | Namespace | Name                 | Notes                         |
+| ----------- | --------- | -------------------- | ----------------------------- |
+| npm         | as-is     | lowercase (adaptive) | Legacy names preserve case    |
+| pypi        | N/A       | lowercase, `-` → `-` | PEP 503 normalization         |
+| maven       | as-is     | as-is                | Case-sensitive                |
+| golang      | lowercase | lowercase            | Per Go module spec            |
+| github      | lowercase | lowercase            | GitHub is case-insensitive    |
+| gitlab      | lowercase | lowercase            | GitLab is case-insensitive    |
+| bitbucket   | lowercase | lowercase            | Bitbucket is case-insensitive |
+| docker/oci  | lowercase | lowercase            | OCI spec requires lowercase   |
+| composer    | lowercase | lowercase            | Packagist normalizes          |
+| hex         | N/A       | lowercase            | Hex.pm normalizes             |
+| cargo       | N/A       | lowercase            | Crates.io normalizes          |
+| nuget       | lowercase | lowercase            | NuGet is case-insensitive     |
+| gem         | N/A       | as-is                | RubyGems preserves case       |
+| deb         | N/A       | lowercase            | Debian convention             |
+| rpm         | as-is     | as-is                | RPM preserves case            |
+| cocoapods   | N/A       | as-is                | CocoaPods preserves case      |
+| swift       | as-is     | as-is                | Swift PM preserves case       |
+| pub         | N/A       | lowercase            | pub.dev normalizes            |
+| huggingface | as-is     | as-is                | HF preserves case             |
 
 ### Special Validation Rules
 
@@ -418,6 +427,7 @@ Some type names may conflict with TypeScript reserved words or file system conve
 ### Spec Ambiguity
 
 When the spec is ambiguous:
+
 1. Check TC54/ECMA-427 for formal definition
 2. Check purl npm package behavior
 3. Check other reference implementations
@@ -433,6 +443,7 @@ When the spec is ambiguous:
 ### Breaking Spec Changes
 
 If a spec change would break existing behavior:
+
 1. Flag to user with specific impact analysis
 2. Check if TC54/ECMA-427 supersedes
 3. Consider a major version bump if behavior changes
@@ -447,6 +458,7 @@ If a spec change would break existing behavior:
 **Symptom:** `gh api` calls return 403 or rate limit errors.
 
 **Solution:**
+
 ```bash
 # Check rate limit
 gh api rate_limit --jq '.rate'
@@ -460,6 +472,7 @@ gh auth status
 **Symptom:** Test suite JSON structure has changed.
 
 **Solution:**
+
 1. Check the test suite JSON schema: `https://packageurl.org/schemas/purl-test.schema-1.0.json`
 2. Update test runner in `test/purl-spec.test.mts` to handle new fields
 3. Ensure backward compatibility with existing test data
@@ -469,6 +482,7 @@ gh auth status
 **Symptom:** `base64 -d` fails on macOS.
 
 **Solution:** macOS uses `base64 -D` (capital D) or `base64 --decode`:
+
 ```bash
 gh api repos/package-url/purl-spec/contents/test-suite-data.json --jq '.content' | base64 --decode
 ```
@@ -478,6 +492,7 @@ gh api repos/package-url/purl-spec/contents/test-suite-data.json --jq '.content'
 **Symptom:** Large files return truncated content via contents API.
 
 **Solution:** Use raw content URL:
+
 ```bash
 curl -sL "https://raw.githubusercontent.com/package-url/purl-spec/main/PURL-TYPES.rst"
 ```

@@ -1,6 +1,6 @@
 /**
- * @fileoverview HTTP middleware — request-ID, security headers, CORS,
- * and the requireAuth gate used by every protected route.
+ * @file HTTP middleware — request-ID, security headers, CORS, and the
+ *   requireAuth gate used by every protected route.
  */
 
 import type { Context, Next } from 'npm:hono@4.12.14'

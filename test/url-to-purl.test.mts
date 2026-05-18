@@ -22,7 +22,7 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Unit tests for URL-to-PURL conversion functionality.
+ * @file Unit tests for URL-to-PURL conversion functionality.
  */
 import { describe, expect, it } from 'vitest'
 

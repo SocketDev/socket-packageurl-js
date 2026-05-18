@@ -1,10 +1,8 @@
 /**
- * @fileoverview Read endpoints — list, unresolved, export.
- *
- * All three are read-only queries against the comments table, so they
- * share a file. Each requires auth (no anonymous browsing) but none
- * enforce author-only filters — any authed user can see every comment
- * on the tour.
+ * @file Read endpoints — list, unresolved, export. All three are read-only
+ *   queries against the comments table, so they share a file. Each requires
+ *   auth (no anonymous browsing) but none enforce author-only filters — any
+ *   authed user can see every comment on the tour.
  */
 
 import type { Context, Hono, Next } from 'npm:hono@4.12.14'

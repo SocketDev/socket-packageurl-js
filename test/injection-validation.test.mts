@@ -1,9 +1,9 @@
 /* oxlint-disable socket/prefer-cached-for-loop -- test code, not a hot path. */
 /* max-file-lines: table -- per-type validator test matrix; splitting fragments it. */
 /**
- * @fileoverview Unit tests for injection character validation in per-type validators.
- * Tests that per-type validate functions reject shell/URL injection characters
- * in name and namespace components across all package ecosystems.
+ * @file Unit tests for injection character validation in per-type validators.
+ *   Tests that per-type validate functions reject shell/URL injection
+ *   characters in name and namespace components across all package ecosystems.
  */
 import { describe, expect, it } from 'vitest'
 
@@ -15,7 +15,9 @@ import {
   formatInjectionChar,
 } from '../src/strings.mjs'
 
-/** Helper to catch and return a PurlInjectionError for property inspection. */
+/**
+ * Helper to catch and return a PurlInjectionError for property inspection.
+ */
 export function getInjectionError(fn: () => unknown): PurlInjectionError {
   let caught: unknown
   try {

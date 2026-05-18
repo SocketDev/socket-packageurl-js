@@ -1,6 +1,6 @@
 /**
- * @fileoverview Composer (PHP) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#composer
+ * @file Composer (PHP) PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#composer.
  */
 
 import { errorMessage } from '../error.mjs'
@@ -25,8 +25,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize Composer package URL.
- * Lowercases both `namespace` and `name`.
+ * Normalize Composer package URL. Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -37,29 +36,34 @@ export function normalize(purl: PurlObject): PurlObject {
 /**
  * Check if a Composer package exists on Packagist.
  *
- * Queries Packagist.org API to verify package existence and retrieve
- * the latest version. Composer packages have `vendor/package` format.
+ * Queries Packagist.org API to verify package existence and retrieve the latest
+ * version. Composer packages have `vendor/package` format.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if package exists
+ *   const result = await packagistExists('http-foundation', 'symfony')
+ *   // -> { exists: true, latestVersion: 'v6.3.0' }
+ *
+ *   // Validate specific version
+ *   const result = await packagistExists(
+ *     'http-foundation',
+ *     'symfony',
+ *     'v6.3.0',
+ *   )
+ *   // -> { exists: true, latestVersion: 'v6.3.0' }
+ *
+ *   // Non-existent package
+ *   const result = await packagistExists('fake-package', 'vendor')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
  *
  * @param name - Package name (e.g., `'http-foundation'`)
  * @param namespace - Vendor name (e.g., `'symfony'`)
  * @param version - Optional version to validate (e.g., `'v6.3.0'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if package exists
- * const result = await packagistExists('http-foundation', 'symfony')
- * // -> { exists: true, latestVersion: 'v6.3.0' }
- *
- * // Validate specific version
- * const result = await packagistExists('http-foundation', 'symfony', 'v6.3.0')
- * // -> { exists: true, latestVersion: 'v6.3.0' }
- *
- * // Non-existent package
- * const result = await packagistExists('fake-package', 'vendor')
- * // -> { exists: false, error: 'Package not found' }
- * ```
  */
 export async function packagistExists(
   name: string,

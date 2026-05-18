@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for package exports from main index
+ * @file Tests for package exports from main index
  */
 
 import { describe, expect, it } from 'vitest'

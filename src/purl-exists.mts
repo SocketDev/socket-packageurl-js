@@ -1,6 +1,6 @@
 /**
- * @fileoverview Generic PURL registry existence check wrapper.
- * Dispatches to type-specific existence checks based on package URL type.
+ * @file Generic PURL registry existence check wrapper. Dispatches to
+ *   type-specific existence checks based on package URL type.
  */
 
 import { cargoExists } from './purl-types/cargo.mjs'
@@ -27,10 +27,12 @@ import type { ExistsOptions, ExistsResult } from './purl-types/npm.mjs'
  * Check if a package exists in its registry.
  *
  * Generic wrapper that dispatches to type-specific existence checks based on
- * the package URL type. Queries the appropriate registry (`npm`, PyPI, `crates.io`,
- * `rubygems.org`, etc.) to verify package existence and retrieve latest version.
+ * the package URL type. Queries the appropriate registry (`npm`, PyPI,
+ * `crates.io`, `rubygems.org`, etc.) to verify package existence and retrieve
+ * latest version.
  *
  * **Supported types:**
+ *
  * - `npm` - Node.js packages from npmjs.org
  * - `pypi` - Python packages from pypi.org
  * - `cargo` - Rust crates from crates.io
@@ -51,36 +53,41 @@ import type { ExistsOptions, ExistsResult } from './purl-types/npm.mjs'
  * **Unsupported types:** Returns `{ exists: false, error: 'Unsupported type' }`
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
- * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
- *
- * @param purl - `PackageURL` instance or PURL string to check
- * @param options - Optional configuration including `cache`
- * @returns `Promise` resolving to existence result with latest version
+ * requests. Pass `{ cache }` option with a cache instance from
+ * `createTtlCache()`.
  *
  * @example
- * ```typescript
- * import { purlExists, PackageURL } from '@socketregistry/packageurl-js'
+ *   ```typescript
+ *   import { purlExists, PackageURL } from '@socketregistry/packageurl-js'
  *
- * // Check npm package
- * const npmPurl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
- * const result = await purlExists(npmPurl)
- * // -> { exists: true, latestVersion: '4.17.21' }
+ *   // Check npm package
+ *   const npmPurl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+ *   const result = await purlExists(npmPurl)
+ *   // -> { exists: true, latestVersion: '4.17.21' }
  *
- * // Check PyPI package
- * const pypiPurl = PackageURL.fromString('pkg:pypi/requests@2.28.1')
- * const result = await purlExists(pypiPurl)
- * // -> { exists: true, latestVersion: '2.31.0' }
+ *   // Check PyPI package
+ *   const pypiPurl = PackageURL.fromString('pkg:pypi/requests@2.28.1')
+ *   const result = await purlExists(pypiPurl)
+ *   // -> { exists: true, latestVersion: '2.31.0' }
  *
- * // With caching
- * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
- * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'purl-registry' })
- * const result = await purlExists(npmPurl, { cache })
+ *   // With caching
+ *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   const cache = createTtlCache({
+ *     ttl: 5 * 60 * 1000,
+ *     prefix: 'purl-registry',
+ *   })
+ *   const result = await purlExists(npmPurl, { cache })
  *
- * // Unsupported type
- * const mavenPurl = PackageURL.fromString('pkg:maven/org.apache/commons@1.0')
- * const result = await purlExists(mavenPurl)
- * // -> { exists: false, error: 'Unsupported type: maven' }
- * ```
+ *   // Unsupported type
+ *   const mavenPurl = PackageURL.fromString('pkg:maven/org.apache/commons@1.0')
+ *   const result = await purlExists(mavenPurl)
+ *   // -> { exists: false, error: 'Unsupported type: maven' }
+ *   ```
+ *
+ * @param purl - `PackageURL` instance or PURL string to check.
+ * @param options - Optional configuration including `cache`
+ *
+ * @returns `Promise` resolving to existence result with latest version
  */
 export async function purlExists(
   purl: PackageURL,

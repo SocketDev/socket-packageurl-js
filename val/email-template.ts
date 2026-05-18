@@ -1,17 +1,15 @@
 /**
- * @fileoverview Login-code email template.
+ * @file Login-code email template. Designed for email-client compatibility:
  *
- * Designed for email-client compatibility:
  *   - Inline styles only (Gmail strips <style>, Outlook strips external)
  *   - Table-free layout for modern clients; degrades gracefully in Outlook
  *   - No custom fonts — system font stack
  *   - No `color-mix`, `oklch`, or other CSS4 features
- *   - Logo uses HTTPS image hosted at socket.dev (public CDN)
- *
- * Copy intentionally does NOT say "sign in to socket.dev" because the
- * code grants access to a tour viewer, not socket.dev itself.
- * Disclaimer links to security@socket.dev so unexpected codes surface
- * as real security signal, not noise to ignore.
+ *   - Logo uses HTTPS image hosted at socket.dev (public CDN) Copy intentionally
+ *     does NOT say "sign in to socket.dev" because the code grants access to a
+ *     tour viewer, not socket.dev itself. Disclaimer links to
+ *     security@socket.dev so unexpected codes surface as real security signal,
+ *     not noise to ignore.
  */
 
 import { htmlEscape } from './validate.ts'

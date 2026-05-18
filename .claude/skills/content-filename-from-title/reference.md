@@ -19,6 +19,7 @@ history that explains why the procedure looks the way it does.
 ---
 
 <a id="edge-cases"></a>
+
 ## 1. When the procedure in SKILL.md does not produce a clean word
 
 The decision procedure covers the common cases. When it does not, apply these tie-breakers in order.
@@ -39,7 +40,7 @@ If still tied — flip a coin or ask the user; the downstream cost of a wrong pi
 Translate to English first, then apply the procedure. The filename
 is a URL segment consumed globally; English is the lowest-common-
 denominator, not a cultural preference. If the original-language
-word happens to be a better fit *and* passes `^[a-z]+$`, that is
+word happens to be a better fit _and_ passes `^[a-z]+$`, that is
 acceptable — but default to English.
 
 ### The title is a person's name, a product name, or a brand
@@ -97,6 +98,7 @@ Go to the verb:
 ---
 
 <a id="manifest-types"></a>
+
 ## 2. Manifest types beyond tour.json
 
 The skill's primary home is `tour.json` entries, but the rules
@@ -114,10 +116,10 @@ nouns) where possible.
 Same rules as parts. Current entries: `architecture`, `builders`,
 `converters`, `hardening`, `release`, `tour`, `vers`,
 `contributing`. These lean toward plain nouns (no gerunds) because
-they are *topics*, not actions. Stay consistent with that style if
+they are _topics_, not actions. Stay consistent with that style if
 you add one.
 
-### docs/*.md without a manifest
+### docs/\*.md without a manifest
 
 If a doc lives under `docs/` and isn't registered in `tour.json`,
 its filename still follows the skill's rules. Examples:
@@ -149,6 +151,7 @@ readable than `/walkthrough-part/:id`.
 ---
 
 <a id="special-tokens"></a>
+
 ## 3. Handling acronyms, proper nouns, and non-English titles
 
 ### Acronyms
@@ -166,7 +169,7 @@ CamelCase (`json` not `JSON`, which violates `^[a-z]+$`). Do not
 hyphenate (`sbom` not `s-bom`).
 
 If the acronym clashes with another entry, fall back to a noun
-that describes what the acronym *is about* — `json` collides? Use
+that describes what the acronym _is about_ — `json` collides? Use
 `config` or `manifest` depending on context.
 
 ### Proper nouns / product names
@@ -193,6 +196,7 @@ underlying concept noun:
 ---
 
 <a id="decision-history"></a>
+
 ## 4. Decision history for the 8 current filenames
 
 Why each of the 8 tour-part filenames was chosen over alternatives.
@@ -288,33 +292,35 @@ Candidates: `security`, `primitives`, `vers`, `safety`,
 ---
 
 <a id="rejected-candidates"></a>
+
 ## 5. Rejected candidates and why
 
 A catalog of candidate filenames we considered and rejected. Use
 this to save time when picking a filename that someone has already
 thought about.
 
-| Rejected | Because |
-|---|---|
-| `page` | Generic. Not content-bearing. Every page is "a page." |
-| `doc` | Generic. Every doc is "a doc." |
-| `item` | Generic. |
-| `content` | Generic. |
-| `index` | Reserved — conflicts with `index.html`. |
-| `part` | Too generic; collides with the structure word itself. |
-| `part1`, `part2`, … | Contains digit. Fails `^[a-z]+$`. Also unstable. |
-| `first`, `second` | Ordinal. Unstable; renames on reorder. |
-| `url-to-purl` | Contains hyphen. |
-| `buildingandstringifying` | Compound phrase. Forbidden. |
-| `howto` | Too generic; "how to do what?" |
-| `intro` | Okay as last resort but generic; prefer the subject. |
-| `purl` | In tour.json, collides with multiple parts. |
-| `errors` | In tour.json, redundant with `validation`. |
-| `primitives` | Abstract; always rejected in favor of the concrete noun. |
+| Rejected                  | Because                                                  |
+| ------------------------- | -------------------------------------------------------- |
+| `page`                    | Generic. Not content-bearing. Every page is "a page."    |
+| `doc`                     | Generic. Every doc is "a doc."                           |
+| `item`                    | Generic.                                                 |
+| `content`                 | Generic.                                                 |
+| `index`                   | Reserved — conflicts with `index.html`.                  |
+| `part`                    | Too generic; collides with the structure word itself.    |
+| `part1`, `part2`, …       | Contains digit. Fails `^[a-z]+$`. Also unstable.         |
+| `first`, `second`         | Ordinal. Unstable; renames on reorder.                   |
+| `url-to-purl`             | Contains hyphen.                                         |
+| `buildingandstringifying` | Compound phrase. Forbidden.                              |
+| `howto`                   | Too generic; "how to do what?"                           |
+| `intro`                   | Okay as last resort but generic; prefer the subject.     |
+| `purl`                    | In tour.json, collides with multiple parts.              |
+| `errors`                  | In tour.json, redundant with `validation`.               |
+| `primitives`              | Abstract; always rejected in favor of the concrete noun. |
 
 ---
 
 <a id="regex--validator"></a>
+
 ## 6. Regex + validator reference
 
 The build-time validator in `scripts/tour.mts` enforces three
@@ -361,6 +367,7 @@ Every part has a `filename` set. Validator errors if missing.
 ---
 
 <a id="cross-references"></a>
+
 ## 7. Cross-references
 
 - **SKILL.md** (this skill's main file) — the decision procedure

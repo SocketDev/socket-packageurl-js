@@ -1,5 +1,7 @@
 /* oxlint-disable socket/prefer-cached-for-loop -- one-shot script utility, not a hot path. */
-/** @fileoverview Utility for running shell commands with proper error handling. */
+/**
+ * @file Utility for running shell commands with proper error handling.
+ */
 
 import process from 'node:process'
 

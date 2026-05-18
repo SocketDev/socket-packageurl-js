@@ -3,15 +3,13 @@
 /* oxlint-disable socket/prefer-cached-for-loop -- iterables are predominantly Maps, Sets, generators, and destructured entries; cached-length rewrite is unsafe or meaningless for these shapes. */
 
 /**
- * @fileoverview Tour generator + local server wrapper.
- *
- * Ensures the vendored meander submodule is checked out, builds it on first
- * run, then either generates the tour or serves the generated output over
- * HTTP for local preview. The submodule is pinned by commit SHA (via the git
- * superrepo pointer); the human-readable `# name-version` comment in
- * .gitmodules records which upstream version the SHA corresponds to.
- *
- * Generation also runs in CI (.github/workflows/pages.yml).
+ * @file Tour generator + local server wrapper. Ensures the vendored meander
+ *   submodule is checked out, builds it on first run, then either generates the
+ *   tour or serves the generated output over HTTP for local preview. The
+ *   submodule is pinned by commit SHA (via the git superrepo pointer); the
+ *   human-readable `# name-version` comment in .gitmodules records which
+ *   upstream version the SHA corresponds to. Generation also runs in CI
+ *   (.github/workflows/pages.yml).
  */
 
 import { execFileSync } from 'node:child_process'
@@ -129,9 +127,9 @@ export async function ensureMeander(refresh: boolean): Promise<void> {
 }
 
 /**
- * Normalize a base-path argument — enforce a single leading `/`, strip
- * trailing `/`. Empty input means "served at the origin root" (no
- * rewrite needed). Input of just `/` also normalizes to empty.
+ * Normalize a base-path argument — enforce a single leading `/`, strip trailing
+ * `/`. Empty input means "served at the origin root" (no rewrite needed). Input
+ * of just `/` also normalizes to empty.
  */
 export function normalizeBasePath(raw: string): string {
   let p = raw.trim()
@@ -148,10 +146,9 @@ export function normalizeBasePath(raw: string): string {
 }
 
 /**
- * Escape a string for safe HTML attribute / text node inclusion.
- * Keeps the renderer's output XSS-safe for values pulled from the
- * tour.json manifest (titles, summaries) without pulling in a
- * full sanitizer dep.
+ * Escape a string for safe HTML attribute / text node inclusion. Keeps the
+ * renderer's output XSS-safe for values pulled from the tour.json manifest
+ * (titles, summaries) without pulling in a full sanitizer dep.
  */
 export function escapeHtml(s: string): string {
   return s
@@ -163,24 +160,22 @@ export function escapeHtml(s: string): string {
 }
 
 /**
- * Replace every `<pre><code class="language-mermaid">…</code></pre>`
- * in a rendered doc HTML string with a pre-rendered SVG figure.
- * The renderer handles caching + SVGO; we just wrap the result
- * in a `<figure class="wt-mermaid">` so CSS can give it some
- * breathing room in the prose flow.
+ * Replace every `<pre><code class="language-mermaid">…</code></pre>` in a
+ * rendered doc HTML string with a pre-rendered SVG figure. The renderer handles
+ * caching + SVGO; we just wrap the result in a `<figure class="wt-mermaid">` so
+ * CSS can give it some breathing room in the prose flow.
  *
- * If a block fails to render, leaves the original code block in
- * place with a `.wt-mermaid-error` class so the reader sees the
- * raw source (copyable, fixable) instead of a mystery gap.
+ * If a block fails to render, leaves the original code block in place with a
+ * `.wt-mermaid-error` class so the reader sees the raw source (copyable,
+ * fixable) instead of a mystery gap.
  */
 /**
- * Walk a marked-lexed token stream. Whenever we find a `code`
- * block whose language is `mermaid`, render the source to an
- * SVG figure and swap the token into an `html` block so marked
- * emits our pre-rendered markup unchanged. Using the tokenizer
- * keeps us out of regex-on-HTML territory — marked already
- * parsed the fence, language attribute, and raw source; we just
- * intercept the one token type we care about.
+ * Walk a marked-lexed token stream. Whenever we find a `code` block whose
+ * language is `mermaid`, render the source to an SVG figure and swap the token
+ * into an `html` block so marked emits our pre-rendered markup unchanged. Using
+ * the tokenizer keeps us out of regex-on-HTML territory — marked already parsed
+ * the fence, language attribute, and raw source; we just intercept the one
+ * token type we care about.
  */
 export async function processMermaidTokens(
   markdown: string,
@@ -232,23 +227,19 @@ export async function processMermaidTokens(
 /**
  * Emit AI-agent-consumable artifacts alongside the rendered HTML.
  *
- * The `llms.txt` convention (llmstxt.org) is "the robots.txt for
- * AI" — a small curated markdown index an agent can fetch at a
- * known path to understand a site's structure without scraping.
- * We ship three flavors:
+ * The `llms.txt` convention (llmstxt.org) is "the robots.txt for AI" — a small
+ * curated markdown index an agent can fetch at a known path to understand a
+ * site's structure without scraping. We ship three flavors:
  *
- *   /llms.txt          Small: title, one-line description, linked
- *                      index of every part + doc.
- *   /llms-full.txt     Big: every part's objective + every doc's
- *                      full markdown, concatenated. Cheapest way
- *                      for an agent to read the whole site in one
- *                      request (~100KB gzipped for this tour).
- *   /<filename>.md     For docs, ship the raw markdown source
- *                      alongside the rendered .html so a
- *                      content-negotiating agent can prefer .md.
+ * /llms.txt Small: title, one-line description, linked index of every part +
+ * doc. /llms-full.txt Big: every part's objective + every doc's full markdown,
+ * concatenated. Cheapest way for an agent to read the whole site in one request
+ * (~100KB gzipped for this tour). /<filename>.md For docs, ship the raw
+ * markdown source alongside the rendered .html so a content-negotiating agent
+ * can prefer .md.
  *
- * All same-origin, covered by CSP `default-src 'self'`. No CSP
- * / SRI interactions — these are static text files.
+ * All same-origin, covered by CSP `default-src 'self'`. No CSP / SRI
+ * interactions — these are static text files.
  */
 export async function emitAiArtifacts(
   buildDir: string,
@@ -343,15 +334,14 @@ export async function emitAiArtifacts(
 }
 
 /**
- * Wrap 1–3 digit numeric tokens (optionally `~`-prefixed) in a
- * `<span class="wt-num">` so counts and approximations pop in
- * accent color — matches the home TOC summary treatment so the
- * rhythm stays consistent between the index and the doc pages.
- * Skips years (≥4 digits) so "2026" stays plain prose.
+ * Wrap 1–3 digit numeric tokens (optionally `~`-prefixed) in a `<span
+ * class="wt-num">` so counts and approximations pop in accent color — matches
+ * the home TOC summary treatment so the rhythm stays consistent between the
+ * index and the doc pages. Skips years (≥4 digits) so "2026" stays plain
+ * prose.
  *
- * Walks text nodes inside prose-like elements only. Code, pre,
- * links, kbd, samp are left alone so numeric literals in code
- * don't get wrapped.
+ * Walks text nodes inside prose-like elements only. Code, pre, links, kbd, samp
+ * are left alone so numeric literals in code don't get wrapped.
  */
 export function highlightProseNumbers(html: string): string {
   const root = parseHtml(html)
@@ -424,17 +414,15 @@ export function highlightProseNumbers(html: string): string {
 }
 
 /**
- * Remove any `<h2>Further reading</h2>` section from a rendered
- * doc. The upstream README-style docs close with a "Further
- * reading" list of cross-references to sibling `docs/*.md`
- * files — we don't ship those files under those names (they
- * become `<filename>.html` in the unified Topics nav), so the
- * links 404. Simplest: drop the whole section.
+ * Remove any `<h2>Further reading</h2>` section from a rendered doc. The
+ * upstream README-style docs close with a "Further reading" list of
+ * cross-references to sibling `docs/*.md` files — we don't ship those files
+ * under those names (they become `<filename>.html` in the unified Topics nav),
+ * so the links 404. Simplest: drop the whole section.
  *
- * Walks the root children, finds the h2, then removes it + every
- * following sibling until the next h2 (or end). Case-insensitive
- * title match so variants ("Further Reading", "Further reading:")
- * get caught too.
+ * Walks the root children, finds the h2, then removes it + every following
+ * sibling until the next h2 (or end). Case-insensitive title match so variants
+ * ("Further Reading", "Further reading:") get caught too.
  */
 export function stripFurtherReading(html: string): string {
   const root = parseHtml(html)
@@ -477,11 +465,10 @@ export function stripFurtherReading(html: string): string {
 }
 
 /**
- * Mark ASCII repo-tree code blocks (ones that draw a directory
- * hierarchy with `├──`, `└──`, `│`) so CSS can style them
- * differently from regular code — dim the drawing glyphs, lift
- * the trailing annotation column, disable hljs auto-highlight.
- * The block stays as real text; we just add a class hook.
+ * Mark ASCII repo-tree code blocks (ones that draw a directory hierarchy with
+ * `├──`, `└──`, `│`) so CSS can style them differently from regular code — dim
+ * the drawing glyphs, lift the trailing annotation column, disable hljs
+ * auto-highlight. The block stays as real text; we just add a class hook.
  */
 export function enhanceRepoTrees(html: string): string {
   const root = parseHtml(html)
@@ -505,14 +492,14 @@ export function enhanceRepoTrees(html: string): string {
 }
 
 /**
- * Give every heading (h2-h4) in rendered doc HTML an `id` slug
- * + a trailing `<a class="wt-heading-anchor">#</a>`. Readers
- * can click the # to copy a permalink to the section. h1 is
- * skipped — it's the page title and already has the URL itself.
+ * Give every heading (h2-h4) in rendered doc HTML an `id` slug + a trailing `<a
+ * class="wt-heading-anchor">#</a>`. Readers can click the # to copy a permalink
+ * to the section. h1 is skipped — it's the page title and already has the URL
+ * itself.
  *
- * Slug derivation: lowercase, strip punctuation other than
- * letters / numbers / whitespace, collapse whitespace to `-`.
- * Collisions within a doc get a `-2`, `-3`, … suffix.
+ * Slug derivation: lowercase, strip punctuation other than letters / numbers /
+ * whitespace, collapse whitespace to `-`. Collisions within a doc get a `-2`,
+ * `-3`, … suffix.
  */
 export function anchorifyHeadings(html: string): string {
   const root = parseHtml(html)
@@ -552,16 +539,15 @@ export function anchorifyHeadings(html: string): string {
 }
 
 /**
- * Wrap parenthetical asides in prose with <em> so "(extra info)"
- * reads as a quiet aside rather than inline copy. Only touches
- * text inside paragraphs, list items, table cells, and
- * blockquotes — <code>, <pre>, headings, and their descendants
- * are left alone, so `function(x)`, URLs with `?q=1`, and code
+ * Wrap parenthetical asides in prose with <em> so "(extra info)" reads as a
+ * quiet aside rather than inline copy. Only touches text inside paragraphs,
+ * list items, table cells, and blockquotes — <code>, <pre>, headings, and their
+ * descendants are left alone, so `function(x)`, URLs with `?q=1`, and code
  * annotations stay untouched.
  *
- * The regex matches `(…)` when the contents are at least 2 chars
- * and contain no parens/tags/quotes, so nested or complex
- * expressions fall through without being mangled.
+ * The regex matches `(…)` when the contents are at least 2 chars and contain no
+ * parens/tags/quotes, so nested or complex expressions fall through without
+ * being mangled.
  */
 export function italicizeParentheticals(html: string): string {
   const root = parseHtml(html)
@@ -606,14 +592,11 @@ export function italicizeParentheticals(html: string): string {
 }
 
 /**
- * First "significant" word of a title — the first token that
- * isn't an article / stopword. Used to label a topic pill with
- * one word when the full title is too long:
- *   "Anatomy of a PURL"              → "Anatomy"
- *   "Building & Stringifying PURLs"  → "Building"
- *   "Security Primitives & VERS"     → "Security"
- * Ampersands stay intact inside multi-word first tokens but
- * aren't counted as their own word.
+ * First "significant" word of a title — the first token that isn't an article /
+ * stopword. Used to label a topic pill with one word when the full title is too
+ * long: "Anatomy of a PURL" → "Anatomy" "Building & Stringifying PURLs" →
+ * "Building" "Security Primitives & VERS" → "Security" Ampersands stay intact
+ * inside multi-word first tokens but aren't counted as their own word.
  */
 export function firstSignificantWord(title: string): string {
   const stop = new Set([
@@ -649,21 +632,18 @@ type DocEntry = {
 }
 
 /**
- * Map a raw line count to a content-size tier badge label. Tiers
- * are tuned for this tour's reading rhythm:
+ * Map a raw line count to a content-size tier badge label. Tiers are tuned for
+ * this tour's reading rhythm:
  *
- *   x-small (≤ 100)    ∼ 1 min — a quick look
- *   small   (101–400)  ∼ 5 min — coffee break
- *   medium  (401–1000) ∼ 15 min — short session
- *   large   (1001–2500) ∼ 30 min — deep dive
- *   x-large (2501+)    45+ min — half-day
+ * X-small (≤ 100) ∼ 1 min — a quick look small (101–400) ∼ 5 min — coffee break
+ * medium (401–1000) ∼ 15 min — short session large (1001–2500) ∼ 30 min — deep
+ * dive x-large (2501+) 45+ min — half-day.
  *
- * Thresholds match 4-file-stacks of typical TypeScript (150-400
- * LOC each) to the "medium" tier, so the smallest visible tier
- * on this tour is usually "small" and the largest is "x-large"
- * for parts that sweep many ecosystem handlers. Returned label
- * is lowercase to pair cleanly with an uppercase `wt-contents-
- * badge-tier-<tier>` CSS class that colors it.
+ * Thresholds match 4-file-stacks of typical TypeScript (150-400 LOC each) to
+ * the "medium" tier, so the smallest visible tier on this tour is usually
+ * "small" and the largest is "x-large" for parts that sweep many ecosystem
+ * handlers. Returned label is lowercase to pair cleanly with an uppercase
+ * `wt-contents- badge-tier-<tier>` CSS class that colors it.
  */
 export function sizeTier(lines: number): {
   label: string
@@ -685,13 +665,12 @@ export function sizeTier(lines: number): {
 }
 
 /**
- * Validate the `docs` array in tour.json and build a filename
- * → entry map. Same shape / same error doctrine as
- * validatePartFilenames, plus a cross-check against the part
- * filenames: docs and parts share the same output directory, so a
- * collision between (say) part "security" and a doc "security" would
- * overwrite one with the other. Detecting it here is strictly better
- * than discovering it when the wrong page ships.
+ * Validate the `docs` array in tour.json and build a filename → entry map. Same
+ * shape / same error doctrine as validatePartFilenames, plus a cross-check
+ * against the part filenames: docs and parts share the same output directory,
+ * so a collision between (say) part "security" and a doc "security" would
+ * overwrite one with the other. Detecting it here is strictly better than
+ * discovering it when the wrong page ships.
  */
 export function validateDocFilenames(
   docs: readonly DocEntry[],
@@ -745,29 +724,28 @@ export function validateDocFilenames(
 }
 
 /**
- * Render the tour.json `docs` entries into HTML pages in the
- * output directory. Called AFTER meander writes the parts but BEFORE
- * the per-file post-process loop, so the emitted doc pages pick up
- * the same chrome (favicons, preloads, SW register, footer, CSP, SRI)
- * as part pages with no special-casing in the loop.
+ * Render the tour.json `docs` entries into HTML pages in the output directory.
+ * Called AFTER meander writes the parts but BEFORE the per-file post-process
+ * loop, so the emitted doc pages pick up the same chrome (favicons, preloads,
+ * SW register, footer, CSP, SRI) as part pages with no special-casing in the
+ * loop.
  *
  * Template contract for each doc:
  *
- *   - <title> is `{doc.title} — Socket PackageURL.js`
- *   - topbar has a `.topic-nav` row with pills for every doc (current
- *     doc gets `class="active"`); post-process injects the home link
- *     at the front of this nav, mirroring what it does for `.part-nav`.
- *   - body is rendered markdown wrapped in `<main class="doc-body">`.
+ * - <title> is `{doc.title} — Socket PackageURL.js`
+ * - Topbar has a `.topic-nav` row with pills for every doc (current doc gets
+ *   `class="active"`); post-process injects the home link at the front of this
+ *   nav, mirroring what it does for `.part-nav`.
+ * - Body is rendered markdown wrapped in `<main class="doc-body">`.
  *
- * Rendering is fanned out across docs via Promise.allSettled. Reject
- * paths surface all failures at once so editing errors in every doc
- * show up in one build, not one-per-build.
+ * Rendering is fanned out across docs via Promise.allSettled. Reject paths
+ * surface all failures at once so editing errors in every doc show up in one
+ * build, not one-per-build.
  */
 /**
- * SVG home icon used in every page's nav. Defined once so the docs
- * renderer and the part-page post-processor emit the same bytes (CSP
- * hash stable across both). Single path, hard-coded stroke — no
- * external sprite or font dep.
+ * SVG home icon used in every page's nav. Defined once so the docs renderer and
+ * the part-page post-processor emit the same bytes (CSP hash stable across
+ * both). Single path, hard-coded stroke — no external sprite or font dep.
  */
 const HOME_ICON_SVG =
   '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9.5 12 3l9 6.5V22h-6v-7h-6v7H3z"/></svg>'
@@ -777,23 +755,21 @@ export function buildHomeLinkHtml(active: boolean) {
 }
 
 /**
- * Render the "[home] Topics: 1 2 3 … 8 Architecture Builders …"
- * pill row. Same HTML shape meander emits for its own part-nav —
- * classes and hrefs match so the CSS + post-process pill-enrichment
- * paths in this file apply uniformly.
+ * Render the "[home] Topics: 1 2 3 … 8 Architecture Builders …" pill row. Same
+ * HTML shape meander emits for its own part-nav — classes and hrefs match so
+ * the CSS + post-process pill-enrichment paths in this file apply uniformly.
  *
- * Numbered Part pills come first (reading order across the tour),
- * then doc pills (supporting articles — architecture, contributing,
- * etc.). Matches the unified "Topics" TOC on the index, so there's
- * exactly one vocabulary across the site: every page is a "topic,"
- * some are code walkthroughs (numbered parts) and some are articles
- * (named docs).
+ * Numbered Part pills come first (reading order across the tour), then doc
+ * pills (supporting articles — architecture, contributing, etc.). Matches the
+ * unified "Topics" TOC on the index, so there's exactly one vocabulary across
+ * the site: every page is a "topic," some are code walkthroughs (numbered
+ * parts) and some are articles (named docs).
  *
- * The home icon is ALWAYS rendered so the nav layout stays identical
- * between the index and part pages (no visual jump when navigating
- * between them). On the index, it's marked `.active` — the same
- * selected-state treatment the current part pill gets on a part page
- * — so users see the home icon as their current location.
+ * The home icon is ALWAYS rendered so the nav layout stays identical between
+ * the index and part pages (no visual jump when navigating between them). On
+ * the index, it's marked `.active` — the same selected-state treatment the
+ * current part pill gets on a part page — so users see the home icon as their
+ * current location.
  */
 export function renderPartsPillRow(
   slug: string,
@@ -823,10 +799,9 @@ export function renderPartsPillRow(
 }
 
 /**
- * Render the "Topics: A B C … Z" pill row. Mirrors the parts row
- * shape so the same CSS styles both. `activeFilename` marks the
- * current doc's pill with class="active"; pass `undefined` from part
- * pages so no pill is active.
+ * Render the "Topics: A B C … Z" pill row. Mirrors the parts row shape so the
+ * same CSS styles both. `activeFilename` marks the current doc's pill with
+ * class="active"; pass `undefined` from part pages so no pill is active.
  */
 export function renderTopicsPillRow(
   docs: ReadonlyMap<string, DocEntry>,
@@ -1015,24 +990,23 @@ export async function renderDocs(
 }
 
 /**
- * Rewrite index.html's TOC into a single unified Topics list covering
- * parts + docs.
+ * Rewrite index.html's TOC into a single unified Topics list covering parts +
+ * docs.
  *
- * Meander emits `<h3>Parts</h3>` with an unadorned list; an earlier
- * version of this script appended a separate `<h3>Topics</h3>`
- * section for the configured docs. Design feedback was that the
- * two-section split looked jumbled and the Parts rows lacked the
- * "what's behind this link" context the Topics rows carried. One
- * unified list under a single "Topics" heading: each row shows title
- * + muted one-liner (section count for parts, summary for docs). CSS
+ * Meander emits `<h3>Parts</h3>` with an unadorned list; an earlier version of
+ * this script appended a separate `<h3>Topics</h3>` section for the configured
+ * docs. Design feedback was that the two-section split looked jumbled and the
+ * Parts rows lacked the "what's behind this link" context the Topics rows
+ * carried. One unified list under a single "Topics" heading: each row shows
+ * title + muted one-liner (section count for parts, summary for docs). CSS
  * styles the rest.
  *
- * Uses node-html-parser to avoid the regex-brittleness of reaching
- * into meander's output — selector queries + element replacement let
- * this survive a future meander output whitespace change.
+ * Uses node-html-parser to avoid the regex-brittleness of reaching into
+ * meander's output — selector queries + element replacement let this survive a
+ * future meander output whitespace change.
  *
- * Runs as part of generate()'s post-meander fix-ups. Idempotent via a
- * class marker on the replaced block.
+ * Runs as part of generate()'s post-meander fix-ups. Idempotent via a class
+ * marker on the replaced block.
  */
 export async function rewriteIndexContents(
   partFilenames: ReadonlyMap<number, string>,
@@ -1319,21 +1293,18 @@ export async function rewriteIndexContents(
 }
 
 /**
- * Validate the `filename` field on every tour.json part, then
- * build the part-id → filename map the post-processor uses to rename
- * emitted HTML and rewrite hrefs.
+ * Validate the `filename` field on every tour.json part, then build the part-id
+ * → filename map the post-processor uses to rename emitted HTML and rewrite
+ * hrefs.
  *
- * Invariants:
- *   - every part has `filename` set
- *   - `filename` is [a-z]+ (lowercase ASCII letters, no digits, no
- *     hyphens, no dots). Single-word nouns keep public URLs short and
- *     speakable — see .claude/skills/content-filename-from-title.
- *   - `filename` is unique across all parts
+ * Invariants: - every part has `filename` set - `filename` is [a-z]+ (lowercase
+ * ASCII letters, no digits, no hyphens, no dots). Single-word nouns keep public
+ * URLs short and speakable — see .claude/skills/content-filename-from-title. -
+ * `filename` is unique across all parts.
  *
- * Errors follow the ERROR MESSAGES doctrine in CLAUDE.md: what rule,
- * where, saw-vs-wanted, fix. Collects all violations before throwing
- * so the build reports every broken part in one pass, not just the
- * first one found.
+ * Errors follow the ERROR MESSAGES doctrine in CLAUDE.md: what rule, where,
+ * saw-vs-wanted, fix. Collects all violations before throwing so the build
+ * reports every broken part in one pass, not just the first one found.
  */
 export function validatePartFilenames(
   parts: ReadonlyArray<{
@@ -1382,18 +1353,17 @@ export function validatePartFilenames(
 }
 
 /**
- * Rewrite a parsed document for hosting under `basePath`. Three
- * categories of URL get prefixed, mutating the DOM in place:
+ * Rewrite a parsed document for hosting under `basePath`. Three categories of
+ * URL get prefixed, mutating the DOM in place:
  *
- *   1. Val-Town-shaped part links (/<slug>/part/<n>) — these don't
- *      exist as files; rewrite to the real flat HTML name
- *      (<partFilenames[n]>.html, e.g. "anatomy.html") and prefix with
- *      basePath.
- *   2. Root-relative asset URLs on [href] and [src] attributes.
- *   3. ServiceWorker `register('/path')` calls inside inline scripts.
+ * 1. Val-Town-shaped part links (/<slug>/part/<n>) — these don't exist as files;
+ *    rewrite to the real flat HTML name (<partFilenames[n]>.html, e.g.
+ *    "anatomy.html") and prefix with basePath.
+ * 2. Root-relative asset URLs on [href] and [src] attributes.
+ * 3. ServiceWorker `register('/path')` calls inside inline scripts.
  *
- * Operates via node-html-parser selectors + attribute reads/writes,
- * so attribute-order and quoting style in the source don't matter.
+ * Operates via node-html-parser selectors + attribute reads/writes, so
+ * attribute-order and quoting style in the source don't matter.
  */
 export function applyBasePath(
   root: HTMLElement,
@@ -1471,31 +1441,27 @@ export function applyBasePath(
 /**
  * Build the `sha512-<base64>` SRI attribute value for a byte stream.
  *
- * Fleet convention (see @socketsecurity/lib-stable/dlx/integrity): integrity
- * is sha512 SRI, matching what the npm registry returns; checksum is
- * sha256 hex. We only produce integrity here — browser SRI + CSP want
- * SRI format.
+ * Fleet convention (see @socketsecurity/lib-stable/dlx/integrity): integrity is
+ * sha512 SRI, matching what the npm registry returns; checksum is sha256 hex.
+ * We only produce integrity here — browser SRI + CSP want SRI format.
  */
 export function computeIntegrity(bytes: Uint8Array): string {
   return `sha512-${cryptoHash('sha512', bytes, 'base64')}`
 }
 
 /**
- * Build a `<meta http-equiv="Content-Security-Policy">` tag for a
- * specific HTML page. Inline `<script>` blocks (meander's hljs
- * bootstrap, our SW register, __defIndex, socketWalkthrough config)
- * are individually sha256-hashed and allowlisted so we can avoid
- * `'unsafe-inline'`. All remaining directives are tight:
-
- *   script-src    self + unpkg + per-script hashes
- *   style-src     self + unpkg (no inline styles generated)
- *   connect-src   self + val backend (when configured)
- *   img-src       self + data: (CSS validity icons use data URIs)
- *   font-src      self (self-hosted Geist + Geist Mono)
- *   worker-src    self (service worker)
- *   base-uri, form-action   self
- *   frame-ancestors         none (clickjacking protection)
- *   default-src             self (fallback for anything not listed)
+ * Build a `<meta http-equiv="Content-Security-Policy">` tag for a specific HTML
+ * page. Inline `<script>` blocks (meander's hljs bootstrap, our SW register,
+ * __defIndex, socketWalkthrough config) are individually sha256-hashed and
+ * allowlisted so we can avoid `'unsafe-inline'`. All remaining directives are
+ * tight:
+ *
+ * Script-src self + unpkg + per-script hashes style-src self + unpkg (no inline
+ * styles generated) connect-src self + val backend (when configured) img-src
+ * self + data: (CSS validity icons use data URIs) font-src self (self-hosted
+ * Geist + Geist Mono) worker-src self (service worker) base-uri, form-action
+ * self frame-ancestors none (clickjacking protection) default-src self
+ * (fallback for anything not listed)
  */
 export function buildCspMeta(
   root: HTMLElement,
@@ -1621,9 +1587,9 @@ export function buildCspMeta(
 
 /**
  * Compute / look up the SRI hash for a CDN URL. Disk-cached under
- * `.cache/sri/<base64url(url)>.txt` so repeat builds don't refetch.
- * Version bumps invalidate automatically since the cache key is the
- * full URL (including the @version segment).
+ * `.cache/sri/<base64url(url)>.txt` so repeat builds don't refetch. Version
+ * bumps invalidate automatically since the cache key is the full URL (including
+ * the @version segment).
  *
  * Returns a ready-to-paste `sha384-<base64>` string.
  */
@@ -1644,20 +1610,21 @@ export async function sriForUrl(
 }
 
 /**
- * Scan HTML for `<script src=...>`, `<link rel=stylesheet href=...>`,
- * and `<link rel=preload as=script href=...>` tags, hash each resource,
- * and inject `integrity="sha384-..."` so the browser rejects tampered
- * responses (CDN or our own origin).
+ * Scan HTML for `<script src=...>`, `<link rel=stylesheet href=...>`, and
+ * `<link rel=preload as=script href=...>` tags, hash each resource, and inject
+ * `integrity="sha384-..."` so the browser rejects tampered responses (CDN or
+ * our own origin).
  *
  * Sources:
- *   - `https://unpkg.com/...` → fetched + disk-cached (see sriForUrl).
- *   - `/style.css` etc. → read from `tourDir` directly.
- *   - `basePath`-prefixed same-origin paths → stripped to the bare
- *     file name, then read from `tourDir`.
  *
- * CDN tags also get `crossorigin="anonymous"` (required for the SRI
- * check to run on cross-origin responses). Same-origin tags don't
- * need it and shouldn't have it (would trigger CORS unnecessarily).
+ * - `https://unpkg.com/...` → fetched + disk-cached (see sriForUrl).
+ * - `/style.css` etc. → read from `tourDir` directly.
+ * - `basePath`-prefixed same-origin paths → stripped to the bare file name, then
+ *   read from `tourDir`.
+ *
+ * CDN tags also get `crossorigin="anonymous"` (required for the SRI check to
+ * run on cross-origin responses). Same-origin tags don't need it and shouldn't
+ * have it (would trigger CORS unnecessarily).
  *
  * Idempotent — tags that already carry `integrity=` are left alone.
  */
@@ -3060,28 +3027,26 @@ export async function generate(
 /**
  * Minify the JS + CSS assets in the output directory in-place.
  *
- *   - JS: esbuild transform, target `es2022` so optional chaining,
- *     logical assignment, and `Map.groupBy` are preserved (we rely on
- *     modern-browser runtimes anyway).
- *   - CSS: lightningcss transform — better than esbuild for CSS
- *     (color-mix folding, nesting lowering, dead-rule pruning). Same
- *     browserslist target so the output stays compatible with the
- *     same runtimes the authored code assumes.
+ * - JS: esbuild transform, target `es2022` so optional chaining, logical
+ *   assignment, and `Map.groupBy` are preserved (we rely on modern-browser
+ *   runtimes anyway).
+ * - CSS: lightningcss transform — better than esbuild for CSS (color-mix folding,
+ *   nesting lowering, dead-rule pruning). Same browserslist target so the
+ *   output stays compatible with the same runtimes the authored code assumes.
  *
- * No sourcemaps — the user opted out explicitly. Authored files live
- * at the repo root unchanged; this only touches the emitted copies.
+ * No sourcemaps — the user opted out explicitly. Authored files live at the
+ * repo root unchanged; this only touches the emitted copies.
  */
 /**
- * Pass every inline `<svg>` in every emitted HTML file through
- * SVGO. Scope: handwritten chrome SVGs (home icon, theme icons,
- * footer bolt + sparks) + anything else that landed inline.
- * Mermaid-rendered SVGs already went through SVGO during their
- * render() path, but re-running preset-default here is a no-op
- * or near-no-op on already-optimized markup — safe to blanket.
+ * Pass every inline `<svg>` in every emitted HTML file through SVGO. Scope:
+ * handwritten chrome SVGs (home icon, theme icons, footer bolt + sparks) +
+ * anything else that landed inline. Mermaid-rendered SVGs already went through
+ * SVGO during their render() path, but re-running preset-default here is a
+ * no-op or near-no-op on already-optimized markup — safe to blanket.
  *
- * Only runs under the minify flag so dev builds stay readable
- * (authored SVG source in drag.js / tour.mts stays intact; just
- * the emitted .html copies get shrunk).
+ * Only runs under the minify flag so dev builds stay readable (authored SVG
+ * source in drag.js / tour.mts stays intact; just the emitted .html copies get
+ * shrunk).
  */
 export async function shrinkInlineSvgs(buildDir: string): Promise<void> {
   const htmlFiles = (await fs.readdir(buildDir)).filter(e =>
@@ -3217,9 +3182,9 @@ export async function minifyEmittedAssets(buildDir: string): Promise<void> {
 /**
  * Strip `<script>...</script>` blocks containing any of the given marker
  * substrings. Meander inlines its comment-related JS directly in each HTML
- * file; this removes those blocks so our replacement script has no
- * collisions. Mutates the DOM in place; walks inline scripts and removes
- * the ones whose body matches.
+ * file; this removes those blocks so our replacement script has no collisions.
+ * Mutates the DOM in place; walks inline scripts and removes the ones whose
+ * body matches.
  */
 export function stripInlinedCommentScripts(
   root: HTMLElement,
@@ -3248,13 +3213,12 @@ export async function readSlug(): Promise<string> {
 }
 
 /**
- * Read the part-id → filename map from tour.json at the repo
- * root. The dev server uses this to translate /<slug>/part/<n> URLs
- * to the renamed <filename>.html files on disk. Mirrors the rename
- * applied by the generate pipeline, so a build + serve round-trips
- * URLs to files correctly. Returns an empty map when tour.json
- * isn't present (e.g. invoked from a fresh checkout without the
- * source config) — the route table falls back to the legacy shape.
+ * Read the part-id → filename map from tour.json at the repo root. The dev
+ * server uses this to translate /<slug>/part/<n> URLs to the renamed
+ * <filename>.html files on disk. Mirrors the rename applied by the generate
+ * pipeline, so a build + serve round-trips URLs to files correctly. Returns an
+ * empty map when tour.json isn't present (e.g. invoked from a fresh checkout
+ * without the source config) — the route table falls back to the legacy shape.
  */
 export async function readPartFilenames(): Promise<Map<number, string>> {
   const configPath = path.join(repoRoot, 'tour.json')
@@ -3397,11 +3361,11 @@ export async function serve(
 }
 
 /**
- * Watch mode — generate once, start the server, then debounced
- * regenerate when any source file (shim, CSS, SW, tour.json,
- * the annotated source tree) changes. Uses Node's built-in fs.watch
- * — no chokidar dep — and debounces at 200 ms so an editor's
- * multi-save-in-quick-succession writes only trigger one rebuild.
+ * Watch mode — generate once, start the server, then debounced regenerate when
+ * any source file (shim, CSS, SW, tour.json, the annotated source tree)
+ * changes. Uses Node's built-in fs.watch — no chokidar dep — and debounces at
+ * 200 ms so an editor's multi-save-in-quick-succession writes only trigger one
+ * rebuild.
  */
 export async function watch(
   refresh: boolean,
@@ -3624,19 +3588,19 @@ function main(): void {
 /* ------------------------------------------------------------------ */
 
 /**
- * Deploy our val (val/*.ts) to Val Town. Uploads our source files
- * (index.ts, crypto.ts, validate.ts, email-template.ts), not
- * meander's. On success, prints the public val URL — paste that into
- * tour.json's commentBackend field.
+ * Deploy our val (val/*.ts) to Val Town. Uploads our source files (index.ts,
+ * crypto.ts, validate.ts, email-template.ts), not meander's. On success, prints
+ * the public val URL — paste that into tour.json's commentBackend field.
  *
  * Resolves VALTOWN_TOKEN via:
- *   1. macOS Keychain (service: socket-walkthrough-valtown)
- *   2. VALTOWN_TOKEN env var
- *   3. .env.local VALTOWN_TOKEN entry
  *
- * Other val secrets (JWT_SIGNING_KEY, ALLOWED_EMAIL_DOMAIN, …) still
- * come from .env.local / env — those aren't Val Town API creds and
- * are safe to leave in .env.local.
+ * 1. MacOS Keychain (service: socket-walkthrough-valtown)
+ * 2. VALTOWN_TOKEN env var
+ * 3. .env.local VALTOWN_TOKEN entry
+ *
+ * Other val secrets (JWT_SIGNING_KEY, ALLOWED_EMAIL_DOMAIN, …) still come from
+ * .env.local / env — those aren't Val Town API creds and are safe to leave in
+ * .env.local.
  */
 
 type DeployReceiptRow = {
@@ -3648,10 +3612,9 @@ type DeployReceiptRow = {
 }
 
 /**
- * Print a table of uploaded files with content hashes so the deploy
- * record is readable from both the CLI and a GitHub Actions run
- * summary. The summary is written to `$GITHUB_STEP_SUMMARY` when
- * present, and always to stdout.
+ * Print a table of uploaded files with content hashes so the deploy record is
+ * readable from both the CLI and a GitHub Actions run summary. The summary is
+ * written to `$GITHUB_STEP_SUMMARY` when present, and always to stdout.
  */
 export async function printDeployReceipt(
   valName: string,
@@ -3903,9 +3866,9 @@ export async function deployValtown(args: readonly string[]): Promise<void> {
 }
 
 /**
- * Minimal .env parser — handles KEY=VALUE lines, # comments, and
- * surrounding quotes. Does not handle multi-line or escape sequences;
- * for our use case (a few API tokens), that's fine.
+ * Minimal .env parser — handles KEY=VALUE lines, # comments, and surrounding
+ * quotes. Does not handle multi-line or escape sequences; for our use case (a
+ * few API tokens), that's fine.
  */
 export async function loadDotEnv(filePath: string): Promise<void> {
   const text = await fs.readFile(filePath, 'utf8')
@@ -3947,10 +3910,10 @@ const CRED_URL = `${CRED_PROTOCOL}://${CRED_HOST}`
 /**
  * Resolve the Val Town API token via git-credential → env → .env.local.
  *
- * git-credential delegates to whatever credential.helper the user has
- * configured (osxkeychain, libsecret, wincred/GCM, …) so storage is
- * always the OS-native secret store — we don't shell out to
- * platform-specific CLIs. Every platform uses the identical commands.
+ * Git-credential delegates to whatever credential.helper the user has
+ * configured (osxkeychain, libsecret, wincred/GCM, …) so storage is always the
+ * OS-native secret store — we don't shell out to platform-specific CLIs. Every
+ * platform uses the identical commands.
  *
  * Returns empty string when nothing is found so callers can give a
  * purpose-specific error message.
@@ -3964,8 +3927,8 @@ export function resolveValTownToken(): string {
 }
 
 /**
- * Read a credential via `git credential fill`. Returns the password,
- * or empty string when no credential is stored (or git errors out).
+ * Read a credential via `git credential fill`. Returns the password, or empty
+ * string when no credential is stored (or git errors out).
  */
 export function gitCredentialRead(): string {
   try {
@@ -3987,9 +3950,8 @@ export function gitCredentialRead(): string {
 }
 
 /**
- * Store a credential via `git credential approve`. Git routes it to
- * the first configured helper; absent a helper, this is a no-op
- * (and we warn elsewhere).
+ * Store a credential via `git credential approve`. Git routes it to the first
+ * configured helper; absent a helper, this is a no-op (and we warn elsewhere).
  */
 export function gitCredentialWrite(token: string): void {
   execFileSync('git', ['credential', 'approve'], {
@@ -4000,10 +3962,10 @@ export function gitCredentialWrite(token: string): void {
 }
 
 /**
- * Delete a credential via `git credential reject`. Must include the
- * same username we wrote with, otherwise the helper won't match the
- * entry (tested on osxkeychain — see git-credential(1)). Safe to call
- * when no credential exists.
+ * Delete a credential via `git credential reject`. Must include the same
+ * username we wrote with, otherwise the helper won't match the entry (tested on
+ * osxkeychain — see git-credential(1)). Safe to call when no credential
+ * exists.
  */
 export function gitCredentialClear(): void {
   try {
@@ -4018,10 +3980,9 @@ export function gitCredentialClear(): void {
 }
 
 /**
- * Report which credential helper(s) git has configured, so the user
- * knows where the token will actually end up. No helper means
- * git-credential silently succeeds but stores nothing, which is a
- * foot-gun worth flagging up-front.
+ * Report which credential helper(s) git has configured, so the user knows where
+ * the token will actually end up. No helper means git-credential silently
+ * succeeds but stores nothing, which is a foot-gun worth flagging up-front.
  */
 export function describeCredentialHelper(): string {
   try {
@@ -4044,15 +4005,13 @@ export function describeCredentialHelper(): string {
 }
 
 /**
- * `pnpm tour token <set|clear|status>` — manage the Val Town
- * API token in the macOS Keychain.
+ * `pnpm tour token <set|clear|status>` — manage the Val Town API token in the
+ * macOS Keychain.
  *
- *   set    — prompts for a token on stdin (not shown in terminal,
- *            not stored in shell history), stores it in Keychain
- *            under service "socket-walkthrough-valtown".
- *   clear  — deletes the Keychain entry.
- *   status — reports which resolution source will be used next time
- *            a deploy runs.
+ * Set — prompts for a token on stdin (not shown in terminal, not stored in
+ * shell history), stores it in Keychain under service
+ * "socket-walkthrough-valtown". clear — deletes the Keychain entry. status —
+ * reports which resolution source will be used next time a deploy runs.
  */
 export async function tokenCli(args: readonly string[]): Promise<void> {
   const sub = args[0] ?? 'status'
@@ -4149,9 +4108,9 @@ export async function tokenCli(args: readonly string[]): Promise<void> {
 }
 
 /**
- * Read a token from stdin without echoing to the terminal. When stdin
- * is a TTY we flip the terminal to non-echo raw mode so the paste is
- * invisible; when piped (tests, scripts) we just read the line.
+ * Read a token from stdin without echoing to the terminal. When stdin is a TTY
+ * we flip the terminal to non-echo raw mode so the paste is invisible; when
+ * piped (tests, scripts) we just read the line.
  */
 export async function readTokenFromStdin(): Promise<string> {
   const stdin = process.stdin
@@ -4225,11 +4184,10 @@ type ExternalToolsManifest = {
 }
 
 /**
- * `pnpm tour doctor` — reads external-tools.json and reports
- * which listed CLIs are present on PATH. Human-friendly summary per
- * tool: ✓ present / ✗ missing + install notes. Exits 0 regardless;
- * all listed tools are treated as optional (the script itself falls
- * back when a tool is absent).
+ * `pnpm tour doctor` — reads external-tools.json and reports which listed CLIs
+ * are present on PATH. Human-friendly summary per tool: ✓ present / ✗ missing +
+ * install notes. Exits 0 regardless; all listed tools are treated as optional
+ * (the script itself falls back when a tool is absent).
  */
 export async function doctor(): Promise<void> {
   const manifestPath = path.join(repoRoot, 'external-tools.json')

@@ -1,9 +1,8 @@
 /**
- * @fileoverview Session endpoints — /auth/check and /auth/logout.
- *
- * Both operate on an existing JWT. `requireAuth` middleware has
- * already validated the bearer token by the time our handler runs;
- * we just echo info (check) or revoke it (logout).
+ * @file Session endpoints — /auth/check and /auth/logout. Both operate on an
+ *   existing JWT. `requireAuth` middleware has already validated the bearer
+ *   token by the time our handler runs; we just echo info (check) or revoke it
+ *   (logout).
  */
 
 import type { Context, Hono, Next } from 'npm:hono@4.12.14'

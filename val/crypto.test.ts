@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for val/crypto.ts. Run with `node --test val/`.
+ * @file Tests for val/crypto.ts. Run with `node --test val/`.
  */
 
 import { test } from 'node:test'

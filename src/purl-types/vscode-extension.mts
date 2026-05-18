@@ -1,9 +1,8 @@
 /**
- * @fileoverview VSCode extension PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
- *
- * VSCode extensions use the Visual Studio Marketplace for distribution.
- * The `namespace` is the publisher name, and the `name` is the extension name.
+ * @file VSCode extension PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst VSCode
+ *   extensions use the Visual Studio Marketplace for distribution. The
+ *   `namespace` is the publisher name, and the `name` is the extension name.
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -37,9 +36,9 @@ interface PurlObject {
 }
 
 /**
- * Normalize VSCode extension package URL.
- * Lowercases `namespace` (publisher), `name` (extension), and `version` per spec.
- * Spec: `namespace`, `name`, and `version` are all case-insensitive.
+ * Normalize VSCode extension package URL. Lowercases `namespace` (publisher),
+ * `name` (extension), and `version` per spec. Spec: `namespace`, `name`, and
+ * `version` are all case-insensitive.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -49,9 +48,9 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate VSCode extension package URL.
- * Checks `namespace` (publisher) and `name` (extension) for injection characters,
- * and validates `version` as semver when present.
+ * Validate VSCode extension package URL. Checks `namespace` (publisher) and
+ * `name` (extension) for injection characters, and validates `version` as
+ * semver when present.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name, namespace, version, qualifiers } = purl
@@ -109,38 +108,50 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
  * Check if a VSCode extension exists in the Visual Studio Marketplace.
  *
  * Queries the VS Marketplace API to verify extension existence and optionally
- * validate a specific version. Returns the latest version from extension metadata.
+ * validate a specific version. Returns the latest version from extension
+ * metadata.
  *
  * **Note:** VS Marketplace requires specific headers for API access.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
- * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
+ * requests. Pass `{ cache }` option with a cache instance from
+ * `createTtlCache()`.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if extension exists
+ *   const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
+ *   // -> { exists: true, latestVersion: '2.4.2' }
+ *
+ *   // Validate specific version
+ *   const result = await vscodeExtensionExists(
+ *     'vscode-eslint',
+ *     'dbaeumer',
+ *     '2.4.0',
+ *   )
+ *   // -> { exists: true, latestVersion: '2.4.2' }
+ *
+ *   // With caching
+ *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'vscode' })
+ *   const result = await vscodeExtensionExists(
+ *     'vscode-eslint',
+ *     'dbaeumer',
+ *     undefined,
+ *     { cache },
+ *   )
+ *
+ *   // Non-existent extension
+ *   const result = await vscodeExtensionExists('non-existent', 'publisher')
+ *   // -> { exists: false, error: 'Extension not found' }
+ *   ```
  *
  * @param name - Extension name (e.g., `'vscode-eslint'`)
  * @param namespace - Publisher name (e.g., `'dbaeumer'`)
  * @param version - Optional version to validate (e.g., `'2.4.2'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if extension exists
- * const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
- * // -> { exists: true, latestVersion: '2.4.2' }
- *
- * // Validate specific version
- * const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer', '2.4.0')
- * // -> { exists: true, latestVersion: '2.4.2' }
- *
- * // With caching
- * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
- * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'vscode' })
- * const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer', undefined, { cache })
- *
- * // Non-existent extension
- * const result = await vscodeExtensionExists('non-existent', 'publisher')
- * // -> { exists: false, error: 'Extension not found' }
- * ```
  */
 export async function vscodeExtensionExists(
   name: string,

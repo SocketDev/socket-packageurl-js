@@ -1,6 +1,6 @@
 /**
- * @fileoverview Helper function for creating namespace objects.
- * Organizes helper functions by property names with configurable defaults and sorting.
+ * @file Helper function for creating namespace objects. Organizes helper
+ *   functions by property names with configurable defaults and sorting.
  */
 import {
   ArrayPrototypeFlatMap,

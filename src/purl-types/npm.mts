@@ -1,7 +1,7 @@
 /* max-file-lines: legitimate -- single domain (npm PURL rules); built-in/legacy name sets + normalize + validate cohere as one unit. */
 /**
- * @fileoverview `npm`-specific PURL normalization and validation.
- * Implements npm package naming rules from the PURL specification.
+ * @file `npm`-specific PURL normalization and validation. Implements npm
+ *   package naming rules from the PURL specification.
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -49,24 +49,27 @@ export type ExistsResult = {
  */
 export type ExistsOptions = {
   /**
-   * Optional TTL cache instance for caching registry responses.
-   * If provided, responses will be cached with configured TTL.
+   * Optional TTL cache instance for caching registry responses. If provided,
+   * responses will be cached with configured TTL.
    *
    * @example
-   * ```typescript
-   * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
-   * import { npmExists } from '@socketregistry/packageurl-js'
+   *   ```typescript
+   *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+   *   import { npmExists } from '@socketregistry/packageurl-js'
    *
-   * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'npm-registry' })
-   * const result = await npmExists('lodash', undefined, undefined, { cache })
-   * ```
+   *   const cache = createTtlCache({
+   *     ttl: 5 * 60 * 1000,
+   *     prefix: 'npm-registry',
+   *   })
+   *   const result = await npmExists('lodash', undefined, undefined, { cache })
+   *   ```
    */
   cache?: TtlCache | undefined
 }
 
 /**
- * Components parsed from npm package specifier.
- * Includes namespace (for scoped packages), name, and version.
+ * Components parsed from npm package specifier. Includes namespace (for scoped
+ * packages), name, and version.
  */
 export type NpmPackageComponents = {
   namespace: string | undefined
@@ -202,7 +205,7 @@ export function isNpmLegacyName(id: string) {
 
 /**
  * Normalize `npm` package URL.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#npm
+ * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#npm.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -222,37 +225,39 @@ export function normalize(purl: PurlObject): PurlObject {
  * version from `dist-tags`.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
- * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
+ * requests. Pass `{ cache }` option with a cache instance from
+ * `createTtlCache()`.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if package exists
+ *   const result = await npmExists('lodash')
+ *   // -> { exists: true, latestVersion: '4.17.21' }
+ *
+ *   // Check scoped package
+ *   const result = await npmExists('core', '@babel')
+ *   // -> { exists: true, latestVersion: '7.23.0' }
+ *
+ *   // Validate specific version
+ *   const result = await npmExists('lodash', undefined, '4.17.21')
+ *   // -> { exists: true, latestVersion: '4.17.21' }
+ *
+ *   // With caching
+ *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'npm' })
+ *   const result = await npmExists('lodash', undefined, undefined, { cache })
+ *
+ *   // Non-existent package
+ *   const result = await npmExists('this-package-does-not-exist')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
  *
  * @param name - Package name (e.g., `'lodash'`, `'core'` for scoped packages)
  * @param namespace - Optional namespace/scope (e.g., `'@babel'`)
  * @param version - Optional version to validate (e.g., `'4.17.21'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if package exists
- * const result = await npmExists('lodash')
- * // -> { exists: true, latestVersion: '4.17.21' }
- *
- * // Check scoped package
- * const result = await npmExists('core', '@babel')
- * // -> { exists: true, latestVersion: '7.23.0' }
- *
- * // Validate specific version
- * const result = await npmExists('lodash', undefined, '4.17.21')
- * // -> { exists: true, latestVersion: '4.17.21' }
- *
- * // With caching
- * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
- * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'npm' })
- * const result = await npmExists('lodash', undefined, undefined, { cache })
- *
- * // Non-existent package
- * const result = await npmExists('this-package-does-not-exist')
- * // -> { exists: false, error: 'Package not found' }
- * ```
  */
 export async function npmExists(
   name: string,
@@ -335,16 +340,19 @@ export async function npmExists(
 /**
  * Parse npm package specifier into component data.
  *
- * Parses npm package specifiers into `namespace`, `name`, and `version` components.
- * Handles scoped packages, version ranges, and normalizes version strings.
+ * Parses npm package specifiers into `namespace`, `name`, and `version`
+ * components. Handles scoped packages, version ranges, and normalizes version
+ * strings.
  *
  * **Supported formats:**
+ *
  * - Basic packages: `lodash`, `lodash@4.17.21`
  * - Scoped packages: `@babel/core`, `@babel/core@7.0.0`
  * - Version ranges: `^4.17.21`, `~1.2.3`, `>=1.0.0` (prefixes stripped)
  * - Dist-tags: `latest`, `next`, `beta` (passed through as version)
  *
  * **Not supported:**
+ *
  * - Git URLs: `git+https://...`
  * - File paths: `file:../package.tgz`
  * - GitHub shortcuts: `user/repo#branch`
@@ -354,28 +362,31 @@ export async function npmExists(
  * concrete versions for reproducible builds. This method passes them through
  * as-is for convenience.
  *
- * @param specifier - npm package specifier (e.g., `'lodash@4.17.21'`, `'@babel/core@^7.0.0'`)
- * @returns Object with `namespace`, `name`, and `version` components
- * @throws {Error} If `specifier` is not a string or is empty
- *
  * @example
- * ```typescript
- * // Basic packages
- * parseNpmSpecifier('lodash@4.17.21')
- * // -> { namespace: undefined, name: 'lodash', version: '4.17.21' }
+ *   ```typescript
+ *   // Basic packages
+ *   parseNpmSpecifier('lodash@4.17.21')
+ *   // -> { namespace: undefined, name: 'lodash', version: '4.17.21' }
  *
- * // Scoped packages
- * parseNpmSpecifier('@babel/core@^7.0.0')
- * // -> { namespace: '@babel', name: 'core', version: '7.0.0' }
+ *   // Scoped packages
+ *   parseNpmSpecifier('@babel/core@^7.0.0')
+ *   // -> { namespace: '@babel', name: 'core', version: '7.0.0' }
  *
- * // Dist-tags (passed through)
- * parseNpmSpecifier('react@latest')
- * // -> { namespace: undefined, name: 'react', version: 'latest' }
+ *   // Dist-tags (passed through)
+ *   parseNpmSpecifier('react@latest')
+ *   // -> { namespace: undefined, name: 'react', version: 'latest' }
  *
- * // No version
- * parseNpmSpecifier('express')
- * // -> { namespace: undefined, name: 'express', version: undefined }
- * ```
+ *   // No version
+ *   parseNpmSpecifier('express')
+ *   // -> { namespace: undefined, name: 'express', version: undefined }
+ *   ```
+ *
+ * @param specifier - Npm package specifier (e.g., `'lodash@4.17.21'`,
+ *   `'@babel/core@^7.0.0'`)
+ *
+ * @returns Object with `namespace`, `name`, and `version` components
+ *
+ * @throws {Error} If `specifier` is not a string or is empty
  */
 export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
   if (typeof specifier !== 'string') {
@@ -439,10 +450,9 @@ export function parseNpmSpecifier(specifier: unknown): NpmPackageComponents {
 }
 
 /**
- * Validate `npm` package URL.
- * Validation based on https://github.com/npm/validate-npm-package-name/tree/v6.0.0
- * ISC License
- * Copyright (c) 2015, npm, Inc
+ * Validate `npm` package URL. Validation based on
+ * https://github.com/npm/validate-npm-package-name/tree/v6.0.0 ISC License
+ * Copyright (c) 2015, npm, Inc.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name, namespace } = purl

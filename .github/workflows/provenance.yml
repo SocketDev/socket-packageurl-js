@@ -24,7 +24,6 @@ permissions:
   contents: write
   id-token: write
 
-
 jobs:
   publish:
     uses: SocketDev/socket-registry/.github/workflows/provenance.yml@b5b9f01d8a2741bf2b6024589790bf922455c306 # main (2026-05-15)

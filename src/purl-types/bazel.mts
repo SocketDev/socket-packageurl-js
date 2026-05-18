@@ -1,9 +1,8 @@
 /**
- * @fileoverview Bazel-specific PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst
- *
- * Bazel is a build system. Bazel packages represent external dependencies
- * in Bazel `BUILD` files.
+ * @file Bazel-specific PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst Bazel is
+ *   a build system. Bazel packages represent external dependencies in Bazel
+ *   `BUILD` files.
  */
 
 import { PurlError } from '../error.mjs'
@@ -20,8 +19,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize Bazel package URL.
- * Lowercases `name` only.
+ * Normalize Bazel package URL. Lowercases `name` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -29,9 +27,8 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate Bazel package URL.
- * Bazel packages must have a `version` (for reproducible builds). `name` must not
- * contain injection characters.
+ * Validate Bazel package URL. Bazel packages must have a `version` (for
+ * reproducible builds). `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (!purl.version || purl.version.length === 0) {

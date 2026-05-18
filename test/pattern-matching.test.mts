@@ -1,6 +1,6 @@
 /**
- * @fileoverview Tests for PURL pattern matching functionality.
- * Tests wildcard matching for type, namespace, name, and version components.
+ * @file Tests for PURL pattern matching functionality. Tests wildcard matching
+ *   for type, namespace, name, and version components.
  */
 
 import { getDefaultLogger } from '@socketsecurity/lib/logger'

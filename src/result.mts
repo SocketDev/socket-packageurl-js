@@ -23,7 +23,7 @@ SOFTWARE.
 import { ArrayPrototypePush, ErrorCtor } from '@socketsecurity/lib/primordials'
 
 /**
- * @fileoverview Result type for functional error handling without exceptions.
+ * @file Result type for functional error handling without exceptions.
  */
 
 /**
@@ -228,8 +228,8 @@ export const ResultUtils = {
   },
 
   /**
-   * Return the first `Ok` result or the last error.
-   * Returns an error result if the input array is empty.
+   * Return the first `Ok` result or the last error. Returns an error result if
+   * the input array is empty.
    */
   any<T extends ReadonlyArray<Result<unknown, unknown>>>(
     results: T,

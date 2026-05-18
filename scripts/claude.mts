@@ -3,9 +3,9 @@
 /* max-file-lines: table -- subcommand dispatch table; splitting would scatter the table. */
 
 /**
- * @fileoverview Claude Code-powered utilities for Socket projects.
- * Provides various AI-assisted development tools and automations using Claude Code CLI.
- * Requires Claude Code (claude) CLI to be installed.
+ * @file Claude Code-powered utilities for Socket projects. Provides various
+ *   AI-assisted development tools and automations using Claude Code CLI.
+ *   Requires Claude Code (claude) CLI to be installed.
  */
 
 import crypto from 'node:crypto'
@@ -1217,8 +1217,8 @@ setInterval(() => {
 }, CACHE_TTL).unref()
 
 /**
- * Run Claude Code with a prompt.
- * Handles caching, model tracking, and retry logic.
+ * Run Claude Code with a prompt. Handles caching, model tracking, and retry
+ * logic.
  */
 export async function runClaude(
   claudeCmd: string,
@@ -1536,8 +1536,8 @@ export async function ensureClaudeAuthenticated(
 }
 
 /**
- * Ensure GitHub CLI is authenticated, prompting for login if needed.
- * Returns true if authenticated, false if unable to authenticate.
+ * Ensure GitHub CLI is authenticated, prompting for login if needed. Returns
+ * true if authenticated, false if unable to authenticate.
  */
 export async function ensureGitHubAuthenticated(): Promise<boolean> {
   let attempts = 0
@@ -1593,10 +1593,12 @@ export async function ensureGitHubAuthenticated(): Promise<boolean> {
 
 /**
  * Check if a commit SHA is part of a pull request.
- * @param {string} sha - The commit SHA to check
- * @param {string} owner - The repository owner
- * @param {string} repo - The repository name
- * @returns {Promise<{isPR: boolean, prNumber?: number, prTitle?: string}>}
+ *
+ * @param {string} sha - The commit SHA to check.
+ * @param {string} owner - The repository owner.
+ * @param {string} repo - The repository name.
+ *
+ * @returns {Promise<{ isPR: boolean; prNumber?: number; prTitle?: string }>}
  */
 export async function checkIfCommitIsPartOfPR(
   sha: string,
@@ -1645,8 +1647,11 @@ export async function checkIfCommitIsPartOfPR(
 
 /**
  * Create a semantic hash of error output for tracking duplicate errors.
- * Normalizes errors to catch semantically identical issues with different line numbers.
- * @param {string} errorOutput - The error output to hash
+ * Normalizes errors to catch semantically identical issues with different line
+ * numbers.
+ *
+ * @param {string} errorOutput - The error output to hash.
+ *
  * @returns {string} A hex hash of the normalized error
  */
 export function hashError(errorOutput: string): string {
@@ -1678,9 +1683,9 @@ export function hashError(errorOutput: string): string {
 }
 
 /**
- * Model strategy for intelligent Pinky/Brain switching.
- * "Gee, Brain, what do you want to do tonight?"
- * "The same thing we do every night, Pinky - try to take over the world!"
+ * Model strategy for intelligent Pinky/Brain switching. "Gee, Brain, what do
+ * you want to do tonight?" "The same thing we do every night, Pinky - try to
+ * take over the world!"
  */
 class ModelStrategy {
   attempts: Map<string, number>
@@ -2065,8 +2070,8 @@ export async function buildEnhancedPrompt(
 }
 
 /**
- * Filter CI logs to extract only relevant failure information
- * Removes runner setup noise and focuses on actual errors
+ * Filter CI logs to extract only relevant failure information Removes runner
+ * setup noise and focuses on actual errors.
  */
 export function filterCILogs(rawLogs: string): string {
   const lines = rawLogs.split('\n')
@@ -2129,9 +2134,9 @@ export function filterCILogs(rawLogs: string): string {
 }
 
 /**
- * Prepare Claude command arguments for Claude Code.
- * Claude Code uses natural language prompts, not the same flags.
- * We'll translate our flags into appropriate context.
+ * Prepare Claude command arguments for Claude Code. Claude Code uses natural
+ * language prompts, not the same flags. We'll translate our flags into
+ * appropriate context.
  */
 export function prepareClaudeArgs(
   args: string[] = [],
@@ -2172,8 +2177,8 @@ export function prepareClaudeArgs(
 }
 
 /**
- * Execute tasks in parallel with multiple workers.
- * Default: 3 workers (balanced performance without overwhelming system)
+ * Execute tasks in parallel with multiple workers. Default: 3 workers (balanced
+ * performance without overwhelming system)
  */
 export async function executeParallel(
   tasks: Array<() => Promise<unknown>>,
@@ -2252,10 +2257,11 @@ export function shouldRunParallel(options: ClaudeOptions = {}): boolean {
 }
 
 /**
- * Run tasks in parallel with progress tracking.
- * NOTE: When running Claude agents in parallel, they must use stdio: 'pipe' to avoid
- * conflicting interactive prompts. If agents need user interaction, they would queue
- * and block each other. Use --seq flag for sequential execution with full interactivity.
+ * Run tasks in parallel with progress tracking. NOTE: When running Claude
+ * agents in parallel, they must use stdio: 'pipe' to avoid conflicting
+ * interactive prompts. If agents need user interaction, they would queue and
+ * block each other. Use --seq flag for sequential execution with full
+ * interactivity.
  */
 export async function runParallel(
   tasks: Array<Promise<unknown>>,
@@ -3244,11 +3250,12 @@ export async function runSecurityScan(
 }
 
 /**
- * Run Claude-assisted commits across Socket projects.
- * Default: operates on current project only. Use --cross-repo for all Socket projects.
- * IMPORTANT: When running in parallel mode (--cross-repo), Claude agents run silently (stdio: 'pipe').
- * Interactive prompts would conflict if multiple agents needed user input simultaneously.
- * Use --seq flag if you need interactive debugging across multiple repos.
+ * Run Claude-assisted commits across Socket projects. Default: operates on
+ * current project only. Use --cross-repo for all Socket projects. IMPORTANT:
+ * When running in parallel mode (--cross-repo), Claude agents run silently
+ * (stdio: 'pipe'). Interactive prompts would conflict if multiple agents needed
+ * user input simultaneously. Use --seq flag if you need interactive debugging
+ * across multiple repos.
  */
 export async function runClaudeCommit(
   claudeCmd: string,
@@ -4060,9 +4067,11 @@ Be specific and actionable.`
 
 /**
  * Generate a commit message using Claude non-interactively.
- * @param {string} claudeCmd - Path to Claude CLI
- * @param {string} cwd - Working directory
- * @param {object} options - Options from parent command
+ *
+ * @param {string} claudeCmd - Path to Claude CLI.
+ * @param {string} cwd - Working directory.
+ * @param {object} options - Options from parent command.
+ *
  * @returns {Promise<string>} Generated commit message
  */
 export async function generateCommitMessage(
@@ -4171,8 +4180,8 @@ Commit message:`
 }
 
 /**
- * Calculate adaptive poll delay based on CI state.
- * Polls faster when jobs are running, slower when queued.
+ * Calculate adaptive poll delay based on CI state. Polls faster when jobs are
+ * running, slower when queued.
  */
 export function calculatePollDelay(
   status: string,
@@ -4195,8 +4204,8 @@ export function calculatePollDelay(
 }
 
 /**
- * Priority levels for different CI job types.
- * Higher priority jobs are fixed first since they often block other jobs.
+ * Priority levels for different CI job types. Higher priority jobs are fixed
+ * first since they often block other jobs.
  */
 const JOB_PRIORITIES = {
   build: 100,
@@ -4220,7 +4229,9 @@ const JOB_PRIORITIES = {
 
 /**
  * Get priority for a CI job based on its name.
- * @param {string} jobName - The name of the CI job
+ *
+ * @param {string} jobName - The name of the CI job.
+ *
  * @returns {number} Priority level (higher = more important)
  */
 export function getJobPriority(jobName: string): number {
@@ -4239,8 +4250,10 @@ export function getJobPriority(jobName: string): number {
 
 /**
  * Validate changes before pushing to catch common mistakes.
- * @param {string} cwd - Working directory
- * @returns {Promise<{valid: boolean, warnings: string[]}>} Validation result
+ *
+ * @param {string} cwd - Working directory.
+ *
+ * @returns {Promise<{ valid: boolean; warnings: string[] }>} Validation result
  */
 export async function validateBeforePush(cwd: string): Promise<boolean> {
   const warnings = []
@@ -4292,9 +4305,9 @@ export async function validateBeforePush(cwd: string): Promise<boolean> {
 }
 
 /**
- * Run all checks, push, and monitor CI until green.
- * NOTE: This operates on the current repo by default. Use --cross-repo for all Socket projects.
- * Multi-repo parallel execution would conflict with interactive prompts if fixes fail.
+ * Run all checks, push, and monitor CI until green. NOTE: This operates on the
+ * current repo by default. Use --cross-repo for all Socket projects. Multi-repo
+ * parallel execution would conflict with interactive prompts if fixes fail.
  */
 export async function runGreen(
   claudeCmd: string,

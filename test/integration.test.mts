@@ -1,7 +1,7 @@
 /* oxlint-disable socket/no-dynamic-import-outside-bundle -- dynamic import resolves the isolated built artifact path at runtime. */
 /**
- * @fileoverview Integration tests for built package.
- * Tests the package in the dist directory to verify build output.
+ * @file Integration tests for built package. Tests the package in the dist
+ *   directory to verify build output.
  */
 
 import path from 'node:path'

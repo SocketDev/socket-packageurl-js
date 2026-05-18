@@ -1,5 +1,5 @@
 /**
- * @fileoverview Shared constants used across the PURL library.
+ * @file Shared constants used across the PURL library.
  */
 
 const LOOP_SENTINEL = 1_000_000

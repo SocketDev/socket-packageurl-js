@@ -1,8 +1,7 @@
 /* oxlint-disable socket/prefer-cached-for-loop -- one-shot validation script, not a hot path. */
 /**
- * @fileoverview Validates that the bundler configuration has
- * minify: false. Minification breaks ESM/CJS interop and makes
- * debugging harder.
+ * @file Validates that the bundler configuration has minify: false.
+ *   Minification breaks ESM/CJS interop and makes debugging harder.
  */
 
 import path from 'node:path'

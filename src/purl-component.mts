@@ -1,6 +1,7 @@
 /**
- * @fileoverview PURL component handlers providing encoding, normalization, and validation functionality.
- * Handles all Package URL components including `type`, `namespace`, `name`, `version`, `qualifiers`, and `subpath`.
+ * @file PURL component handlers providing encoding, normalization, and
+ *   validation functionality. Handles all Package URL components including
+ *   `type`, `namespace`, `name`, `version`, `qualifiers`, and `subpath`.
  */
 import {
   encodeComponent,

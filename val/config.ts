@@ -1,9 +1,8 @@
 /**
- * @fileoverview Config — env var reading + tunable constants.
- *
- * Single source of truth for everything the val reads from its
- * environment. Fail-closed on missing JWT_SIGNING_KEY so we never
- * accidentally run with a default (forgeable) signing key.
+ * @file Config — env var reading + tunable constants. Single source of truth
+ *   for everything the val reads from its environment. Fail-closed on missing
+ *   JWT_SIGNING_KEY so we never accidentally run with a default (forgeable)
+ *   signing key.
  */
 
 // eslint-disable-next-line @typescript-eslint/no-namespace

@@ -1,6 +1,6 @@
 /**
- * @fileoverview Bitbucket PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#bitbucket
+ * @file Bitbucket PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#bitbucket.
  */
 
 import { lowerName, lowerNamespace } from '../strings.mjs'
@@ -16,8 +16,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize Bitbucket package URL.
- * Lowercases both `namespace` and `name`.
+ * Normalize Bitbucket package URL. Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -26,8 +25,8 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate Bitbucket package URL.
- * `name` and `namespace` must not contain injection characters.
+ * Validate Bitbucket package URL. `name` and `namespace` must not contain
+ * injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

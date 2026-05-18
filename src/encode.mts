@@ -1,6 +1,6 @@
 /**
- * @fileoverview URL encoding functions for PURL components.
- * Provides special handling for names, namespaces, versions, qualifiers, and subpaths.
+ * @file URL encoding functions for PURL components. Provides special handling
+ *   for names, namespaces, versions, qualifiers, and subpaths.
  */
 import { isObject } from './objects.mjs'
 import {

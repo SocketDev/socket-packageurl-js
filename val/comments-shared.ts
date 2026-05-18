@@ -1,10 +1,8 @@
 /**
- * @fileoverview Shared helpers for the comment-route modules.
- *
- * `rowToComment` translates a raw sqlite row (snake_case column names,
- * 0/1 ints for booleans) into the camelCase JSON shape clients expect.
- * Kept in its own module so each route file (read/create/mutate)
- * doesn't have to redefine it.
+ * @file Shared helpers for the comment-route modules. `rowToComment` translates
+ *   a raw sqlite row (snake_case column names, 0/1 ints for booleans) into the
+ *   camelCase JSON shape clients expect. Kept in its own module so each route
+ *   file (read/create/mutate) doesn't have to redefine it.
  */
 
 import type { CommentRow } from './types.ts'

@@ -1,6 +1,6 @@
 /**
- * @fileoverview OCI (Open Container Initiative) PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#oci
+ * @file OCI (Open Container Initiative) PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#oci.
  */
 
 import { lowerName, lowerVersion } from '../strings.mjs'
@@ -16,8 +16,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize OCI package URL.
- * Lowercases `name` and `version` per spec.
+ * Normalize OCI package URL. Lowercases `name` and `version` per spec.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerName(purl)
@@ -26,8 +25,7 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate OCI package URL.
- * OCI packages must not have a `namespace`.
+ * Validate OCI package URL. OCI packages must not have a `namespace`.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

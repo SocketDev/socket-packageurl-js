@@ -1,6 +1,6 @@
 /**
- * @fileoverview Hackage (Haskell) registry existence check.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#hackage
+ * @file Hackage (Haskell) registry existence check.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#hackage.
  */
 
 import { errorMessage } from '../error.mjs'
@@ -17,28 +17,29 @@ import type { ExistsOptions, ExistsResult } from './npm.mjs'
 /**
  * Check if a Haskell package exists on Hackage.
  *
- * Queries Hackage API to verify package existence and retrieve
- * the latest version.
+ * Queries Hackage API to verify package existence and retrieve the latest
+ * version.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if package exists
+ *   const result = await hackageExists('aeson')
+ *   // -> { exists: true, latestVersion: '2.2.0.0' }
+ *
+ *   // Validate specific version
+ *   const result = await hackageExists('aeson', '2.2.0.0')
+ *   // -> { exists: true, latestVersion: '2.2.0.0' }
+ *
+ *   // Non-existent package
+ *   const result = await hackageExists('fake-package')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
  *
  * @param name - Package name (e.g., `'aeson'`)
  * @param version - Optional version to validate (e.g., `'2.2.0.0'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if package exists
- * const result = await hackageExists('aeson')
- * // -> { exists: true, latestVersion: '2.2.0.0' }
- *
- * // Validate specific version
- * const result = await hackageExists('aeson', '2.2.0.0')
- * // -> { exists: true, latestVersion: '2.2.0.0' }
- *
- * // Non-existent package
- * const result = await hackageExists('fake-package')
- * // -> { exists: false, error: 'Package not found' }
- * ```
  */
 export async function hackageExists(
   name: string,

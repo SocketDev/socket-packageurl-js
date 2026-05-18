@@ -1,6 +1,6 @@
 /**
- * @fileoverview NuGet-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/types-doc/nuget-definition.md
+ * @file NuGet-specific PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/types-doc/nuget-definition.md.
  */
 
 import { errorMessage } from '../error.mjs'
@@ -29,28 +29,29 @@ interface PurlObject {
 /**
  * Check if a NuGet package exists in NuGet.org.
  *
- * Queries the NuGet V3 API to verify package existence and retrieve
- * the latest version.
+ * Queries the NuGet V3 API to verify package existence and retrieve the latest
+ * version.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if package exists
+ *   const result = await nugetExists('Newtonsoft.Json')
+ *   // -> { exists: true, latestVersion: '13.0.3' }
+ *
+ *   // Validate specific version
+ *   const result = await nugetExists('Newtonsoft.Json', '13.0.3')
+ *   // -> { exists: true, latestVersion: '13.0.3' }
+ *
+ *   // Non-existent package
+ *   const result = await nugetExists('fake-package-xyz')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
  *
  * @param name - Package name (e.g., `'Newtonsoft.Json'`)
  * @param version - Optional version to validate (e.g., `'13.0.3'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if package exists
- * const result = await nugetExists('Newtonsoft.Json')
- * // -> { exists: true, latestVersion: '13.0.3' }
- *
- * // Validate specific version
- * const result = await nugetExists('Newtonsoft.Json', '13.0.3')
- * // -> { exists: true, latestVersion: '13.0.3' }
- *
- * // Non-existent package
- * const result = await nugetExists('fake-package-xyz')
- * // -> { exists: false, error: 'Package not found' }
- * ```
  */
 export async function nugetExists(
   name: string,
@@ -163,8 +164,8 @@ export async function nugetExists(
 }
 
 /**
- * Validate NuGet package URL.
- * NuGet packages must not have a `namespace`. `name` must not contain injection characters.
+ * Validate NuGet package URL. NuGet packages must not have a `namespace`.
+ * `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

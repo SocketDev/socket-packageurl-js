@@ -1,8 +1,7 @@
 /**
- * @fileoverview Test assertion helpers to reduce duplication.
- *
- * These utilities help maintain DRY principles in tests by providing
- * reusable assertion patterns for common test scenarios.
+ * @file Test assertion helpers to reduce duplication. These utilities help
+ *   maintain DRY principles in tests by providing reusable assertion patterns
+ *   for common test scenarios.
  */
 
 import { expect } from 'vitest'
@@ -13,9 +12,9 @@ import type { PackageURL } from '../../src/package-url.mjs'
  * Assert that two PackageURL instances are equal in all properties.
  *
  * @example
- * const original = PackageURL.fromString('pkg:npm/lodash@4.17.21')
- * const restored = PackageURL.fromJSON(original.toJSONString())
- * expectPurlEquality(restored, original)
+ *   const original = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+ *   const restored = PackageURL.fromJSON(original.toJSONString())
+ *   expectPurlEquality(restored, original)
  */
 export function expectPurlEquality(purl1: PackageURL, purl2: PackageURL): void {
   expect(purl1.type).toBe(purl2.type)
@@ -31,11 +30,11 @@ export function expectPurlEquality(purl1: PackageURL, purl2: PackageURL): void {
  * Assert that a PackageURL instance has expected properties.
  *
  * @example
- * expectPurlProperties(purl, {
- *   type: 'npm',
- *   name: 'lodash',
- *   version: '4.17.21'
- * })
+ *   expectPurlProperties(purl, {
+ *     type: 'npm',
+ *     name: 'lodash',
+ *     version: '4.17.21',
+ *   })
  */
 export function expectPurlProperties(
   purl: PackageURL,
@@ -85,11 +84,11 @@ export function expectPurlProperties(
  * Test a validator function in both throwing and non-throwing modes.
  *
  * @example
- * testThrowingAndNonThrowing(
- *   () => validateName('invalid name'),
- *   false, // shouldPass
- *   /invalid name format/
- * )
+ *   testThrowingAndNonThrowing(
+ *     () => validateName('invalid name'),
+ *     false, // shouldPass
+ *     /invalid name format/,
+ *   )
  */
 export function testThrowingAndNonThrowing(
   validator: (_opts: { throws: boolean }) => boolean | never,

@@ -1,6 +1,6 @@
 /**
- * @fileoverview GitLab PURL normalization and validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#other-candidate-types-to-define
+ * @file GitLab PURL normalization and validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#other-candidate-types-to-define.
  */
 
 import { lowerName, lowerNamespace } from '../strings.mjs'
@@ -16,8 +16,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize GitLab package URL.
- * Lowercases both `namespace` and `name`.
+ * Normalize GitLab package URL. Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -26,8 +25,8 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate GitLab package URL.
- * `name` and `namespace` must not contain injection characters.
+ * Validate GitLab package URL. `name` and `namespace` must not contain
+ * injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

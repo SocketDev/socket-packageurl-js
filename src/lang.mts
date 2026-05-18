@@ -1,6 +1,7 @@
 /**
- * @fileoverview Language utility functions for checking null, undefined, and empty string values.
- * Provides type checking predicates for common value validation scenarios.
+ * @file Language utility functions for checking null, undefined, and empty
+ *   string values. Provides type checking predicates for common value
+ *   validation scenarios.
  */
 
 /**

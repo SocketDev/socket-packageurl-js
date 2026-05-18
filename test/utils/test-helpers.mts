@@ -1,5 +1,5 @@
 /**
- * @fileoverview Test helper utilities for creating test functions and data
+ * @file Test helper utilities for creating test functions and data
  */
 
 import { PackageURL } from '../../src/package-url.mjs'
@@ -7,8 +7,8 @@ import { PackageURL } from '../../src/package-url.mjs'
 import type { TtlCache } from '@socketsecurity/lib/cache-with-ttl'
 
 /**
- * Create a minimal mock TtlCache for testing.
- * Only implements get/set methods backed by a Map.
+ * Create a minimal mock TtlCache for testing. Only implements get/set methods
+ * backed by a Map.
  */
 export function createMockCache(): TtlCache {
   const cacheData = new Map<string, unknown>()
@@ -47,7 +47,8 @@ export function createMockCache(): TtlCache {
 
 /**
  * Create a test function with optional return value.
- * @param returnValue - Optional value to return from the function
+ *
+ * @param returnValue - Optional value to return from the function.
  */
 export function createTestFunction(
   returnValue?: string,
@@ -60,9 +61,10 @@ export function createTestFunction(
 
 /**
  * Create a PackageURL with simplified parameters.
- * @param type - Package type
- * @param name - Package name
- * @param opts - Optional parameters
+ *
+ * @param type - Package type.
+ * @param name - Package name.
+ * @param opts - Optional parameters.
  */
 export function createTestPurl(
   type: string,

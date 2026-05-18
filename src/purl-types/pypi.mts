@@ -1,6 +1,6 @@
 /**
- * @fileoverview PyPI-specific PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#pypi
+ * @file PyPI-specific PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#pypi.
  */
 
 import { errorMessage } from '../error.mjs'
@@ -30,9 +30,9 @@ interface PurlObject {
 }
 
 /**
- * Normalize PyPI package URL.
- * Lowercases `namespace`, `name`, and `version`, replaces underscores with dashes in `name`.
- * Spec: `namespace`, `name`, and `version` are all case-insensitive.
+ * Normalize PyPI package URL. Lowercases `namespace`, `name`, and `version`,
+ * replaces underscores with dashes in `name`. Spec: `namespace`, `name`, and
+ * `version` are all case-insensitive.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -50,32 +50,34 @@ export function normalize(purl: PurlObject): PurlObject {
  * package metadata.
  *
  * **Caching:** Responses can be cached using a TTL cache to reduce registry
- * requests. Pass `{ cache }` option with a cache instance from `createTtlCache()`.
+ * requests. Pass `{ cache }` option with a cache instance from
+ * `createTtlCache()`.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if package exists
+ *   const result = await pypiExists('requests')
+ *   // -> { exists: true, latestVersion: '2.31.0' }
+ *
+ *   // Validate specific version
+ *   const result = await pypiExists('django', '4.2.0')
+ *   // -> { exists: true, latestVersion: '5.0.0' }
+ *
+ *   // With caching
+ *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'pypi' })
+ *   const result = await pypiExists('requests', undefined, { cache })
+ *
+ *   // Non-existent package
+ *   const result = await pypiExists('this-package-does-not-exist')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
  *
  * @param name - Package name (e.g., `'requests'`, `'django'`)
  * @param version - Optional version to validate (e.g., `'2.28.1'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if package exists
- * const result = await pypiExists('requests')
- * // -> { exists: true, latestVersion: '2.31.0' }
- *
- * // Validate specific version
- * const result = await pypiExists('django', '4.2.0')
- * // -> { exists: true, latestVersion: '5.0.0' }
- *
- * // With caching
- * import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
- * const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'pypi' })
- * const result = await pypiExists('requests', undefined, { cache })
- *
- * // Non-existent package
- * const result = await pypiExists('this-package-does-not-exist')
- * // -> { exists: false, error: 'Package not found' }
- * ```
  */
 export async function pypiExists(
   name: string,
@@ -149,8 +151,7 @@ export async function pypiExists(
 }
 
 /**
- * Validate PyPI package URL.
- * `name` must not contain injection characters.
+ * Validate PyPI package URL. `name` must not contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (!validateNoInjectionByType('pypi', 'name', purl.name, throws)) {

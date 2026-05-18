@@ -1,6 +1,6 @@
 /**
- * @fileoverview CRAN (R packages) PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#cran
+ * @file CRAN (R packages) PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#cran.
  */
 
 import { errorMessage } from '../error.mjs'
@@ -30,29 +30,30 @@ interface PurlObject {
 /**
  * Check if an R package exists on CRAN.
  *
- * Queries CRAN database to verify package existence and retrieve
- * the latest version. Note: CRAN provides a list of all packages
- * via their `packages.rds` file.
+ * Queries CRAN database to verify package existence and retrieve the latest
+ * version. Note: CRAN provides a list of all packages via their `packages.rds`
+ * file.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if package exists
+ *   const result = await cranExists('ggplot2')
+ *   // -> { exists: true, latestVersion: '3.4.4' }
+ *
+ *   // Validate specific version
+ *   const result = await cranExists('ggplot2', '3.4.4')
+ *   // -> { exists: true, latestVersion: '3.4.4' }
+ *
+ *   // Non-existent package
+ *   const result = await cranExists('FakePackage')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
  *
  * @param name - Package name (e.g., `'ggplot2'`)
  * @param version - Optional version to validate (e.g., `'3.4.4'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if package exists
- * const result = await cranExists('ggplot2')
- * // -> { exists: true, latestVersion: '3.4.4' }
- *
- * // Validate specific version
- * const result = await cranExists('ggplot2', '3.4.4')
- * // -> { exists: true, latestVersion: '3.4.4' }
- *
- * // Non-existent package
- * const result = await cranExists('FakePackage')
- * // -> { exists: false, error: 'Package not found' }
- * ```
  */
 export async function cranExists(
   name: string,
@@ -125,8 +126,8 @@ export async function cranExists(
 }
 
 /**
- * Validate CRAN package URL.
- * CRAN packages require a `version`. `name` must not contain injection characters.
+ * Validate CRAN package URL. CRAN packages require a `version`. `name` must not
+ * contain injection characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

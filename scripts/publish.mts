@@ -1,9 +1,9 @@
 /* oxlint-disable socket/prefer-cached-for-loop -- one-shot publish script, not a hot path. */
 /* max-file-lines: legitimate -- single-purpose CLI script; splitting would obscure the linear publish flow. */
 /**
- * @fileoverview Publish runner for Socket packageurl-js.
- * Validates build artifacts exist, then publishes to npm.
- * Build and checks should be run separately (e.g., via ci:validate).
+ * @file Publish runner for Socket packageurl-js. Validates build artifacts
+ *   exist, then publishes to npm. Build and checks should be run separately
+ *   (e.g., via ci:validate).
  */
 
 import { existsSync, promises as fs } from 'node:fs'
@@ -205,8 +205,8 @@ export async function publishPackage(
 }
 
 /**
- * Push existing git tag if it exists locally but not remotely.
- * Tags should be created with version bump commits, not by this script.
+ * Push existing git tag if it exists locally but not remotely. Tags should be
+ * created with version bump commits, not by this script.
  */
 export async function pushExistingTag(
   version: string,
@@ -336,10 +336,9 @@ export async function runCommandWithOutput(
  * Publish a single package.
  */
 /**
- * Stage publishable files into a fresh os.tmpdir() subdir. Returns
- * the path of the staged copy. The caller publishes from there
- * instead of the working tree, so an interrupted publish leaves
- * `git status` clean.
+ * Stage publishable files into a fresh os.tmpdir() subdir. Returns the path of
+ * the staged copy. The caller publishes from there instead of the working tree,
+ * so an interrupted publish leaves `git status` clean.
  */
 export async function stageForPublish(): Promise<string> {
   const stageRoot = await fs.mkdtemp(

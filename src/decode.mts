@@ -1,12 +1,13 @@
 /**
- * @fileoverview URL decoding functionality for PURL components.
- * Provides proper error handling for invalid encoded strings.
+ * @file URL decoding functionality for PURL components. Provides proper error
+ *   handling for invalid encoded strings.
  */
 import { PurlError } from './error.mjs'
 import { decodeComponent } from '@socketsecurity/lib/primordials'
 
 /**
  * Decode PURL component value from URL encoding.
+ *
  * @throws {PurlError} When component cannot be decoded.
  */
 export function decodePurlComponent(

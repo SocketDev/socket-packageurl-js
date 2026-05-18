@@ -1,27 +1,17 @@
 /* oxlint-disable socket/sort-source-methods -- helpers ordered by lint-runner pipeline phase. */
 /**
- * @fileoverview Canonical minimal lint runner for socket-* repos.
- *
- * Scope modes:
- *   (default)   Lint files modified in the working tree vs HEAD.
- *   --staged    Lint files in the git index (used by .husky/pre-commit).
- *   --all       Lint the entire workspace.
- *
- * Flags:
- *   --fix       Auto-fix issues.
- *   --quiet     Suppress progress output.
- *
- * If the chosen scope has no lintable files, the script is a no-op.
- *
- * Config or infrastructure changes (.config/oxlintrc.json,
- * .config/oxfmtrc.json, tsconfig*.json, pnpm-lock.yaml, .config/**,
- * scripts/**, package.json) escalate to `--all` automatically, since they
- * can affect everything.
- *
- * This is the minimal zero-dependency reference implementation. Larger repos
- * (socket-lib, socket-registry, socket-sdk-js, etc.) use a richer version
- * based on @socketsecurity/lib-stable helpers; this one keeps the same CLI
- * contract so pre-commit hooks and CI work identically across repos.
+ * @file Canonical minimal lint runner for socket-* repos. Scope modes:
+ *   (default) Lint files modified in the working tree vs HEAD. --staged Lint
+ *   files in the git index (used by .husky/pre-commit). --all Lint the entire
+ *   workspace. Flags: --fix Auto-fix issues. --quiet Suppress progress output.
+ *   If the chosen scope has no lintable files, the script is a no-op. Config or
+ *   infrastructure changes (.config/oxlintrc.json, .config/oxfmtrc.json,
+ *   tsconfig*.json, pnpm-lock.yaml, .config/**, scripts/**, package.json)
+ *   escalate to `--all` automatically, since they can affect everything. This
+ *   is the minimal zero-dependency reference implementation. Larger repos
+ *   (socket-lib, socket-registry, socket-sdk-js, etc.) use a richer version
+ *   based on @socketsecurity/lib-stable helpers; this one keeps the same CLI
+ *   contract so pre-commit hooks and CI work identically across repos.
  */
 
 import { execFileSync, execSync } from 'node:child_process'

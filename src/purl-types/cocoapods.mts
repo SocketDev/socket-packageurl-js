@@ -1,6 +1,6 @@
 /**
- * @fileoverview CocoaPods (iOS/macOS) PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/types-doc/cocoapods-definition.md
+ * @file CocoaPods (iOS/macOS) PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/types-doc/cocoapods-definition.md.
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -28,28 +28,29 @@ interface PurlObject {
 /**
  * Check if a CocoaPod exists in the CocoaPods trunk.
  *
- * Queries `trunk.cocoapods.org` API to verify pod existence and retrieve
- * the latest version.
+ * Queries `trunk.cocoapods.org` API to verify pod existence and retrieve the
+ * latest version.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if pod exists
+ *   const result = await cocoapodsExists('Alamofire')
+ *   // -> { exists: true, latestVersion: '5.8.1' }
+ *
+ *   // Validate specific version
+ *   const result = await cocoapodsExists('Alamofire', '5.8.1')
+ *   // -> { exists: true, latestVersion: '5.8.1' }
+ *
+ *   // Non-existent pod
+ *   const result = await cocoapodsExists('FakePod')
+ *   // -> { exists: false, error: 'Pod not found' }
+ *   ```
  *
  * @param name - Pod name (e.g., `'Alamofire'`)
  * @param version - Optional version to validate (e.g., `'5.8.1'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if pod exists
- * const result = await cocoapodsExists('Alamofire')
- * // -> { exists: true, latestVersion: '5.8.1' }
- *
- * // Validate specific version
- * const result = await cocoapodsExists('Alamofire', '5.8.1')
- * // -> { exists: true, latestVersion: '5.8.1' }
- *
- * // Non-existent pod
- * const result = await cocoapodsExists('FakePod')
- * // -> { exists: false, error: 'Pod not found' }
- * ```
  */
 export async function cocoapodsExists(
   name: string,
@@ -129,9 +130,8 @@ export async function cocoapodsExists(
 }
 
 /**
- * Validate CocoaPods package URL.
- * `name` cannot contain injection or whitespace characters, plus (`+`) character,
- * or begin with a period (`.`).
+ * Validate CocoaPods package URL. `name` cannot contain injection or whitespace
+ * characters, plus (`+`) character, or begin with a period (`.`).
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { name } = purl

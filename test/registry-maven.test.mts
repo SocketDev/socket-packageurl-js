@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for Maven Central registry existence checks.
+ * @file Tests for Maven Central registry existence checks.
  */
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'

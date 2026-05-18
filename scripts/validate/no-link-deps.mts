@@ -1,7 +1,7 @@
 /* oxlint-disable socket/prefer-cached-for-loop -- one-shot validation script, not a hot path. */
 /**
- * @fileoverview Validates that no package.json files contain link: dependencies.
- * Link dependencies are prohibited - use workspace: or catalog: instead.
+ * @file Validates that no package.json files contain link: dependencies. Link
+ *   dependencies are prohibited - use workspace: or catalog: instead.
  */
 
 import { promises as fs } from 'node:fs'

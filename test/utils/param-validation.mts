@@ -1,5 +1,5 @@
 /**
- * @fileoverview Utilities for testing PackageURL parameter validation
+ * @file Utilities for testing PackageURL parameter validation
  */
 
 import { expect } from 'vitest'
@@ -13,8 +13,8 @@ type CreateArgsFn = (
 ) => [unknown, unknown, unknown, unknown, unknown, unknown]
 
 /**
- * Test that required parameters are validated correctly.
- * Tests various invalid inputs that should all throw.
+ * Test that required parameters are validated correctly. Tests various invalid
+ * inputs that should all throw.
  */
 export function testInvalidParam(
   paramName: string,
@@ -31,8 +31,8 @@ export function testInvalidParam(
 }
 
 /**
- * Test that string parameters reject non-string values.
- * Tests various invalid type inputs that should all throw.
+ * Test that string parameters reject non-string values. Tests various invalid
+ * type inputs that should all throw.
  */
 export function testInvalidStringParam(
   paramName: string,
@@ -44,11 +44,12 @@ export function testInvalidStringParam(
 
 /**
  * Test parameter validation with various test values.
- * @param paramName - Name of the parameter to test
- * @param paramMap - Map of parameter names to argument positions
- * @param createArgs - Function to create constructor arguments
- * @param testValues - Array of values to test
- * @param shouldThrow - Whether the values should cause errors
+ *
+ * @param paramName - Name of the parameter to test.
+ * @param paramMap - Map of parameter names to argument positions.
+ * @param createArgs - Function to create constructor arguments.
+ * @param testValues - Array of values to test.
+ * @param shouldThrow - Whether the values should cause errors.
  */
 export function testParam(
   paramName: string,
@@ -82,8 +83,8 @@ export function testValidParam(
 }
 
 /**
- * Test that optional string parameters accept valid string values.
- * Tests various valid inputs that should all succeed.
+ * Test that optional string parameters accept valid string values. Tests
+ * various valid inputs that should all succeed.
  */
 export function testValidStringParam(
   paramName: string,

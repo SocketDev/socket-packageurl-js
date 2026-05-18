@@ -1,6 +1,6 @@
 /**
- * @fileoverview ALPM (Arch Linux Package Manager) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#alpm
+ * @file ALPM (Arch Linux Package Manager) PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#alpm.
  */
 
 import { lowerName, lowerNamespace } from '../strings.mjs'
@@ -15,8 +15,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize ALPM package URL.
- * Lowercases both `namespace` and `name`.
+ * Normalize ALPM package URL. Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)

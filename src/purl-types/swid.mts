@@ -1,6 +1,6 @@
 /**
- * @fileoverview SWID (Software Identification Tag) PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/types-doc/swid-definition.md
+ * @file SWID (Software Identification Tag) PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/types-doc/swid-definition.md.
  */
 
 import { PurlError } from '../error.mjs'
@@ -26,9 +26,8 @@ interface PurlObject {
 }
 
 /**
- * Validate SWID package URL.
- * SWID requires a `tag_id` qualifier that must not be empty.
- * If `tag_id` is a GUID, it must be lowercase.
+ * Validate SWID package URL. SWID requires a `tag_id` qualifier that must not
+ * be empty. If `tag_id` is a GUID, it must be lowercase.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   const { qualifiers } = purl

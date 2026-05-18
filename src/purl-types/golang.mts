@@ -1,33 +1,31 @@
 /**
- * @fileoverview Golang-specific PURL validation.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#golang
+ * @file Golang-specific PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#golang.
  *
- * ## Case Sensitivity in Go Module Names
+ *   ## Case Sensitivity in Go Module Names
  *
- * Go module names are **case-sensitive** and should NOT be normalized to lowercase.
- * This is critical because:
+ *   Go module names are **case-sensitive** and should NOT be normalized to
+ *   lowercase. This is critical because:
  *
- * 1. **Module Identity**: Go treats module paths as case-sensitive identifiers.
- *    `github.com/User/Repo` and `github.com/user/repo` are different modules.
+ *   1. **Module Identity**: Go treats module paths as case-sensitive identifiers.
+ *      `github.com/User/Repo` and `github.com/user/repo` are different
+ *      modules.
+ *   2. **Import Path Matching**: The import path must exactly match the module
+ *      path declared in `go.mod`, including case.
+ *   3. **Proxy Encoding**: While the Go proxy uses case-encoding for URLs
+ *      (uppercase letters become `!lowercase`, e.g., `User` → `!user`), this is
+ *      an internal encoding detail. The original case must be preserved in
+ *      PURLs.
+ *   4. **Filesystem Implications**: On case-insensitive filesystems (macOS,
+ *      Windows), different-cased modules could collide, but Go's tooling
+ *      handles this correctly when the original case is preserved.
+ *      **Examples:**
  *
- * 2. **Import Path Matching**: The import path must exactly match the module path
- *    declared in `go.mod`, including case.
- *
- * 3. **Proxy Encoding**: While the Go proxy uses case-encoding for URLs (uppercase
- *    letters become `!lowercase`, e.g., `User` → `!user`), this is an internal
- *    encoding detail. The original case must be preserved in PURLs.
- *
- * 4. **Filesystem Implications**: On case-insensitive filesystems (macOS, Windows),
- *    different-cased modules could collide, but Go's tooling handles this correctly
- *    when the original case is preserved.
- *
- * **Examples:**
- * - `pkg:golang/github.com/Masterminds/semver@v3.2.1` - Correct (preserves case)
- * - `pkg:golang/github.com/masterminds/semver@v3.2.1` - Wrong (loses case)
- *
- * inclusive-language: external-api — `Masterminds` is a real GitHub org name.
- *
- * See: https://go.dev/ref/mod#module-path
+ *   - `pkg:golang/github.com/Masterminds/semver@v3.2.1` - Correct (preserves
+ *     case)
+ *   - `pkg:golang/github.com/masterminds/semver@v3.2.1` - Wrong (loses case)
+ *     inclusive-language: external-api — `Masterminds` is a real GitHub org
+ *     name. See: https://go.dev/ref/mod#module-path
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -60,34 +58,39 @@ interface PurlObject {
 /**
  * Check if a Go module exists in the Go module proxy.
  *
- * Queries `proxy.golang.org` to verify module existence and retrieve
- * the latest version. Go module names are typically full import paths
- * like `'github.com/user/repo'`.
+ * Queries `proxy.golang.org` to verify module existence and retrieve the latest
+ * version. Go module names are typically full import paths like
+ * `'github.com/user/repo'`.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if module exists
+ *   const result = await golangExists('github.com/gorilla/mux')
+ *   // -> { exists: true, latestVersion: 'v1.8.0' }
+ *
+ *   // With namespace (constructs full path)
+ *   const result = await golangExists('mux', 'github.com/gorilla')
+ *   // -> { exists: true, latestVersion: 'v1.8.0' }
+ *
+ *   // Validate specific version
+ *   const result = await golangExists(
+ *     'github.com/gorilla/mux',
+ *     undefined,
+ *     'v1.8.0',
+ *   )
+ *   // -> { exists: true, latestVersion: 'v1.8.0' }
+ *
+ *   // Non-existent module
+ *   const result = await golangExists('github.com/fake/module')
+ *   // -> { exists: false, error: 'Module not found' }
+ *   ```
  *
  * @param name - Full module path (e.g., `'github.com/gorilla/mux'`)
  * @param namespace - Optional namespace (combined with `name` if provided)
  * @param version - Optional version to validate (e.g., `'v1.8.0'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if module exists
- * const result = await golangExists('github.com/gorilla/mux')
- * // -> { exists: true, latestVersion: 'v1.8.0' }
- *
- * // With namespace (constructs full path)
- * const result = await golangExists('mux', 'github.com/gorilla')
- * // -> { exists: true, latestVersion: 'v1.8.0' }
- *
- * // Validate specific version
- * const result = await golangExists('github.com/gorilla/mux', undefined, 'v1.8.0')
- * // -> { exists: true, latestVersion: 'v1.8.0' }
- *
- * // Non-existent module
- * const result = await golangExists('github.com/fake/module')
- * // -> { exists: false, error: 'Module not found' }
- * ```
  */
 export async function golangExists(
   name: string,
@@ -178,9 +181,9 @@ export async function golangExists(
 }
 
 /**
- * Validate Golang package URL.
- * `name` and `namespace` must not contain injection characters.
- * If `version` starts with `"v"`, it must be followed by a valid semver version.
+ * Validate Golang package URL. `name` and `namespace` must not contain
+ * injection characters. If `version` starts with `"v"`, it must be followed by
+ * a valid semver version.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (

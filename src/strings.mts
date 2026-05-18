@@ -1,7 +1,8 @@
 /* oxlint-disable socket/sort-source-methods -- helpers grouped by domain (predicates, mutators, transforms, injection-detection) — reordering alphabetically scatters tightly-related functions. */
 /**
- * @fileoverview String utility functions for PURL processing.
- * Includes whitespace detection, semver validation, locale comparison, and character replacement.
+ * @file String utility functions for PURL processing. Includes whitespace
+ *   detection, semver validation, locale comparison, and character
+ *   replacement.
  */
 import {
   NumberPrototypeToString,
@@ -191,17 +192,13 @@ export function replaceUnderscoresWithDashes(str: string): string {
  *
  * 1. **Shell metacharacters** — command execution, piping, redirection, expansion:
  *    `|`, `&`, `;`, `` ` ``, `$`, `<`, `>`, `(`, `)`, `{`, `}`, `\`
- *
- * 2. **Quote characters** — break out of quoted contexts in shell, SQL, URLs:
- *    `'`, `"`
- *
- * 3. **URL/path delimiters** — fragment injection, comment injection:
- *    `#`
- *
+ * 2. **Quote characters** — break out of quoted contexts in shell, SQL, URLs: `'`,
+ *    `"`
+ * 3. **URL/path delimiters** — fragment injection, comment injection: `#`
  * 4. **Whitespace & control characters** — argument splitting, log injection,
- *    terminal escape sequences, null-byte truncation:
- *    `0x00`-`0x1f` (all C0 controls including NUL, tab, newline, CR, ESC, etc.)
- *    space (`0x20`), DEL (`0x7f`)
+ *    terminal escape sequences, null-byte truncation: `0x00`-`0x1f` (all C0
+ *    controls including NUL, tab, newline, CR, ESC, etc.) space (`0x20`), DEL
+ *    (`0x7f`)
  */
 export function isInjectionCharCode(code: number): boolean {
   // C0 control characters (0x00-0x1f)
@@ -308,13 +305,13 @@ export function isInjectionCharCode(code: number): boolean {
  * Test whether a character code enables command execution.
  *
  * A narrower scanner than `isInjectionCharCode`, targeting characters that
- * enable shell command execution and code injection. Allows characters
- * that are legitimate in version strings and URL-based qualifier values
- * (like `!`, `+`, `?`, `&`, `=`, `%`, `:`, `/`, `#`, space) while still blocking the
- * most dangerous execution vectors.
+ * enable shell command execution and code injection. Allows characters that are
+ * legitimate in version strings and URL-based qualifier values (like `!`, `+`,
+ * `?`, `&`, `=`, `%`, `:`, `/`, `#`, space) while still blocking the most
+ * dangerous execution vectors.
  *
- * Used for `version`, `subpath`, and qualifier value validation where the
- * full injection scanner would cause false positives.
+ * Used for `version`, `subpath`, and qualifier value validation where the full
+ * injection scanner would cause false positives.
  */
 export function isCommandInjectionCharCode(code: number): boolean {
   // C0 control characters except tab (`0x09`) — tab is used in some
@@ -371,9 +368,9 @@ export function isCommandInjectionCharCode(code: number): boolean {
 }
 
 /**
- * Find the first command injection character in a string.
- * Like `findInjectionCharCode` but uses the narrower command injection set.
- * Returns the character code found, or `-1`.
+ * Find the first command injection character in a string. Like
+ * `findInjectionCharCode` but uses the narrower command injection set. Returns
+ * the character code found, or `-1`.
  */
 export function findCommandInjectionCharCode(str: string): number {
   for (let i = 0, { length } = str; i < length; i += 1) {
@@ -386,16 +383,16 @@ export function findCommandInjectionCharCode(str: string): number {
 }
 
 /**
- * Find the first injection character in a string.
- * Returns the character code of the first dangerous character found, or `-1`.
+ * Find the first injection character in a string. Returns the character code of
+ * the first dangerous character found, or `-1`.
  *
- * Uses `charCode` scanning for performance in hot paths. The check is a
- * single pass with no allocation, no regex, and no prototype method calls
- * beyond the captured `StringPrototypeCharCodeAt` primordial.
+ * Uses `charCode` scanning for performance in hot paths. The check is a single
+ * pass with no allocation, no regex, and no prototype method calls beyond the
+ * captured `StringPrototypeCharCodeAt` primordial.
  *
  * Null bytes (`0x00`) are also caught by `validateStrings()` in `validate.ts`,
- * but we include them here for defense-in-depth so callers who skip the
- * base validators still get protection.
+ * but we include them here for defense-in-depth so callers who skip the base
+ * validators still get protection.
  */
 export function findInjectionCharCode(str: string): number {
   for (let i = 0, { length } = str; i < length; i += 1) {
@@ -419,8 +416,9 @@ export function containsInjectionCharacters(str: string): boolean {
 }
 
 /**
- * Format an injection character code as a human-readable label for error messages.
- * Returns a string like `"|" (0x7c)` for printable chars or `0x1b` for control chars.
+ * Format an injection character code as a human-readable label for error
+ * messages. Returns a string like `"|" (0x7c)` for printable chars or `0x1b`
+ * for control chars.
  */
 export function formatInjectionChar(code: number): string {
   const hex = NumberPrototypeToString(code, 16)

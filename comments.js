@@ -5,20 +5,17 @@
  * Docs-site comment UI + email magic-code auth.
  *
  * Replaces meander's inlined comment scripts (comment-client.js,
- * line-select.js, unresolved-comments.js, export-comments.js) entirely.
- * The build post-processor strips those blocks and injects this file
- * in their place.
+ * line-select.js, unresolved-comments.js, export-comments.js) entirely. The
+ * build post-processor strips those blocks and injects this file in their
+ * place.
  *
- * Reads meander's DOM markers verbatim:
- *   document.body[data-slug]           — tour slug
- *   document.body[data-part]           — current part id
- *   document.body[data-page-type]      — "part" | "documents"
- *   table.code-table[data-file]        — file path for a code block
- *   td.line-num                        — line-number cells
- *   .topbar-actions                    — action-button container
+ * Reads meander's DOM markers verbatim: document.body[data-slug] — tour slug
+ * document.body[data-part] — current part id document.body[data-page-type] —
+ * "part" | "documents" table.code-table[data-file] — file path for a code block
+ * td.line-num — line-number cells .topbar-actions — action-button container.
  *
- * Backend URL comes from window.socketWalkthrough.backend (injected
- * at build time from tour.json's commentBackend field).
+ * Backend URL comes from window.socketWalkthrough.backend (injected at build
+ * time from tour.json's commentBackend field).
  */
 {
   const cfg = window.socketWalkthrough || {}

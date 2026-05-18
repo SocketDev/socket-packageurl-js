@@ -2,25 +2,26 @@
  * Build-time Mermaid → SVG renderer.
  *
  * Why build-time, not client-side:
- *   - Zero client JS. The page ships finished SVG; no 1MB+
- *     mermaid bundle, no render flash, no layout shift.
- *   - CSP stays tight. No extra script-src entry, no SRI for a
- *     library we only ever use to make pictures.
- *   - SVGO shrinks each diagram to a few KB.
+ *
+ * - Zero client JS. The page ships finished SVG; no 1MB+ mermaid bundle, no
+ *   render flash, no layout shift.
+ * - CSP stays tight. No extra script-src entry, no SRI for a library we only ever
+ *   use to make pictures.
+ * - SVGO shrinks each diagram to a few KB.
  *
  * How it works:
- *   1. Spin up one puppeteer browser per build (shared across
- *      every diagram — Chromium boot paid once).
- *   2. For each diagram: hash the source + theme + mermaid
- *      version. If the cache has that hash, return its SVG.
- *   3. Otherwise: open a blank page, load mermaid from
- *      node_modules, wait for fonts, render into a real
- *      DOM-attached container (mermaid-cli's pattern), grab
- *      the SVG string.
- *   4. Pipe through SVGO. Write to cache + return.
  *
- * Cache key embeds the mermaid version so a dep bump invalidates
- * stale output automatically.
+ * 1. Spin up one puppeteer browser per build (shared across every diagram —
+ *    Chromium boot paid once).
+ * 2. For each diagram: hash the source + theme + mermaid version. If the cache has
+ *    that hash, return its SVG.
+ * 3. Otherwise: open a blank page, load mermaid from node_modules, wait for fonts,
+ *    render into a real DOM-attached container (mermaid-cli's pattern), grab
+ *    the SVG string.
+ * 4. Pipe through SVGO. Write to cache + return.
+ *
+ * Cache key embeds the mermaid version so a dep bump invalidates stale output
+ * automatically.
  */
 
 import crypto from 'node:crypto'
@@ -68,8 +69,8 @@ export type MermaidRendererConfig = {
 }
 
 /**
- * Create a renderer backed by a shared puppeteer browser. Call
- * `close()` when the build is done.
+ * Create a renderer backed by a shared puppeteer browser. Call `close()` when
+ * the build is done.
  */
 export async function createMermaidRenderer(
   config: MermaidRendererConfig,

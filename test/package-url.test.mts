@@ -23,10 +23,11 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Core unit tests for PackageURL class.
- * Tests the main PackageURL API including constructor validation, toString/fromString parsing,
- * encoding/decoding, qualifiers, subpaths, known qualifier names immutability, input validation,
- * and support for parsing without the "pkg:" prefix for improved developer ergonomics.
+ * @file Core unit tests for PackageURL class. Tests the main PackageURL API
+ *   including constructor validation, toString/fromString parsing,
+ *   encoding/decoding, qualifiers, subpaths, known qualifier names
+ *   immutability, input validation, and support for parsing without the "pkg:"
+ *   prefix for improved developer ergonomics.
  */
 import { describe, expect, it } from 'vitest'
 

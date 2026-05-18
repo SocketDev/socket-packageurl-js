@@ -1,6 +1,6 @@
 /**
- * @fileoverview Hex (Erlang/Elixir) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#hex
+ * @file Hex (Erlang/Elixir) PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#hex.
  */
 
 import { errorMessage } from '../error.mjs'
@@ -28,28 +28,29 @@ interface PurlObject {
 /**
  * Check if an Elixir/Erlang package exists on hex.pm.
  *
- * Queries hex.pm API to verify package existence and retrieve
- * the latest version.
+ * Queries hex.pm API to verify package existence and retrieve the latest
+ * version.
+ *
+ * @example
+ *   ```typescript
+ *   // Check if package exists
+ *   const result = await hexExists('phoenix')
+ *   // -> { exists: true, latestVersion: '1.7.10' }
+ *
+ *   // Validate specific version
+ *   const result = await hexExists('phoenix', '1.7.10')
+ *   // -> { exists: true, latestVersion: '1.7.10' }
+ *
+ *   // Non-existent package
+ *   const result = await hexExists('fake_package')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
  *
  * @param name - Package name (e.g., `'phoenix'`)
  * @param version - Optional version to validate (e.g., `'1.7.10'`)
  * @param options - Optional configuration including `cache`
+ *
  * @returns `Promise` resolving to existence result with latest version
- *
- * @example
- * ```typescript
- * // Check if package exists
- * const result = await hexExists('phoenix')
- * // -> { exists: true, latestVersion: '1.7.10' }
- *
- * // Validate specific version
- * const result = await hexExists('phoenix', '1.7.10')
- * // -> { exists: true, latestVersion: '1.7.10' }
- *
- * // Non-existent package
- * const result = await hexExists('fake_package')
- * // -> { exists: false, error: 'Package not found' }
- * ```
  */
 export async function hexExists(
   name: string,
@@ -126,8 +127,7 @@ export async function hexExists(
 }
 
 /**
- * Normalize Hex package URL.
- * Lowercases both `namespace` and `name`.
+ * Normalize Hex package URL. Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
@@ -136,8 +136,8 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate Hex package URL.
- * `name` and `namespace` must not contain injection characters.
+ * Validate Hex package URL. `name` and `namespace` must not contain injection
+ * characters.
  */
 export function validate(purl: PurlObject, throws: boolean): boolean {
   if (!validateNoInjectionByType('hex', 'namespace', purl.namespace, throws)) {

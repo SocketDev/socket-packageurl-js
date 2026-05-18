@@ -22,12 +22,11 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Package URL parsing and construction utilities.
- *
- * Note on `instanceof` checks:
- * When this module is compiled to CommonJS and imported from ESM contexts,
- * `instanceof` checks may fail due to module system interoperability issues.
- * See `package-url-builder.ts` for detailed explanation and workarounds.
+ * @file Package URL parsing and construction utilities. Note on `instanceof`
+ *   checks: When this module is compiled to CommonJS and imported from ESM
+ *   contexts, `instanceof` checks may fail due to module system
+ *   interoperability issues. See `package-url-builder.ts` for detailed
+ *   explanation and workarounds.
  */
 
 import {
@@ -102,8 +101,8 @@ import type { DownloadUrl, RepositoryUrl } from './url-converter.mjs'
 export type PackageURLComponentValue = string | QualifiersObject | undefined
 
 /**
- * Type representing a plain object representation of a `PackageURL`.
- * Contains all package URL components as properties.
+ * Type representing a plain object representation of a `PackageURL`. Contains
+ * all package URL components as properties.
  */
 export type PackageURLObject = {
   type?: string | undefined
@@ -115,9 +114,9 @@ export type PackageURLObject = {
 }
 
 /**
- * Type representing parsed PURL components as a tuple.
- * Returned by `PackageURL.parseString()` in the order:
- * `[type, namespace, name, version, qualifiers, subpath]`
+ * Type representing parsed PURL components as a tuple. Returned by
+ * `PackageURL.parseString()` in the order: `[type, namespace, name, version,
+ * qualifiers, subpath]`
  */
 export type ParsedPurlComponents = [
   type: string | undefined,
@@ -143,14 +142,17 @@ const PURL_LIKE_PATTERN = ObjectFreeze(/^[a-zA-Z0-9+.-]{1,256}\//)
 
 /**
  * Package URL parser and constructor implementing the PURL specification.
- * Provides methods to parse, construct, and manipulate Package URLs with validation and normalization.
+ * Provides methods to parse, construct, and manipulate Package URLs with
+ * validation and normalization.
  */
 class PackageURL {
   static Component = recursiveFreeze(PurlComponent)
   static KnownQualifierNames = recursiveFreeze(PurlQualifierNames)
   static Type = recursiveFreeze(PurlType)
 
-  /** @internal Cached canonical string representation. */
+  /**
+   * @internal Cached canonical string representation.
+   */
   _cachedString?: string | undefined
 
   name?: string | undefined
@@ -273,7 +275,8 @@ class PackageURL {
    * Returns `namespace/name@version?qualifiers#subpath` — the package identity
    * without the `pkg:type/` prefix.
    *
-   * @returns Spec string (e.g., `'@babel/core@7.0.0'` for `pkg:npm/%40babel/core@7.0.0`)
+   * @returns Spec string (e.g., `'@babel/core@7.0.0'` for
+   *   `pkg:npm/%40babel/core@7.0.0`)
    */
   toSpec() {
     return stringifySpec(this)
@@ -289,10 +292,11 @@ class PackageURL {
   }
 
   /**
-   * Create a new `PackageURL` with a different version.
-   * Returns a new instance — the original is unchanged.
+   * Create a new `PackageURL` with a different version. Returns a new instance
+   * — the original is unchanged.
    *
-   * @param version - New version string
+   * @param version - New version string.
+   *
    * @returns New `PackageURL` with the updated version
    */
   withVersion(version: string | undefined): PackageURL {
@@ -307,10 +311,11 @@ class PackageURL {
   }
 
   /**
-   * Create a new `PackageURL` with a different namespace.
-   * Returns a new instance — the original is unchanged.
+   * Create a new `PackageURL` with a different namespace. Returns a new
+   * instance — the original is unchanged.
    *
-   * @param namespace - New namespace string
+   * @param namespace - New namespace string.
+   *
    * @returns New `PackageURL` with the updated namespace
    */
   withNamespace(namespace: string | undefined): PackageURL {
@@ -325,14 +330,15 @@ class PackageURL {
   }
 
   /**
-   * Create a new `PackageURL` with a single qualifier added or updated.
-   * Returns a new instance — the original is unchanged.
+   * Create a new `PackageURL` with a single qualifier added or updated. Returns
+   * a new instance — the original is unchanged.
    *
-   * Keys are lowercased per the PURL spec. Values are trimmed, and a value
-   * that is empty after trimming drops the qualifier entirely.
+   * Keys are lowercased per the PURL spec. Values are trimmed, and a value that
+   * is empty after trimming drops the qualifier entirely.
    *
    * @param key - Qualifier key (will be lowercased)
    * @param value - Qualifier value (trimmed; empty-after-trim drops the key)
+   *
    * @returns New `PackageURL` with the qualifier set
    */
   withQualifier(key: string, value: string): PackageURL {
@@ -351,10 +357,11 @@ class PackageURL {
   }
 
   /**
-   * Create a new `PackageURL` with all qualifiers replaced.
-   * Returns a new instance — the original is unchanged.
+   * Create a new `PackageURL` with all qualifiers replaced. Returns a new
+   * instance — the original is unchanged.
    *
    * @param qualifiers - New qualifiers object (or `undefined` to remove all)
+   *
    * @returns New `PackageURL` with the updated qualifiers
    */
   withQualifiers(qualifiers: Record<string, string> | undefined): PackageURL {
@@ -369,10 +376,11 @@ class PackageURL {
   }
 
   /**
-   * Create a new `PackageURL` with a different subpath.
-   * Returns a new instance — the original is unchanged.
+   * Create a new `PackageURL` with a different subpath. Returns a new instance
+   * — the original is unchanged.
    *
-   * @param subpath - New subpath string
+   * @param subpath - New subpath string.
+   *
    * @returns New `PackageURL` with the updated subpath
    */
   withSubpath(subpath: string | undefined): PackageURL {
@@ -389,10 +397,11 @@ class PackageURL {
   /**
    * Compare this `PackageURL` with another for equality.
    *
-   * Two `purl`s are considered equal if their canonical string representations match.
-   * This comparison is case-sensitive after normalization.
+   * Two `purl`s are considered equal if their canonical string representations
+   * match. This comparison is case-sensitive after normalization.
    *
-   * @param other - The `PackageURL` to compare with
+   * @param other - The `PackageURL` to compare with.
+   *
    * @returns `true` if the `purl`s are equal, `false` otherwise
    */
   equals(other: PackageURL): boolean {
@@ -402,10 +411,12 @@ class PackageURL {
   /**
    * Compare two `PackageURL`s for equality.
    *
-   * Two `purl`s are considered equal if their canonical string representations match.
+   * Two `purl`s are considered equal if their canonical string representations
+   * match.
    *
-   * @param a - First `PackageURL` to compare
-   * @param b - Second `PackageURL` to compare
+   * @param a - First `PackageURL` to compare.
+   * @param b - Second `PackageURL` to compare.
+   *
    * @returns `true` if the `purl`s are equal, `false` otherwise
    */
   static equals(a: PackageURL, b: PackageURL): boolean {
@@ -415,12 +426,11 @@ class PackageURL {
   /**
    * Compare this `PackageURL` with another for sorting.
    *
-   * Returns a number indicating sort order:
-   * - Negative if this comes before `other`
-   * - Zero if they are equal
-   * - Positive if this comes after `other`
+   * Returns a number indicating sort order: - Negative if this comes before
+   * `other` - Zero if they are equal - Positive if this comes after `other`
    *
-   * @param other - The `PackageURL` to compare with
+   * @param other - The `PackageURL` to compare with.
+   *
    * @returns `-1`, `0`, or `1` for sort ordering
    */
   compare(other: PackageURL): -1 | 0 | 1 {
@@ -430,14 +440,13 @@ class PackageURL {
   /**
    * Compare two `PackageURL`s for sorting.
    *
-   * Compares `purl`s using their canonical string representations.
-   * Returns a number indicating sort order:
-   * - Negative if `a` comes before `b`
-   * - Zero if they are equal
-   * - Positive if `a` comes after `b`
+   * Compares `purl`s using their canonical string representations. Returns a
+   * number indicating sort order: - Negative if `a` comes before `b` - Zero if
+   * they are equal - Positive if `a` comes after `b`
    *
-   * @param a - First `PackageURL` to compare
-   * @param b - Second `PackageURL` to compare
+   * @param a - First `PackageURL` to compare.
+   * @param b - Second `PackageURL` to compare.
+   *
    * @returns `-1`, `0`, or `1` for sort ordering
    */
   static compare(a: PackageURL, b: PackageURL): -1 | 0 | 1 {
@@ -553,12 +562,14 @@ class PackageURL {
    * Handles scoped packages, version ranges, and normalizes version strings.
    *
    * **Supported formats:**
+   *
    * - Basic packages: `lodash`, `lodash@4.17.21`
    * - Scoped packages: `@babel/core`, `@babel/core@7.0.0`
    * - Version ranges: `^4.17.21`, `~1.2.3`, `>=1.0.0` (prefixes stripped)
    * - Dist-tags: `latest`, `next`, `beta` (passed through as version)
    *
    * **Not supported:**
+   *
    * - Git URLs: `git+https://...` (use `PackageURL` constructor directly)
    * - File paths: `file:../package.tgz`
    * - GitHub shortcuts: `user/repo#branch`
@@ -568,28 +579,31 @@ class PackageURL {
    * concrete versions for reproducible builds. This method passes them through
    * as-is for convenience.
    *
-   * @param specifier - npm package specifier (e.g., `'lodash@4.17.21'`, `'@babel/core@^7.0.0'`)
-   * @returns `PackageURL` instance for the npm package
-   * @throws {Error} If `specifier` is not a string or is empty
-   *
    * @example
-   * ```typescript
-   * // Basic packages
-   * PackageURL.fromNpm('lodash@4.17.21')
-   * // -> pkg:npm/lodash@4.17.21
+   *   ```typescript
+   *   // Basic packages
+   *   PackageURL.fromNpm('lodash@4.17.21')
+   *   // -> pkg:npm/lodash@4.17.21
    *
-   * // Scoped packages
-   * PackageURL.fromNpm('@babel/core@^7.0.0')
-   * // -> pkg:npm/%40babel/core@7.0.0
+   *   // Scoped packages
+   *   PackageURL.fromNpm('@babel/core@^7.0.0')
+   *   // -> pkg:npm/%40babel/core@7.0.0
    *
-   * // Dist-tags (passed through)
-   * PackageURL.fromNpm('react@latest')
-   * // -> pkg:npm/react@latest
+   *   // Dist-tags (passed through)
+   *   PackageURL.fromNpm('react@latest')
+   *   // -> pkg:npm/react@latest
    *
-   * // No version
-   * PackageURL.fromNpm('express')
-   * // -> pkg:npm/express
-   * ```
+   *   // No version
+   *   PackageURL.fromNpm('express')
+   *   // -> pkg:npm/express
+   *   ```
+   *
+   * @param specifier - Npm package specifier (e.g., `'lodash@4.17.21'`,
+   *   `'@babel/core@^7.0.0'`)
+   *
+   * @returns `PackageURL` instance for the npm package
+   *
+   * @throws {Error} If `specifier` is not a string or is empty
    */
   static fromNpm(specifier: unknown): PackageURL {
     const { name, namespace, version } = parseNpmSpecifier(specifier)
@@ -599,26 +613,30 @@ class PackageURL {
   /**
    * Create `PackageURL` from ecosystem-specific package specifier.
    *
-   * This is a convenience wrapper that delegates to type-specific parsers.
-   * Each ecosystem has its own specifier format and parsing rules.
+   * This is a convenience wrapper that delegates to type-specific parsers. Each
+   * ecosystem has its own specifier format and parsing rules.
    *
    * **Supported types:**
-   * - `npm`: npm package specifiers (e.g., `'lodash@4.17.21'`, `'@babel/core@^7.0.0'`)
    *
-   * @param type - Package ecosystem type (e.g., `'npm'`, `'pypi'`, `'maven'`)
-   * @param specifier - Ecosystem-specific package specifier string
-   * @returns `PackageURL` instance for the package
-   * @throws {Error} If `type` is not supported or `specifier` is invalid
+   * - `npm`: npm package specifiers (e.g., `'lodash@4.17.21'`,
+   *   `'@babel/core@^7.0.0'`)
    *
    * @example
-   * ```typescript
-   * // npm packages
-   * PackageURL.fromSpec('npm', 'lodash@4.17.21')
-   * // -> pkg:npm/lodash@4.17.21
+   *   ```typescript
+   *   // npm packages
+   *   PackageURL.fromSpec('npm', 'lodash@4.17.21')
+   *   // -> pkg:npm/lodash@4.17.21
    *
-   * PackageURL.fromSpec('npm', '@babel/core@^7.0.0')
-   * // -> pkg:npm/%40babel/core@7.0.0
-   * ```
+   *   PackageURL.fromSpec('npm', '@babel/core@^7.0.0')
+   *   // -> pkg:npm/%40babel/core@7.0.0
+   *   ```
+   *
+   * @param type - Package ecosystem type (e.g., `'npm'`, `'pypi'`, `'maven'`)
+   * @param specifier - Ecosystem-specific package specifier string.
+   *
+   * @returns `PackageURL` instance for the package
+   *
+   * @throws {Error} If `type` is not supported or `specifier` is invalid
    */
   static fromSpec(type: string, specifier: unknown): PackageURL {
     switch (type) {
@@ -842,14 +860,15 @@ class PackageURL {
   /**
    * Check if a string is a valid PURL without throwing.
    *
-   * @param purlStr - String to validate
-   * @returns true if the string is a valid PURL
-   *
    * @example
-   * ```typescript
-   * PackageURL.isValid('pkg:npm/lodash@4.17.21') // true
-   * PackageURL.isValid('not a purl')              // false
-   * ```
+   *   ```typescript
+   *   PackageURL.isValid('pkg:npm/lodash@4.17.21') // true
+   *   PackageURL.isValid('not a purl') // false
+   *   ```
+   *
+   * @param purlStr - String to validate.
+   *
+   * @returns True if the string is a valid PURL
    */
   static isValid(purlStr: unknown): boolean {
     return PackageURL.tryFromString(purlStr).isOk()
@@ -859,19 +878,21 @@ class PackageURL {
    * Create `PackageURL` from a registry or repository URL.
    *
    * Convenience wrapper for `UrlConverter.fromUrl()`. Supports 27 hostnames
-   * across 17 package types including `npm`, `pypi`, `maven`, `github`, and more.
-   *
-   * @param urlStr - Registry or repository URL
-   * @returns `PackageURL` instance or `undefined` if URL is not recognized
+   * across 17 package types including `npm`, `pypi`, `maven`, `github`, and
+   * more.
    *
    * @example
-   * ```typescript
-   * PackageURL.fromUrl('https://www.npmjs.com/package/lodash')
-   * // -> pkg:npm/lodash
+   *   ```typescript
+   *   PackageURL.fromUrl('https://www.npmjs.com/package/lodash')
+   *   // -> pkg:npm/lodash
    *
-   * PackageURL.fromUrl('https://github.com/lodash/lodash')
-   * // -> pkg:github/lodash/lodash
-   * ```
+   *   PackageURL.fromUrl('https://github.com/lodash/lodash')
+   *   // -> pkg:github/lodash/lodash
+   *   ```
+   *
+   * @param urlStr - Registry or repository URL.
+   *
+   * @returns `PackageURL` instance or `undefined` if URL is not recognized
    */
   static fromUrl(urlStr: string): PackageURL | undefined {
     return UrlConverter.fromUrl(urlStr)

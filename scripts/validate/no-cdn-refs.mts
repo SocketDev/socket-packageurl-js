@@ -1,42 +1,36 @@
 /* oxlint-disable socket/sort-source-methods -- scanner helpers ordered by pipeline phase (discover → match → report). */
 /**
- * @fileoverview Fails `pnpm run check` when hardcoded CDN URLs land in
- * the codebase. Run as part of the repo's standard lint pipeline.
+ * @file ## Fails `pnpm run check` when hardcoded CDN URLs land in
+ *   the codebase. Run as part of the repo's standard lint pipeline.
+ *   Why it exists
  *
- * Why it exists
- * -------------
- * Shipping code that fetches scripts from a CDN at runtime means
- * trusting that CDN's uptime, authenticity, and availability for every
- * user, forever. A compromised CDN = a compromised app. The Socket
- * fleet convention is: install packages via npm (lockfile-pinned,
- * audited by sfw) instead of `<script src="https://unpkg.com/...">`.
+ *   ## Shipping code that fetches scripts from a CDN at runtime means
+ *   trusting that CDN's uptime, authenticity, and availability for every
+ *   user, forever. A compromised CDN = a compromised app. The Socket
+ *   fleet convention is: install packages via npm (lockfile-pinned,
+ *   audited by sfw) instead of `<script src="https://unpkg.com/...">`.
+ *   What it scans
  *
- * What it scans
- * -------------
- * Every text file in the repo (matching TEXT_EXTENSIONS) except:
+ *   ## Every text file in the repo (matching TEXT_EXTENSIONS) except:
  *   SKIP_DIRS     — vendored / generated / ephemeral trees, e.g.
- *                   upstream/ (submodules) and pages/ (emitted
- *                   HTML for GH Pages).
+ *   upstream/ (submodules) and pages/ (emitted
+ *   HTML for GH Pages).
  *   ALLOWED_FILES — build-side scripts that legitimately reference
- *                   CDN URLs as data (scanner / rewriter / hasher
- *                   logic), not as runtime deps.
- *
- * Anything else carrying one of the blocked domains fails the check.
- *
- * Blocked CDN domains (case-insensitive substring match):
+ *   CDN URLs as data (scanner / rewriter / hasher
+ *   logic), not as runtime deps.
+ *   Anything else carrying one of the blocked domains fails the check.
+ *   Blocked CDN domains (case-insensitive substring match):
  *   unpkg.com, cdn.jsdelivr.net, esm.sh, cdn.skypack.dev, ga.jspm.io
+ *   Exit codes
  *
- * Exit codes
- * ----------
- *   0 — no violations
+ *   ## 0 — no violations
  *   1 — one or more violations (prints file, line, domain, content)
+ *   When to allowlist a file (not a line)
  *
- * When to allowlist a file (not a line)
- * -------------------------------------
- * Add to ALLOWED_FILES if the file's whole purpose is *handling* CDN
- * refs (e.g. computing SRI hashes for them, walking them through the
- * Socket API). Don't add files that just happen to mention a CDN in
- * a comment — fix the comment instead.
+ *   Add to ALLOWED_FILES if the file's whole purpose is _handling_ CDN refs
+ *   (e.g. computing SRI hashes for them, walking them through the Socket API).
+ *   Don't add files that just happen to mention a CDN in a comment — fix the
+ *   comment instead.
  */
 
 import { promises as fs } from 'node:fs'

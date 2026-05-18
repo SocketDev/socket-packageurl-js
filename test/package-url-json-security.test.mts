@@ -1,5 +1,5 @@
 /**
- * @fileoverview Tests for PackageURL JSON parsing security features.
+ * @file Tests for PackageURL JSON parsing security features.
  */
 
 import { describe, expect, it } from 'vitest'

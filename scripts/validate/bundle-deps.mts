@@ -1,12 +1,12 @@
 /**
- * @fileoverview Validates that bundled vs external dependencies are correctly declared in package.json.
+ * @file Validates that bundled vs external dependencies are correctly declared
+ *   in package.json. Rules:
  *
- * Rules:
- * - Bundled packages (code copied into dist/) should be in devDependencies
- * - External packages (require() calls in dist/) should be in dependencies or peerDependencies
- * - Packages used only for building should be in devDependencies
- *
- * This ensures consumers install only what they need.
+ *   - Bundled packages (code copied into dist/) should be in devDependencies
+ *   - External packages (require() calls in dist/) should be in dependencies or
+ *     peerDependencies
+ *   - Packages used only for building should be in devDependencies This ensures
+ *     consumers install only what they need.
  */
 
 import { promises as fs } from 'node:fs'
@@ -27,10 +27,10 @@ const rootPath = path.join(__dirname, '..', '..')
 // Node.js builtins to ignore (including node: prefix variants)
 /**
  * `node:smol-*` modules are runtime-conditional builtins provided by
- * socket-btm's smol Node binary. Stock Node won't have them, but the
- * fleet's lazy-load pattern (`isBuiltin('node:smol-X') && require(...)`)
- * leaves the require call in the bundle for the smol-Node code path.
- * Treat them as builtins for the purpose of dependency validation.
+ * socket-btm's smol Node binary. Stock Node won't have them, but the fleet's
+ * lazy-load pattern (`isBuiltin('node:smol-X') && require(...)`) leaves the
+ * require call in the bundle for the smol-Node code path. Treat them as
+ * builtins for the purpose of dependency validation.
  *
  * Source of truth: `socket-btm/packages/node-smol-builder/additions/
  * source-patched/lib/smol-*.js`. When socket-btm adds a new smol module
@@ -140,7 +140,8 @@ export async function extractBundledPackages(
 }
 
 /**
- * Extract external package names from require() and import statements in built files.
+ * Extract external package names from require() and import statements in built
+ * files.
  */
 export async function extractExternalPackages(
   filePath: string,
@@ -331,11 +332,11 @@ export async function readPackageJson(): Promise<PackageJsonLike> {
 }
 
 /**
- * Strip /* ... *\/ block comments and leading // line comments so the
- * import/require regex below doesn't match specifiers that appear
- * inside JSDoc examples or doc comments. Rolldown preserves JSDoc in
- * its output (esbuild stripped it), so the comment-aware pre-pass is
- * load-bearing for accurate dep extraction.
+ * Strip /* ... */ block comments and leading // line comments so the
+ * import/require regex below doesn't match specifiers that appear inside JSDoc
+ * examples or doc comments. Rolldown preserves JSDoc in its output (esbuild
+ * stripped it), so the comment-aware pre-pass is load-bearing for accurate dep
+ * extraction.
  */
 export function stripComments(source: string): string {
   // Remove /* ... */ blocks (greedy across lines).

@@ -1,6 +1,6 @@
 /**
- * @fileoverview QPKG (QNAP package) PURL normalization.
- * https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#qpkg
+ * @file QPKG (QNAP package) PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#qpkg.
  */
 
 import { lowerNamespace } from '../strings.mjs'
@@ -15,8 +15,7 @@ interface PurlObject {
 }
 
 /**
- * Normalize QPKG package URL.
- * Lowercases `namespace` only.
+ * Normalize QPKG package URL. Lowercases `namespace` only.
  */
 export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)

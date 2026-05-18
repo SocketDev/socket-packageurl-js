@@ -23,7 +23,8 @@ SOFTWARE.
 
 /* oxlint-disable socket/sort-source-methods -- parsers grouped by ecosystem affinity (npm registry+website, github/gitlab/bitbucket) so the FROM_URL_PARSERS map below reads in the same order as the definitions. */
 /**
- * @fileoverview URL conversion utilities for converting Package URLs to repository and download URLs.
+ * @file URL conversion utilities for converting Package URLs to repository and
+ *   download URLs.
  */
 import {
   ArrayPrototypeFilter,
@@ -49,7 +50,9 @@ import type { PackageURL } from './package-url.mjs'
 // to avoid circular import issues.
 let _PackageURL: typeof PackageURL | undefined
 
-/** @internal Register the `PackageURL` class for `fromUrl` construction. */
+/**
+ * @internal Register the `PackageURL` class for `fromUrl` construction.
+ */
 export function _registerPackageURLForUrlConverter(
   ctor: typeof PackageURL,
 ): void {
@@ -59,8 +62,8 @@ export function _registerPackageURLForUrlConverter(
 type UrlParser = (_url: URL) => PackageURL | undefined
 
 /**
- * Filter empty segments from a URL pathname split.
- * Trailing slashes create empty segments that must be removed.
+ * Filter empty segments from a URL pathname split. Trailing slashes create
+ * empty segments that must be removed.
  */
 export function filterSegments(pathname: string): string[] {
   return ArrayPrototypeFilter(
@@ -96,9 +99,11 @@ export function tryCreatePurl(
  * Parse npm registry URLs (`registry.npmjs.org`).
  *
  * Handles:
+ *
  * - Registry metadata: `/\@scope/name` or `/name`
  * - Registry metadata with version: `/\@scope/name/version` or `/name/version`
- * - Download tarballs: `/\@scope/name/-/name-version.tgz` or `/name/-/name-version.tgz`
+ * - Download tarballs: `/\@scope/name/-/name-version.tgz` or
+ *   `/name/-/name-version.tgz`
  */
 export function parseNpmRegistry(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -160,6 +165,7 @@ export function parseNpmRegistry(url: URL): PackageURL | undefined {
  * Parse npm website URLs (`www.npmjs.com`).
  *
  * Handles:
+ *
  * - `/package/\@scope/name`, `/package/\@scope/name/v/version`
  * - `/package/name`, `/package/name/v/version`
  */
@@ -220,8 +226,8 @@ export function parsePypi(url: URL): PackageURL | undefined {
 /**
  * Parse Maven Central URLs (`repo1.maven.org`).
  *
- * Handles: `/maven2/{group-as-path}/{artifact}/{version}/`
- * Group path segments are joined with `'.'`.
+ * Handles: `/maven2/{group-as-path}/{artifact}/{version}/` Group path segments
+ * are joined with `'.'`.
  */
 export function parseMaven(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -281,9 +287,8 @@ export function parseGem(url: URL): PackageURL | undefined {
 /**
  * Parse `crates.io` URLs.
  *
- * Handles:
- * - `/crates/name`, `/crates/name/version`
- * - `/api/v1/crates/name/version/download`
+ * Handles: - `/crates/name`, `/crates/name/version` -
+ * `/api/v1/crates/name/version/download`
  */
 export function parseCargo(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -322,9 +327,8 @@ export function parseCargo(url: URL): PackageURL | undefined {
 /**
  * Parse NuGet URLs (`www.nuget.org` and `api.nuget.org`).
  *
- * Handles:
- * - `www.nuget.org`: `/packages/Name`, `/packages/Name/version`
- * - `api.nuget.org`: `/v3-flatcontainer/name/version/name.version.nupkg`
+ * Handles: - `www.nuget.org`: `/packages/Name`, `/packages/Name/version` -
+ * `api.nuget.org`: `/v3-flatcontainer/name/version/name.version.nupkg`
  */
 export function parseNuget(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -361,10 +365,7 @@ export function parseNuget(url: URL): PackageURL | undefined {
 /**
  * Parse GitHub URLs (`github.com`).
  *
- * Handles:
- * - `/owner/repo`
- * - `/owner/repo/tree/ref`
- * - `/owner/repo/commit/sha`
+ * Handles: - `/owner/repo` - `/owner/repo/tree/ref` - `/owner/repo/commit/sha`
  * - `/owner/repo/releases/tag/tagname`
  */
 export function parseGitHub(url: URL): PackageURL | undefined {
@@ -396,6 +397,7 @@ export function parseGitHub(url: URL): PackageURL | undefined {
  * Parse Go package URLs (`pkg.go.dev`).
  *
  * Handles:
+ *
  * - `/module/path` (e.g. `/github.com/gorilla/mux`)
  * - `/module/path\@version` (e.g. `/github.com/gorilla/mux\@v1.8.0`)
  */
@@ -433,8 +435,8 @@ export function parseGolang(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse GitLab URLs (`gitlab.com`).
- * Same pattern as GitHub: `/owner/repo`, `/owner/repo/-/tree/ref`, `/owner/repo/-/commit/sha`
+ * Parse GitLab URLs (`gitlab.com`). Same pattern as GitHub: `/owner/repo`,
+ * `/owner/repo/-/tree/ref`, `/owner/repo/-/commit/sha`
  */
 export function parseGitlab(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -458,8 +460,8 @@ export function parseGitlab(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse Bitbucket URLs (`bitbucket.org`).
- * Pattern: `/owner/repo`, `/owner/repo/commits/sha`, `/owner/repo/src/ref`
+ * Parse Bitbucket URLs (`bitbucket.org`). Pattern: `/owner/repo`,
+ * `/owner/repo/commits/sha`, `/owner/repo/src/ref`
  */
 export function parseBitbucket(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -478,8 +480,8 @@ export function parseBitbucket(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse Packagist/Composer URLs (`packagist.org`).
- * Pattern: `/packages/namespace/name`
+ * Parse Packagist/Composer URLs (`packagist.org`). Pattern:
+ * `/packages/namespace/name`
  */
 export function parseComposer(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -492,8 +494,8 @@ export function parseComposer(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse Hex.pm URLs (`hex.pm`).
- * Pattern: `/packages/name`, `/packages/name/version`
+ * Parse Hex.pm URLs (`hex.pm`). Pattern: `/packages/name`,
+ * `/packages/name/version`
  */
 export function parseHex(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -506,8 +508,8 @@ export function parseHex(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse pub.dev URLs (`pub.dev`).
- * Pattern: `/packages/name`, `/packages/name/versions/version`
+ * Parse pub.dev URLs (`pub.dev`). Pattern: `/packages/name`,
+ * `/packages/name/versions/version`
  */
 export function parsePub(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -523,8 +525,8 @@ export function parsePub(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse Docker Hub URLs (`hub.docker.com`).
- * Patterns:
+ * Parse Docker Hub URLs (`hub.docker.com`). Patterns:
+ *
  * - Official images: `/\_/name`
  * - User images: `/r/namespace/name`
  * - Library alias: `/r/library/name`
@@ -546,8 +548,7 @@ export function parseDocker(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse CocoaPods URLs (`cocoapods.org`).
- * Pattern: `/pods/name`
+ * Parse CocoaPods URLs (`cocoapods.org`). Pattern: `/pods/name`
  */
 export function parseCocoapods(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -558,8 +559,8 @@ export function parseCocoapods(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse Hackage URLs (`hackage.haskell.org`).
- * Pattern: `/package/name`, `/package/name-version`
+ * Parse Hackage URLs (`hackage.haskell.org`). Pattern: `/package/name`,
+ * `/package/name-version`
  */
 export function parseHackage(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -589,8 +590,8 @@ export function parseHackage(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse CRAN URLs (`cran.r-project.org`).
- * Pattern: `/web/packages/name`, `/package=name` (query param)
+ * Parse CRAN URLs (`cran.r-project.org`). Pattern: `/web/packages/name`,
+ * `/package=name` (query param)
  */
 export function parseCran(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -606,8 +607,8 @@ export function parseCran(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse Anaconda/Conda URLs (`anaconda.org`).
- * Pattern: `/channel/name`, `/channel/name/version`
+ * Parse Anaconda/Conda URLs (`anaconda.org`). Pattern: `/channel/name`,
+ * `/channel/name/version`
  */
 export function parseConda(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -621,8 +622,8 @@ export function parseConda(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse MetaCPAN URLs (`metacpan.org`).
- * Patterns: `/pod/Name`, `/pod/Name::Sub`, `/dist/Name`
+ * Parse MetaCPAN URLs (`metacpan.org`). Patterns: `/pod/Name`,
+ * `/pod/Name::Sub`, `/dist/Name`
  */
 export function parseCpan(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -638,10 +639,12 @@ export function parseCpan(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse Hugging Face URLs (`huggingface.co`).
- * Pattern: `/namespace/name`, `/namespace/name/tree/ref`
+ * Parse Hugging Face URLs (`huggingface.co`). Pattern: `/namespace/name`,
+ * `/namespace/name/tree/ref`
  */
-/** Reserved Hugging Face paths that are not model pages. */
+/**
+ * Reserved Hugging Face paths that are not model pages.
+ */
 const HUGGINGFACE_RESERVED = ObjectFreeze(
   new SetCtor([
     'docs',
@@ -678,8 +681,8 @@ export function parseHuggingface(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse LuaRocks URLs (`luarocks.org`).
- * Pattern: `/modules/namespace/name`, `/modules/namespace/name/version`
+ * Parse LuaRocks URLs (`luarocks.org`). Pattern: `/modules/namespace/name`,
+ * `/modules/namespace/name/version`
  */
 export function parseLuarocks(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -693,8 +696,8 @@ export function parseLuarocks(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse Swift Package Index URLs (`swiftpackageindex.com`).
- * Pattern: `/owner/repo`
+ * Parse Swift Package Index URLs (`swiftpackageindex.com`). Pattern:
+ * `/owner/repo`
  */
 export function parseSwift(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -705,8 +708,8 @@ export function parseSwift(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse VS Code Marketplace URLs (`marketplace.visualstudio.com`).
- * Pattern: `/items?itemName=publisher.extension`
+ * Parse VS Code Marketplace URLs (`marketplace.visualstudio.com`). Pattern:
+ * `/items?itemName=publisher.extension`
  */
 export function parseVscodeMarketplace(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -727,8 +730,8 @@ export function parseVscodeMarketplace(url: URL): PackageURL | undefined {
 }
 
 /**
- * Parse Open VSX URLs (`open-vsx.org`).
- * Pattern: `/extension/namespace/name`, `/extension/namespace/name/version`
+ * Parse Open VSX URLs (`open-vsx.org`). Pattern: `/extension/namespace/name`,
+ * `/extension/namespace/name/version`
  */
 export function parseOpenVsx(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
@@ -741,7 +744,9 @@ export function parseOpenVsx(url: URL): PackageURL | undefined {
   return tryCreatePurl('vscode-extension', namespace, name, version)
 }
 
-/** Hostname-based dispatch map for URL-to-PURL parsing. */
+/**
+ * Hostname-based dispatch map for URL-to-PURL parsing.
+ */
 const FROM_URL_PARSERS: ReadonlyMap<string, UrlParser> = ObjectFreeze(
   new MapCtor<string, UrlParser>([
     // Package registries
@@ -784,9 +789,13 @@ const FROM_URL_PARSERS: ReadonlyMap<string, UrlParser> = ObjectFreeze(
  * repository URL where the source code can be found.
  */
 export interface RepositoryUrl {
-  /** The type of repository (version control system or web interface). */
+  /**
+   * The type of repository (version control system or web interface).
+   */
   type: 'git' | 'hg' | 'svn' | 'web'
-  /** The repository URL string. */
+  /**
+   * The repository URL string.
+   */
   url: string
 }
 
@@ -797,9 +806,13 @@ export interface RepositoryUrl {
  * download URL where the package artifact can be obtained.
  */
 export interface DownloadUrl {
-  /** The type/format of the downloadable artifact. */
+  /**
+   * The type/format of the downloadable artifact.
+   */
   type: 'tarball' | 'zip' | 'exe' | 'wheel' | 'jar' | 'gem' | 'other'
-  /** The download URL string. */
+  /**
+   * The download URL string.
+   */
   url: string
 }
 
@@ -808,14 +821,15 @@ export interface DownloadUrl {
  *
  * This class provides static methods for converting `PackageURL` instances into
  * various types of URLs, including repository URLs for source code access and
- * download URLs for package artifacts. It supports many popular package ecosystems.
+ * download URLs for package artifacts. It supports many popular package
+ * ecosystems.
  *
  * @example
- * ```typescript
- * const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
- * const repoUrl = UrlConverter.toRepositoryUrl(purl)
- * const downloadUrl = UrlConverter.toDownloadUrl(purl)
- * ```
+ *   ```typescript
+ *   const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
+ *   const repoUrl = UrlConverter.toRepositoryUrl(purl)
+ *   const downloadUrl = UrlConverter.toDownloadUrl(purl)
+ *   ```
  */
 const DOWNLOAD_URL_TYPES: ReadonlySet<string> = ObjectFreeze(
   new SetCtor([
@@ -871,18 +885,18 @@ export class UrlConverter {
   /**
    * Convert a URL string to a `PackageURL` if the URL is recognized.
    *
-   * Dispatches to type-specific parsers based on the URL hostname.
-   * Returns `undefined` for unrecognized hosts, invalid URLs, or URLs
-   * without enough path information to construct a valid `PackageURL`.
+   * Dispatches to type-specific parsers based on the URL hostname. Returns
+   * `undefined` for unrecognized hosts, invalid URLs, or URLs without enough
+   * path information to construct a valid `PackageURL`.
    *
    * @example
-   * ```typescript
-   * UrlConverter.fromUrl('https://www.npmjs.com/package/lodash')
-   * // -> PackageURL for pkg:npm/lodash
+   *   ```typescript
+   *   UrlConverter.fromUrl('https://www.npmjs.com/package/lodash')
+   *   // -> PackageURL for pkg:npm/lodash
    *
-   * UrlConverter.fromUrl('https://github.com/lodash/lodash')
-   * // -> PackageURL for pkg:github/lodash/lodash
-   * ```
+   *   UrlConverter.fromUrl('https://github.com/lodash/lodash')
+   *   // -> PackageURL for pkg:github/lodash/lodash
+   *   ```
    */
   static fromUrl(urlStr: string): PackageURL | undefined {
     let url: URL
@@ -901,8 +915,8 @@ export class UrlConverter {
   /**
    * Check if a URL string is recognized for conversion to a `PackageURL`.
    *
-   * Returns `true` if the URL's hostname has a registered parser,
-   * `false` for invalid URLs or unrecognized hosts.
+   * Returns `true` if the URL's hostname has a registered parser, `false` for
+   * invalid URLs or unrecognized hosts.
    */
   static supportsFromUrl(urlStr: string): boolean {
     let url: URL
@@ -917,8 +931,8 @@ export class UrlConverter {
   /**
    * Get all available URLs for a `PackageURL`.
    *
-   * This convenience method returns both repository and download URLs
-   * in a single call, useful when you need to check all URL options.
+   * This convenience method returns both repository and download URLs in a
+   * single call, useful when you need to check all URL options.
    */
   static getAllUrls(purl: PackageURL): {
     download: DownloadUrl | undefined
@@ -933,8 +947,8 @@ export class UrlConverter {
   /**
    * Check if a `PackageURL` type supports download URL conversion.
    *
-   * This method checks if the given package type has download URL
-   * conversion logic implemented.
+   * This method checks if the given package type has download URL conversion
+   * logic implemented.
    */
   static supportsDownloadUrl(type: string): boolean {
     return DOWNLOAD_URL_TYPES.has(type)
@@ -943,8 +957,8 @@ export class UrlConverter {
   /**
    * Check if a `PackageURL` type supports repository URL conversion.
    *
-   * This method checks if the given package type has repository URL
-   * conversion logic implemented.
+   * This method checks if the given package type has repository URL conversion
+   * logic implemented.
    */
   static supportsRepositoryUrl(type: string): boolean {
     return REPOSITORY_URL_TYPES.has(type)
@@ -954,8 +968,8 @@ export class UrlConverter {
    * Convert a `PackageURL` to a download URL if possible.
    *
    * This method attempts to generate a download URL where the package's
-   * artifact (binary, archive, etc.) can be obtained. Requires a version
-   * to be present in the `PackageURL`.
+   * artifact (binary, archive, etc.) can be obtained. Requires a version to be
+   * present in the `PackageURL`.
    */
   static toDownloadUrl(purl: PackageURL): DownloadUrl | undefined {
     const { name, namespace, type, version } = purl
