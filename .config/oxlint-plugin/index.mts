@@ -30,6 +30,7 @@ import noPromiseRace from './rules/no-promise-race.mts'
 import noPromiseRaceInLoop from './rules/no-promise-race-in-loop.mts'
 import noStatusEmoji from './rules/no-status-emoji.mts'
 import noSyncRmInTestLifecycle from './rules/no-sync-rm-in-test-lifecycle.mts'
+import noUnderscoreIdentifier from './rules/no-underscore-identifier.mts'
 import optionalExplicitUndefined from './rules/optional-explicit-undefined.mts'
 import personalPathPlaceholders from './rules/personal-path-placeholders.mts'
 import preferAsyncSpawn from './rules/prefer-async-spawn.mts'
@@ -82,6 +83,7 @@ const plugin = {
     'no-promise-race-in-loop': noPromiseRaceInLoop,
     'no-status-emoji': noStatusEmoji,
     'no-sync-rm-in-test-lifecycle': noSyncRmInTestLifecycle,
+    'no-underscore-identifier': noUnderscoreIdentifier,
     'optional-explicit-undefined': optionalExplicitUndefined,
     'personal-path-placeholders': personalPathPlaceholders,
     'prefer-async-spawn': preferAsyncSpawn,
