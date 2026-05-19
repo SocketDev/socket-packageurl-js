@@ -888,22 +888,17 @@ async function main(): Promise<void> {
   logger.log('')
   const sfwOk = await setupSfw(apiToken)
   logger.log('')
-  // socket-basics SAST + secrets stack + janus (shared wheelhouse) +
-  // npm-only tools (cdxgen, synp) — non-fatal if any individual tool
-  // fails (the basics workflow degrades cleanly when a scanner is
-  // absent; janus is opt-in and mac-only; cdxgen + synp are consumed
-  // by socket-cli scan/lockfile codepaths). Install in parallel since
-  // they don't share state.
-  const [cdxgenOk, janusOk, opengrepOk, synpOk, trivyOk, trufflehogOk, uvOk] =
-    await Promise.all([
-      setupCdxgen(),
-      setupJanus(),
-      setupOpengrep(),
-      setupSynp(),
-      setupTrivy(),
-      setupTrufflehog(),
-      setupUv(),
-    ])
+  // socket-basics SAST + secrets stack + janus (shared wheelhouse) —
+  // non-fatal if any individual tool fails (the basics workflow degrades
+  // cleanly when a scanner is absent; janus is opt-in and mac-only).
+  // Install in parallel since they don't share state.
+  const [trufflehogOk, trivyOk, opengrepOk, uvOk, janusOk] = await Promise.all([
+    setupTrufflehog(),
+    setupTrivy(),
+    setupOpengrep(),
+    setupUv(),
+    setupJanus(),
+  ])
   logger.log('')
 
   logger.log('=== Summary ===')
@@ -912,23 +907,21 @@ async function main(): Promise<void> {
   logger.log(`janus:       ${janusOk ? 'ready' : 'FAILED'}`)
   logger.log(`OpenGrep:    ${opengrepOk ? 'ready' : 'FAILED'}`)
   logger.log(`SFW:         ${sfwOk ? 'ready' : 'FAILED'}`)
-  logger.log(`synp:        ${synpOk ? 'ready' : 'FAILED'}`)
-  logger.log(`Trivy:       ${trivyOk ? 'ready' : 'FAILED'}`)
   logger.log(`TruffleHog:  ${trufflehogOk ? 'ready' : 'FAILED'}`)
+  logger.log(`Trivy:       ${trivyOk ? 'ready' : 'FAILED'}`)
+  logger.log(`OpenGrep:    ${opengrepOk ? 'ready' : 'FAILED'}`)
   logger.log(`uv:          ${uvOk ? 'ready' : 'FAILED'}`)
-  logger.log(`Zizmor:      ${zizmorOk ? 'ready' : 'FAILED'}`)
+  logger.log(`janus:       ${janusOk ? 'ready' : 'FAILED'}`)
 
   const allOk =
     agentshieldOk &&
-    cdxgenOk &&
-    janusOk &&
-    opengrepOk &&
+    zizmorOk &&
     sfwOk &&
-    synpOk &&
-    trivyOk &&
     trufflehogOk &&
+    trivyOk &&
+    opengrepOk &&
     uvOk &&
-    zizmorOk
+    janusOk
   if (allOk) {
     logger.log('\nAll security tools ready.')
   } else {
