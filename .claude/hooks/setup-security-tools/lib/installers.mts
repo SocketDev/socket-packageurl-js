@@ -196,21 +196,27 @@ export async function setupAgentShield(): Promise<boolean> {
 // ── Generic npm-tool installer (shared by cdxgen + synp) ──
 
 interface NpmToolInstallOptions {
-  /** Logical tool name (used for log banner + bin name). */
+  /**
+   * Logical tool name (used for log banner + bin name).
+   */
   readonly name: string
-  /** Human-readable display name for log output. */
+  /**
+   * Human-readable display name for log output.
+   */
   readonly displayName: string
-  /** Tool config entry from external-tools.json (must carry `purl`). */
+  /**
+   * Tool config entry from external-tools.json (must carry `purl`).
+   */
   readonly tool: (typeof config.tools)[string]
 }
 
 /**
  * Install an npm-only tool via dlx. Mirrors the upper half of
  * `setupAgentShield()` — purl → package spec → `downloadPackage`. No
- * version-mismatch verification: the dlx layer SRI-verifies the tarball
- * against the `integrity` from external-tools.json, which is the
- * authoritative answer (binary --version self-reports can drift from
- * package.json — see the AgentShield comment for the documented case).
+ * version-mismatch verification: the dlx layer SRI-verifies the tarball against
+ * the `integrity` from external-tools.json, which is the authoritative answer
+ * (binary --version self-reports can drift from package.json — see the
+ * AgentShield comment for the documented case).
  */
 async function setupNpmTool(opts: NpmToolInstallOptions): Promise<boolean> {
   const { displayName, name, tool } = opts
