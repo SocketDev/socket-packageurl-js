@@ -38,7 +38,7 @@ interface PurlObject {
  * `createTtlCache()`.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if official image exists
  *   const result = await dockerExists('nginx', 'library')
  *   // -> { exists: true, latestVersion: 'latest' }

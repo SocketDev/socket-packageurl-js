@@ -64,7 +64,7 @@ import type { QualifiersObject } from './purl-component.mjs'
  * for fluent construction patterns.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   const purl = PurlBuilder.npm().name('lodash').version('4.17.21').build()
  *   ```
  */

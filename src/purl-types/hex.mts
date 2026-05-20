@@ -32,7 +32,7 @@ interface PurlObject {
  * version.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if package exists
  *   const result = await hexExists('phoenix')
  *   // -> { exists: true, latestVersion: '1.7.10' }

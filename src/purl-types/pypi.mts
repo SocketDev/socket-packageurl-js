@@ -54,7 +54,7 @@ export function normalize(purl: PurlObject): PurlObject {
  * `createTtlCache()`.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if package exists
  *   const result = await pypiExists('requests')
  *   // -> { exists: true, latestVersion: '2.31.0' }

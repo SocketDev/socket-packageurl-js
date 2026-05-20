@@ -40,7 +40,7 @@ export function normalize(purl: PurlObject): PurlObject {
  * version. Composer packages have `vendor/package` format.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if package exists
  *   const result = await packagistExists('http-foundation', 'symfony')
  *   // -> { exists: true, latestVersion: 'v6.3.0' }

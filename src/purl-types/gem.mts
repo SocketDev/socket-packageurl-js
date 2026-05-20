@@ -37,7 +37,7 @@ interface PurlObject {
  * `createTtlCache()`.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if gem exists
  *   const result = await gemExists('rails')
  *   // -> { exists: true, latestVersion: '7.1.3' }

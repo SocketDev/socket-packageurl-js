@@ -32,7 +32,7 @@ interface PurlObject {
  * latest version.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if pod exists
  *   const result = await cocoapodsExists('Alamofire')
  *   // -> { exists: true, latestVersion: '5.8.1' }

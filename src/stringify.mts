@@ -23,7 +23,7 @@ import type { QualifiersObject } from './purl-component.mjs'
  * according to the PURL specification.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   const purl = new PackageURL('npm', undefined, 'lodash', '4.17.21')
  *   stringify(purl)
  *   // -> 'pkg:npm/lodash@4.17.21'
@@ -46,7 +46,7 @@ export function stringify(purl: PackageURL): string {
  * an npm "spec" — the package identity without the ecosystem prefix.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   const purl = new PackageURL('npm', '@babel', 'core', '7.0.0')
  *   stringifySpec(purl)
  *   // -> '%40babel/core@7.0.0'

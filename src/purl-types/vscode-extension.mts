@@ -118,7 +118,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
  * `createTtlCache()`.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if extension exists
  *   const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
  *   // -> { exists: true, latestVersion: '2.4.2' }

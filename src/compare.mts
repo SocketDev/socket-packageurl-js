@@ -177,7 +177,7 @@ export function matchComponent(
  * normalized before comparison.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   const purl1 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
  *   const purl2 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
  *
@@ -207,7 +207,7 @@ export function equals(a: PurlInput, b: PurlInput): boolean {
  * normalized before comparison.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   compare('pkg:npm/aaa', 'pkg:npm/bbb') // -> -1
  *   compare(
  *     'pkg:npm/bbb',

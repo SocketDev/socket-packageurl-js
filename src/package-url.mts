@@ -580,7 +580,7 @@ class PackageURL {
    * as-is for convenience.
    *
    * @example
-   *   ```typescript
+   *   ;```typescript
    *   // Basic packages
    *   PackageURL.fromNpm('lodash@4.17.21')
    *   // -> pkg:npm/lodash@4.17.21
@@ -622,7 +622,7 @@ class PackageURL {
    *   `'@babel/core@^7.0.0'`)
    *
    * @example
-   *   ```typescript
+   *   ;```typescript
    *   // npm packages
    *   PackageURL.fromSpec('npm', 'lodash@4.17.21')
    *   // -> pkg:npm/lodash@4.17.21
@@ -861,7 +861,7 @@ class PackageURL {
    * Check if a string is a valid PURL without throwing.
    *
    * @example
-   *   ```typescript
+   *   ;```typescript
    *   PackageURL.isValid('pkg:npm/lodash@4.17.21') // true
    *   PackageURL.isValid('not a purl') // false
    *   ```
@@ -882,7 +882,7 @@ class PackageURL {
    * more.
    *
    * @example
-   *   ```typescript
+   *   ;```typescript
    *   PackageURL.fromUrl('https://www.npmjs.com/package/lodash')
    *   // -> pkg:npm/lodash
    *

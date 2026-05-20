@@ -35,7 +35,7 @@ interface PurlObject {
  * file.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if package exists
  *   const result = await cranExists('ggplot2')
  *   // -> { exists: true, latestVersion: '3.4.4' }

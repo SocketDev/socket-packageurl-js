@@ -826,7 +826,7 @@ export interface DownloadUrl {
  * ecosystems.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
  *   const repoUrl = UrlConverter.toRepositoryUrl(purl)
  *   const downloadUrl = UrlConverter.toDownloadUrl(purl)
@@ -891,7 +891,7 @@ export class UrlConverter {
    * path information to construct a valid `PackageURL`.
    *
    * @example
-   *   ```typescript
+   *   ;```typescript
    *   UrlConverter.fromUrl('https://www.npmjs.com/package/lodash')
    *   // -> PackageURL for pkg:npm/lodash
    *

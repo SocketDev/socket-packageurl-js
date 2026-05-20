@@ -42,7 +42,7 @@ export function normalize(purl: PurlObject): PurlObject {
  * version.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if package exists
  *   const result = await pubExists('flutter_bloc')
  *   // -> { exists: true, latestVersion: '8.1.3' }

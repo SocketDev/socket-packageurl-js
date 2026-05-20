@@ -33,7 +33,7 @@ interface PurlObject {
  * version.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if package exists
  *   const result = await nugetExists('Newtonsoft.Json')
  *   // -> { exists: true, latestVersion: '13.0.3' }

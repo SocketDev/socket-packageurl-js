@@ -5,7 +5,7 @@
  *   dependencies.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   import {
  *     npmExists,
  *     purlExists,

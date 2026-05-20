@@ -57,7 +57,7 @@ import type { ExistsOptions, ExistsResult } from './purl-types/npm.mjs'
  * `createTtlCache()`.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   import { purlExists, PackageURL } from '@socketregistry/packageurl-js'
  *
  *   // Check npm package

@@ -21,7 +21,7 @@ import type { ExistsOptions, ExistsResult } from './npm.mjs'
  * version.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if package exists
  *   const result = await hackageExists('aeson')
  *   // -> { exists: true, latestVersion: '2.2.0.0' }

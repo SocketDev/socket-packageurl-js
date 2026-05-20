@@ -31,7 +31,7 @@ interface PurlObject {
  * version.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if module exists
  *   const result = await cpanExists('Moose')
  *   // -> { exists: true, latestVersion: '2.2206' }

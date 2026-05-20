@@ -38,7 +38,7 @@ interface PurlObject {
  * `createTtlCache()`.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if crate exists
  *   const result = await cargoExists('serde')
  *   // -> { exists: true, latestVersion: '1.0.197' }

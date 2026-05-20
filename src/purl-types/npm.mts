@@ -53,7 +53,7 @@ export type ExistsOptions = {
    * responses will be cached with configured TTL.
    *
    * @example
-   *   ```typescript
+   *   ;```typescript
    *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
    *   import { npmExists } from '@socketregistry/packageurl-js'
    *
@@ -229,7 +229,7 @@ export function normalize(purl: PurlObject): PurlObject {
  * `createTtlCache()`.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if package exists
  *   const result = await npmExists('lodash')
  *   // -> { exists: true, latestVersion: '4.17.21' }
@@ -363,7 +363,7 @@ export async function npmExists(
  * as-is for convenience.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Basic packages
  *   parseNpmSpecifier('lodash@4.17.21')
  *   // -> { namespace: undefined, name: 'lodash', version: '4.17.21' }

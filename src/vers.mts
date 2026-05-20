@@ -245,7 +245,7 @@ export function parseSemver(version: string): SemverParts {
  * Additional version schemes may be added as the spec matures.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   const range = Vers.parse('vers:npm/>=1.0.0|<2.0.0')
  *   range.contains('1.5.0') // true
  *   range.contains('2.0.0') // false

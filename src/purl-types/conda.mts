@@ -40,7 +40,7 @@ interface PurlObject {
  * `createTtlCache()`.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if package exists (defaults to conda-forge)
  *   const result = await condaExists('numpy')
  *   // -> { exists: true, latestVersion: '1.26.3' }

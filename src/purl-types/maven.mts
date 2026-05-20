@@ -34,7 +34,7 @@ interface PurlObject {
  * artifact ID (`name`).
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if package exists
  *   const result = await mavenExists('commons-lang3', 'org.apache.commons')
  *   // -> { exists: true, latestVersion: '3.12.0' }

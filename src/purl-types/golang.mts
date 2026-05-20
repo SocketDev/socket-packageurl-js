@@ -63,7 +63,7 @@ interface PurlObject {
  * `'github.com/user/repo'`.
  *
  * @example
- *   ```typescript
+ *   ;```typescript
  *   // Check if module exists
  *   const result = await golangExists('github.com/gorilla/mux')
  *   // -> { exists: true, latestVersion: 'v1.8.0' }
