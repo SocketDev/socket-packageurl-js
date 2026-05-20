@@ -26,6 +26,8 @@ FLEET_REPOS_FILE="$SCRIPT_DIR/fleet-repos.txt"
 PROJECTS="${PROJECTS:-$HOME/projects}"
 # socket-hook: allow cross-repo
 WH_SCRIPT="${PROJECTS}/socket-wheelhouse/scripts/sync-scaffolding/cli.mts"
+# socket-hook: allow cross-repo
+CLEANUP_SCRIPT="${PROJECTS}/socket-wheelhouse/scripts/cascade-tooling/cleanup-stranded.mts"
 
 # Prepend the active Node version's bin dir to PATH so the `node` invoked by
 # the wheelhouse CLI matches the operator's expected toolchain (avoids the
