@@ -17,8 +17,8 @@
 // Time budget: ~3 seconds total. Anything slower than that holds the
 // SessionStart hook chain and the user feels it.
 
-import { spawn } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { spawn } from '@socketsecurity/lib-stable/spawn'
+import { appendFileSync, existsSync } from 'node:fs'
 import http from 'node:http'
 import path from 'node:path'
 import process from 'node:process'
@@ -41,13 +41,28 @@ const PROBE_TIMEOUT_MS = 250
 const SPAWN_WAIT_BUDGET_MS = 2500
 const SPAWN_POLL_INTERVAL_MS = 100
 
+/**
+ * Emit additionalContext (visible in the transcript) so a user skimming the
+ * session log sees what the hook did. Optional — Claude Code reads it as
+ * informational text, not as an action.
+ */
+export function emitSessionStartContext(message: string): void {
+  const out = {
+    hookSpecificOutput: {
+      hookEventName: 'SessionStart',
+      additionalContext: `[socket-token-minifier] ${message}`,
+    },
+  }
+  process.stdout.write(JSON.stringify(out))
+}
+
 interface ProbeOutcome {
   healthy: boolean
   /**
    * Undefined when probe couldn't connect (proxy absent); defined when
    * something else returned).
    */
-  status?: number
+  status?: number | undefined
 }
 
 /**
@@ -56,7 +71,7 @@ interface ProbeOutcome {
  * treated as not-healthy. Fail-closed at this layer keeps the env-var write
  * conditional on actual liveness.
  */
-function probeHealth(): Promise<ProbeOutcome> {
+export function probeHealth(): Promise<ProbeOutcome> {
   return new Promise(resolve => {
     const req = http.get(HEALTH_URL, { timeout: PROBE_TIMEOUT_MS }, res => {
       const status = res.statusCode ?? 0
@@ -72,7 +87,7 @@ function probeHealth(): Promise<ProbeOutcome> {
   })
 }
 
-function sleep(ms: number): Promise<void> {
+export function sleep(ms: number): Promise<void> {
   return new Promise(r => setTimeout(r, ms))
 }
 
@@ -80,29 +95,16 @@ function sleep(ms: number): Promise<void> {
  * Spawn the proxy detached so it survives this hook exit. stdio disconnected so
  * any startup logs don't leak into Claude Code's session output.
  */
-function spawnDetached(): void {
-  const child = spawn(BIN_PATH, [], {
+export function spawnDetached(): void {
+  // The lib's spawn returns a thenable-with-extras shape: it has the
+  // promise interface AND a `process: ChildProcess` field. We don't
+  // await — we just unref() the underlying ChildProcess so SIGTERM /
+  // exit signals don't cascade into the proxy.
+  const result = spawn(BIN_PATH, [], {
     detached: true,
     stdio: 'ignore',
   })
-  // Detach from this process group so SIGTERM / exit signals don't
-  // cascade into the proxy.
-  child.unref()
-}
-
-/**
- * Emit additionalContext (visible in the transcript) so a user skimming the
- * session log sees what the hook did. Optional — Claude Code reads it as
- * informational text, not as an action.
- */
-function emitSessionStartContext(message: string): void {
-  const out = {
-    hookSpecificOutput: {
-      hookEventName: 'SessionStart',
-      additionalContext: `[socket-token-minifier] ${message}`,
-    },
-  }
-  process.stdout.write(JSON.stringify(out))
+  result.process.unref()
 }
 
 /**
@@ -113,9 +115,11 @@ function emitSessionStartContext(message: string): void {
  * If the file isn't set OR isn't writable, fail-closed silently — the env var
  * stays unset and Claude Code falls back to direct api.anthropic.com.
  */
-function writeAnthropicBaseUrlToEnvFile(): void {
+export function writeAnthropicBaseUrlToEnvFile(): void {
   const envFile = process.env['CLAUDE_ENV_FILE']
-  if (!envFile) return
+  if (!envFile) {
+    return
+  }
   // Quote single-quoted POSIX style. The value is a known-safe URL,
   // but quote anyway for consistency with hooks that take user input.
   const line = `export ANTHROPIC_BASE_URL='${ANTHROPIC_BASE_URL}'\n`
@@ -123,8 +127,7 @@ function writeAnthropicBaseUrlToEnvFile(): void {
     // Append, don't overwrite — other hooks may also be writing.
     // Use sync fs since this is a small write on a hot path (hook
     // runtime is part of session-start latency).
-    const fs = require('node:fs') as typeof import('node:fs')
-    fs.appendFileSync(envFile, line, 'utf8')
+    appendFileSync(envFile, line, 'utf8')
   } catch {
     // Fail-closed: if we can't write, don't set the env var. Session
     // goes direct.

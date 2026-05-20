@@ -59,7 +59,9 @@ const WHEELHOUSE_ROOT = (() => {
       return cur
     }
     const parent = path.dirname(cur)
-    if (parent === cur) break
+    if (parent === cur) {
+      break
+    }
     cur = parent
   }
   throw new Error(
@@ -98,7 +100,8 @@ function readNeededCatalogEntries(): CatalogYamlMap {
   const lines = text.split('\n')
   let inCatalog = false
   const out: Record<string, string> = {}
-  for (const line of lines) {
+  for (let i = 0, { length } = lines; i < length; i += 1) {
+    const line = lines[i]!
     // Match the `catalog:` top-level key. Sub-catalogs (`catalogs.default:`)
     // are uncommon in the fleet — wheelhouse uses the top-level form.
     if (/^catalog:\s*$/.test(line)) {
@@ -213,7 +216,9 @@ function readSourceVersion(): string {
 
 function readInstalledVersion(): string | undefined {
   const installedPkgPath = path.join(INSTALL_DIR, 'package.json')
-  if (!existsSync(installedPkgPath)) return undefined
+  if (!existsSync(installedPkgPath)) {
+    return undefined
+  }
   try {
     const pkg = JSON.parse(readFileSync(installedPkgPath, 'utf8'))
     return pkg['x-source-version']
