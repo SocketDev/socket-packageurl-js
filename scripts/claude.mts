@@ -2144,34 +2144,34 @@ export function prepareClaudeArgs(
   args: string[] = [],
   options: ClaudeOptions = {},
 ): string[] {
-  const _opts = { __proto__: null, ...options }
+  const opts = { __proto__: null, ...options }
   const claudeArgs = [...args]
 
   // Smart model selection.
-  const task = _opts.prompt || _opts.command || 'general task'
-  const forceModel = _opts['the-brain']
+  const task = opts.prompt || opts.command || 'general task'
+  const forceModel = opts['the-brain']
     ? 'the-brain'
-    : _opts.pinky
+    : opts.pinky
       ? 'pinky'
       : undefined
 
   const mode = modelStrategy.selectMode(task, {
     forceModel,
-    lastError: _opts.lastError,
+    lastError: opts.lastError,
   })
 
   const model = modelStrategy.selectModel(task, {
     forceModel,
-    lastError: _opts.lastError,
+    lastError: opts.lastError,
   })
 
   // Track mode for caching and logging.
-  _opts._selectedMode = mode
-  _opts._selectedModel = model
+  opts._selectedMode = mode
+  opts._selectedModel = model
 
   // Add --dangerously-skip-permissions unless --no-darkwing is specified
   // "Let's get dangerous!" mode for automated CI fixes
-  if (!_opts['no-darkwing']) {
+  if (!opts['no-darkwing']) {
     claudeArgs.push('--dangerously-skip-permissions')
   }
 
@@ -2470,7 +2470,7 @@ export async function updateProjectClaudeMd(
   project: SocketProject,
   options: ClaudeOptions = {},
 ): Promise<boolean> {
-  const _opts = { __proto__: null, ...options }
+  const opts = { __proto__: null, ...options }
   const { claudeMdPath, name } = project
   const isRegistry = name === 'socket-registry'
 
@@ -2750,7 +2750,7 @@ export async function scanProjectForIssues(
   project: SocketProject,
   options: ClaudeOptions = {},
 ): Promise<unknown> {
-  const _opts = { __proto__: null, ...options }
+  const opts = { __proto__: null, ...options }
   const { name, path: projectPath } = project
 
   log.progress(`Scanning ${name} for issues`)
@@ -2808,7 +2808,7 @@ export async function scanProjectForIssues(
 
   // Use smart context if available to prioritize files
   let filesToScan = allFiles
-  if (_opts.smartContext !== false) {
+  if (opts.smartContext !== false) {
     const context = await getSmartContext({
       fileTypes: extensions,
       maxFiles: 100,
@@ -3065,7 +3065,7 @@ export async function interactiveFixSession(
   _projects: SocketProject[],
   options: ClaudeOptions = {},
 ): Promise<void> {
-  const _opts = { __proto__: null, ...options }
+  const opts = { __proto__: null, ...options }
   printHeader('Interactive Fix Session')
 
   // Group issues by severity.
@@ -3986,7 +3986,7 @@ export async function runCleanup(
   claudeCmd: string,
   options: ClaudeOptions = {},
 ): Promise<void> {
-  const _opts = { __proto__: null, ...options }
+  const opts = { __proto__: null, ...options }
   printHeader('Code Cleanup')
 
   log.step('Analyzing codebase for cleanup opportunities')
@@ -5708,7 +5708,7 @@ export async function runWatchMode(
   log.info('Starting continuous monitoring...')
   log.substep('Press Ctrl+C to stop')
 
-  const _watchPath = !opts['cross-repo'] ? rootPath : parentPath
+  const watchPath = !opts['cross-repo'] ? rootPath : parentPath
   const projects = !opts['cross-repo']
     ? [{ name: path.basename(rootPath), path: rootPath }]
     : SOCKET_PROJECTS.map(name => ({

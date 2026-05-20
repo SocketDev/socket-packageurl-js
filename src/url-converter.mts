@@ -49,15 +49,15 @@ import type { PackageURL } from './package-url.mjs'
 
 // Lazy reference to `PackageURL`, set by `package-url.ts` at module load time
 // to avoid circular import issues.
-let _PackageURL: typeof PackageURL | undefined
+let cachedPackageURL: typeof PackageURL | undefined
 
 /**
  * @internal Register the `PackageURL` class for `fromUrl` construction.
  */
-export function _registerPackageURLForUrlConverter(
+export function registerPackageURLForUrlConverter(
   ctor: typeof PackageURL,
 ): void {
-  _PackageURL = ctor
+  cachedPackageURL = ctor
 }
 
 type UrlParser = (_url: URL) => PackageURL | undefined
@@ -83,12 +83,19 @@ export function tryCreatePurl(
   version: string | undefined,
 ): PackageURL | undefined {
   /* v8 ignore start -- PackageURL is always registered at module load time. */
-  if (!_PackageURL) {
+  if (!cachedPackageURL) {
     return undefined
   }
   /* v8 ignore stop */
   try {
-    return new _PackageURL(type, namespace, name, version, undefined, undefined)
+    return new cachedPackageURL(
+      type,
+      namespace,
+      name,
+      version,
+      undefined,
+      undefined,
+    )
   } catch {
     /* v8 ignore start -- Defensive: validation error in PackageURL constructor. */
     return undefined

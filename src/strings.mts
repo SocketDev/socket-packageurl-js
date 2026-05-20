@@ -116,17 +116,17 @@ export function isSemverString(value: unknown): value is string {
 // > When comparing large numbers of strings, such as in sorting large arrays,
 // > it is better to create an `Intl.Collator` object and use the function provided
 // > by its `compare()` method
-let _localeCompare: Intl.Collator['compare'] | undefined
+let cachedLocaleCompare: Intl.Collator['compare'] | undefined
 
 /**
  * Perform locale-aware string comparison.
  */
 export function localeCompare(x: string, y: string): number {
-  if (_localeCompare === undefined) {
+  if (cachedLocaleCompare === undefined) {
     // Lazily call `new Intl.Collator()` because in Node it can take 10-14ms
-    _localeCompare = new Intl.Collator().compare
+    cachedLocaleCompare = new Intl.Collator().compare
   }
-  return _localeCompare(x, y)
+  return cachedLocaleCompare(x, y)
 }
 
 /**

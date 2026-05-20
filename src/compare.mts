@@ -25,25 +25,25 @@ export type PurlInput = PackageURL | string
 
 // Lazy reference to `PackageURL`, set by `package-url.ts` at module load time
 // to avoid circular import issues.
-let _PackageURL: typeof PackageURL | undefined
+let cachedPackageURL: typeof PackageURL | undefined
 
 /**
  * @internal Register the `PackageURL` class for string parsing in compare functions.
  */
-export function _registerPackageURL(ctor: typeof PackageURL): void {
-  _PackageURL = ctor
+export function registerPackageURL(ctor: typeof PackageURL): void {
+  cachedPackageURL = ctor
 }
 
 export function toCanonicalString(input: PurlInput): string {
   if (typeof input === 'string') {
     /* v8 ignore start -- PackageURL is always registered at module load time. */
-    if (!_PackageURL) {
+    if (!cachedPackageURL) {
       throw new ErrorCtor(
         'PackageURL not registered. Import PackageURL before using string comparison.',
       )
     }
     /* v8 ignore stop */
-    return _PackageURL.fromString(input).toString()
+    return cachedPackageURL.fromString(input).toString()
   }
   return input.toString()
 }

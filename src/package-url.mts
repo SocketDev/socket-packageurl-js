@@ -30,9 +30,9 @@ SOFTWARE.
  */
 
 import {
-  _registerPackageURL,
   compare as comparePurls,
   equals as equalsPurls,
+  registerPackageURL,
 } from './compare.mjs'
 import { decodePurlComponent } from './decode.mjs'
 import { PurlError } from './error.mjs'
@@ -79,7 +79,7 @@ import { stringify, stringifySpec } from './stringify.mjs'
 import { isBlank, isNonEmptyString, trimLeadingSlashes } from './strings.mjs'
 import {
   UrlConverter,
-  _registerPackageURLForUrlConverter,
+  registerPackageURLForUrlConverter,
 } from './url-converter.mjs'
 import {
   validateName,
@@ -929,10 +929,10 @@ for (let i = 0, { length } = staticProps; i < length; i += 1) {
 ReflectSetPrototypeOf(PackageURL.prototype, null)
 
 // Register PackageURL with compare module for string-based comparison support.
-_registerPackageURL(PackageURL)
+registerPackageURL(PackageURL)
 
 // Register PackageURL with url-converter module for fromUrl construction.
-_registerPackageURLForUrlConverter(PackageURL)
+registerPackageURLForUrlConverter(PackageURL)
 
 export {
   Err,

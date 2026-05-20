@@ -14,6 +14,7 @@
  *   (.github/workflows/pages.yml).
  */
 
+// oxlint-disable-next-line socket/prefer-spawn-over-execsync -- tour script is a one-off CLI runner with ~10 array-arg execFileSync call sites (no shell interpolation surface); migrating to lib-stable spawn is a separate refactor and the array form is already injection-safe.
 import { execFileSync } from 'node:child_process'
 import crypto from 'node:crypto'
 import {
