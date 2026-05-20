@@ -46,6 +46,8 @@ if [ ! -f "$WH_SCRIPT" ]; then
   echo "set PROJECTS=<dir containing socket-wheelhouse> before retrying" >&2
   exit 2
 fi
+# CLEANUP_SCRIPT is optional — older wheelhouse checkouts won't have it.
+# When missing, skip auto-cleanup; the cascade still runs.
 
 RESULTS=()
 LOG_FILE="/tmp/cascade-${TEMPLATE_SHA}.log"
@@ -109,6 +111,17 @@ while IFS= read -r repo; do
   base="${base:-main}"
 
   git fetch origin "$base" --quiet
+
+  # Auto-clean stranded cascade artifacts from earlier waves. Safety
+  # rails inside the script bail the repo (no-op) if anything looks
+  # ambiguous; only removes commits matching the cascade subject regex,
+  # authored by a trusted identity, touching only cascade-allowlisted
+  # files, and whose template SHA strictly precedes origin's current
+  # cascade SHA.
+  if [ -f "$CLEANUP_SCRIPT" ]; then
+    node "$CLEANUP_SCRIPT" --target "$src" 2>&1 | tail -3 || true
+  fi
+
   branch="chore/sync-${TEMPLATE_SHA}"
 
   git worktree remove --force "$wt" 2>/dev/null
