@@ -3,15 +3,15 @@
  *   https://github.com/package-url/purl-spec/blob/main/types-doc/gem-definition.md.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request/convenience'
 
 import { errorMessage } from '../error.mjs'
 import {
   ArrayIsArray,
   ArrayPrototypeSome,
-  StringPrototypeIncludes,
-  encodeComponent,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/array'
+import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.mjs'
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'
@@ -47,7 +47,7 @@ interface PurlObject {
  *   // -> { exists: true, latestVersion: '13.1.0' }
  *
  *   // With caching
- *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'gem' })
  *   const result = await gemExists('rails', undefined, { cache })
  *

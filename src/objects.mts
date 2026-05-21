@@ -4,14 +4,14 @@
  */
 
 import { LOOP_SENTINEL } from './constants.mjs'
+import { ArrayIsArray } from '@socketsecurity/lib/primordials/array'
+import { ErrorCtor } from '@socketsecurity/lib/primordials/error'
+import { WeakSetCtor } from '@socketsecurity/lib/primordials/map-set'
 import {
-  ArrayIsArray,
-  ErrorCtor,
   ObjectFreeze,
   ObjectIsFrozen,
-  ReflectOwnKeys,
-  WeakSetCtor,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/object'
+import { ReflectOwnKeys } from '@socketsecurity/lib/primordials/reflect'
 
 /**
  * Check if value is a non-null object. Inlined to avoid importing

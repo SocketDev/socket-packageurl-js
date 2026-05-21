@@ -4,14 +4,14 @@
  *   package naming rules from the PURL specification.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request/convenience'
 
 import { encodeComponent } from '../encode.mjs'
 import { PurlError, errorMessage } from '../error.mjs'
+import { ErrorCtor } from '@socketsecurity/lib/primordials/error'
+import { SetCtor } from '@socketsecurity/lib/primordials/map-set'
+import { RegExpPrototypeTest } from '@socketsecurity/lib/primordials/regexp'
 import {
-  ErrorCtor,
-  RegExpPrototypeTest,
-  SetCtor,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   StringPrototypeIndexOf,
@@ -20,11 +20,11 @@ import {
   StringPrototypeStartsWith,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
 import { isBlank, lowerName, lowerNamespace } from '../strings.mjs'
 import { validateNoInjectionByType } from '../validate.mjs'
 
-import type { TtlCache } from '@socketsecurity/lib/cache-with-ttl'
+import type { TtlCache } from '@socketsecurity/lib/ttl-cache/types'
 
 interface PurlObject {
   name: string
@@ -54,7 +54,7 @@ export type ExistsOptions = {
    *
    * @example
    *   ;```typescript
-   *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+   *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
    *   import { npmExists } from '@socketregistry/packageurl-js'
    *
    *   const cache = createTtlCache({
@@ -243,7 +243,7 @@ export function normalize(purl: PurlObject): PurlObject {
  *   // -> { exists: true, latestVersion: '4.17.21' }
  *
  *   // With caching
- *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'npm' })
  *   const result = await npmExists('lodash', undefined, undefined, { cache })
  *

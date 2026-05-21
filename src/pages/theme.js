@@ -8,7 +8,7 @@
  * boot phase so it runs after DOMContentLoaded — that's when
  * `.part-nav` exists to host it. */
 
-import { ObjectKeys } from '@socketsecurity/lib/primordials'
+import { ObjectKeys } from '@socketsecurity/lib/primordials/object'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {

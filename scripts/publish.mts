@@ -13,15 +13,15 @@ import { fileURLToPath } from 'node:url'
 
 import type { FlagValues } from '@socketsecurity/lib-stable/argv/flags'
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
-import { safeDelete, safeDeleteSync } from '@socketsecurity/lib-stable/fs'
+import { safeDelete, safeDeleteSync } from '@socketsecurity/lib-stable/fs/safe'
 import type { Logger } from '@socketsecurity/lib-stable/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 import type {
   SpawnError,
   SpawnErrorWithOutputString,
   SpawnOptions,
-} from '@socketsecurity/lib-stable/spawn'
-import { spawn } from '@socketsecurity/lib-stable/spawn'
+} from '@socketsecurity/lib-stable/spawn/types'
+import { spawn } from '@socketsecurity/lib-stable/spawn/spawn'
 import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 

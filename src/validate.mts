@@ -5,13 +5,13 @@
  */
 import { PurlError, PurlInjectionError } from './error.mjs'
 import { isNullishOrEmptyString } from './lang.mjs'
+import { ArrayIsArray } from '@socketsecurity/lib/primordials/array'
+import { ObjectKeys } from '@socketsecurity/lib/primordials/object'
+import { ReflectApply } from '@socketsecurity/lib/primordials/reflect'
 import {
-  ArrayIsArray,
-  ObjectKeys,
-  ReflectApply,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
 import {
   findCommandInjectionCharCode,
   findInjectionCharCode,

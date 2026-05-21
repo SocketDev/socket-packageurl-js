@@ -26,11 +26,11 @@ SOFTWARE.
  *   fluent API.
  */
 import { PackageURL } from './package-url.mjs'
+import { ArrayPrototypeMap } from '@socketsecurity/lib/primordials/array'
 import {
-  ArrayPrototypeMap,
   ObjectEntries,
   ObjectFromEntries,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/object'
 
 import type { QualifiersObject } from './purl-component.mjs'
 

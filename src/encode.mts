@@ -3,14 +3,14 @@
  *   for names, namespaces, versions, qualifiers, and subpaths.
  */
 import { isObject } from './objects.mjs'
+import { ArrayPrototypeToSorted } from '@socketsecurity/lib/primordials/array'
+import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { ObjectKeys } from '@socketsecurity/lib/primordials/object'
 import {
-  ArrayPrototypeToSorted,
-  ObjectKeys,
   StringPrototypeReplaceAll,
   StringPrototypeSlice,
-  URLSearchParamsCtor,
-  encodeComponent,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
+import { URLSearchParamsCtor } from '@socketsecurity/lib/primordials/url'
 import { isNonEmptyString } from './strings.mjs'
 
 // Module-private reusable `URLSearchParams` for `encodeQualifierParam`. Kept

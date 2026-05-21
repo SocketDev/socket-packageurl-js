@@ -20,7 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import { ArrayPrototypePush, ErrorCtor } from '@socketsecurity/lib/primordials'
+import { ArrayPrototypePush } from '@socketsecurity/lib/primordials/array'
+import { ErrorCtor } from '@socketsecurity/lib/primordials/error'
 
 /**
  * @file Result type for functional error handling without exceptions.

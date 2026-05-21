@@ -31,9 +31,10 @@ import {
   ArrayPrototypeFilter,
   ArrayPrototypeJoin,
   ArrayPrototypeSlice,
-  MapCtor,
-  ObjectFreeze,
-  SetCtor,
+} from '@socketsecurity/lib/primordials/array'
+import { MapCtor, SetCtor } from '@socketsecurity/lib/primordials/map-set'
+import { ObjectFreeze } from '@socketsecurity/lib/primordials/object'
+import {
   StringPrototypeCharCodeAt,
   StringPrototypeEndsWith,
   StringPrototypeIndexOf,
@@ -42,8 +43,8 @@ import {
   StringPrototypeSlice,
   StringPrototypeSplit,
   StringPrototypeStartsWith,
-  URLCtor,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
+import { URLCtor } from '@socketsecurity/lib/primordials/url'
 
 import type { PackageURL } from './package-url.mjs'
 

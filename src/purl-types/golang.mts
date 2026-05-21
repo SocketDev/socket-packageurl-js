@@ -28,19 +28,19 @@
  *     name. See: https://go.dev/ref/mod#module-path
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request/convenience'
 
 import { PurlError, errorMessage } from '../error.mjs'
+import { ArrayPrototypeJoin } from '@socketsecurity/lib/primordials/array'
+import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
 import {
-  ArrayPrototypeJoin,
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   StringPrototypeReplace,
   StringPrototypeSlice,
   StringPrototypeSplit,
   StringPrototypeToLowerCase,
-  encodeComponent,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
 import { isSemverString } from '../strings.mjs'
 import { validateNoInjectionByType } from '../validate.mjs'
 

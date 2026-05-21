@@ -4,15 +4,17 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request/convenience'
 
 import {
   ArrayPrototypeIncludes,
   ArrayPrototypePush,
+} from '@socketsecurity/lib/primordials/array'
+import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import {
   StringPrototypeIncludes,
   StringPrototypeToLowerCase,
-  encodeComponent,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.mjs'
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'

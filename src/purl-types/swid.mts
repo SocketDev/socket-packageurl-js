@@ -4,12 +4,12 @@
  */
 
 import { PurlError } from '../error.mjs'
+import { ObjectFreeze } from '@socketsecurity/lib/primordials/object'
+import { RegExpPrototypeTest } from '@socketsecurity/lib/primordials/regexp'
 import {
-  ObjectFreeze,
-  RegExpPrototypeTest,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
 import { validateNoInjectionByType } from '../validate.mjs'
 
 const GUID_PATTERN = ObjectFreeze(

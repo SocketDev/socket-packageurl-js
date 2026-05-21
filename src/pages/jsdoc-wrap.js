@@ -14,11 +14,9 @@
  * (jsdoc-group.js) can call it in sequence. Kept separate so
  * each file handles one concern. */
 
-import {
-  ArrayFrom,
-  SetCtor,
-  StringPrototypeStartsWith,
-} from '@socketsecurity/lib/primordials'
+import { ArrayFrom } from '@socketsecurity/lib/primordials/array'
+import { SetCtor } from '@socketsecurity/lib/primordials/map-set'
+import { StringPrototypeStartsWith } from '@socketsecurity/lib/primordials/string'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {

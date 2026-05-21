@@ -1,9 +1,9 @@
+import { ObjectFreeze } from '@socketsecurity/lib/primordials/object'
 import {
-  ObjectFreeze,
   StringPrototypeCharCodeAt,
   StringPrototypeSlice,
   StringPrototypeToLowerCase,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
 
 /**
  * @file Custom `PurlError` class for Package URL parsing and validation errors.

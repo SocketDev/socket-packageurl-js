@@ -27,7 +27,7 @@
  * (.wt-contents-summary rows, .wt-intro-line lines) so pills
  * on the homepage share the same language as part-page pills. */
 
-import { StringPrototypeStartsWith } from '@socketsecurity/lib/primordials'
+import { StringPrototypeStartsWith } from '@socketsecurity/lib/primordials/string'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {

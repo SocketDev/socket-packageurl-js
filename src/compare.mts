@@ -5,11 +5,13 @@
  *   instances or PURL strings.
  */
 
+import { ErrorCtor } from '@socketsecurity/lib/primordials/error'
+import { MapCtor } from '@socketsecurity/lib/primordials/map-set'
 import {
-  ErrorCtor,
-  MapCtor,
   RegExpCtor,
   RegExpPrototypeTest,
+} from '@socketsecurity/lib/primordials/regexp'
+import {
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   StringPrototypeIndexOf,
@@ -17,7 +19,7 @@ import {
   StringPrototypeSlice,
   StringPrototypeStartsWith,
   StringPrototypeToLowerCase,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
 
 import type { PackageURL } from './package-url.mjs'
 

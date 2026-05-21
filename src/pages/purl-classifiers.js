@@ -15,10 +15,8 @@
  * PURL → hand-tokenize; bare ident / URL → .wt-purl (no
  * syntax pass); everything else → hljs as TypeScript. */
 
-import {
-  SetCtor,
-  StringPrototypeStartsWith,
-} from '@socketsecurity/lib/primordials'
+import { SetCtor } from '@socketsecurity/lib/primordials/map-set'
+import { StringPrototypeStartsWith } from '@socketsecurity/lib/primordials/string'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {

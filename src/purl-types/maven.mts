@@ -3,13 +3,11 @@
  *   https://github.com/package-url/purl-spec/blob/main/types-doc/maven-definition.md.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request/convenience'
 
 import { PurlError, errorMessage } from '../error.mjs'
-import {
-  StringPrototypeIncludes,
-  encodeComponent,
-} from '@socketsecurity/lib/primordials'
+import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import {
   validateNoInjectionByType,
   validateRequiredByType,

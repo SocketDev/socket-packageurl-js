@@ -32,11 +32,9 @@ import path from 'node:path'
 import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 
-import { readJson } from '@socketsecurity/lib/fs'
-import {
-  isObject,
-  toSortedObjectFromEntries,
-} from '@socketsecurity/lib/objects'
+import { readJson } from '@socketsecurity/lib/fs/read-json'
+import { isObject } from '@socketsecurity/lib/objects/predicates'
+import { toSortedObjectFromEntries } from '@socketsecurity/lib/objects/sort'
 
 import { PackageURL } from '../src/package-url.mjs'
 

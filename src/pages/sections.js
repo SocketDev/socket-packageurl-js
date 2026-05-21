@@ -25,7 +25,7 @@ import {
   SetCtor,
   WeakMapCtor,
   WeakSetCtor,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/map-set'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {

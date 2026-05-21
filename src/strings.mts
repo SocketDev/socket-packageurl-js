@@ -5,17 +5,17 @@
  *   detection, semver validation, locale comparison, and character
  *   replacement.
  */
+import { NumberPrototypeToString } from '@socketsecurity/lib/primordials/number'
+import { ObjectFreeze } from '@socketsecurity/lib/primordials/object'
+import { RegExpPrototypeTest } from '@socketsecurity/lib/primordials/regexp'
 import {
-  NumberPrototypeToString,
-  ObjectFreeze,
-  RegExpPrototypeTest,
   StringFromCharCode,
   StringPrototypeCharCodeAt,
   StringPrototypeIndexOf,
   StringPrototypePadStart,
   StringPrototypeSlice,
   StringPrototypeToLowerCase,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
 
 /**
  * Check if string contains only whitespace characters.

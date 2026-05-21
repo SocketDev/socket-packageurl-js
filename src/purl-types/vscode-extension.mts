@@ -5,14 +5,12 @@
  *   `namespace` is the publisher name, and the `name` is the extension name.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request/convenience'
 
 import { PurlError, errorMessage } from '../error.mjs'
-import {
-  ArrayPrototypeSome,
-  JSONStringify,
-  StringPrototypeIncludes,
-} from '@socketsecurity/lib/primordials'
+import { ArrayPrototypeSome } from '@socketsecurity/lib/primordials/array'
+import { JSONStringify } from '@socketsecurity/lib/primordials/json'
+import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import {
   isSemverString,
   lowerName,
@@ -132,7 +130,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
  *   // -> { exists: true, latestVersion: '2.4.2' }
  *
  *   // With caching
- *   import { createTtlCache } from '@socketsecurity/lib/cache-with-ttl'
+ *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'vscode' })
  *   const result = await vscodeExtensionExists(
  *     'vscode-eslint',

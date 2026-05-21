@@ -16,14 +16,14 @@ import semver from 'semver'
 import colors from 'yoctocolors-cjs'
 
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
-import { safeDelete } from '@socketsecurity/lib-stable/fs'
+import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
 import type { Logger } from '@socketsecurity/lib-stable/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
 import type {
   SpawnOptions,
   SpawnResult,
-} from '@socketsecurity/lib-stable/spawn'
-import { spawn } from '@socketsecurity/lib-stable/spawn'
+} from '@socketsecurity/lib-stable/spawn/types'
+import { spawn } from '@socketsecurity/lib-stable/spawn/spawn'
 import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'

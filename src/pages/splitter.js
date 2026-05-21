@@ -6,7 +6,7 @@
  * onMove only writes, with rAF coalescing so multiple pointer
  * frames per refresh collapse into one DOM write. */
 
-import { MathMax } from '@socketsecurity/lib/primordials'
+import { MathMax } from '@socketsecurity/lib/primordials/math'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {

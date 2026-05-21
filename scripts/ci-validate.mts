@@ -9,8 +9,8 @@ import { fileURLToPath } from 'node:url'
 
 import type { Logger } from '@socketsecurity/lib-stable/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
-import type { SpawnResult } from '@socketsecurity/lib-stable/spawn'
-import { spawn } from '@socketsecurity/lib-stable/spawn'
+import type { SpawnResult } from '@socketsecurity/lib-stable/spawn/types'
+import { spawn } from '@socketsecurity/lib-stable/spawn/spawn'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'
 

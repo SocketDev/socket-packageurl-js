@@ -17,12 +17,12 @@
  * splits text nodes, so any <a> we wrap before it runs would be
  * blown away. Uses `ns.onHljsReady` from boot.js to gate. */
 
+import { JSONParse } from '@socketsecurity/lib/primordials/json'
+import { MapCtor } from '@socketsecurity/lib/primordials/map-set'
 import {
-  JSONParse,
-  MapCtor,
   StringPrototypeMatchAll,
   StringPrototypeStartsWith,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {

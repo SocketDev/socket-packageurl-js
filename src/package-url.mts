@@ -45,20 +45,26 @@ import {
   normalizeVersion,
 } from './normalize.mjs'
 import { isObject, recursiveFreeze } from './objects.mjs'
+import { ArrayIsArray } from '@socketsecurity/lib/primordials/array'
+import { BufferByteLength } from '@socketsecurity/lib/primordials/buffer'
 import {
-  ArrayIsArray,
-  BufferByteLength,
   ErrorCtor,
-  JSONParse,
-  JSONStringify,
-  MapCtor,
+  SyntaxErrorCtor,
+} from '@socketsecurity/lib/primordials/error'
+import { JSONParse, JSONStringify } from '@socketsecurity/lib/primordials/json'
+import { MapCtor } from '@socketsecurity/lib/primordials/map-set'
+import {
   ObjectCreate,
   ObjectFreeze,
   ObjectKeys,
+} from '@socketsecurity/lib/primordials/object'
+import {
   ReflectDefineProperty,
   ReflectGetOwnPropertyDescriptor,
   ReflectSetPrototypeOf,
-  RegExpPrototypeTest,
+} from '@socketsecurity/lib/primordials/reflect'
+import { RegExpPrototypeTest } from '@socketsecurity/lib/primordials/regexp'
+import {
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
   StringPrototypeIndexOf,
@@ -66,10 +72,11 @@ import {
   StringPrototypeSlice,
   StringPrototypeSplit,
   StringPrototypeStartsWith,
-  SyntaxErrorCtor,
+} from '@socketsecurity/lib/primordials/string'
+import {
   URLCtor,
   URLSearchParamsCtor,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/url'
 import { PurlComponent } from './purl-component.mjs'
 import { PurlQualifierNames } from './purl-qualifier-names.mjs'
 import { PurlType } from './purl-type.mjs'

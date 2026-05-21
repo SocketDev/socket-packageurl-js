@@ -15,18 +15,22 @@ import { PurlError } from './error.mjs'
 import {
   ArrayPrototypeJoin,
   ArrayPrototypePush,
-  MathMin,
-  ObjectFreeze,
+} from '@socketsecurity/lib/primordials/array'
+import { SetCtor } from '@socketsecurity/lib/primordials/map-set'
+import { MathMin } from '@socketsecurity/lib/primordials/math'
+import { ObjectFreeze } from '@socketsecurity/lib/primordials/object'
+import {
   RegExpPrototypeExec,
   RegExpPrototypeTest,
-  SetCtor,
+} from '@socketsecurity/lib/primordials/regexp'
+import {
   StringPrototypeIndexOf,
   StringPrototypeSlice,
   StringPrototypeSplit,
   StringPrototypeStartsWith,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
 import { isSemverString } from './strings.mjs'
 
 /**

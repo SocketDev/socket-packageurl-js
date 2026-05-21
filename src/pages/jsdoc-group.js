@@ -15,7 +15,7 @@
  *
  * Exposes ns.groupJsdocBlocks(container). */
 
-import { ArrayFrom } from '@socketsecurity/lib/primordials'
+import { ArrayFrom } from '@socketsecurity/lib/primordials/array'
 ;(() => {
   const ns = window[Symbol.for('socket-pages')]
   if (!ns) {

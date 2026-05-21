@@ -4,13 +4,11 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib/http-request'
+import { httpJson } from '@socketsecurity/lib/http-request/convenience'
 
-import {
-  ArrayPrototypeSome,
-  StringPrototypeIncludes,
-  encodeComponent,
-} from '@socketsecurity/lib/primordials'
+import { ArrayPrototypeSome } from '@socketsecurity/lib/primordials/array'
+import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import { lowerName, lowerNamespace } from '../strings.mjs'
 import { validateNoInjectionByType } from '../validate.mjs'
 

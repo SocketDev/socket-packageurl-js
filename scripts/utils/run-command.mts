@@ -11,8 +11,8 @@ import type {
   SpawnOptions,
   SpawnSyncOptions,
   SpawnSyncReturns,
-} from '@socketsecurity/lib-stable/spawn'
-import { spawn, spawnSync } from '@socketsecurity/lib-stable/spawn'
+} from '@socketsecurity/lib-stable/spawn/types'
+import { spawn, spawnSync } from '@socketsecurity/lib-stable/spawn/spawn'
 
 const logger: Logger = getDefaultLogger()
 

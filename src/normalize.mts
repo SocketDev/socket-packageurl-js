@@ -7,14 +7,16 @@ import {
   ObjectCreate,
   ObjectEntries,
   ObjectFreeze,
-  ReflectApply,
+} from '@socketsecurity/lib/primordials/object'
+import { ReflectApply } from '@socketsecurity/lib/primordials/reflect'
+import {
   StringPrototypeCharCodeAt,
   StringPrototypeIndexOf,
   StringPrototypeSlice,
   StringPrototypeToLowerCase,
   StringPrototypeTrim,
-  URLSearchParamsCtor,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/string'
+import { URLSearchParamsCtor } from '@socketsecurity/lib/primordials/url'
 import { isBlank } from './strings.mjs'
 
 const EMPTY_ENTRIES: Iterable<[string, string]> = ObjectFreeze(

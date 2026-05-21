@@ -5,11 +5,13 @@
 import {
   ArrayPrototypeFlatMap,
   ArrayPrototypeToSorted,
+} from '@socketsecurity/lib/primordials/array'
+import { SetCtor } from '@socketsecurity/lib/primordials/map-set'
+import {
   ObjectCreate,
   ObjectKeys,
   ObjectValues,
-  SetCtor,
-} from '@socketsecurity/lib/primordials'
+} from '@socketsecurity/lib/primordials/object'
 
 /**
  * Create namespace object organizing helpers by property names.
