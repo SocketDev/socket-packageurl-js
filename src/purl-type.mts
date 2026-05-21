@@ -110,7 +110,7 @@ interface PurlObject {
 /**
  * Default normalizer for PURL types without specific normalization rules.
  */
-export function PurlTypNormalizer(purl: PurlObject) {
+function PurlTypNormalizer(purl: PurlObject) {
   return purl
 }
 

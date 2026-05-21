@@ -106,7 +106,7 @@ export function encodeVersion(version: unknown): string {
 /**
  * Normalize `URLSearchParams` output for qualifier encoding.
  */
-export function normalizeSearchParamsEncoding(encoded: string): string {
+function normalizeSearchParamsEncoding(encoded: string): string {
   return StringPrototypeReplaceAll(
     StringPrototypeReplaceAll(encoded, '%2520', '%20'),
     '+',
@@ -117,7 +117,7 @@ export function normalizeSearchParamsEncoding(encoded: string): string {
 /**
  * Prepare string value for `URLSearchParams` encoding.
  */
-export function prepareValueForSearchParams(value: unknown): string {
+function prepareValueForSearchParams(value: unknown): string {
   // Replace spaces with `%20`'s so they don't get converted to plus signs
   return StringPrototypeReplaceAll(String(value), ' ', '%20')
 }

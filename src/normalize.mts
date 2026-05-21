@@ -45,7 +45,7 @@ export function normalizeNamespace(rawNamespace: unknown): string | undefined {
  * Normalize `purl` path component by collapsing separators and filtering
  * segments.
  */
-export function normalizePurlPath(
+function normalizePurlPath(
   pathname: string,
   options?: { filter?: ((_segment: string) => boolean) | undefined },
 ): string {
