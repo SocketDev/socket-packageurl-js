@@ -10,6 +10,10 @@
 TypeScript Package URL (purl) parser and builder.
 Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) with full type safety, zero dependencies, and spec compliance with the [Package URL specification](https://github.com/package-url/purl-spec).
 
+## Why this repo exists
+
+`@socketregistry/packageurl-js` is the Socket-maintained drop-in replacement for `packageurl-js` — same API, but ships with built-in TypeScript types, zero runtime dependencies, full [purl-spec](https://github.com/package-url/purl-spec) coverage, and first-class [VERS](https://github.com/package-url/purl-spec/blob/main/VERSION-RANGE-SPEC.rst) support. It exists because the upstream package lacked types and a maintained tree-shakeable surface; this fork closes both gaps without breaking compatibility.
+
 ## What is a PURL?
 
 A Package URL (purl) standardizes how to identify software packages:
@@ -253,14 +257,17 @@ See [docs/types.md](docs/types.md) for complete type reference.
 
 ## Development
 
-**Quick commands:**
+<details>
+<summary>Contributor commands</summary>
 
-```bash
+```sh
 pnpm install   # Install dependencies
 pnpm build     # Build
 pnpm test      # Test
 pnpm check     # Lint + typecheck
 ```
+
+</details>
 
 ## License
 
