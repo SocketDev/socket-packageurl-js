@@ -1,563 +1,358 @@
-/* max-file-lines: legitimate -- single-purpose CLI script; splitting would obscure the linear publish flow. */
 /**
- * @file Publish runner for Socket packageurl-js. Validates build artifacts
- *   exist, then publishes to npm. Build and checks should be run separately
- *   (e.g., via ci:validate).
+ * @file Fleet-canonical publish runner. Two modes, no others. --staged Upload
+ *   this package's tarball to npm staging via `pnpm stage publish`. Designed to
+ *   run in CI under the OIDC trusted-publisher token. Nothing publicly visible
+ *   until --approve runs. Add `--provenance` automatically when GITHUB_ACTIONS
+ *   is set. --approve Interactive multi-select over the user's currently-
+ *   staged packages, then batch `pnpm stage approve <id>` with a single shared
+ *   2FA OTP. Designed to run locally. OTP resolution order:
+ *
+ *   1. `--otp <code>` flag (CI / scripted use).
+ *   2. Interactive `password` prompt (lib/stdio/prompts).
+ *   3. Empty prompt input → pnpm's per-call web-OTP flow (registry challenge opens
+ *      a browser window to npmjs.com per approve call). --dry-run Forwarded to
+ *      `pnpm stage publish --dry-run` (staged) or used to preview the approve
+ *      selection without calling stage approve (--approve). The split is a hard
+ *      requirement of npm's staged-publish flow: the stage upload uses an OIDC
+ *      token from CI; the approve step requires human 2FA. Combining them in
+ *      one mode would either leak the OTP into CI logs or require a human at
+ *      the CI keyboard. There is **no direct-publish path**. Every release goes
+ *      through staging so a botched upload (wrong file, wrong checksum, wrong
+ *      version) can be `pnpm stage reject`'d server-side before anything
+ *      becomes publicly visible. Repos with bespoke publish pipelines
+ *      (socket-addon's 9-package OIDC + .node verification, socket-registry's
+ *      monorepo package-npm-publish delegation, etc.) keep their own
+ *      publish.mts and don't adopt this canonical version. Repos with simple
+ *      single-package publishing consume this one byte-identical via the
+ *      sync-scaffolding cascade.
  */
 
-import { existsSync, promises as fs } from 'node:fs'
-import os from 'node:os'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import type { FlagValues } from '@socketsecurity/lib-stable/argv/flags'
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
-import { safeDelete, safeDeleteSync } from '@socketsecurity/lib-stable/fs/safe'
-import type { Logger } from '@socketsecurity/lib-stable/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
-import type {
-  SpawnError,
-  SpawnErrorWithOutputString,
-  SpawnOptions,
-} from '@socketsecurity/lib-stable/spawn/types'
-import { spawn } from '@socketsecurity/lib-stable/spawn/spawn'
-import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
-import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
+import { checkbox, password } from '@socketsecurity/lib/stdio/prompts'
 
-import { errorMessage } from './utils/error-message.mts'
+import {
+  extractFirstJson,
+  fetchVersionTrustInfo,
+  isAlreadyPublished,
+  runCapture,
+  runInherit,
+} from './publish-shared.mts'
 
-const logger: Logger = getDefaultLogger()
-
-type CommandResult = {
-  exitCode: number
-  stderr: string | Buffer
-  stdout: string | Buffer
-}
-
-type PackageJson = {
-  dependencies?: Record<string, string> | undefined
-  devDependencies?: Record<string, string> | undefined
-  exports?: Record<string, string | Record<string, string>> | undefined
-  main?: string | undefined
-  name?: string | undefined
-  peerDependencies?: Record<string, string> | undefined
-  types?: string | undefined
-  version?: string | undefined
-}
-
-type PublishOptions = {
-  access?: string | undefined
-  dryRun?: boolean | undefined
-  force?: boolean | undefined
-  otp?: string | undefined
-  tag?: string | undefined
-}
-
-type PushTagOptions = {
-  force?: boolean | undefined
-}
-
-type PublishScriptValues = FlagValues & {
-  access: string
-  'dry-run': boolean
-  force: boolean
-  help: boolean
-  otp?: string | undefined
-  'skip-tag': boolean
-  tag: string
-}
-
-const rootPath: string = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..',
-)
-const WIN32: boolean = process.platform === 'win32'
-
-/**
- * Check if the git working tree is clean (no uncommitted changes).
- */
-export async function checkGitStatus(): Promise<boolean> {
-  const result = await runCommandWithOutput('git', ['status', '--porcelain'])
-  const stdout =
-    typeof result.stdout === 'string' ? result.stdout : result.stdout.toString()
-  if (stdout.trim()) {
-    logger.error('Working directory is not clean')
-    logger.info('Uncommitted changes:')
-    logger.log(stdout)
-    return false
-  }
-  return true
-}
-
-/**
- * Get the current version from package.json.
- */
-export async function getCurrentVersion(
-  pkgPath: string = rootPath,
-): Promise<string | undefined> {
-  const pkgJson: PackageJson = await readPackageJson(pkgPath)
-  return pkgJson.version
-}
-
-export async function publishPackage(
-  options: PublishOptions = {},
-): Promise<boolean> {
-  const { access = 'public', dryRun = false, otp, tag = 'latest' } = options
-
-  const pkgJson: PackageJson = await readPackageJson()
-  const packageName: string = pkgJson.name || 'unknown'
-  const version: string = pkgJson.version || '0.0.0'
-
-  logger.step(`Publishing ${packageName}@${version}`)
-
-  // Check if version already exists.
-  logger.progress('Checking npm registry')
-  const exists: boolean = await versionExists(packageName, version)
-  if (exists) {
-    logger.warn(`Version ${version} already exists on npm`)
-    if (!options.force) {
-      return false
-    }
-  }
-  logger.done('Version check complete')
-
-  // Stage to os.tmpdir() so the working tree never mutates during
-  // publish. Cleanup is unconditional via try/finally + signal
-  // handlers — a SIGINT mid-publish leaves no residue.
-  logger.progress('Staging package contents')
-  const stageRoot = await stageForPublish()
-  const cleanup = (): void => {
-    try {
-      safeDeleteSync(stageRoot)
-    } catch {
-      /* swallow during teardown */
-    }
-  }
-  process.once('SIGINT', () => {
-    logger.warn('SIGINT — cleaning up staging root')
-    cleanup()
-    process.exit(130)
-  })
-  process.once('SIGTERM', () => {
-    logger.warn('SIGTERM — cleaning up staging root')
-    cleanup()
-    process.exit(143)
-  })
-  logger.done(`Staged to ${stageRoot}`)
-
-  try {
-    // Prepare publish args. Use pnpm publish (matches the fleet's
-    // package manager) with --no-git-checks (the staged tmpdir has
-    // no git history) and --ignore-scripts (the source's
-    // prepublishOnly guard exists to refuse direct working-tree
-    // publishes; this orchestrated publish is the legitimate path).
-    const publishArgs: string[] = [
-      'publish',
-      '--access',
-      access,
-      '--tag',
-      tag,
-      '--no-git-checks',
-      '--ignore-scripts',
-    ]
-
-    // Add provenance attestation in CI only. `pnpm publish
-    // --provenance` requires the GitHub Actions OIDC id-token
-    // endpoint; running locally fails with "Provenance generation
-    // in GitHub Actions requires 'id-token: write' permission".
-    // Gated so local non-dry-run publishes (emergency cases) still
-    // work.
-    if (!dryRun && process.env['GITHUB_ACTIONS'] === 'true') {
-      publishArgs.push('--provenance')
-    }
-
-    if (dryRun) {
-      publishArgs.push('--dry-run')
-    }
-
-    if (otp) {
-      publishArgs.push('--otp', otp)
-    }
-
-    // Publish from the staged copy, not the working tree.
-    logger.progress(dryRun ? 'Running dry-run publish' : 'Publishing to npm')
-    const publishCode: number = await runCommand('pnpm', publishArgs, {
-      cwd: stageRoot,
-    })
-
-    if (publishCode !== 0) {
-      logger.failed('Publish failed')
-      return false
-    }
-
-    if (dryRun) {
-      logger.done('Dry-run publish complete')
-    } else {
-      logger.done(`Published ${packageName}@${version} to npm`)
-    }
-
-    return true
-  } finally {
-    await safeDelete(stageRoot)
-  }
-}
-
-/**
- * Push existing git tag if it exists locally but not remotely. Tags should be
- * created with version bump commits, not by this script.
- */
-export async function pushExistingTag(
-  version: string,
-  options: PushTagOptions = {},
-): Promise<boolean> {
-  const { force = false } = options
-
-  const tagName: string = `v${version}`
-
-  logger.step('Checking git tag')
-
-  // Check if tag exists locally.
-  logger.progress(`Checking for local tag ${tagName}`)
-  const localTagResult: CommandResult = await runCommandWithOutput('git', [
-    'tag',
-    '-l',
-    tagName,
-  ])
-  if (!localTagResult.stdout.trim()) {
-    logger.done('No local tag to push')
-    return true
-  }
-  logger.done(`Local tag ${tagName} exists`)
-
-  // Check if tag exists on remote.
-  logger.progress(`Checking remote for tag ${tagName}`)
-  const remoteTagResult: CommandResult = await runCommandWithOutput('git', [
-    'ls-remote',
-    '--tags',
-    'origin',
-    tagName,
-  ])
-  if (remoteTagResult.stdout.trim()) {
-    logger.done('Tag already exists on remote')
-    return true
-  }
-
-  // Push existing tag to remote.
-  logger.progress(`Pushing tag ${tagName} to remote`)
-  const pushArgs: string[] = ['push', 'origin', tagName]
-  if (force) {
-    pushArgs.push('-f')
-  }
-
-  const pushCode: number = await runCommand('git', pushArgs)
-  if (pushCode !== 0) {
-    logger.failed('Tag push failed')
-    return false
-  }
-  logger.done('Pushed tag to remote')
-
-  return true
-}
-
-/**
- * Read package.json from the project.
- */
-export async function readPackageJson(
-  pkgPath: string = rootPath,
-): Promise<PackageJson> {
-  const packageJsonPath: string = path.join(pkgPath, 'package.json')
-  const content: string = await fs.readFile(packageJsonPath, 'utf8')
-  return JSON.parse(content) as PackageJson
-}
-
-export async function runCommand(
-  command: string,
-  args: string[] = [],
-  options: SpawnOptions = {},
-): Promise<number> {
-  try {
-    const result = await spawn(command, args, {
-      cwd: rootPath,
-      stdio: 'inherit',
-      ...(WIN32 && { shell: true }),
-      ...options,
-    })
-    return result.code
-  } catch (e) {
-    // spawn() throws on non-zero exit
-    if (e && typeof e === 'object' && 'code' in e) {
-      return (e as SpawnError).code
-    }
-    throw e
-  }
-}
-
-export async function runCommandWithOutput(
-  command: string,
-  args: string[] = [],
-  options: SpawnOptions = {},
-): Promise<CommandResult> {
-  try {
-    const result = await spawn(command, args, {
-      cwd: rootPath,
-      stdio: 'pipe',
-      stdioString: true,
-      ...(WIN32 && { shell: true }),
-      ...options,
-    })
-    return {
-      exitCode: result.code,
-      stderr: result.stderr,
-      stdout: result.stdout,
-    }
-  } catch (e) {
-    // spawn() throws on non-zero exit
-    if (
-      e &&
-      typeof e === 'object' &&
-      'code' in e &&
-      'stdout' in e &&
-      'stderr' in e
-    ) {
-      const spawnError: SpawnErrorWithOutputString = e
-      return {
-        exitCode: spawnError.code,
-        stderr: spawnError.stderr,
-        stdout: spawnError.stdout,
-      }
-    }
-    throw e
-  }
-}
-
-/**
- * Publish a single package.
- */
-/**
- * Stage publishable files into a fresh os.tmpdir() subdir. Returns the path of
- * the staged copy. The caller publishes from there instead of the working tree,
- * so an interrupted publish leaves `git status` clean.
- */
-export async function stageForPublish(): Promise<string> {
-  const stageRoot = await fs.mkdtemp(
-    path.join(os.tmpdir(), `socket-packageurl-js-publish-${process.pid}-`),
-  )
-  await fs.cp(rootPath, stageRoot, {
-    recursive: true,
-    dereference: true,
-    filter: src => {
-      const base = path.basename(src)
-      return (
-        base !== 'node_modules' &&
-        base !== '.git' &&
-        base !== '.gitignore' &&
-        base !== '.gitkeep' &&
-        !base.startsWith('.pnpm') &&
-        base !== 'pnpm-lock.yaml'
-      )
-    },
-  })
-  return stageRoot
-}
-
-/**
- * Validate that build artifacts exist based on package.json exports.
- */
-export async function validateBuildArtifacts(): Promise<boolean> {
-  logger.step('Validating build artifacts')
-
-  const pkgJson: PackageJson = await readPackageJson()
-  const missing: string[] = []
-
-  // Check exports from package.json.
-  if (pkgJson.exports) {
-    for (const [exportPath, exportValue] of Object.entries(pkgJson.exports)) {
-      // Skip package.json export.
-      if (exportPath === './package.json') {
-        continue
-      }
-
-      // Handle both string and object export values.
-      const files: string[] =
-        typeof exportValue === 'string'
-          ? [exportValue]
-          : Object.values(exportValue).filter(
-              (v): v is string => typeof v === 'string',
-            )
-
-      for (let i = 0, { length } = files; i < length; i += 1) {
-        const file = files[i]
-        const filePath: string = path.join(rootPath, file)
-        if (!existsSync(filePath)) {
-          missing.push(file)
-        }
-      }
-    }
-  }
-
-  // Check main entry point.
-  if (pkgJson.main) {
-    const mainPath: string = path.join(rootPath, pkgJson.main)
-    if (!existsSync(mainPath)) {
-      missing.push(pkgJson.main)
-    }
-  }
-
-  // Check types entry point.
-  if (pkgJson.types) {
-    const typesPath: string = path.join(rootPath, pkgJson.types)
-    if (!existsSync(typesPath)) {
-      missing.push(pkgJson.types)
-    }
-  }
-
-  if (missing.length > 0) {
-    logger.error('Missing build artifacts:')
-    for (let i = 0, { length } = missing; i < length; i += 1) {
-      const file = missing[i]
-      logger.substep(`  ${file}`)
-    }
-    return false
-  }
-
-  logger.success('Build artifacts validated')
-  return true
-}
-
-/**
- * Check if a version exists on npm.
- */
-export async function versionExists(
-  packageName: string,
-  version: string,
-): Promise<boolean> {
-  const result: CommandResult = await runCommandWithOutput(
-    'npm',
-    ['view', `${packageName}@${version}`, 'version'],
-    { stdio: 'pipe' },
-  )
-
-  return result.exitCode === 0
+const logger = getDefaultLogger()
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const rootPath = path.join(__dirname, '..')
+interface StageListEntry {
+  name?: string
+  version?: string
+  stageId?: string
 }
 
 async function main(): Promise<void> {
-  try {
-    // Parse arguments.
-    const { values } = parseArgs({
-      options: {
-        access: {
-          default: 'public',
-          type: 'string',
-        },
-        'dry-run': {
-          default: false,
-          type: 'boolean',
-        },
-        force: {
-          default: false,
-          type: 'boolean',
-        },
-        help: {
-          default: false,
-          type: 'boolean',
-        },
-        otp: {
-          type: 'string',
-        },
-        'skip-tag': {
-          default: false,
-          type: 'boolean',
-        },
-        tag: {
-          default: 'latest',
-          type: 'string',
-        },
-      },
-      allowPositionals: false,
-      strict: false,
-    }) as { values: PublishScriptValues }
+  const { values } = parseArgs({
+    options: {
+      approve: { default: false, type: 'boolean' },
+      'dry-run': { default: false, type: 'boolean' },
+      help: { default: false, type: 'boolean' },
+      otp: { type: 'string' },
+      staged: { default: false, type: 'boolean' },
+      tag: { default: 'latest', type: 'string' },
+    },
+    allowPositionals: false,
+    strict: false,
+  })
 
-    // Show help if requested.
-    if (values.help) {
-      logger.log('')
-      logger.log('Usage: pnpm release [options]')
-      logger.log('')
-      logger.log('Options:')
-      logger.log('  --help         Show this help message')
-      logger.log('  --dry-run      Perform a dry-run without publishing')
-      logger.log('  --force        Force publish even with warnings')
-      logger.log('  --skip-tag     Skip git tag push')
-      logger.log('  --tag <tag>    npm dist-tag (default: latest)')
-      logger.log('  --access <access>  Package access level (default: public)')
-      logger.log('  --otp <otp>    npm one-time password')
-      logger.log('')
-      logger.log('Examples:')
-      logger.log('  pnpm release              # Validate artifacts and publish')
-      logger.log('  pnpm release --dry-run    # Dry-run to test')
-      logger.log('  pnpm release --otp 123456 # Publish with OTP')
-      process.exitCode = 0
-      return
-    }
-
-    printHeader('Publish Runner', { borderChar: '=', width: 56 })
-
-    // Refuse to publish from a dirty working tree — would ship uncommitted
-    // changes to npm. --force overrides for emergency republishes.
-    const gitClean: boolean = await checkGitStatus()
-    if (!gitClean && !values.force) {
-      logger.error('Refusing to publish with uncommitted changes')
-      logger.info('Commit or stash changes, or pass --force to override.')
-      process.exitCode = 1
-      return
-    }
-
-    // Get current version.
-    const version: string | undefined = await getCurrentVersion()
-    logger.info(`Current version: ${version}`)
-
-    // Validate that build artifacts exist.
-    const artifactsExist: boolean = await validateBuildArtifacts()
-    if (!artifactsExist && !values.force) {
-      logger.error('Build artifacts missing - run pnpm build first')
-      process.exitCode = 1
-      return
-    }
-
-    // Publish.
-    const publishSuccess: boolean = await publishPackage({
-      access: values.access,
-      dryRun: values['dry-run'],
-      force: values.force,
-      otp: values.otp,
-      tag: values.tag,
-    })
-
-    if (!publishSuccess && !values.force) {
-      logger.error('Publish failed')
-      process.exitCode = 1
-      return
-    }
-
-    // Push git tag if it exists.
-    // Tags are created by version bump commits, not by this script.
-    if (!values['skip-tag'] && !values['dry-run']) {
-      await pushExistingTag(version, {
-        force: values.force,
-      })
-    }
-
-    printFooter('Publish completed successfully!', {
-      borderChar: '=',
-      color: 'green',
-      width: 56,
-    })
-    process.exitCode = 0
-  } catch (e) {
-    const message = errorMessage(e)
-    logger.error(`Publish runner failed: ${message}`)
-    process.exitCode = 1
+  if (values['help'] || (!values['staged'] && !values['approve'])) {
+    logger.log(
+      'Usage: pnpm publish --staged | --approve [--dry-run] [--otp <code>]',
+    )
+    logger.log('')
+    logger.log('  --staged             CI: upload to npm staging via OIDC')
+    logger.log('  --approve            local: multi-select + 2FA promote')
+    logger.log('  --dry-run            simulate; no registry writes')
+    logger.log(
+      '  --otp <code>         pre-supply 2FA (skips OTP prompt on --approve)',
+    )
+    logger.log('  --tag <tag>          dist-tag for --staged (default: latest)')
+    process.exitCode = values['help'] ? 0 : 1
+    return
   }
+
+  if (values['staged'] && values['approve']) {
+    logger.fail('Pass --staged OR --approve, not both.')
+    process.exitCode = 1
+    return
+  }
+
+  const dryRun = !!values['dry-run']
+  const otpFromFlag =
+    typeof values['otp'] === 'string' ? values['otp'] : undefined
+  if (values['staged']) {
+    await runStaged(String(values['tag']), dryRun)
+  } else {
+    await runApprove(dryRun, otpFromFlag)
+  }
+}
+
+/**
+ * `--staged` mode: stage this package's tarball.
+ *
+ * Reads the local package.json for name + version, refuses to stage an
+ * already-published version (npm rejects republishes outright; we surface the
+ * error before the network call). Runs `pnpm stage publish` with --provenance
+ * when GITHUB_ACTIONS is set so the OIDC token gets embedded into the
+ * provenance attestation.
+ */
+async function runStaged(tag: string, dryRun: boolean): Promise<void> {
+  const pkg = readPackageJson()
+  logger.log(
+    `Staging ${pkg.name}@${pkg.version} (tag=${tag})${dryRun ? ' [dry-run]' : ''}`,
+  )
+
+  if (await isAlreadyPublished(pkg.name, pkg.version, rootPath)) {
+    logger.fail(
+      `${pkg.name}@${pkg.version} is already published. Bump the version and try again.`,
+    )
+    process.exitCode = 1
+    return
+  }
+
+  const args = [
+    'stage',
+    'publish',
+    '--access',
+    'public',
+    '--tag',
+    tag,
+    '--no-git-checks',
+    '--ignore-scripts',
+  ]
+  if (process.env['GITHUB_ACTIONS'] === 'true') {
+    args.push('--provenance')
+  }
+  if (dryRun) {
+    // pnpm stage publish --dry-run does everything except the actual
+    // upload; surfaces packing errors + manifest validation without
+    // touching the registry.
+    args.push('--dry-run')
+  }
+  const code = await runInherit('pnpm', args, rootPath)
+  if (code !== 0) {
+    logger.fail(`pnpm stage publish exited ${code}`)
+    process.exitCode = code
+    return
+  }
+  if (dryRun) {
+    logger.success(
+      `Dry-run complete for ${pkg.name}@${pkg.version}. Re-run without --dry-run to upload.`,
+    )
+  } else {
+    logger.success(
+      `Staged ${pkg.name}@${pkg.version}. Run \`pnpm run publish -- --approve\` locally to promote.`,
+    )
+  }
+}
+
+/**
+ * `--approve` mode: list the user's staged packages, multi-select, batch
+ * approve with one OTP.
+ *
+ * Filters out any staged entries whose name@version is already public (e.g. a
+ * re-stage after a partial approve). Empty selection is a no-op. The OTP is
+ * read via a hidden-character prompt; a single OTP value is reused across all
+ * approve calls in the same batch — npm accepts the same TOTP within its ~30s
+ * validity window.
+ */
+async function runApprove(
+  dryRun: boolean,
+  otpFromFlag: string | undefined,
+): Promise<void> {
+  const staged = await listStagedPackages()
+  if (staged.length === 0) {
+    logger.log('No packages currently staged.')
+    return
+  }
+
+  // Filter out already-published versions. If a stage upload was
+  // approved earlier but the entry lingers in stage list (registry
+  // quirk), don't offer it for re-approval.
+  const eligible: StageListEntry[] = []
+  for (const entry of staged) {
+    // eslint-disable-next-line no-await-in-loop
+    if (
+      entry.name &&
+      entry.version &&
+      !(await isAlreadyPublished(entry.name, entry.version, rootPath))
+    ) {
+      eligible.push(entry)
+    }
+  }
+  if (eligible.length === 0) {
+    logger.log('All staged entries are already published; nothing to approve.')
+    return
+  }
+
+  // Fetch prior-version provenance for each unique package name so the
+  // approver can spot regressions (last public version had provenance
+  // but the staged one's parent name has lost trust metadata between
+  // versions — a workflow drift signal). Cheap: one fetch per unique
+  // name, abbreviated packument (no _npmUser needed; we only check
+  // attestations presence as a proxy for "this name is OIDC-published").
+  const priorProvenance = await fetchPriorProvenanceMap(eligible)
+
+  const choices = eligible.map(e => ({
+    name: `${e.name}@${e.version}${formatPriorProvenance(priorProvenance.get(e.name!))}`,
+    value: e.stageId!,
+    checked: true,
+  }))
+  const selected = (await checkbox({
+    message: 'Select staged packages to approve:',
+    choices,
+  })) as string[] | undefined
+  if (!selected || selected.length === 0) {
+    logger.log('Nothing selected; exiting.')
+    return
+  }
+
+  if (dryRun) {
+    logger.log('[dry-run] would approve:')
+    for (const stageId of selected) {
+      const entry = eligible.find(e => e.stageId === stageId)
+      logger.log(`  ${entry?.name}@${entry?.version} (id: ${stageId})`)
+    }
+    logger.success(
+      `Dry-run complete. Re-run without --dry-run to prompt for OTP and promote.`,
+    )
+    return
+  }
+
+  // OTP resolution order:
+  //   1. --otp <code> flag (CI / scripted use).
+  //   2. Interactive prompt; entering a TOTP code uses it for all
+  //      approvals; entering nothing falls through to pnpm's per-call
+  //      web-OTP flow (the registry challenges and pnpm opens a browser
+  //      window to npmjs.com for each approve call).
+  // Passing the same TOTP to every approve in a batch is fine: npm
+  // accepts the same code for the duration of its ~30s validity window.
+  let otp = otpFromFlag
+  if (!otp) {
+    const entered = (await password({
+      message:
+        '2FA OTP (TOTP code for batch; leave blank for browser web-OTP):',
+      mask: '*',
+    })) as string | undefined
+    if (entered) {
+      otp = entered
+    }
+  }
+
+  let approved = 0
+  let failed = 0
+  for (const stageId of selected) {
+    const args = ['stage', 'approve', stageId]
+    if (otp) {
+      args.push('--otp', otp)
+    }
+    // eslint-disable-next-line no-await-in-loop
+    const code = await runInherit('pnpm', args, rootPath)
+    if (code === 0) {
+      approved += 1
+    } else {
+      failed += 1
+      logger.fail(`Approve ${stageId} exited ${code}`)
+    }
+  }
+  if (failed > 0) {
+    logger.fail(`${failed}/${selected.length} failed; ${approved} approved`)
+    process.exitCode = 1
+    return
+  }
+  logger.success(`Approved ${approved} package${approved === 1 ? '' : 's'}`)
+}
+
+function readPackageJson(): { name: string; version: string } {
+  const raw = readFileSync(path.join(rootPath, 'package.json'), 'utf8')
+  return JSON.parse(raw) as { name: string; version: string }
+}
+
+/**
+ * Resolve all currently-staged packages by parsing `pnpm stage list --json`.
+ * The output's first balanced JSON object is the keyed map `<name>@<version>` →
+ * entry; we flatten the values and drop entries without a stageId (defensive).
+ */
+async function listStagedPackages(): Promise<StageListEntry[]> {
+  const { stdout } = await runCapture(
+    'pnpm',
+    ['stage', 'list', '--json'],
+    rootPath,
+  )
+  const json = extractFirstJson(stdout)
+  if (!json) {
+    return []
+  }
+  try {
+    const parsed = JSON.parse(json) as Record<
+      string,
+      StageListEntry | undefined
+    >
+    const result: StageListEntry[] = []
+    for (const entry of Object.values(parsed)) {
+      if (entry?.stageId) {
+        result.push(entry)
+      }
+    }
+    return result
+  } catch {
+    return []
+  }
+}
+
+/**
+ * For each unique package name in `entries`, fetch the latest version's trust
+ * info from the registry. Used to annotate the approve multi- select with a
+ * "this package's last public version had provenance" hint — helps the approver
+ * spot if their staged upload is a regression (parent name has provenance
+ * history; staged version's workflow may have lost OIDC).
+ *
+ * One registry GET per unique name; abbreviated packument (saves ~80KB per
+ * popular package, omits `_npmUser` which we don't need here).
+ */
+async function fetchPriorProvenanceMap(
+  entries: StageListEntry[],
+): Promise<Map<string, boolean>> {
+  const uniqueNames = new Set<string>()
+  for (const e of entries) {
+    if (e.name) {
+      uniqueNames.add(e.name)
+    }
+  }
+  const result = new Map<string, boolean>()
+  await Promise.all(
+    [...uniqueNames].map(async name => {
+      const versions = await fetchVersionTrustInfo(name, 'abbreviated')
+      const hasAnyAttestation = Object.values(versions).some(
+        v => !!v.attestations,
+      )
+      result.set(name, hasAnyAttestation)
+    }),
+  )
+  return result
+}
+
+function formatPriorProvenance(
+  hasPriorProvenance: boolean | undefined,
+): string {
+  if (hasPriorProvenance === undefined) {
+    return ''
+  }
+  return hasPriorProvenance
+    ? '  [prior: ✓ provenance]'
+    : '  [prior: ✗ no provenance]'
 }
 
 main().catch((e: unknown) => {
