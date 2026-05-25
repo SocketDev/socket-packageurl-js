@@ -403,7 +403,7 @@ export async function runTests(
   const output = result.stdout + result.stderr
   const hasTestFailures =
     output.includes('FAIL') ||
-    (output.includes('Test Files') && output.match(/(\d+) failed/) !== null) ||
+    (output.includes('Test Files') && output.match(/(?:\d+) failed/) !== null) ||
     (output.includes('Tests') && output.match(/Tests\s+\d+ failed/) !== null)
 
   // Override exit code if we only have worker termination errors
