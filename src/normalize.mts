@@ -26,22 +26,6 @@ const EMPTY_ENTRIES: Iterable<[string, string]> = ObjectFreeze(
 import type { QualifiersObject } from './purl-component.mjs'
 
 /**
- * Normalize package name by trimming whitespace.
- */
-export function normalizeName(rawName: unknown): string | undefined {
-  return typeof rawName === 'string' ? StringPrototypeTrim(rawName) : undefined
-}
-
-/**
- * Normalize package namespace by trimming and collapsing path separators.
- */
-export function normalizeNamespace(rawNamespace: unknown): string | undefined {
-  return typeof rawNamespace === 'string'
-    ? normalizePurlPath(rawNamespace)
-    : undefined
-}
-
-/**
  * Normalize `purl` path component by collapsing separators and filtering
  * segments.
  */
@@ -87,6 +71,22 @@ function normalizePurlPath(
     collapsed = collapsed + (collapsed.length === 0 ? '' : '/') + lastSegment
   }
   return collapsed
+}
+
+/**
+ * Normalize package name by trimming whitespace.
+ */
+export function normalizeName(rawName: unknown): string | undefined {
+  return typeof rawName === 'string' ? StringPrototypeTrim(rawName) : undefined
+}
+
+/**
+ * Normalize package namespace by trimming and collapsing path separators.
+ */
+export function normalizeNamespace(rawNamespace: unknown): string | undefined {
+  return typeof rawNamespace === 'string'
+    ? normalizePurlPath(rawNamespace)
+    : undefined
 }
 
 /**

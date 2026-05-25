@@ -199,7 +199,7 @@ export function isNpmBuiltinName(id: string) {
 /**
  * Check if `npm` identifier is a legacy package name.
  */
-function isNpmLegacyName(id: string) {
+export function isNpmLegacyName(id: string) {
   return getNpmLegacySet().has(id)
 }
 

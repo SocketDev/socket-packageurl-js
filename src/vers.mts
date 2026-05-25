@@ -96,7 +96,7 @@ const regexSemverNumberedGroups = ObjectFreeze(
  * Compare two prerelease identifier arrays per semver spec. Returns `-1`, `0`,
  * or `1`.
  */
-function comparePrereleases(a: string[], b: string[]): number {
+export function comparePrereleases(a: string[], b: string[]): number {
   // No prerelease has higher precedence than any prerelease
   if (a.length === 0 && b.length === 0) {
     return 0
@@ -148,7 +148,7 @@ function comparePrereleases(a: string[], b: string[]): number {
  * Compare two semver version strings. Returns `-1` if `a < b`, `0` if `a ===
  * b`, `1` if `a > b`. Build metadata is ignored per semver spec.
  */
-function compareSemver(a: string, b: string): -1 | 0 | 1 {
+export function compareSemver(a: string, b: string): -1 | 0 | 1 {
   const pa = parseSemver(a)
   const pb = parseSemver(b)
   // Compare major.minor.patch
@@ -172,7 +172,7 @@ function compareSemver(a: string, b: string): -1 | 0 | 1 {
 /**
  * Parse a single constraint string into comparator and version.
  */
-function parseConstraint(raw: string): VersConstraint {
+export function parseConstraint(raw: string): VersConstraint {
   const trimmed = StringPrototypeTrim(raw)
   if (trimmed === '*') {
     return ObjectFreeze({

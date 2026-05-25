@@ -21,6 +21,25 @@ const REUSED_SEARCH_PARAMS_KEY = '_'
 const REUSED_SEARCH_PARAMS_OFFSET = 2
 
 /**
+ * Normalize `URLSearchParams` output for qualifier encoding.
+ */
+function normalizeSearchParamsEncoding(encoded: string): string {
+  return StringPrototypeReplaceAll(
+    StringPrototypeReplaceAll(encoded, '%2520', '%20'),
+    '+',
+    '%2B',
+  )
+}
+
+/**
+ * Prepare string value for `URLSearchParams` encoding.
+ */
+function prepareValueForSearchParams(value: unknown): string {
+  // Replace spaces with `%20`'s so they don't get converted to plus signs
+  return StringPrototypeReplaceAll(String(value), ' ', '%20')
+}
+
+/**
  * Encode package name component for URL.
  */
 export function encodeName(name: unknown): string {
@@ -101,25 +120,6 @@ export function encodeVersion(version: unknown): string {
   return isNonEmptyString(version)
     ? StringPrototypeReplaceAll(encodeComponent(version), '%3A', ':')
     : ''
-}
-
-/**
- * Normalize `URLSearchParams` output for qualifier encoding.
- */
-function normalizeSearchParamsEncoding(encoded: string): string {
-  return StringPrototypeReplaceAll(
-    StringPrototypeReplaceAll(encoded, '%2520', '%20'),
-    '+',
-    '%2B',
-  )
-}
-
-/**
- * Prepare string value for `URLSearchParams` encoding.
- */
-function prepareValueForSearchParams(value: unknown): string {
-  // Replace spaces with `%20`'s so they don't get converted to plus signs
-  return StringPrototypeReplaceAll(String(value), ' ', '%20')
 }
 
 export { encodeComponent }
