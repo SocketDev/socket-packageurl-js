@@ -233,6 +233,18 @@ Use `isError` / `isErrnoException` / `errorMessage` / `errorStack` from `@socket
 
 🚨 Never emit a raw secret to tool output, commits, comments, or replies; when blocked, rewrite — don't bypass. Redact `token` / `jwt` / `api_key` / `secret` / `password` / `authorization` fields when citing API responses (`.claude/hooks/token-guard/`). Tokens live in env vars (CI) or the OS keychain (dev local) — never in `.env*` / `.envrc` / `~/.sfw.config` / dotfiles (`.claude/hooks/no-token-in-dotenv-guard/`). Setup + rotation: `node .claude/hooks/setup-security-tools/install.mts [--rotate]` — the ONLY correct rotator. Never call platform keychain CLIs from Bash to read (token is already in-process — use `findApiToken()` or `process.env.SOCKET_API_KEY` / `SOCKET_API_TOKEN`); writes/deletes are allowed. Bypass: `Allow blind-keychain-read bypass` (`.claude/hooks/no-blind-keychain-read-guard/`). Canonical env var: `SOCKET_API_TOKEN` in docs / workflow inputs / `.env.example`; local-dev keychain stores as `SOCKET_API_KEY`. Full spec: [`docs/claude.md/fleet/token-hygiene.md`](docs/claude.md/fleet/token-hygiene.md).
 
+### gh token hygiene
+
+🚨 GitHub CLI tokens are high-blast-radius. Three invariants apply (enforced by `.claude/hooks/gh-token-hygiene-guard/`):
+
+1. **Keychain storage only.** `gh auth status` must report `(keyring)`. On-disk `~/.config/gh/hosts.yml` rejected — re-auth with `gh auth logout && gh auth login` (keychain is the default since gh 2.40). Nx breach exfiltrated this file in <74s.
+2. **`workflow` scope off by default; bypass single-use + Touch ID.** Type `Allow workflow-scope bypass` → `gh auth refresh -s workflow` → Touch ID (osascript fallback, absolute `/usr/bin/` paths defeat PATH-hijack) → ONE dispatch. Recommended scopes: `read:org, repo, gist` (gh forces `gist`).
+3. **8-hour token age cap.** Same hook (not `auth-rotation-reminder`). Refresh: `gh auth refresh -h github.com`. The cap is the floor — real defense is signed commits + branch protection + audit log. Full spec: [`docs/claude.md/fleet/gh-token-hygiene.md`](docs/claude.md/fleet/gh-token-hygiene.md).
+
+### Commit signing
+
+🚨 Commits on `main`/`master` must be signed. Three layers: pre-commit config gate, pre-push signature check (`%G?` ∈ {`N`,`B`} blocks), GitHub `required_signatures`. Setup: `node .claude/hooks/setup-signing/install.mts`. Bypass envs `SOCKET_PRE_{COMMIT,PUSH}_ALLOW_UNSIGNED=1`. Full spec: [`docs/claude.md/fleet/commit-signing.md`](docs/claude.md/fleet/commit-signing.md). Post-hoc audit: `node scripts/audit-transcript.mts --recent` flags privileged tool uses in a session ([full stack](docs/claude.md/fleet/security-stack.md)).
+
 ### Agents & skills
 
 - `/scanning-security` — AgentShield + zizmor audit
