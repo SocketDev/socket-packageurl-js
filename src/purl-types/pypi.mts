@@ -62,7 +62,7 @@ export function normalize(purl: PurlObject): PurlObject {
  *   // -> { exists: true, latestVersion: '5.0.0' }
  *
  *   // With caching
- *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
+ *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'pypi' })
  *   const result = await pypiExists('requests', undefined, { cache })
  *

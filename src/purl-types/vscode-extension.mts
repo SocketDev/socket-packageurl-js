@@ -130,7 +130,7 @@ export function validate(purl: PurlObject, throws: boolean): boolean {
  *   // -> { exists: true, latestVersion: '2.4.2' }
  *
  *   // With caching
- *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
+ *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'vscode' })
  *   const result = await vscodeExtensionExists(
  *     'vscode-eslint',

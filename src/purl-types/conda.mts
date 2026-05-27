@@ -52,7 +52,7 @@ interface PurlObject {
  *   // -> { exists: true, latestVersion: '2.2.0' }
  *
  *   // With caching
- *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
+ *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'conda' })
  *   const result = await condaExists('numpy', undefined, undefined, { cache })
  *

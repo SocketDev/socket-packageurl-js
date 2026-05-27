@@ -47,7 +47,7 @@ interface PurlObject {
  *   // -> { exists: true, latestVersion: '13.1.0' }
  *
  *   // With caching
- *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
+ *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'gem' })
  *   const result = await gemExists('rails', undefined, { cache })
  *

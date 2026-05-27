@@ -50,7 +50,7 @@ interface PurlObject {
  *   // -> { exists: true, latestVersion: 'latest' }
  *
  *   // With caching
- *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
+ *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'docker' })
  *   const result = await dockerExists('nginx', 'library', undefined, { cache })
  *

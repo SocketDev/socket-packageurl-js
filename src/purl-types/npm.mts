@@ -54,7 +54,7 @@ export type ExistsOptions = {
    *
    * @example
    *   ;```typescript
-   *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
+   *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
    *   import { npmExists } from '@socketregistry/packageurl-js'
    *
    *   const cache = createTtlCache({
@@ -243,7 +243,7 @@ export function normalize(purl: PurlObject): PurlObject {
  *   // -> { exists: true, latestVersion: '4.17.21' }
  *
  *   // With caching
- *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
+ *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'npm' })
  *   const result = await npmExists('lodash', undefined, undefined, { cache })
  *

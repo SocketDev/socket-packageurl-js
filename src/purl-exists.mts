@@ -71,7 +71,7 @@ import type { ExistsOptions, ExistsResult } from './purl-types/npm.mjs'
  *   // -> { exists: true, latestVersion: '2.31.0' }
  *
  *   // With caching
- *   import { createTtlCache } from '@socketsecurity/lib/ttl-cache/cache'
+ *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({
  *     ttl: 5 * 60 * 1000,
  *     prefix: 'purl-registry',
