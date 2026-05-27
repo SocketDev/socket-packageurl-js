@@ -321,7 +321,13 @@ describe('UrlConverter.fromUrl', () => {
         'v0.3.7',
       ],
       // cargo bare download path
-      ['/crates/serde/1.0.210/download', 'cargo', undefined, 'serde', '1.0.210'],
+      [
+        '/crates/serde/1.0.210/download',
+        'cargo',
+        undefined,
+        'serde',
+        '1.0.210',
+      ],
       // cargo version with hyphens in build metadata
       [
         '/crates/tokio/1.40.0-alpha.1/download',

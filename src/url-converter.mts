@@ -446,7 +446,12 @@ export function fromGemDownloadUrl(urlOrPath: string): PackageURL | undefined {
   if (!match?.groups?.['name'] || !match.groups['version']) {
     return undefined
   }
-  return tryCreatePurl('gem', undefined, match.groups['name'], match.groups['version'])
+  return tryCreatePurl(
+    'gem',
+    undefined,
+    match.groups['name'],
+    match.groups['version'],
+  )
 }
 
 /**
@@ -632,10 +637,10 @@ export function fromGolangSiteUrl(url: URL): PackageURL | undefined {
 }
 
 /**
- * Go module proxy download matcher: `/<module-path>/@v/<version>.(zip|mod|info)`.
- * The module path may contain slashes (`github.com/gorilla/mux`); the final
- * segment is the package name, the rest is the namespace. The `v` prefix is
- * part of the captured version.
+ * Go module proxy download matcher:
+ * `/<module-path>/@v/<version>.(zip|mod|info)`. The module path may contain
+ * slashes (`github.com/gorilla/mux`); the final segment is the package name,
+ * the rest is the namespace. The `v` prefix is part of the captured version.
  */
 const GOLANG_PROXY = new RegExp(
   [
