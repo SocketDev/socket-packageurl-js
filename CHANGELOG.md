@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.5.0) - 2026-05-27
+
+### Added
+
+- `PackageURL.fromUrl` and `UrlConverter.fromUrl` now recognize distribution (download) URLs and bare paths, in addition to web-page and registry URLs. Wheels and sdists (`orjson-3.11.9-cp314-…-manylinux….whl`, `package-1.0.0.tar.gz`), RubyGems `.gem` and `.gemspec.rz`, Go module-proxy archives (`…/@v/v1.8.0.zip`), and cargo download paths all resolve to a `pkg:` URL. Hostname matching still takes precedence; distribution parsing is the fallback.
+- `UrlConverter` exposes the individual URL→PURL parsers as static methods: the `fromDownloadUrl` aggregator, per-ecosystem aggregators (`fromNpmUrl`, `fromPypiUrl`, `fromGemUrl`, `fromGolangUrl`, `fromCargoUrl`), and single-shape host parsers (`fromGitHubUrl`, `fromHackageUrl`, etc.). Use these when the URL shape is known; `fromUrl` remains the auto-detecting entry point.
+- npm tarball parsing tolerates `%2f`-encoded scope separators and proxy/mirror filenames that repeat the full scoped name.
+
+### Fixed
+
+- `fromUrl` now resolves `swiftpackageindex.com` and `cran.r-project.org` URLs that include a version (previously returned `undefined` because the version was never captured). `supportsFromUrl` now reflects whether `fromUrl` actually produces a result.
+
 ## [1.4.2](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.2) - 2026-04-14
 
 ### Changed

@@ -143,11 +143,42 @@ PurlBuilder.npm().name('lodash').version('4.17.21').build()
 ```javascript
 import { UrlConverter } from '@socketregistry/packageurl-js'
 
+// PackageURL -> URL
 UrlConverter.toRepositoryUrl(purl)
 // -> 'https://github.com/lodash/lodash'
 
 UrlConverter.toDownloadUrl(purl)
 // -> 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz'
+
+// URL -> PackageURL
+UrlConverter.fromUrl('https://www.npmjs.com/package/lodash')
+// -> PackageURL for pkg:npm/lodash
+
+// fromUrl also recognizes distribution (download) URLs and bare paths
+UrlConverter.fromUrl('/packages/orjson-3.11.9-cp314-cp314-manylinux_2_17_x86_64.whl')
+// -> PackageURL for pkg:pypi/orjson@3.11.9
+```
+
+`fromUrl` tries hostname-based parsers first, then falls back to
+distribution-filename parsing. The individual parsers are also exposed when you
+know the shape:
+
+```javascript
+// Per-ecosystem aggregators (try the ecosystem's known URL shapes)
+UrlConverter.fromNpmUrl(url) // registry metadata/tarball or npmjs.com page
+UrlConverter.fromPypiUrl(url) // project page or wheel/sdist filename
+UrlConverter.fromGemUrl(url) // gem page or .gem / .gemspec.rz
+UrlConverter.fromGolangUrl(url) // pkg.go.dev page or module-proxy archive
+UrlConverter.fromCargoUrl(url) // crate page or download path
+
+// Distribution (download) URLs/paths, host-independent
+UrlConverter.fromDownloadUrl('/packages/numpy-2.3.0-cp313-cp313-macosx_11_0_arm64.whl')
+// -> PackageURL for pkg:pypi/numpy@2.3.0
+
+// Single-shape host parsers: fromGitHubUrl, fromGitlabUrl, fromBitbucketUrl,
+// fromComposerUrl, fromHexUrl, fromPubUrl, fromDockerUrl, fromCocoapodsUrl,
+// fromHackageUrl, fromCranUrl, fromCondaUrl, fromCpanUrl, fromHuggingfaceUrl,
+// fromLuarocksUrl, fromSwiftUrl, fromVscodeMarketplaceUrl, fromOpenVsxUrl
 ```
 
 **Registry existence checks:**
@@ -211,8 +242,8 @@ if (result.isOk()) {
 PackageURL.isValid(userInput) // -> boolean
 PackageURL.fromUrl('https://github.com/lodash/lodash') // infers purl from URL
 
-// fromUrl also recognizes distribution (download) URLs and bare paths —
-// wheels, sdists, tarballs, gems, and module-proxy archives:
+// fromUrl also recognizes distribution (download) URLs and bare paths:
+// wheels, sdists, tarballs, gems, and module-proxy archives.
 PackageURL.fromUrl(
   '/packages/orjson-3.11.9-cp314-cp314-manylinux_2_17_x86_64.whl',
 ) // -> pkg:pypi/orjson@3.11.9
