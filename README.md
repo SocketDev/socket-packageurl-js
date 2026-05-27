@@ -210,6 +210,12 @@ if (result.isOk()) {
 
 PackageURL.isValid(userInput) // -> boolean
 PackageURL.fromUrl('https://github.com/lodash/lodash') // infers purl from URL
+
+// fromUrl also recognizes distribution (download) URLs and bare paths —
+// wheels, sdists, tarballs, gems, and module-proxy archives:
+PackageURL.fromUrl(
+  '/packages/orjson-3.11.9-cp314-cp314-manylinux_2_17_x86_64.whl',
+) // -> pkg:pypi/orjson@3.11.9
 ```
 
 ### TypeScript Types
