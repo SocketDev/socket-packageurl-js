@@ -29,7 +29,8 @@ SOFTWARE.
  *   normalization, validation, and internal utilities. This file aims for
  *   complete code coverage of all edge cases and boundary conditions.
  */
-import { describe, expect, it } from 'vitest'
+import nock from 'nock'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   encodeComponent,
@@ -2362,6 +2363,17 @@ describe('Edge cases and additional coverage', () => {
   })
 
   describe('purlExists defensive checks', () => {
+    // These dispatch tests verify routing only; mock the registry endpoints so
+    // no real third-party connection is made (nock blocks live network).
+    beforeEach(() => {
+      nock.disableNetConnect()
+    })
+
+    afterEach(() => {
+      nock.cleanAll()
+      nock.enableNetConnect()
+    })
+
     it('should return error for missing type', async () => {
       const mockPurl = { type: '', name: 'test' } as any
       const result = await purlExists(mockPurl)
@@ -2377,17 +2389,20 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should dispatch conda type', async () => {
+      nock('https://api.anaconda.org').get(/.*/).reply(200, {})
       const purl = PackageURL.fromString('pkg:conda/numpy@1.24.0')
       const result = await purlExists(purl)
-      // Network call may succeed or fail, but it should not return "Unsupported type"
+      // Routing check: dispatch must reach the conda handler, not bail with
+      // "Unsupported type".
       expect(result.error).not.toBe('Unsupported type: conda')
-    }, 15_000)
+    })
 
     it('should dispatch docker type', async () => {
+      nock('https://hub.docker.com').get(/.*/).reply(200, {})
       const purl = PackageURL.fromString('pkg:docker/nginx@latest')
       const result = await purlExists(purl)
       expect(result.error).not.toBe('Unsupported type: docker')
-    }, 15_000)
+    })
   })
 
   describe('UrlConverter edge cases', () => {
