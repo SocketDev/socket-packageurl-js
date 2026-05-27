@@ -219,6 +219,8 @@ describe('UrlConverter.fromUrl', () => {
       // sdist archives.
       ['/packages/package-name-1.0.0.tar.gz', 'package-name', '1.0.0'],
       ['/packages/package-name-1.0.0.zip', 'package-name', '1.0.0'],
+      // PEP 440 epoch prefix (`N!`) preserved in the version.
+      ['/packages/foo-3!1.0.0.tar.gz', 'foo', '3!1.0.0'],
       // Full URL on a host NOT in the hostname map — resolves via fallback.
       [
         'https://files.pythonhosted.org/packages/aa/orjson-3.11.9-cp314-cp314-manylinux_2_17_x86_64.whl',
@@ -492,6 +494,15 @@ describe('UrlConverter.fromUrl', () => {
         'https://gitlab.com/inkscape/inkscape/-/tags/v1.3',
       )
       expect(p?.version).toBe('v1.3')
+    })
+
+    it('should ignore an unrecognized /-/ subpath (no version)', () => {
+      const p = UrlConverter.fromUrl(
+        'https://gitlab.com/inkscape/inkscape/-/blob/main/README',
+      )
+      expect(p?.namespace).toBe('inkscape')
+      expect(p?.name).toBe('inkscape')
+      expect(p?.version).toBeUndefined()
     })
 
     it('should return undefined for root', () => {

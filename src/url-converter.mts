@@ -405,21 +405,21 @@ export function fromMavenSiteUrl(url: URL): PackageURL | undefined {
   // Remove `'maven2'` prefix
   const parts = ArrayPrototypeSlice(segments, 1)
   // Last segment is version, second-to-last is artifact, rest is group path
+  /* v8 ignore start -- Defensive: the length>=4 guard above ensures parts>=3. */
   if (parts.length < 3) {
-    /* v8 ignore start -- Defensive: filterSegments ensures non-empty. */
     return undefined
-    /* v8 ignore stop */
   }
+  /* v8 ignore stop */
   const version = parts[parts.length - 1]!
   const name = parts[parts.length - 2]!
   const groupParts = ArrayPrototypeSlice(parts, 0, -2)
   const namespace = ArrayPrototypeJoin(groupParts, '.')
 
+  /* v8 ignore start -- Defensive: filterSegments yields non-empty segments. */
   if (!namespace || !name) {
-    /* v8 ignore start -- Defensive: filterSegments ensures non-empty. */
     return undefined
-    /* v8 ignore stop */
   }
+  /* v8 ignore stop */
 
   return tryCreatePurl('maven', namespace, name, version)
 }
