@@ -34,6 +34,7 @@ import {
 } from '@socketsecurity/lib/primordials/array'
 import { MapCtor, SetCtor } from '@socketsecurity/lib/primordials/map-set'
 import { ObjectFreeze } from '@socketsecurity/lib/primordials/object'
+import { RegExpPrototypeExec } from '@socketsecurity/lib/primordials/regexp'
 import {
   StringPrototypeCharCodeAt,
   StringPrototypeEndsWith,
@@ -105,13 +106,45 @@ export function tryCreatePurl(
 }
 
 /**
+ * Shared semver-ish version capture for distribution-filename parsers. Captures
+ * `major[.minor.patch...]` plus optional pre-release / build-metadata tail into
+ * a `version` group. Permissive by design — distribution filenames carry more
+ * shapes than strict semver (single-segment versions, build metadata with
+ * hyphens, etc.).
+ */
+const DIST_VERSION = [
+  '(?<version>',
+  '\\d+(?:\\.\\d+)*', // major.minor.patch (at least major)
+  '(?:', // optional pre-release / build identifier
+  '(?:-+|\\.)',
+  '[a-zA-Z0-9]+',
+  '(?:[-.][a-zA-Z0-9]+)*',
+  ')?',
+  '(?:\\+[a-zA-Z0-9.]+)?', // optional build metadata
+  ')',
+].join('')
+
+/**
+ * Strip a URL or path down to its final filename segment, decoding a leading
+ * `http(s)://host` if present. Distribution parsers match against the bare
+ * filename, so a full URL and a bare path resolve identically.
+ */
+function distributionFilename(urlOrPath: string): string {
+  const pathname = StringPrototypeStartsWith(urlOrPath, 'http')
+    ? new URLCtor(urlOrPath).pathname
+    : urlOrPath
+  const segments = filterSegments(pathname)
+  return segments.length ? segments[segments.length - 1]! : pathname
+}
+
+/**
  * Resolve a tarball segment's version, tolerating both the bare `name-` prefix
  * and the proxy/mirror `@scope/name-` (full scoped name) prefix that some
  * registries (Artifactory, Nexus, Verdaccio, GitHub Packages) repeat in the
  * filename. Returns the version string, or `undefined` if the segment is not a
  * recognizable `<prefix>-<version>.tgz`.
  */
-function npmTarballVersion(
+export function npmTarballVersion(
   tgz: string,
   name: string,
   namespace: string | undefined,
@@ -177,7 +210,9 @@ export function fromNpmRegistryUrl(url: URL): PackageURL | undefined {
       // Proxy layout splits `@scope/name-version.tgz` across two segments once
       // `%2f` is decoded; rejoin them before matching.
       const tgz =
-        segments[3] && StringPrototypeStartsWith(segments[3], '@') && segments[4]
+        segments[3] &&
+        StringPrototypeStartsWith(segments[3], '@') &&
+        segments[4]
           ? `${segments[3]}/${segments[4]}`
           : segments[3]
       version = npmTarballVersion(tgz, name, namespace)
@@ -262,6 +297,65 @@ export function fromPypiSiteUrl(url: URL): PackageURL | undefined {
   const version = segments[2]
 
   return tryCreatePurl('pypi', undefined, name, version)
+}
+
+/**
+ * PyPI wheel / sdist distribution filename matcher. Captures `name` + `version`
+ * from filenames like `orjson-3.11.9-cp314-cp314-manylinux_2_17_x86_64.whl`,
+ * tolerating PEP 427 compound platform tags that contain dots
+ * (`manylinux_2_17_x86_64.manylinux2014_x86_64`), an optional epoch (`3!1.0`),
+ * and an optional trailing `.metadata` suffix.
+ */
+const PYPI_FILENAME = new RegExp(
+  [
+    '^',
+    '(?<name>[a-zA-Z0-9._-]+)',
+    '-',
+    '(?<epoch>\\d+!)?',
+    DIST_VERSION,
+    '(?:-[^.]+(?:\\.[^.]+)*)?', // optional wheel tags; platform tags may contain dots
+    '\\.',
+    '(?:whl|tar\\.gz|zip)',
+    '(?:\\.metadata)?',
+    '$',
+  ].join(''),
+)
+
+/**
+ * Parse a PyPI distribution URL or path (a wheel / sdist filename) into a
+ * `PackageURL`. Works on a bare path or a full URL.
+ *
+ * Handles: `…/orjson-3.11.9-cp314-…-manylinux….whl`,
+ * `…/package-name-1.0.0.tar.gz`, `…/package-name-1.0.0.zip`, optionally with a
+ * trailing `.metadata`.
+ */
+export function fromPypiDownloadUrl(urlOrPath: string): PackageURL | undefined {
+  const filename = distributionFilename(urlOrPath)
+  const match = RegExpPrototypeExec(PYPI_FILENAME, filename)
+  if (!match?.groups) {
+    return undefined
+  }
+  const { epoch, name } = match.groups
+  /* v8 ignore start -- DIST_VERSION always captures a version group on a match. */
+  if (!name || !match.groups['version']) {
+    return undefined
+  }
+  /* v8 ignore stop */
+  // Strip any post-version wheel tag (e.g. `3.11.9-cp314` → `3.11.9`), then
+  // re-attach a PEP 440 epoch if present.
+  const base = StringPrototypeSplit(match.groups['version'], '-' as any)[0]!
+  const version = epoch ? `${epoch}${base}` : base
+
+  return tryCreatePurl('pypi', undefined, name, version)
+}
+
+/**
+ * Parse any recognized PyPI URL — project page (`pypi.org/project/…`) or a
+ * distribution filename (wheel / sdist). Project-page parsing wins; the
+ * distribution parser is the fallback.
+ */
+export function fromPypiUrl(url: URL): PackageURL | undefined {
+  return fromPypiSiteUrl(url) ?? fromPypiDownloadUrl(url.href)
 }
 
 /**
@@ -636,13 +730,17 @@ export function fromHackageUrl(url: URL): PackageURL | undefined {
  */
 export function fromCranUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
-  // `/web/packages/name/index.html`
+  // `/web/packages/name` or `/web/packages/name/version`. CRAN purls require a
+  // version (PURL spec); a versionless web page can't form a valid purl, so
+  // `tryCreatePurl` returns undefined for it.
   if (
     segments.length >= 3 &&
     segments[0] === 'web' &&
     segments[1] === 'packages'
   ) {
-    return tryCreatePurl('cran', undefined, segments[2]!, undefined)
+    const version =
+      segments[3] && segments[3] !== 'index.html' ? segments[3] : undefined
+    return tryCreatePurl('cran', undefined, segments[2]!, version)
   }
   return undefined
 }
@@ -745,7 +843,10 @@ export function fromSwiftUrl(url: URL): PackageURL | undefined {
   if (segments.length < 2) {
     return undefined
   }
-  return tryCreatePurl('swift', segments[0]!, segments[1]!, undefined)
+  // Swift purls require a version (PURL spec); Swift Package Index URLs carry it
+  // as an optional trailing segment (`/owner/repo/1.2.0`). Without it the purl
+  // can't be constructed, so `tryCreatePurl` returns undefined.
+  return tryCreatePurl('swift', segments[0]!, segments[1]!, segments[2])
 }
 
 /**
@@ -793,7 +894,7 @@ const FROM_URL_PARSERS: ReadonlyMap<string, UrlParser> = ObjectFreeze(
     // Package registries
     ['registry.npmjs.org', fromNpmRegistryUrl],
     ['www.npmjs.com', fromNpmSiteUrl],
-    ['pypi.org', fromPypiSiteUrl],
+    ['pypi.org', fromPypiUrl],
     ['repo1.maven.org', fromMavenSiteUrl],
     ['central.maven.org', fromMavenSiteUrl],
     ['rubygems.org', fromGemSiteUrl],
@@ -922,13 +1023,40 @@ const REPOSITORY_URL_TYPES: ReadonlySet<string> = ObjectFreeze(
   ]),
 )
 
+/**
+ * Distribution-filename parsers, tried in order by `fromDownloadUrl`. Each takes
+ * a bare path or full URL and returns a `PackageURL` only when the filename
+ * shape matches its ecosystem.
+ */
+const FROM_DOWNLOAD_URL_PARSERS: ReadonlyArray<
+  (urlOrPath: string) => PackageURL | undefined
+> = ObjectFreeze([fromPypiDownloadUrl])
+
+/**
+ * Parse a package distribution URL or path (a registry artifact filename) into
+ * a `PackageURL`, trying each ecosystem's distribution parser in turn. Works on
+ * a bare path (`/packages/orjson-3.11.9-…-manylinux….whl`) or a full URL.
+ */
+export function fromDownloadUrl(urlOrPath: string): PackageURL | undefined {
+  for (let i = 0, { length } = FROM_DOWNLOAD_URL_PARSERS; i < length; i += 1) {
+    const result = FROM_DOWNLOAD_URL_PARSERS[i]!(urlOrPath)
+    if (result) {
+      return result
+    }
+  }
+  return undefined
+}
+
 export class UrlConverter {
   /**
    * Convert a URL string to a `PackageURL` if the URL is recognized.
    *
-   * Dispatches to type-specific parsers based on the URL hostname. Returns
-   * `undefined` for unrecognized hosts, invalid URLs, or URLs without enough
-   * path information to construct a valid `PackageURL`.
+   * Dispatches first by hostname (registry / web-page parsers). When no
+   * hostname parser matches — an unmapped host, or a bare path with no usable
+   * host — falls back to distribution-filename parsing (wheels, tarballs,
+   * `.nupkg`, etc.). Hostname dispatch always wins; distribution parsing only
+   * adds coverage for inputs the hostname map rejects. Returns `undefined` when
+   * neither recognizes the input.
    *
    * @example
    *   ;```typescript
@@ -937,36 +1065,31 @@ export class UrlConverter {
    *
    *   UrlConverter.fromUrl('https://github.com/lodash/lodash')
    *   // -> PackageURL for pkg:github/lodash/lodash
+   *
+   *   UrlConverter.fromUrl('/packages/orjson-3.11.9-cp314-cp314-manylinux_2_17_x86_64.whl')
+   *   // -> PackageURL for pkg:pypi/orjson@3.11.9 (distribution fallback)
    *   ```
    */
   static fromUrl(urlStr: string): PackageURL | undefined {
-    let url: URL
+    let url: URL | undefined
     try {
       url = new URLCtor(urlStr)
     } catch {
-      return undefined
+      // Not a parseable URL — may still be a bare distribution path.
+      return fromDownloadUrl(urlStr)
     }
     const parser = FROM_URL_PARSERS.get(url.hostname)
-    if (!parser) {
-      return undefined
-    }
-    return parser(url)
+    return parser?.(url) ?? fromDownloadUrl(urlStr)
   }
 
   /**
    * Check if a URL string is recognized for conversion to a `PackageURL`.
    *
-   * Returns `true` if the URL's hostname has a registered parser, `false` for
-   * invalid URLs or unrecognized hosts.
+   * Returns `true` if the URL's hostname has a registered parser or the input
+   * parses as a distribution filename, `false` otherwise.
    */
   static supportsFromUrl(urlStr: string): boolean {
-    let url: URL
-    try {
-      url = new URLCtor(urlStr)
-    } catch {
-      return false
-    }
-    return FROM_URL_PARSERS.has(url.hostname)
+    return UrlConverter.fromUrl(urlStr) !== undefined
   }
 
   /**

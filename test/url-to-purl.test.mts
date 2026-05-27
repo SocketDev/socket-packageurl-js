@@ -187,6 +187,57 @@ describe('UrlConverter.fromUrl', () => {
     )
   })
 
+  describe('pypi — distribution filename (wheel / sdist)', () => {
+    it.each([
+      // PEP 427 wheels with dotted/compound platform tags.
+      [
+        '/packages/orjson-3.11.9-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl',
+        'orjson',
+        '3.11.9',
+      ],
+      [
+        '/packages/cryptography-44.0.3-cp311-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl',
+        'cryptography',
+        '44.0.3',
+      ],
+      [
+        '/packages/numpy-2.3.0-cp313-cp313-macosx_10_13_x86_64.macosx_11_0_arm64.macosx_10_13_universal2.whl',
+        'numpy',
+        '2.3.0',
+      ],
+      [
+        '/packages/pillow-11.2.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl',
+        'pillow',
+        '11.2.1',
+      ],
+      // Trailing `.metadata` suffix.
+      [
+        '/packages/orjson-3.11.9-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata',
+        'orjson',
+        '3.11.9',
+      ],
+      // sdist archives.
+      ['/packages/package-name-1.0.0.tar.gz', 'package-name', '1.0.0'],
+      ['/packages/package-name-1.0.0.zip', 'package-name', '1.0.0'],
+      // Full URL on a host NOT in the hostname map — resolves via fallback.
+      [
+        'https://files.pythonhosted.org/packages/aa/orjson-3.11.9-cp314-cp314-manylinux_2_17_x86_64.whl',
+        'orjson',
+        '3.11.9',
+      ],
+    ])('should parse %s', (url, expectedName, expectedVersion) => {
+      const result = UrlConverter.fromUrl(url)
+      expect(result).toBeDefined()
+      expect(result!.type).toBe('pypi')
+      expect(result!.name).toBe(expectedName)
+      expect(result!.version).toBe(expectedVersion)
+    })
+
+    it('should return undefined for a non-distribution path', () => {
+      expect(UrlConverter.fromUrl('/packages/not-a-wheel.txt')).toBeUndefined()
+    })
+  })
+
   describe('maven — repo1.maven.org', () => {
     it('should parse https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/', () => {
       const result = UrlConverter.fromUrl(
@@ -987,11 +1038,11 @@ describe('UrlConverter.supportsFromUrl', () => {
     'https://hub.docker.com/r/bitnami/postgresql',
     'https://cocoapods.org/pods/Alamofire',
     'https://hackage.haskell.org/package/aeson',
-    'https://cran.r-project.org/web/packages/ggplot2',
+    'https://cran.r-project.org/web/packages/ggplot2/3.4.0',
     'https://anaconda.org/conda-forge/numpy',
     'https://metacpan.org/pod/Moose',
     'https://luarocks.org/modules/luarocks/luasocket',
-    'https://swiftpackageindex.com/apple/swift-nio',
+    'https://swiftpackageindex.com/apple/swift-nio/2.0.0',
     'https://huggingface.co/microsoft/phi-2',
     'https://marketplace.visualstudio.com/items?itemName=ms-python.python',
     'https://open-vsx.org/extension/redhat/java',
