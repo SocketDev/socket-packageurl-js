@@ -125,14 +125,34 @@ const DIST_VERSION = [
 ].join('')
 
 /**
- * Strip a URL or path down to its final filename segment, decoding a leading
- * `http(s)://host` if present. Distribution parsers match against the bare
- * filename, so a full URL and a bare path resolve identically.
+ * Extract the pathname from a URL-or-path string. A leading `http://` or
+ * `https://` scheme marks a full URL; anything else is treated as a bare path.
+ * Detection is by scheme, not a bare `http` prefix — a filename like
+ * `httpx-1.0.tar.gz` is a path, not a URL — and a malformed URL falls back to
+ * the raw input rather than throwing.
+ */
+export function urlOrPathPathname(urlOrPath: string): string {
+  if (
+    StringPrototypeStartsWith(urlOrPath, 'http://') ||
+    StringPrototypeStartsWith(urlOrPath, 'https://')
+  ) {
+    try {
+      return new URLCtor(urlOrPath).pathname
+    } catch {
+      /* v8 ignore next -- Defensive: a scheme-prefixed string that still fails URL parsing. */
+      return urlOrPath
+    }
+  }
+  return urlOrPath
+}
+
+/**
+ * Strip a URL or path down to its final filename segment. Distribution parsers
+ * match against the bare filename, so a full URL and a bare path resolve
+ * identically.
  */
 export function distributionFilename(urlOrPath: string): string {
-  const pathname = StringPrototypeStartsWith(urlOrPath, 'http')
-    ? new URLCtor(urlOrPath).pathname
-    : urlOrPath
+  const pathname = urlOrPathPathname(urlOrPath)
   const segments = filterSegments(pathname)
   return segments.length ? segments[segments.length - 1]! : pathname
 }
@@ -340,9 +360,12 @@ export function fromPypiSiteUrl(url: URL): PackageURL | undefined {
 const PYPI_FILENAME = new RegExp(
   [
     '^',
-    '(?<name>[a-zA-Z0-9._-]+)',
+    // Lazy so the name stops at the FIRST `-` that begins the version
+    // (optional epoch + digit), not a later hyphen inside a build tag.
+    '(?<name>[a-zA-Z0-9._-]+?)',
     '-',
     '(?<epoch>\\d+!)?',
+    '(?=\\d)', // the version must start with a digit right here
     DIST_VERSION,
     '(?:-[^.]+(?:\\.[^.]+)*)?', // optional wheel tags; platform tags may contain dots
     '\\.',
@@ -542,9 +565,7 @@ export function fromCargoSiteUrl(url: URL): PackageURL | undefined {
 export function fromCargoDownloadUrl(
   urlOrPath: string,
 ): PackageURL | undefined {
-  const pathname = StringPrototypeStartsWith(urlOrPath, 'http')
-    ? new URLCtor(urlOrPath).pathname
-    : urlOrPath
+  const pathname = urlOrPathPathname(urlOrPath)
   const segments = filterSegments(pathname)
   // `/crates/name/version/download`
   if (
@@ -691,9 +712,7 @@ const GOLANG_PROXY = new RegExp(
 export function fromGolangDownloadUrl(
   urlOrPath: string,
 ): PackageURL | undefined {
-  const pathname = StringPrototypeStartsWith(urlOrPath, 'http')
-    ? new URLCtor(urlOrPath).pathname
-    : urlOrPath
+  const pathname = urlOrPathPathname(urlOrPath)
   const match = RegExpPrototypeExec(GOLANG_PROXY, pathname)
   if (!match?.groups?.['modulePath'] || !match.groups['version']) {
     return undefined

@@ -221,6 +221,13 @@ describe('UrlConverter.fromUrl', () => {
       ['/packages/package-name-1.0.0.zip', 'package-name', '1.0.0'],
       // PEP 440 epoch prefix (`N!`) preserved in the version.
       ['/packages/foo-3!1.0.0.tar.gz', 'foo', '3!1.0.0'],
+      // Bare filename that starts with `http` is a path, not a URL (must not
+      // be fed to the URL constructor).
+      ['httpx-0.27.0.tar.gz', 'httpx', '0.27.0'],
+      ['httpcore-1.0.0-py3-none-any.whl', 'httpcore', '1.0.0'],
+      // PEP 427 build-tag wheel (`{name}-{version}-{build}-...`): the name must
+      // stop at the version, not absorb it.
+      ['/packages/foo-1.0-1-py3-none-any.whl', 'foo', '1.0'],
       // Full URL on a host NOT in the hostname map — resolves via fallback.
       [
         'https://files.pythonhosted.org/packages/aa/orjson-3.11.9-cp314-cp314-manylinux_2_17_x86_64.whl',
@@ -307,6 +314,8 @@ describe('UrlConverter.fromUrl', () => {
         'rails',
         '7.0.4',
       ],
+      // bare gem filename whose name starts with `http` (not a URL)
+      ['http-parser-1.0.0.gem', 'gem', undefined, 'http-parser', '1.0.0'],
       // golang module proxy
       [
         '/github.com/gorilla/mux/@v/v1.8.0.zip',
