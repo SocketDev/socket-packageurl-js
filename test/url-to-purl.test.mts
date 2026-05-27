@@ -294,6 +294,67 @@ describe('UrlConverter.fromUrl', () => {
     )
   })
 
+  describe('distribution downloads — bare paths (no host)', () => {
+    it.each([
+      // gem
+      ['/gems/rails-7.0.4.gem', 'gem', undefined, 'rails', '7.0.4'],
+      [
+        '/quick/Marshal.4.8/rails-7.0.4.gemspec.rz',
+        'gem',
+        undefined,
+        'rails',
+        '7.0.4',
+      ],
+      // golang module proxy
+      [
+        '/github.com/gorilla/mux/@v/v1.8.0.zip',
+        'golang',
+        'github.com/gorilla',
+        'mux',
+        'v1.8.0',
+      ],
+      [
+        '/golang.org/x/text/@v/v0.3.7.mod',
+        'golang',
+        'golang.org/x',
+        'text',
+        'v0.3.7',
+      ],
+      // cargo bare download path
+      ['/crates/serde/1.0.210/download', 'cargo', undefined, 'serde', '1.0.210'],
+      // cargo version with hyphens in build metadata
+      [
+        '/crates/tokio/1.40.0-alpha.1/download',
+        'cargo',
+        undefined,
+        'tokio',
+        '1.40.0-alpha.1',
+      ],
+    ])(
+      'should parse %s',
+      (url, expectedType, expectedNamespace, expectedName, expectedVersion) => {
+        const result = UrlConverter.fromUrl(url)
+        expect(result).toBeDefined()
+        expect(result!.type).toBe(expectedType)
+        expect(result!.namespace).toBe(expectedNamespace)
+        expect(result!.name).toBe(expectedName)
+        expect(result!.version).toBe(expectedVersion)
+      },
+    )
+
+    it.each([
+      '/gems/not-a-gem.txt',
+      '/github.com/foo/@v/notaversion.zip',
+      '/crates/serde/1.0.0',
+      // golang module with no namespace segment (single-segment module path)
+      '/mux/@v/v1.0.0.zip',
+      // golang module path with an empty trailing name segment
+      '/foo//@v/v1.0.0.zip',
+    ])('should return undefined for non-matching %s', url => {
+      expect(UrlConverter.fromUrl(url)).toBeUndefined()
+    })
+  })
+
   describe('nuget — www.nuget.org and api.nuget.org', () => {
     it.each([
       [

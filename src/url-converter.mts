@@ -129,7 +129,7 @@ const DIST_VERSION = [
  * `http(s)://host` if present. Distribution parsers match against the bare
  * filename, so a full URL and a bare path resolve identically.
  */
-function distributionFilename(urlOrPath: string): string {
+export function distributionFilename(urlOrPath: string): string {
   const pathname = StringPrototypeStartsWith(urlOrPath, 'http')
     ? new URLCtor(urlOrPath).pathname
     : urlOrPath
@@ -420,6 +420,44 @@ export function fromGemSiteUrl(url: URL): PackageURL | undefined {
 }
 
 /**
+ * RubyGems distribution filename matchers. A direct `.gem`
+ * (`/gems/name-1.2.3.gem`) and a `.gemspec.rz` under the `/quick/Marshal.x/`
+ * tree, which `gem` requests over the proxy even when it bypasses the proxy for
+ * the gem file itself.
+ */
+const GEM_FILENAME = new RegExp(
+  ['^', '(?<name>[a-zA-Z0-9_-]+?)', '-', DIST_VERSION, '\\.gem$'].join(''),
+)
+const GEMSPEC_FILENAME = new RegExp(
+  ['^', '(?<name>[a-zA-Z0-9_-]+?)', '-', DIST_VERSION, '\\.gemspec\\.rz$'].join(
+    '',
+  ),
+)
+
+/**
+ * Parse a RubyGems distribution URL or path (`…/name-1.2.3.gem` or a
+ * `…/name-1.2.3.gemspec.rz`) into a `PackageURL`.
+ */
+export function fromGemDownloadUrl(urlOrPath: string): PackageURL | undefined {
+  const filename = distributionFilename(urlOrPath)
+  const match =
+    RegExpPrototypeExec(GEM_FILENAME, filename) ??
+    RegExpPrototypeExec(GEMSPEC_FILENAME, filename)
+  if (!match?.groups?.['name'] || !match.groups['version']) {
+    return undefined
+  }
+  return tryCreatePurl('gem', undefined, match.groups['name'], match.groups['version'])
+}
+
+/**
+ * Parse any recognized RubyGems URL — gems.org web page or a distribution
+ * filename. Web-page parsing wins; the distribution parser is the fallback.
+ */
+export function fromGemUrl(url: URL): PackageURL | undefined {
+  return fromGemSiteUrl(url) ?? fromGemDownloadUrl(url.href)
+}
+
+/**
  * Parse `crates.io` URLs.
  *
  * Handles: - `/crates/name`, `/crates/name/version` -
@@ -457,6 +495,30 @@ export function fromCargoSiteUrl(url: URL): PackageURL | undefined {
   const version = segments[2]
 
   return tryCreatePurl('cargo', undefined, name, version)
+}
+
+/**
+ * Parse a crates.io download path (`/crates/name/version/download`) into a
+ * `PackageURL`. The site parser handles this shape when the `crates.io`
+ * hostname is present; this covers the same path arriving without a host (e.g.
+ * a proxy observing the bare request path).
+ */
+export function fromCargoDownloadUrl(
+  urlOrPath: string,
+): PackageURL | undefined {
+  const pathname = StringPrototypeStartsWith(urlOrPath, 'http')
+    ? new URLCtor(urlOrPath).pathname
+    : urlOrPath
+  const segments = filterSegments(pathname)
+  // `/crates/name/version/download`
+  if (
+    segments.length === 4 &&
+    segments[0] === 'crates' &&
+    segments[3] === 'download'
+  ) {
+    return tryCreatePurl('cargo', undefined, segments[1]!, segments[2])
+  }
+  return undefined
 }
 
 /**
@@ -567,6 +629,58 @@ export function fromGolangSiteUrl(url: URL): PackageURL | undefined {
   }
 
   return tryCreatePurl('golang', namespace, name, version)
+}
+
+/**
+ * Go module proxy download matcher: `/<module-path>/@v/<version>.(zip|mod|info)`.
+ * The module path may contain slashes (`github.com/gorilla/mux`); the final
+ * segment is the package name, the rest is the namespace. The `v` prefix is
+ * part of the captured version.
+ */
+const GOLANG_PROXY = new RegExp(
+  [
+    '^/?',
+    '(?<modulePath>[^@]+?)',
+    '/@v/',
+    '(?<version>v[^/]+?)',
+    '\\.(?:zip|mod|info)',
+    '$',
+  ].join(''),
+)
+
+/**
+ * Parse a Go module proxy download URL or path
+ * (`…/github.com/gorilla/mux/@v/v1.8.0.zip`) into a `PackageURL`.
+ */
+export function fromGolangDownloadUrl(
+  urlOrPath: string,
+): PackageURL | undefined {
+  const pathname = StringPrototypeStartsWith(urlOrPath, 'http')
+    ? new URLCtor(urlOrPath).pathname
+    : urlOrPath
+  const match = RegExpPrototypeExec(GOLANG_PROXY, pathname)
+  if (!match?.groups?.['modulePath'] || !match.groups['version']) {
+    return undefined
+  }
+  const modulePath = match.groups['modulePath']
+  const lastSlash = StringPrototypeLastIndexOf(modulePath, '/')
+  if (lastSlash === -1) {
+    return undefined
+  }
+  const namespace = StringPrototypeSlice(modulePath, 0, lastSlash)
+  const name = StringPrototypeSlice(modulePath, lastSlash + 1)
+  if (!namespace || !name) {
+    return undefined
+  }
+  return tryCreatePurl('golang', namespace, name, match.groups['version'])
+}
+
+/**
+ * Parse any recognized Go URL — pkg.go.dev page or a module-proxy download.
+ * Page parsing wins; the download parser is the fallback.
+ */
+export function fromGolangUrl(url: URL): PackageURL | undefined {
+  return fromGolangSiteUrl(url) ?? fromGolangDownloadUrl(url.href)
 }
 
 /**
@@ -897,11 +1011,11 @@ const FROM_URL_PARSERS: ReadonlyMap<string, UrlParser> = ObjectFreeze(
     ['pypi.org', fromPypiUrl],
     ['repo1.maven.org', fromMavenSiteUrl],
     ['central.maven.org', fromMavenSiteUrl],
-    ['rubygems.org', fromGemSiteUrl],
+    ['rubygems.org', fromGemUrl],
     ['crates.io', fromCargoSiteUrl],
     ['www.nuget.org', fromNugetSiteUrl],
     ['api.nuget.org', fromNugetSiteUrl],
-    ['pkg.go.dev', fromGolangSiteUrl],
+    ['pkg.go.dev', fromGolangUrl],
     ['hex.pm', fromHexUrl],
     ['pub.dev', fromPubUrl],
     ['packagist.org', fromComposerUrl],
@@ -1024,13 +1138,18 @@ const REPOSITORY_URL_TYPES: ReadonlySet<string> = ObjectFreeze(
 )
 
 /**
- * Distribution-filename parsers, tried in order by `fromDownloadUrl`. Each takes
- * a bare path or full URL and returns a `PackageURL` only when the filename
- * shape matches its ecosystem.
+ * Distribution-filename parsers, tried in order by `fromDownloadUrl`. Each
+ * takes a bare path or full URL and returns a `PackageURL` only when the
+ * filename shape matches its ecosystem.
  */
 const FROM_DOWNLOAD_URL_PARSERS: ReadonlyArray<
   (urlOrPath: string) => PackageURL | undefined
-> = ObjectFreeze([fromPypiDownloadUrl])
+> = ObjectFreeze([
+  fromPypiDownloadUrl,
+  fromGemDownloadUrl,
+  fromGolangDownloadUrl,
+  fromCargoDownloadUrl,
+])
 
 /**
  * Parse a package distribution URL or path (a registry artifact filename) into
