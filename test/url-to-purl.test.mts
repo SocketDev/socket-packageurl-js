@@ -76,6 +76,39 @@ describe('UrlConverter.fromUrl', () => {
         'lodash',
         '4.17.21',
       ],
+      // `%2f`-encoded scope separator (yarn / some proxy registries).
+      [
+        'https://registry.npmjs.org/@babel%2fcore/-/core-7.0.0.tgz',
+        'npm',
+        '@babel',
+        'core',
+        '7.0.0',
+      ],
+      // Proxy/mirror tarball that repeats the full scoped name in the filename.
+      [
+        'https://registry.npmjs.org/@babel/core/-/@babel/core-7.0.0.tgz',
+        'npm',
+        '@babel',
+        'core',
+        '7.0.0',
+      ],
+      // Proxy layout with `%2f`-encoded scope in both the path and the filename.
+      [
+        'https://registry.npmjs.org/@babel%2fcore/-/@babel%2fcore-7.0.0.tgz',
+        'npm',
+        '@babel',
+        'core',
+        '7.0.0',
+      ],
+      // Tarball filename that doesn't match the package name: keep the name,
+      // drop the unparseable version rather than guessing.
+      [
+        'https://registry.npmjs.org/lodash/-/wrongname-1.0.0.tgz',
+        'npm',
+        undefined,
+        'lodash',
+        undefined,
+      ],
     ])(
       'should parse %s',
       (url, expectedType, expectedNamespace, expectedName, expectedVersion) => {

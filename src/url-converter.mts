@@ -105,6 +105,36 @@ export function tryCreatePurl(
 }
 
 /**
+ * Resolve a tarball segment's version, tolerating both the bare `name-` prefix
+ * and the proxy/mirror `@scope/name-` (full scoped name) prefix that some
+ * registries (Artifactory, Nexus, Verdaccio, GitHub Packages) repeat in the
+ * filename. Returns the version string, or `undefined` if the segment is not a
+ * recognizable `<prefix>-<version>.tgz`.
+ */
+function npmTarballVersion(
+  tgz: string,
+  name: string,
+  namespace: string | undefined,
+): string | undefined {
+  if (!StringPrototypeEndsWith(tgz, '.tgz')) {
+    return undefined
+  }
+  const withoutExt = StringPrototypeSlice(tgz, 0, -4)
+  // Proxy/mirror layout repeats the full scoped name: `@scope/name-version`.
+  if (namespace) {
+    const scopedPrefix = `${namespace}/${name}-`
+    if (StringPrototypeStartsWith(withoutExt, scopedPrefix)) {
+      return StringPrototypeSlice(withoutExt, scopedPrefix.length)
+    }
+  }
+  const prefix = `${name}-`
+  if (StringPrototypeStartsWith(withoutExt, prefix)) {
+    return StringPrototypeSlice(withoutExt, prefix.length)
+  }
+  return undefined
+}
+
+/**
  * Parse npm registry URLs (`registry.npmjs.org`).
  *
  * Handles:
@@ -113,9 +143,19 @@ export function tryCreatePurl(
  * - Registry metadata with version: `/\@scope/name/version` or `/name/version`
  * - Download tarballs: `/\@scope/name/-/name-version.tgz` or
  *   `/name/-/name-version.tgz`
+ * - Proxy/mirror tarballs that repeat the scoped name
+ *   (`/\@scope/name/-/\@scope/name-version.tgz`) and `%2f`-encoded scope
+ *   separators that yarn and some registries emit.
  */
 export function fromNpmRegistryUrl(url: URL): PackageURL | undefined {
-  const segments = filterSegments(url.pathname)
+  // Yarn and some proxy registries percent-encode the scope separator
+  // (`@scope%2fname`). Decode it so the scope splits into its own segment.
+  const pathname = StringPrototypeReplace(
+    url.pathname,
+    /%2f/gi as any,
+    '/' as any,
+  )
+  const segments = filterSegments(pathname)
   if (segments.length === 0) {
     return undefined
   }
@@ -131,17 +171,16 @@ export function fromNpmRegistryUrl(url: URL): PackageURL | undefined {
     if (!name) {
       return undefined
     }
-    // Download tarball: `/@scope/name/-/name-version.tgz`
+    // Download tarball: `/@scope/name/-/name-version.tgz` (or proxy-repeated
+    // `/@scope/name/-/@scope/name-version.tgz`, which decodes to a 5th segment).
     if (segments[2] === '-' && segments[3]) {
-      const tgz = segments[3]
-      if (StringPrototypeEndsWith(tgz, '.tgz')) {
-        const withoutExt = StringPrototypeSlice(tgz, 0, -4)
-        // name-version pattern: find last hyphen after name
-        const prefix = `${name}-`
-        if (StringPrototypeStartsWith(withoutExt, prefix)) {
-          version = StringPrototypeSlice(withoutExt, prefix.length)
-        }
-      }
+      // Proxy layout splits `@scope/name-version.tgz` across two segments once
+      // `%2f` is decoded; rejoin them before matching.
+      const tgz =
+        segments[3] && StringPrototypeStartsWith(segments[3], '@') && segments[4]
+          ? `${segments[3]}/${segments[4]}`
+          : segments[3]
+      version = npmTarballVersion(tgz, name, namespace)
     } else if (segments[2]) {
       version = segments[2]
     }
@@ -154,14 +193,7 @@ export function fromNpmRegistryUrl(url: URL): PackageURL | undefined {
     /* v8 ignore stop */
     // Download tarball: `/name/-/name-version.tgz`
     if (segments[1] === '-' && segments[2]) {
-      const tgz = segments[2]
-      if (StringPrototypeEndsWith(tgz, '.tgz')) {
-        const withoutExt = StringPrototypeSlice(tgz, 0, -4)
-        const prefix = `${name}-`
-        if (StringPrototypeStartsWith(withoutExt, prefix)) {
-          version = StringPrototypeSlice(withoutExt, prefix.length)
-        }
-      }
+      version = npmTarballVersion(segments[2], name, undefined)
     } else if (segments[1]) {
       version = segments[1]
     }
