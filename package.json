@@ -100,7 +100,7 @@
     "oxlint": "1.63.0",
     "pacote": "21.0.1",
     "puppeteer": "24.41.0",
-    "rolldown": "1.0.0",
+    "rolldown": "catalog:",
     "semver": "7.7.2",
     "svgo": "4.0.1",
     "taze": "19.11.0",

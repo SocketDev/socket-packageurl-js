@@ -28,7 +28,13 @@ catalog:
   'npm-run-all2': 9.0.0
   'oxfmt': 0.48.0
   'oxlint': 1.63.0
+  # Fleet bundler. Single-sourced to match the wheelhouse catalog pin +
+  # the rolldown vite 8.0.14 bundles natively.
+  'rolldown': 1.0.2
   'taze': 19.11.0
+  # vite 8.0.14 swaps esbuild → rolldown natively (bundles rolldown
+  # 1.0.2), so the override below removes esbuild from the install tree.
+  'vite': 8.0.14
   'vitest': 4.1.6
 
 # Register .claude/hooks/* as workspace packages so taze (run via
@@ -38,9 +44,6 @@ packages:
   - .claude/hooks/*
 
 allowBuilds:
-  # esbuild as a transitive of vite/vitest (test-time only, not the
-  # repo's bundler — see scripts/build.mts which uses rolldown).
-  esbuild: true
   # puppeteer ships a postinstall that downloads Chromium (~300MB).
   # Required because `pnpm tour:build` (the GH Pages workflow) renders
   # mermaid diagrams via puppeteer/Chromium. Disabling it would break
@@ -69,7 +72,7 @@ overrides:
   'picomatch@4': '4.0.4'
   'postcss': '8.5.10'
   'uuid': '11.1.1'
-  'vite': '7.3.2'
+  'vite': 'catalog:'
 
 # Wait 7 days (10080 minutes) before installing newly published packages.
 minimumReleaseAge: 10080
@@ -82,27 +85,51 @@ minimumReleaseAgeExclude:
   # Network-mocking lib used in fleet test suites. v15 betas pre-date
   # npm's `time` field for the major; allow pinned beta until v15 GA.
   - 'nock@15.0.0-beta.11'
-  # Rolldown 1.0.0 (May 2026) — bundler migration from esbuild. User-approved
-  # local exclusion (versions pinned, no scope wildcards). Soak completes
-  # within a week; remove these entries after the window passes.
-  - 'rolldown@1.0.0'
-  - '@rolldown/pluginutils@1.0.0'
-  - '@rolldown/binding-darwin-arm64@1.0.0'
-  - '@rolldown/binding-darwin-x64@1.0.0'
-  - '@rolldown/binding-linux-arm-gnueabihf@1.0.0'
-  - '@rolldown/binding-linux-arm64-gnu@1.0.0'
-  - '@rolldown/binding-linux-arm64-musl@1.0.0'
-  - '@rolldown/binding-linux-ppc64-gnu@1.0.0'
-  - '@rolldown/binding-linux-s390x-gnu@1.0.0'
-  - '@rolldown/binding-linux-x64-gnu@1.0.0'
-  - '@rolldown/binding-linux-x64-musl@1.0.0'
-  - '@rolldown/binding-freebsd-x64@1.0.0'
-  - '@rolldown/binding-android-arm64@1.0.0'
-  - '@rolldown/binding-openharmony-arm64@1.0.0'
-  - '@rolldown/binding-wasm32-wasi@1.0.0'
-  - '@rolldown/binding-win32-arm64-msvc@1.0.0'
-  - '@rolldown/binding-win32-x64-msvc@1.0.0'
-  - '@oxc-project/types@0.129.0'
+  # vite 8.0.14 ships rolldown 1.0.2 natively (no esbuild transitive).
+  # Scoped to the exact tag so a future vite 8.0.15 still soaks.
+  # published: 2026-05-21 | removable: 2026-05-28
+  - 'vite@8.0.14'
+  # rolldown 1.0.2 is vite 8.0.14's bundled native rolldown release; the
+  # per-platform bindings share its pin. `@rolldown/pluginutils` versions
+  # independently — rolldown 1.0.2 depends on `^1.0.0` → resolves to 1.0.1.
+  # Listed explicitly per the fleet "no scope globs in soak excludes" rule.
+  # published: 2026-05-20 | removable: 2026-05-27
+  - 'rolldown@1.0.2'
+  # published: 2026-05-13 | removable: 2026-05-20
+  - '@rolldown/pluginutils@1.0.1'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-darwin-arm64@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-darwin-x64@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-linux-arm-gnueabihf@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-linux-arm64-gnu@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-linux-arm64-musl@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-linux-x64-gnu@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-linux-x64-musl@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-win32-x64-msvc@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-win32-arm64-msvc@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-android-arm64@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-freebsd-x64@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-linux-ppc64-gnu@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-linux-s390x-gnu@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-openharmony-arm64@1.0.2'
+  # published: 2026-05-20 | removable: 2026-05-27
+  - '@rolldown/binding-wasm32-wasi@1.0.2'
+  # rolldown's AST/types layer. rolldown 1.0.2 pins `=0.132.0`.
+  # published: 2026-05-18 | removable: 2026-05-25
+  - '@oxc-project/types@0.132.0'
   - 'npm-run-all2@9.0.0'
 
 # Refuse transitive dependencies declared via git/tarball/local-tarball
