@@ -4,10 +4,10 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { ArrayPrototypeIncludes } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import {
   validateNoInjectionByType,
@@ -71,7 +71,7 @@ export async function cranExists(
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
       // CRAN provides a JSON API via r-universe
-      const url = `https://cran.r-universe.dev/api/packages/${encodeComponent(name)}`
+      const url = `https://cran.r-universe.dev/api/packages/${GlobalEncodeUriComponent(name)}`
 
       const data = await httpJson<{
         Version?: string | undefined

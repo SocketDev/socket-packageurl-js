@@ -5,7 +5,7 @@
  *   `namespace` is the publisher name, and the `name` is the extension name.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
 import { ArrayPrototypeSome } from '@socketsecurity/lib/primordials/array'

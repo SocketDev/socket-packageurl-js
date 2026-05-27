@@ -4,7 +4,7 @@
 
 import { PackageURL } from '../../src/package-url.mjs'
 
-import type { TtlCache } from '@socketsecurity/lib/ttl-cache/types'
+import type { TtlCache } from '@socketsecurity/lib/cache/ttl/types'
 
 /**
  * Create a minimal mock TtlCache for testing. Only implements get/set methods

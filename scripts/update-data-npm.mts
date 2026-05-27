@@ -13,10 +13,10 @@ import { arrayUnique } from '@socketsecurity/lib-stable/arrays/unique'
 import { getMaintainedNodeVersions } from '@socketsecurity/lib-stable/constants/node'
 import { getAbortSignal } from '@socketsecurity/lib-stable/process/abort'
 import { writeJson } from '@socketsecurity/lib-stable/fs/write-json'
-import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { pFilter } from '@socketsecurity/lib-stable/promises/iterate'
 import { naturalCompare } from '@socketsecurity/lib-stable/sorts/natural'
-import { getDefaultSpinner } from '@socketsecurity/lib-stable/spinner/registry'
+import { getDefaultSpinner } from '@socketsecurity/lib-stable/spinner/default'
 import { confirm } from '@socketsecurity/lib-stable/stdio/prompts'
 
 const logger = getDefaultLogger()

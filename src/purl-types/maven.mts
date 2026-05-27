@@ -3,10 +3,10 @@
  *   https://github.com/package-url/purl-spec/blob/main/types-doc/maven-definition.md.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import {
   validateNoInjectionByType,
@@ -81,8 +81,8 @@ export async function mavenExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const g = encodeComponent(namespace)
-      const a = encodeComponent(name)
+      const g = GlobalEncodeUriComponent(namespace)
+      const a = GlobalEncodeUriComponent(name)
       const url = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}&rows=1&wt=json`
 
       const data = await httpJson<{
@@ -108,7 +108,7 @@ export async function mavenExists(
       const latestVersion = doc?.['latestVersion'] || doc?.['v']
 
       if (version) {
-        const versionUrl = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}+AND+v:${encodeComponent(version)}&rows=1&wt=json`
+        const versionUrl = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}+AND+v:${GlobalEncodeUriComponent(version)}&rows=1&wt=json`
         const versionData = await httpJson<{
           response?: { numFound?: number | undefined } | undefined
         }>(versionUrl)

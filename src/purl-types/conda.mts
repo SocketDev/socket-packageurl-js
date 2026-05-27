@@ -4,10 +4,10 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { ArrayPrototypeIncludes } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import { lowerName } from '../strings.mjs'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.mjs'
@@ -90,8 +90,8 @@ export async function condaExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const encodedChannel = encodeComponent(channelName)
-      const encodedName = encodeComponent(name)
+      const encodedChannel = GlobalEncodeUriComponent(channelName)
+      const encodedName = GlobalEncodeUriComponent(name)
       const url = `https://api.anaconda.org/package/${encodedChannel}/${encodedName}`
 
       const data = await httpJson<{

@@ -3,7 +3,12 @@
  *   handling for invalid encoded strings.
  */
 import { PurlError } from './error.mjs'
-import { decodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { decodeURIComponent as GlobalDecodeUriComponent } from '@socketsecurity/lib/primordials/globals'
+
+// lib 6.0.3 dropped the `decodeComponent` alias from primordials/globals; it
+// was just the global decodeURIComponent. Re-derive it from the
+// canonically-named global.
+const decodeComponent = GlobalDecodeUriComponent
 
 /**
  * Decode PURL component value from URL encoding.

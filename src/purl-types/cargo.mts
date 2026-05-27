@@ -4,10 +4,10 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { ArrayPrototypeSome } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.mjs'
 
@@ -78,7 +78,7 @@ export async function cargoExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://crates.io/api/v1/crates/${encodeComponent(name)}`
+      const url = `https://crates.io/api/v1/crates/${GlobalEncodeUriComponent(name)}`
 
       const data = await httpJson<{
         crate?: { max_version?: string | undefined } | undefined

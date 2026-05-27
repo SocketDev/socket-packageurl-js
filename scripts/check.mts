@@ -6,8 +6,8 @@
 import process from 'node:process'
 
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
-import type { Logger } from '@socketsecurity/lib-stable/logger'
-import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import type { Logger } from '@socketsecurity/lib-stable/logger/types'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 

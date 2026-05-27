@@ -3,11 +3,11 @@
  *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#pub.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
 import { ArrayPrototypeSome } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import {
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
@@ -78,7 +78,7 @@ export async function pubExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://pub.dev/api/packages/${encodeComponent(name)}`
+      const url = `https://pub.dev/api/packages/${GlobalEncodeUriComponent(name)}`
 
       const data = await httpJson<{
         latest?:

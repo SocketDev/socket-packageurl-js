@@ -22,12 +22,12 @@ import colors from 'yoctocolors-cjs'
 
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
-import { LOG_SYMBOLS } from '@socketsecurity/lib-stable/logger'
+import { LOG_SYMBOLS } from '@socketsecurity/lib-stable/logger/symbols'
 import type {
   SpawnOptions,
   SpawnResult,
-} from '@socketsecurity/lib-stable/spawn/types'
-import { spawn } from '@socketsecurity/lib-stable/spawn/spawn'
+} from '@socketsecurity/lib-stable/process/spawn/types'
+import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 import { errorMessage } from './utils/error-message.mts'
 
 type CommandResult = {

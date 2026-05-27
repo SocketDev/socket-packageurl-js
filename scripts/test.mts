@@ -13,16 +13,16 @@ import glob from 'fast-glob'
 import type { Options as FastGlobOptions } from 'fast-glob'
 
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
-import type { Logger } from '@socketsecurity/lib-stable/logger'
-import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
-import { onExit } from '@socketsecurity/lib-stable/signal-exit/register'
+import type { Logger } from '@socketsecurity/lib-stable/logger/types'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
+import { onExit } from '@socketsecurity/lib-stable/events/exit/handler'
 import type {
   SpawnOptions,
   SpawnResult,
-} from '@socketsecurity/lib-stable/spawn/types'
-import { spawn } from '@socketsecurity/lib-stable/spawn/spawn'
+} from '@socketsecurity/lib-stable/process/spawn/types'
+import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 import type { Spinner } from '@socketsecurity/lib-stable/spinner/spinner'
-import { getDefaultSpinner } from '@socketsecurity/lib-stable/spinner/registry'
+import { getDefaultSpinner } from '@socketsecurity/lib-stable/spinner/default'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 
 import { getTestsToRun } from './utils/changed-test-mapper.mts'
@@ -403,7 +403,8 @@ export async function runTests(
   const output = result.stdout + result.stderr
   const hasTestFailures =
     output.includes('FAIL') ||
-    (output.includes('Test Files') && output.match(/(?:\d+) failed/) !== null) ||
+    (output.includes('Test Files') &&
+      output.match(/(?:\d+) failed/) !== null) ||
     (output.includes('Tests') && output.match(/Tests\s+\d+ failed/) !== null)
 
   // Override exit code if we only have worker termination errors

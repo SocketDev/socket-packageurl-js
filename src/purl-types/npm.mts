@@ -4,7 +4,7 @@
  *   package naming rules from the PURL specification.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { encodeComponent } from '../encode.mjs'
 import { PurlError, errorMessage } from '../error.mjs'
@@ -24,7 +24,7 @@ import {
 import { isBlank, lowerName, lowerNamespace } from '../strings.mjs'
 import { validateNoInjectionByType } from '../validate.mjs'
 
-import type { TtlCache } from '@socketsecurity/lib/ttl-cache/types'
+import type { TtlCache } from '@socketsecurity/lib/cache/ttl/types'
 
 interface PurlObject {
   name: string

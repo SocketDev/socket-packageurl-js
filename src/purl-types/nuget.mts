@@ -4,13 +4,13 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import {
   ArrayPrototypeIncludes,
   ArrayPrototypePush,
 } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import {
   StringPrototypeIncludes,
   StringPrototypeToLowerCase,
@@ -72,7 +72,7 @@ export async function nugetExists(
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
       const lowerName = StringPrototypeToLowerCase(name)
-      const url = `https://api.nuget.org/v3/registration5-semver1/${encodeComponent(lowerName)}/index.json`
+      const url = `https://api.nuget.org/v3/registration5-semver1/${GlobalEncodeUriComponent(lowerName)}/index.json`
 
       const data = await httpJson<{
         items?:

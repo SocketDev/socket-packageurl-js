@@ -4,10 +4,10 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { ArrayPrototypeSome } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import { lowerName, lowerNamespace } from '../strings.mjs'
 
@@ -87,7 +87,7 @@ export async function packagistExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://repo.packagist.org/p2/${encodeComponent(packageName)}.json`
+      const url = `https://repo.packagist.org/p2/${GlobalEncodeUriComponent(packageName)}.json`
 
       const data = await httpJson<{
         packages?:

@@ -4,7 +4,7 @@
  */
 import { isObject } from './objects.mjs'
 import { ArrayPrototypeToSorted } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { ObjectKeys } from '@socketsecurity/lib/primordials/object'
 import {
   StringPrototypeReplaceAll,
@@ -13,31 +13,17 @@ import {
 import { URLSearchParamsCtor } from '@socketsecurity/lib/primordials/url'
 import { isNonEmptyString } from './strings.mjs'
 
+// packageurl-js's public `encodeComponent` is the global encodeURIComponent.
+// lib 6.0.3 dropped the `encodeComponent` alias from primordials/globals, so
+// re-derive it here from the canonically-named global.
+const encodeComponent = GlobalEncodeUriComponent
+
 // Module-private reusable `URLSearchParams` for `encodeQualifierParam`. Kept
 // private here so mutation side-effects can't leak to other modules.
 const REUSED_SEARCH_PARAMS = new URLSearchParamsCtor()
 const REUSED_SEARCH_PARAMS_KEY = '_'
 // `'_='.length`
 const REUSED_SEARCH_PARAMS_OFFSET = 2
-
-/**
- * Normalize `URLSearchParams` output for qualifier encoding.
- */
-function normalizeSearchParamsEncoding(encoded: string): string {
-  return StringPrototypeReplaceAll(
-    StringPrototypeReplaceAll(encoded, '%2520', '%20'),
-    '+',
-    '%2B',
-  )
-}
-
-/**
- * Prepare string value for `URLSearchParams` encoding.
- */
-function prepareValueForSearchParams(value: unknown): string {
-  // Replace spaces with `%20`'s so they don't get converted to plus signs
-  return StringPrototypeReplaceAll(String(value), ' ', '%20')
-}
 
 /**
  * Encode package name component for URL.
@@ -120,6 +106,25 @@ export function encodeVersion(version: unknown): string {
   return isNonEmptyString(version)
     ? StringPrototypeReplaceAll(encodeComponent(version), '%3A', ':')
     : ''
+}
+
+/**
+ * Normalize `URLSearchParams` output for qualifier encoding.
+ */
+export function normalizeSearchParamsEncoding(encoded: string): string {
+  return StringPrototypeReplaceAll(
+    StringPrototypeReplaceAll(encoded, '%2520', '%20'),
+    '+',
+    '%2B',
+  )
+}
+
+/**
+ * Prepare string value for `URLSearchParams` encoding.
+ */
+export function prepareValueForSearchParams(value: unknown): string {
+  // Replace spaces with `%20`'s so they don't get converted to plus signs
+  return StringPrototypeReplaceAll(String(value), ' ', '%20')
 }
 
 export { encodeComponent }

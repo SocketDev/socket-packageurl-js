@@ -4,9 +4,9 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import {
   lowerName,
@@ -94,7 +94,7 @@ export async function pypiExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://pypi.org/pypi/${encodeComponent(name)}/json`
+      const url = `https://pypi.org/pypi/${GlobalEncodeUriComponent(name)}/json`
 
       const data = await httpJson<{
         info?: { version?: string | undefined } | undefined

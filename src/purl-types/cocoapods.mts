@@ -3,11 +3,11 @@
  *   https://github.com/package-url/purl-spec/blob/main/types-doc/cocoapods-definition.md.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
 import { ArrayPrototypeSome } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import {
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
@@ -71,7 +71,7 @@ export async function cocoapodsExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://trunk.cocoapods.org/api/v1/pods/${encodeComponent(name)}`
+      const url = `https://trunk.cocoapods.org/api/v1/pods/${GlobalEncodeUriComponent(name)}`
 
       const data = await httpJson<{
         versions?: Array<{ name?: string | undefined }> | undefined

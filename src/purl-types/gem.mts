@@ -3,14 +3,14 @@
  *   https://github.com/package-url/purl-spec/blob/main/types-doc/gem-definition.md.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { errorMessage } from '../error.mjs'
 import {
   ArrayIsArray,
   ArrayPrototypeSome,
 } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.mjs'
 
@@ -79,7 +79,7 @@ export async function gemExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://rubygems.org/api/v1/versions/${encodeComponent(name)}.json`
+      const url = `https://rubygems.org/api/v1/versions/${GlobalEncodeUriComponent(name)}.json`
 
       const data = await httpJson<Array<{ number?: string | undefined }>>(url)
 

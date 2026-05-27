@@ -30,9 +30,9 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
-import { httpJson } from '@socketsecurity/lib-stable/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib-stable/http-request'
 import { httpRequest } from '@socketsecurity/lib-stable/http-request/request'
-import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { transform as esbuildTransform } from 'esbuild'
 import { transform as lightningTransform } from 'lightningcss'

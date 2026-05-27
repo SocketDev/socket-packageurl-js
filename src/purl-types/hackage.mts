@@ -4,10 +4,10 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { ArrayPrototypeIncludes } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'
@@ -56,7 +56,7 @@ export async function hackageExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://hackage.haskell.org/package/${encodeComponent(name)}/preferred`
+      const url = `https://hackage.haskell.org/package/${GlobalEncodeUriComponent(name)}/preferred`
 
       const data = await httpJson<{
         'normal-version'?: string[] | undefined

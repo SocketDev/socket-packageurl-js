@@ -28,11 +28,11 @@
  *     name. See: https://go.dev/ref/mod#module-path
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
 import { ArrayPrototypeJoin } from '@socketsecurity/lib/primordials/array'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import {
   StringPrototypeCharCodeAt,
   StringPrototypeIncludes,
@@ -116,7 +116,7 @@ export async function golangExists(
       // Go proxy uses case-encoded paths where uppercase letters are `!lowercase`
       const parts = StringPrototypeSplit(modulePath, '/' as any)
       for (let i = 0; i < parts.length; i++) {
-        parts[i] = encodeComponent(
+        parts[i] = GlobalEncodeUriComponent(
           StringPrototypeReplace(
             parts[i]!,
             /[A-Z]/g,
@@ -136,7 +136,7 @@ export async function golangExists(
       const latestVersion = data.Version
 
       if (version) {
-        const versionUrl = `https://proxy.golang.org/${encodedPath}/@v/${encodeComponent(version)}.info`
+        const versionUrl = `https://proxy.golang.org/${encodedPath}/@v/${GlobalEncodeUriComponent(version)}.info`
         try {
           await httpJson(versionUrl)
         } catch {

@@ -21,7 +21,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 
 import { SOCKET_PUBLIC_API_TOKEN } from '@socketsecurity/lib-stable/constants/socket'
-import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { SocketSdk } from '@socketsecurity/sdk-stable'
 import type { MalwareCheckPackage } from '@socketsecurity/sdk-stable'
 import pacote from 'pacote'

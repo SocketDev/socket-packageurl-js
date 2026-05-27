@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url'
 
 import type { RolldownOptions } from 'rolldown'
 
-import { getDefaultLogger } from '@socketsecurity/lib-stable/logger'
+import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { errorMessage } from '../utils/error-message.mts'
 

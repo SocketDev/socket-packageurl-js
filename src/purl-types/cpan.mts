@@ -3,10 +3,10 @@
  *   https://github.com/package-url/purl-spec/blob/main/types-doc/cpan-definition.md.
  */
 
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
 import { PurlError, errorMessage } from '../error.mjs'
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import {
   StringPrototypeIncludes,
   StringPrototypeToUpperCase,
@@ -68,7 +68,7 @@ export async function cpanExists(
 
   const fetchResult = async (): Promise<ExistsResult> => {
     try {
-      const url = `https://fastapi.metacpan.org/v1/module/${encodeComponent(name)}`
+      const url = `https://fastapi.metacpan.org/v1/module/${GlobalEncodeUriComponent(name)}`
 
       const data = await httpJson<{
         version?: string | undefined
@@ -78,7 +78,7 @@ export async function cpanExists(
 
       if (version) {
         // Check specific version
-        const versionUrl = `https://fastapi.metacpan.org/v1/module/${encodeComponent(name)}/${encodeComponent(version)}`
+        const versionUrl = `https://fastapi.metacpan.org/v1/module/${GlobalEncodeUriComponent(name)}/${GlobalEncodeUriComponent(version)}`
         try {
           await httpJson(versionUrl)
         } catch {

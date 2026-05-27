@@ -4,9 +4,9 @@
  */
 
 import { errorMessage } from '../error.mjs'
-import { httpJson } from '@socketsecurity/lib/http-request/convenience'
+import { httpJson } from '@socketsecurity/lib/http-request'
 
-import { encodeComponent } from '@socketsecurity/lib/primordials/globals'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import { lowerName } from '../strings.mjs'
 import { validateNoInjectionByType } from '../validate.mjs'
@@ -89,8 +89,8 @@ export async function dockerExists(
     try {
       // Encode each path segment separately to preserve the `/` delimiter
       const encodedRepo = namespace
-        ? `${encodeComponent(namespace)}/${encodeComponent(name)}`
-        : encodeComponent(name)
+        ? `${GlobalEncodeUriComponent(namespace)}/${GlobalEncodeUriComponent(name)}`
+        : GlobalEncodeUriComponent(name)
       const url = `https://hub.docker.com/v2/repositories/${encodedRepo}`
 
       const data = await httpJson<{
@@ -109,7 +109,7 @@ export async function dockerExists(
       // If specific tag requested, verify it exists
       if (version) {
         try {
-          const tagUrl = `https://hub.docker.com/v2/repositories/${encodedRepo}/tags/${encodeComponent(version)}`
+          const tagUrl = `https://hub.docker.com/v2/repositories/${encodedRepo}/tags/${GlobalEncodeUriComponent(version)}`
           await httpJson(tagUrl)
         } catch (e) {
           /* v8 ignore start */
