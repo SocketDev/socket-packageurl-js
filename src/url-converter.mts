@@ -138,6 +138,24 @@ export function distributionFilename(urlOrPath: string): string {
 }
 
 /**
+ * Run a `URL`-taking parser against a URL string, parsing the string first and
+ * returning `undefined` if it isn't a valid URL. Lets the public static methods
+ * accept strings while the internal parsers keep their `URL` signatures.
+ */
+export function runUrlParser(
+  parser: (url: URL) => PackageURL | undefined,
+  urlStr: string,
+): PackageURL | undefined {
+  let url: URL
+  try {
+    url = new URLCtor(urlStr)
+  } catch {
+    return undefined
+  }
+  return parser(url)
+}
+
+/**
  * Resolve a tarball segment's version, tolerating both the bare `name-` prefix
  * and the proxy/mirror `@scope/name-` (full scoped name) prefix that some
  * registries (Artifactory, Nexus, Verdaccio, GitHub Packages) repeat in the
@@ -275,6 +293,19 @@ export function fromNpmSiteUrl(url: URL): PackageURL | undefined {
   }
 
   return tryCreatePurl('npm', namespace, name, version)
+}
+
+/**
+ * Parse any recognized npm URL. npm's two shapes are distinguished by hostname,
+ * not path shape (`registry.npmjs.org` serves metadata / tarballs;
+ * `www.npmjs.com` serves package pages), so dispatch by host — the registry
+ * parser is greedy enough to misread a website path if tried blindly.
+ */
+export function fromNpmUrl(url: URL): PackageURL | undefined {
+  if (url.hostname === 'www.npmjs.com') {
+    return fromNpmSiteUrl(url)
+  }
+  return fromNpmRegistryUrl(url)
 }
 
 /**
@@ -1214,6 +1245,269 @@ export class UrlConverter {
    */
   static supportsFromUrl(urlStr: string): boolean {
     return UrlConverter.fromUrl(urlStr) !== undefined
+  }
+
+  /**
+   * Parse a package distribution (download) URL or bare path — a registry
+   * artifact filename such as a wheel, sdist, tarball, gem, `.nupkg`, or Go
+   * module-proxy archive — into a `PackageURL`. Unlike {@link fromUrl} this does
+   * not require a recognized hostname; it matches on the filename shape, so a
+   * bare path resolves identically to a full URL.
+   */
+  static fromDownloadUrl(urlOrPath: string): PackageURL | undefined {
+    return fromDownloadUrl(urlOrPath)
+  }
+
+  /**
+   * Parse any recognized npm URL (registry metadata, tarball, or
+   * `www.npmjs.com` page).
+   */
+  static fromNpmUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromNpmUrl, urlStr)
+  }
+
+  /**
+   * Parse any recognized PyPI URL — project page or a wheel / sdist
+   * distribution filename (URL or bare path).
+   */
+  static fromPypiUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromPypiSiteUrl, urlStr) ?? fromPypiDownloadUrl(urlStr)
+  }
+
+  /**
+   * Parse any recognized RubyGems URL — gem page or a `.gem` / `.gemspec.rz`
+   * distribution filename (URL or bare path).
+   */
+  static fromGemUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromGemSiteUrl, urlStr) ?? fromGemDownloadUrl(urlStr)
+  }
+
+  /**
+   * Parse any recognized Go URL — `pkg.go.dev` page or a module-proxy download
+   * (URL or bare path).
+   */
+  static fromGolangUrl(urlStr: string): PackageURL | undefined {
+    return (
+      runUrlParser(fromGolangSiteUrl, urlStr) ?? fromGolangDownloadUrl(urlStr)
+    )
+  }
+
+  /**
+   * Parse a crates.io URL — crate page, `/api/v1/.../download`, or a bare
+   * `/crates/name/version/download` path.
+   */
+  static fromCargoUrl(urlStr: string): PackageURL | undefined {
+    return (
+      runUrlParser(fromCargoSiteUrl, urlStr) ?? fromCargoDownloadUrl(urlStr)
+    )
+  }
+
+  // Per-shape leaves. The aggregators above are the usual entry points; these
+  // expose the individual recognizers for callers that know the exact shape.
+
+  /**
+   * Parse an `registry.npmjs.org` metadata / tarball URL.
+   */
+  static fromNpmRegistryUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromNpmRegistryUrl, urlStr)
+  }
+
+  /**
+   * Parse a `www.npmjs.com` package-page URL.
+   */
+  static fromNpmSiteUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromNpmSiteUrl, urlStr)
+  }
+
+  /**
+   * Parse a `pypi.org/project/...` page URL.
+   */
+  static fromPypiSiteUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromPypiSiteUrl, urlStr)
+  }
+
+  /**
+   * Parse a PyPI wheel / sdist distribution filename (URL or bare path).
+   */
+  static fromPypiDownloadUrl(urlOrPath: string): PackageURL | undefined {
+    return fromPypiDownloadUrl(urlOrPath)
+  }
+
+  /**
+   * Parse a `rubygems.org/gems/...` page URL.
+   */
+  static fromGemSiteUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromGemSiteUrl, urlStr)
+  }
+
+  /**
+   * Parse a RubyGems `.gem` / `.gemspec.rz` distribution filename.
+   */
+  static fromGemDownloadUrl(urlOrPath: string): PackageURL | undefined {
+    return fromGemDownloadUrl(urlOrPath)
+  }
+
+  /**
+   * Parse a `pkg.go.dev` page URL.
+   */
+  static fromGolangSiteUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromGolangSiteUrl, urlStr)
+  }
+
+  /**
+   * Parse a Go module-proxy download URL or path.
+   */
+  static fromGolangDownloadUrl(urlOrPath: string): PackageURL | undefined {
+    return fromGolangDownloadUrl(urlOrPath)
+  }
+
+  /**
+   * Parse a Maven Central `/maven2/...` URL.
+   */
+  static fromMavenSiteUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromMavenSiteUrl, urlStr)
+  }
+
+  /**
+   * Parse a NuGet (`www.nuget.org` / `api.nuget.org`) URL.
+   */
+  static fromNugetSiteUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromNugetSiteUrl, urlStr)
+  }
+
+  /**
+   * Parse a crates.io page / `/api/v1/.../download` URL.
+   */
+  static fromCargoSiteUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromCargoSiteUrl, urlStr)
+  }
+
+  /**
+   * Parse a bare `/crates/name/version/download` path.
+   */
+  static fromCargoDownloadUrl(urlOrPath: string): PackageURL | undefined {
+    return fromCargoDownloadUrl(urlOrPath)
+  }
+
+  // Single-shape host parsers (VCS hosts, web registries with one URL shape).
+
+  /**
+   * Parse a `github.com/owner/repo[...]` URL.
+   */
+  static fromGitHubUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromGitHubUrl, urlStr)
+  }
+
+  /**
+   * Parse a `gitlab.com/owner/repo[...]` URL.
+   */
+  static fromGitlabUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromGitlabUrl, urlStr)
+  }
+
+  /**
+   * Parse a `bitbucket.org/owner/repo[...]` URL.
+   */
+  static fromBitbucketUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromBitbucketUrl, urlStr)
+  }
+
+  /**
+   * Parse a `packagist.org/packages/...` URL.
+   */
+  static fromComposerUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromComposerUrl, urlStr)
+  }
+
+  /**
+   * Parse a `hex.pm/packages/...` URL.
+   */
+  static fromHexUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromHexUrl, urlStr)
+  }
+
+  /**
+   * Parse a `pub.dev/packages/...` URL.
+   */
+  static fromPubUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromPubUrl, urlStr)
+  }
+
+  /**
+   * Parse a `hub.docker.com/...` URL.
+   */
+  static fromDockerUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromDockerUrl, urlStr)
+  }
+
+  /**
+   * Parse a `cocoapods.org/pods/...` URL.
+   */
+  static fromCocoapodsUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromCocoapodsUrl, urlStr)
+  }
+
+  /**
+   * Parse a `hackage.haskell.org/package/...` URL.
+   */
+  static fromHackageUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromHackageUrl, urlStr)
+  }
+
+  /**
+   * Parse a `cran.r-project.org/web/packages/...` URL.
+   */
+  static fromCranUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromCranUrl, urlStr)
+  }
+
+  /**
+   * Parse an `anaconda.org/channel/...` URL.
+   */
+  static fromCondaUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromCondaUrl, urlStr)
+  }
+
+  /**
+   * Parse a `metacpan.org/{pod,dist}/...` URL.
+   */
+  static fromCpanUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromCpanUrl, urlStr)
+  }
+
+  /**
+   * Parse a `huggingface.co/namespace/name[...]` URL.
+   */
+  static fromHuggingfaceUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromHuggingfaceUrl, urlStr)
+  }
+
+  /**
+   * Parse a `luarocks.org/modules/...` URL.
+   */
+  static fromLuarocksUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromLuarocksUrl, urlStr)
+  }
+
+  /**
+   * Parse a `swiftpackageindex.com/owner/repo[/version]` URL.
+   */
+  static fromSwiftUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromSwiftUrl, urlStr)
+  }
+
+  /**
+   * Parse a `marketplace.visualstudio.com/items?itemName=...` URL.
+   */
+  static fromVscodeMarketplaceUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromVscodeMarketplaceUrl, urlStr)
+  }
+
+  /**
+   * Parse an `open-vsx.org/extension/...` URL.
+   */
+  static fromOpenVsxUrl(urlStr: string): PackageURL | undefined {
+    return runUrlParser(fromOpenVsxUrl, urlStr)
   }
 
   /**
