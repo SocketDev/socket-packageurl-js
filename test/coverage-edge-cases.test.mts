@@ -613,7 +613,7 @@ describe('vers edge cases', () => {
 // ---------------------------------------------------------------------------
 describe('UrlConverter unrecognized paths', () => {
   it('Docker Hub unrecognized path returns undefined', () => {
-    // Path is not /_/ or /r/ — hits the return undefined at end of parseDocker
+    // Path is not /_/ or /r/ — hits the return undefined at end of fromDockerUrl
     const result = UrlConverter.fromUrl(
       'https://hub.docker.com/v2/repositories/library/nginx',
     )
@@ -621,7 +621,7 @@ describe('UrlConverter unrecognized paths', () => {
   })
 
   it('MetaCPAN unrecognized path returns undefined', () => {
-    // Path first segment is not "pod" or "dist" — hits return undefined at end of parseCpan
+    // Path first segment is not "pod" or "dist" — hits return undefined at end of fromCpanUrl
     const result = UrlConverter.fromUrl('https://metacpan.org/author/ETHER')
     expect(result).toBeUndefined()
   })

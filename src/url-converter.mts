@@ -114,7 +114,7 @@ export function tryCreatePurl(
  * - Download tarballs: `/\@scope/name/-/name-version.tgz` or
  *   `/name/-/name-version.tgz`
  */
-export function parseNpmRegistry(url: URL): PackageURL | undefined {
+export function fromNpmRegistryUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length === 0) {
     return undefined
@@ -178,7 +178,7 @@ export function parseNpmRegistry(url: URL): PackageURL | undefined {
  * - `/package/\@scope/name`, `/package/\@scope/name/v/version`
  * - `/package/name`, `/package/name/v/version`
  */
-export function parseNpmWebsite(url: URL): PackageURL | undefined {
+export function fromNpmSiteUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length === 0 || segments[0] !== 'package') {
     return undefined
@@ -215,7 +215,7 @@ export function parseNpmWebsite(url: URL): PackageURL | undefined {
  *
  * Handles: `/project/name/`, `/project/name/version/`
  */
-export function parsePypi(url: URL): PackageURL | undefined {
+export function fromPypiSiteUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2 || segments[0] !== 'project') {
     return undefined
@@ -238,7 +238,7 @@ export function parsePypi(url: URL): PackageURL | undefined {
  * Handles: `/maven2/{group-as-path}/{artifact}/{version}/` Group path segments
  * are joined with `'.'`.
  */
-export function parseMaven(url: URL): PackageURL | undefined {
+export function fromMavenSiteUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   // Minimum: maven2 / groupPart / artifact / version
   if (segments.length < 4 || segments[0] !== 'maven2') {
@@ -272,7 +272,7 @@ export function parseMaven(url: URL): PackageURL | undefined {
  *
  * Handles: `/gems/name`, `/gems/name/versions/version`
  */
-export function parseGem(url: URL): PackageURL | undefined {
+export function fromGemSiteUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2 || segments[0] !== 'gems') {
     return undefined
@@ -299,7 +299,7 @@ export function parseGem(url: URL): PackageURL | undefined {
  * Handles: - `/crates/name`, `/crates/name/version` -
  * `/api/v1/crates/name/version/download`
  */
-export function parseCargo(url: URL): PackageURL | undefined {
+export function fromCargoSiteUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2) {
     return undefined
@@ -339,7 +339,7 @@ export function parseCargo(url: URL): PackageURL | undefined {
  * Handles: - `www.nuget.org`: `/packages/Name`, `/packages/Name/version` -
  * `api.nuget.org`: `/v3-flatcontainer/name/version/name.version.nupkg`
  */
-export function parseNuget(url: URL): PackageURL | undefined {
+export function fromNugetSiteUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2) {
     return undefined
@@ -377,7 +377,7 @@ export function parseNuget(url: URL): PackageURL | undefined {
  * Handles: - `/owner/repo` - `/owner/repo/tree/ref` - `/owner/repo/commit/sha`
  * - `/owner/repo/releases/tag/tagname`
  */
-export function parseGitHub(url: URL): PackageURL | undefined {
+export function fromGitHubUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2) {
     return undefined
@@ -410,7 +410,7 @@ export function parseGitHub(url: URL): PackageURL | undefined {
  * - `/module/path` (e.g. `/github.com/gorilla/mux`)
  * - `/module/path\@version` (e.g. `/github.com/gorilla/mux\@v1.8.0`)
  */
-export function parseGolang(url: URL): PackageURL | undefined {
+export function fromGolangSiteUrl(url: URL): PackageURL | undefined {
   // Remove leading slash
   let path = StringPrototypeSlice(url.pathname, 1)
   if (!path) {
@@ -447,7 +447,7 @@ export function parseGolang(url: URL): PackageURL | undefined {
  * Parse GitLab URLs (`gitlab.com`). Same pattern as GitHub: `/owner/repo`,
  * `/owner/repo/-/tree/ref`, `/owner/repo/-/commit/sha`
  */
-export function parseGitlab(url: URL): PackageURL | undefined {
+export function fromGitlabUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2) {
     return undefined
@@ -472,7 +472,7 @@ export function parseGitlab(url: URL): PackageURL | undefined {
  * Parse Bitbucket URLs (`bitbucket.org`). Pattern: `/owner/repo`,
  * `/owner/repo/commits/sha`, `/owner/repo/src/ref`
  */
-export function parseBitbucket(url: URL): PackageURL | undefined {
+export function fromBitbucketUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2) {
     return undefined
@@ -492,7 +492,7 @@ export function parseBitbucket(url: URL): PackageURL | undefined {
  * Parse Packagist/Composer URLs (`packagist.org`). Pattern:
  * `/packages/namespace/name`
  */
-export function parseComposer(url: URL): PackageURL | undefined {
+export function fromComposerUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 3 || segments[0] !== 'packages') {
     return undefined
@@ -506,7 +506,7 @@ export function parseComposer(url: URL): PackageURL | undefined {
  * Parse Hex.pm URLs (`hex.pm`). Pattern: `/packages/name`,
  * `/packages/name/version`
  */
-export function parseHex(url: URL): PackageURL | undefined {
+export function fromHexUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2 || segments[0] !== 'packages') {
     return undefined
@@ -520,7 +520,7 @@ export function parseHex(url: URL): PackageURL | undefined {
  * Parse pub.dev URLs (`pub.dev`). Pattern: `/packages/name`,
  * `/packages/name/versions/version`
  */
-export function parsePub(url: URL): PackageURL | undefined {
+export function fromPubUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2 || segments[0] !== 'packages') {
     return undefined
@@ -540,7 +540,7 @@ export function parsePub(url: URL): PackageURL | undefined {
  * - User images: `/r/namespace/name`
  * - Library alias: `/r/library/name`
  */
-export function parseDocker(url: URL): PackageURL | undefined {
+export function fromDockerUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2) {
     return undefined
@@ -559,7 +559,7 @@ export function parseDocker(url: URL): PackageURL | undefined {
 /**
  * Parse CocoaPods URLs (`cocoapods.org`). Pattern: `/pods/name`
  */
-export function parseCocoapods(url: URL): PackageURL | undefined {
+export function fromCocoapodsUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2 || segments[0] !== 'pods') {
     return undefined
@@ -571,7 +571,7 @@ export function parseCocoapods(url: URL): PackageURL | undefined {
  * Parse Hackage URLs (`hackage.haskell.org`). Pattern: `/package/name`,
  * `/package/name-version`
  */
-export function parseHackage(url: URL): PackageURL | undefined {
+export function fromHackageUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2 || segments[0] !== 'package') {
     return undefined
@@ -602,7 +602,7 @@ export function parseHackage(url: URL): PackageURL | undefined {
  * Parse CRAN URLs (`cran.r-project.org`). Pattern: `/web/packages/name`,
  * `/package=name` (query param)
  */
-export function parseCran(url: URL): PackageURL | undefined {
+export function fromCranUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   // `/web/packages/name/index.html`
   if (
@@ -619,7 +619,7 @@ export function parseCran(url: URL): PackageURL | undefined {
  * Parse Anaconda/Conda URLs (`anaconda.org`). Pattern: `/channel/name`,
  * `/channel/name/version`
  */
-export function parseConda(url: URL): PackageURL | undefined {
+export function fromCondaUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2) {
     return undefined
@@ -634,7 +634,7 @@ export function parseConda(url: URL): PackageURL | undefined {
  * Parse MetaCPAN URLs (`metacpan.org`). Patterns: `/pod/Name`,
  * `/pod/Name::Sub`, `/dist/Name`
  */
-export function parseCpan(url: URL): PackageURL | undefined {
+export function fromCpanUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2) {
     return undefined
@@ -669,7 +669,7 @@ const HUGGINGFACE_RESERVED = ObjectFreeze(
   ]),
 )
 
-export function parseHuggingface(url: URL): PackageURL | undefined {
+export function fromHuggingfaceUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2) {
     return undefined
@@ -693,7 +693,7 @@ export function parseHuggingface(url: URL): PackageURL | undefined {
  * Parse LuaRocks URLs (`luarocks.org`). Pattern: `/modules/namespace/name`,
  * `/modules/namespace/name/version`
  */
-export function parseLuarocks(url: URL): PackageURL | undefined {
+export function fromLuarocksUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 3 || segments[0] !== 'modules') {
     return undefined
@@ -708,7 +708,7 @@ export function parseLuarocks(url: URL): PackageURL | undefined {
  * Parse Swift Package Index URLs (`swiftpackageindex.com`). Pattern:
  * `/owner/repo`
  */
-export function parseSwift(url: URL): PackageURL | undefined {
+export function fromSwiftUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 2) {
     return undefined
@@ -720,7 +720,7 @@ export function parseSwift(url: URL): PackageURL | undefined {
  * Parse VS Code Marketplace URLs (`marketplace.visualstudio.com`). Pattern:
  * `/items?itemName=publisher.extension`
  */
-export function parseVscodeMarketplace(url: URL): PackageURL | undefined {
+export function fromVscodeMarketplaceUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 1 || segments[0] !== 'items') {
     return undefined
@@ -742,7 +742,7 @@ export function parseVscodeMarketplace(url: URL): PackageURL | undefined {
  * Parse Open VSX URLs (`open-vsx.org`). Pattern: `/extension/namespace/name`,
  * `/extension/namespace/name/version`
  */
-export function parseOpenVsx(url: URL): PackageURL | undefined {
+export function fromOpenVsxUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
   if (segments.length < 3 || segments[0] !== 'extension') {
     return undefined
@@ -759,35 +759,35 @@ export function parseOpenVsx(url: URL): PackageURL | undefined {
 const FROM_URL_PARSERS: ReadonlyMap<string, UrlParser> = ObjectFreeze(
   new MapCtor<string, UrlParser>([
     // Package registries
-    ['registry.npmjs.org', parseNpmRegistry],
-    ['www.npmjs.com', parseNpmWebsite],
-    ['pypi.org', parsePypi],
-    ['repo1.maven.org', parseMaven],
-    ['central.maven.org', parseMaven],
-    ['rubygems.org', parseGem],
-    ['crates.io', parseCargo],
-    ['www.nuget.org', parseNuget],
-    ['api.nuget.org', parseNuget],
-    ['pkg.go.dev', parseGolang],
-    ['hex.pm', parseHex],
-    ['pub.dev', parsePub],
-    ['packagist.org', parseComposer],
-    ['hub.docker.com', parseDocker],
-    ['cocoapods.org', parseCocoapods],
-    ['hackage.haskell.org', parseHackage],
-    ['cran.r-project.org', parseCran],
-    ['anaconda.org', parseConda],
-    ['metacpan.org', parseCpan],
-    ['luarocks.org', parseLuarocks],
-    ['swiftpackageindex.com', parseSwift],
-    ['huggingface.co', parseHuggingface],
+    ['registry.npmjs.org', fromNpmRegistryUrl],
+    ['www.npmjs.com', fromNpmSiteUrl],
+    ['pypi.org', fromPypiSiteUrl],
+    ['repo1.maven.org', fromMavenSiteUrl],
+    ['central.maven.org', fromMavenSiteUrl],
+    ['rubygems.org', fromGemSiteUrl],
+    ['crates.io', fromCargoSiteUrl],
+    ['www.nuget.org', fromNugetSiteUrl],
+    ['api.nuget.org', fromNugetSiteUrl],
+    ['pkg.go.dev', fromGolangSiteUrl],
+    ['hex.pm', fromHexUrl],
+    ['pub.dev', fromPubUrl],
+    ['packagist.org', fromComposerUrl],
+    ['hub.docker.com', fromDockerUrl],
+    ['cocoapods.org', fromCocoapodsUrl],
+    ['hackage.haskell.org', fromHackageUrl],
+    ['cran.r-project.org', fromCranUrl],
+    ['anaconda.org', fromCondaUrl],
+    ['metacpan.org', fromCpanUrl],
+    ['luarocks.org', fromLuarocksUrl],
+    ['swiftpackageindex.com', fromSwiftUrl],
+    ['huggingface.co', fromHuggingfaceUrl],
     // VS Code extension marketplaces
-    ['marketplace.visualstudio.com', parseVscodeMarketplace],
-    ['open-vsx.org', parseOpenVsx],
+    ['marketplace.visualstudio.com', fromVscodeMarketplaceUrl],
+    ['open-vsx.org', fromOpenVsxUrl],
     // VCS hosts
-    ['github.com', parseGitHub],
-    ['gitlab.com', parseGitlab],
-    ['bitbucket.org', parseBitbucket],
+    ['github.com', fromGitHubUrl],
+    ['gitlab.com', fromGitlabUrl],
+    ['bitbucket.org', fromBitbucketUrl],
   ]),
 )
 
