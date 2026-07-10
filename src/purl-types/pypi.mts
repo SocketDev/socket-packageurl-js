@@ -1,0 +1,164 @@
+/**
+ * @file PyPI-specific PURL normalization.
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#pypi.
+ */
+
+import { errorMessage } from '../error.mjs'
+import { httpJson } from '@socketsecurity/lib/http-request'
+
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
+import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
+import {
+  lowerName,
+  lowerNamespace,
+  replaceUnderscoresWithDashes,
+} from '../strings.mjs'
+import { validateNoInjectionByType } from '../validate.mjs'
+
+import type { ExistsOptions, ExistsResult } from './npm.mjs'
+
+export interface PurlObject {
+  name: string
+  namespace?: string | undefined
+  qualifiers?: Record<string, string> | undefined
+  subpath?: string | undefined
+  type?: string | undefined
+  version?: string | undefined
+}
+
+/**
+ * Normalize PyPI package URL. Lowercases `namespace` and `name` and replaces
+ * underscores with dashes in `name` (PEP 503). The `version` is preserved: a
+ * purl version is an opaque locator with no purl-spec normalization rule, and
+ * PEP 440 case-folding is a comparison-layer concern, not canonical form (the
+ * packageurl-python reference impl also preserves the pypi version).
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  lowerNamespace(purl)
+  lowerName(purl)
+  purl.name = replaceUnderscoresWithDashes(purl.name)
+  return purl
+}
+
+/**
+ * Check if a PyPI package exists in the registry.
+ *
+ * Queries PyPI at https://pypi.org/pypi to verify package existence and
+ * optionally validate a specific version. Returns the latest version from
+ * package metadata.
+ *
+ * **Caching:** Responses can be cached using a TTL cache to reduce registry
+ * requests. Pass `{ cache }` option with a cache instance from
+ * `createTtlCache()`.
+ *
+ * @example
+ *   ;```typescript
+ *   // Check if package exists
+ *   const result = await pypiExists('requests')
+ *   // -> { exists: true, latestVersion: '2.31.0' }
+ *
+ *   // Validate specific version
+ *   const result = await pypiExists('django', '4.2.0')
+ *   // -> { exists: true, latestVersion: '5.0.0' }
+ *
+ *   // With caching
+ *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
+ *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'pypi' })
+ *   const result = await pypiExists('requests', undefined, { cache })
+ *
+ *   // Non-existent package
+ *   const result = await pypiExists('this-package-does-not-exist')
+ *   // -> { exists: false, error: 'Package not found' }
+ *   ```
+ *
+ * @param name - Package name (e.g., `'requests'`, `'django'`)
+ * @param version - Optional version to validate (e.g., `'2.28.1'`)
+ * @param options - Optional configuration including `cache`
+ *
+ * @returns `Promise` resolving to existence result with latest version
+ */
+export async function pypiExists(
+  name: string,
+  version?: string,
+  options?: ExistsOptions,
+): Promise<ExistsResult> {
+  const opts = { __proto__: null, ...options } as typeof options
+  const cacheKey = version ? `pypi:${name}@${version}` : `pypi:${name}`
+
+  // Try cache first if provided
+  if (opts?.cache) {
+    const cached = await opts.cache.get<ExistsResult>(cacheKey)
+    if (cached !== undefined) {
+      return cached
+    }
+  }
+
+  const fetchResult = async (): Promise<ExistsResult> => {
+    try {
+      const url = `https://pypi.org/pypi/${GlobalEncodeUriComponent(name)}/json`
+
+      const data = await httpJson<{
+        info?: { version?: string | undefined } | undefined
+        releases?: Record<string, unknown[]> | undefined
+      }>(url)
+
+      const latestVersion = data.info?.['version']
+
+      // If specific version requested, validate it exists
+      if (version && data.releases) {
+        if (!(version in data.releases)) {
+          const result: ExistsResult = {
+            exists: false,
+            error: `Version ${version} not found`,
+          }
+          if (latestVersion !== undefined) {
+            result.latestVersion = latestVersion
+          }
+          return result
+        }
+      }
+
+      const result: ExistsResult = {
+        exists: true,
+      }
+      if (latestVersion !== undefined) {
+        result.latestVersion = latestVersion
+      }
+      return result
+    } catch (e) {
+      /* v8 ignore start - httpJson typically throws Error; String(e) is defensive programming */
+      const error = errorMessage(e)
+      return {
+        exists: false,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Package not found'
+          : error,
+      }
+      /* v8 ignore stop */
+    }
+  }
+
+  const result = await fetchResult()
+
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (opts?.cache && result.exists) {
+    await opts.cache.set(cacheKey, Object.freeze(result))
+  }
+
+  return result
+}
+
+/**
+ * Validate PyPI package URL. `name` must not contain injection characters.
+ */
+export function validate(
+  purl: PurlObject,
+  options?: { throws?: boolean | undefined } | undefined,
+): boolean {
+  const { throws = false } = options ?? {}
+  if (!validateNoInjectionByType('pypi', 'name', purl.name, { throws })) {
+    return false
+  }
+  return true
+}

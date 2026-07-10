@@ -1,0 +1,168 @@
+/**
+ * @file CPAN (Perl) PURL validation.
+ *   https://github.com/package-url/purl-spec/blob/main/types-doc/cpan-definition.md.
+ */
+
+import { httpJson } from '@socketsecurity/lib/http-request'
+
+import { errorMessage, PurlError } from '../error.mjs'
+import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
+import {
+  StringPrototypeIncludes,
+  StringPrototypeToUpperCase,
+} from '@socketsecurity/lib/primordials/string'
+import {
+  validateNoInjectionByType,
+  validateRequiredByType,
+} from '../validate.mjs'
+
+import type { ExistsOptions, ExistsResult } from './npm.mjs'
+
+export interface PurlObject {
+  name: string
+  namespace?: string | undefined
+  qualifiers?: Record<string, string> | undefined
+  subpath?: string | undefined
+  type?: string | undefined
+  version?: string | undefined
+}
+
+/**
+ * Check if a Perl module exists on CPAN.
+ *
+ * Queries MetaCPAN API to verify module existence and retrieve the latest
+ * version.
+ *
+ * @example
+ *   ;```typescript
+ *   // Check if module exists
+ *   const result = await cpanExists('Moose')
+ *   // -> { exists: true, latestVersion: '2.2206' }
+ *
+ *   // Validate specific version
+ *   const result = await cpanExists('Moose', '2.2206')
+ *   // -> { exists: true, latestVersion: '2.2206' }
+ *
+ *   // Non-existent module
+ *   const result = await cpanExists('FakeModule')
+ *   // -> { exists: false, error: 'Module not found' }
+ *   ```
+ *
+ * @param name - Module name (e.g., `'Moose'`)
+ * @param version - Optional version to validate (e.g., `'2.2206'`)
+ * @param options - Optional configuration including `cache`
+ *
+ * @returns `Promise` resolving to existence result with latest version
+ */
+export async function cpanExists(
+  name: string,
+  version?: string,
+  options?: ExistsOptions,
+): Promise<ExistsResult> {
+  const opts = { __proto__: null, ...options } as typeof options
+  const cacheKey = version ? `cpan:${name}@${version}` : `cpan:${name}`
+
+  // Try cache first if provided
+  if (opts?.cache) {
+    const cached = await opts.cache.get<ExistsResult>(cacheKey)
+    if (cached !== undefined) {
+      return cached
+    }
+  }
+
+  const fetchResult = async (): Promise<ExistsResult> => {
+    try {
+      const url = `https://fastapi.metacpan.org/v1/module/${GlobalEncodeUriComponent(name)}`
+
+      const data = await httpJson<{
+        version?: string | undefined
+      }>(url)
+
+      const latestVersion = data.version
+
+      if (version) {
+        // Check specific version
+        const versionUrl = `https://fastapi.metacpan.org/v1/module/${GlobalEncodeUriComponent(name)}/${GlobalEncodeUriComponent(version)}`
+        try {
+          await httpJson(versionUrl)
+        } catch {
+          const result: ExistsResult = {
+            exists: false,
+            error: `Version ${version} not found`,
+          }
+          if (latestVersion !== undefined) {
+            result.latestVersion = latestVersion
+          }
+          return result
+        }
+      }
+
+      const result: ExistsResult = { exists: true }
+      if (latestVersion !== undefined) {
+        result.latestVersion = latestVersion
+      }
+      return result
+    } catch (e) {
+      /* v8 ignore start - httpJson typically throws Error; String(e) is defensive programming */
+      const error = errorMessage(e)
+      return {
+        exists: false,
+        error: StringPrototypeIncludes(error, '404')
+          ? 'Module not found'
+          : error,
+      }
+      /* v8 ignore stop */
+    }
+  }
+
+  const result = await fetchResult()
+
+  // Only cache successful results to avoid negative cache poisoning
+  // from transient failures (network errors, 5xx responses)
+  if (opts?.cache && result.exists) {
+    await opts.cache.set(cacheKey, Object.freeze(result))
+  }
+
+  return result
+}
+
+/**
+ * Validate CPAN package URL. CPAN `namespace` (author/publisher ID) is
+ * required and must be uppercase; `name` is a distribution name and must not
+ * contain the module-style `::` separator.
+ */
+export function validate(
+  purl: PurlObject,
+  options?: { throws?: boolean | undefined } | undefined,
+): boolean {
+  const { throws = false } = options ?? {}
+  const { namespace } = purl
+  if (
+    !validateRequiredByType('cpan', 'namespace', namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (namespace && namespace !== StringPrototypeToUpperCase(namespace)) {
+    if (throws) {
+      throw new PurlError('cpan "namespace" component must be UPPERCASE')
+    }
+    return false
+  }
+  if (StringPrototypeIncludes(purl.name, '::')) {
+    if (throws) {
+      throw new PurlError(
+        'cpan "name" component is a distribution name and must not contain "::"',
+      )
+    }
+    return false
+  }
+  if (!validateNoInjectionByType('cpan', 'namespace', namespace, { throws })) {
+    return false
+  }
+  if (!validateNoInjectionByType('cpan', 'name', purl.name, { throws })) {
+    return false
+  }
+  return true
+}

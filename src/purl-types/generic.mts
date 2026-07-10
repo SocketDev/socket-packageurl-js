@@ -1,0 +1,23 @@
+/**
+ * @file Generic PURL type (minimal implementation).
+ *   https://github.com/package-url/purl-spec/blob/main/PURL-TYPES.rst#generic
+ *   The generic type is used when no specific package type applies. It has no
+ *   specific normalization or validation rules beyond the base PURL spec.
+ */
+
+export interface PurlObject {
+  name: string
+  namespace?: string | undefined
+  qualifiers?: Record<string, string> | undefined
+  subpath?: string | undefined
+  type?: string | undefined
+  version?: string | undefined
+}
+
+/**
+ * Normalize generic package URL. No type-specific normalization for generic
+ * packages.
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  return purl
+}
