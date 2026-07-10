@@ -1,0 +1,5 @@
+{
+  "comment": "Pinned package-url/purl-spec ref the vendored conformance suite (test/fixtures/purl-spec/{spec,types}) derives from. Owned by scripts/repo/sync-purl-spec.mts — run `node scripts/repo/sync-purl-spec.mts --bump` to move the pin and re-vendor; never hand-edit the vendored JSON.",
+  "ref": "995f3878f5bb6979bc6560cd747e422e8262f18b",
+  "repository": "https://github.com/package-url/purl-spec.git"
+}

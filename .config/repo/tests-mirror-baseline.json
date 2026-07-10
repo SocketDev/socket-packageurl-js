@@ -1,0 +1,18 @@
+[
+  "test/coverage-validate-options.test.mts",
+  "test/exports.test.mts",
+  "test/json-export.test.mts",
+  "test/pattern-matching.test.mts",
+  "test/purl-builder-types.test.mts",
+  "test/purl-edge-cases.test.mts",
+  "test/purl-global-mocking.isolated.test.mts",
+  "test/purl-injection-nothrow.test.mts",
+  "test/purl-injection.test.mts",
+  "test/purl-spec.test.mts",
+  "test/purl-types-2.test.mts",
+  "test/purl-types-3.test.mts",
+  "test/purl-types.test.mts",
+  "test/registry-vscode-extension-2.test.mts",
+  "test/type-exports.test.mts",
+  "test/url-to-purl.test.mts"
+]

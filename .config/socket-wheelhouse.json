@@ -1,0 +1,7 @@
+{
+  "$schema": "./socket-wheelhouse-schema.json",
+  "schemaVersion": 1,
+  "repoName": "socket-packageurl-js",
+  "repo": { "type": "single-package" },
+  "build": { "from": "npm-registry", "type": "js" }
+}
