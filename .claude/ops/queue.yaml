@@ -1,0 +1,12 @@
+schema_version: 1
+
+phase_order:
+  quality-scan: [env-check, scans, report]
+  security-scan: [env-check, agentshield, zizmor, grade-report]
+  updating: [env-check, npm-update, validate, report]
+  updating-npm-purl-package: [env-check, fetch-latest, migrate, validate, report]
+  updating-spec: [env-check, fetch-spec, validate, report]
+
+# Completed runs are appended here by skills. Prune periodically —
+# keep the last 10 entries and delete older ones to avoid unbounded growth.
+runs: []
