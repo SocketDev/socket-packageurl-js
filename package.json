@@ -146,6 +146,13 @@
     "ignoreEmptyType": true,
     "strict": true
   },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": ">=11.0.0 <12.0.0",
+      "onFail": "error"
+    }
+  },
   "engines": {
     "node": ">=18.20.8",
     "npm": ">=12.0.0",
