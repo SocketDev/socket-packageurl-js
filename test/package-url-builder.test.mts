@@ -21,19 +21,20 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Unit tests for PackageURLBuilder class.
+ * @file Unit tests for PurlBuilder class.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL, PackageURLBuilder } from '../dist/package-url.js'
+import { PurlBuilder } from '../src/package-url-builder.mjs'
+import { createTestPurl } from './utils/test-helpers.mjs'
 
-describe('PackageURLBuilder', () => {
+describe('PurlBuilder', () => {
   describe('basic construction', () => {
     it('should build a simple PackageURL', () => {
-      const purl = PackageURLBuilder.create().type('npm').name('lodash').build()
+      const purl = PurlBuilder.create().type('npm').name('lodash').build()
 
       // Cannot use instanceof due to ESM/CJS interop: test imports ESM wrapper,
-      // but PackageURLBuilder uses CommonJS require(), creating different class references.
+      // but PurlBuilder uses CommonJS require(), creating different class references.
       // Verify constructor name instead.
       expect(purl.constructor.name).toBe('PackageURL')
       expect(purl.type).toBe('npm')
@@ -45,7 +46,7 @@ describe('PackageURLBuilder', () => {
     })
 
     it('should build a complete PackageURL with all fields', () => {
-      const purl = PackageURLBuilder.create()
+      const purl = PurlBuilder.create()
         .type('npm')
         .namespace('@types')
         .name('node')
@@ -63,7 +64,7 @@ describe('PackageURLBuilder', () => {
     })
 
     it('should support method chaining', () => {
-      const builder = PackageURLBuilder.create()
+      const builder = PurlBuilder.create()
 
       const result = builder.type('npm').name('lodash')
 
@@ -73,7 +74,7 @@ describe('PackageURLBuilder', () => {
 
   describe('qualifier management', () => {
     it('should add individual qualifiers', () => {
-      const purl = PackageURLBuilder.create()
+      const purl = PurlBuilder.create()
         .type('npm')
         .name('lodash')
         .qualifier('arch', 'x64')
@@ -84,7 +85,7 @@ describe('PackageURLBuilder', () => {
     })
 
     it('should set all qualifiers at once', () => {
-      const purl = PackageURLBuilder.create()
+      const purl = PurlBuilder.create()
         .type('npm')
         .name('lodash')
         .qualifiers({ arch: 'x64', os: 'linux', env: 'production' })
@@ -98,7 +99,7 @@ describe('PackageURLBuilder', () => {
     })
 
     it('should overwrite qualifiers when set multiple times', () => {
-      const purl = PackageURLBuilder.create()
+      const purl = PurlBuilder.create()
         .type('npm')
         .name('lodash')
         .qualifier('arch', 'x64')
@@ -109,7 +110,7 @@ describe('PackageURLBuilder', () => {
     })
 
     it('should merge individual qualifiers with bulk qualifiers', () => {
-      const purl = PackageURLBuilder.create()
+      const purl = PurlBuilder.create()
         .type('npm')
         .name('lodash')
         .qualifier('arch', 'x64')
@@ -127,8 +128,8 @@ describe('PackageURLBuilder', () => {
 
   describe('static factory methods', () => {
     it('should create with create()', () => {
-      const builder = PackageURLBuilder.create()
-      expect(builder).toBeInstanceOf(PackageURLBuilder)
+      const builder = PurlBuilder.create()
+      expect(builder).toBeInstanceOf(PurlBuilder)
     })
 
     it.each([
@@ -141,7 +142,9 @@ describe('PackageURLBuilder', () => {
       ['nuget', undefined, 'Newtonsoft.Json'],
       ['composer', 'symfony', 'console'],
     ] as const)('should create %s builder', (type, namespace, name) => {
-      const builder = (PackageURLBuilder as any)[type]()
+      const builder = (
+        PurlBuilder as unknown as Record<string, () => PurlBuilder>
+      )[type]!()
       if (namespace !== undefined) {
         builder.namespace(namespace)
       }
@@ -157,16 +160,14 @@ describe('PackageURLBuilder', () => {
 
   describe('from existing PackageURL', () => {
     it('should create builder from existing PackageURL', () => {
-      const originalPurl = new PackageURL(
-        'npm',
-        '@types',
-        'node',
-        '16.11.7',
-        { arch: 'x64' },
-        'lib/fs.d.ts',
-      )
+      const originalPurl = createTestPurl('npm', 'node', {
+        namespace: '@types',
+        qualifiers: { arch: 'x64' },
+        subpath: 'lib/fs.d.ts',
+        version: '16.11.7',
+      })
 
-      const newPurl = PackageURLBuilder.from(originalPurl)
+      const newPurl = PurlBuilder.from(originalPurl)
         .version('18.0.0')
         .qualifier('os', 'linux')
         .build()
@@ -180,16 +181,11 @@ describe('PackageURLBuilder', () => {
     })
 
     it('should handle PackageURL with no qualifiers', () => {
-      const originalPurl = new PackageURL(
-        'npm',
-        undefined,
-        'lodash',
-        '4.17.21',
-        undefined,
-        undefined,
-      )
+      const originalPurl = createTestPurl('npm', 'lodash', {
+        version: '4.17.21',
+      })
 
-      const newPurl = PackageURLBuilder.from(originalPurl)
+      const newPurl = PurlBuilder.from(originalPurl)
         .qualifier('extra', 'value')
         .build()
 
@@ -200,16 +196,12 @@ describe('PackageURLBuilder', () => {
     })
 
     it('should not mutate original PackageURL qualifiers', () => {
-      const originalPurl = new PackageURL(
-        'npm',
-        undefined,
-        'lodash',
-        '4.17.21',
-        { arch: 'x64' },
-        undefined,
-      )
+      const originalPurl = createTestPurl('npm', 'lodash', {
+        qualifiers: { arch: 'x64' },
+        version: '4.17.21',
+      })
 
-      PackageURLBuilder.from(originalPurl).qualifier('os', 'linux').build()
+      PurlBuilder.from(originalPurl).qualifier('os', 'linux').build()
 
       expect(originalPurl.qualifiers).toEqual({ arch: 'x64' })
     })

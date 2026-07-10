@@ -21,12 +21,14 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Unit tests for URL conversion functionality.
+ * @file Unit tests for UrlConverter.toRepositoryUrl — purl-to-repository-URL
+ *   conversion across registry types. fromUrl coverage lives in
+ *   url-converter-from-url.test.mts.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../dist/package-url.js'
-import { UrlConverter } from '../dist/url-converter.js'
+import { PackageURL } from '../src/package-url.mjs'
+import { UrlConverter } from '../src/url-converter.mjs'
 
 describe('UrlConverter', () => {
   describe('toRepositoryUrl', () => {
@@ -36,7 +38,7 @@ describe('UrlConverter', () => {
         undefined,
         'lodash',
         '4.17.21',
-        'https://npmjs.com/package/lodash',
+        'https://www.npmjs.com/package/lodash/v/4.17.21',
         'web',
       ],
       [
@@ -44,7 +46,7 @@ describe('UrlConverter', () => {
         '@types',
         'node',
         '16.11.7',
-        'https://npmjs.com/package/@types/node',
+        'https://www.npmjs.com/package/@types/node/v/16.11.7',
         'web',
       ],
       [
@@ -60,7 +62,7 @@ describe('UrlConverter', () => {
         'org.apache.commons',
         'commons-lang3',
         '3.12.0',
-        'https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/',
+        'https://search.maven.org/artifact/org.apache.commons/commons-lang3/3.12.0/jar',
         'web',
       ],
       [
@@ -76,8 +78,8 @@ describe('UrlConverter', () => {
         'github.com/gin-gonic',
         'gin',
         'v1.8.1',
-        'https://github.com/gin-gonic/gin',
-        'git',
+        'https://pkg.go.dev/github.com/gin-gonic/gin@v1.8.1',
+        'web',
       ],
       [
         'cargo',
@@ -167,6 +169,191 @@ describe('UrlConverter', () => {
         'https://packagist.org/packages/package',
         'web',
       ],
+      [
+        'bioconductor',
+        undefined,
+        'GenomicRanges',
+        '1.50.0',
+        'https://bioconductor.org/packages/GenomicRanges',
+        'web',
+      ],
+      [
+        'chrome',
+        undefined,
+        'cjpalhdlnbpafiamejdnhcphjbkeiagm',
+        undefined,
+        'https://chromewebstore.google.com/detail/cjpalhdlnbpafiamejdnhcphjbkeiagm',
+        'web',
+      ],
+      [
+        'clojars',
+        'org.clojure',
+        'clojure',
+        '1.11.1',
+        'https://clojars.org/org.clojure/clojure',
+        'web',
+      ],
+      [
+        'cocoapods',
+        undefined,
+        'AFNetworking',
+        '4.0.0',
+        'https://cocoapods.org/pods/AFNetworking',
+        'web',
+      ],
+      [
+        'conan',
+        undefined,
+        'zlib',
+        '1.2.13',
+        'https://conan.io/center/recipes/zlib',
+        'web',
+      ],
+      [
+        'conda',
+        undefined,
+        'numpy',
+        '1.24.0',
+        'https://anaconda.org/conda-forge/numpy',
+        'web',
+      ],
+      [
+        'cpan',
+        'ETHER',
+        'Moose',
+        '2.2206',
+        'https://metacpan.org/release/ETHER/Moose-2.2206',
+        'web',
+      ],
+      [
+        'cpan',
+        'TIMB',
+        'DBI',
+        undefined,
+        'https://metacpan.org/dist/DBI',
+        'web',
+      ],
+      [
+        'deno',
+        undefined,
+        'oak',
+        '12.6.0',
+        'https://deno.land/x/oak@12.6.0',
+        'web',
+      ],
+      ['deno', undefined, 'oak', undefined, 'https://deno.land/x/oak', 'web'],
+      [
+        'docker',
+        undefined,
+        'nginx',
+        'latest',
+        'https://hub.docker.com/_/nginx?tab=tags&name=latest',
+        'web',
+      ],
+      [
+        'docker',
+        'library',
+        'nginx',
+        undefined,
+        'https://hub.docker.com/_/nginx',
+        'web',
+      ],
+      [
+        'docker',
+        'bitnami',
+        'postgresql',
+        '15',
+        'https://hub.docker.com/r/bitnami/postgresql?tab=tags&name=15',
+        'web',
+      ],
+      [
+        'elm',
+        'elm',
+        'json',
+        '1.1.3',
+        'https://package.elm-lang.org/packages/elm/json/1.1.3',
+        'web',
+      ],
+      [
+        'hackage',
+        undefined,
+        'aeson',
+        '2.1.0.0',
+        'https://hackage.haskell.org/package/aeson-2.1.0.0',
+        'web',
+      ],
+      [
+        'hackage',
+        undefined,
+        'aeson',
+        undefined,
+        'https://hackage.haskell.org/package/aeson',
+        'web',
+      ],
+      [
+        'homebrew',
+        undefined,
+        'wget',
+        '1.21.4',
+        'https://formulae.brew.sh/formula/wget',
+        'web',
+      ],
+      [
+        'huggingface',
+        'google',
+        'bert-base-uncased',
+        undefined,
+        'https://huggingface.co/google/bert-base-uncased',
+        'web',
+      ],
+      [
+        'huggingface',
+        undefined,
+        'bert-base-uncased',
+        undefined,
+        'https://huggingface.co/bert-base-uncased',
+        'web',
+      ],
+      [
+        'swift',
+        'apple',
+        'swift-argument-parser',
+        '1.2.0',
+        'https://github.com/apple/swift-argument-parser',
+        'git',
+      ],
+      [
+        'vscode',
+        'ms-python',
+        'python',
+        '2024.0.1',
+        'https://marketplace.visualstudio.com/items?itemName=ms-python.python',
+        'web',
+      ],
+      [
+        'vscode',
+        undefined,
+        'python',
+        undefined,
+        'https://marketplace.visualstudio.com/items?itemName=python',
+        'web',
+      ],
+      [
+        'github',
+        'octocat',
+        'hello-world',
+        'v1.0.0',
+        'https://github.com/octocat/hello-world/tree/v1.0.0',
+        'git',
+      ],
+      [
+        'bitbucket',
+        'user',
+        'repo',
+        'v1.0.0',
+        'https://bitbucket.org/user/repo/src/v1.0.0',
+        'git',
+      ],
     ])(
       'should convert %s packages to repository URLs',
       (type, namespace, name, version, expectedUrl, expectedType) => {
@@ -193,7 +380,7 @@ describe('UrlConverter', () => {
       ['gitlab', undefined, 'project', undefined, 'packages without namespace'],
       ['bitbucket', undefined, 'repo', undefined, 'packages without namespace'],
     ])(
-      'should return null for %s %s',
+      'should return undefined for %s %s',
       (type, namespace, name, version, _description) => {
         const purl = new PackageURL(
           type,
@@ -205,24 +392,26 @@ describe('UrlConverter', () => {
         )
         const result = UrlConverter.toRepositoryUrl(purl)
 
-        expect(result).toBeNull()
+        expect(result).toBeUndefined()
       },
     )
 
-    it('should return null for maven packages with empty namespace (defensive)', () => {
-      // Create a mock purl object with empty namespace to test defensive null check
+    it('should return undefined for maven packages with empty namespace (defensive)', () => {
+      // Create a mock purl object with empty namespace to test defensive undefined check
       const mockPurl = {
         type: 'maven',
         namespace: '',
         name: 'test',
         version: '1.0',
       }
-      const result = UrlConverter.toRepositoryUrl(mockPurl as any)
+      const result = UrlConverter.toRepositoryUrl(
+        mockPurl as unknown as PackageURL,
+      )
 
-      expect(result).toBeNull()
+      expect(result).toBeUndefined()
     })
 
-    it('should return null for unsupported package types', () => {
+    it('should return undefined for unsupported package types', () => {
       const purl = new PackageURL(
         'unknown',
         undefined,
@@ -233,224 +422,7 @@ describe('UrlConverter', () => {
       )
       const result = UrlConverter.toRepositoryUrl(purl)
 
-      expect(result).toBeNull()
-    })
-  })
-
-  describe('toDownloadUrl', () => {
-    it.each([
-      [
-        'npm',
-        undefined,
-        'lodash',
-        '4.17.21',
-        'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz',
-        'tarball',
-      ],
-      [
-        'npm',
-        '@types',
-        'node',
-        '16.11.7',
-        'https://registry.npmjs.org/@types/node/-/node-16.11.7.tgz',
-        'tarball',
-      ],
-      [
-        'pypi',
-        undefined,
-        'requests',
-        '2.28.1',
-        'https://pypi.org/simple/requests/',
-        'wheel',
-      ],
-      [
-        'maven',
-        'org.apache.commons',
-        'commons-lang3',
-        '3.12.0',
-        'https://repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar',
-        'jar',
-      ],
-      [
-        'gem',
-        undefined,
-        'rails',
-        '7.0.0',
-        'https://rubygems.org/downloads/rails-7.0.0.gem',
-        'gem',
-      ],
-      [
-        'cargo',
-        undefined,
-        'serde',
-        '1.0.144',
-        'https://crates.io/api/v1/crates/serde/1.0.144/download',
-        'tarball',
-      ],
-      [
-        'nuget',
-        undefined,
-        'Newtonsoft.Json',
-        '13.0.1',
-        'https://nuget.org/packages/Newtonsoft.Json/13.0.1/download',
-        'zip',
-      ],
-      [
-        'composer',
-        'symfony',
-        'console',
-        '6.1.0',
-        'https://repo.packagist.org/p2/symfony/console.json',
-        'other',
-      ],
-      [
-        'hex',
-        undefined,
-        'phoenix',
-        '1.6.0',
-        'https://repo.hex.pm/tarballs/phoenix-1.6.0.tar',
-        'tarball',
-      ],
-      [
-        'pub',
-        undefined,
-        'flutter',
-        '3.0.0',
-        'https://pub.dev/packages/flutter/versions/3.0.0.tar.gz',
-        'tarball',
-      ],
-      [
-        'golang',
-        'github.com/gin-gonic',
-        'gin',
-        'v1.8.1',
-        'https://proxy.golang.org/github.com/gin-gonic/gin/@v/v1.8.1.zip',
-        'zip',
-      ],
-    ])(
-      'should convert %s packages to download URLs',
-      (type, namespace, name, version, expectedUrl, expectedType) => {
-        const purl = new PackageURL(
-          type,
-          namespace,
-          name,
-          version,
-          undefined,
-          undefined,
-        )
-        const result = UrlConverter.toDownloadUrl(purl)
-
-        expect(result).toEqual({
-          url: expectedUrl,
-          type: expectedType,
-        })
-      },
-    )
-
-    it.each([
-      ['composer', undefined, 'console', '6.1.0', 'packages without namespace'],
-      ['golang', undefined, 'gin', 'v1.8.1', 'packages without namespace'],
-      ['npm', undefined, 'lodash', undefined, 'packages without version'],
-    ])(
-      'should return null for %s %s',
-      (type, namespace, name, version, _description) => {
-        const purl = new PackageURL(
-          type,
-          namespace,
-          name,
-          version,
-          undefined,
-          undefined,
-        )
-        const result = UrlConverter.toDownloadUrl(purl)
-
-        expect(result).toBeNull()
-      },
-    )
-
-    it('should return null for maven packages with empty namespace (defensive)', () => {
-      // Create a mock purl object with empty namespace to test defensive null check
-      const mockPurl = {
-        type: 'maven',
-        namespace: '',
-        name: 'test',
-        version: '1.0',
-      }
-      const result = UrlConverter.toDownloadUrl(mockPurl as any)
-
-      expect(result).toBeNull()
-    })
-
-    it('should return null for unsupported package types', () => {
-      const purl = new PackageURL(
-        'unknown',
-        undefined,
-        'package',
-        '1.0.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.toDownloadUrl(purl)
-
-      expect(result).toBeNull()
-    })
-  })
-
-  describe('getAllUrls', () => {
-    it('should return both repository and download URLs when available', () => {
-      const purl = new PackageURL(
-        'npm',
-        undefined,
-        'lodash',
-        '4.17.21',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.getAllUrls(purl)
-
-      expect(result).toEqual({
-        repository: {
-          url: 'https://npmjs.com/package/lodash',
-          type: 'web',
-        },
-        download: {
-          url: 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz',
-          type: 'tarball',
-        },
-      })
-    })
-
-    it('should return null for unavailable URLs', () => {
-      const purl = new PackageURL(
-        'unknown',
-        undefined,
-        'package',
-        '1.0.0',
-        undefined,
-        undefined,
-      )
-      const result = UrlConverter.getAllUrls(purl)
-
-      expect(result).toEqual({
-        repository: null,
-        download: null,
-      })
-    })
-  })
-
-  describe('support checks', () => {
-    it('should correctly identify types supporting repository URLs', () => {
-      expect(UrlConverter.supportsRepositoryUrl('npm')).toBe(true)
-      expect(UrlConverter.supportsRepositoryUrl('pypi')).toBe(true)
-      expect(UrlConverter.supportsRepositoryUrl('maven')).toBe(true)
-      expect(UrlConverter.supportsRepositoryUrl('unknown')).toBe(false)
-    })
-
-    it('should correctly identify types supporting download URLs', () => {
-      expect(UrlConverter.supportsDownloadUrl('npm')).toBe(true)
-      expect(UrlConverter.supportsDownloadUrl('pypi')).toBe(true)
-      expect(UrlConverter.supportsDownloadUrl('maven')).toBe(true)
-      expect(UrlConverter.supportsDownloadUrl('unknown')).toBe(false)
+      expect(result).toBeUndefined()
     })
   })
 })

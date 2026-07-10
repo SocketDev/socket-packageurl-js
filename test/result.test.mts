@@ -21,12 +21,12 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Unit tests for Result type and functional error handling.
+ * @file Unit tests for Result type and functional error handling.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../dist/package-url.js'
-import { Err, Ok, ResultUtils, err, ok } from '../dist/result.js'
+import { PackageURL } from '../src/package-url.mjs'
+import { Err, err, Ok, ok, ResultUtils } from '../src/result.mjs'
 
 describe('Result types', () => {
   describe('Ok', () => {
@@ -132,7 +132,7 @@ describe('Result types', () => {
     it('should map error correctly', () => {
       const result = err(new Error('original'))
       const mapped = result.mapErr(
-        (e: Error) => new Error('mapped: ' + e.message),
+        (e: Error) => new Error(`mapped: ${e.message}`),
       )
 
       expect(mapped.isErr()).toBe(true)
@@ -333,7 +333,7 @@ describe('PackageURL Result methods', () => {
         undefined,
         undefined,
         undefined,
-        'Invalid JSON string',
+        'Failed to parse PackageURL from JSON',
       ],
       [
         'valid JSON with invalid purl data',

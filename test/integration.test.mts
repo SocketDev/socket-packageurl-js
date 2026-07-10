@@ -1,6 +1,6 @@
 /**
- * @fileoverview Integration tests for built package.
- * Tests the package in the dist directory to verify build output.
+ * @file Integration tests for built package. Tests the package in the dist
+ *   directory to verify build output.
  */
 
 import path from 'node:path'
@@ -18,7 +18,8 @@ describe('Integration tests', () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
     // Test that we can import the package
-    const { PackageURL } = await import(`${pkgPath}/dist/package-url.js`)
+    // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- integration test loads the built bundle from a runtime-computed path (${pkgPath}/dist/index.js) to verify the published artifact.
+    const { PackageURL } = await import(`${pkgPath}/dist/index.js`)
     expect(PackageURL).toBeDefined()
     expect(typeof PackageURL).toBe('function')
 
@@ -27,15 +28,16 @@ describe('Integration tests', () => {
     expect(purl.toString()).toBe('pkg:npm/lodash@4.17.21')
   })
 
-  it('should load PackageURLBuilder and work correctly', async () => {
+  it('should load PurlBuilder and work correctly', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
-    const { PackageURLBuilder } = await import(`${pkgPath}/dist/package-url.js`)
-    expect(PackageURLBuilder).toBeDefined()
-    expect(typeof PackageURLBuilder.create).toBe('function')
+    // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- integration test loads the built bundle from a runtime-computed path (${pkgPath}/dist/index.js) to verify the published artifact.
+    const { PurlBuilder } = await import(`${pkgPath}/dist/index.js`)
+    expect(PurlBuilder).toBeDefined()
+    expect(typeof PurlBuilder.create).toBe('function')
 
     // Test basic functionality
-    const purl = PackageURLBuilder.create()
+    const purl = PurlBuilder.create()
       .type('npm')
       .name('lodash')
       .version('4.17.21')
@@ -46,8 +48,10 @@ describe('Integration tests', () => {
   it('should load UrlConverter and work correctly', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
-    const { UrlConverter } = await import(`${pkgPath}/dist/url-converter.js`)
-    const { PackageURL } = await import(`${pkgPath}/dist/package-url.js`)
+    // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- integration test loads the built bundle from a runtime-computed path (${pkgPath}/dist/index.js) to verify the published artifact.
+    const { PackageURL, UrlConverter } = await import(
+      `${pkgPath}/dist/index.js`
+    )
 
     expect(UrlConverter).toBeDefined()
     expect(typeof UrlConverter.toRepositoryUrl).toBe('function')
@@ -56,7 +60,7 @@ describe('Integration tests', () => {
     const purl = new PackageURL('npm', undefined, 'lodash', '4.17.21')
     const result = UrlConverter.toRepositoryUrl(purl)
     expect(result).toEqual({
-      url: 'https://npmjs.com/package/lodash',
+      url: 'https://www.npmjs.com/package/lodash/v/4.17.21',
       type: 'web',
     })
   })
@@ -64,13 +68,13 @@ describe('Integration tests', () => {
   it('should have all entry points working together', async () => {
     const { pkgPath } = await isolatePackage(packagePath)
 
-    const { PackageURL, PackageURLBuilder } = await import(
-      `${pkgPath}/dist/package-url.js`
+    // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- integration test loads the built bundle from a runtime-computed path (${pkgPath}/dist/index.js) to verify the published artifact.
+    const { PackageURL, PurlBuilder, UrlConverter } = await import(
+      `${pkgPath}/dist/index.js`
     )
-    const { UrlConverter } = await import(`${pkgPath}/dist/url-converter.js`)
 
     // Build a purl
-    const purl = PackageURLBuilder.create()
+    const purl = PurlBuilder.create()
       .type('npm')
       .namespace('@types')
       .name('node')

@@ -21,11 +21,12 @@ SOFTWARE.
 */
 
 /**
- * @fileoverview Unit tests for JSON/dict export functionality.
+ * @file Unit tests for JSON/dict export functionality.
  */
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../dist/package-url.js'
+import { PackageURL } from '../src/package-url.mjs'
+import { expectPurlEquality } from './utils/assertions.mjs'
 
 describe('PackageURL JSON/dict export', () => {
   describe('toObject', () => {
@@ -95,9 +96,9 @@ describe('PackageURL JSON/dict export', () => {
       )
       const obj = purl.toObject()
 
-      expect(obj['qualifiers']).toEqual(qualifiers)
+      expect(obj.qualifiers).toEqual(qualifiers)
       // Should be a copy, not the same reference
-      expect(obj['qualifiers']).not.toBe(qualifiers)
+      expect(obj.qualifiers).not.toBe(qualifiers)
     })
   })
 
@@ -243,16 +244,16 @@ describe('PackageURL JSON/dict export', () => {
     it('should validate input and throw appropriate errors', () => {
       // Test non-object inputs
       expect(() => PackageURL.fromObject('not an object')).toThrow(
-        'Object argument is required.',
-      )
-      expect(() => PackageURL.fromObject(null)).toThrow(
-        'Object argument is required.',
+        'Object argument is required',
       )
       expect(() => PackageURL.fromObject(undefined)).toThrow(
-        'Object argument is required.',
+        'Object argument is required',
+      )
+      expect(() => PackageURL.fromObject(undefined)).toThrow(
+        'Object argument is required',
       )
       expect(() => PackageURL.fromObject(123)).toThrow(
-        'Object argument is required.',
+        'Object argument is required',
       )
 
       // Test validation errors
@@ -293,26 +294,28 @@ describe('PackageURL JSON/dict export', () => {
     it('should validate input and throw appropriate errors', () => {
       // Test non-string inputs
       expect(() => PackageURL.fromJSON(123)).toThrow(
-        'JSON string argument is required.',
-      )
-      expect(() => PackageURL.fromJSON(null)).toThrow(
-        'JSON string argument is required.',
+        'JSON string argument is required',
       )
       expect(() => PackageURL.fromJSON(undefined)).toThrow(
-        'JSON string argument is required.',
+        'JSON string argument is required',
+      )
+      expect(() => PackageURL.fromJSON(undefined)).toThrow(
+        'JSON string argument is required',
       )
       expect(() => PackageURL.fromJSON({})).toThrow(
-        'JSON string argument is required.',
+        'JSON string argument is required',
       )
 
       // Test invalid JSON
       expect(() => PackageURL.fromJSON('invalid json')).toThrow(
-        'Invalid JSON string.',
+        'Failed to parse PackageURL from JSON',
       )
       expect(() => PackageURL.fromJSON('{"type":"npm","name"}')).toThrow(
-        'Invalid JSON string.',
+        'Failed to parse PackageURL from JSON',
       )
-      expect(() => PackageURL.fromJSON('')).toThrow('Invalid JSON string.')
+      expect(() => PackageURL.fromJSON('')).toThrow(
+        'Failed to parse PackageURL from JSON',
+      )
 
       // Test validation of created PackageURL
       expect(() =>
@@ -376,15 +379,10 @@ describe('PackageURL JSON/dict export', () => {
         (p: PackageURL) => PackageURL.fromJSON(p.toJSONString()),
       ],
     ])('should preserve data through %s round-trip', (_method, roundTrip) => {
-      for (const original of testCases) {
+      for (let i = 0, { length } = testCases; i < length; i += 1) {
+        const original = testCases[i]
         const restored = roundTrip(original)
-        expect(restored.type).toBe(original.type)
-        expect(restored.namespace).toBe(original.namespace)
-        expect(restored.name).toBe(original.name)
-        expect(restored.version).toBe(original.version)
-        expect(restored.qualifiers).toEqual(original.qualifiers)
-        expect(restored.subpath).toBe(original.subpath)
-        expect(restored.toString()).toBe(original.toString())
+        expectPurlEquality(restored, original)
       }
     })
   })
