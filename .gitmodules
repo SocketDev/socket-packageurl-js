@@ -1,0 +1,7 @@
+# meander-1.3.0
+# full-checkout: tour.mts runs npm install + npm run build inside the submodule, which needs the whole source tree
+[submodule "upstream/meander"]
+	path = upstream/meander
+	url = https://github.com/divmain/meander.git
+	ignore = dirty
+	shallow = true
