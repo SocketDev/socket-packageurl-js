@@ -1,17 +1,20 @@
 {
-  "extends": "./.config/tsconfig.base.json",
+  "extends": "./.config/fleet/tsconfig.base.json",
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationMap": false,
     "module": "commonjs",
-    "moduleResolution": "node",
-    "outDir": "dist",
-    "rootDir": "src",
-    "verbatimModuleSyntax": false,
+    "moduleResolution": "bundler",
     "noEmit": false,
     "noEmitOnError": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "skipLibCheck": true,
     "sourceMap": false,
-    "declarationMap": false,
-    "skipLibCheck": true
+    "types": ["node"],
+    "verbatimModuleSyntax": false
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "coverage", "test"]
+  "include": ["src/**/*.mts"],
+  "exclude": [".cache", "coverage", "dist", "node_modules", "test"]
 }
