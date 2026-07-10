@@ -1,0 +1,219 @@
+{
+  "slug": "socket-packageurl-js",
+  "title": "packageurl-js override by Socket",
+  "commentBackend": "https://socketdev--f074d2683d5711f1a65242b51c65c3df.web.val.run",
+  "parts": [
+    {
+      "id": 1,
+      "title": "Anatomy of a PURL",
+      "filename": "anatomy",
+      "objective": "Understand the `pkg:type/ns/name@version?q#sub` shape and how it maps to the `PackageURL` class.",
+      "keywords": ["purl", "package-url", "anatomy", "components"],
+      "files": [
+        "src/package-url.ts",
+        "src/purl-component.ts",
+        "src/constants.ts"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Building & Stringifying PURLs",
+      "filename": "building",
+      "objective": "Build PURLs with the fluent `PurlBuilder` API; serialize back to canonical `pkg:...` string form.",
+      "keywords": [
+        "builder",
+        "fluent",
+        "stringify",
+        "serialization",
+        "canonical"
+      ],
+      "files": ["src/package-url-builder.ts", "src/stringify.ts"]
+    },
+    {
+      "id": 3,
+      "title": "Parsing & Normalization",
+      "filename": "parsing",
+      "objective": "Percent-encoding, name/namespace normalization, and the known-qualifiers catalogue.",
+      "keywords": [
+        "encode",
+        "decode",
+        "percent-encoding",
+        "normalize",
+        "qualifiers"
+      ],
+      "files": [
+        "src/encode.ts",
+        "src/decode.ts",
+        "src/normalize.ts",
+        "src/purl-qualifier-names.ts"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Validation, Errors & Results",
+      "filename": "validation",
+      "objective": "Shape + format validation, the `Result<T, E>` functional error pattern (`Ok`/`Err`/`ResultUtils`), typed errors (`PurlError`, `PurlInjectionError`), and per-ecosystem rule plumbing.",
+      "keywords": ["validate", "result", "error", "ok", "err", "purl-type"],
+      "files": [
+        "src/validate.ts",
+        "src/result.ts",
+        "src/error.ts",
+        "src/purl-type.ts"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "URL ↔ PURL Conversion",
+      "filename": "conversion",
+      "objective": "Convert between repository/download URLs and PURLs — ~25 ecosystem URL parsers.",
+      "keywords": ["url-converter", "url", "repository", "download", "vcs"],
+      "files": ["src/url-converter.ts"]
+    },
+    {
+      "id": 6,
+      "title": "Ecosystems",
+      "filename": "ecosystems",
+      "objective": "Per-ecosystem normalize/validate/encode rules across all 41 supported package ecosystems.",
+      "keywords": [
+        "ecosystem",
+        "purl-types",
+        "npm",
+        "maven",
+        "cargo",
+        "docker",
+        "pypi",
+        "deb",
+        "rpm",
+        "github"
+      ],
+      "files": [
+        "src/purl-types/alpm.ts",
+        "src/purl-types/apk.ts",
+        "src/purl-types/bazel.ts",
+        "src/purl-types/bitbucket.ts",
+        "src/purl-types/bitnami.ts",
+        "src/purl-types/cargo.ts",
+        "src/purl-types/cocoapods.ts",
+        "src/purl-types/composer.ts",
+        "src/purl-types/conan.ts",
+        "src/purl-types/conda.ts",
+        "src/purl-types/cpan.ts",
+        "src/purl-types/cran.ts",
+        "src/purl-types/deb.ts",
+        "src/purl-types/docker.ts",
+        "src/purl-types/gem.ts",
+        "src/purl-types/generic.ts",
+        "src/purl-types/github.ts",
+        "src/purl-types/gitlab.ts",
+        "src/purl-types/golang.ts",
+        "src/purl-types/hackage.ts",
+        "src/purl-types/hex.ts",
+        "src/purl-types/huggingface.ts",
+        "src/purl-types/julia.ts",
+        "src/purl-types/luarocks.ts",
+        "src/purl-types/maven.ts",
+        "src/purl-types/mlflow.ts",
+        "src/purl-types/npm.ts",
+        "src/purl-types/nuget.ts",
+        "src/purl-types/oci.ts",
+        "src/purl-types/opam.ts",
+        "src/purl-types/otp.ts",
+        "src/purl-types/pub.ts",
+        "src/purl-types/pypi.ts",
+        "src/purl-types/qpkg.ts",
+        "src/purl-types/rpm.ts",
+        "src/purl-types/socket.ts",
+        "src/purl-types/swid.ts",
+        "src/purl-types/swift.ts",
+        "src/purl-types/unknown.ts",
+        "src/purl-types/vscode-extension.ts",
+        "src/purl-types/yocto.ts"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Comparison, Matching & Existence",
+      "filename": "comparison",
+      "objective": "Compare + equal + match PURLs with wildcard patterns *(ReDoS-protected)*; registry existence checks.",
+      "keywords": [
+        "compare",
+        "equals",
+        "matches",
+        "wildcard",
+        "exists",
+        "registry"
+      ],
+      "files": [
+        "src/compare.ts",
+        "src/exists.ts",
+        "src/purl-exists.ts",
+        "src/helpers.ts"
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Security Primitives & VERS",
+      "filename": "security",
+      "objective": "Injection-character detection for safe PURL handling, safe object freezing, and VERS — the pre-standard version-range specifier slated for [ECMA submission](https://github.com/package-url/vers-spec) in late 2026.",
+      "keywords": [
+        "security",
+        "injection",
+        "freeze",
+        "vers",
+        "version-range",
+        "pre-standard"
+      ],
+      "files": ["src/strings.ts", "src/objects.ts", "src/vers.ts"]
+    }
+  ],
+  "docs": [
+    {
+      "filename": "architecture",
+      "title": "Architecture",
+      "source": "docs/architecture.md",
+      "summary": "Module map, data flow, and the key abstractions that keep the library small."
+    },
+    {
+      "filename": "builders",
+      "title": "Builders",
+      "source": "docs/builders.md",
+      "summary": "The `PurlBuilder` fluent API — construct a `PackageURL` step by step with per-field setters and per-ecosystem factories."
+    },
+    {
+      "filename": "contributing",
+      "title": "Contributing",
+      "source": "docs/contributing.md",
+      "summary": "Dev setup, test layout, the parallel-sessions git workflow, and the full pre-PR checklist."
+    },
+    {
+      "filename": "converters",
+      "title": "Converters",
+      "source": "docs/converters.md",
+      "summary": "URL ↔ PURL conversion across ~25 ecosystems."
+    },
+    {
+      "filename": "hardening",
+      "title": "Hardening",
+      "source": "docs/hardening.md",
+      "summary": "How the library treats PURL strings as hostile input — injection-character detection, frozen instances, and a strong protective stance."
+    },
+    {
+      "filename": "release",
+      "title": "Release",
+      "source": "docs/release.md",
+      "summary": "Publish flow — npm trusted publishing, provenance attestations, [Socket.dev](https://socket.dev) post-publish audit, and common release scenarios."
+    },
+    {
+      "filename": "tour",
+      "title": "Tour",
+      "source": "docs/tour.md",
+      "summary": "How the tour site is built, from meander submodule through post-process to [GitHub Pages](https://pages.github.com) deploy."
+    },
+    {
+      "filename": "vers",
+      "title": "VERS",
+      "source": "docs/vers.md",
+      "summary": "Version-range specifiers — the pre-standard grammar slated for [ECMA submission](https://github.com/package-url/vers-spec) in late 2026."
+    }
+  ]
+}
