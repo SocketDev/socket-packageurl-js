@@ -29,7 +29,7 @@ The implementations do not agree on any of the three columns.
 - **Preserve**: packageurl-python, ruby, and upstream packageurl-js — which
   deliberately commented its golang lowercaser out: _"Ignore case-insensitive
   rule because go.mod are case-sensitive. Pending spec change:
-  https://github.com/package-url/purl-spec/pull/196"_.
+  <https://github.com/package-url/purl-spec/pull/196>"_.
 
 We preserve case (matching our closest sibling, upstream packageurl-js). Go
 module identity is genuinely case-sensitive — `github.com/User/Repo` and
@@ -38,7 +38,7 @@ wrong module or none. The purl-spec golang definition is self-contradictory
 (`case_sensitive: true` yet a note reading "must be lowercased"), and the
 shared spec test suite has no uppercase golang name/namespace case, so nothing
 actually constrains the choice. Open debate: purl-spec issues #67 / #136, PR
-#196.
+# 196.
 
 ### npm case: the legacy-name conditional
 
@@ -54,7 +54,7 @@ conditional lowercasing wrong — unresolved upstream.
 The Go module proxy case-encodes paths for case-insensitive filesystems: every
 uppercase letter becomes `!` + its lowercase form (`github.com/Azure` ->
 `github.com/!azure`). This is an **official Go module proxy protocol** transport
-detail (`go help goproxy`, https://go.dev/ref/mod#goproxy-protocol), implemented
+detail (`go help goproxy`, <https://go.dev/ref/mod#goproxy-protocol>), implemented
 in the Go toolchain's `golang.org/x/mod/module` (`escapeString` /
 `unescapeString`) — **not** an Artifactory invention. Artifactory merely
 conforms (golang/go#34084 -> JFrog RTFACT-20227 was a conformance bug on their

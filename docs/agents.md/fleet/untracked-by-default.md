@@ -20,7 +20,7 @@ grep -rl '<pattern>' . --include='*.rs' | grep -vE '/(upstream|vendor|third_part
 
 Incident: a `#[cold]` survey of socket-btm reported **5,058 `.rs` files**, every one under a package's `upstream/` (tree-sitter, icu4x, temporal, boringssl, and more). The repo has **no own Rust** to touch, so the whole count was vendored noise. Scoping to own-code roots surfaces that in one line.
 
-**Direction matters. This is the mirror image of `consumer-grep-nudge`.** "What is *mine* to change or count?" **excludes** vendored trees. "Who *uses* this token before I delete it?" **includes** them, since consumers hide inside the vendored bundle (the CSS-class-hydration incident). Pick the exclusion by intent, not by habit.
+**Direction matters. This is the mirror image of `consumer-grep-nudge`.** "What is _mine_ to change or count?" **excludes** vendored trees. "Who _uses_ this token before I delete it?" **includes** them, since consumers hide inside the vendored bundle (the CSS-class-hydration incident). Pick the exclusion by intent, not by habit.
 
 ## Three commands before staging
 
