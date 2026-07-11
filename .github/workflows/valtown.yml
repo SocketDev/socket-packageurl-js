@@ -73,8 +73,12 @@ jobs:
           fi
           echo "VALTOWN_TOKEN present (length: ${#VALTOWN_TOKEN})"
 
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2 (2026-05-15)
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - name: Setup and install (checkout + Node + pnpm + install)
-        uses: SocketDev/socket-registry/.github/actions/setup-and-install@c4b120c34fa95a9974ffb3f407fa58f4d167c844 # main (2026-05-15)
+        uses: ./.github/actions/fleet/setup-and-install
         with:
           checkout-fetch-depth: '1'
 
