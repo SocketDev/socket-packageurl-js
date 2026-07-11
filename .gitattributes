@@ -167,6 +167,8 @@ template/base/.claude/hooks/fleet/_shared/acorn/acorn.wasm binary
 .github/workflows/weekly-update.lock.yml linguist-generated=true
 .github/workflows/weekly-update.md linguist-generated=true
 .npmrc linguist-generated=true
+assets/fleet/badge-follow-bluesky.svg linguist-generated=true
+assets/fleet/badge-follow-x.svg linguist-generated=true
 assets/fleet/socket-logo-dark-840.png linguist-generated=true
 assets/fleet/socket-logo-dark.svg linguist-generated=true
 assets/fleet/socket-logo-light-840.png linguist-generated=true
