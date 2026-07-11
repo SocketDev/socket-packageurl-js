@@ -15,36 +15,36 @@ import { hook as hook6 } from '../answer-questions-nudge/index.mts'
 import { hook as hook7 } from '../answer-status-requests-nudge/index.mts'
 import { hook as hook8 } from '../anti-prose-guard/index.mts'
 import { hook as hook9 } from '../ask-suppression-nudge/index.mts'
-import { hook as hook10 } from '../auth-rotation-nudge/index.mts'
-import { hook as hook11 } from '../auto-land-on-stop/index.mts'
-import { hook as hook12 } from '../avoid-cd-nudge/index.mts'
-import { hook as hook13 } from '../brew-supply-chain-guard/index.mts'
-import { hook as hook14 } from '../bump-defers-to-release-guard/index.mts'
-import { hook as hook15 } from '../bundle-flags-guard/index.mts'
-import { hook as hook16 } from '../c8-ignore-reason-guard/index.mts'
-import { hook as hook17 } from '../cascade-first-triage-nudge/index.mts'
-import { hook as hook18 } from '../catch-message-guard/index.mts'
-import { hook as hook19 } from '../cdn-allowlist-guard/index.mts'
-import { hook as hook20 } from '../changelog-entry-shape-nudge/index.mts'
-import { hook as hook21 } from '../changelog-no-empty-guard/index.mts'
-import { hook as hook22 } from '../check-new-deps/index.mts'
-import { hook as hook23 } from '../claude-code-action-lockdown-guard/index.mts'
-import { hook as hook24 } from '../claude-lockdown-guard/index.mts'
-import { hook as hook25 } from '../claude-md-defer-detail-nudge/index.mts'
-import { hook as hook26 } from '../claude-md-rule-add-guard/index.mts'
-import { hook as hook27 } from '../claude-md-section-size-guard/index.mts'
-import { hook as hook28 } from '../claude-md-size-guard/index.mts'
-import { hook as hook29 } from '../claude-segmentation-guard/index.mts'
-import { hook as hook30 } from '../clipboard-snippet-nudge/index.mts'
-import { hook as hook31 } from '../clone-reviewed-repo-nudge/index.mts'
-import { hook as hook32 } from '../codex-no-write-guard/index.mts'
-import { hook as hook33 } from '../commit-author-guard/index.mts'
-import { hook as hook34 } from '../commit-cadence-nudge/index.mts'
-import { hook as hook35 } from '../commit-message-format-guard/index.mts'
-import { hook as hook36 } from '../commit-pr-nudge/index.mts'
-import { hook as hook37 } from '../commit-size-nudge/index.mts'
-import { hook as hook38 } from '../compound-lessons-nudge/index.mts'
-import { hook as hook39 } from '../concurrent-cargo-build-guard/index.mts'
+import { hook as hook10 } from '../attribution-rewrite-nudge/index.mts'
+import { hook as hook11 } from '../auth-rotation-nudge/index.mts'
+import { hook as hook12 } from '../auto-land-on-stop/index.mts'
+import { hook as hook13 } from '../avoid-cd-nudge/index.mts'
+import { hook as hook14 } from '../brew-supply-chain-guard/index.mts'
+import { hook as hook15 } from '../bump-defers-to-release-guard/index.mts'
+import { hook as hook16 } from '../bundle-flags-guard/index.mts'
+import { hook as hook17 } from '../c8-ignore-reason-guard/index.mts'
+import { hook as hook18 } from '../cascade-first-triage-nudge/index.mts'
+import { hook as hook19 } from '../catch-message-guard/index.mts'
+import { hook as hook20 } from '../cdn-allowlist-guard/index.mts'
+import { hook as hook21 } from '../changelog-entry-shape-nudge/index.mts'
+import { hook as hook22 } from '../changelog-no-empty-guard/index.mts'
+import { hook as hook23 } from '../check-new-deps/index.mts'
+import { hook as hook24 } from '../claude-code-action-lockdown-guard/index.mts'
+import { hook as hook25 } from '../claude-lockdown-guard/index.mts'
+import { hook as hook26 } from '../claude-md-defer-detail-nudge/index.mts'
+import { hook as hook27 } from '../claude-md-rule-add-guard/index.mts'
+import { hook as hook28 } from '../claude-md-section-size-guard/index.mts'
+import { hook as hook29 } from '../claude-md-size-guard/index.mts'
+import { hook as hook30 } from '../claude-segmentation-guard/index.mts'
+import { hook as hook31 } from '../clipboard-snippet-nudge/index.mts'
+import { hook as hook32 } from '../clone-reviewed-repo-nudge/index.mts'
+import { hook as hook33 } from '../codex-no-write-guard/index.mts'
+import { hook as hook34 } from '../commit-author-guard/index.mts'
+import { hook as hook35 } from '../commit-cadence-nudge/index.mts'
+import { hook as hook36 } from '../commit-message-format-guard/index.mts'
+import { hook as hook37 } from '../commit-pr-nudge/index.mts'
+import { hook as hook38 } from '../commit-size-nudge/index.mts'
+import { hook as hook39 } from '../compound-lessons-nudge/index.mts'
 import { hook as hook40 } from '../consumer-grep-nudge/index.mts'
 import { hook as hook41 } from '../convo-prose-nudge/index.mts'
 import { hook as hook42 } from '../copy-on-select-hint-nudge/index.mts'
@@ -224,7 +224,7 @@ export const DISPATCH_TABLE: Record<string, readonly DispatchHookEntry[]> = {
   'PostToolUse': [
     { name: 'actionlint-on-workflow-edit', check: hook0.check, tools: ['Edit', 'Write'] },
     { name: 'active-edits-ledger', check: hook1.check, tools: ['Edit', 'NotebookEdit', 'Write'] },
-    { name: 'clipboard-snippet-nudge', check: hook30.check, tools: ['Write'] },
+    { name: 'clipboard-snippet-nudge', check: hook31.check, tools: ['Write'] },
     { name: 'dep-derived-source-nudge', check: hook47.check, tools: ['Edit', 'MultiEdit', 'Write'] },
     { name: 'dirty-lockfile-nudge', check: hook48.check, tools: ['Bash'] },
     { name: 'enterprise-push-nudge', check: hook55.check, tools: ['Bash'] },
@@ -240,29 +240,29 @@ export const DISPATCH_TABLE: Record<string, readonly DispatchHookEntry[]> = {
     { name: 'alpha-sort-nudge', check: hook5.check, tools: ['Edit', 'Write', 'MultiEdit'] },
     { name: 'anti-prose-guard', check: hook8.check, tools: ['Edit', 'Write', 'MultiEdit'] },
     { name: 'ask-suppression-nudge', check: hook9.check, tools: ['AskUserQuestion'] },
-    { name: 'avoid-cd-nudge', check: hook12.check, tools: ['Bash'] },
-    { name: 'brew-supply-chain-guard', check: hook13.check, tools: ['Bash'] },
-    { name: 'bump-defers-to-release-guard', check: hook14.check, tools: ['Bash'] },
-    { name: 'bundle-flags-guard', check: hook15.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'c8-ignore-reason-guard', check: hook16.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'catch-message-guard', check: hook18.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'cdn-allowlist-guard', check: hook19.check, tools: ['Bash'] },
-    { name: 'changelog-entry-shape-nudge', check: hook20.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'changelog-no-empty-guard', check: hook21.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'check-new-deps', check: hook22.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'claude-code-action-lockdown-guard', check: hook23.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'claude-lockdown-guard', check: hook24.check, tools: ['Bash'] },
-    { name: 'claude-md-defer-detail-nudge', check: hook25.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'claude-md-rule-add-guard', check: hook26.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'claude-md-section-size-guard', check: hook27.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'claude-md-size-guard', check: hook28.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'claude-segmentation-guard', check: hook29.check, tools: ['Edit', 'Write', 'MultiEdit'] },
-    { name: 'clone-reviewed-repo-nudge', check: hook31.check, tools: ['Bash'] },
-    { name: 'codex-no-write-guard', check: hook32.check, tools: ['Bash'] },
-    { name: 'commit-author-guard', check: hook33.check, tools: ['Bash'] },
-    { name: 'commit-message-format-guard', check: hook35.check, tools: ['Bash'] },
-    { name: 'commit-size-nudge', check: hook37.check, tools: ['Bash'] },
-    { name: 'concurrent-cargo-build-guard', check: hook39.check, tools: ['Bash'] },
+    { name: 'attribution-rewrite-nudge', check: hook10.check, tools: ['Bash'] },
+    { name: 'avoid-cd-nudge', check: hook13.check, tools: ['Bash'] },
+    { name: 'brew-supply-chain-guard', check: hook14.check, tools: ['Bash'] },
+    { name: 'bump-defers-to-release-guard', check: hook15.check, tools: ['Bash'] },
+    { name: 'bundle-flags-guard', check: hook16.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'c8-ignore-reason-guard', check: hook17.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'catch-message-guard', check: hook19.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'cdn-allowlist-guard', check: hook20.check, tools: ['Bash'] },
+    { name: 'changelog-entry-shape-nudge', check: hook21.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'changelog-no-empty-guard', check: hook22.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'check-new-deps', check: hook23.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'claude-code-action-lockdown-guard', check: hook24.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'claude-lockdown-guard', check: hook25.check, tools: ['Bash'] },
+    { name: 'claude-md-defer-detail-nudge', check: hook26.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'claude-md-rule-add-guard', check: hook27.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'claude-md-section-size-guard', check: hook28.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'claude-md-size-guard', check: hook29.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'claude-segmentation-guard', check: hook30.check, tools: ['Edit', 'Write', 'MultiEdit'] },
+    { name: 'clone-reviewed-repo-nudge', check: hook32.check, tools: ['Bash'] },
+    { name: 'codex-no-write-guard', check: hook33.check, tools: ['Bash'] },
+    { name: 'commit-author-guard', check: hook34.check, tools: ['Bash'] },
+    { name: 'commit-message-format-guard', check: hook36.check, tools: ['Bash'] },
+    { name: 'commit-size-nudge', check: hook38.check, tools: ['Bash'] },
     { name: 'consumer-grep-nudge', check: hook40.check, tools: ['Edit', 'Write', 'MultiEdit'] },
     { name: 'convo-prose-nudge', check: hook41.check, tools: ['Bash'] },
     { name: 'cross-repo-guard', check: hook43.check, tools: ['Edit', 'Write', 'MultiEdit'] },
@@ -408,12 +408,12 @@ export const DISPATCH_TABLE: Record<string, readonly DispatchHookEntry[]> = {
     { name: 'ai-config-drift-nudge', check: hook3.check, tools: undefined },
     { name: 'answer-questions-nudge', check: hook6.check, tools: undefined },
     { name: 'answer-status-requests-nudge', check: hook7.check, tools: undefined },
-    { name: 'auth-rotation-nudge', check: hook10.check, tools: undefined },
-    { name: 'auto-land-on-stop', check: hook11.check, tools: undefined },
-    { name: 'cascade-first-triage-nudge', check: hook17.check, tools: undefined },
-    { name: 'commit-cadence-nudge', check: hook34.check, tools: undefined },
-    { name: 'commit-pr-nudge', check: hook36.check, tools: undefined },
-    { name: 'compound-lessons-nudge', check: hook38.check, tools: undefined },
+    { name: 'auth-rotation-nudge', check: hook11.check, tools: undefined },
+    { name: 'auto-land-on-stop', check: hook12.check, tools: undefined },
+    { name: 'cascade-first-triage-nudge', check: hook18.check, tools: undefined },
+    { name: 'commit-cadence-nudge', check: hook35.check, tools: undefined },
+    { name: 'commit-pr-nudge', check: hook37.check, tools: undefined },
+    { name: 'compound-lessons-nudge', check: hook39.check, tools: undefined },
     { name: 'dirty-worktree-stop-guard', check: hook49.check, tools: undefined },
     { name: 'dogfood-cascade-nudge', check: hook50.check, tools: undefined },
     { name: 'dont-blame-nudge', check: hook51.check, tools: undefined },
