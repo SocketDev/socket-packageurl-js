@@ -14,7 +14,7 @@ trustPolicyExclude:
 # entry — the .claude/hooks/check-new-deps hook references it via
 # "catalog:" so its manifest stays in lockstep with the root.
 catalog:
-  '@anthropic-ai/claude-code': 2.1.199
+  '@anthropic-ai/claude-code': 2.1.201
   '@redwoodjs/agent-ci': 0.16.2
   '@sinclair/typebox': 0.34.49
   '@socketregistry/packageurl-js': 1.4.2
@@ -179,6 +179,11 @@ enablePrePostScripts: true
 # Pin exact versions on `pnpm add`. Catalog and overrides should
 # also be exact pins (5.24.0, not ^5.24.0).
 saveExact: true
+
+# Hold nock at v14 due to breaking changes in v15 that conflict with the test suite.
+catalogShadowIgnore:
+  # nock 15 (msw-interceptors rewrite) breaks member mock suites — hold until the fleet #339 migration.
+  - 'nock'
 
 # Opt in to pnpm's Rust install engine (pacquet). pnpm 11.5.3+ fetches and
 # signature-verifies this config dependency; the integrity is inlined here (and
