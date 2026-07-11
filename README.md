@@ -1,7 +1,6 @@
 # @socketregistry/packageurl-js
 
-[![Socket Badge](https://socket.dev/api/badge/npm/package/@socketregistry/packageurl-js)](https://socket.dev/npm/package/@socketregistry/packageurl-js)
-[![CI - @socketregistry/packageurl-js](https://github.com/SocketDev/socket-packageurl-js/actions/workflows/ci.yml/badge.svg)](https://github.com/SocketDev/socket-packageurl-js/actions/workflows/ci.yml)
+<a href="https://socket.dev/npm/package/@socketregistry/packageurl-js"><img src="https://socket.dev/api/badge/npm/package/@socketregistry/packageurl-js" alt="Socket Badge" height="20"></a>
 ![Coverage](assets/repo/coverage.svg)
 
 [![Follow @SocketSecurity](assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
