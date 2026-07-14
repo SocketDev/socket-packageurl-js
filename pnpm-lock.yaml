@@ -281,8 +281,8 @@ catalogs:
       specifier: npm:@socketregistry/packageurl-js@1.4.2
       version: 1.4.2
     '@socketsecurity/lib-stable':
-      specifier: npm:@socketsecurity/lib@6.0.9
-      version: 6.0.9
+      specifier: npm:@socketsecurity/lib@6.0.10
+      version: 6.0.10
     '@socketsecurity/registry-stable':
       specifier: npm:@socketsecurity/registry@2.0.2
       version: 2.0.2
@@ -364,7 +364,7 @@ catalogs:
 
 overrides:
   '@socketregistry/packageurl-js': 1.4.2
-  '@socketsecurity/lib': 6.0.9
+  '@socketsecurity/lib': 6.0.10
   '@socketsecurity/registry': 2.0.2
   '@socketsecurity/sdk': 4.0.1
   chalk@>=5: 5.6.2
@@ -424,11 +424,11 @@ importers:
         specifier: 'catalog:'
         version: '@socketregistry/packageurl-js@1.4.2'
       '@socketsecurity/lib':
-        specifier: 6.0.9
-        version: 6.0.9(typescript@7.0.1-rc)
+        specifier: 6.0.10
+        version: 6.0.10(typescript@7.0.1-rc)
       '@socketsecurity/lib-stable':
         specifier: 'catalog:'
-        version: '@socketsecurity/lib@6.0.9(typescript@7.0.1-rc)'
+        version: '@socketsecurity/lib@6.0.10(typescript@7.0.1-rc)'
       '@socketsecurity/registry':
         specifier: 2.0.2
         version: 2.0.2(typescript@7.0.1-rc)
@@ -1615,9 +1615,9 @@ packages:
     resolution: {integrity: sha512-nqm2QgbXHldY6DgIBap3i1MlQms+eP7zIC0vPuyy9FmxF62ITa80hjj/3w6zH7DCxV4nQBcJsz3CaGNulQAP7g==}
     engines: {node: '>=18'}
 
-  '@socketsecurity/lib@6.0.9':
-    resolution: {integrity: sha512-LETvC49TYSd2WEhiIM66A7S+dJDi5frRz3eKN896VbFmI6oLnU8v37i/N7ICrb2svzs+ycbySZjc1clA7YQCzw==}
-    engines: {node: '>=22', npm: '>=11.16.0', pnpm: '>=11.8.0'}
+  '@socketsecurity/lib@6.0.10':
+    resolution: {integrity: sha512-SQF1tnF34kHguCfRNrfqOUUio0Rrnts6uuw5XoH6S0KdE7v922DYlUJ/gG0vclBc3AjuEQQU8Vex/oa2GNQ90A==}
+    engines: {node: '>=22', npm: '>=12.0.0', pnpm: '>=11.0.5'}
     hasBin: true
     peerDependencies:
       typescript: '>=5.0.0'
@@ -4908,7 +4908,7 @@ snapshots:
 
   '@socketregistry/side-channel@1.0.10': {}
 
-  '@socketsecurity/lib@6.0.9(typescript@7.0.1-rc)':
+  '@socketsecurity/lib@6.0.10(typescript@7.0.1-rc)':
     optionalDependencies:
       typescript: 7.0.1-rc
 
