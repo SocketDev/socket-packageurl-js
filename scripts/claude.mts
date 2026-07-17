@@ -3110,7 +3110,7 @@ export async function interactiveFixSession(
   // Start interactive session.
   logger.log('')
   logger.log(`${colors.blue('Starting interactive fix session with Claude…')}`)
-  logger.log('Claude will help you fix these issues.')
+  logger.log('The Claude CLI will help you fix these issues.')
   logger.log('Commands: fix <issue-number>, commit, push, exit')
   logger.log('')
 
@@ -4585,7 +4585,7 @@ Please help me fix this issue. You can:
 
 Let's work through this together to get CI passing.`
 
-            log.progress('Launching interactive Claude session')
+            log.progress('Launching interactive Claude CLI session')
             await runCommand(claudeCmd, prepareClaudeArgs([], opts), {
               input: interactivePrompt,
               cwd: rootPath,
