@@ -10,9 +10,9 @@
       "objective": "Understand the `pkg:type/ns/name@version?q#sub` shape and how it maps to the `PackageURL` class.",
       "keywords": ["purl", "package-url", "anatomy", "components"],
       "files": [
-        "src/package-url.ts",
-        "src/purl-component.ts",
-        "src/constants.ts"
+        "src/package-url.mts",
+        "src/purl-component.mts",
+        "src/constants.mts"
       ]
     },
     {
@@ -27,7 +27,7 @@
         "serialization",
         "canonical"
       ],
-      "files": ["src/package-url-builder.ts", "src/stringify.ts"]
+      "files": ["src/package-url-builder.mts", "src/stringify.mts"]
     },
     {
       "id": 3,
@@ -42,10 +42,10 @@
         "qualifiers"
       ],
       "files": [
-        "src/encode.ts",
-        "src/decode.ts",
-        "src/normalize.ts",
-        "src/purl-qualifier-names.ts"
+        "src/encode.mts",
+        "src/decode.mts",
+        "src/normalize.mts",
+        "src/purl-qualifier-names.mts"
       ]
     },
     {
@@ -55,10 +55,10 @@
       "objective": "Shape + format validation, the `Result<T, E>` functional error pattern (`Ok`/`Err`/`ResultUtils`), typed errors (`PurlError`, `PurlInjectionError`), and per-ecosystem rule plumbing.",
       "keywords": ["validate", "result", "error", "ok", "err", "purl-type"],
       "files": [
-        "src/validate.ts",
-        "src/result.ts",
-        "src/error.ts",
-        "src/purl-type.ts"
+        "src/validate.mts",
+        "src/result.mts",
+        "src/error.mts",
+        "src/purl-type.mts"
       ]
     },
     {
@@ -67,7 +67,7 @@
       "filename": "conversion",
       "objective": "Convert between repository/download URLs and PURLs — ~25 ecosystem URL parsers.",
       "keywords": ["url-converter", "url", "repository", "download", "vcs"],
-      "files": ["src/url-converter.ts"]
+      "files": ["src/url-converter.mts"]
     },
     {
       "id": 6,
@@ -87,47 +87,47 @@
         "github"
       ],
       "files": [
-        "src/purl-types/alpm.ts",
-        "src/purl-types/apk.ts",
-        "src/purl-types/bazel.ts",
-        "src/purl-types/bitbucket.ts",
-        "src/purl-types/bitnami.ts",
-        "src/purl-types/cargo.ts",
-        "src/purl-types/cocoapods.ts",
-        "src/purl-types/composer.ts",
-        "src/purl-types/conan.ts",
-        "src/purl-types/conda.ts",
-        "src/purl-types/cpan.ts",
-        "src/purl-types/cran.ts",
-        "src/purl-types/deb.ts",
-        "src/purl-types/docker.ts",
-        "src/purl-types/gem.ts",
-        "src/purl-types/generic.ts",
-        "src/purl-types/github.ts",
-        "src/purl-types/gitlab.ts",
-        "src/purl-types/golang.ts",
-        "src/purl-types/hackage.ts",
-        "src/purl-types/hex.ts",
-        "src/purl-types/huggingface.ts",
-        "src/purl-types/julia.ts",
-        "src/purl-types/luarocks.ts",
-        "src/purl-types/maven.ts",
-        "src/purl-types/mlflow.ts",
-        "src/purl-types/npm.ts",
-        "src/purl-types/nuget.ts",
-        "src/purl-types/oci.ts",
-        "src/purl-types/opam.ts",
-        "src/purl-types/otp.ts",
-        "src/purl-types/pub.ts",
-        "src/purl-types/pypi.ts",
-        "src/purl-types/qpkg.ts",
-        "src/purl-types/rpm.ts",
-        "src/purl-types/socket.ts",
-        "src/purl-types/swid.ts",
-        "src/purl-types/swift.ts",
-        "src/purl-types/unknown.ts",
-        "src/purl-types/vscode-extension.ts",
-        "src/purl-types/yocto.ts"
+        "src/purl-types/alpm.mts",
+        "src/purl-types/apk.mts",
+        "src/purl-types/bazel.mts",
+        "src/purl-types/bitbucket.mts",
+        "src/purl-types/bitnami.mts",
+        "src/purl-types/cargo.mts",
+        "src/purl-types/cocoapods.mts",
+        "src/purl-types/composer.mts",
+        "src/purl-types/conan.mts",
+        "src/purl-types/conda.mts",
+        "src/purl-types/cpan.mts",
+        "src/purl-types/cran.mts",
+        "src/purl-types/deb.mts",
+        "src/purl-types/docker.mts",
+        "src/purl-types/gem.mts",
+        "src/purl-types/generic.mts",
+        "src/purl-types/github.mts",
+        "src/purl-types/gitlab.mts",
+        "src/purl-types/golang.mts",
+        "src/purl-types/hackage.mts",
+        "src/purl-types/hex.mts",
+        "src/purl-types/huggingface.mts",
+        "src/purl-types/julia.mts",
+        "src/purl-types/luarocks.mts",
+        "src/purl-types/maven.mts",
+        "src/purl-types/mlflow.mts",
+        "src/purl-types/npm.mts",
+        "src/purl-types/nuget.mts",
+        "src/purl-types/oci.mts",
+        "src/purl-types/opam.mts",
+        "src/purl-types/otp.mts",
+        "src/purl-types/pub.mts",
+        "src/purl-types/pypi.mts",
+        "src/purl-types/qpkg.mts",
+        "src/purl-types/rpm.mts",
+        "src/purl-types/socket.mts",
+        "src/purl-types/swid.mts",
+        "src/purl-types/swift.mts",
+        "src/purl-types/unknown.mts",
+        "src/purl-types/vscode-extension.mts",
+        "src/purl-types/yocto.mts"
       ]
     },
     {
@@ -144,10 +144,10 @@
         "registry"
       ],
       "files": [
-        "src/compare.ts",
-        "src/exists.ts",
-        "src/purl-exists.ts",
-        "src/helpers.ts"
+        "src/compare.mts",
+        "src/exists.mts",
+        "src/purl-exists.mts",
+        "src/helpers.mts"
       ]
     },
     {
@@ -163,7 +163,7 @@
         "version-range",
         "pre-standard"
       ],
-      "files": ["src/strings.ts", "src/objects.ts", "src/vers.ts"]
+      "files": ["src/strings.mts", "src/objects.mts", "src/vers.mts"]
     }
   ],
   "docs": [

@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url'
 import allThePackageNamesData from 'all-the-package-names/names.json' with { type: 'json' }
 import allThePackageNamesV1Data from 'all-the-package-names-v1.3905.0/names.json' with { type: 'json' }
 import pacote from 'pacote'
-import semver from '@socketsecurity/lib-stable/external/semver'
+// oxlint-disable-next-line socket/prefer-stable-external-semver -- @socketsecurity/lib 6.0.10 removed the external/semver export; this repo declares and pins semver directly.
+import semver from 'semver'
 import validateNpmPackageName from 'validate-npm-package-name'
 
 import { arrayUnique } from '@socketsecurity/lib-stable/arrays/unique'

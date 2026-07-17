@@ -1,0 +1,3 @@
+{
+  "allowEsbuild": "scripts/repo/tour.mts uses esbuild only to transform JavaScript examples shown by the documentation tour; package builds remain on rolldown"
+}

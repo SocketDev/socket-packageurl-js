@@ -10,7 +10,8 @@ import process from 'node:process'
 import readline from 'node:readline'
 import { fileURLToPath } from 'node:url'
 
-import semver from '@socketsecurity/lib-stable/external/semver'
+// oxlint-disable-next-line socket/prefer-stable-external-semver -- @socketsecurity/lib 6.0.10 removed the external/semver export; this repo declares and pins semver directly.
+import semver from 'semver'
 import colors from 'yoctocolors-cjs'
 
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'

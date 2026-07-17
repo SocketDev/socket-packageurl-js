@@ -1454,7 +1454,7 @@ export function applyBasePath(
  * We only produce integrity here — browser SRI + CSP want SRI format.
  */
 export function computeIntegrity(bytes: Uint8Array): string {
-  return `sha512-${cryptoHash('sha512', bytes, 'base64')}`
+  return `sha512-${crypto.hash('sha512', bytes, 'base64')}`
 }
 
 /**
@@ -1502,7 +1502,7 @@ export function buildCspMeta(
       continue
     }
     const body = script.text
-    const hash = cryptoHash('sha512', body, 'base64')
+    const hash = crypto.hash('sha512', body, 'base64')
     inlineScriptHashes.add(`'sha512-${hash}'`)
   }
 
@@ -1532,7 +1532,7 @@ export function buildCspMeta(
      * (Mermaid emits these on some shape primitives) get blocked. */
     const style = node.getAttribute('style')
     if (style !== null && style !== undefined) {
-      const hash = cryptoHash('sha256', style, 'base64')
+      const hash = crypto.hash('sha256', style, 'base64')
       inlineStyleAttrHashes.add(`'sha256-${hash}'`)
     }
     for (const child of node.childNodes) {
@@ -1550,7 +1550,7 @@ export function buildCspMeta(
   for (const style of root.querySelectorAll('style')) {
     const body = style.text
     if (body) {
-      const hash = cryptoHash('sha256', body, 'base64')
+      const hash = crypto.hash('sha256', body, 'base64')
       inlineStyleElementHashes.add(`'sha256-${hash}'`)
     }
   }
@@ -2154,7 +2154,7 @@ export async function generate(
         .filter(p => existsSync(p))
         .map(async p => {
           const bytes = await fs.readFile(p)
-          const sha384 = cryptoHash('sha384', bytes, 'base64')
+          const sha384 = crypto.hash('sha384', bytes, 'base64')
           const href = '/fonts/' + path.basename(p)
           return `<link rel="preload" as="font" type="font/woff2" href="${href}" integrity="sha384-${sha384}" crossorigin="anonymous" />`
         }),
@@ -2997,7 +2997,7 @@ export async function generate(
           const cspTag = buildCspMeta(root, commentBackend)
           const head = root.querySelector('head')
           if (head) {
-            headEl.insertAdjacentHTML('beforeend', `\n  ${cspTag}`)
+            head.insertAdjacentHTML('beforeend', `\n  ${cspTag}`)
           }
         }
         const html = root.toString()
@@ -3779,7 +3779,7 @@ export async function deployValtown(args: readonly string[]): Promise<void> {
     const f = files[i]
     const srcPath = path.join(valDir, f.path)
     const content = await fs.readFile(srcPath, 'utf8')
-    const sha256 = cryptoHash('sha256', content, 'hex')
+    const sha256 = crypto.hash('sha256', content, 'hex')
     // Val Town's file API wants `path` in the querystring; body carries
     // only content + type. Try POST (create) first — if the file
     // already exists it 409s and we fall through to PUT (update).

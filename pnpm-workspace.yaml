@@ -32,6 +32,7 @@ catalog:
   'compromise': 14.15.1
   'dtu-github-actions': 0.17.1
   'ecc-agentshield': 1.4.0
+  'esbuild': 0.25.12
   'magic-string': 1.0.0
   'markdownlint-cli2': 0.23.0
   'mdast-util-from-markdown': 2.0.3
@@ -73,6 +74,7 @@ allowBuilds:
   # the Tour pipeline. CI + Val Town pay the download cost as the
   # uniform-install tradeoff for keeping all workflows symmetric.
   cpu-features: false
+  esbuild: true
   protobufjs: false
   puppeteer: true
   ssh2: false

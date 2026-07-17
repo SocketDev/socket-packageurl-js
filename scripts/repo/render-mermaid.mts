@@ -123,7 +123,7 @@ export async function createMermaidRenderer(
     source: string,
     theme: MermaidTheme,
   ): Promise<string> => {
-    const key = cryptoHash(
+    const key = crypto.hash(
       'sha256',
       `${mermaidVersion}\n${theme}\n${source}`,
       'hex',

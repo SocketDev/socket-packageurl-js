@@ -112,6 +112,7 @@
     "del": "8.0.1",
     "dev-null-cli": "2.0.0",
     "ecc-agentshield": "catalog:",
+    "esbuild": "catalog:",
     "fast-glob": "3.3.3",
     "globals": "16.4.0",
     "lightningcss": "1.32.0",
@@ -167,6 +168,7 @@
   },
   "allowScripts": {
     "cpu-features": false,
+    "esbuild": true,
     "protobufjs": false,
     "puppeteer": true,
     "ssh2": false

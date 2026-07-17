@@ -25,7 +25,8 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { SocketSdk } from '@socketsecurity/sdk-stable'
 import type { MalwareCheckPackage } from '@socketsecurity/sdk-stable'
 import pacote from 'pacote'
-import semver from '@socketsecurity/lib-stable/external/semver'
+// oxlint-disable-next-line socket/prefer-stable-external-semver -- @socketsecurity/lib 6.0.10 removed the external/semver export; this repo declares and pins semver directly.
+import semver from 'semver'
 
 const logger = getDefaultLogger()
 
