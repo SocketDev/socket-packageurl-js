@@ -9,7 +9,7 @@ trustPolicyExclude:
 # "catalog:" so its manifest stays in lockstep with the root.
 catalog:
   '@anthropic-ai/claude-code': 2.1.201
-  '@redwoodjs/agent-ci': 0.16.2
+  '@redwoodjs/agent-ci': 0.17.1
   '@sinclair/typebox': 0.34.50
   '@socketregistry/packageurl-js': 1.4.2
   '@socketregistry/packageurl-js-stable': npm:@socketregistry/packageurl-js@1.4.2
@@ -30,9 +30,9 @@ catalog:
   'c8': 11.0.0
   'chrome-devtools-mcp': 1.5.0
   'compromise': 14.15.1
-  'dtu-github-actions': 0.16.2
+  'dtu-github-actions': 0.17.1
   'ecc-agentshield': 1.4.0
-  'magic-string': 0.30.21
+  'magic-string': 1.0.0
   'markdownlint-cli2': 0.23.0
   'mdast-util-from-markdown': 2.0.3
   'micromark': 4.0.2
@@ -141,7 +141,6 @@ minimumReleaseAgeExclude:
   # rolldown release; the per-platform bindings share its pin.
   # Listed explicitly per the fleet "no scope globs in soak excludes" rule.
   - '@rolldown/pluginutils'
-  - '@redwoodjs/agent-ci'
   - 'sfw'
   - '@stuie/*'
   - '@ultrathink/*'
@@ -154,6 +153,12 @@ minimumReleaseAgeExclude:
   - '@sdxgen/*'
   - 'sdxgen'
   - 'stuie'
+  # published: 2026-07-14 | removable: 2026-07-21
+  - '@redwoodjs/agent-ci@0.17.1'
+  # published: 2026-07-14 | removable: 2026-07-21
+  - 'dtu-github-actions@0.17.1'
+  # published: 2026-07-16 | removable: 2026-07-23
+  - 'magic-string@1.0.0'
 
 # Refuse transitive dependencies declared via git/tarball/local-tarball
 # specs — an npm package shouldn't be allowed to drag in a git URL we
