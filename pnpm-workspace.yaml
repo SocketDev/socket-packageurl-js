@@ -10,7 +10,7 @@ trustPolicyExclude:
 catalog:
   '@anthropic-ai/claude-code': 2.1.201
   '@redwoodjs/agent-ci': 0.16.2
-  '@sinclair/typebox': 0.34.49
+  '@sinclair/typebox': 0.34.50
   '@socketregistry/packageurl-js': 1.4.2
   '@socketregistry/packageurl-js-stable': npm:@socketregistry/packageurl-js@1.4.2
   '@socketsecurity/lib': 6.0.10
@@ -20,13 +20,16 @@ catalog:
   '@socketsecurity/sdk': 4.0.1
   '@socketsecurity/sdk-stable': npm:@socketsecurity/sdk@4.0.1
   '@types/mdast': 4.0.4
-  '@types/node': 26.1.0
+  '@types/node': 26.1.1
   '@types/semver': 7.7.1
   '@types/shell-quote': 1.7.5
   '@typescript/native-preview': 7.0.0-dev.20260510.1
   '@ultrathink/acorn.wasm': npm:@ultrathink/acorn-wasm@0.0.1
-  '@vitest/coverage-v8': 4.1.9
-  '@vitest/ui': 4.1.9
+  '@vitest/coverage-v8': 4.1.10
+  '@vitest/ui': 4.1.10
+  'c8': 11.0.0
+  'chrome-devtools-mcp': 1.5.0
+  'compromise': 14.15.1
   'dtu-github-actions': 0.16.2
   'ecc-agentshield': 1.4.0
   'magic-string': 0.30.21
@@ -36,8 +39,8 @@ catalog:
   'neosanitize': 0.3.0
   'nock': 15.0.0
   'npm-run-all2': 9.0.2
-  'oxfmt': 0.57.0
-  'oxlint': 1.72.0
+  'oxfmt': 0.58.0
+  'oxlint': 1.73.0
   # Fleet bundler. Single-sourced to match the wheelhouse catalog pin +
   # the rolldown vite 8.0.14 bundles natively.
   'playwright-core': 1.61.1
@@ -48,9 +51,9 @@ catalog:
   'taze': 19.14.1
   # vite 8.0.14 swaps esbuild → rolldown natively (bundles rolldown
   # 1.0.2), so the override below removes esbuild from the install tree.
-  'typescript': 7.0.1-rc
+  'typescript': 7.0.2
   'vite': 8.1.0
-  'vitest': 4.1.9
+  'vitest': 4.1.10
 
 # Register .claude/hooks/* and the oxlint-plugin rule packages as
 # workspace packages so taze (run via `pnpm run update`) sees and bumps
@@ -103,7 +106,7 @@ overrides:
   'iconv-lite': '0.7.2'
   'isexe@>=3': '4.0.0'
   'lru-cache@>=10': '11.3.6'
-  'magic-string': '0.30.21'
+  'magic-string': '1.0.0'
   'mime-db': '1.54.0'
   'mime-types@>=3': '3.0.2'
   'minipass@>=4': '7.1.3'

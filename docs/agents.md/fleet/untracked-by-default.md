@@ -10,7 +10,7 @@ When you scan a repo for **its own code** (counting files, hunting a pattern to 
 
 **Submodules are the deterministic case.** Rather than guessing by directory name, read `.gitmodules` for the exact vendored paths and exclude those:
 
-```sh
+```bash
 # exact submodule paths (deterministic, no name-guessing)
 git config -f .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}'
 
@@ -32,7 +32,7 @@ Incident: a `#[cold]` survey of socket-btm reported **5,058 `.rs` files**, every
 
 When `.gitignore` has the shape:
 
-```
+```gitignore
 deps/<libname>/*
 !deps/<libname>/<file>
 ```
@@ -41,7 +41,7 @@ deps/<libname>/*
 
 **Worked example**: `packages/node-smol-builder/additions/source-patched/deps/libdeflate/`:
 
-```
+```text
 packages/node-smol-builder/additions/source-patched/deps/libdeflate/*
 !packages/node-smol-builder/additions/source-patched/deps/libdeflate/libdeflate.gyp
 ```
