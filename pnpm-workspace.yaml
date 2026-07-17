@@ -63,9 +63,9 @@ catalog:
 # without the glob the rule's `require` throws and the whole socket/ plugin
 # fails to load). Keeps hook + rule deps in lockstep with the main tree.
 packages:
-  - .claude/hooks/*
   - .config/fleet/oxlint-plugin
   - .config/fleet/oxlint-plugin/fleet/*
+  - '.claude/hooks/fleet/*'
 
 allowBuilds:
   # puppeteer ships a postinstall that downloads Chromium (~300MB).
