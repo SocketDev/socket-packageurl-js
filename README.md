@@ -1,7 +1,7 @@
 # @socketregistry/packageurl-js
 
 <a href="https://socket.dev/npm/package/@socketregistry/packageurl-js"><img src="https://socket.dev/api/badge/npm/package/@socketregistry/packageurl-js" alt="Socket Badge" height="20"></a>
-![Coverage](assets/repo/coverage.svg)
+<img src="assets/repo/badges/coverage.svg" width="104" height="20" alt="Coverage" />
 
 [![Follow @SocketSecurity](assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)

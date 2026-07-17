@@ -287,7 +287,7 @@ container-style.
 - **Target**: CommonJS (Node 18+), one output file per module
   under `dist/`.
 - **Type declarations**: emitted as `.d.ts` beside the JS.
-- **Build tool**: esbuild transform (see `scripts/build.mts`).
+- **Build tool**: esbuild transform (see `scripts/repo/build.mts`).
 
 We target CommonJS because the consumers in the Socket fleet are
 still a mix of ESM and CJS. ESM-only consumers can `import` a

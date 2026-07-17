@@ -1,8 +1,9 @@
 ---
 name: updating-spec
-description: Syncs socket-packageurl-js against upstream PURL and VERS specifications. Checks purl-spec, vers-spec, TC54/ECMA-427 standards, and the purl npm package for new types, test cases, normalization rules, and spec changes. Triggers when user mentions "update spec", "sync spec", "purl spec changes", or "check upstream".
+description: Sync against upstream PURL, VERS, and ECMA-427 specifications. Use for spec updates, upstream checks, new cases, or normalization changes.
 user-invocable: true
-allowed-tools: Agent, Task, Bash(pnpm:*), Bash(npm:*), Bash(git:*), Bash(node:*), Bash(rg:*), Bash(grep:*), Bash(find:*), Bash(ls:*), Bash(cat:*), Bash(head:*), Bash(tail:*), Bash(wc:*), Bash(diff:*), Read, Write, Edit, Grep, Glob, WebFetch---
+allowed-tools: Agent, Task, Bash(pnpm:*), Bash(npm:*), Bash(git:*), Bash(node:*), Bash(rg:*), Bash(grep:*), Bash(find:*), Bash(ls:*), Bash(cat:*), Bash(head:*), Bash(tail:*), Bash(wc:*), Bash(diff:*), Read, Write, Edit, Grep, Glob, WebFetch
+---
 
 # updating-spec
 

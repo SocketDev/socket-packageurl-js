@@ -12,7 +12,7 @@ import process from 'node:process'
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
 import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
-import { errorMessage } from './utils/error-message.mts'
+import { errorMessage } from '../utils/error-message.mts'
 import {
   checkClaude,
   checkGitBranch,
@@ -69,7 +69,7 @@ let prompts:
 if (hasInteractivePrompts) {
   try {
     // oxlint-disable-next-line socket/no-dynamic-import-outside-bundle -- optional dependency path resolved at runtime.
-    // socket-lint: allow top-level-await -- bump.mts is a pure-ESM CLI run via `node scripts/bump.mts`; it is never CJS-bundled.
+    // socket-lint: allow top-level-await -- bump.mts is a pure-ESM CLI run via `node scripts/repo/bump.mts`; it is never CJS-bundled.
     prompts = (await import(promptsPath!)) as typeof prompts
   } catch {
     // Fall back to basic prompts if import fails

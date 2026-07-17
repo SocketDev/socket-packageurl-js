@@ -136,7 +136,7 @@ jobs:
           pnpm build 2>&1 | tee build-output.log
           BUILD_EXIT=${PIPESTATUS[0]}
 
-          pnpm test 2>&1 | tee test-output.log
+          pnpm run test --all 2>&1 | tee test-output.log
           TEST_EXIT=${PIPESTATUS[0]}
           set -e
 
@@ -183,7 +183,7 @@ jobs:
 
           <instructions>
           1. Analyze the build and test failures above.
-          2. Fix the source code so tests pass (pnpm build && pnpm test).
+          2. Fix the source code so tests pass (pnpm build && pnpm run test --all).
           3. Commit each fix with a conventional commit message.
           4. Leave all changes local — the workflow handles pushing.
           </instructions>`;

@@ -28,7 +28,7 @@ import type {
   SpawnResult,
 } from '@socketsecurity/lib-stable/process/spawn/types'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
-import { errorMessage } from './utils/error-message.mts'
+import { errorMessage } from '../utils/error-message.mts'
 
 type CommandResult = {
   exitCode: number
@@ -162,7 +162,7 @@ type SelectModeOptions = {
 }
 
 const __dirname: string = path.dirname(fileURLToPath(import.meta.url))
-const rootPath: string = path.join(__dirname, '..')
+const rootPath: string = path.join(__dirname, '../..')
 const parentPath: string = path.join(rootPath, '..')
 const claudeDir: string = path.join(rootPath, '.claude')
 const WIN32: boolean = process.platform === 'win32'

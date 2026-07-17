@@ -24,7 +24,7 @@ const logger = getDefaultLogger()
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const rootPath = path.join(__dirname, '..')
+const rootPath = path.join(__dirname, '../..')
 const dataPath = path.join(rootPath, 'data')
 const npmDataPath = path.join(dataPath, 'npm')
 const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')

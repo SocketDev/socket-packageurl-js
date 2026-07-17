@@ -1,6 +1,6 @@
 ---
 name: content-filename-from-title
-description: Turns a prose title into a short, single-word, URL-friendly filename for published content (docs, tour parts, blog slugs, guide pages). Use when adding a new entry to a manifest that exposes public filenames (e.g. tour.json parts, docs/*.md for GH Pages), when renaming an existing one, or when a user asks "what should I name this file?"
+description: Create short, single-word, URL-friendly filenames from prose titles. Use when naming or renaming published docs, tour parts, guides, or slugs.
 ---
 
 # content-filename-from-title

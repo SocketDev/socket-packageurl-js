@@ -37,7 +37,7 @@ export const logger: Logger = getDefaultLogger()
 
 export const rootPath: string = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '..',
+  '../..',
 )
 export const WIN32: boolean = process.platform === 'win32'
 

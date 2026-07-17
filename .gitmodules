@@ -3,5 +3,6 @@
 [submodule "upstream/meander"]
 	path = upstream/meander
 	url = https://github.com/divmain/meander.git
+	branch = main
 	ignore = dirty
 	shallow = true

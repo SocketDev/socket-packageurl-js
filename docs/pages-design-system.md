@@ -3,7 +3,7 @@
 A practical guide to styling the tour site we publish at
 `https://socketdev.github.io/socket-packageurl-js/`. Read this before
 touching `walkthrough-overrides.css`, any generated HTML in
-`scripts/tour.mts`, or when building a new UI that lives on that site.
+`scripts/repo/tour.mts`, or when building a new UI that lives on that site.
 
 ## Who this is for
 
@@ -644,6 +644,6 @@ keeping it honest:
 - [walkthrough-overrides.css](../walkthrough-overrides.css) — the CSS
   tokens this doc references, with inline comments explaining why each
   value was picked.
-- [scripts/tour.mts](../scripts/tour.mts) — the generator
+- [scripts/repo/tour.mts](../scripts/repo/tour.mts) — the generator
   - post-processor; read this if you need to change the generated HTML
     shape (e.g. to add a new class a component needs).

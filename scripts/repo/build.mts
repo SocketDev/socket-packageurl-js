@@ -21,12 +21,12 @@ import type { Logger } from '@socketsecurity/lib-stable/logger/types'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
-import { errorMessage } from './utils/error-message.mts'
+import { errorMessage } from '../utils/error-message.mts'
 
 const logger: Logger = getDefaultLogger()
 
-import { configs as rolldownConfigs } from '../.config/repo/rolldown.config.mts'
-import { runSequence } from './utils/run-command.mts'
+import { configs as rolldownConfigs } from '../../.config/repo/rolldown.config.mts'
+import { runSequence } from '../utils/run-command.mts'
 
 type BuildAnalysis = {
   files: Array<{
@@ -81,7 +81,7 @@ type SequenceCommand = {
 
 const rootPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '..',
+  '../..',
 )
 const distPath = path.join(rootPath, 'dist')
 
@@ -101,7 +101,7 @@ export async function buildSource(
   if (!skipClean) {
     const exitCode = await runSequence([
       {
-        args: ['scripts/clean.mts', '--dist', '--quiet'],
+        args: ['scripts/repo/clean.mts', '--dist', '--quiet'],
         command: 'node',
       },
     ])
@@ -159,7 +159,7 @@ export async function buildTypes(
 
   if (!skipClean) {
     commands.push({
-      args: ['scripts/clean.mts', '--types', '--quiet'],
+      args: ['scripts/repo/clean.mts', '--types', '--quiet'],
       command: 'node',
     })
   }
@@ -415,7 +415,7 @@ async function main(): Promise<void> {
       }
       exitCode = await runSequence([
         {
-          args: ['scripts/clean.mts', '--dist', '--types', '--quiet'],
+          args: ['scripts/repo/clean.mts', '--dist', '--types', '--quiet'],
           command: 'node',
         },
       ])

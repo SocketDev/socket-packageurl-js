@@ -44,14 +44,14 @@ import { optimize as svgoOptimize } from 'svgo'
 import { auditCdnScripts, auditValDeps } from './audit-deps.mts'
 import { createMermaidRenderer } from './render-mermaid.mts'
 import type { MermaidRenderer } from './render-mermaid.mts'
-import { errorMessage } from './utils/error-message.mts'
+import { errorMessage } from '../utils/error-message.mts'
 
 const logger = getDefaultLogger()
 
 const MEANDER_PATH = 'upstream/meander'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
-const repoRoot = path.resolve(here, '..')
+const repoRoot = path.resolve(here, '../..')
 const meanderDir = path.join(repoRoot, MEANDER_PATH)
 const cliEntry = path.join(meanderDir, 'dist', 'cli.js')
 const nodeModulesDir = path.join(meanderDir, 'node_modules')

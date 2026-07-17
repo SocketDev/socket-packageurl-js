@@ -6,7 +6,7 @@
 
 This document plans the esbuild → Rolldown migration for
 `socket-packageurl-js`. The repo is the most complex single-package
-fleet repo on the build-tool axis (487-line `scripts/build.mts` +
+fleet repo on the build-tool axis (487-line `scripts/repo/build.mts` +
 352-line `.config/esbuild.config.mjs` with two custom plugins);
 validating Rolldown here de-risks the rest of the fleet's library
 repos (`socket-lib`, `socket-sdk-js`).
@@ -31,7 +31,7 @@ repos (`socket-lib`, `socket-sdk-js`).
 | File                             | Today                                                | After                                                                                                                     |
 | -------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `.config/esbuild.config.mjs`     | 352 lines, two custom esbuild plugins.               | `.config/rolldown.config.mts` — Rollup-API plugins (path-shortening, lib-stub).                                           |
-| `scripts/build.mts`              | 487 lines, imports `build`/`context` from `esbuild`. | Same shape, imports `rolldown`'s analogous APIs. CLI flag surface unchanged (`--analyze`, `--watch`, `--types`, `--src`). |
+| `scripts/repo/build.mts`         | 487 lines, imports `build`/`context` from `esbuild`. | Same shape, imports `rolldown`'s analogous APIs. CLI flag surface unchanged (`--analyze`, `--watch`, `--types`, `--src`). |
 | `package.json` `devDependencies` | `esbuild`.                                           | `rolldown` (replaces).                                                                                                    |
 | `pnpm-workspace.yaml` `catalog:` | `esbuild: <version>`.                                | `rolldown: <version>` added; `esbuild` entry kept until other fleet repos migrate, then removed fleet-wide.               |
 
@@ -42,14 +42,14 @@ repos (`socket-lib`, `socket-sdk-js`).
 3. **Port `createPathShorteningPlugin`.** Convert the esbuild `setup(build)` shape to Rollup's `name + resolveId/load` plugin shape. The path-rewriting logic is pure regex on `id` strings; the rewrite itself stays the same.
 4. **Port `createLibStubPlugin`.** Same conversion. Verify the `@socketsecurity/lib/{globs,sorts}.js` paths still resolve to the absolute paths the regex expects (Rollup may resolve module IDs differently than esbuild).
 5. **Write `.config/rolldown.config.mts`.** Mirror the esbuild config: same entries (`src/index.ts`, `src/exists.ts`), same outdir, same external (Node built-ins), same target, same format (CJS).
-6. **Add `scripts/build-rolldown.mts`** as a parallel runner. Don't touch `scripts/build.mts` yet. New script imports rolldown + the new plugins. Same CLI flag surface.
+6. **Add `scripts/build-rolldown.mts`** as a parallel runner. Don't touch `scripts/repo/build.mts` yet. New script imports rolldown + the new plugins. Same CLI flag surface.
 7. **Run both builds; diff outputs.** `pnpm run build` (esbuild) and `pnpm run build:rolldown` produce `dist/` artifacts. Compare:
    - Total bytes per file (esbuild vs rolldown).
    - Module count (rolldown should match or beat).
    - Manual smoke tests: `node -e "require('./dist/index.js')"`, `node -e "require('./dist/exists.js')"`.
    - Run `pnpm test` against the rolldown-built `dist/`. All tests must pass.
 8. **Decision point.** If rolldown's output is byte-equivalent or smaller AND tests pass: proceed. If output is larger or tests fail: stop, file an issue with the rolldown team, defer.
-9. **Cut over.** Rename: `scripts/build.mts` → `scripts/build-esbuild.mts.bak` (one commit on a feature branch); `scripts/build-rolldown.mts` → `scripts/build.mts`; remove `.config/esbuild.config.mjs`; update `package.json` to drop `esbuild`. Single atomic commit so any revert is one operation.
+9. **Cut over.** Rename: `scripts/repo/build.mts` → `scripts/build-esbuild.mts.bak` (one commit on a feature branch); `scripts/build-rolldown.mts` → `scripts/repo/build.mts`; remove `.config/esbuild.config.mjs`; update `package.json` to drop `esbuild`. Single atomic commit so any revert is one operation.
 10. **Validate fleet impact.** `npm pack` the result, install it in a fleet repo (`socket-cli`) that consumes `@socketsecurity/packageurl-js`, run `pnpm test`. Tests must still pass with the new bundle.
 
 ## Acceptance criteria
@@ -92,5 +92,5 @@ If acceptance fails: drop the migration commits, file findings with the rolldown
 - [Rolldown introduction docs](https://rolldown.rs/guide/introduction)
 - [VoidZero — announcing rolldown](https://voidzero.dev/posts/announcing-rolldown)
 - esbuild config (current): [`.config/esbuild.config.mjs`](../.config/esbuild.config.mjs)
-- Build runner (current): [`scripts/build.mts`](../scripts/build.mts)
+- Build runner (current): [`scripts/repo/build.mts`](../scripts/repo/build.mts)
 - Fleet build-tool decision: [`socket-wheelhouse/template/.claude/skills/_shared/skill-authoring.md`](https://github.com/SocketDev/socket-wheelhouse/blob/main/template/.claude/skills/_shared/skill-authoring.md)

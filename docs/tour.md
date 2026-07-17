@@ -2,7 +2,7 @@
 
 How the tour site you are reading is built, from source markdown all
 the way to the URL in your browser. Read this if you are about to
-change anything under `scripts/tour.mts`, `tour.json`,
+change anything under `scripts/repo/tour.mts`, `tour.json`,
 `upstream/meander/`, `.github/workflows/pages.yml`, or the CSS/JS
 shims at the repo root.
 
@@ -30,7 +30,7 @@ that is visible if you grep the tree. Here is the rule:
 | ----------------------------- | -------------------------------------------------- | ------------------------------------------------------ |
 | This build/system/brand       | **tour**                                           | Short, speakable, the public name                      |
 | The config manifest           | `tour.json`                                        | Matches brand                                          |
-| The main build script         | `scripts/tour.mts`                                 | Matches brand                                          |
+| The main build script         | `scripts/repo/tour.mts`                            | Matches brand                                          |
 | The `pnpm` commands           | `pnpm tour:*`                                      | Matches brand                                          |
 | The final output directory    | `pages/`                                           | The finished site, ready to deploy                     |
 | The generator submodule       | `upstream/meander/`                                | That is the upstream project name                      |
@@ -41,7 +41,7 @@ that is visible if you grep the tree. Here is the rule:
 
 > **Why the build happens in a scratch dir, not in `pages/`:** Meander
 > writes into `<cwd>/walkthrough/` — a fixed name inside the submodule.
-> `scripts/tour.mts` runs meander at `repoRoot`, then immediately moves
+> `scripts/repo/tour.mts` runs meander at `repoRoot`, then immediately moves
 > the output into a private scratch directory (`.tour-build-<uuid>/`),
 > does all post-processing there, and renames the finished tree to
 > `pages/` at the very end. The scratch dir is cleaned up in a
@@ -90,7 +90,7 @@ Everything else (prose, branding, commands, CLI help) says "tour".
          │
          ▼
  ┌──────────────────────────────────────────────────────────────────┐
- │  scripts/tour.mts post-process                                   │
+ │  scripts/repo/tour.mts post-process                                   │
  │                                                                  │
  │    1. Append Socket overrides to the emitted stylesheet          │
  │    2. Copy drag/comments/SW scripts                              │
@@ -214,7 +214,7 @@ directory (`.tour-build-<uuid>/walkthrough/`) and does not know about
 our post-processing. That separation means we can evolve our chrome
 (CSP, SRI, TOC shape, doc rendering) without forking meander.
 
-### `scripts/tour.mts` — the orchestrator
+### `scripts/repo/tour.mts` — the orchestrator
 
 The single build script. Commands:
 
@@ -242,7 +242,7 @@ to main that touches tour sources. Paths that trigger it:
 
 - `tour.json`
 - `comments.js`, `drag.js`, `sw.js`, `overrides.css`
-- `scripts/tour.mts`
+- `scripts/repo/tour.mts`
 - `src/**`
 - `docs/**`
 - `assets/favicon/**`
@@ -280,7 +280,7 @@ which codifies the "pick the domain noun" rule used to choose
 `anatomy`, `parsing`, `conversion` and friends over clunkier
 alternatives.
 
-The dev server (`routeToFile` inside `scripts/tour.mts`) knows the
+The dev server (`routeToFile` inside `scripts/repo/tour.mts`) knows the
 same part-id → filename map, so when you navigate to
 `http://127.0.0.1:8080/socket-packageurl-js/part/1` it translates
 that to the on-disk file `anatomy.html` — the hrefs in the dev build
@@ -302,7 +302,7 @@ exact bytes we signed off on — tampering anywhere breaks the page
 rather than silently running evil code.
 
 See `buildCspMeta` and `injectSri` / `sriForUrl` in
-`scripts/tour.mts` if you need to change what gets allowed.
+`scripts/repo/tour.mts` if you need to change what gets allowed.
 
 ## Why we ship a service worker
 
@@ -407,7 +407,7 @@ Markdown features supported (via marked with GFM enabled):
   loaded globally) by tagging the language: ` ```typescript`, etc.
 - GFM tables, task lists, strikethrough, autolinks.
 - Images — use `/images/<name>.png` and drop the file under
-  `assets/` (wire an additional copy in `scripts/tour.mts` if you
+  `assets/` (wire an additional copy in `scripts/repo/tour.mts` if you
   need more image folders).
 - Inline HTML passes through.
 
@@ -429,13 +429,13 @@ path of last resort:
    when merged.
 
 Before forking: check if the issue is in our post-process layer
-instead — we own 2000+ lines of `scripts/tour.mts` and many bugs
+instead — we own 2000+ lines of `scripts/repo/tour.mts` and many bugs
 live there.
 
 ## Where to look when something is off
 
 - **URLs look wrong on the deploy** — it is almost always a basePath
-  issue. Check `applyBasePath` in `scripts/tour.mts` and whether
+  issue. Check `applyBasePath` in `scripts/repo/tour.mts` and whether
   `CI=true` or `--prod` triggered the rewrite.
 - **CSP violations in the console** — `buildCspMeta` needs to
   allowlist the new resource. The script-src list is hash-based; if

@@ -20,7 +20,7 @@
  * ------------------------------------------------------------------ */
 
 // `__CACHE_VERSION__` is substituted at generate time with the current
-// git commit SHA (see scripts/tour.mts). Every deploy produces
+// git commit SHA (see scripts/repo/tour.mts). Every deploy produces
 // a different version string, which flips the SW bytes, which makes
 // the browser's update check detect a new SW, which triggers `install`
 // + `activate` — and the `activate` handler prunes the old cache.

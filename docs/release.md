@@ -3,7 +3,7 @@
 How a new version of `@socketregistry/packageurl-js` gets cut and
 shipped to npm with provenance. Read this before running a release
 or changing anything under `.github/workflows/provenance.yml`,
-`scripts/publish.mts`, or `scripts/bump.mts`.
+`scripts/publish.mts`, or `scripts/repo/bump.mts`.
 
 ## Who this is for
 
@@ -117,7 +117,7 @@ pnpm bump major
 pnpm bump prerelease --preid=beta
 ```
 
-`pnpm bump` runs `scripts/bump.mts`. It:
+`pnpm bump` runs `scripts/repo/bump.mts`. It:
 
 1. Reads the current version from `package.json`.
 2. Computes the next version per semver rules.
@@ -203,7 +203,7 @@ Things explicitly NOT shipped:
 - `docs/` — rendered as the tour site, not shipped to npm.
 - Any sourcemap or tsbuildinfo.
 
-A CI check (`scripts/ci-validate.mts`) asserts the packed tarball
+A CI check (`scripts/repo/ci-validate.mts`) asserts the packed tarball
 size stays under a sanity threshold so an accidental `dist/`
 explosion or a misconfigured `files` field fails loudly.
 
@@ -292,7 +292,7 @@ consequences (integrity mismatches, dependency confusion risks).
 - [`scripts/publish.mts`](../scripts/publish.mts) — the local
   publish script (mainly for CI; `prepublishOnly` blocks local
   runs).
-- [`scripts/bump.mts`](../scripts/bump.mts) — version-bumping
+- [`scripts/repo/bump.mts`](../scripts/repo/bump.mts) — version-bumping
   logic.
 - [`.github/workflows/provenance.yml`](../.github/workflows/provenance.yml)
   — the wrapper workflow.

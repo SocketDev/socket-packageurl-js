@@ -1,4 +1,4 @@
-/**
+/*
  * Build-time Mermaid → SVG renderer.
  *
  * Why build-time, not client-side:

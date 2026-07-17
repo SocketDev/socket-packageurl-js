@@ -1,7 +1,7 @@
 /* ------------------------------------------------------------------
  * Docs-site stylesheet — owns 100% of the visual rules.
  *
- * scripts/tour.mts copies this over meander's emitted walkthrough.css
+ * scripts/repo/tour.mts copies this over meander's emitted walkthrough.css
  * wholesale during post-processing; every styling decision on the
  * deployed site comes from here. Meander owns the HTML shape (class
  * names, structure); this file owns the look.
@@ -1808,7 +1808,7 @@ body.col-resizing * {
 }
 
 /* Collapse noise annotation-cards — flagged by build-time
- * content sniff in scripts/tour.mts:
+ * content sniff in scripts/repo/tour.mts:
  *   `.annotation-card-license` — license preamble text
  *     (Copyright + permission to use / SPDX id / named
  *     license with copyright co-marker).
@@ -2480,7 +2480,7 @@ html[data-theme='light'] .wt-jsdoc-tag,
 }
 
 /* Mermaid diagrams — rendered to SVG at build time by
- * scripts/render-mermaid.mts (puppeteer + svgo), embedded inline.
+ * scripts/repo/render-mermaid.mts (puppeteer + svgo), embedded inline.
  * Center the figure in the doc column with comfortable whitespace
  * above/below, and let the SVG size fluidly inside the column. */
 .wt-mermaid {
