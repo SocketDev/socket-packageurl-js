@@ -39,7 +39,6 @@
   },
   "scripts": {
     "build": "node scripts/repo/build.mts",
-    "bump": "node scripts/repo/bump.mts",
     "check": "node scripts/fleet/check.mts",
     "check:paths": "node scripts/fleet/check/paths-are-canonical.mts",
     "check:purlerror-messages-are-lowercase": "node scripts/repo/check/purlerror-messages-are-lowercase.mts",
