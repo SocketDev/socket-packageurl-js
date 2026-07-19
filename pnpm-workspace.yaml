@@ -45,10 +45,11 @@ catalog:
   # Fleet bundler. Single-sourced to match the wheelhouse catalog pin +
   # the rolldown vite 8.0.14 bundles natively.
   'playwright-core': 1.61.1
+  'portless': 0.15.4
   'regjsparser': 0.13.2
   'rolldown': 1.1.4
   'semver': 7.8.5
-  'shell-quote': 1.9.0
+  'shell-quote': 1.10.0
   'taze': 19.14.1
   # vite 8.0.14 swaps esbuild → rolldown natively (bundles rolldown
   # 1.0.2), so the override below removes esbuild from the install tree.
@@ -161,6 +162,8 @@ minimumReleaseAgeExclude:
   - 'dtu-github-actions@0.17.1'
   # published: 2026-07-16 | removable: 2026-07-23
   - 'magic-string@1.0.0'
+  # published: 2026-07-16 | removable: 2026-07-23
+  - 'portless@0.15.4'
 
 # Refuse transitive dependencies declared via git/tarball/local-tarball
 # specs — an npm package shouldn't be allowed to drag in a git URL we
