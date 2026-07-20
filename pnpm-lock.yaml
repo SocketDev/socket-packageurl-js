@@ -328,6 +328,9 @@ catalogs:
     esbuild:
       specifier: 0.25.12
       version: 0.25.12
+    fast-check:
+      specifier: 4.9.0
+      version: 4.9.0
     markdownlint-cli2:
       specifier: 0.23.0
       version: 0.23.0
@@ -378,7 +381,7 @@ catalogs:
       version: 4.1.10
 
 overrides:
-  '@socketregistry/packageurl-js': 1.4.2
+  '@socketregistry/packageurl-js': 1.4.4
   '@socketsecurity/lib': 6.1.0
   '@socketsecurity/registry': 2.0.2
   '@socketsecurity/sdk': 4.0.1
@@ -432,8 +435,8 @@ importers:
         specifier: 'catalog:'
         version: 0.34.52
       '@socketregistry/packageurl-js':
-        specifier: 1.4.2
-        version: 1.4.2
+        specifier: 1.4.4
+        version: 1.4.4
       '@socketregistry/packageurl-js-stable':
         specifier: 'catalog:'
         version: '@socketregistry/packageurl-js@1.4.2'
@@ -500,6 +503,9 @@ importers:
       esbuild:
         specifier: 'catalog:'
         version: 0.25.12
+      fast-check:
+        specifier: 'catalog:'
+        version: 4.9.0
       fast-glob:
         specifier: 3.3.3
         version: 3.3.3
@@ -3228,6 +3234,10 @@ packages:
     resolution: {integrity: sha512-yt9UfUzD02wZ7kwb67oe4jxG2D9JtgPqjrK/ans2BovFyeie0w8hvRR0MuOWM4mUt2371oFPp7NB6O5ZjYJmlw==}
     engines: {node: '>=18.20.8', pnpm: '>=11.0.0-rc.0'}
 
+  '@socketregistry/packageurl-js@1.4.4':
+    resolution: {integrity: sha512-yC/FL9o4IhTcAn5BILV2L9kCzbopESefffLFbvkWsYUdXSyRbWmmw8+mLhiEL7Zck0A6C1D9rgf8+r4T1WVPLA==}
+    engines: {node: '>=24', npm: '>=12.0.0', pnpm: '>=11.0.5'}
+
   '@socketregistry/safe-buffer@1.0.9':
     resolution: {integrity: sha512-eV4uYchI1+vQeKpFG+aBlhVQ/AaaPTTXaan+ReiNn/izy8U9hfT4WC8l4g8o8BC3zaeNnsNVxec14hJH/y2y3g==}
     engines: {node: '>=18'}
@@ -4042,6 +4052,10 @@ packages:
     resolution: {integrity: sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==}
     engines: {node: '>= 10.17.0'}
     hasBin: true
+
+  fast-check@4.9.0:
+    resolution: {integrity: sha512-7ms6T7SybUev/PQITciI0yLM2pOSFy5zpG8Ty7tQofcVaQUvrMXp6CBwqF6fThLCLOrfBtuHAtwq6Yu4XPCllg==}
+    engines: {node: '>=12.17.0'}
 
   fast-fifo@1.3.2:
     resolution: {integrity: sha512-/d9sfos4yxzpwkDkuN7k2SqFKtYNmCTzgfEpz82x34IM9/zc8KGxQoXg1liNC/izpRM/MBdt44Nmx41ZWqk+FQ==}
@@ -5012,6 +5026,9 @@ packages:
     resolution: {integrity: sha512-W6Fk0J3TPjjtwjXOyR/qf+YaL0H/Uq8HIgHcXG4mNM/IgbKMCH/HPyK0Fi2qbTU/QpSl9bCte2yBpGHKejTpIw==}
     engines: {node: '>=18'}
     hasBin: true
+
+  pure-rand@8.4.2:
+    resolution: {integrity: sha512-vvuOGgcuPJAirlHvuQw1TrOiw7ptaIXXmIbNuiNOY6lNGJJH49PQ1Kj4nd783nPdQhQdicgOjVI2yI/9BD6/Ng==}
 
   qs@6.15.2:
     resolution: {integrity: sha512-Rzq0KEyX/w/tEybncDgdkZrJgVUsUMk3xjh3t5bv3S1HTAtg+uOYt72+ZfwiQwKdysThkTBdL/rTi6HDmX9Ddw==}
@@ -6257,6 +6274,8 @@ snapshots:
 
   '@socketregistry/packageurl-js@1.4.2': {}
 
+  '@socketregistry/packageurl-js@1.4.4': {}
+
   '@socketregistry/safe-buffer@1.0.9': {}
 
   '@socketregistry/safer-buffer@1.0.10': {}
@@ -6996,6 +7015,10 @@ snapshots:
       '@types/yauzl': 2.10.3
     transitivePeerDependencies:
       - supports-color
+
+  fast-check@4.9.0:
+    dependencies:
+      pure-rand: 8.4.2
 
   fast-fifo@1.3.2: {}
 
@@ -8153,6 +8176,8 @@ snapshots:
       - supports-color
       - typescript
       - utf-8-validate
+
+  pure-rand@8.4.2: {}
 
   qs@6.15.2:
     dependencies:

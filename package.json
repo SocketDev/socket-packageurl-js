@@ -106,6 +106,7 @@
     "dev-null-cli": "2.0.0",
     "ecc-agentshield": "catalog:",
     "esbuild": "catalog:",
+    "fast-check": "catalog:",
     "fast-glob": "3.3.3",
     "globals": "16.4.0",
     "magic-string": "catalog:",

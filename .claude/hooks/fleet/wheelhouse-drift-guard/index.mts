@@ -19,8 +19,6 @@
 // Fix: edit `template/base/<path>`, then re-cascade
 //      (`node scripts/repo/sync.mts`).
 //      Detail: docs/agents.md/fleet/wheelhouse-controlled-drift.md.
-//
-// Bypass: `Allow wheelhouse-drift bypass`.
 
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
@@ -31,9 +29,6 @@ import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 import { isFleetTarget } from '../_shared/fleet-context.mts'
 import { block, defineHook, editGuard, runHook } from '../_shared/guard.mts'
 import { resolveEditedText } from '../_shared/payload.mts'
-import { bypassPhrasePresent } from '../_shared/transcript.mts'
-
-const BYPASS_PHRASE = 'Allow wheelhouse-drift bypass'
 
 // Files under `template/base` distributed by a per-file cascade handler rather
 // than a manifest byte-list — so editing the root copy is NOT byte-drift
@@ -218,9 +213,6 @@ export const check = editGuard(async (filePath, _content, payload) => {
   if (!isWheelhouseControlledDrift(filePath, postEditText, repoRoot, deps)) {
     return undefined
   }
-  if (bypassPhrasePresent(payload.transcript_path, BYPASS_PHRASE)) {
-    return undefined
-  }
   const rel = normalizePath(filePath).slice(normalizePath(repoRoot).length + 1)
   return block(
     [
@@ -235,13 +227,12 @@ export const check = editGuard(async (filePath, _content, payload) => {
       `Fix: edit \`template/base/${rel}\` instead, then re-cascade:`,
       '       node scripts/repo/sync.mts',
       '     Detail: docs/agents.md/fleet/wheelhouse-controlled-drift.md.',
-      '',
-      `Bypass (the user must type verbatim in a recent turn): \`${BYPASS_PHRASE}\``,
     ].join('\n'),
   )
 })
 
 export const hook = defineHook({
+  bypass: ['wheelhouse-drift'],
   check,
   event: 'PreToolUse',
   matcher: ['Edit', 'MultiEdit', 'Write'],

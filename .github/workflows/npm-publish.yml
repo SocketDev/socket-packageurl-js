@@ -75,10 +75,12 @@ jobs:
           client-id: ${{ vars.SOCKET_RELEASE_CLIENT_ID }}
           private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
       # --bump consumes the committed version hint (X.Y.Z-prerelease →
-      # X.Y.Z), writes CHANGELOG, commits via the release App (verified,
-      # signed), and resets the checkout so the publish targets the bumped
-      # tree. The version decision stays with the human: it is whatever the
-      # committed hint names.
+      # X.Y.Z), writes CHANGELOG, and commits via the release App (verified,
+      # signed) onto a throwaway npm-publish-v<version> branch — main is
+      # fast-forwarded to it only after the publish succeeds, and it is nuked on
+      # a rejected publish, so a failed stage never creeps the version. The
+      # version decision stays with the human: it is whatever the committed hint
+      # names.
       - name: Publish
         env:
           DIST_TAG: ${{ inputs.dist-tag }}
