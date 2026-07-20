@@ -200,7 +200,7 @@ Things explicitly NOT shipped:
 - `src/` — TypeScript sources.
 - `test/` — test files.
 - `scripts/`, `.config/`, `.github/`, `.claude/` — tooling.
-- `docs/` — rendered as the tour site, not shipped to npm.
+- `docs/` — contributor documentation, not shipped to npm.
 - Any sourcemap or tsbuildinfo.
 
 A CI check (`scripts/repo/ci-validate.mts`) asserts the packed tarball

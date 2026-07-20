@@ -159,12 +159,6 @@ export async function findTextFiles(
 const ALLOWED_FILES = [
   // Self-skip — this file mentions CDN domains to describe the rule.
   /no-cdn-refs\.(?:cjs|m?[jt]s)$/,
-  // Build tooling for the tour pilot — these files enumerate, fetch,
-  // hash, and rewrite CDN references so they can ship with integrity
-  // + CSP hashes. Any CDN reference in them is in the scanner /
-  // rewriter, not a runtime dependency.
-  /scripts[\\/]tour\.mts$/,
-  /scripts[\\/]audit-deps\.mts$/,
 ]
 
 export async function checkFileForCdnRefs(

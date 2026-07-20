@@ -56,16 +56,10 @@
     "npm:publish": "node scripts/fleet/publish-pipeline.mts",
     "claude": "node scripts/repo/claude.mts",
     "test": "node scripts/fleet/test.mts",
-    "test:val": "node --test val/*.test.ts",
     "type": "tsgo --noEmit -p .config/fleet/tsconfig.check.json",
     "update": "node scripts/fleet/update.mts",
     "update:data:npm": "node scripts/repo/update-data-npm.mts",
     "sync-purl-spec": "node scripts/repo/sync-purl-spec.mts",
-    "tour": "node scripts/repo/tour.mts",
-    "tour:build": "node scripts/repo/tour.mts generate tour.json",
-    "tour:serve": "node scripts/repo/tour.mts serve",
-    "tour:watch": "node scripts/repo/tour.mts watch tour.json",
-    "tour:valtown": "node scripts/repo/tour.mts valtown",
     "lockstep": "node scripts/fleet/lockstep.mts",
     "lockstep:emit-schema": "node scripts/fleet/lockstep-emit-schema.mts",
     "setup-security-tools": "node .claude/hooks/fleet/setup-security-tools/install.mts",
@@ -114,16 +108,12 @@
     "esbuild": "catalog:",
     "fast-glob": "3.3.3",
     "globals": "16.4.0",
-    "lightningcss": "1.32.0",
     "magic-string": "catalog:",
     "markdownlint-cli2": "catalog:",
-    "marked": "18.0.0",
     "mdast-util-from-markdown": "catalog:",
-    "mermaid": "11.15.0",
     "micromark": "catalog:",
     "neosanitize": "catalog:",
     "nock": "14.0.10",
-    "node-html-parser": "7.1.0",
     "npm-run-all2": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
@@ -175,12 +165,5 @@
   },
   "npm-run-all2": {
     "nodeRun": true
-  },
-  "socket": {
-    "val": {
-      "npm": {
-        "hono": "4.12.14"
-      }
-    }
   }
 }

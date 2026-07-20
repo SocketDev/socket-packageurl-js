@@ -335,6 +335,5 @@ See `docs/contributing.md` for the full workflow.
 - [`docs/vers.md`](./vers.md) — version-range specifiers
 - [`docs/api.md`](./api.md) — complete API reference
 - [`docs/types.md`](./types.md) — TypeScript type reference
-- [`docs/tour.md`](./tour.md) — how the tour site is built
 - [package-url/purl-spec](https://github.com/package-url/purl-spec) —
   the upstream spec

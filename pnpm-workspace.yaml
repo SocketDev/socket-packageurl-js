@@ -70,10 +70,8 @@ packages:
 
 allowBuilds:
   # puppeteer ships a postinstall that downloads Chromium (~300MB).
-  # Required because `pnpm tour:build` (the GH Pages workflow) renders
-  # mermaid diagrams via puppeteer/Chromium. Disabling it would break
-  # the Tour pipeline. CI + Val Town pay the download cost as the
-  # uniform-install tradeoff for keeping all workflows symmetric.
+  # Retained as fleet-baseline browser/screenshot tooling (parity with
+  # socket-lib). CI pays the download cost as the uniform-install tradeoff.
   cpu-features: false
   esbuild: true
   protobufjs: false
@@ -127,7 +125,6 @@ overrides:
 
   # Repo-specific overrides below.
   'ip-address': '10.1.1'
-  'mermaid': '11.15.0'
   'picomatch@4': '4.0.4'
   'postcss': '8.5.10'
   'vite': 'catalog:'

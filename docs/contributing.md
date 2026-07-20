@@ -31,12 +31,6 @@ pnpm install
 `pnpm install` also:
 
 - Sets up the `husky` pre-commit hooks.
-- Initializes `upstream/meander` submodule lazily on first
-  `pnpm tour:build`.
-
-`pnpm tour doctor` reports which external tools the build may shell
-out to are present vs missing on your machine. All listed tools are
-optional; missing ones fall back to safe defaults.
 
 ## Repo layout
 
@@ -46,17 +40,10 @@ socket-packageurl-js/
 ├── test/                   ← functional tests (vitest)
 ├── scripts/                ← build/lint/test/release scripts
 ├── docs/                   ← these docs
-├── val/                    ← Val Town comment backend (tour-specific)
-├── upstream/meander/       ← submodule (tour generator)
 ├── .config/                ← tsconfig + vitest configs
-├── .github/workflows/      ← CI (ci.yml, pages.yml, provenance.yml, ...)
-├── .claude/                ← Claude Code config (agents, skills, hooks)
-├── tour.json               ← tour manifest
-└── pages/                  ← tour build output (gitignored)
+├── .github/workflows/      ← CI (ci.yml, provenance.yml, ...)
+└── .claude/                ← Claude Code config (agents, skills, hooks)
 ```
-
-You almost never edit `upstream/meander/` (that's the submodule
-we pin) or `pages/` (build output).
 
 ## Making a change
 
@@ -233,7 +220,7 @@ Types used in this repo:
 - `style` — formatting / whitespace
 
 Scopes are free-form but stable: `purl-types/npm`, `url-converter`,
-`tour`, `hardening`. One commit = one concern. If the body
+`hardening`. One commit = one concern. If the body
 explains both a refactor and a fix, they should probably be two
 commits.
 
@@ -257,10 +244,6 @@ The PR body should:
 CI will run:
 
 - `.github/workflows/ci.yml` — full `pnpm check` in a clean env.
-- `.github/workflows/pages.yml` — if you touched tour sources,
-  rebuilds the tour and deploys to GH Pages on merge to main.
-- `.github/workflows/valtown.yml` — if you touched `val/`,
-  deploys the comment backend after merge.
 - `.github/workflows/provenance.yml` — on tag, signs + publishes
   to npm with attestations.
 
@@ -284,8 +267,6 @@ Copy into your PR description and tick off:
 
 Things that have caught contributors before:
 
-- **Forgetting to bump `upstream/meander`** when the pin is stale.
-  `pnpm tour:build --refresh` will re-clone and rebuild.
 - **Running `pnpm testu` by accident** — if you only wanted to
   run tests, use `pnpm test`. `testu` updates snapshots.
 - **Editing `dist/` directly** — it's a build artifact. Changes
@@ -305,7 +286,5 @@ Things that have caught contributors before:
   message doctrine, safe-deletion rule, parallel-sessions rules.
 - [`docs/architecture.md`](./architecture.md) — how `src/` fits
   together.
-- [`docs/tour.md`](./tour.md) — the build pipeline that ships
-  these docs as HTML.
 - [`docs/release.md`](./release.md) — what happens when we tag.
 - [`package.json`](../package.json) — every script spelled out.
