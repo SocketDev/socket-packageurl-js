@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.3](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.3) - 2026-07-20
+
+### Fixed
+
+- **`tooling`** — lock fleet hook workspaces
+- **`tour`** — restore deterministic site generation
+- **`ci`** — complete fleet onboarding
+- **`cli`** — identify Claude CLI integration
+- **`deps`** — remove expired trust policy waiver
+
 ## [1.3.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.3.0) - 2025-10-06
 
 ### Added
