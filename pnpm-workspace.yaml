@@ -27,6 +27,7 @@ catalog:
   '@ultrathink/acorn.wasm': npm:@ultrathink/acorn-wasm@0.0.1
   '@vitest/coverage-v8': 4.1.10
   '@vitest/ui': 4.1.10
+  '@vitiate/core': 0.3.1
   'c8': 11.0.0
   'chrome-devtools-mcp': 1.5.0
   'compromise': 14.15.1
@@ -57,6 +58,7 @@ catalog:
   'typescript': 7.0.2
   'vite': 8.1.0
   'vitest': 4.1.10
+  'vitiate': 0.3.1
 
 # Register .claude/hooks/* and the oxlint-plugin rule packages as
 # workspace packages so taze (run via `pnpm run update`) sees and bumps
@@ -70,6 +72,9 @@ packages:
   - '.claude/hooks/fleet/*'
 
 allowBuilds:
+  # @swc/core native binding — vitiate's coverage-guided fuzz lane
+  # (`pnpm run test:fuzz`) instruments src via the SWC transform.
+  '@swc/core': true
   # puppeteer ships a postinstall that downloads Chromium (~300MB).
   # Retained as fleet-baseline browser/screenshot tooling (parity with
   # socket-lib). CI pays the download cost as the uniform-install tradeoff.
