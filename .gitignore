@@ -207,3 +207,8 @@ npm-debug.log
 pnpm-debug.log
 *.tgz
 # </fleet-canonical>
+
+# ─── repo-local (socket-wheelhouse): keep hand-authored files that the
+# fleet-canonical globs would otherwise ignore (untrack-ignored-files fix) ───
+!/test/fixtures/
+!/.node-version
