@@ -414,13 +414,13 @@ describe('parseNpmSpecifier', () => {
     })
 
     it('should throw on number input', () => {
-      expect(() => parseNpmSpecifier(123 as unknown as string)).toThrow(
+      expect(() => parseNpmSpecifier(123)).toThrow(
         'npm package specifier string is required.',
       )
     })
 
     it('should throw on object input', () => {
-      expect(() => parseNpmSpecifier({} as unknown as string)).toThrow(
+      expect(() => parseNpmSpecifier({})).toThrow(
         'npm package specifier string is required.',
       )
     })

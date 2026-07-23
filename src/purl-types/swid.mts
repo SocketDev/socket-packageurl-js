@@ -44,7 +44,7 @@ export function validate(
     return false
   }
   // `tag_id` must not be empty after trimming
-  const tagIdStr = StringPrototypeTrim(String(tagId))
+  const tagIdStr = StringPrototypeTrim(tagId)
   if (tagIdStr.length === 0) {
     /* v8 ignore next 3 -- Throw path tested separately from return false path. */
     if (throws) {

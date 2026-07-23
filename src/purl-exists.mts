@@ -91,7 +91,7 @@ import type { ExistsOptions, ExistsResult } from './purl-types/npm.mjs'
  */
 export async function purlExists(
   purl: PackageURL,
-  options?: ExistsOptions,
+  options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const { name, namespace, type, version } = purl
 

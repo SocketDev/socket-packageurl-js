@@ -28,7 +28,7 @@ describe('Vers', () => {
     it('should parse wildcard', () => {
       const v = Vers.parse('vers:semver/*')
       expect(v.constraints).toHaveLength(1)
-      expect(v.constraints[0]!.comparator).toBe('*')
+      expect(v.constraints[0].comparator).toBe('*')
     })
 
     it('should parse bare version as equality', () => {
@@ -71,7 +71,7 @@ describe('Vers', () => {
 
     it('should parse prerelease versions', () => {
       const v = Vers.parse('vers:semver/>=1.0.0-alpha|<2.0.0')
-      expect(v.constraints[0]!.version).toBe('1.0.0-alpha')
+      expect(v.constraints[0].version).toBe('1.0.0-alpha')
     })
   })
 

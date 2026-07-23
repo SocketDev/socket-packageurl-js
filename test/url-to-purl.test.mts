@@ -1380,7 +1380,7 @@ describe('UrlConverter per-shape static helpers', () => {
         string,
         (url: string) => PackageURL | undefined
       >
-    )[method]!(url)
+    )[method](url)
     expect(result).toBeDefined()
     expect(result!.toString()).toBe(expected)
   })

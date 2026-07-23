@@ -256,14 +256,14 @@ const log = {
 
 export function printHeader(title: string): void {
   logger.log('')
-  logger.log(`${'─'.repeat(60)}`)
+  logger.log('─'.repeat(60))
   logger.log(`  ${title}`)
-  logger.log(`${'─'.repeat(60)}`)
+  logger.log('─'.repeat(60))
 }
 
-export function printFooter(message?: string): void {
+export function printFooter(message?: string | undefined): void {
   logger.log('')
-  logger.log(`${'─'.repeat(60)}`)
+  logger.log('─'.repeat(60))
   if (message) {
     logger.log(`  ${colors.green('')} ${message}`)
   }
@@ -1705,7 +1705,7 @@ class ModelStrategy {
   }
 
   selectMode(task: string, options: SelectModeOptions = {}): string {
-    const { forceModel = undefined } = options
+    const { forceModel } = options
 
     // Honor explicit flags.
     if (forceModel === 'the-brain') {
@@ -1760,8 +1760,8 @@ class ModelStrategy {
     return 'claude-3-5-sonnet-20241022'
   }
 
-  recordAttempt(task: string, options: { success: boolean }): void {
-    const { success } = { __proto__: null, ...options } as typeof options
+  recordAttempt(task: string, config: { success: boolean }): void {
+    const { success } = { __proto__: null, ...config } as typeof config
     const taskKey = this.getTaskKey(task)
     if (success) {
       this.attempts.delete(taskKey)
@@ -1816,7 +1816,7 @@ export async function getSmartContext(
 ): Promise<SmartContext> {
   const {
     commits = 5,
-    fileTypes = undefined,
+    fileTypes,
     includeUncommitted = true,
     maxFiles = 30,
   } = options
@@ -2927,7 +2927,7 @@ Provide ONLY the JSON array, nothing else.`
  */
 export async function autonomousFixSession(
   claudeCmd: string,
-  scanResults: unknown[],
+  scanResults: Record<string, unknown[]>,
   projects: SocketProject[],
   options: ClaudeOptions = {},
 ): Promise<void> {
@@ -3039,7 +3039,7 @@ Apply the fix and return ONLY the fixed code snippet.`
   // Report issues that need review
   if (toReview.length > 0) {
     logger.log('')
-    logger.log(`${colors.yellow('Issues requiring manual review:')}`)
+    logger.log(colors.yellow('Issues requiring manual review:'))
     for (let i = 0, { length } = toReview; i < length; i += 1) {
       const issue = toReview[i]
       logger.log(
@@ -3058,7 +3058,7 @@ Apply the fix and return ONLY the fixed code snippet.`
  */
 export async function interactiveFixSession(
   claudeCmd: string,
-  scanResults: unknown[],
+  scanResults: Record<string, unknown[]>,
   _projects: SocketProject[],
   options: ClaudeOptions = {},
 ): Promise<void> {
@@ -3109,7 +3109,7 @@ export async function interactiveFixSession(
 
   // Start interactive session.
   logger.log('')
-  logger.log(`${colors.blue('Starting interactive fix session with Claude…')}`)
+  logger.log(colors.blue('Starting interactive fix session with Claude…'))
   logger.log('The Claude CLI will help you fix these issues.')
   logger.log('Commands: fix <issue-number>, commit, push, exit')
   logger.log('')
@@ -4755,7 +4755,7 @@ Let's work through this together to get CI passing.`
   if (ghCheck.exitCode !== 0) {
     log.error('GitHub CLI (gh) is required for CI monitoring')
     logger.log('')
-    logger.log(`${colors.cyan('Installation Instructions:')}`)
+    logger.log(colors.cyan('Installation Instructions:'))
     logger.log(`  macOS:   ${colors.green('brew install gh')}`)
     logger.log(`  Ubuntu:  ${colors.green('sudo apt install gh')}`)
     logger.log(`  Fedora:  ${colors.green('sudo dnf install gh')}`)
@@ -4764,7 +4764,7 @@ Let's work through this together to get CI passing.`
       `  Other:   ${colors.gray('https://github.com/cli/cli/blob/trunk/docs/install_linux.md')}`,
     )
     logger.log('')
-    logger.log(`${colors.yellow('After installation:')}`)
+    logger.log(colors.yellow('After installation:'))
     logger.log(`  1. Run: ${colors.green('gh auth login')}`)
     logger.log('  2. Follow the prompts to authenticate')
     logger.log(`  3. Try again: ${colors.green('pnpm claude --green')}`)
@@ -5832,7 +5832,7 @@ export async function runWatchMode(
   // Handle graceful shutdown
   process.on('SIGINT', () => {
     logger.log('')
-    logger.log(`${colors.yellow('Stopping watch mode…')}`)
+    logger.log(colors.yellow('Stopping watch mode…'))
 
     // Clean up watchers
     for (let i = 0, { length } = watchers; i < length; i += 1) {
@@ -6123,7 +6123,7 @@ async function main(): Promise<void> {
       log.failed('Claude Code CLI not found')
       log.error('Please install Claude Code to use these utilities')
       logger.log('')
-      logger.log(`${colors.cyan('Installation Instructions:')}`)
+      logger.log(colors.cyan('Installation Instructions:'))
       logger.log('  1. Visit: https://docs.claude.com/en/docs/claude-code')
       logger.log('  2. Or install via npm:')
       logger.log(
@@ -6138,7 +6138,7 @@ async function main(): Promise<void> {
         `     Windows: ${colors.gray('Download from https://claude.ai/download')}`,
       )
       logger.log('')
-      logger.log(`${colors.yellow('After installation:')}`)
+      logger.log(colors.yellow('After installation:'))
       logger.log(`  1. Run: ${colors.green('claude')}`)
       logger.log('  2. Sign in with your Anthropic account when prompted')
       logger.log(`  3. Try again: ${colors.green('pnpm claude --help')}`)

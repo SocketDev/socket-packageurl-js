@@ -69,9 +69,9 @@ export interface PurlObject {
  */
 export async function dockerExists(
   name: string,
-  namespace?: string,
-  version?: string,
-  options?: ExistsOptions,
+  namespace?: string | undefined,
+  version?: string | undefined,
+  options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   // Default namespace to `'library'` for official images if not specified
   const opts = { __proto__: null, ...options } as typeof options

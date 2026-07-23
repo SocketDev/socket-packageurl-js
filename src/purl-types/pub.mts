@@ -64,8 +64,8 @@ export function normalize(purl: PurlObject): PurlObject {
  */
 export async function pubExists(
   name: string,
-  version?: string,
-  options?: ExistsOptions,
+  version?: string | undefined,
+  options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
   const cacheKey = version ? `pub:${name}@${version}` : `pub:${name}`

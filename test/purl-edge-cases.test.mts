@@ -942,7 +942,7 @@ describe('Edge cases and additional coverage', () => {
       }
       const fn = createTestFunction() as FnWithProp
       fn.prop = { nested: 'value' }
-      const frozenFn = recursiveFreeze(fn) as FnWithProp
+      const frozenFn = recursiveFreeze(fn)
       expect(Object.isFrozen(frozenFn)).toBe(true)
       expect(Object.isFrozen(frozenFn.prop)).toBe(true)
 
@@ -965,15 +965,15 @@ describe('Edge cases and additional coverage', () => {
         'field',
         undefined as unknown,
         '"field" is a required component',
-        'value' as unknown,
+        'value',
       ],
       [
         'validateRequired empty string',
         validateRequired,
         'field',
-        '' as unknown,
+        '',
         '"field" is a required component',
-        'value' as unknown,
+        'value',
       ],
       [
         'validateRequiredByType',
@@ -982,33 +982,33 @@ describe('Edge cases and additional coverage', () => {
         'name',
         undefined as unknown,
         'npm requires a "name" component',
-        'value' as unknown,
+        'value',
       ],
       [
         'validateRequiredByType empty string',
         (_field: string, value: unknown, opts: ValidateOpts) =>
           validateRequiredByType('npm', 'name', value, opts),
         'name',
-        '' as unknown,
+        '',
         'npm requires a "name" component',
-        'value' as unknown,
+        'value',
       ],
       [
         'validateStartsWithoutNumber',
         validateStartsWithoutNumber,
         'field',
-        '1test' as unknown,
+        '1test',
         'field "1test" cannot start with a number',
-        'test' as unknown,
+        'test',
       ],
       [
         'validateEmptyByType',
         (_field: string, value: unknown, opts: ValidateOpts) =>
           validateEmptyByType('swift', 'namespace', value, opts),
         'namespace',
-        'not-empty' as unknown,
+        'not-empty',
         /swift "namespace" component must be empty/,
-        '' as unknown,
+        '',
       ],
       [
         'validateName',
@@ -1017,52 +1017,52 @@ describe('Edge cases and additional coverage', () => {
         'name',
         undefined as unknown,
         /"name" is a required component/,
-        'valid' as unknown,
+        'valid',
       ],
       [
         'validateNamespace',
         (_field: string, value: unknown, opts: ValidateOpts) =>
           validateNamespace(value, opts),
         'namespace',
-        123 as unknown,
+        123,
         /"namespace" must be a string/,
-        'valid' as unknown,
+        'valid',
       ],
       [
         'validateQualifierKey',
         (_field: string, value: unknown, opts: ValidateOpts) =>
           validateQualifierKey(value as string, opts),
         'key',
-        'key!invalid' as unknown,
+        'key!invalid',
         /qualifier key "key!invalid" must match \[a-z0-9\.\\-_\]/,
-        'validkey' as unknown,
+        'validkey',
       ],
       [
         'validateStrings',
         (field: string, value: unknown, opts: ValidateOpts) =>
           validateStrings(field, value, opts),
         'test',
-        123 as unknown,
+        123,
         /"test" must be a string/,
-        'valid' as unknown,
+        'valid',
       ],
       [
         'validateType',
         (_field: string, value: unknown, opts: ValidateOpts) =>
           validateType(value, opts),
         'type',
-        'type$illegal' as unknown,
+        'type$illegal',
         /type "type\$illegal" must match \[A-Za-z0-9\.\\-\]/,
-        'validtype' as unknown,
+        'validtype',
       ],
       [
         'validateVersion',
         (_field: string, value: unknown, opts: ValidateOpts) =>
           validateVersion(value, opts),
         'version',
-        123 as unknown,
+        123,
         /"version" must be a string/,
-        '1.0.0' as unknown,
+        '1.0.0',
       ],
     ])(
       'should support both option object and legacy boolean parameter for %s',
@@ -1252,11 +1252,11 @@ describe('Edge cases and additional coverage', () => {
 
       // Test component encoder with empty string
       // This tests PurlComponentEncoder function (line 32-33)
-      const encoded = PurlComponentT['name']!.encode('')
+      const encoded = PurlComponentT['name'].encode('')
       expect(encoded).toBe('')
 
       // Test with non-empty string
-      const encodedValid = PurlComponentT['name']!.encode('test-name')
+      const encodedValid = PurlComponentT['name'].encode('test-name')
       expect(encodedValid).toBeTruthy()
     })
 
@@ -1446,7 +1446,7 @@ describe('Edge cases and additional coverage', () => {
       expect(PurlComponent.name.validate).toBeDefined()
 
       // Test normalizing name with a number (tests line 36)
-      const result = PurlComponentT['name']!.normalize('test123')
+      const result = PurlComponentT['name'].normalize('test123')
       expect(result).toBe('test123')
     })
 

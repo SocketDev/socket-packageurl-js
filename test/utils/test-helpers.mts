@@ -16,7 +16,7 @@ export function createMockCache(): TtlCache {
     async get<T>(key: string): Promise<T | undefined> {
       return cacheData.get(key) as T | undefined
     },
-    async set<T>(key: string, value: T): Promise<void> {
+    async set(key: string, value: unknown): Promise<void> {
       cacheData.set(key, value)
     },
     async getAll<T>(_pattern: string): Promise<Map<string, T>> {
@@ -34,7 +34,7 @@ export function createMockCache(): TtlCache {
     async delete(key: string): Promise<void> {
       cacheData.delete(key)
     },
-    async deleteAll(_pattern?: string): Promise<number> {
+    async deleteAll(_pattern?: string | undefined): Promise<number> {
       const size = cacheData.size
       cacheData.clear()
       return size
@@ -42,7 +42,7 @@ export function createMockCache(): TtlCache {
     async clear(): Promise<void> {
       cacheData.clear()
     },
-  } as TtlCache
+  }
 }
 
 /**
@@ -51,7 +51,7 @@ export function createMockCache(): TtlCache {
  * @param returnValue - Optional value to return from the function.
  */
 export function createTestFunction(
-  returnValue?: string,
+  returnValue?: string | undefined,
 ): () => string | undefined {
   if (returnValue !== undefined) {
     return () => returnValue
@@ -69,12 +69,14 @@ export function createTestFunction(
 export function createTestPurl(
   type: string,
   name: string,
-  opts?: {
-    namespace?: string | null | undefined
-    qualifiers?: Record<string, string> | null | undefined
-    subpath?: string | undefined
-    version?: string | undefined
-  },
+  opts?:
+    | {
+        namespace?: string | null | undefined
+        qualifiers?: Record<string, string> | null | undefined
+        subpath?: string | undefined
+        version?: string | undefined
+      }
+    | undefined,
 ): PackageURL {
   return new PackageURL(
     type,

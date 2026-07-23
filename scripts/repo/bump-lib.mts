@@ -10,11 +10,11 @@ import process from 'node:process'
 import readline from 'node:readline'
 import { fileURLToPath } from 'node:url'
 
-// oxlint-disable-next-line socket/prefer-stable-external-semver -- @socketsecurity/lib 6.0.10 removed the external/semver export; this repo declares and pins semver directly.
-import semver from 'semver'
 import colors from 'yoctocolors-cjs'
 
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
+import { incrementVersion } from '@socketsecurity/lib-stable/versions/modify'
+import { isValidVersion } from '@socketsecurity/lib-stable/versions/parse'
 import type { Logger } from '@socketsecurity/lib-stable/logger/types'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import type {
@@ -208,14 +208,14 @@ export async function getCurrentVersion(
 export function getNewVersion(
   currentVersion: string,
   bumpType: string,
-): string | null {
+): string | undefined {
   // Check if bumpType is a valid semver version
-  if (semver.valid(bumpType)) {
+  if (isValidVersion(bumpType)) {
     return bumpType
   }
 
   // Otherwise treat as release type
-  const validTypes: string[] = [
+  const validTypes = [
     'major',
     'minor',
     'patch',
@@ -223,14 +223,15 @@ export function getNewVersion(
     'preminor',
     'prepatch',
     'prerelease',
-  ]
-  if (!validTypes.includes(bumpType)) {
+  ] as const
+  const releaseType = validTypes.find(t => t === bumpType)
+  if (releaseType === undefined) {
     throw new Error(
       `Invalid bump type: ${bumpType}. Must be one of: ${validTypes.join(', ')} or a valid semver version`,
     )
   }
 
-  return semver.inc(currentVersion, bumpType as semver.ReleaseType)
+  return incrementVersion(currentVersion, releaseType)
 }
 
 /**
@@ -293,17 +294,16 @@ export async function reviewChangelog(
   claudeCmd: string,
   changelogEntry: string,
   interactive: boolean = false,
-  interactiveReviewFn?: (
-    claudeCmd: string,
-    changelogEntry: string,
-  ) => Promise<string>,
+  interactiveReviewFn?:
+    | ((claudeCmd: string, changelogEntry: string) => Promise<string>)
+    | undefined,
 ): Promise<string> {
   logger.log('')
-  logger.log(`${colors.blue('━'.repeat(60))}`)
+  logger.log(colors.blue('━'.repeat(60)))
   logger.log(colors.blue('Proposed Changelog Entry:'))
   logger.log(colors.blue('━'.repeat(60)))
   logger.log(changelogEntry)
-  logger.log(`${colors.blue('━'.repeat(60))}`)
+  logger.log(colors.blue('━'.repeat(60)))
   logger.log('')
 
   // Use interactive prompts if available and requested
@@ -350,11 +350,11 @@ Provide the refined changelog entry in the same format.`
         logger.done('Changelog refined')
 
         logger.log('')
-        logger.log(`${colors.blue('━'.repeat(60))}`)
+        logger.log(colors.blue('━'.repeat(60)))
         logger.log(colors.blue('Refined Changelog Entry:'))
         logger.log(colors.blue('━'.repeat(60)))
         logger.log(changelogEntry)
-        logger.log(`${colors.blue('━'.repeat(60))}`)
+        logger.log(colors.blue('━'.repeat(60)))
         logger.log('')
       } else {
         logger.failed('Failed to refine changelog')

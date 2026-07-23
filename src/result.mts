@@ -75,7 +75,7 @@ export class Ok<T> {
    * Transform the error (no-op for `Ok`).
    */
   mapErr<F>(_fn: (_error: never) => F): Result<T, F> {
-    return this as unknown as Result<T, F>
+    return this
   }
 
   /**
@@ -122,7 +122,7 @@ export class Err<E = Error> {
    * Chain another result-returning operation (no-op for `Err`).
    */
   andThen<U, F>(_fn: (_value: never) => Result<U, F>): Result<U, E | F> {
-    return this as unknown as Result<U, E | F>
+    return this
   }
 
   /**
@@ -143,7 +143,7 @@ export class Err<E = Error> {
    * Transform the success value (no-op for `Err`).
    */
   map<U>(_fn: (_value: never) => U): Result<U, E> {
-    return this as unknown as Result<U, E>
+    return this
   }
 
   /**
@@ -242,11 +242,11 @@ export const ResultUtils = {
       // Loop bound guarantees i < length, so results[i] is defined.
       const result = results[i]!
       if (result.isOk()) {
-        return result as T[number]
+        return result
       }
       lastError = result
     }
-    return lastError as T[number]
+    return lastError
   },
 
   /**
@@ -257,7 +257,7 @@ export const ResultUtils = {
   /**
    * Wrap a function that might throw into a `Result`.
    */
-  from<T>(fn: () => T): Result<T, Error> {
+  from<T>(fn: () => T): Result<T> {
     try {
       return ok(fn())
     } catch (e) {

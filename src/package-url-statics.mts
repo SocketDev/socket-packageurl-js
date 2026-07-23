@@ -190,18 +190,18 @@ export function registerPackageURLStatics(ctor: typeof PackageURL): void {
 export { parseString }
 export type { ParsedPurlComponents }
 
-export function tryFromJSON(json: unknown): Result<PackageURL, Error> {
+export function tryFromJSON(json: unknown): Result<PackageURL> {
   return ResultUtils.from(() => fromJSON(json))
 }
 
-export function tryFromObject(obj: unknown): Result<PackageURL, Error> {
+export function tryFromObject(obj: unknown): Result<PackageURL> {
   return ResultUtils.from(() => fromObject(obj))
 }
 
-export function tryFromString(purlStr: unknown): Result<PackageURL, Error> {
+export function tryFromString(purlStr: unknown): Result<PackageURL> {
   return ResultUtils.from(() => fromString(purlStr))
 }
 
-export function tryParseString(purlStr: unknown): Result<unknown[], Error> {
+export function tryParseString(purlStr: unknown): Result<unknown[]> {
   return ResultUtils.from(() => parseString(purlStr))
 }

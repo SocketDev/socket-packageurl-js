@@ -102,7 +102,7 @@ describe('normalize — fuzz', () => {
         const out = normalizeSubpath(parts.join('/'))
         const outSegs = (out ?? '').split('/')
         for (let i = 0, { length } = outSegs; i < length; i += 1) {
-          const seg = outSegs[i]!
+          const seg = outSegs[i]
           if (seg.length === 0) {
             continue
           }
@@ -185,9 +185,9 @@ describe('normalize — fuzz', () => {
         if (out) {
           const keys = Object.keys(out)
           for (let i = 0, { length } = keys; i < length; i += 1) {
-            const key = keys[i]!
+            const key = keys[i]
             expect(key).toBe(key.toLowerCase())
-            expect(out[key]!.length).toBeGreaterThan(0)
+            expect(out[key].length).toBeGreaterThan(0)
           }
         }
       }),

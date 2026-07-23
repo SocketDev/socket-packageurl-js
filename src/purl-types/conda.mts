@@ -70,9 +70,9 @@ export interface PurlObject {
  */
 export async function condaExists(
   name: string,
-  version?: string,
-  channel?: string,
-  options?: ExistsOptions,
+  version?: string | undefined,
+  channel?: string | undefined,
+  options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   // Use provided channel or default to `conda-forge` (most popular community channel)
   const opts = { __proto__: null, ...options } as typeof options

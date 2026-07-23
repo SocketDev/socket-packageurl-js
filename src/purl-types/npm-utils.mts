@@ -201,9 +201,9 @@ export function normalize(purl: PurlObject): PurlObject {
  */
 export async function npmExists(
   name: string,
-  namespace?: string,
-  version?: string,
-  options?: ExistsOptions,
+  namespace?: string | undefined,
+  version?: string | undefined,
+  options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   // Build cache key
   const opts = { __proto__: null, ...options } as typeof options

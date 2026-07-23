@@ -1050,7 +1050,7 @@ export function fromSwiftUrl(url: URL): PackageURL | undefined {
   // Swift purls require a version (PURL spec); Swift Package Index URLs carry it
   // as an optional trailing segment (`/owner/repo/1.2.0`). Without it the purl
   // can't be constructed, so `tryCreatePurl` returns undefined.
-  return tryCreatePurl('swift', segments[0]!, segments[1]!, segments[2])
+  return tryCreatePurl('swift', segments[0], segments[1]!, segments[2])
 }
 
 /**

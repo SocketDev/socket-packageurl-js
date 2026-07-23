@@ -22,10 +22,10 @@ export async function interactiveReviewChangelog(
   while (true) {
     // Show the current changelog
     logger.log('')
-    logger.log(`${colors.cyan('Current Changelog Entry:')}`)
+    logger.log(colors.cyan('Current Changelog Entry:'))
     logger.log(colors.dim('─'.repeat(60)))
     logger.log(currentEntry)
-    logger.log(`${colors.dim('─'.repeat(60))}`)
+    logger.log(colors.dim('─'.repeat(60)))
     logger.log('')
 
     // Offer action choices

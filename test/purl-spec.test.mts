@@ -81,12 +81,11 @@ describe('PackageURL purl-spec test suite', async () => {
     .map(r => r.value)
     .filter(Boolean)
     .flatMap(
-      (o: unknown) =>
-        ((o as { tests?: SpecTest[] | undefined }).tests ?? []) as SpecTest[],
+      (o: unknown) => (o as { tests?: SpecTest[] | undefined }).tests ?? [],
     )
 
   for (let i = 0, { length } = TEST_FILES; i < length; i += 1) {
-    const obj = TEST_FILES[i]!
+    const obj = TEST_FILES[i]
     const { expected_failure, expected_output, test_type } = obj
 
     const inputObj = isObject(obj.input)

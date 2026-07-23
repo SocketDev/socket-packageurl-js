@@ -173,7 +173,7 @@ async function main(): Promise<void> {
       return
     }
 
-    const quiet: boolean = isQuiet(values as CleanScriptValues)
+    const quiet: boolean = isQuiet(values)
 
     // Determine what to clean
     const cleanAll: boolean =

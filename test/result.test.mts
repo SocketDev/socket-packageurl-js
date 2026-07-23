@@ -77,7 +77,7 @@ describe('Result types', () => {
       const chained = result.andThen((_x: number) => err(new Error('failed')))
 
       expect(chained.isErr()).toBe(true)
-      expect((chained as Err<Error>).error).toEqual(new Error('failed'))
+      expect((chained as Err).error).toEqual(new Error('failed'))
     })
 
     it('should pass through orElse', () => {
@@ -126,7 +126,7 @@ describe('Result types', () => {
       const mapped = result.map((x: number) => x * 2)
 
       expect(mapped.isErr()).toBe(true)
-      expect((mapped as Err<Error>).error).toEqual(new Error('failure'))
+      expect((mapped as Err).error).toEqual(new Error('failure'))
     })
 
     it('should map error correctly', () => {
@@ -136,7 +136,7 @@ describe('Result types', () => {
       )
 
       expect(mapped.isErr()).toBe(true)
-      expect((mapped as Err<Error>).error.message).toBe('mapped: original')
+      expect((mapped as Err).error.message).toBe('mapped: original')
     })
 
     it('should pass through andThen', () => {
@@ -144,7 +144,7 @@ describe('Result types', () => {
       const chained = result.andThen((x: number) => ok(x * 2))
 
       expect(chained.isErr()).toBe(true)
-      expect((chained as Err<Error>).error).toEqual(new Error('failure'))
+      expect((chained as Err).error).toEqual(new Error('failure'))
     })
 
     it('should handle orElse', () => {
@@ -160,7 +160,7 @@ describe('Result types', () => {
       const fallback = result.orElse(() => err(new Error('fallback failed')))
 
       expect(fallback.isErr()).toBe(true)
-      expect((fallback as Err<Error>).error.message).toBe('fallback failed')
+      expect((fallback as Err).error.message).toBe('fallback failed')
     })
   })
 
@@ -172,7 +172,7 @@ describe('Result types', () => {
       const result = ResultUtils.from(throwingFn)
 
       expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error.message).toBe('boom')
+      expect((result as Err).error.message).toBe('boom')
     })
 
     it('should wrap non-throwing function', () => {
@@ -190,8 +190,8 @@ describe('Result types', () => {
       const result = ResultUtils.from(throwingFn)
 
       expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error).toBeInstanceOf(Error)
-      expect((result as Err<Error>).error.message).toBe('string error')
+      expect((result as Err).error).toBeInstanceOf(Error)
+      expect((result as Err).error.message).toBe('string error')
     })
 
     it('should handle all successful results', () => {
@@ -207,7 +207,7 @@ describe('Result types', () => {
       const combined = ResultUtils.all(results)
 
       expect(combined.isErr()).toBe(true)
-      expect((combined as Err<Error>).error.message).toBe('failed')
+      expect((combined as Err).error.message).toBe('failed')
     })
 
     it('should return first Ok with any', () => {
@@ -223,7 +223,7 @@ describe('Result types', () => {
       const result = ResultUtils.any(results)
 
       expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error.message).toBe('fail2')
+      expect(result.error.message).toBe('fail2')
     })
   })
 })
@@ -266,7 +266,7 @@ describe('PackageURL Result methods', () => {
           expect(purl.name).toBe(expectedName)
           expect(purl.version).toBe(expectedVersion)
         } else {
-          expect((result as Err<Error>).error).toBeInstanceOf(Error)
+          expect((result as Err).error).toBeInstanceOf(Error)
         }
       },
     )
@@ -309,7 +309,7 @@ describe('PackageURL Result methods', () => {
           expect(purl.name).toBe(expectedName)
           expect(purl.version).toBe(expectedVersion)
         } else {
-          expect((result as Err<Error>).error).toBeInstanceOf(Error)
+          expect((result as Err).error).toBeInstanceOf(Error)
         }
       },
     )
@@ -364,7 +364,7 @@ describe('PackageURL Result methods', () => {
           expect(purl.name).toBe(expectedName)
           expect(purl.version).toBe(expectedVersion)
         } else {
-          const error = (result as Err<Error>).error
+          const error = (result as Err).error
           expect(error).toBeInstanceOf(Error)
           if (errorMessageContains !== undefined) {
             expect(error.message).toContain(errorMessageContains)
@@ -393,7 +393,7 @@ describe('PackageURL Result methods', () => {
       const result = PackageURL.tryParseString('invalid-purl')
 
       expect(result.isErr()).toBe(true)
-      expect((result as Err<Error>).error).toBeInstanceOf(Error)
+      expect((result as Err).error).toBeInstanceOf(Error)
     })
   })
 
@@ -419,7 +419,7 @@ describe('PackageURL Result methods', () => {
 
     it('should provide fallbacks with orElse', () => {
       const failedResult = PackageURL.tryFromString('invalid-purl')
-      const result = (failedResult as Err<Error>).orElse(() =>
+      const result = (failedResult as Err).orElse(() =>
         PackageURL.tryFromString('pkg:npm/fallback@1.0.0'),
       )
 

@@ -124,6 +124,7 @@ let cachedLocaleCompare: Intl.Collator['compare'] | undefined
 export function localeCompare(x: string, y: string): number {
   if (cachedLocaleCompare === undefined) {
     // Lazily call `new Intl.Collator()` because in Node it can take 10-14ms
+    // oxlint-disable-next-line typescript/unbound-method -- the Intl.Collator `compare` getter returns a function already bound to its collator per spec, so detaching it is safe.
     cachedLocaleCompare = new Intl.Collator().compare
   }
   return cachedLocaleCompare(x, y)

@@ -85,7 +85,7 @@ export function encodeQualifiers(qualifiers: unknown): string {
       )
       // Use `URLSearchParams#set` to preserve plus signs
       // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
-      searchParams.set(key!, value)
+      searchParams.set(key, value)
     }
     return normalizeSearchParamsEncoding(searchParams.toString())
   }

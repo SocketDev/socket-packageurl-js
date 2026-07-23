@@ -171,7 +171,7 @@ export class PackageURL {
 
     const qualifiers =
       typeof rawQualifiers === 'string' || isObject(rawQualifiers)
-        ? normalizeQualifiers(rawQualifiers as string | QualifiersObject)
+        ? normalizeQualifiers(rawQualifiers)
         : rawQualifiers
     validateQualifiers(qualifiers, { throws: true })
 
@@ -340,7 +340,7 @@ export class PackageURL {
         __proto__: null,
         ...this.qualifiers,
         [key]: value,
-      } as unknown as Record<string, string>,
+      },
       this.subpath,
     )
   }
@@ -441,19 +441,19 @@ export class PackageURL {
     return fromUrl(urlStr)
   }
 
-  static tryFromJSON(json: unknown): Result<PackageURL, Error> {
+  static tryFromJSON(json: unknown): Result<PackageURL> {
     return tryFromJSON(json)
   }
 
-  static tryFromObject(obj: unknown): Result<PackageURL, Error> {
+  static tryFromObject(obj: unknown): Result<PackageURL> {
     return tryFromObject(obj)
   }
 
-  static tryFromString(purlStr: unknown): Result<PackageURL, Error> {
+  static tryFromString(purlStr: unknown): Result<PackageURL> {
     return tryFromString(purlStr)
   }
 
-  static tryParseString(purlStr: unknown): Result<unknown[], Error> {
+  static tryParseString(purlStr: unknown): Result<unknown[]> {
     return tryParseString(purlStr)
   }
 }

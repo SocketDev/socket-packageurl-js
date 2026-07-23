@@ -276,7 +276,7 @@ describe('PackageURL (continued)', () => {
       expect(() => PackageURL.fromNpm(undefined as unknown as string)).toThrow(
         'npm package specifier string is required',
       )
-      expect(() => PackageURL.fromNpm(123 as unknown as string)).toThrow(
+      expect(() => PackageURL.fromNpm(123)).toThrow(
         'npm package specifier string is required',
       )
     })

@@ -17,6 +17,7 @@ import {
   scanSrc,
 } from '../scripts/repo/check/purlerror-messages-are-lowercase.mts'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
+import { safeDeleteSync } from '@socketsecurity/lib-stable/fs/safe'
 
 const logger = getDefaultLogger()
 
@@ -129,7 +130,7 @@ describe('scanFile with a temp fixture', () => {
       expect(messages).toContain('trailing period.')
       expect(messages).not.toContain('compliant message')
     } finally {
-      unlinkSync(tmpFile)
+      safeDeleteSync(tmpFile)
     }
   })
 
@@ -151,7 +152,7 @@ describe('scanFile with a temp fixture', () => {
       expect(violations.length).toBe(1)
       expect(violations[0]?.message).toBe('VERS constraint must not be empty')
     } finally {
-      unlinkSync(tmpFile)
+      safeDeleteSync(tmpFile)
     }
   })
 
@@ -168,7 +169,7 @@ describe('scanFile with a temp fixture', () => {
       const violations = scanFile(tmpFile, '/tmp')
       expect(violations.length).toBe(0)
     } finally {
-      unlinkSync(tmpFile)
+      safeDeleteSync(tmpFile)
     }
   })
 

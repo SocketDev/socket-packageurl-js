@@ -46,7 +46,9 @@ export function normalizeNamespace(rawNamespace: unknown): string | undefined {
  */
 export function normalizePurlPath(
   pathname: string,
-  options?: { filter?: ((_segment: string) => boolean) | undefined },
+  options?:
+    | { filter?: ((_segment: string) => boolean) | undefined }
+    | undefined,
 ): string {
   const { filter: callback } = options ?? {}
   let collapsed = ''

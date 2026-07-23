@@ -29,7 +29,7 @@ describe('purl-type.mts — PurlTypeValidator default options', () => {
 describe('purl-type edge cases', () => {
   it('accepts fallback types when type and namespace are undefined', () => {
     expect(
-      PurlTypeT['alpm']!.validate({ name: 'pacman' }, { throws: false }),
+      PurlTypeT['alpm'].validate({ name: 'pacman' }, { throws: false }),
     ).toBe(true)
   })
 })
@@ -37,7 +37,7 @@ describe('purl-type edge cases', () => {
 describe('maven namespace slash validation', () => {
   it('returns false (non-throwing) when maven namespace contains a slash', () => {
     expect(
-      PurlTypeT['maven']!.validate(
+      PurlTypeT['maven'].validate(
         {
           type: 'maven',
           namespace: 'org.apache/commons',
@@ -53,7 +53,7 @@ describe('maven namespace slash validation', () => {
 
   it('throws PurlError when validating maven namespace with slash directly', () => {
     expect(() =>
-      PurlTypeT['maven']!.validate(
+      PurlTypeT['maven'].validate(
         {
           type: 'maven',
           namespace: 'org.apache/commons',

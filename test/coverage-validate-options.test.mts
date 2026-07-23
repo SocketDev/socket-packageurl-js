@@ -22,7 +22,9 @@ type PurlTypeHelpers = Record<
   string,
   {
     normalize?: ((purl: PurlLike) => PurlLike) | undefined
-    validate?: ((purl: PurlLike, options?: unknown) => boolean) | undefined
+    validate?:
+      | ((purl: PurlLike, options?: unknown | undefined) => boolean)
+      | undefined
   }
 >
 
@@ -90,53 +92,53 @@ const VALID_BY_TYPE: Record<string, PurlLike> = {
 describe('per-type validate with an omitted options bag', () => {
   const validateTypes = Object.keys(VALID_BY_TYPE)
   for (let i = 0, { length } = validateTypes; i < length; i += 1) {
-    const type = validateTypes[i]!
+    const type = validateTypes[i]
     const helper = PurlTypeT[type]
     if (!helper?.validate) {
       continue
     }
     it(`${type} validates a conformant purl without options`, () => {
-      expect(helper.validate!(VALID_BY_TYPE[type]!)).toBe(true)
+      expect(helper.validate!(VALID_BY_TYPE[type])).toBe(true)
     })
   }
 
   it('non-throwing mode is the default for a failing component check', () => {
     // No options at all — a spec violation must return false, not throw.
     expect(
-      PurlTypeT['vcpkg']!.validate!({
+      PurlTypeT['vcpkg'].validate!({
         name: 'asio',
         namespace: 'boost',
         type: 'vcpkg',
       }),
     ).toBe(false)
     expect(
-      PurlTypeT['hackage']!.validate!({
+      PurlTypeT['hackage'].validate!({
         name: 'aeson',
         namespace: 'ns',
         type: 'hackage',
       }),
     ).toBe(false)
+    expect(PurlTypeT['julia'].validate!({ name: 'Dates', type: 'julia' })).toBe(
+      false,
+    )
     expect(
-      PurlTypeT['julia']!.validate!({ name: 'Dates', type: 'julia' }),
+      PurlTypeT['cpan'].validate!({ name: 'DateTime', type: 'cpan' }),
     ).toBe(false)
     expect(
-      PurlTypeT['cpan']!.validate!({ name: 'DateTime', type: 'cpan' }),
-    ).toBe(false)
-    expect(
-      PurlTypeT['cpan']!.validate!({
+      PurlTypeT['cpan'].validate!({
         name: 'URI::PackageURL',
         namespace: 'GDT',
         type: 'cpan',
       }),
     ).toBe(false)
     expect(
-      PurlTypeT['chrome-extension']!.validate!({
+      PurlTypeT['chrome-extension'].validate!({
         name: 'dogs',
         type: 'chrome-extension',
       }),
     ).toBe(false)
     expect(
-      PurlTypeT['chrome-extension']!.validate!({
+      PurlTypeT['chrome-extension'].validate!({
         name: 'hlepfoohegkhhmjieoechaddaejaokhf',
         type: 'chrome-extension',
         version: '1.2.3-beta',

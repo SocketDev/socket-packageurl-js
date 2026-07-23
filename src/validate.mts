@@ -130,8 +130,8 @@ export function validateQualifierKey(
   }
   // The key must be composed only of ASCII letters and numbers,
   // `'.'`, `'-'` and `'_'` (period, dash and underscore)
-  for (let i = 0, { length } = key as string; i < length; i += 1) {
-    const code = StringPrototypeCharCodeAt(key as string, i)
+  for (let i = 0, { length } = key; i < length; i += 1) {
+    const code = StringPrototypeCharCodeAt(key, i)
     // biome-ignore format: newlines
     if (
       !(
@@ -185,11 +185,9 @@ export function validateQualifiers(
   // type-coverage:ignore-next-line -- TypeScript correctly infers this type through the ternary and cast
   const keysIterable: Iterable<string> =
     // `URLSearchParams` instances have a `"keys"` method that returns an iterator
-    (
-      typeof keysProperty === 'function'
-        ? ReflectApply(keysProperty, qualifiersObj, [])
-        : ObjectKeys(qualifiers as QualifiersObject)
-    ) as Iterable<string>
+    typeof keysProperty === 'function'
+      ? ReflectApply(keysProperty, qualifiersObj, [])
+      : ObjectKeys(qualifiers)
   // Use `for-of` to work with `URLSearchParams#keys` iterators
   // oxlint-disable-next-line socket/prefer-cached-for-loop -- `keysIterable` is a generic `Iterable<string>` (URLSearchParams keys iterator), not an indexable array.
   // type-coverage:ignore-next-line -- TypeScript correctly infers the iteration type

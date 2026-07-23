@@ -144,7 +144,7 @@ describe('PurlBuilder', () => {
     ] as const)('should create %s builder', (type, namespace, name) => {
       const builder = (
         PurlBuilder as unknown as Record<string, () => PurlBuilder>
-      )[type]!()
+      )[type]()
       if (namespace !== undefined) {
         builder.namespace(namespace)
       }

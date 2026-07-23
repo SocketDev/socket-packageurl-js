@@ -114,7 +114,7 @@ export function validate(
       return false
     }
     // `hasNs` proved `namespace` is a non-empty string on this path.
-    const namespaceWithoutAtSign = StringPrototypeSlice(namespace!, 1)
+    const namespaceWithoutAtSign = StringPrototypeSlice(namespace, 1)
     if (encodeComponent(namespaceWithoutAtSign) !== namespaceWithoutAtSign) {
       if (throws) {
         throw new PurlError(

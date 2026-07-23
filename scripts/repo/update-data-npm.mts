@@ -6,8 +6,6 @@ import { fileURLToPath } from 'node:url'
 import allThePackageNamesData from 'all-the-package-names/names.json' with { type: 'json' }
 import allThePackageNamesV1Data from 'all-the-package-names-v1.3905.0/names.json' with { type: 'json' }
 import pacote from 'pacote'
-// oxlint-disable-next-line socket/prefer-stable-external-semver -- @socketsecurity/lib 6.0.10 removed the external/semver export; this repo declares and pins semver directly.
-import semver from 'semver'
 import validateNpmPackageName from 'validate-npm-package-name'
 
 import { arrayUnique } from '@socketsecurity/lib-stable/arrays/unique'
@@ -19,6 +17,7 @@ import { pFilter } from '@socketsecurity/lib-stable/promises/iterate'
 import { naturalCompare } from '@socketsecurity/lib-stable/sorts/natural'
 import { getDefaultSpinner } from '@socketsecurity/lib-stable/spinner/default'
 import { confirm } from '@socketsecurity/lib-stable/stdio/prompts'
+import { gte } from '@socketsecurity/lib-stable/versions/compare'
 
 const logger = getDefaultLogger()
 
@@ -37,7 +36,7 @@ async function main(): Promise<void> {
 
   const { next } = getMaintainedNodeVersions()
   const nodeVersion: string = process.version.slice(1)
-  const isGteNext: boolean = semver.gte(nodeVersion, next)
+  const isGteNext: boolean = gte(nodeVersion, next)
   if (
     await confirm({
       message: `Update builtin package names?${isGteNext ? '' : ` (Requires Node >=${next})`}`,

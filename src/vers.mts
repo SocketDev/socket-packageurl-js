@@ -92,10 +92,8 @@ const VERS_QUOTE_MAP: ReadonlyMap<string, string> = ObjectFreeze(
  * VERS serialization.
  */
 export function quoteVersVersion(version: string): string {
-  return StringPrototypeReplace(
-    version,
-    VERS_QUOTE_PATTERN,
-    ch => VERS_QUOTE_MAP.get(ch)!,
+  return StringPrototypeReplace(version, VERS_QUOTE_PATTERN, ch =>
+    VERS_QUOTE_MAP.get(ch)!,
   )
 }
 

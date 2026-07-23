@@ -129,7 +129,7 @@ export function matchWildcard(pattern: string, value: string): boolean {
 export function matchComponent(
   patternValue: string | null | undefined,
   actualValue: string | null | undefined,
-  matcher?: (_value: string) => boolean,
+  matcher?: ((_value: string) => boolean) | undefined,
 ): boolean {
   // Handle `**` (match any value including empty)
   if (patternValue === '**') {

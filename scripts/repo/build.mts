@@ -266,7 +266,10 @@ export async function watchBuild(
       throw new Error('Watch mode interrupted')
     })
 
-    await new Promise<never>(() => {})
+    // Keep the process alive until interrupted; the SIGINT handler above
+    // owns shutdown. Returning the never-resolving promise gives every code
+    // path an explicit return value.
+    return await new Promise<never>(() => {})
   } catch (e) {
     if (!quiet) {
       logger.error('Watch mode failed:', e)

@@ -52,8 +52,8 @@ export interface PurlObject {
  */
 export async function hexExists(
   name: string,
-  version?: string,
-  options?: ExistsOptions,
+  version?: string | undefined,
+  options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
   const cacheKey = version ? `hex:${name}@${version}` : `hex:${name}`

@@ -39,9 +39,9 @@ export function recursiveFreeze<T>(value_: T): T {
     return value_
   }
   // Use breadth-first traversal to avoid stack overflow on deep objects
-  const queue = [value_ as T & object]
+  const queue = [value_]
   const visited = new WeakSetCtor<object>()
-  visited.add(value_ as T & object)
+  visited.add(value_)
   let { length: queueLength } = queue
   let pos = 0
   while (pos < queueLength) {
@@ -59,9 +59,9 @@ export function recursiveFreeze<T>(value_: T): T {
           item !== null &&
           (typeof item === 'object' || typeof item === 'function') &&
           !ObjectIsFrozen(item) &&
-          !visited.has(item as object)
+          !visited.has(item)
         ) {
-          visited.add(item as object)
+          visited.add(item)
           queue[queueLength++] = item as T & object
         }
       }
@@ -76,9 +76,9 @@ export function recursiveFreeze<T>(value_: T): T {
           propValue !== null &&
           (typeof propValue === 'object' || typeof propValue === 'function') &&
           !ObjectIsFrozen(propValue) &&
-          !visited.has(propValue as object)
+          !visited.has(propValue)
         ) {
-          visited.add(propValue as object)
+          visited.add(propValue)
           queue[queueLength++] = propValue as T & object
         }
       }

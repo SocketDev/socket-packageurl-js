@@ -46,12 +46,12 @@ export function collectSourceFiles(dir: string): string[] {
     return results
   }
   for (let i = 0, { length } = entries; i < length; i += 1) {
-    const entry = entries[i]!
+    const entry = entries[i]
     const full = path.join(dir, entry.name)
     if (entry.isDirectory()) {
       const nested = collectSourceFiles(full)
       for (let j = 0, { length: jlen } = nested; j < jlen; j += 1) {
-        results.push(nested[j]!)
+        results.push(nested[j])
       }
     } else if (
       entry.isFile() &&
@@ -116,7 +116,7 @@ export function checkMessageShape(msg: string): string | undefined {
   if (msg.length === 0) {
     return undefined
   }
-  const first = msg[0]!
+  const first = msg[0]
   if (first >= 'A' && first <= 'Z') {
     return `starts with uppercase '${first}' — PurlError literals must begin with a lowercase character`
   }
@@ -143,7 +143,7 @@ export function scanFile(
   const violations: MessageViolation[] = []
   const rel = path.relative(repoRoot, filePath)
   for (let i = 0, { length } = lines; i < length; i += 1) {
-    const line = lines[i]!
+    const line = lines[i]
     let searchStart = 0
     while (true) {
       const callIdx = line.indexOf('new PurlError(', searchStart)
@@ -162,7 +162,7 @@ export function scanFile(
         //   )
         const afterParen = line.slice(callIdx + 'new PurlError('.length).trim()
         if (afterParen.length === 0) {
-          const nextLine = lines[i + 1]!.trim()
+          const nextLine = lines[i + 1].trim()
           msg = extractFirstStringArg(`f(${nextLine}`, 1)
           reportLine = i + 2
         }
@@ -199,9 +199,9 @@ export function scanSrc(repoRoot: string): MessageViolation[] {
   const files = collectSourceFiles(srcDir)
   const violations: MessageViolation[] = []
   for (let i = 0, { length } = files; i < length; i += 1) {
-    const fileViolations = scanFile(files[i]!, repoRoot)
+    const fileViolations = scanFile(files[i], repoRoot)
     for (let j = 0, { length: jlen } = fileViolations; j < jlen; j += 1) {
-      violations.push(fileViolations[j]!)
+      violations.push(fileViolations[j])
     }
   }
   return violations
@@ -215,7 +215,7 @@ function main(): void {
       '[purlerror-messages-are-lowercase] PurlError literal message shape violations:',
     )
     for (let i = 0, { length } = violations; i < length; i += 1) {
-      const v = violations[i]!
+      const v = violations[i]
       logger.error(`  ✗ ${v.file}:${v.line} "${v.message}" — ${v.reason}`)
     }
     logger.error(

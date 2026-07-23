@@ -130,14 +130,14 @@ describe('Type exports accessibility', () => {
   })
 
   it('should export Result type', () => {
-    const success: Result<string> = { kind: 'ok', value: 'test' } as Result<
-      string,
-      Error
-    >
+    const success: Result<string> = {
+      kind: 'ok',
+      value: 'test',
+    } as Result<string>
     const failure: Result<string> = {
       kind: 'err',
       error: new Error('failed'),
-    } as Result<string, Error>
+    } as Result<string>
     expect(success.kind).toBe('ok')
     expect(failure.kind).toBe('err')
   })

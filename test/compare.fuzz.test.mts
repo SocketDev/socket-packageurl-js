@@ -124,7 +124,7 @@ describe('compare — fuzz', () => {
         expect(sorted.map(key).toSorted()).toEqual(purls.map(key).toSorted())
         // Adjacent pairs are non-decreasing.
         for (let i = 1; i < sorted.length; i += 1) {
-          expect(compare(sorted[i - 1]!, sorted[i]!)).not.toBe(1)
+          expect(compare(sorted[i - 1], sorted[i])).not.toBe(1)
         }
       }),
     )

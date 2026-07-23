@@ -59,7 +59,7 @@ import {
   swift,
 } from './purl-builder-factories.mjs'
 
-import type { QualifiersObject, QualifiersValue } from './purl-component.mjs'
+import type { QualifiersValue } from './purl-component.mjs'
 
 /**
  * Known Limitation: `instanceof` checks with ESM/CommonJS interop
@@ -262,13 +262,13 @@ export class PurlBuilder {
       builder._version = purl.version
     }
     if (purl.qualifiers !== undefined) {
-      const qualifiersObj = purl.qualifiers as QualifiersObject
+      const qualifiersObj = purl.qualifiers
       builder._qualifiers = ObjectFromEntries(
         ArrayPrototypeMap(
           ObjectEntries(qualifiersObj),
           ([key, value]: [string, QualifiersValue]) => [key, String(value)],
         ),
-      ) as Record<string, string>
+      )
     }
     if (purl.subpath !== undefined) {
       builder._subpath = purl.subpath

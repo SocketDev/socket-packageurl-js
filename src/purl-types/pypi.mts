@@ -79,8 +79,8 @@ export function normalize(purl: PurlObject): PurlObject {
  */
 export async function pypiExists(
   name: string,
-  version?: string,
-  options?: ExistsOptions,
+  version?: string | undefined,
+  options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
   const cacheKey = version ? `pypi:${name}@${version}` : `pypi:${name}`

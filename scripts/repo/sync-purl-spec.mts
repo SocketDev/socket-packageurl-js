@@ -77,7 +77,10 @@ export async function readPin(): Promise<PurlSpecPin> {
   return pin
 }
 
-async function git(args: string[], options?: { cwd?: string | undefined }) {
+async function git(
+  args: string[],
+  options?: { cwd?: string | undefined } | undefined,
+) {
   const opts = { __proto__: null, ...options } as typeof options
   const result = await spawn('git', args, {
     cwd: opts?.cwd ?? REPO_ROOT,
@@ -176,7 +179,7 @@ export async function applySuite(
   drift: SuiteDrift[],
 ): Promise<void> {
   for (let i = 0, { length } = drift; i < length; i += 1) {
-    const entry = drift[i]!
+    const entry = drift[i]
     const vendoredPath = path.join(VENDORED_SUITE_DIR, entry.relPath)
     if (entry.kind === 'stale') {
       await safeDelete(vendoredPath)
