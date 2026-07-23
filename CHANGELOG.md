@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.3](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.3) - 2026-07-23
+
+- Backfill release — identical to 1.4.2, published to fill the version gap.
+
 ## [1.4.2](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.2) - 2026-04-14
 
 ### Changed
