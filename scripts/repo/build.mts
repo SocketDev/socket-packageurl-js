@@ -4,7 +4,7 @@
  *   fleet's build scripts use.
  */
 
-import { existsSync, statSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -26,15 +26,8 @@ import { errorMessage } from '../utils/error-message.mts'
 const logger: Logger = getDefaultLogger()
 
 import { configs as rolldownConfigs } from '../../.config/repo/rolldown.config.mts'
+import { getBuildAnalysis } from './build-analysis.mts'
 import { runSequence } from '../utils/run-command.mts'
-
-type BuildAnalysis = {
-  files: Array<{
-    name: string
-    size: string
-  }>
-  totalSize: string
-}
 
 type BuildScriptValues = FlagValues & {
   analyze: boolean
@@ -83,8 +76,6 @@ const rootPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '../..',
 )
-const distPath = path.join(rootPath, 'dist')
-
 /**
  * Build source code with rolldown. Returns { exitCode, buildTime, outputs } for
  * external logging.
@@ -127,6 +118,29 @@ export async function buildSource(
       const result = await bundle.write(output)
       outputs.push(result)
       await bundle.close()
+    }
+
+    // Post-build load gate: a bundle that crashes at require() must fail the
+    // BUILD, not a later consumer. The staged-publish workflow runs
+    // `pnpm run build` and then stages the tarball without running
+    // `check --all`, so this is the last repo-owned seam in front of npm —
+    // 1.4.5 shipped a dist/exists.js that threw at module load and every
+    // green lane missed it because nothing ever loaded the built entry.
+    const gateExitCode = await runSequence([
+      {
+        args: ['scripts/repo/check/dist-entries-are-requirable.mts'],
+        command: 'node',
+      },
+    ])
+    if (gateExitCode !== 0) {
+      if (!quiet) {
+        logger.error('Built entry points failed the load probe')
+      }
+      return {
+        buildTime: Date.now() - startTime,
+        exitCode: gateExitCode,
+        outputs,
+      }
     }
 
     return { buildTime: Date.now() - startTime, exitCode: 0, outputs }
@@ -181,37 +195,6 @@ export async function buildTypes(
   }
 
   return exitCode
-}
-
-/**
- * Walk the on-disk dist/ output and report file sizes. Replaces esbuild's
- * metafile analyzer — rolldown doesn't ship an equivalent metafile by default,
- * and the only consumer is this --analyze CLI flag, so reading the produced
- * files directly is enough.
- */
-export function getBuildAnalysis(): BuildAnalysis {
-  const files: Array<{ name: string; size: string }> = []
-  let totalBytes = 0
-
-  if (existsSync(distPath)) {
-    for (const name of ['index.js', 'exists.js']) {
-      const filePath = path.join(distPath, name)
-      if (!existsSync(filePath)) {
-        continue
-      }
-      const bytes = statSync(filePath).size
-      totalBytes += bytes
-      files.push({
-        name: path.relative(rootPath, filePath),
-        size: `${(bytes / 1024).toFixed(2)} KB`,
-      })
-    }
-  }
-
-  return {
-    files,
-    totalSize: `${(totalBytes / 1024).toFixed(2)} KB`,
-  }
 }
 
 export function getErrorMessage(error: unknown): string {
