@@ -22,16 +22,13 @@
   "types": "./dist/index.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.mts",
+      "source": "./src/index.mts",
       "default": "./dist/index.js"
     },
     "./exists": {
-      "types": "./dist/exists.d.mts",
+      "source": "./src/exists.mts",
       "default": "./dist/exists.js"
-    },
-    "./data/npm/builtin-names.json": "./data/npm/builtin-names.json",
-    "./data/npm/legacy-names.json": "./data/npm/legacy-names.json",
-    "./package.json": "./package.json"
+    }
   },
   "publishConfig": {
     "access": "public",
