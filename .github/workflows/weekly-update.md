@@ -64,10 +64,6 @@ network:
   allowed:
     - defaults
     - api.anthropic.com
-    # WHY: taze + fast-npm-meta resolve latest-version metadata via antfu's
-    # npm.antfu.dev endpoint (NOT the npm registry). Without it every taze
-    # lookup times out and `pnpm run update` (update.mts) exits 1.
-    - npm.antfu.dev
 
 # Pre-agent provisioning in the AGENT job. gh-aw inserts these custom steps
 # right after its github-app checkout (they contain no checkout of their own,
