@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.4.7](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.7) - 2026-07-24
 
 ### Changed
 
