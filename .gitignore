@@ -49,3 +49,18 @@ Thumbs.db
 
 # Archive directories
 **/docs/archive/
+
+# Backfill graft: track the fleet hook tree the dispatch generator scans;
+# keep its GENERATED artifacts out (rebuilt in CI by make-hook-dispatch).
+!/.claude/hooks/
+!/.claude/settings.json
+!/.claude/workflows/
+**/.claude/hooks/fleet/_dispatch/acorn-bindgen.cjs
+**/.claude/hooks/fleet/_dispatch/acorn.wasm
+**/.claude/hooks/fleet/_dispatch/bundle.cjs
+**/.claude/hooks/fleet/_dispatch/dispatch-launcher
+**/.claude/hooks/fleet/_dispatch/dispatch-launcher.exe
+**/.claude/hooks/fleet/_dispatch/dispatch-table.mts
+**/.claude/hooks/fleet/_dispatch/dispatch-table-snapshot.mts
+**/.claude/hooks/fleet/_dispatch/dispatch-table-excluded.mts
+**/.claude/hooks/fleet/_shared/dispatch-manifest.json
