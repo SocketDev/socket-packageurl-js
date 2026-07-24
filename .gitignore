@@ -143,6 +143,10 @@ pnpm-debug.log
 **/.claude/hooks/fleet/_dispatch/snapshot-blob.path
 **/.claude/hooks/fleet/_dispatch/snapshot-bundle.cjs
 **/.claude/hooks/fleet/_shared/dispatch-manifest.json
+# The rolldown-bundled fleet oxlint plugin (build-oxlint-bundle.mts): members
+# load this single artifact via jsPlugins instead of the ~100 rule source
+# dirs. Release-only + gitignored like the hook bundles above.
+**/.config/fleet/oxlint-plugin.mjs
 
 # Derived cross-harness rule adapters — generated per-repo, per-platform by
 # the multi-agent scaffolding (setup / init / sync) script from .claude/skills/
