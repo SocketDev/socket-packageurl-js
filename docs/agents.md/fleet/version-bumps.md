@@ -22,12 +22,13 @@ pnpm run cover       # tests pass AND the coverage threshold holds
 
 `pnpm run cover` is part of the wave, not optional: it runs the suite under
 coverage and fails if a test fails or coverage drops below the repo's
-threshold. It also emits `coverage/coverage-summary.json` (the `json-summary`
+threshold. It also emits
+`node_modules/.cache/fleet/coverage/coverage-summary.json` (the `json-summary`
 reporter). After it passes, refresh the README coverage badge from that summary
 and commit the refresh:
 
 ```bash
-node scripts/fleet/make-coverage-badge.mts
+node scripts/fleet/gen/coverage-badge.mts
 ```
 
 The badge is generated from the coverage run, so it drifts whenever coverage
@@ -101,16 +102,32 @@ To skip the gate but keep the ordering check, set
 `SOCKET_VERSION_BUMP_SKIP_GATE=1`; to bypass the whole guard, type
 `Allow version-bump-order bypass`.
 
-### 4. Tag at the end
+### 4. Tag + GitHub release come LAST — after the registry publish
 
-`git tag vX.Y.Z` at the bump commit, then push the tag. The
-`version-bump-order-guard` hook enforces this ordering at commit time.
+Never create or push `vX.Y.Z` before the version is live on its registry.
+The tag + immutable GH release are the FINAL markers of a release: a STAGED
+npm package is not published (staging may never be approved), and a release
+cut early can mark a version that never shipped — an immutable release even
+422-rejects its own late asset uploads. The approve flow owns them:
+`publish-pipeline.mts --approve` (or `npm-publish.mts --approve` /
+`cargo-publish.mts --approve` out-of-band) promotes, waits for the registry
+to resolve the version (`requireRegistryLive`), then tags + cuts the release
+at the bump commit. The `version-bump-order-guard` hook enforces the
+bump-before-tag ordering at commit time; the github-release workflow refuses
+to cut for a version the registry can't resolve.
 
-### 5. Do NOT dispatch the publish workflow
+### 5. Publish through the pipeline — never by hand, never a raw dispatch
 
-Per the [Public-surface hygiene](public-surface-hygiene.md) rule (in
-CLAUDE.md), releases are user-triggered. Stop after the tag push;
-the user runs the publish workflow manually.
+The pipeline is the ONE sanctioned publisher. Its stage-publish leg
+dispatches the `npm-publish.yml` workflow itself and watches the run, so the
+staged upload happens in CI under OIDC — no local npm login, no local OTP.
+`publish-pipeline.mts --local` is the explicit offline escape for humans.
+Agents must not publish locally (`npm publish`, `pnpm stage publish`,
+`cargo publish`, a direct `npm-publish.mts` run — blocked by
+`verify-before-publish-guard`) and must not hand-dispatch publish workflows
+(`gh workflow run` — blocked by `release-workflow-guard`). The human-owned
+step remains `publish-pipeline.mts --approve`: the 2FA promote, then the
+tag + immutable GH release cut LAST behind registry liveness.
 
 ## The bump base is the last PUBLISHED version, never the manifest
 
@@ -127,6 +144,34 @@ The `version-is-not-ahead-of-published` check is the release-tier gate: it fails
 when the manifest is more than one valid bump ahead of the published latest, and
 fails open (no published version / registry unreachable) so offline lint lanes
 never trip it.
+
+## Backfill: republish a skipped GAP version
+
+WHY: a version can end up skipped — 1.4.3 between a live 1.4.2 and 1.4.4 —
+and the normal path can't fill it: the bump gate anchors to registry latest
+and refuses anything at-or-below it, and a historical branch can't be
+dispatched because `workflow_dispatch` needs `npm-publish.yml` on the
+dispatched ref. Backfill is the sanctioned gap-fill: dispatch
+`npm-publish.yml` from MAIN — the workflow definition always exists there —
+with `backfill-version` naming the gap and `checkout-ref` naming the content
+commit. The bump/changelog gate is bypassed; hard guards in
+`scripts/fleet/publish-infra/npm/backfill.mts` replace it, each refusing
+loud:
+
+1. the version is absent from the registry `time` map — never published,
+   never published-then-unpublished; an unreadable map fails closed;
+2. the version is LOWER than registry latest — gap-fill only, never a
+   forward bump-gate bypass;
+3. the dist-tag is explicitly non-`latest` — the latest pointer never moves;
+4. `checkout-ref` is set — the content ref is never implied;
+5. the checked-out `package.json` version equals `backfill-version` — the
+   content commit declares itself.
+
+The publish then runs the normal staged path: stage in CI, verify + promote
+with the usual local `--approve`. Approve from a checkout of the SAME
+content ref, with `--no-reconcile`: the pre-approve integrity gate packs the
+local tree and refuses a mismatch, and the post-approve reconcile assumes a
+tip-of-main release, which a backfill is not.
 
 ## Why this order
 
