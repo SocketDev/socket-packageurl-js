@@ -95,6 +95,14 @@ jobs:
           persist-credentials: false
       - name: Setup + install
         uses: ./.github/actions/fleet/setup-and-install
+        with:
+          # Forward the backfill content ref — setup-and-install re-checks-out
+          # internally (fleet checkout falls back to the TRIGGERING ref when
+          # unset), which would silently swap the backfill content back to
+          # main's tree; the backfill gate then refuses against main's
+          # version. Empty forwards as unset, so normal dispatches keep the
+          # dispatched-ref re-checkout.
+          checkout-ref: ${{ inputs.checkout-ref }}
       # Build dist/ before publishing — the staged-publish script imports the
       # package's own built output (`@socketsecurity/lib/stdio/prompts` self-
       # resolves to dist/), and `files` ships dist/, so the tarball needs it.
