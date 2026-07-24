@@ -106,14 +106,52 @@ export function replaceVersion(raw: string, nextVersion: string): string {
 }
 
 /**
+ * True when the CHANGELOG already carries a section heading for `version`.
+ * Matches the heading shapes seen across the fleet — `## 1.2.3`,
+ * `## [1.2.3](url)`, `## v1.2.3`, each optionally followed by a date — and
+ * requires the version to end there (a 6.2.1 probe must not match a 6.2.10
+ * heading).
+ */
+export function changelogHasVersionSection(
+  changelog: string,
+  version: string,
+): boolean {
+  return changelog.split('\n').some(line => {
+    if (!line.startsWith('## ')) {
+      return false
+    }
+    const rest = line.slice(3).trim().replace(/^\[/, '').replace(/^v/, '')
+    return (
+      rest.startsWith(version) && !/^[0-9.]/.test(rest.slice(version.length))
+    )
+  })
+}
+
+/**
  * Insert a new CHANGELOG section above the first existing `## ` version heading
  * (after the file's intro). When the file has no version sections yet, append
- * after a trailing blank line.
+ * after a trailing blank line. IDEMPOTENT per version: when the changelog
+ * already carries a section for the version the new section names, the input
+ * is returned unchanged — a re-entrant bump (the release pipeline bumps
+ * locally, then the dispatched npm-publish.yml --bump ran again in CI) once
+ * inserted a duplicate 6.2.1 section and committed it via the release App.
  */
 export function insertChangelogSection(
   existing: string,
   section: string,
 ): string {
+  const sectionHeading = section
+    .split('\n')
+    .find(line => line.startsWith('## '))
+  const sectionVersion = sectionHeading
+    ? /^##\s+\[?v?(\d+\.\d+\.\d+)/.exec(sectionHeading)?.[1]
+    : undefined
+  if (
+    sectionVersion !== undefined &&
+    changelogHasVersionSection(existing, sectionVersion)
+  ) {
+    return existing
+  }
   const lines = existing.split('\n')
   const firstHeading = lines.findIndex(l => l.startsWith('## '))
   if (firstHeading === -1) {
@@ -285,6 +323,30 @@ async function main(): Promise<void> {
   const date = new Date().toISOString().slice(0, 10)
   const changelogPath = path.join(rootPath, 'CHANGELOG.md')
   const existingChangelog = readFileSync(changelogPath, 'utf8')
+
+  // The whole release chain bumps EXACTLY ONCE. When the CHANGELOG already
+  // carries the section for nextVersion and package.json already reads it,
+  // the bump landed earlier (the release pipeline's bump stage) and this run
+  // is a re-entry — the CI --bump leg once re-derived the same 6.2.1 and
+  // committed a DUPLICATE changelog section. No-op loudly; a section without
+  // the matching manifest version is a broken half-bump and fails instead.
+  if (changelogHasVersionSection(existingChangelog, nextVersion)) {
+    if (pkg.version === nextVersion) {
+      logger.success(
+        `Bump already applied: package.json reads ${nextVersion} and ` +
+          `CHANGELOG.md already has its section — nothing to write.`,
+      )
+      return
+    }
+    logger.fail(
+      `CHANGELOG.md already has a ${nextVersion} section but package.json ` +
+        `reads ${pkg.version} — a half-applied bump.\n` +
+        `  Fix: reconcile the manifest with the changelog (or remove the ` +
+        `stale section), then re-run.`,
+    )
+    process.exitCode = 1
+    return
+  }
   const versionHeading = changelogHeading(
     nextVersion,
     date,

@@ -154,7 +154,7 @@ export async function runPublishPipeline(
       ms: Date.now() - stageStartMs,
     })
     ran.push(stage)
-    if (outcome.status === 'failed') {
+    if (outcome.status === 'blocked' || outcome.status === 'failed') {
       logger.fail(
         `Publish stopped at ${stage}. Fix the failure above and re-run — receipts resume here.`,
       )

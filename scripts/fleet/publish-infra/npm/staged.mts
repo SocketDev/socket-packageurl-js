@@ -48,7 +48,7 @@ export async function runStaged(
     `Staging ${pkg.name}@${pkg.version} (tag=${tag})${dryRun ? ' [dry-run]' : ''}`,
   )
 
-  if (await isAlreadyPublished(pkg.name, pkg.version, rootPath)) {
+  if (await isAlreadyPublished(pkg.name, pkg.version)) {
     logger.fail(
       `${pkg.name}@${pkg.version} is already published. Bump the version and try again.`,
     )
@@ -123,7 +123,7 @@ export async function runDirect(
     `Direct-publishing ${pkg.name}@${pkg.version} (tag=${tag})${dryRun ? ' [dry-run]' : ''}`,
   )
 
-  if (await isAlreadyPublished(pkg.name, pkg.version, rootPath)) {
+  if (await isAlreadyPublished(pkg.name, pkg.version)) {
     logger.fail(
       `${pkg.name}@${pkg.version} is already published. Bump the version and try again.`,
     )
@@ -181,7 +181,7 @@ export async function runDirect(
     // The tag + immutable release are the LAST markers: cut them only once
     // the version is actually resolvable on the registry.
     const released = await releaseBehindLiveGate({
-      isLive: () => isAlreadyPublished(pkg.name, pkg.version, rootPath),
+      isLive: () => isAlreadyPublished(pkg.name, pkg.version),
       pkg: { name: pkg.name, version: pkg.version },
       registry: 'npm',
     })

@@ -53,6 +53,7 @@ import {
   runReleaseStage,
   runStagePublish,
   runVerifyStage,
+  verifyAgainstRegistry,
 } from './release-pipeline/release-runners.mts'
 import { readPkg } from './release-pipeline/seams.mts'
 import {
@@ -70,6 +71,7 @@ import {
   resetState,
   saveState,
   statePath,
+  withReleaseChecksums,
   withTargetVersion,
 } from './release-pipeline/state.mts'
 import {
@@ -152,7 +154,7 @@ export function persistOutcome(
     status: outcome.status,
   })
   saveState(statePath(REPO_ROOT), next)
-  if (outcome.status === 'failed') {
+  if (outcome.status === 'blocked' || outcome.status === 'failed') {
     logger.fail(`[${stage}] ${outcome.detail}`)
   } else {
     logger.success(`[${stage}] ${outcome.detail}`)
@@ -259,7 +261,7 @@ export async function runPipeline(
       ms,
     })
     ran.push(stage)
-    if (outcome.status === 'failed') {
+    if (outcome.status === 'blocked' || outcome.status === 'failed') {
       logger.fail(
         `Pipeline stopped at ${stage}. Fix the failure above and re-run — receipts resume the run here.`,
       )
@@ -283,14 +285,19 @@ export async function runPipeline(
 }
 
 /**
- * The separate explicit approve step (gated on a real verify receipt) — ONE
- * promote command. After a successful approve the SAME invocation continues
- * into the release stage, so the tag + immutable GH release follow the
- * confirmed registry publish without a second command. The release stage
- * itself refuses without a passed approve receipt and without registry
- * liveness (gate inversion: publish never waits on a release; the release
- * waits on the publish). `options.persist`/`options.seams` are injectable for
- * tests (defaults: persistOutcome + the real runner seams).
+ * The separate explicit approve step (gated on a real verify receipt keyed
+ * at the target version) — ONE promote command. After a successful approve
+ * the SAME invocation continues into the release stage, so the tag +
+ * immutable GH release follow the confirmed registry publish without a
+ * second command. The release stage itself refuses without a passed approve
+ * receipt and without registry liveness (gate inversion: publish never waits
+ * on a release; the release waits on the publish). Missing/stale verify
+ * receipts get ONE sanctioned recovery: when the target version is already
+ * live on the registry, verify + approve receipts are minted from registry
+ * truth (verifyAgainstRegistry — re-pack at the bump commit, compare against
+ * the packument digests) and the invocation continues into the normal
+ * release stage. `options.persist`/`options.seams` are injectable for tests
+ * (defaults: persistOutcome + the real runner seams).
  */
 export async function runApproveMode(
   state: PipelineState,
@@ -304,23 +311,87 @@ export async function runApproveMode(
 ): Promise<void> {
   const opts = { __proto__: null, ...options } as NonNullable<typeof options>
   const persist = opts.persist ?? persistOutcome
-  const verify = state.stages['verify']
-  if (!verify || verify.status !== 'passed' || verify.dryRun) {
-    const saw = verify
-      ? `verify ${verify.status}${verify.dryRun ? ' [dry-run]' : ''}`
-      : 'no verify receipt'
-    logger.fail(
-      `No passing verify receipt — refusing to approve.\n` +
-        `  Where: ${statePath(REPO_ROOT)}\n` +
-        `  Saw ${saw}; wanted a real passed verify.\n` +
-        `  Fix: run \`node scripts/fleet/publish-pipeline.mts\` through the verify stage first ` +
-        `(out-of-band staging can use \`node scripts/fleet/npm-publish.mts --approve\` directly — it re-verifies).`,
-    )
-    process.exitCode = 1
-    return
-  }
   let state_ = state
   const targetVersion = state_.targetVersion ?? ''
+  const verify = state_.stages['verify']
+  // Staging is one-shot per version, so verification must have completed
+  // successfully — for THIS target version — before the human approve step is
+  // offered. isReceiptCurrent enforces the key: a passed verify left over
+  // from a previous release never licenses approving the next one.
+  const verifyCurrent =
+    verify?.status === 'passed' &&
+    isReceiptCurrent(verify, {
+      headSha: '',
+      stage: 'verify',
+      targetVersion: state_.targetVersion,
+    })
+  if (!verifyCurrent) {
+    // REGISTRY-TRUTH RECONCILE: when the target version is ALREADY LIVE on
+    // the registry (the publish happened but the pipeline receipts went
+    // missing or false-negative — the 6.2.1 strand), mint the verify +
+    // approve receipts from registry truth: re-pack at the bump commit and
+    // compare against the packument dist digests (with the extracted-
+    // contents fallback). Evidence, never a rubber stamp — divergent bytes
+    // refuse, and a not-live version keeps the hard refusal below.
+    const saw = verify
+      ? `verify ${verify.status}${verify.dryRun ? ' [dry-run]' : ''} keyed at ${verify.key}`
+      : 'no verify receipt'
+    logger.log(
+      `No current verify receipt (${saw}) — probing registry truth for ${targetVersion || '<no target version>'}…`,
+    )
+    const truth = targetVersion
+      ? await verifyAgainstRegistry({
+          cwd: REPO_ROOT,
+          seams: opts.seams,
+          targetVersion,
+        })
+      : undefined
+    if (truth?.status === 'match') {
+      logger.log('── registry-truth reconcile ──')
+      state_ = withReleaseChecksums(state_, truth.releaseChecksums)
+      state_ = persist(
+        state_,
+        'verify',
+        {
+          detail: `${truth.detail} [reconciled: version already live on the registry]`,
+          releaseChecksums: truth.releaseChecksums,
+          status: 'passed',
+        },
+        { dryRun: cli.dryRun, key: targetVersion },
+      )
+      state_ = persist(
+        state_,
+        'approve',
+        {
+          detail:
+            `registry truth: ${state_.packageName}@${targetVersion} is already public — ` +
+            `the promote happened out of band; receipt minted from the registry read, not a new approve`,
+          status: 'passed',
+        },
+        { dryRun: cli.dryRun, key: targetVersion },
+      )
+    } else if (truth?.status === 'mismatch') {
+      logger.fail(
+        `Registry-truth reconcile REFUSED for ${targetVersion}.\n` +
+          `  Where: ${truth.detail}\n` +
+          `  Never mint verify/approve receipts over divergent or incomparable bytes.\n` +
+          `  Fix: check out the exact bump commit for ${targetVersion} and re-run --approve.`,
+      )
+      process.exitCode = 1
+      return
+    } else {
+      logger.fail(
+        `No passing verify receipt for ${targetVersion || '<no target version>'} — refusing to approve.\n` +
+          `  Where: ${statePath(REPO_ROOT)}\n` +
+          `  Saw ${saw}; wanted a real passed verify keyed at the target version` +
+          `${truth ? ` (and ${truth.detail} — nothing to reconcile from)` : ''}.\n` +
+          `  Fix: run \`node scripts/fleet/publish-pipeline.mts\` through the verify stage first ` +
+          `(out-of-band staging can use \`node scripts/fleet/npm-publish.mts --approve\` directly — it re-verifies).`,
+      )
+      process.exitCode = 1
+      return
+    }
+  }
   const approveCurrent = isReceiptCurrent(state_.stages['approve'], {
     headSha: '',
     stage: 'approve',
