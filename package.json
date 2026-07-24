@@ -129,7 +129,7 @@
     "rolldown": "catalog:",
     "semver": "catalog:",
     "shell-quote": "catalog:",
-    "svgo": "4.0.1",
+    "svgo": "4.0.2",
     "taze": "catalog:",
     "type-coverage": "2.29.7",
     "typescript": "catalog:",
