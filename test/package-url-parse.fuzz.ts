@@ -1,7 +1,7 @@
 /**
  * @file Vitiate coverage-guided fuzz target (Tier 2) for the purl-string parser
  *   — this package's core untrusted-input boundary. Complements the fast-check
- *   property tests in package-url.fuzz.test.mts: fast-check checks the
+ *   property tests in package-url-fuzz.test.mts: fast-check checks the
  *   round-trip/never-throws contracts on constructed values; vitiate feeds
  *   SWC-coverage-guided mutated BYTES to drive the decoder / component splitter
  *   into deep paths a spec-based generator rarely reaches, with the
