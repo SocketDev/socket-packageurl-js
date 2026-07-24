@@ -23,12 +23,17 @@
   "exports": {
     ".": {
       "source": "./src/index.mts",
+      "types": "./dist/index.d.mts",
       "default": "./dist/index.js"
     },
     "./exists": {
       "source": "./src/exists.mts",
+      "types": "./dist/exists.d.mts",
       "default": "./dist/exists.js"
-    }
+    },
+    "./data/npm/builtin-names.json": "./data/npm/builtin-names.json",
+    "./data/npm/legacy-names.json": "./data/npm/legacy-names.json",
+    "./package.json": "./package.json"
   },
   "publishConfig": {
     "access": "public",
