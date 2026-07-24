@@ -162,6 +162,20 @@ runs it exactly once. Two guards enforce that:
   `insertChangelogSection` now refuses to insert a section for a version the
   changelog already has.
 
+## The changelog range anchors to the released version, never an older tag
+
+`deriveReleaseCommits` in `bump.mts` is the ONE derivation both the bump and
+the `changelog-is-commit-derived` check run — same base, same anchor, same
+commit stream — so generation and verification cannot disagree. Its range
+anchor resolves through a strict chain: the previous release's own
+`v<version>` tag when it exists on HEAD's lineage; else the commit that
+flipped `package.json` to that version — the release's bump commit; else the
+registry's publish timestamp for that version as a `--since` bound. A
+previous release no link can anchor stops the bump loud, and the drift check
+skips. The chain never falls back to an OLDER tag: socket-lib 6.2.2's
+generated section re-listed the already-shipped 6.2.1 fix because the missing
+v6.2.1 tag silently widened the range to v6.2.0.
+
 ## Verify is auth-honest, and approve reconciles from registry truth
 
 `pnpm stage list` 401s without npm auth and its failure output parses as an

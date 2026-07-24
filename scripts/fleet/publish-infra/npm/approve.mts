@@ -32,6 +32,7 @@ import {
   fetchPriorProvenanceMap,
   formatPriorProvenance,
   listStagedPackages,
+  readPackageJson,
 } from './shared.mts'
 import { scanStagedEntry } from './scan.mts'
 import { verifyStagedEntry } from './staged.mts'
@@ -221,11 +222,36 @@ export async function runApprove(config: {
     return
   }
 
+  // The stage list is ACCOUNT-scoped, not repo-scoped: entries staged by this
+  // account from OTHER repos show up here too. Approve must skip those — the
+  // verify gate can only ever pack THIS repo's package (defaultPackTarball
+  // packs rootPath), so a foreign entry could never verify; worse, its verify
+  // pack would pin THIS repo's README against the FOREIGN entry's version (a
+  // wrong-manifest pin) and then fail with advice to reject an artifact that
+  // is perfectly good in its own repo.
+  const localName = readPackageJson().name
+  const ours: StageListEntry[] = []
+  for (const entry of staged) {
+    if (entry.name === localName) {
+      ours.push(entry)
+    } else {
+      logger.log(
+        `Skipping ${entry.name}@${entry.version} — staged by this account but ` +
+          `not this repo's package (${localName}). Run --approve from its own repo.`,
+      )
+    }
+  }
+  if (ours.length === 0) {
+    logger.log(`No staged entries for ${localName}; nothing to approve here.`)
+    return
+  }
+
   // Filter out already-published versions. If a stage upload was
   // approved earlier but the entry lingers in stage list (registry
   // quirk), don't offer it for re-approval.
   const eligible: StageListEntry[] = []
-  for (const entry of staged) {
+  for (let i = 0, { length } = ours; i < length; i += 1) {
+    const entry = ours[i]!
     // eslint-disable-next-line no-await-in-loop
     if (
       entry.name &&

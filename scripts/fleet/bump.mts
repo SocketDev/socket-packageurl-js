@@ -7,7 +7,21 @@
  *   entry describing work that landed after the 6.0.9 tag). The tag + GitHub
  *   release are created later, at publish/approve time, by `publish.mts`
  *   (`ensureTagAndRelease`) / the provenance workflow — this step only prepares
- *   the bump commit. Release flow: node scripts/fleet/bump.mts # version +
+ *   the bump commit.
+ *   ORDERING INVARIANT (bump-exactly-once): the bump — version + CHANGELOG
+ *   section — happens LOCALLY, at release time, exactly once; CI never
+ *   re-derives it (the re-entry no-op below refuses a second write). A
+ *   section written early in CI while main advanced underneath went stale
+ *   (packageurl-js 1.4.5 shipped a changelog missing later commits); deriving
+ *   at the moment the release is cut means the section and the released
+ *   commits are the same set by construction. The drift check
+ *   (check/changelog-is-commit-derived.mts) verifies the committed section by
+ *   re-running the SAME `deriveReleaseCommits` path exported here — one
+ *   derivation implementation, so generation and verification cannot
+ *   disagree. The range anchor never silently widens: see `ReleaseAnchor` in
+ *   lib/release-anchor.mts (tag → bump commit → registry publish time, else
+ *   stop loud), the shared chain this file binds to the npm registry.
+ *   Release flow: node scripts/fleet/bump.mts # version +
  *   CHANGELOG + bump commit git push # land the bump <trigger publish workflow>
  *
  *   # CI: stage publish (OIDC + provenance) node scripts/fleet/npm-publish.mts
@@ -30,23 +44,29 @@ import { gt } from '@socketsecurity/lib-stable/versions/compare'
 import {
   bumpLevelFor,
   changelogHeading,
-  COMMIT_LOG_FORMAT,
   computeNextVersion,
   generateChangelogSection,
-  parseConventionalCommits,
   promoteUnreleased,
   repoBaseUrl,
-  resolveBumpBase,
   sectionHasEntries,
   UNRELEASED_HEADING,
   versionHintFrom,
   withChangelogEntry,
 } from './lib/changelog.mts'
+import {
+  deriveReleaseCommits as deriveAnchoredReleaseCommits,
+  describeAnchor,
+  findVersionFlipCommit as findAnchorVersionFlipCommit,
+} from './lib/release-anchor.mts'
 import { loadSocketWheelhouseConfig, REPO_ROOT } from './paths.mts'
-import { fetchLatestPublishedVersion } from './publish-infra/npm/registry.mts'
+import {
+  fetchLatestPublishedVersionChecked,
+  fetchRegistryReleaseState,
+} from './publish-infra/npm/registry.mts'
 import { runCapture } from './publish-infra/shared.mts'
 
 import type { BumpLevel } from './lib/changelog.mts'
+import type { ReleaseDerivation, ReleaseLane } from './lib/release-anchor.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
 
 const logger = getDefaultLogger()
@@ -59,33 +79,87 @@ interface PackageJsonShape {
 }
 
 /**
- * Resolve the most recent `v<semver>` release tag, or `undefined` for a repo
- * with no release tags yet (first release — all history is the changelog).
+ * The npm binding of the shared anchor chain (lib/release-anchor.mts): the
+ * version flip lives in package.json's root `version`, the publish ledger is
+ * the npm packument (`dist-tags.latest` + the `time` map). A missing
+ * `packageName` means the registry has nothing to say — a genuine first
+ * release derives from the manifest alone.
  */
-export async function lastReleaseTag(): Promise<string | undefined> {
-  const r = await runCapture(
-    'git',
-    ['describe', '--tags', '--abbrev=0', '--match', 'v[0-9]*'],
-    rootPath,
-  )
-  const tag = r.stdout.trim()
-  return r.code === 0 && tag ? tag : undefined
+export function npmReleaseLane(packageName: string | undefined): ReleaseLane {
+  return {
+    async fetchLatest() {
+      if (!packageName) {
+        return { latest: undefined, reachable: true }
+      }
+      return await fetchLatestPublishedVersionChecked(packageName)
+    },
+    async fetchPublishedAt(version) {
+      if (!packageName) {
+        return undefined
+      }
+      const state = await fetchRegistryReleaseState(packageName)
+      return state?.timeMap[version]
+    },
+    manifestPath: 'package.json',
+    parseManifestVersion(text) {
+      try {
+        const parsed = JSON.parse(text) as { version?: string | undefined }
+        return typeof parsed.version === 'string' ? parsed.version : undefined
+      } catch {
+        return undefined
+      }
+    },
+  }
 }
 
 /**
- * Read the commit stream between `fromTag` (exclusive) and HEAD in the
- * parseable `COMMIT_LOG_FORMAT`. With no prior tag, reads all history.
+ * The commit that FLIPPED package.json's root `version` to `version` — the
+ * npm binding of the shared flip probe, kept exported for the tag-gap
+ * reconciler (release-pipeline/reconcile-gap.mts).
  */
-export async function readCommitStream(
-  fromTag: string | undefined,
-): Promise<string> {
-  const range = fromTag ? `${fromTag}..HEAD` : 'HEAD'
-  const r = await runCapture(
-    'git',
-    ['log', range, `--format=${COMMIT_LOG_FORMAT}`],
-    rootPath,
+export async function findVersionFlipCommit(
+  version: string,
+  cwd: string = rootPath,
+): Promise<string | undefined> {
+  return await findAnchorVersionFlipCommit(
+    npmReleaseLane(undefined),
+    version,
+    cwd,
   )
-  return r.code === 0 ? r.stdout : ''
+}
+
+/**
+ * THE single npm-lane derivation code path for a release's commit set — used
+ * by both the generator (`bump.mts` main) and the verifier
+ * (`check/changelog-is-commit-derived.mts`), so the CHANGELOG a bump writes
+ * and the CHANGELOG the drift check expects can never disagree: same base,
+ * same anchor chain, same commit stream, same parser. Returns `undefined`
+ * when a previous release exists but no anchor resolves, or when the registry
+ * is unreachable (offline the released base cannot be confirmed) — never
+ * widen to an older tag.
+ */
+export async function deriveReleaseCommits(config: {
+  cwd?: string | undefined
+  manifestVersion: string
+  packageName?: string | undefined
+}): Promise<ReleaseDerivation | undefined> {
+  const {
+    cwd = rootPath,
+    manifestVersion,
+    packageName,
+  } = {
+    __proto__: null,
+    ...config,
+  } as {
+    cwd?: string | undefined
+    manifestVersion: string
+    packageName?: string | undefined
+  }
+  return await deriveAnchoredReleaseCommits({
+    cwd,
+    lane: npmReleaseLane(packageName),
+    manifestVersion,
+  })
 }
 
 function readPackageJson(): { raw: string; parsed: PackageJsonShape } {
@@ -198,20 +272,30 @@ async function main(): Promise<void> {
     return
   }
 
-  const fromTag = await lastReleaseTag()
-  const commits = parseConventionalCommits(await readCommitStream(fromTag))
-  // Anchor the bump base to what actually RELEASED (registry latest + last
-  // tag), NEVER the manifest — a pre-bumped package.json would otherwise skip a
-  // version (package.json pre-bumped to 1.4.3, then bumped 1.4.3 → 1.4.4, so
-  // 1.4.3 was never published).
-  const publishedVersion = pkg.name
-    ? await fetchLatestPublishedVersion(pkg.name)
-    : undefined
-  const base = resolveBumpBase({
+  // ONE derivation resolves the released base (registry latest + last tag,
+  // NEVER the manifest — a pre-bumped package.json would otherwise skip a
+  // version), the range anchor, and the commit set. The drift check
+  // (changelog-is-commit-derived) re-runs this SAME function, so generation
+  // and verification cannot diverge.
+  const derivation = await deriveReleaseCommits({
     manifestVersion: pkg.version,
-    publishedVersion,
-    tagVersion: fromTag ?? undefined,
+    packageName: pkg.name,
   })
+  if (!derivation) {
+    logger.fail(
+      `Cannot anchor the changelog range: either the registry is unreachable ` +
+        `(offline, the released base cannot be confirmed and \`git describe\` ` +
+        `may resolve an OLDER tag), or a previous release exists but its ` +
+        `v-tag is missing (or off-lineage), no bump commit for it is ` +
+        `reachable, and the registry publish time is unavailable. Re-run ` +
+        `online, or restore the previous release's tag (git tag v<version> ` +
+        `<release-commit> && git push origin --tags) — deriving from an ` +
+        `OLDER tag would re-list already-shipped commits.`,
+    )
+    process.exitCode = 1
+    return
+  }
+  const { anchor, base, commits } = derivation
   // Version resolution, most-explicit first: the --release-as flag, then a
   // committed version HINT (package.json version carrying a prerelease
   // suffix, e.g. `6.0.10-prerelease` → release 6.0.10), then the commit-type
@@ -284,7 +368,7 @@ async function main(): Promise<void> {
     // commits without that explicit signal stop the release here, loud.
     if (level === 'major') {
       logger.fail(
-        `Breaking commit(s) found since ${fromTag ?? 'the start of history'} — ` +
+        `Breaking commit(s) found since ${describeAnchor(anchor)} — ` +
           `a MAJOR bump requires an explicit human decision. Re-run with ` +
           `--release-as major (agent runs need the user's typed authorization; ` +
           `CI needs the release-as=major dispatch input), or --release-as ` +
@@ -307,7 +391,7 @@ async function main(): Promise<void> {
   }
   if (!level) {
     logger.fail(
-      `No user-visible commits since ${fromTag ?? 'the start of history'} — ` +
+      `No user-visible commits since ${describeAnchor(anchor)} — ` +
         `nothing to release (feat / fix / perf / breaking only). Land a ` +
         `user-visible change, or pass --release-as <major|minor|patch> to force.`,
     )
@@ -401,7 +485,7 @@ async function main(): Promise<void> {
   logger.log(
     `${pkg.name ?? 'package'}: ${pkg.version} → ${nextVersion} ` +
       `(${level}${releaseAs ? ' — forced via --release-as' : ''}; ` +
-      `${promoted ? 'from [Unreleased]' : `${commits.length} commit(s) since ${fromTag ?? 'start'}`})`,
+      `${promoted ? 'from [Unreleased]' : `${commits.length} commit(s) since ${describeAnchor(anchor)}`})`,
   )
   logger.log('')
   logger.log(section)
