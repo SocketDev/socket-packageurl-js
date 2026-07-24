@@ -78,7 +78,7 @@ clean single word.
 Write out every noun and nominalized action (gerund, `-ion`, `-ance`).
 Discard every filler word (articles, prepositions, conjunctions, "of",
 "and", "&"). Discard every word that appears in 2+ other titles of the
-same manifest (those are qualifiers, not distinguishers).
+same manifest — those are qualifiers, not distinguishers.
 
 > **Why:** a filename needs to distinguish this page from its
 > siblings. A word that isn't unique within the set can never be

@@ -65,7 +65,7 @@ you're staring at `overview`, `introduction`, `intro`, `summary` —
 these are all generic. Escape by picking a word that describes
 **the thing you are introducing**, not the act of introduction:
 
-- "Introduction to PURLs" → `purl` (the subject, not the gerund).
+- "Introduction to PURLs" → `purl` — the subject, not the gerund.
 - "Overview of the Build Pipeline" → `pipeline`.
 
 If the title truly has no distinguishing noun, the content probably
@@ -240,7 +240,7 @@ Candidates: `validation`, `errors`, `results`, `validate`.
 - `results` — rejected, ambiguous (result pattern or outcomes?).
 - `validate` — gerund would be `validating`; `validation` is the
   `-ion` form, used here because the doc treats validation as a
-  topic (the shape of errors/results), not an activity. Mixing
+  topic — the shape of errors/results — not an activity. Mixing
   `-ion` forms with gerunds is acceptable when the semantic shift
   is real.
 - Winner: `validation`.
@@ -370,7 +370,7 @@ Every part has a `filename` set. Validator errors if missing.
 
 ## 7. Cross-references
 
-- **SKILL.md** (this skill's main file) — the decision procedure
+- **SKILL.md** — this skill's main file: the decision procedure
   and 8 worked examples.
 - `CLAUDE.md` § ERROR MESSAGES — the shape of errors the validator
   emits when you break a rule.

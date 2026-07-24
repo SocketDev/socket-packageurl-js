@@ -17,7 +17,7 @@ Three things happen, in order:
 
 <!-- Box-drawing alignment note: every frame line below must
      render at exactly 66 display cells. No emoji or CJK chars
-     (those are 2 cells wide in monospace). Box-drawing glyphs
+     — those are 2 cells wide in monospace. Box-drawing glyphs
      (U+2500 range) and the ▼ arrow are 1 cell. Verify widths
      after edits with:
        python3 -c "import unicodedata; [print(sum(2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in l.rstrip())) for l in open('docs/release.md').readlines()[24:47]]" -->
