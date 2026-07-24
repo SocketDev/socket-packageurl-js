@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.6](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.6) - 2026-07-24
+
+### Added
+
+- **`build`** — fail the build when a bundled entry crashes at load
+- **`check`** — gate every published entry with a child-process load probe
+- **`check`** — gate untyped exports in public-files-are-exported
+
+### Changed
+
+- **`ci`** — drop npm.antfu.dev egress from weekly-update
+
+### Fixed
+
+- **`build`** — stub unreachable npm-package-arg so dist/exists.js loads
+- **`exports`** — restore types condition in generated exports map
+- **`deps`** — adopt the taze 19.16.0 single-registry patch
+
 ## [1.4.5](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.5) - 2026-07-24
 
 ### Changed
