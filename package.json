@@ -43,6 +43,7 @@
     "build": "node scripts/repo/build.mts",
     "check": "node scripts/fleet/check.mts",
     "check:paths": "node scripts/fleet/check/paths-are-canonical.mts",
+    "check:dist-entries-are-requirable": "node scripts/repo/check/dist-entries-are-requirable.mts",
     "check:purlerror-messages-are-lowercase": "node scripts/repo/check/purlerror-messages-are-lowercase.mts",
     "ci:validate": "node scripts/repo/ci-validate.mts",
     "clean": "node -e \"require('node:fs').rmSync('node_modules/.cache', { recursive: true, force: true })\"",
