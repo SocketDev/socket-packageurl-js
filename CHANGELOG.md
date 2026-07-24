@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Changed
+
+- **`deps`** — update vendored `@socketsecurity/lib` to 6.2.3: engine-gate collapse and lazy-required purl specs trim the published bundle
+
 ## [1.4.6](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.6) - 2026-07-24
 
 ### Added
