@@ -182,8 +182,21 @@ const baseConfig = {
   external: externals,
   platform: 'node' as const,
   plugins: [
+    // globs/sorts: heavyweight subgraphs no runtime path here reaches.
+    // external/npm-package-arg: the exists entry reaches packages/specs.js only
+    // for `pkgNameToSlug` — pure string slicing — via http-request/user-agent,
+    // yet specs.js eagerly requires npm-package-arg at module top level, which
+    // drags in external/npm-pack.js: a 2.5MB pre-bundled arborist/pacote graph
+    // that crashed dist/exists.js at require time. Rolldown re-bundles that
+    // nested bundle and re-mangles its scope-local `require_node*` factories,
+    // colliding arborist's `require_node` with @npmcli/fs's `require_node$2` —
+    // the clobbered binding made `node.satisfies` a class, not a function.
+    // Stubbing npm-package-arg removes the whole unreachable subgraph; the
+    // spec-parsing functions that would touch it are never called by either
+    // published entry.
     createLibStubPlugin({
-      stubPattern: /@socketsecurity\/lib\/dist\/(globs|sorts)\.js$/,
+      stubPattern:
+        /@socketsecurity\/lib\/dist\/(?:external\/npm-package-arg|globs|sorts)\.js$/,
     }),
     createPathShorteningPlugin(),
   ],
