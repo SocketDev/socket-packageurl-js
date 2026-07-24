@@ -57,7 +57,7 @@ catalog:
   'rolldown': 1.1.4
   'semver': 7.8.5
   'shell-quote': 1.10.0
-  'taze': 19.14.1
+  'taze': 19.16.0
   # vite 8.0.14 swaps esbuild → rolldown natively (bundles rolldown
   # 1.0.2), so the override below removes esbuild from the install tree.
   'typescript': 7.0.2
@@ -184,6 +184,15 @@ minimumReleaseAgeExclude:
   - '@oxlint-tsgolint/win32-arm64@7.0.2001'
   # published: 2026-07-21 | removable: 2026-07-28
   - '@oxlint-tsgolint/win32-x64@7.0.2001'
+  # taze 19.16.0 — the dep updater itself; forced ahead of the soak by owner
+  # directive so the regenerated single-registry patch (patchedDependencies)
+  # tracks the current release. Exact-pinned so a future version re-soaks.
+  # published: 2026-07-22 | removable: 2026-07-29
+  - 'taze@19.16.0'
+  # obug + verkit — new dev-only transitives of taze 19.16.0 (same owner
+  # directive); exact-pinned so future versions re-soak.
+  # published: 2026-07-19 | removable: 2026-07-26
+  - 'verkit@0.1.2'
 
 # Refuse transitive dependencies declared via git/tarball/local-tarball
 # specs — an npm package shouldn't be allowed to drag in a git URL we
@@ -217,3 +226,15 @@ catalogShadowIgnore:
 # mirrored in pnpm-lock.yaml) so a tampered registry copy is rejected.
 configDependencies:
   '@pnpm/pacquet': 0.11.2+sha512-MjsAWpW5K1xOaaspquMhk5j9sjpADLH3c3hxq07VVZwS9uu1W6gzMBHxlhy1NX/+ZacqMhfyScvgQqymCc1znQ==
+
+patchedDependencies:
+  # single-registry (managed by socket-wheelhouse sync; do not edit):
+  # routes taze version resolution through its own bundled direct-registry
+  # client (getVersionsFromRegistry — full packument, .npmrc/auth-aware) for
+  # EVERY registry, instead of the fast-npm-meta hosted endpoint it uses
+  # when the registry is the npm default. That third-party hop leaks
+  # dependency names, violates the fleet single-registry posture, and is
+  # blocked by egress policy — every lookup then hits the request timeout
+  # while taze still exits 0 (false green; update.mts fails loud on it).
+  # On a taze bump, regenerate via `pnpm patch taze` + `pnpm patch-commit`.
+  taze@19.16.0: patches/taze@19.16.0.patch
