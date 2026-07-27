@@ -223,3 +223,9 @@ pnpm-debug.log
 # vitiate coverage-guided fuzz lane caches (regenerable; never commit)
 /.swc/
 /.vitiate/
+
+# Root MCP projections — generated from the committed .mcp.json authority,
+# never tracked (fleet root-projections ruling). The next fleet-canonical
+# block cascade carries these entries; drop this repo-local copy then.
+/.kimi-code/
+/opencode.json
