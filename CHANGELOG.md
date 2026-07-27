@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.8](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.8) - 2026-07-27
+
+### Fixed
+
+- **`deps`** — bump the @socketsecurity/lib catalog pin to 6.3.0
+- **`deps`** — drop the dead esbuild devDependency — no imports remain, rolldown is the bundler
+- **`fleet`** — clear the root-files law — tier external-tools.json, untrack MCP projections, drop .env.precommit
+- **`fleet`** — restore fetch-fleet-bundle to the v1.0.14 manifest bytes
+- **`fuzz`** — sweep orphaned vitiate shm segments before the run
+- **`deps`** — override js-yaml to 5.2.2 for GHSA-pm4m-ph32-ghv5
+
 ## [1.4.7](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.7) - 2026-07-24
 
 ### Changed
