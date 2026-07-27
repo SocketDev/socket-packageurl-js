@@ -20,11 +20,11 @@ catalog:
   '@shadscan/cli': 0.2.0
   '@sinclair/typebox': 0.34.52
   '@socketregistry/packageurl-js': 1.4.7
-  '@socketsecurity/lib': 6.2.3
+  '@socketsecurity/lib': 6.3.0
   '@socketsecurity/registry': 2.0.4
   '@socketsecurity/sdk': 4.1.1
   '@socketregistry/packageurl-js-stable': 'npm:@socketregistry/packageurl-js@1.4.7'
-  '@socketsecurity/lib-stable': 'npm:@socketsecurity/lib@6.2.3'
+  '@socketsecurity/lib-stable': 'npm:@socketsecurity/lib@6.3.0'
   '@socketsecurity/registry-stable': 'npm:@socketsecurity/registry@2.0.4'
   '@socketsecurity/sdk-stable': 'npm:@socketsecurity/sdk@4.1.1'
   '@types/mdast': 4.0.4
@@ -68,7 +68,7 @@ catalog:
   # marks 15.0.0 deprecated as "released accidentally" and the fix lives
   # in 15.0.0-beta.14, a beta still inside the 7-day soak; bump to the
   # stabilized 15.x when it ships.
-  'nock': 14.0.16
+  'nock': 15.0.0
   'npm-run-all2': 9.0.2
   'oxfmt': 0.59.0
   'oxlint': 1.75.0
