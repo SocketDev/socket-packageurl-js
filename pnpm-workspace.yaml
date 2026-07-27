@@ -33,7 +33,6 @@ catalog:
   'compromise': 14.16.0
   'dtu-github-actions': 0.17.1
   'ecc-agentshield': 1.4.0
-  'esbuild': 0.25.12
   'fast-check': 4.9.0
   'magic-string': 1.0.0
   'markdownlint-cli2': 0.23.0
@@ -84,7 +83,6 @@ allowBuilds:
   # Retained as fleet-baseline browser/screenshot tooling (parity with
   # socket-lib). CI pays the download cost as the uniform-install tradeoff.
   cpu-features: false
-  esbuild: true
   protobufjs: false
   puppeteer: true
   ssh2: false
