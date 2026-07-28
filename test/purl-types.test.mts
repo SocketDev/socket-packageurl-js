@@ -43,7 +43,8 @@ export function getNpmId(purl: {
 describe('PackageURL type-specific tests', () => {
   describe('npm', () => {
     it("should allow legacy names to be mixed case, match a builtin, or contain ~'!()* characters", () => {
-      // Tests npm legacy package exceptions (historical packages with special names)
+      // Tests npm legacy package exceptions. These are historical packages
+      // with special names.
       // Some legacy names contain injection characters (!, *, ~) that are now
       // caught by the injection scanner before reaching npm-specific validation.
       const injectionCharPattern = /[!*~]/
@@ -115,7 +116,8 @@ describe('PackageURL type-specific tests', () => {
 
   describe('pub', () => {
     it('should normalize dashes to underscores', () => {
-      // Tests pub-specific normalization (dashes to underscores per spec)
+      // Tests pub-specific normalization. The spec requires dashes to become
+      // underscores.
       const purlWithDashes = new PackageURL(
         'pub',
         '',

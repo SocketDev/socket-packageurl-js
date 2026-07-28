@@ -175,7 +175,8 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should handle type-only purl without namespace or name', () => {
-      // Tests minimal purl with only type component (all other components undefined)
+      // Tests a minimal purl that has only a type component. All other
+      // components are undefined.
       const result = PackageURL.parseString('pkg:type')
       expect(result[0]).toBe('type')
       expect(result[1]).toBe(undefined)
@@ -201,7 +202,8 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should handle whitespace-only purl strings', () => {
-      // Tests whitespace trimming behavior (treats as empty string)
+      // Tests whitespace trimming behavior. The parser treats the input as an
+      // empty string.
       const result = PackageURL.parseString('   ')
       expect(result).toStrictEqual([
         undefined,
@@ -254,7 +256,8 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should preserve exact qualifier order in toString', () => {
-      // Tests qualifier key sorting requirement (alphabetical order per spec)
+      // Tests the qualifier key sorting requirement. The spec mandates
+      // alphabetical order.
       const purl = createTestPurl('type', 'name', {
         qualifiers: {
           a: 'first',
@@ -363,7 +366,8 @@ describe('Edge cases and additional coverage', () => {
 
   describe('Subpath handling', () => {
     it('should normalize subpath by removing leading slashes', () => {
-      // Tests subpath normalization (leading slashes removed per spec)
+      // Tests subpath normalization. The spec requires leading slashes to be
+      // removed.
       const purl1 = createTestPurl('type', 'name', {
         subpath: '/path/to/file',
       })
@@ -406,13 +410,14 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should handle duplicate qualifier keys (last wins)', () => {
-      // Tests duplicate key behavior (last value takes precedence)
+      // Tests duplicate key behavior. The last value takes precedence.
       const purl = PackageURL.fromString('pkg:type/name?key=first&key=second')
       expect(purl.qualifiers?.key).toBe('second')
     })
 
     it('should normalize qualifier keys to lowercase', () => {
-      // Tests qualifier key normalization (always lowercase per spec)
+      // Tests qualifier key normalization. The spec requires keys to always be
+      // lowercase.
       const purl = createTestPurl('type', 'name', {
         qualifiers: {
           KEY: 'value',
@@ -503,7 +508,7 @@ describe('Edge cases and additional coverage', () => {
 
   describe('Constructor parameter types', () => {
     it('should handle array as qualifiers (gets converted to undefined)', () => {
-      // Tests qualifiers type checking (arrays treated as undefined)
+      // Tests qualifiers type checking. Arrays are treated as undefined.
       const purl = new PackageURL(
         'type',
         undefined,
@@ -587,7 +592,7 @@ describe('Edge cases and additional coverage', () => {
 
   describe('Round-trip consistency', () => {
     it('should maintain consistency through multiple parse/toString cycles', () => {
-      // Tests idempotent roundtrip (parsing and serializing repeatedly)
+      // Tests an idempotent roundtrip by parsing and serializing repeatedly.
       const original =
         'pkg:npm/@scope/package@1.0.0-beta.1?arch=x64#src/index.js'
       let purl = PackageURL.fromString(original)
@@ -2083,7 +2088,8 @@ describe('Edge cases and additional coverage', () => {
       ).toThrow('"name" exceeds maximum length of 214 characters')
 
       // Test npm core module name with throws (line 355)
-      // Use a builtin that's not a legacy name (legacy names skip the builtin check)
+      // Use a builtin that's not a legacy name because legacy names skip the
+      // builtin check.
       expect(
         () =>
           new PackageURL(
@@ -2462,7 +2468,7 @@ describe('Edge cases and additional coverage', () => {
 
   describe('purlExists defensive checks', () => {
     // These dispatch tests verify routing only; mock the registry endpoints so
-    // no real third-party connection is made (nock blocks live network).
+    // no real third-party connection is made. Nock blocks live network access.
     beforeEach(() => {
       nock.disableNetConnect()
     })

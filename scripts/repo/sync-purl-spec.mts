@@ -141,8 +141,9 @@ function listSuiteJson(dir: string): string[] {
 
 /**
  * Diff the vendored suite against the pinned checkout. Returns one entry per
- * out-of-sync file: `missing` (upstream file not vendored), `changed` (bytes
- * differ), `stale` (vendored file gone upstream).
+ * out-of-sync file. A `missing` entry marks an upstream file that has not been
+ * vendored, a `changed` entry marks a vendored file whose bytes differ, and a
+ * `stale` entry marks a vendored file that no longer exists upstream.
  */
 export function diffSuite(checkoutDir: string): SuiteDrift[] {
   const drift: SuiteDrift[] = []

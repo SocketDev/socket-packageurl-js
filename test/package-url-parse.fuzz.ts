@@ -15,7 +15,8 @@ import { PackageURL } from '../src/package-url.mjs'
 import { PurlError } from '../src/error.mjs'
 
 // `fromString` is the throwing parser: on invalid input it must throw a
-// PurlError (its documented failure mode) — any OTHER thrown type is a crash.
+// PurlError. Throwing a PurlError is its documented failure mode, so any OTHER
+// thrown type is a crash.
 fuzz('PackageURL.fromString throws only PurlError on arbitrary bytes', data => {
   try {
     PackageURL.fromString(data.toString('utf8'))

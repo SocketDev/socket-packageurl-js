@@ -2,7 +2,7 @@
  * @file Property/fuzz tests for src/encode (Tier-1 fast-check).
  *   The encoders turn a raw PURL component into its percent-encoded canonical
  *   form. The decode∘encode round-trip properties live in
- *   test/decode-fuzz.test.mts (the decoder is their unit under test).
+ *   test/decode-fuzz.test.mts. There the decoder is the unit under test.
  *   Load-bearing properties:
  *
  *   - INVARIANT: a blank/empty component always encodes to the empty string.

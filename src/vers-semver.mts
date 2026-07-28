@@ -45,7 +45,8 @@ export type SemverParts = {
   prerelease: string[]
 }
 
-// Valid comparator prefixes sorted by length (longest first for greedy matching)
+// Valid comparator prefixes are sorted by length with the longest first so
+// that greedy matching prefers the longest prefix.
 export const COMPARATORS: readonly string[] = ObjectFreeze([
   '!=',
   '<=',

@@ -79,7 +79,7 @@ export function validateNamespace(
     return false
   }
 
-  // Validate length (reasonable limit for namespace)
+  // Validate length against a reasonable limit for a namespace.
   const MAX_NAMESPACE_LENGTH = 512
   if (
     typeof namespace === 'string' &&
@@ -343,7 +343,7 @@ export function validateVersion(
     return false
   }
 
-  // Validate length (reasonable limit for version strings)
+  // Validate length against a reasonable limit for version strings.
   const MAX_VERSION_LENGTH = 256
   if (typeof version === 'string' && version.length > MAX_VERSION_LENGTH) {
     if (throws) {

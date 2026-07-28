@@ -1863,7 +1863,7 @@ export async function getSmartContext(
 
   context.recent = recentResult.stdout.trim().split('\n').filter(Boolean)
 
-  // Find hotspots (files that change frequently)
+  // Find hotspots. These are the files that change most frequently.
   const frequency = {}
   for (let i = 0, { length } = context.recent; i < length; i += 1) {
     const file = context.recent[i]
@@ -2603,7 +2603,7 @@ export async function syncClaudeMd(
   }
   log.done(`Found ${projects.length} Socket projects`)
 
-  // Process socket-registry first (it's the canonical source).
+  // Process socket-registry first because it is the canonical source.
   log.step('Updating canonical source')
   const registryProject = projects.find(p => p.name === 'socket-registry')
   if (registryProject) {
@@ -4916,7 +4916,8 @@ Let's work through this together to get CI passing.`
       }
     }
 
-    // First, try exact SHA match (both directions for robustness)
+    // First, try an exact SHA match. Compare in both directions for
+    // robustness.
     for (let i = 0, { length } = runs; i < length; i += 1) {
       const run = runs[i]
       if (

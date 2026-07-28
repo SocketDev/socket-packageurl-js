@@ -196,7 +196,8 @@ export async function checkFileForCdnRefs(
     return violations
   } catch (e) {
     const nodeError = e as NodeError
-    // Skip files we can't read (likely binary despite extension)
+    // Skip files we can't read. Such files are likely binary despite their
+    // extension.
     if (nodeError.code === 'EISDIR' || nodeError.message.includes('ENOENT')) {
       return []
     }

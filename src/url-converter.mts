@@ -968,7 +968,7 @@ export function fromCpanUrl(url: URL): PackageURL | undefined {
   const author = segments[1]!
   const distWithVersion = segments[2]!
   // A release segment is `<Dist-Name>-<version>`; the version starts after
-  // the LAST '-' (dist names themselves contain dashes).
+  // the LAST '-' because dist names themselves contain dashes.
   const dashIndex = StringPrototypeLastIndexOf(distWithVersion, '-')
   if (dashIndex < 1) {
     return tryCreatePurl('cpan', author, distWithVersion, undefined)
@@ -1136,7 +1136,8 @@ const FROM_URL_PARSERS: ReadonlyMap<string, UrlParser> = ObjectFreeze(
  */
 export interface RepositoryUrl {
   /**
-   * The type of repository (version control system or web interface).
+   * The type of repository. This is either a version control system or a web
+   * interface.
    */
   type: 'git' | 'hg' | 'svn' | 'web'
   /**
@@ -1242,9 +1243,10 @@ const FROM_DOWNLOAD_URL_PARSERS: ReadonlyArray<
 ])
 
 /**
- * Parse a package distribution URL or path (a registry artifact filename) into
- * a `PackageURL`, trying each ecosystem's distribution parser in turn. Works on
- * a bare path (`/packages/orjson-3.11.9-…-manylinux….whl`) or a full URL.
+ * Parse a package distribution URL or path into a `PackageURL`, trying each
+ * ecosystem's distribution parser in turn. Such a path is a registry artifact
+ * filename, so this works on a bare path
+ * (`/packages/orjson-3.11.9-…-manylinux….whl`) or a full URL.
  */
 export function fromDownloadUrl(urlOrPath: string): PackageURL | undefined {
   for (let i = 0, { length } = FROM_DOWNLOAD_URL_PARSERS; i < length; i += 1) {

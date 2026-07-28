@@ -60,9 +60,9 @@ export function normalizePurlPath(
   }
   let nextIndex = StringPrototypeIndexOf(pathname, '/', start)
   if (nextIndex === -1) {
-    // No slashes found — a single segment. Still run it through the filter
-    // (every other branch below does) so single-segment subpaths like `.`,
-    // `..`, or blanks are dropped per the PURL spec instead of slipping
+    // No slashes found — a single segment. Run it through the filter, because
+    // every other branch below does the same, so single-segment subpaths like
+    // `.`, `..`, or blanks are dropped per the PURL spec instead of slipping
     // through unfiltered.
     const segment = StringPrototypeSlice(pathname, start)
     return callback === undefined || callback(segment) ? segment : ''

@@ -120,8 +120,9 @@ export async function hackageExists(
 
 /**
  * Validate Hackage package URL. Hackage packages must not have a `namespace`
- * (the spec prohibits it); `name` must not contain injection characters. The
- * name stays case-sensitive kebab-case per spec, so there is no normalize step.
+ * because the spec prohibits it, and `name` must not contain injection
+ * characters. The name stays case-sensitive kebab-case per spec, so there is
+ * no normalize step.
  */
 export function hackageValidate(
   purl: PurlObject,

@@ -119,7 +119,8 @@ describe('compare — fuzz', () => {
     fc.assert(
       fc.property(fc.array(purlArb, { maxLength: 10 }), purls => {
         const sorted = [...purls].toSorted(comparePurls)
-        // Same multiset (compare by canonical string).
+        // Both arrays hold the same multiset when compared by canonical
+        // string.
         const key = (p: PackageURL) => p.toString()
         expect(sorted.map(key).toSorted()).toEqual(purls.map(key).toSorted())
         // Adjacent pairs are non-decreasing.

@@ -60,9 +60,10 @@ const wildcardRegexCache = new MapCtor<string, RegExp>()
 const WILDCARD_CACHE_MAX = 1024
 
 /**
- * Simple wildcard matcher for PURL components. Supports `*` (match any chars),
- * `?` (match single char), `**` (match anything including empty). Designed for
- * version strings and package names, not file paths.
+ * Simple wildcard matcher for PURL components. A `*` matches any run of
+ * characters, a `?` matches a single character, and `**` matches anything
+ * including an empty string. Designed for version strings and package names,
+ * not file paths.
  */
 const MAX_PATTERN_LENGTH = 4096
 // Cap wildcards to prevent backtracking DoS via many alternating `*` even
@@ -131,7 +132,8 @@ export function matchComponent(
   actualValue: string | null | undefined,
   matcher?: ((_value: string) => boolean) | undefined,
 ): boolean {
-  // Handle `**` (match any value including empty)
+  // The `**` pattern matches any value including an empty one, so handle it
+  // here.
   if (patternValue === '**') {
     return true
   }
@@ -308,7 +310,8 @@ export function parsePattern(pattern: string): ParsedPattern | undefined {
   // Types are case-insensitive, so normalize to lowercase
   typePattern = StringPrototypeToLowerCase(typePattern)
 
-  // For `npm`: lowercase namespace and name (ignoring legacy names for simplicity)
+  // For `npm`, lowercase the namespace and name. Legacy names are ignored here
+  // for simplicity.
   if (typePattern === 'npm') {
     if (namespacePattern) {
       namespacePattern = StringPrototypeToLowerCase(namespacePattern)

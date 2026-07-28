@@ -74,7 +74,8 @@ export async function condaExists(
   channel?: string | undefined,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
-  // Use provided channel or default to `conda-forge` (most popular community channel)
+  // Use the provided channel or default to `conda-forge`. It is the most
+  // popular community channel.
   const opts = { __proto__: null, ...options } as typeof options
   const channelName = channel || 'conda-forge'
   const cacheKey = version

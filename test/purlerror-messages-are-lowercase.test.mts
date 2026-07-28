@@ -107,7 +107,7 @@ describe('extractFirstStringArg', () => {
 })
 
 // ---------------------------------------------------------------------------
-// scanFile (inline fixture via temp files)
+// scanFile is exercised against an inline fixture written to temp files.
 // ---------------------------------------------------------------------------
 describe('scanFile with a temp fixture', () => {
   it('reports violations in a file containing uppercase literals', () => {

@@ -102,8 +102,8 @@ export function PurlTypNormalizer(purl: PurlObject) {
 /**
  * Default validator for PURL types without specific validation rules. Rejects
  * injection characters in `name` and `namespace` components. This ensures all
- * types (including newly added ones) get injection protection by default —
- * security is opt-out, not opt-in.
+ * types get injection protection by default, and that includes any newly added
+ * type — security is opt-out, not opt-in.
  */
 export function PurlTypeValidator(
   purl: PurlObject,
