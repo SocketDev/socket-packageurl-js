@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`exports`** — _rename the published equals and matches_
 - **`exports`** — _rename the published Result and compare_
 
-### Fixed
+### Internal
 
 - **`deps`** — deny the puppeteer postinstall like the rest of the fleet
 - **`deps`** — absorb the fleet catalog heal (claude-code 2.1.216, packageurl-js 1.4.8)
@@ -20,16 +20,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- **`fuzz`** — sweep orphaned vitiate shm segments before the run
+
+### Internal
+
 - **`deps`** — bump the @socketsecurity/lib catalog pin to 6.3.0
 - **`deps`** — drop the dead esbuild devDependency — no imports remain, rolldown is the bundler
 - **`fleet`** — clear the root-files law — tier external-tools.json, untrack MCP projections, drop .env.precommit
 - **`fleet`** — restore fetch-fleet-bundle to the v1.0.14 manifest bytes
-- **`fuzz`** — sweep orphaned vitiate shm segments before the run
 - **`deps`** — override js-yaml to 5.2.2 for GHSA-pm4m-ph32-ghv5
 
 ## [1.4.7](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.7) - 2026-07-24
 
-### Changed
+### Internal
 
 - **`deps`** — update vendored `@socketsecurity/lib` to 6.2.3: engine-gate collapse and lazy-required purl specs trim the published bundle
 
@@ -38,22 +41,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - **`build`** — fail the build when a bundled entry crashes at load
-- **`check`** — gate every published entry with a child-process load probe
-- **`check`** — gate untyped exports in public-files-are-exported
-
-### Changed
-
-- **`ci`** — drop npm.antfu.dev egress from weekly-update
 
 ### Fixed
 
 - **`build`** — stub unreachable npm-package-arg so dist/exists.js loads
 - **`exports`** — restore types condition in generated exports map
+
+### Internal
+
+- **`check`** — gate every published entry with a child-process load probe
+- **`check`** — gate untyped exports in public-files-are-exported
+- **`ci`** — drop npm.antfu.dev egress from weekly-update
 - **`deps`** — adopt the taze 19.16.0 single-registry patch
 
 ## [1.4.5](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.5) - 2026-07-24
 
-### Changed
+### Internal
 
 - **`deps`** — update `@socketsecurity/lib` to 6.2.1
 
@@ -63,6 +66,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **`tooling`** — lock fleet hook workspaces
 - **`tour`** — restore deterministic site generation
+
+### Internal
+
 - **`ci`** — complete fleet onboarding
 
 ## [1.4.3](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.3) - 2026-07-20
@@ -71,8 +77,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **`tooling`** — lock fleet hook workspaces
 - **`tour`** — restore deterministic site generation
-- **`ci`** — complete fleet onboarding
 - **`cli`** — identify Claude CLI integration
+
+### Internal
+
+- **`ci`** — complete fleet onboarding
 
 ## [1.3.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.3.0) - 2025-10-06
 
