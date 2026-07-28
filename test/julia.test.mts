@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { validate as validateJulia } from '../src/purl-types/julia.mjs'
+import { juliaValidate as validateJulia } from '../src/purl-types/julia.mjs'
 
 describe('per-type validate: julia', () => {
   it('rejects a name containing an injection character', () => {

@@ -30,7 +30,7 @@ export interface PurlObject {
  * Validate Bazel package URL. Bazel packages must have a `version` (for
  * reproducible builds). `name` must not contain injection characters.
  */
-export function validate(
+export function bazelValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

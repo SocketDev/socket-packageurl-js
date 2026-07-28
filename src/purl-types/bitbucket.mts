@@ -6,6 +6,28 @@
 import { lowerName, lowerNamespace } from '../strings.mjs'
 import { validateNoInjectionByType } from '../validate.mjs'
 
+/**
+ * Validate Bitbucket package URL. `name` and `namespace` must not contain
+ * injection characters.
+ */
+export function bitbucketValidate(
+  purl: PurlObject,
+  options?: { throws?: boolean | undefined } | undefined,
+): boolean {
+  const { throws = false } = options ?? {}
+  if (
+    !validateNoInjectionByType('bitbucket', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('bitbucket', 'name', purl.name, { throws })) {
+    return false
+  }
+  return true
+}
+
 export interface PurlObject {
   name: string
   namespace?: string | undefined
@@ -22,26 +44,4 @@ export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
   lowerName(purl)
   return purl
-}
-
-/**
- * Validate Bitbucket package URL. `name` and `namespace` must not contain
- * injection characters.
- */
-export function validate(
-  purl: PurlObject,
-  options?: { throws?: boolean | undefined } | undefined,
-): boolean {
-  const { throws = false } = options ?? {}
-  if (
-    !validateNoInjectionByType('bitbucket', 'namespace', purl.namespace, {
-      throws,
-    })
-  ) {
-    return false
-  }
-  if (!validateNoInjectionByType('bitbucket', 'name', purl.name, { throws })) {
-    return false
-  }
-  return true
 }

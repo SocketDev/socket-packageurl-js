@@ -154,24 +154,10 @@ export async function dockerExists(
 }
 
 /**
- * Normalize Docker package URL. Lowercases `namespace` (user/org) and `name`.
- * The distribution/reference grammar makes every path-component (the user/org
- * namespace segment and the image name) lowercase-only — `docker pull` rejects
- * uppercase — and a registry host belongs in `repository_url`, never the
- * namespace, so folding the namespace is never lossy. The version (a tag or
- * sha256 id) is preserved.
- */
-export function normalize(purl: PurlObject): PurlObject {
-  lowerNamespace(purl)
-  lowerName(purl)
-  return purl
-}
-
-/**
  * Validate Docker package URL. `name` and `namespace` must not contain
  * injection characters.
  */
-export function validate(
+export function dockerValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {
@@ -187,4 +173,18 @@ export function validate(
     return false
   }
   return true
+}
+
+/**
+ * Normalize Docker package URL. Lowercases `namespace` (user/org) and `name`.
+ * The distribution/reference grammar makes every path-component (the user/org
+ * namespace segment and the image name) lowercase-only — `docker pull` rejects
+ * uppercase — and a registry host belongs in `repository_url`, never the
+ * namespace, so folding the namespace is never lossy. The version (a tag or
+ * sha256 id) is preserved.
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  lowerNamespace(purl)
+  lowerName(purl)
+  return purl
 }

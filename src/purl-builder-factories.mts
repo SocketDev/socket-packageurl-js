@@ -81,7 +81,7 @@ export function cran(): PurlBuilder {
  * This is a convenience factory method that returns a new `PurlBuilder`
  * instance ready for configuration.
  */
-export function create(): PurlBuilder {
+export function createPurlBuilder(): PurlBuilder {
   return new PurlBuilder()
 }
 

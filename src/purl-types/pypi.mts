@@ -152,7 +152,7 @@ export async function pypiExists(
 /**
  * Validate PyPI package URL. `name` must not contain injection characters.
  */
-export function validate(
+export function pypiValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

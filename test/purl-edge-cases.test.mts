@@ -2761,11 +2761,11 @@ describe('Edge cases and additional coverage', () => {
         qualifiers: { tag_id: '   ' },
       }
 
-      expect(() => swidMod.validate(mockPurl, { throws: true })).toThrow(
+      expect(() => swidMod.swidValidate(mockPurl, { throws: true })).toThrow(
         'swid "tag_id" qualifier must not be empty',
       )
 
-      expect(swidMod.validate(mockPurl, { throws: false })).toBe(false)
+      expect(swidMod.swidValidate(mockPurl, { throws: false })).toBe(false)
     })
   })
 

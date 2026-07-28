@@ -30,6 +30,7 @@ import { ErrorCtor } from '@socketsecurity/lib/primordials/error'
 /**
  * `Result` type representing either success (`Ok`) or failure (`Err`).
  */
+// oxlint-disable-next-line socket/exported-name-has-domain-word -- published as `Result` from the package root; renaming is a breaking change for consumers, so it waits for a major.
 export type Result<T, E = Error> = Ok<T> | Err<E>
 
 /**

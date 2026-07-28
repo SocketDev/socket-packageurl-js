@@ -29,7 +29,7 @@ export interface PurlObject {
  * Validate SWID package URL. SWID requires a `tag_id` qualifier that must not
  * be empty. If `tag_id` is a GUID, it must be lowercase.
  */
-export function validate(
+export function swidValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

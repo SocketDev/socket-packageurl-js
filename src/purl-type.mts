@@ -11,94 +11,76 @@ import { createHelpersNamespaceObject } from './helpers.mjs'
 import { findShellInjectionCharCode, formatInjectionChar } from './strings.mjs'
 import { normalize as alpmNormalize } from './purl-types/alpm.mjs'
 import { normalize as apkNormalize } from './purl-types/apk.mjs'
-import { validate as bazelValidate } from './purl-types/bazel.mjs'
+import { bazelValidate } from './purl-types/bazel.mjs'
 import {
+  bitbucketValidate,
   normalize as bitbucketNormalize,
-  validate as bitbucketValidate,
 } from './purl-types/bitbucket.mjs'
 import { normalize as bitnamiNormalize } from './purl-types/bitnami.mjs'
-import { validate as cargoValidate } from './purl-types/cargo.mjs'
+import { cargoValidate } from './purl-types/cargo.mjs'
 import {
+  chromeExtensionValidate,
   normalize as chromeExtensionNormalize,
-  validate as chromeExtensionValidate,
 } from './purl-types/chrome-extension.mjs'
-import { validate as cocoaodsValidate } from './purl-types/cocoapods.mjs'
+import { cocoaodsValidate } from './purl-types/cocoapods.mjs'
 import { normalize as composerNormalize } from './purl-types/composer.mjs'
-import { validate as conanValidate } from './purl-types/conan.mjs'
+import { conanValidate } from './purl-types/conan.mjs'
 import {
+  condaValidate,
   normalize as condaNormalize,
-  validate as condaValidate,
 } from './purl-types/conda.mjs'
-import { validate as cpanValidate } from './purl-types/cpan.mjs'
-import { validate as cranValidate } from './purl-types/cran.mjs'
+import { cpanValidate } from './purl-types/cpan.mjs'
+import { cranValidate } from './purl-types/cran.mjs'
 import { normalize as debNormalize } from './purl-types/deb.mjs'
 import {
+  dockerValidate,
   normalize as dockerNormalize,
-  validate as dockerValidate,
 } from './purl-types/docker.mjs'
-import { validate as gemValidate } from './purl-types/gem.mjs'
+import { gemValidate } from './purl-types/gem.mjs'
 import { normalize as genericNormalize } from './purl-types/generic.mjs'
 import {
+  githubValidate,
   normalize as githubNormalize,
-  validate as githubValidate,
 } from './purl-types/github.mjs'
 import {
+  gitlabValidate,
   normalize as gitlabNormalize,
-  validate as gitlabValidate,
 } from './purl-types/gitlab.mjs'
-import { validate as golangValidate } from './purl-types/golang.mjs'
-import { validate as hackageValidate } from './purl-types/hackage.mjs'
-import {
-  normalize as hexNormalize,
-  validate as hexValidate,
-} from './purl-types/hex.mjs'
+import { golangValidate } from './purl-types/golang.mjs'
+import { hackageValidate } from './purl-types/hackage.mjs'
+import { hexValidate, normalize as hexNormalize } from './purl-types/hex.mjs'
 import { normalize as huggingfaceNormalize } from './purl-types/huggingface.mjs'
 import {
+  juliaValidate,
   normalize as juliaNormalize,
-  validate as juliaValidate,
 } from './purl-types/julia.mjs'
 import { normalize as luarocksNormalize } from './purl-types/luarocks.mjs'
-import { validate as mavenValidate } from './purl-types/maven.mjs'
+import { mavenValidate } from './purl-types/maven.mjs'
 import {
+  mlflowValidate,
   normalize as mlflowNormalize,
-  validate as mlflowValidate,
 } from './purl-types/mlflow.mjs'
-import {
-  normalize as npmNormalize,
-  validate as npmValidate,
-} from './purl-types/npm.mjs'
-import { validate as nugetValidate } from './purl-types/nuget.mjs'
-import {
-  normalize as ociNormalize,
-  validate as ociValidate,
-} from './purl-types/oci.mjs'
-import { validate as opamValidate } from './purl-types/opam.mjs'
-import {
-  normalize as otpNormalize,
-  validate as otpValidate,
-} from './purl-types/otp.mjs'
-import {
-  normalize as pubNormalize,
-  validate as pubValidate,
-} from './purl-types/pub.mjs'
-import {
-  normalize as pypiNormalize,
-  validate as pypiValidate,
-} from './purl-types/pypi.mjs'
+import { normalize as npmNormalize, npmValidate } from './purl-types/npm.mjs'
+import { nugetValidate } from './purl-types/nuget.mjs'
+import { normalize as ociNormalize, ociValidate } from './purl-types/oci.mjs'
+import { opamValidate } from './purl-types/opam.mjs'
+import { normalize as otpNormalize, otpValidate } from './purl-types/otp.mjs'
+import { normalize as pubNormalize, pubValidate } from './purl-types/pub.mjs'
+import { normalize as pypiNormalize, pypiValidate } from './purl-types/pypi.mjs'
 import { normalize as qpkgNormalize } from './purl-types/qpkg.mjs'
 import { normalize as rpmNormalize } from './purl-types/rpm.mjs'
 import { normalize as socketNormalize } from './purl-types/socket.mjs'
-import { validate as swidValidate } from './purl-types/swid.mjs'
-import { validate as swiftValidate } from './purl-types/swift.mjs'
+import { swidValidate } from './purl-types/swid.mjs'
+import { swiftValidate } from './purl-types/swift.mjs'
 import { normalize as unknownNormalize } from './purl-types/unknown.mjs'
-import { validate as vcpkgValidate } from './purl-types/vcpkg.mjs'
+import { vcpkgValidate } from './purl-types/vcpkg.mjs'
 import {
   normalize as vscodeExtensionNormalize,
-  validate as vscodeExtensionValidate,
+  vscodeExtensionValidate,
 } from './purl-types/vscode-extension.mjs'
 import {
   normalize as yoctoNormalize,
-  validate as yoctoValidate,
+  yoctoValidate,
 } from './purl-types/yocto.mjs'
 
 export interface PurlObject {

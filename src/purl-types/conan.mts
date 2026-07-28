@@ -20,7 +20,7 @@ export interface PurlObject {
  * Validate Conan package URL. If `namespace` is present, `qualifiers` are
  * required. If `channel` qualifier is present, `namespace` is required.
  */
-export function validate(
+export function conanValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

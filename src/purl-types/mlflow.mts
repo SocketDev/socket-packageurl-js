@@ -7,6 +7,27 @@ import { StringPrototypeIncludes } from '@socketsecurity/lib/primordials/string'
 import { lowerName } from '../strings.mjs'
 import { validateEmptyByType, validateNoInjectionByType } from '../validate.mjs'
 
+/**
+ * Validate MLflow package URL. MLflow packages must not have a `namespace`.
+ */
+export function mlflowValidate(
+  purl: PurlObject,
+  options?: { throws?: boolean | undefined } | undefined,
+): boolean {
+  const { throws = false } = options ?? {}
+  if (
+    !validateEmptyByType('mlflow', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('mlflow', 'name', purl.name, { throws })) {
+    return false
+  }
+  return true
+}
+
 export interface PurlObject {
   name: string
   namespace?: string | undefined
@@ -26,25 +47,4 @@ export function normalize(purl: PurlObject): PurlObject {
     lowerName(purl)
   }
   return purl
-}
-
-/**
- * Validate MLflow package URL. MLflow packages must not have a `namespace`.
- */
-export function validate(
-  purl: PurlObject,
-  options?: { throws?: boolean | undefined } | undefined,
-): boolean {
-  const { throws = false } = options ?? {}
-  if (
-    !validateEmptyByType('mlflow', 'namespace', purl.namespace, {
-      throws,
-    })
-  ) {
-    return false
-  }
-  if (!validateNoInjectionByType('mlflow', 'name', purl.name, { throws })) {
-    return false
-  }
-  return true
 }

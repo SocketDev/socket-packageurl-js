@@ -16,6 +16,41 @@ import { validateNoInjectionByType } from '../validate.mjs'
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'
 
+/**
+ * Validate CocoaPods package URL. `name` cannot contain injection or whitespace
+ * characters, plus (`+`) character, or begin with a period (`.`).
+ */
+export function cocoaodsValidate(
+  purl: PurlObject,
+  options?: { throws?: boolean | undefined } | undefined,
+): boolean {
+  const { throws = false } = options ?? {}
+  const { name } = purl
+  // `name` must not contain injection characters
+  if (!validateNoInjectionByType('cocoapods', 'name', name, { throws })) {
+    return false
+  }
+  // `name` cannot contain a plus (`+`) character
+  if (StringPrototypeIncludes(name, '+')) {
+    if (throws) {
+      throw new PurlError(
+        'cocoapods "name" component cannot contain a plus (+) character',
+      )
+    }
+    return false
+  }
+  // `name` cannot begin with a period (`.`)
+  if (StringPrototypeCharCodeAt(name, 0) === 46 /*'.'*/) {
+    if (throws) {
+      throw new PurlError(
+        'cocoapods "name" component cannot begin with a period',
+      )
+    }
+    return false
+  }
+  return true
+}
+
 export interface PurlObject {
   name: string
   namespace?: string | undefined
@@ -128,39 +163,4 @@ export async function cocoapodsExists(
   }
 
   return result
-}
-
-/**
- * Validate CocoaPods package URL. `name` cannot contain injection or whitespace
- * characters, plus (`+`) character, or begin with a period (`.`).
- */
-export function validate(
-  purl: PurlObject,
-  options?: { throws?: boolean | undefined } | undefined,
-): boolean {
-  const { throws = false } = options ?? {}
-  const { name } = purl
-  // `name` must not contain injection characters
-  if (!validateNoInjectionByType('cocoapods', 'name', name, { throws })) {
-    return false
-  }
-  // `name` cannot contain a plus (`+`) character
-  if (StringPrototypeIncludes(name, '+')) {
-    if (throws) {
-      throw new PurlError(
-        'cocoapods "name" component cannot contain a plus (+) character',
-      )
-    }
-    return false
-  }
-  // `name` cannot begin with a period (`.`)
-  if (StringPrototypeCharCodeAt(name, 0) === 46 /*'.'*/) {
-    if (throws) {
-      throw new PurlError(
-        'cocoapods "name" component cannot begin with a period',
-      )
-    }
-    return false
-  }
-  return true
 }

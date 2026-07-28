@@ -144,7 +144,7 @@ export async function gemExists(
  * Validate RubyGem package URL. Gem packages must not have a `namespace`.
  * `name` must not contain injection characters.
  */
-export function validate(
+export function gemValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

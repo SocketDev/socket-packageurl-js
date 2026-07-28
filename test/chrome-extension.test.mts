@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { validate as validateChromeExtension } from '../src/purl-types/chrome-extension.mjs'
+import { chromeExtensionValidate as validateChromeExtension } from '../src/purl-types/chrome-extension.mjs'
 
 describe('per-type validate: chrome-extension', () => {
   it('rejects a non-empty namespace', () => {

@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createMockCache } from './utils/test-helpers.mjs'
 import {
   hackageExists,
-  validate as validateHackage,
+  hackageValidate as validateHackage,
 } from '../src/purl-types/hackage.mjs'
 
 describe('hackageExists', () => {

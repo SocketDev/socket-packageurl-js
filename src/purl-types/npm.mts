@@ -40,7 +40,7 @@ import type { PurlObject } from './npm-utils.mjs'
  * https://github.com/npm/validate-npm-package-name/tree/v6.0.0 ISC License
  * Copyright (c) 2015, npm, Inc.
  */
-export function validate(
+export function npmValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

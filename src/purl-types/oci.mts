@@ -27,7 +27,7 @@ export function normalize(purl: PurlObject): PurlObject {
 /**
  * Validate OCI package URL. OCI packages must not have a `namespace`.
  */
-export function validate(
+export function ociValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

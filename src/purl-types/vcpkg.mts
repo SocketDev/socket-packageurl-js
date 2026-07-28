@@ -24,7 +24,7 @@ export interface PurlObject {
  * Validate vcpkg package URL. Vcpkg packages must not have a `namespace`;
  * `name` must not contain injection characters.
  */
-export function validate(
+export function vcpkgValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

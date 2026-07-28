@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { validate as validateYocto } from '../src/purl-types/yocto.mjs'
+import { yoctoValidate as validateYocto } from '../src/purl-types/yocto.mjs'
 
 describe('per-type validate: yocto', () => {
   it('rejects a namespace containing an injection character', () => {

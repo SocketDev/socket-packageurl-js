@@ -21,7 +21,7 @@ export interface PurlObject {
  * Validate Swift package URL. Swift packages require both `namespace` and
  * `version`. `name` and `namespace` must not contain injection characters.
  */
-export function validate(
+export function swiftValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

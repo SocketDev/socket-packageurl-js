@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-import { validate as validateVcpkg } from '../src/purl-types/vcpkg.mjs'
+import { vcpkgValidate as validateVcpkg } from '../src/purl-types/vcpkg.mjs'
 
 describe('per-type validate: vcpkg', () => {
   it('rejects a name containing an injection character', () => {

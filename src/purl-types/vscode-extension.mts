@@ -46,66 +46,6 @@ export function normalize(purl: PurlObject): PurlObject {
 }
 
 /**
- * Validate VSCode extension package URL. Checks `namespace` (publisher) and
- * `name` (extension) for injection characters, and validates `version` as
- * semver when present.
- */
-export function validate(
-  purl: PurlObject,
-  options?: { throws?: boolean | undefined } | undefined,
-): boolean {
-  const { throws = false } = options ?? {}
-  const { name, namespace, version, qualifiers } = purl
-  // VSCode extensions require a `namespace` (publisher)
-  if (
-    !validateRequiredByType('vscode-extension', 'namespace', namespace, {
-      throws,
-    })
-  ) {
-    return false
-  }
-  // `namespace` must not contain injection characters
-  if (
-    !validateNoInjectionByType('vscode-extension', 'namespace', namespace, {
-      throws,
-    })
-  ) {
-    return false
-  }
-  // `name` must not contain injection characters
-  if (
-    !validateNoInjectionByType('vscode-extension', 'name', name, { throws })
-  ) {
-    return false
-  }
-  // `version` must be valid semver when present
-  if (
-    typeof version === 'string' &&
-    version.length > 0 &&
-    !isSemverString(version)
-  ) {
-    if (throws) {
-      throw new PurlError(
-        'vscode-extension "version" component must be a valid semver version',
-      )
-    }
-    return false
-  }
-  // `platform` qualifier must not contain injection characters
-  if (
-    !validateNoInjectionByType(
-      'vscode-extension',
-      'platform',
-      qualifiers?.['platform'],
-      { throws },
-    )
-  ) {
-    return false
-  }
-  return true
-}
-
-/**
  * Check if a VSCode extension exists in the Visual Studio Marketplace.
  *
  * Queries the VS Marketplace API to verify extension existence and optionally
@@ -288,4 +228,64 @@ export async function vscodeExtensionExists(
   }
 
   return result
+}
+
+/**
+ * Validate VSCode extension package URL. Checks `namespace` (publisher) and
+ * `name` (extension) for injection characters, and validates `version` as
+ * semver when present.
+ */
+export function vscodeExtensionValidate(
+  purl: PurlObject,
+  options?: { throws?: boolean | undefined } | undefined,
+): boolean {
+  const { throws = false } = options ?? {}
+  const { name, namespace, version, qualifiers } = purl
+  // VSCode extensions require a `namespace` (publisher)
+  if (
+    !validateRequiredByType('vscode-extension', 'namespace', namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  // `namespace` must not contain injection characters
+  if (
+    !validateNoInjectionByType('vscode-extension', 'namespace', namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  // `name` must not contain injection characters
+  if (
+    !validateNoInjectionByType('vscode-extension', 'name', name, { throws })
+  ) {
+    return false
+  }
+  // `version` must be valid semver when present
+  if (
+    typeof version === 'string' &&
+    version.length > 0 &&
+    !isSemverString(version)
+  ) {
+    if (throws) {
+      throw new PurlError(
+        'vscode-extension "version" component must be a valid semver version',
+      )
+    }
+    return false
+  }
+  // `platform` qualifier must not contain injection characters
+  if (
+    !validateNoInjectionByType(
+      'vscode-extension',
+      'platform',
+      qualifiers?.['platform'],
+      { throws },
+    )
+  ) {
+    return false
+  }
+  return true
 }

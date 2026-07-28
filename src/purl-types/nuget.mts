@@ -165,7 +165,7 @@ export async function nugetExists(
  * Validate NuGet package URL. NuGet packages must not have a `namespace`.
  * `name` must not contain injection characters.
  */
-export function validate(
+export function nugetValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

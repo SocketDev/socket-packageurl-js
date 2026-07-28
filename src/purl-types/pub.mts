@@ -144,7 +144,7 @@ export async function pubExists(
 /**
  * Validate Pub package URL. `name` may only contain `[a-z0-9_]` characters.
  */
-export function validate(
+export function pubValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

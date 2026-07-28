@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createMockCache } from './utils/test-helpers.mjs'
 import {
   cpanExists,
-  validate as validateCpan,
+  cpanValidate as validateCpan,
 } from '../src/purl-types/cpan.mjs'
 
 describe('cpanExists', () => {

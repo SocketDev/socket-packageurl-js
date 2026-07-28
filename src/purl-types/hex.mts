@@ -126,19 +126,10 @@ export async function hexExists(
 }
 
 /**
- * Normalize Hex package URL. Lowercases both `namespace` and `name`.
- */
-export function normalize(purl: PurlObject): PurlObject {
-  lowerNamespace(purl)
-  lowerName(purl)
-  return purl
-}
-
-/**
  * Validate Hex package URL. `name` and `namespace` must not contain injection
  * characters.
  */
-export function validate(
+export function hexValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {
@@ -152,4 +143,13 @@ export function validate(
     return false
   }
   return true
+}
+
+/**
+ * Normalize Hex package URL. Lowercases both `namespace` and `name`.
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  lowerNamespace(purl)
+  lowerName(purl)
+  return purl
 }

@@ -131,7 +131,7 @@ export async function cpanExists(
  * required and must be uppercase; `name` is a distribution name and must not
  * contain the module-style `::` separator.
  */
-export function validate(
+export function cpanValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

@@ -18,7 +18,7 @@ export interface PurlObject {
 /**
  * Validate OPAM package URL. OPAM packages must not have a `namespace`.
  */
-export function validate(
+export function opamValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

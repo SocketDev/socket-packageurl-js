@@ -37,7 +37,7 @@ export function normalize(purl: PurlObject): PurlObject {
  * Validate Yocto package URL. `namespace` (optional layer name) and `name` must
  * not contain injection characters.
  */
-export function validate(
+export function yoctoValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

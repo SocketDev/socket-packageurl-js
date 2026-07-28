@@ -259,7 +259,7 @@ export async function golangExists(
  * injection characters. If `version` starts with `"v"`, it must be followed by
  * a valid semver version.
  */
-export function validate(
+export function golangValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

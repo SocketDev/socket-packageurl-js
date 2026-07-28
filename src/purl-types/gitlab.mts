@@ -6,6 +6,28 @@
 import { lowerName, lowerNamespace } from '../strings.mjs'
 import { validateNoInjectionByType } from '../validate.mjs'
 
+/**
+ * Validate GitLab package URL. `name` and `namespace` must not contain
+ * injection characters.
+ */
+export function gitlabValidate(
+  purl: PurlObject,
+  options?: { throws?: boolean | undefined } | undefined,
+): boolean {
+  const { throws = false } = options ?? {}
+  if (
+    !validateNoInjectionByType('gitlab', 'namespace', purl.namespace, {
+      throws,
+    })
+  ) {
+    return false
+  }
+  if (!validateNoInjectionByType('gitlab', 'name', purl.name, { throws })) {
+    return false
+  }
+  return true
+}
+
 export interface PurlObject {
   name: string
   namespace?: string | undefined
@@ -22,26 +44,4 @@ export function normalize(purl: PurlObject): PurlObject {
   lowerNamespace(purl)
   lowerName(purl)
   return purl
-}
-
-/**
- * Validate GitLab package URL. `name` and `namespace` must not contain
- * injection characters.
- */
-export function validate(
-  purl: PurlObject,
-  options?: { throws?: boolean | undefined } | undefined,
-): boolean {
-  const { throws = false } = options ?? {}
-  if (
-    !validateNoInjectionByType('gitlab', 'namespace', purl.namespace, {
-      throws,
-    })
-  ) {
-    return false
-  }
-  if (!validateNoInjectionByType('gitlab', 'name', purl.name, { throws })) {
-    return false
-  }
-  return true
 }

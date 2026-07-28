@@ -28,7 +28,7 @@ export function normalize(purl: PurlObject): PurlObject {
 /**
  * Validate OTP package URL. OTP packages must not have a `namespace`.
  */
-export function validate(
+export function otpValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

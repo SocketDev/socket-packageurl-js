@@ -128,7 +128,7 @@ export async function cranExists(
  * Validate CRAN package URL. CRAN packages require a `version`. `name` must not
  * contain injection characters.
  */
-export function validate(
+export function cranValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

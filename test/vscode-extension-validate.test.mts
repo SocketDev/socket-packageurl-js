@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import { PurlError } from '../src/error.mjs'
 import { PackageURL } from '../src/package-url.mjs'
-import { validate as validateVscodeExtension } from '../src/purl-types/vscode-extension.mjs'
+import { vscodeExtensionValidate as validateVscodeExtension } from '../src/purl-types/vscode-extension.mjs'
 
 describe('vscode-extension validate + normalize', () => {
   describe('validate', () => {

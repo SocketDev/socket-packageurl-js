@@ -38,7 +38,7 @@ import {
   conan,
   conda,
   cran,
-  create,
+  createPurlBuilder,
   deb,
   docker,
   gem,
@@ -283,7 +283,7 @@ export class PurlBuilder {
   static conan = conan
   static conda = conda
   static cran = cran
-  static create = create
+  static create = createPurlBuilder
   static deb = deb
   static docker = docker
   static gem = gem

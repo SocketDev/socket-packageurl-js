@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { PackageURL } from '../src/package-url.mjs'
-import { validate as validateBazel } from '../src/purl-types/bazel.mjs'
+import { bazelValidate as validateBazel } from '../src/purl-types/bazel.mjs'
 
 describe('bazel', () => {
   it('should require version for bazel packages', () => {

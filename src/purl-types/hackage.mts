@@ -123,7 +123,7 @@ export async function hackageExists(
  * (the spec prohibits it); `name` must not contain injection characters. The
  * name stays case-sensitive kebab-case per spec, so there is no normalize step.
  */
-export function validate(
+export function hackageValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {

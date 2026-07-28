@@ -148,18 +148,10 @@ export async function condaExists(
 }
 
 /**
- * Normalize Conda package URL. Lowercases `name` only.
- */
-export function normalize(purl: PurlObject): PurlObject {
-  lowerName(purl)
-  return purl
-}
-
-/**
  * Validate Conda package URL. Conda packages must not have a `namespace`.
  * `name` must not contain injection characters.
  */
-export function validate(
+export function condaValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {
@@ -175,4 +167,12 @@ export function validate(
     return false
   }
   return true
+}
+
+/**
+ * Normalize Conda package URL. Lowercases `name` only.
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  lowerName(purl)
+  return purl
 }

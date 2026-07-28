@@ -29,20 +29,11 @@ const CHROME_EXTENSION_ID_PATTERN = /^[a-z]{32}$/
 const CHROME_EXTENSION_VERSION_PATTERN = /^\d+(?:\.\d+){0,3}$/
 
 /**
- * Normalize chrome-extension package URL. Lowercases `name` — the extension id
- * is case-insensitive per spec.
- */
-export function normalize(purl: PurlObject): PurlObject {
-  lowerName(purl)
-  return purl
-}
-
-/**
  * Validate chrome-extension package URL. Chrome extensions must not have a
  * `namespace`; `name` must be a 32-char a-z extension id; `version`, when
  * present, must be 1-4 dot-separated numeric segments.
  */
-export function validate(
+export function chromeExtensionValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {
@@ -74,4 +65,13 @@ export function validate(
     return false
   }
   return true
+}
+
+/**
+ * Normalize chrome-extension package URL. Lowercases `name` — the extension id
+ * is case-insensitive per spec.
+ */
+export function normalize(purl: PurlObject): PurlObject {
+  lowerName(purl)
+  return purl
 }

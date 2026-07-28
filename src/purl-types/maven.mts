@@ -158,7 +158,7 @@ export async function mavenExists(
  * Validate Maven package URL. Maven packages require a `namespace` (`groupId`).
  * `name` and `namespace` must not contain injection characters.
  */
-export function validate(
+export function mavenValidate(
   purl: PurlObject,
   options?: { throws?: boolean | undefined } | undefined,
 ): boolean {
