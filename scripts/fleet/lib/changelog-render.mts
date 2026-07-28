@@ -22,8 +22,8 @@ export const TYPE_TO_SECTION: Record<string, string> = {
 export const SECTION_ORDER: readonly string[] = ['Added', 'Changed', 'Fixed']
 
 /**
- * Render one bullet for a commit: a bold scope prefix when present, the
- * description, and a `**BREAKING:**` marker for breaking changes.
+ * Render one bullet for a commit: a bold scope prefix when present, then the
+ * description, emphasized when the commit is breaking.
  */
 function escapeMarkdownText(value: string): string {
   return value

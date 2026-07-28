@@ -60,7 +60,7 @@
     "claude": "node scripts/repo/claude.mts",
     "test": "node scripts/fleet/test.mts",
     "test:fuzz": "node scripts/repo/fuzz.mts",
-    "type": "tsgo --noEmit -p .config/fleet/tsconfig.check.json",
+    "type": "node node_modules/typescript/bin/tsc --noEmit -p .config/fleet/tsconfig.check.json",
     "update": "node scripts/fleet/update.mts",
     "update:data:npm": "node scripts/repo/update-data-npm.mts",
     "sync-purl-spec": "node scripts/repo/sync-purl-spec.mts",
@@ -81,12 +81,14 @@
     "setup:mcp": "node scripts/fleet/setup/mcp.mts",
     "setup:python": "node scripts/fleet/setup/python.mts",
     "setup:refero": "node scripts/fleet/setup/refero.mts",
-    "setup:rust": "node scripts/fleet/setup/rust.mts"
+    "setup:rust": "node scripts/fleet/setup/rust.mts",
+    "socket-wheelhouse:emit-schema": "node scripts/fleet/socket-wheelhouse-emit-schema.mts"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "catalog:",
     "@oxlint/migrate": "1.51.0",
     "@redwoodjs/agent-ci": "catalog:",
+    "@shadscan/cli": "catalog:",
     "@sinclair/typebox": "catalog:",
     "@socketregistry/packageurl-js": "catalog:",
     "@socketregistry/packageurl-js-stable": "catalog:",
@@ -120,7 +122,6 @@
     "micromark": "catalog:",
     "neosanitize": "catalog:",
     "nock": "14.0.16",
-    "npm-run-all2": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "oxlint-tsgolint": "catalog:",
@@ -161,16 +162,13 @@
   },
   "engines": {
     "node": ">=24",
-    "npm": ">=12.0.0",
+    "npm": ">=12.0.1",
     "pnpm": ">=11.0.5"
   },
   "allowScripts": {
     "cpu-features": false,
     "protobufjs": false,
-    "puppeteer": true,
+    "puppeteer": false,
     "ssh2": false
-  },
-  "npm-run-all2": {
-    "nodeRun": true
   }
 }
