@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.5.0) - 2026-07-28
+
+### Changed
+
+- **BREAKING:** **`exports`** — rename the published equals and matches
+- **BREAKING:** **`exports`** — rename the published Result and compare
+
+### Fixed
+
+- **`deps`** — deny the puppeteer postinstall like the rest of the fleet
+- **`deps`** — absorb the fleet catalog heal (claude-code 2.1.216, packageurl-js 1.4.8)
+
 ## [1.4.8](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.8) - 2026-07-27
 
 ### Fixed
