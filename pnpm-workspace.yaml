@@ -80,12 +80,13 @@ allowBuilds:
   # @swc/core native binding — vitiate's coverage-guided fuzz lane
   # (`pnpm run test:fuzz`) instruments src via the SWC transform.
   '@swc/core': true
-  # puppeteer ships a postinstall that downloads Chromium (~300MB).
-  # Retained as fleet-baseline browser/screenshot tooling (parity with
-  # socket-lib). CI pays the download cost as the uniform-install tradeoff.
+  # puppeteer ships a postinstall that downloads Chromium (~300MB), and a
+  # failed download fails the whole install. Denied fleet-wide — socket-lib,
+  # socket-cli and the wheelhouse all deny it; this repo allowing it claimed
+  # parity with socket-lib that socket-lib never had.
   cpu-features: false
   protobufjs: false
-  puppeteer: true
+  puppeteer: false
   ssh2: false
 
 # Refuse to run if the pnpm version on PATH differs from the packageManager
