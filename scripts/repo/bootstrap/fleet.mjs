@@ -8,17 +8,57 @@ import {
   readdirSync,
   realpathSync,
   renameSync,
+  rmSync,
   writeFileSync,
 } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
-import { safeDeleteSync } from '@socketsecurity/lib-stable/fs/safe'
-import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import crypto from 'node:crypto'
 import { execFileSync } from 'node:child_process'
 
+//#region scripts/repo/gen/bootstrap/src/dep0-io.mts
+/**
+ * @file Dep-0 I/O shim for the fleet bundle fetcher. `fleet.mjs` — the built
+ *   bootstrap fetcher — runs on a BARE clone with NO node_modules, before the
+ *   published `@socketsecurity/lib-stable` exists, so it cannot import the lib
+ *   logger or lib safeDelete. This module supplies node:-builtin-only stand-ins
+ *   that rolldown inlines into the single-file bundle: a logger whose `log`
+ *   writes to STDOUT (preserving the `--json` machine-readable contract) and
+ *   whose `error` writes to STDERR, plus a fail-open recursive delete. The two
+ *   lint carve-outs the dep-0 constraint forces (`socket/prefer-safe-delete`,
+ *   `socket/no-console-prefer-logger`) live ONLY here, so every other src/
+ *   module stays carve-out-free.
+ */
+/**
+ * Return the shared dep-0 logger. Mirrors the lib `getDefaultLogger()` factory
+ * shape so call sites read identically (`const logger = getDep0Logger()`).
+ */
+function getDep0Logger() {
+  return dep0Logger
+}
+/**
+ * Fail-open recursive delete. The dep-0 fetcher cannot import the lib
+ * `safeDeleteSync`, so it wraps node's `rmSync` with the same force + recursive
+ * fail-open semantics: a missing path is a no-op, never a throw.
+ */
+function rm(targetPath) {
+  rmSync(targetPath, {
+    force: true,
+    recursive: true,
+  })
+}
+const dep0Logger = {
+  error(...args) {
+    console.error(...args)
+  },
+  log(...args) {
+    console.log(...args)
+  },
+}
+
+//#endregion
 //#region scripts/repo/gen/bootstrap/src/helpers.mts
 /**
  * Normalize bundle-manifest paths to their portable `/` wire format.
@@ -280,9 +320,9 @@ function writeAppliedRef(dest, ref) {
   mkdirSync(path.dirname(p), { recursive: true })
   writeFileSync(p, `${ref}\n`)
   const legacy = path.join(dest, LEGACY_APPLIED_MARKER)
-  if (existsSync(legacy)) safeDeleteSync(legacy)
+  if (existsSync(legacy)) rm(legacy)
   const flat = path.join(dest, FLAT_APPLIED_MARKER)
-  if (existsSync(flat)) safeDeleteSync(flat)
+  if (existsSync(flat)) rm(flat)
 }
 
 //#endregion
@@ -751,7 +791,7 @@ function spliceRepoHookEntry(settings, event, matcher, hook) {
  *   install.mts along the sync-prune seam to hold that file under the line cap;
  *   install.mts re-exports these so its public surface (and fleet.mts's
  *   re-export of it) is unchanged. Dep-0, same invariant as install.mts (node:
- *   builtins + lib-stable only, never the in-repo socket-lib).
+ *   builtins only, never socket-lib).
  */
 /**
  * Apply the manifest's per-repo-owned file MOVES (`movedPaths`) — the rename
@@ -785,7 +825,7 @@ function applyMovedPaths(dest, manifest) {
     const fromAbs = path.join(dest, from)
     if (!existsSync(fromAbs)) continue
     const toAbs = path.join(dest, to)
-    if (existsSync(toAbs)) safeDeleteSync(fromAbs)
+    if (existsSync(toAbs)) rm(fromAbs)
     else {
       mkdirSync(path.dirname(toAbs), { recursive: true })
       renameSync(fromAbs, toAbs)
@@ -817,7 +857,7 @@ function removeTombstonedPaths(dest, manifest) {
       continue
     const abs = path.join(dest, rel)
     if (existsSync(abs)) {
-      safeDeleteSync(abs)
+      rm(abs)
       removed += 1
     }
   }
@@ -849,7 +889,7 @@ function pruneStaleFleetFiles(dest, manifest, previousFiles) {
     if (kept.has(rel)) continue
     const abs = path.join(dest, rel)
     if (existsSync(abs)) {
-      safeDeleteSync(abs)
+      rm(abs)
       pruned += 1
     }
   }
@@ -858,7 +898,7 @@ function pruneStaleFleetFiles(dest, manifest, previousFiles) {
 
 //#endregion
 //#region scripts/repo/gen/bootstrap/src/install.mts
-const logger$3 = getDefaultLogger()
+const logger$3 = getDep0Logger()
 /**
  * Place every verified bundle file from `filesDir` into `dest`, creating
  * parent directories as needed. Sentinel-scoped ONLY for the DESIGNATED
@@ -1378,7 +1418,7 @@ function formatUpdateNotice(config) {
  *   Lock-step note: assertLockStep enforces the cascadeSha === templateSha
  *   invariant but does not resolve refs itself — see resolveReleaseTemplateSha.
  */
-const logger$2 = getDefaultLogger()
+const logger$2 = getDep0Logger()
 const MANIFEST_NAME$1 = 'release-bundle-manifest.json'
 /**
  * Assert the lock-step invariant before applying a release: the member's pinned
@@ -1468,7 +1508,7 @@ function resolveReleaseTemplateSha(ref, repo) {
   } catch {
     return
   } finally {
-    safeDeleteSync(tmp)
+    rm(tmp)
   }
 }
 
@@ -1482,7 +1522,7 @@ function resolveReleaseTemplateSha(ref, repo) {
  *   Lock-step note: the sibling lockstep.mts module owns the lock-step state
  *   machine; this file only formats and renders it.
  */
-const logger$1 = getDefaultLogger()
+const logger$1 = getDep0Logger()
 /**
  * Fire the passive update notice opportunistically (update-notifier style). The
  * caller already resolved a newer release exists; this throttles to once/24h
@@ -1572,7 +1612,7 @@ function statusJson(state) {
 
 //#endregion
 //#region scripts/repo/gen/bootstrap/src/fleet.mts
-const logger = getDefaultLogger()
+const logger = getDep0Logger()
 const DEFAULT_REPO = 'SocketDev/socket-wheelhouse'
 const MANIFEST_NAME = 'release-bundle-manifest.json'
 function resolveRepoRoot(startDir) {
@@ -1842,7 +1882,7 @@ async function installFleet(config) {
     )
     return 0
   } finally {
-    safeDeleteSync(tmp)
+    rm(tmp)
   }
 }
 function isMainModule() {
