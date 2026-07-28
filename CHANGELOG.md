@@ -4,12 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [1.5.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.5.0) - 2026-07-28
+## [Unreleased]
 
 ### Changed
 
-- **BREAKING:** **`exports`** — rename the published equals and matches
-- **BREAKING:** **`exports`** — rename the published Result and compare
+- **`exports`** — _rename the published equals and matches_
+- **`exports`** — _rename the published Result and compare_
 
 ### Fixed
 
