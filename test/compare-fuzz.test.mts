@@ -18,7 +18,7 @@ import fc from 'fast-check'
 import { describe, expect, test } from 'vitest'
 
 import {
-  compare,
+  comparePurls,
   createMatcher,
   equals,
   matchComponent,
@@ -66,7 +66,7 @@ describe('compare — fuzz', () => {
   test('compare is reflexive and equals agrees', () => {
     fc.assert(
       fc.property(purlArb, p => {
-        expect(compare(p, p)).toBe(0)
+        expect(comparePurls(p, p)).toBe(0)
         expect(equals(p, p)).toBe(true)
       }),
     )
@@ -78,8 +78,8 @@ describe('compare — fuzz', () => {
       fc.property(purlArb, purlArb, (a, b) => {
         // Hoist both comparisons into vars so the src-imported `compare` never
         // builds the expected value inside expect().
-        const ab = compare(a, b)
-        const ba = compare(b, a)
+        const ab = comparePurls(a, b)
+        const ba = comparePurls(b, a)
         expect(sign(ab)).toBe(-sign(ba))
       }),
     )
@@ -89,9 +89,9 @@ describe('compare — fuzz', () => {
   test('compare is transitive', () => {
     fc.assert(
       fc.property(purlArb, purlArb, purlArb, (a, b, c) => {
-        const ab = compare(a, b)
-        const bc = compare(b, c)
-        const ac = compare(a, c)
+        const ab = comparePurls(a, b)
+        const bc = comparePurls(b, c)
+        const ac = comparePurls(a, c)
         if (ab <= 0 && bc <= 0) {
           expect(ac).toBeLessThanOrEqual(0)
         }
@@ -108,7 +108,7 @@ describe('compare — fuzz', () => {
       fc.property(purlArb, purlArb, (a, b) => {
         // Compute the compare-derived expectation OUTSIDE expect() so the
         // src-imported `compare` never builds the expected value inline.
-        const comparesEqual = compare(a, b) === 0
+        const comparesEqual = comparePurls(a, b) === 0
         expect(equals(a, b)).toBe(comparesEqual)
       }),
     )
@@ -118,13 +118,13 @@ describe('compare — fuzz', () => {
   test('sort(compare) is an ordered permutation', () => {
     fc.assert(
       fc.property(fc.array(purlArb, { maxLength: 10 }), purls => {
-        const sorted = [...purls].toSorted(compare)
+        const sorted = [...purls].toSorted(comparePurls)
         // Same multiset (compare by canonical string).
         const key = (p: PackageURL) => p.toString()
         expect(sorted.map(key).toSorted()).toEqual(purls.map(key).toSorted())
         // Adjacent pairs are non-decreasing.
         for (let i = 1; i < sorted.length; i += 1) {
-          expect(compare(sorted[i - 1], sorted[i])).not.toBe(1)
+          expect(comparePurls(sorted[i - 1], sorted[i])).not.toBe(1)
         }
       }),
     )

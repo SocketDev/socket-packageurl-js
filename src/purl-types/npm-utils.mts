@@ -33,7 +33,7 @@ export interface PurlObject {
 }
 
 /**
- * Result of package existence check.
+ * PurlResult of package existence check.
  */
 export type ExistsResult = {
   exists: boolean

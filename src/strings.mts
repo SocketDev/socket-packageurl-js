@@ -115,7 +115,7 @@ export function isSemverString(value: unknown): value is string {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/localeCompare:
 // > When comparing large numbers of strings, such as in sorting large arrays,
 // > it is better to create an `Intl.Collator` object and use the function provided
-// > by its `compare()` method
+// > by its `comparePurls()` method
 let cachedLocaleCompare: Intl.Collator['compare'] | undefined
 
 /**

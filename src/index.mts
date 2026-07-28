@@ -34,7 +34,7 @@ SOFTWARE.
  *   - `PurlQualifierNames`: Known qualifier names from the specification Utility
  *     exports:
  *   - `UrlConverter`: Convert between `purl`s and repository/download URLs
- *   - `Result` utilities: Functional error handling with `Ok`/`Err` pattern
+ *   - `PurlResult` utilities: Functional error handling with `Ok`/`Err` pattern
  *   - Parsers: Modular parsers for ecosystem-specific package specifiers
  */
 
@@ -55,7 +55,7 @@ export type {
   PackageURLObject,
   ParsedPurlComponents,
   RepositoryUrl,
-  Result,
+  PurlResult,
 } from './package-url.mjs'
 export type {
   ComponentEncoder,
@@ -88,7 +88,7 @@ export { PurlError, PurlInjectionError } from './error.mjs'
 // ============================================================================
 // Modular Utilities
 // ============================================================================
-export { compare, createMatcher, equals, matches } from './compare.mjs'
+export { comparePurls, createMatcher, equals, matches } from './compare.mjs'
 export { parseNpmSpecifier } from './purl-types/npm.mjs'
 export { splitPurlPackageName } from './split-package-name.mjs'
 export type { PurlPackageNameComponents } from './split-package-name.mjs'

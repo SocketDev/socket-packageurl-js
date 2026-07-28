@@ -65,7 +65,7 @@ import {
 import { PurlQualifierNames } from '../src/purl-qualifier-names.mjs'
 import { PurlType } from '../src/purl-type.mjs'
 import type { PurlObject } from '../src/purl-type.mjs'
-import { compare, equals } from '../src/compare.mjs'
+import { comparePurls, equals } from '../src/compare.mjs'
 import { PurlBuilder } from '../src/package-url-builder.mjs'
 import { purlExists } from '../src/purl-exists.mjs'
 import { UrlConverter } from '../src/url-converter.mjs'
@@ -2448,15 +2448,15 @@ describe('Edge cases and additional coverage', () => {
     })
 
     it('should sort PURL strings with compare', () => {
-      expect(compare('pkg:npm/aaa', 'pkg:npm/bbb')).toBe(-1)
-      expect(compare('pkg:npm/bbb', 'pkg:npm/aaa')).toBe(1)
-      expect(compare('pkg:npm/aaa', 'pkg:npm/aaa')).toBe(0)
+      expect(comparePurls('pkg:npm/aaa', 'pkg:npm/bbb')).toBe(-1)
+      expect(comparePurls('pkg:npm/bbb', 'pkg:npm/aaa')).toBe(1)
+      expect(comparePurls('pkg:npm/aaa', 'pkg:npm/aaa')).toBe(0)
     })
 
     it('should compare mixed string and PackageURL', () => {
       const purl = PackageURL.fromString('pkg:npm/bbb')
-      expect(compare('pkg:npm/aaa', purl)).toBe(-1)
-      expect(compare(purl, 'pkg:npm/aaa')).toBe(1)
+      expect(comparePurls('pkg:npm/aaa', purl)).toBe(-1)
+      expect(comparePurls(purl, 'pkg:npm/aaa')).toBe(1)
     })
   })
 

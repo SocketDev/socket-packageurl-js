@@ -29,7 +29,7 @@ SOFTWARE.
  */
 
 import {
-  compare as comparePurls,
+  comparePurls,
   equals as equalsPurls,
   registerPackageURL,
 } from './compare.mjs'
@@ -87,7 +87,7 @@ import {
 import { isNonEmptyString } from './strings.mjs'
 
 import type { QualifiersObject } from './purl-component.mjs'
-import type { Result } from './result.mjs'
+import type { PurlResult } from './result.mjs'
 import type { DownloadUrl, RepositoryUrl } from './url-converter.mjs'
 
 /**
@@ -441,19 +441,19 @@ export class PackageURL {
     return fromUrl(urlStr)
   }
 
-  static tryFromJSON(json: unknown): Result<PackageURL> {
+  static tryFromJSON(json: unknown): PurlResult<PackageURL> {
     return tryFromJSON(json)
   }
 
-  static tryFromObject(obj: unknown): Result<PackageURL> {
+  static tryFromObject(obj: unknown): PurlResult<PackageURL> {
     return tryFromObject(obj)
   }
 
-  static tryFromString(purlStr: unknown): Result<PackageURL> {
+  static tryFromString(purlStr: unknown): PurlResult<PackageURL> {
     return tryFromString(purlStr)
   }
 
-  static tryParseString(purlStr: unknown): Result<unknown[]> {
+  static tryParseString(purlStr: unknown): PurlResult<unknown[]> {
     return tryParseString(purlStr)
   }
 }
@@ -486,4 +486,4 @@ export {
   err,
   ok,
 }
-export type { DownloadUrl, RepositoryUrl, Result }
+export type { DownloadUrl, RepositoryUrl, PurlResult }

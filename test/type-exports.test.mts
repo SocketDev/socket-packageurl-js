@@ -15,10 +15,10 @@ import type {
   PackageURLComponentValue,
   PackageURLObject,
   ParsedPurlComponents,
+  PurlResult,
   QualifiersObject,
   QualifiersValue,
   RepositoryUrl,
-  Result,
 } from '../src/index.mjs'
 
 describe('Type exports accessibility', () => {
@@ -129,15 +129,15 @@ describe('Type exports accessibility', () => {
     expect(url.type).toBe('tarball')
   })
 
-  it('should export Result type', () => {
-    const success: Result<string> = {
+  it('should export PurlResult type', () => {
+    const success: PurlResult<string> = {
       kind: 'ok',
       value: 'test',
-    } as Result<string>
-    const failure: Result<string> = {
+    } as PurlResult<string>
+    const failure: PurlResult<string> = {
       kind: 'err',
       error: new Error('failed'),
-    } as Result<string>
+    } as PurlResult<string>
     expect(success.kind).toBe('ok')
     expect(failure.kind).toBe('err')
   })

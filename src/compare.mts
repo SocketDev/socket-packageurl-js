@@ -210,13 +210,13 @@ export function equals(a: PurlInput, b: PurlInput): boolean {
  *
  * @example
  *   ;```typescript
- *   compare('pkg:npm/aaa', 'pkg:npm/bbb') // -> -1
- *   compare(
+ *   comparePurls('pkg:npm/aaa', 'pkg:npm/bbb') // -> -1
+ *   comparePurls(
  *     'pkg:npm/bbb',
  *     'pkg:npm/aaa',
  *   ) // -> 1
  *   // Use with Array.sort
- *   [('pkg:npm/bbb', 'pkg:npm/aaa')].sort(compare)
+ *   [('pkg:npm/bbb', 'pkg:npm/aaa')].sort(comparePurls)
  *   // -> ['pkg:npm/aaa', 'pkg:npm/bbb']
  *   ```
  *
@@ -225,8 +225,7 @@ export function equals(a: PurlInput, b: PurlInput): boolean {
  *
  * @returns `-1`, `0`, or `1` for sort ordering
  */
-// oxlint-disable-next-line socket/exported-name-has-domain-word -- published as `compare` from the package root; renaming is a breaking change for consumers, so it waits for a major.
-export function compare(a: PurlInput, b: PurlInput): -1 | 0 | 1 {
+export function comparePurls(a: PurlInput, b: PurlInput): -1 | 0 | 1 {
   const aStr = toCanonicalString(a)
   const bStr = toCanonicalString(b)
   if (aStr < bStr) {

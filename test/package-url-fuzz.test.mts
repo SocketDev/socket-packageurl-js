@@ -10,10 +10,10 @@
  *   - ROUND-TRIP: fromObject(purl.toObject()) reproduces the same canonical
  *     string.
  *   - NEVER-THROWS: isValid / tryFromString / tryParseString tolerate ANY input
- *     and return a boolean / Result — they never leak a raw throw. PackageURL
- *     instances are CONSTRUCTED from a safe alphabet so the constructor always
- *     succeeds; the canonical string is compared to itself (never a
- *     reimplementation of the spec serialization).
+ *     and return a boolean / PurlResult — they never leak a raw throw.
+ *     PackageURL instances are CONSTRUCTED from a safe alphabet so the
+ *     constructor always succeeds; the canonical string is compared to itself
+ *     (never a reimplementation of the spec serialization).
  */
 
 import fc from 'fast-check'
@@ -194,9 +194,9 @@ describe('PackageURL parse/stringify — fuzz', () => {
     )
   })
 
-  // NEVER-THROWS: tryFromString / tryParseString return a Result for any input
+  // NEVER-THROWS: tryFromString / tryParseString return a PurlResult for any input
   // (the throwing fromString/parseString are wrapped).
-  test('tryFromString and tryParseString never throw and return a Result', () => {
+  test('tryFromString and tryParseString never throw and return a PurlResult', () => {
     fc.assert(
       fc.property(fc.oneof(fc.string(), fc.anything()), input => {
         let threw = false

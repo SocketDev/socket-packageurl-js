@@ -21,14 +21,14 @@ SOFTWARE.
 */
 
 /**
- * @file Unit tests for Result type and functional error handling.
+ * @file Unit tests for PurlResult type and functional error handling.
  */
 import { describe, expect, it } from 'vitest'
 
 import { PackageURL } from '../src/package-url.mjs'
 import { Err, err, Ok, ok, ResultUtils } from '../src/result.mjs'
 
-describe('Result types', () => {
+describe('PurlResult types', () => {
   describe('Ok', () => {
     it('should create Ok result', () => {
       const result = ok('success')
@@ -164,7 +164,7 @@ describe('Result types', () => {
     })
   })
 
-  describe('Result utilities', () => {
+  describe('PurlResult utilities', () => {
     it('should wrap throwing function', () => {
       const throwingFn = () => {
         throw new Error('boom')
@@ -228,7 +228,7 @@ describe('Result types', () => {
   })
 })
 
-describe('PackageURL Result methods', () => {
+describe('PackageURL PurlResult methods', () => {
   describe('tryFromString', () => {
     it.each([
       [

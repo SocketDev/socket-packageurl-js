@@ -24,14 +24,13 @@ import { ArrayPrototypePush } from '@socketsecurity/lib/primordials/array'
 import { ErrorCtor } from '@socketsecurity/lib/primordials/error'
 
 /**
- * @file Result type for functional error handling without exceptions.
+ * @file PurlResult type for functional error handling without exceptions.
  */
 
 /**
- * `Result` type representing either success (`Ok`) or failure (`Err`).
+ * `PurlResult` type representing either success (`Ok`) or failure (`Err`).
  */
-// oxlint-disable-next-line socket/exported-name-has-domain-word -- published as `Result` from the package root; renaming is a breaking change for consumers, so it waits for a major.
-export type Result<T, E = Error> = Ok<T> | Err<E>
+export type PurlResult<T, E = Error> = Ok<T> | Err<E>
 
 /**
  * Successful result containing a value.
@@ -47,7 +46,7 @@ export class Ok<T> {
   /**
    * Chain another result-returning operation.
    */
-  andThen<U, F>(fn: (_value: T) => Result<U, F>): Result<U, F> {
+  andThen<U, F>(fn: (_value: T) => PurlResult<U, F>): PurlResult<U, F> {
     return fn(this.value)
   }
 
@@ -68,21 +67,23 @@ export class Ok<T> {
   /**
    * Transform the success value.
    */
-  map<U>(fn: (_value: T) => U): Result<U, never> {
+  map<U>(fn: (_value: T) => U): PurlResult<U, never> {
     return new Ok(fn(this.value))
   }
 
   /**
    * Transform the error (no-op for `Ok`).
    */
-  mapErr<F>(_fn: (_error: never) => F): Result<T, F> {
+  mapErr<F>(_fn: (_error: never) => F): PurlResult<T, F> {
     return this
   }
 
   /**
    * Return this result or the other if error (no-op for `Ok`).
    */
-  orElse<U>(_fn: (_error: never) => Result<U, never>): Result<T | U, never> {
+  orElse<U>(
+    _fn: (_error: never) => PurlResult<U, never>,
+  ): PurlResult<T | U, never> {
     return this
   }
 
@@ -122,7 +123,9 @@ export class Err<E = Error> {
   /**
    * Chain another result-returning operation (no-op for `Err`).
    */
-  andThen<U, F>(_fn: (_value: never) => Result<U, F>): Result<U, E | F> {
+  andThen<U, F>(
+    _fn: (_value: never) => PurlResult<U, F>,
+  ): PurlResult<U, E | F> {
     return this
   }
 
@@ -143,21 +146,21 @@ export class Err<E = Error> {
   /**
    * Transform the success value (no-op for `Err`).
    */
-  map<U>(_fn: (_value: never) => U): Result<U, E> {
+  map<U>(_fn: (_value: never) => U): PurlResult<U, E> {
     return this
   }
 
   /**
    * Transform the error.
    */
-  mapErr<F>(fn: (_error: E) => F): Result<never, F> {
+  mapErr<F>(fn: (_error: E) => F): PurlResult<never, F> {
     return new Err(fn(this.error))
   }
 
   /**
    * Return this result or the other if error.
    */
-  orElse<T, F>(fn: (_error: E) => Result<T, F>): Result<T, F> {
+  orElse<T, F>(fn: (_error: E) => PurlResult<T, F>): PurlResult<T, F> {
     return fn(this.error)
   }
 
@@ -201,28 +204,30 @@ export function ok<T>(value: T): Ok<T> {
 }
 
 /**
- * Utility functions for working with `Result`s.
+ * Utility functions for working with `PurlResult`s.
  */
 export const ResultUtils = {
   /**
-   * Convert all `Result`s to `Ok` values or return first error.
+   * Convert all `PurlResult`s to `Ok` values or return first error.
    */
-  all<T extends ReadonlyArray<Result<unknown, unknown>>>(
+  all<T extends ReadonlyArray<PurlResult<unknown, unknown>>>(
     results: T,
-  ): Result<
-    { [K in keyof T]: T[K] extends Result<infer U, unknown> ? U : never },
-    T[number] extends Result<unknown, infer E> ? E : never
+  ): PurlResult<
+    { [K in keyof T]: T[K] extends PurlResult<infer U, unknown> ? U : never },
+    T[number] extends PurlResult<unknown, infer E> ? E : never
   > {
     type ExtractedValues = {
-      [K in keyof T]: T[K] extends Result<infer U, unknown> ? U : never
+      [K in keyof T]: T[K] extends PurlResult<infer U, unknown> ? U : never
     }
-    type ExtractedValue = T[number] extends Result<infer U, unknown> ? U : never
-    type ExtractedError = T[number] extends Result<unknown, infer E> ? E : never
+    type ExtractedValue =
+      T[number] extends PurlResult<infer U, unknown> ? U : never
+    type ExtractedError =
+      T[number] extends PurlResult<unknown, infer E> ? E : never
     const values: ExtractedValue[] = []
     for (let i = 0; i < results.length; i++) {
       const result = results[i]!
       if (result.isErr()) {
-        return result as unknown as Result<ExtractedValues, ExtractedError>
+        return result as unknown as PurlResult<ExtractedValues, ExtractedError>
       }
       ArrayPrototypePush(values, (result as Ok<ExtractedValue>).value)
     }
@@ -233,10 +238,10 @@ export const ResultUtils = {
    * Return the first `Ok` result or the last error. Returns an error result if
    * the input array is empty.
    */
-  any<T extends ReadonlyArray<Result<unknown, unknown>>>(
+  any<T extends ReadonlyArray<PurlResult<unknown, unknown>>>(
     results: T,
   ): T[number] {
-    let lastError: Result<unknown, unknown> = err(
+    let lastError: PurlResult<unknown, unknown> = err(
       new ErrorCtor('No results provided'),
     )
     for (let i = 0, { length } = results; i < length; i += 1) {
@@ -256,9 +261,9 @@ export const ResultUtils = {
   err: err,
 
   /**
-   * Wrap a function that might throw into a `Result`.
+   * Wrap a function that might throw into a `PurlResult`.
    */
-  from<T>(fn: () => T): Result<T> {
+  from<T>(fn: () => T): PurlResult<T> {
     try {
       return ok(fn())
     } catch (e) {

@@ -44,7 +44,7 @@ import { UrlConverter } from './url-converter.mjs'
 
 import type { PackageURL, PackageURLObject } from './package-url.mjs'
 import type { ParsedPurlComponents } from './package-url.mjs'
-import type { Result } from './result.mjs'
+import type { PurlResult } from './result.mjs'
 
 // Lazy reference to `PackageURL`, set by `package-url.mts` at module load time
 // to avoid circular import issues.
@@ -190,18 +190,18 @@ export function registerPackageURLStatics(ctor: typeof PackageURL): void {
 export { parseString }
 export type { ParsedPurlComponents }
 
-export function tryFromJSON(json: unknown): Result<PackageURL> {
+export function tryFromJSON(json: unknown): PurlResult<PackageURL> {
   return ResultUtils.from(() => fromJSON(json))
 }
 
-export function tryFromObject(obj: unknown): Result<PackageURL> {
+export function tryFromObject(obj: unknown): PurlResult<PackageURL> {
   return ResultUtils.from(() => fromObject(obj))
 }
 
-export function tryFromString(purlStr: unknown): Result<PackageURL> {
+export function tryFromString(purlStr: unknown): PurlResult<PackageURL> {
   return ResultUtils.from(() => fromString(purlStr))
 }
 
-export function tryParseString(purlStr: unknown): Result<unknown[]> {
+export function tryParseString(purlStr: unknown): PurlResult<unknown[]> {
   return ResultUtils.from(() => parseString(purlStr))
 }
