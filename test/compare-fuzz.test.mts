@@ -20,9 +20,9 @@ import { describe, expect, test } from 'vitest'
 import {
   comparePurls,
   createMatcher,
-  equals,
+  equalsPurls,
   matchComponent,
-  matches,
+  matchesPurl,
   matchWildcard,
   parsePattern,
 } from '../src/compare.mjs'
@@ -67,7 +67,7 @@ describe('compare — fuzz', () => {
     fc.assert(
       fc.property(purlArb, p => {
         expect(comparePurls(p, p)).toBe(0)
-        expect(equals(p, p)).toBe(true)
+        expect(equalsPurls(p, p)).toBe(true)
       }),
     )
   })
@@ -109,7 +109,7 @@ describe('compare — fuzz', () => {
         // Compute the compare-derived expectation OUTSIDE expect() so the
         // src-imported `compare` never builds the expected value inline.
         const comparesEqual = comparePurls(a, b) === 0
-        expect(equals(a, b)).toBe(comparesEqual)
+        expect(equalsPurls(a, b)).toBe(comparesEqual)
       }),
     )
   })
@@ -156,7 +156,7 @@ describe('compare — fuzz', () => {
         let threw = false
         let result: unknown
         try {
-          result = matches(pattern, purl)
+          result = matchesPurl(pattern, purl)
           const matcher = createMatcher(pattern)
           const result2 = matcher(purl)
           expect(typeof result2).toBe('boolean')

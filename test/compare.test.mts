@@ -1,9 +1,10 @@
 /**
- * @file Tests for compare.mts — matches, createMatcher, and related utilities.
+ * @file Tests for compare.mts — matchesPurl, createMatcher, and related
+ *   utilities.
  */
 import { describe, expect, it } from 'vitest'
 
-import { createMatcher, matches } from '../src/compare.mjs'
+import { createMatcher, matchesPurl } from '../src/compare.mjs'
 import { PackageURL } from '../src/package-url.mjs'
 
 describe('compare edge cases', () => {
@@ -18,7 +19,7 @@ describe('compare edge cases', () => {
         undefined,
       )
 
-      expect(matches('pkg:generic/@scope@1.2.3', purl)).toBe(true)
+      expect(matchesPurl('pkg:generic/@scope@1.2.3', purl)).toBe(true)
     })
   })
 
@@ -33,7 +34,7 @@ describe('compare edge cases', () => {
         undefined,
         undefined,
       )
-      expect(matches(longPattern, purl)).toBe(false)
+      expect(matchesPurl(longPattern, purl)).toBe(false)
     })
 
     it('returns false when pattern exceeds max wildcards (>32)', () => {
@@ -48,7 +49,7 @@ describe('compare edge cases', () => {
         undefined,
         undefined,
       )
-      expect(matches(pattern, purl)).toBe(false)
+      expect(matchesPurl(pattern, purl)).toBe(false)
     })
   })
 
@@ -64,10 +65,10 @@ describe('compare edge cases', () => {
       )
       // Generate enough unique patterns to trigger cache eviction (cache max = 1024)
       for (let i = 0; i < 1030; i += 1) {
-        matches(`pkg:npm/lodash@${i}.*`, purl)
+        matchesPurl(`pkg:npm/lodash@${i}.*`, purl)
       }
       // Verify matching still works after eviction
-      expect(matches('pkg:npm/lodash@4.17.21', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@4.17.21', purl)).toBe(true)
     })
   })
 

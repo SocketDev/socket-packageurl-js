@@ -28,11 +28,7 @@ SOFTWARE.
  *   explanation and workarounds.
  */
 
-import {
-  comparePurls,
-  equals as equalsPurls,
-  registerPackageURL,
-} from './compare.mjs'
+import { comparePurls, equalsPurls, registerPackageURL } from './compare.mjs'
 import {
   normalizeName,
   normalizeNamespace,

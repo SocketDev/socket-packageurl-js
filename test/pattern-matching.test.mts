@@ -8,19 +8,19 @@ import { describe, expect, it } from 'vitest'
 
 const logger = getDefaultLogger()
 
-import { createMatcher, matches } from '../src/index.mjs'
+import { createMatcher, matchesPurl } from '../src/index.mjs'
 import { createTestPurl } from './utils/test-helpers.mjs'
 
 describe('matches', () => {
   describe('exact matching', () => {
     it('should match identical PURLs', () => {
       const purl = createTestPurl('npm', 'lodash', { version: '4.17.21' })
-      expect(matches('pkg:npm/lodash@4.17.21', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@4.17.21', purl)).toBe(true)
     })
 
     it('should not match different packages', () => {
       const purl = createTestPurl('npm', 'lodash', { version: '4.17.21' })
-      expect(matches('pkg:npm/react@18.0.0', purl)).toBe(false)
+      expect(matchesPurl('pkg:npm/react@18.0.0', purl)).toBe(false)
     })
 
     it('should match after normalization', () => {
@@ -29,7 +29,7 @@ describe('matches', () => {
         version: '7.23.0',
       })
       // npm normalizes to lowercase
-      expect(matches('pkg:npm/@BABEL/CORE@7.23.0', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/@BABEL/CORE@7.23.0', purl)).toBe(true)
     })
   })
 
@@ -39,9 +39,9 @@ describe('matches', () => {
       const lodashGet = createTestPurl('npm', 'lodash.get')
       const react = createTestPurl('npm', 'react')
 
-      expect(matches('pkg:npm/lodash*', lodash)).toBe(true)
-      expect(matches('pkg:npm/lodash*', lodashGet)).toBe(true)
-      expect(matches('pkg:npm/lodash*', react)).toBe(false)
+      expect(matchesPurl('pkg:npm/lodash*', lodash)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash*', lodashGet)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash*', react)).toBe(false)
     })
 
     it('should match suffix wildcard', () => {
@@ -49,9 +49,9 @@ describe('matches', () => {
       const reactRouter = createTestPurl('npm', 'react-router')
       const lodash = createTestPurl('npm', 'lodash')
 
-      expect(matches('pkg:npm/*-dom', reactDom)).toBe(true)
-      expect(matches('pkg:npm/*-router', reactRouter)).toBe(true)
-      expect(matches('pkg:npm/*-dom', lodash)).toBe(false)
+      expect(matchesPurl('pkg:npm/*-dom', reactDom)).toBe(true)
+      expect(matchesPurl('pkg:npm/*-router', reactRouter)).toBe(true)
+      expect(matchesPurl('pkg:npm/*-dom', lodash)).toBe(false)
     })
 
     it('should match middle wildcard', () => {
@@ -59,9 +59,9 @@ describe('matches', () => {
       const acmePluginNode = createTestPurl('npm', 'acme-plugin-node')
       const lodash = createTestPurl('npm', 'lodash')
 
-      expect(matches('pkg:npm/acme-plugin-*', acmePluginReact)).toBe(true)
-      expect(matches('pkg:npm/acme-plugin-*', acmePluginNode)).toBe(true)
-      expect(matches('pkg:npm/acme-plugin-*', lodash)).toBe(false)
+      expect(matchesPurl('pkg:npm/acme-plugin-*', acmePluginReact)).toBe(true)
+      expect(matchesPurl('pkg:npm/acme-plugin-*', acmePluginNode)).toBe(true)
+      expect(matchesPurl('pkg:npm/acme-plugin-*', lodash)).toBe(false)
     })
 
     it('should match single character wildcard', () => {
@@ -69,9 +69,9 @@ describe('matches', () => {
       const test2 = createTestPurl('npm', 'test2')
       const test10 = createTestPurl('npm', 'test10')
 
-      expect(matches('pkg:npm/test?', test1)).toBe(true)
-      expect(matches('pkg:npm/test?', test2)).toBe(true)
-      expect(matches('pkg:npm/test?', test10)).toBe(false)
+      expect(matchesPurl('pkg:npm/test?', test1)).toBe(true)
+      expect(matchesPurl('pkg:npm/test?', test2)).toBe(true)
+      expect(matchesPurl('pkg:npm/test?', test10)).toBe(false)
     })
   })
 
@@ -83,9 +83,9 @@ describe('matches', () => {
       })
       const lodash = createTestPurl('npm', 'lodash')
 
-      expect(matches('pkg:npm/@babel/*', babelCore)).toBe(true)
-      expect(matches('pkg:npm/@babel/*', babelParser)).toBe(true)
-      expect(matches('pkg:npm/@babel/*', lodash)).toBe(false)
+      expect(matchesPurl('pkg:npm/@babel/*', babelCore)).toBe(true)
+      expect(matchesPurl('pkg:npm/@babel/*', babelParser)).toBe(true)
+      expect(matchesPurl('pkg:npm/@babel/*', lodash)).toBe(false)
     })
 
     it('should match prefix wildcard in namespace', () => {
@@ -93,17 +93,17 @@ describe('matches', () => {
       const types2 = createTestPurl('npm', 'react', { namespace: '@types' })
       const babel = createTestPurl('npm', 'core', { namespace: '@babel' })
 
-      expect(matches('pkg:npm/@types/*', types1)).toBe(true)
-      expect(matches('pkg:npm/@types/*', types2)).toBe(true)
-      expect(matches('pkg:npm/@types/*', babel)).toBe(false)
+      expect(matchesPurl('pkg:npm/@types/*', types1)).toBe(true)
+      expect(matchesPurl('pkg:npm/@types/*', types2)).toBe(true)
+      expect(matchesPurl('pkg:npm/@types/*', babel)).toBe(false)
     })
 
     it('should match ** for optional namespace', () => {
       const scoped = createTestPurl('npm', 'core', { namespace: '@babel' })
       const unscoped = createTestPurl('npm', 'lodash')
 
-      expect(matches('pkg:npm/**/*', scoped)).toBe(true)
-      expect(matches('pkg:npm/**/*', unscoped)).toBe(true)
+      expect(matchesPurl('pkg:npm/**/*', scoped)).toBe(true)
+      expect(matchesPurl('pkg:npm/**/*', unscoped)).toBe(true)
     })
   })
 
@@ -113,9 +113,9 @@ describe('matches', () => {
       const react1821 = createTestPurl('npm', 'react', { version: '18.2.1' })
       const react1700 = createTestPurl('npm', 'react', { version: '17.0.0' })
 
-      expect(matches('pkg:npm/react@18.*', react1800)).toBe(true)
-      expect(matches('pkg:npm/react@18.*', react1821)).toBe(true)
-      expect(matches('pkg:npm/react@18.*', react1700)).toBe(false)
+      expect(matchesPurl('pkg:npm/react@18.*', react1800)).toBe(true)
+      expect(matchesPurl('pkg:npm/react@18.*', react1821)).toBe(true)
+      expect(matchesPurl('pkg:npm/react@18.*', react1700)).toBe(false)
     })
 
     it('should match major version wildcard', () => {
@@ -123,9 +123,9 @@ describe('matches', () => {
       const v211 = createTestPurl('npm', 'lodash', { version: '2.1.1' })
       const v300 = createTestPurl('npm', 'lodash', { version: '3.0.0' })
 
-      expect(matches('pkg:npm/lodash@?.0.0', v100)).toBe(true)
-      expect(matches('pkg:npm/lodash@?.1.1', v211)).toBe(true)
-      expect(matches('pkg:npm/lodash@?.0.0', v300)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@?.0.0', v100)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@?.1.1', v211)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@?.0.0', v300)).toBe(true)
     })
 
     it('should match ** for optional version', () => {
@@ -134,13 +134,13 @@ describe('matches', () => {
       })
       const withoutVersion = createTestPurl('npm', 'lodash')
 
-      expect(matches('pkg:npm/lodash@**', withVersion)).toBe(true)
-      expect(matches('pkg:npm/lodash@**', withoutVersion)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@**', withVersion)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@**', withoutVersion)).toBe(true)
     })
 
     it('should not match when version is missing but pattern requires it', () => {
       const purl = createTestPurl('npm', 'lodash')
-      expect(matches('pkg:npm/lodash@4.*', purl)).toBe(false)
+      expect(matchesPurl('pkg:npm/lodash@4.*', purl)).toBe(false)
     })
 
     it('should require exact version presence match when no version wildcards', () => {
@@ -150,12 +150,12 @@ describe('matches', () => {
       const withoutVersion = createTestPurl('npm', 'lodash')
 
       // Pattern without version only matches PURL without version
-      expect(matches('pkg:npm/lodash', withoutVersion)).toBe(true)
-      expect(matches('pkg:npm/lodash', withVersion)).toBe(false)
+      expect(matchesPurl('pkg:npm/lodash', withoutVersion)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash', withVersion)).toBe(false)
 
       // Pattern with @** matches both with and without version
-      expect(matches('pkg:npm/lodash@**', withVersion)).toBe(true)
-      expect(matches('pkg:npm/lodash@**', withoutVersion)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@**', withVersion)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@**', withoutVersion)).toBe(true)
     })
   })
 
@@ -164,17 +164,17 @@ describe('matches', () => {
       const npm = createTestPurl('npm', 'lodash')
       const pypi = createTestPurl('pypi', 'django')
 
-      expect(matches('pkg:*/lodash', npm)).toBe(true)
-      expect(matches('pkg:*/django', pypi)).toBe(true)
-      expect(matches('pkg:*/guava', npm)).toBe(false)
+      expect(matchesPurl('pkg:*/lodash', npm)).toBe(true)
+      expect(matchesPurl('pkg:*/django', pypi)).toBe(true)
+      expect(matchesPurl('pkg:*/guava', npm)).toBe(false)
     })
 
     it('should match specific type pattern', () => {
       const npm = createTestPurl('npm', 'lodash')
       const nuget = createTestPurl('nuget', 'newtonsoft')
 
-      expect(matches('pkg:n*/*', npm)).toBe(true)
-      expect(matches('pkg:n*/*', nuget)).toBe(true)
+      expect(matchesPurl('pkg:n*/*', npm)).toBe(true)
+      expect(matchesPurl('pkg:n*/*', nuget)).toBe(true)
     })
   })
 
@@ -185,37 +185,37 @@ describe('matches', () => {
         version: '7.23.0',
       })
 
-      expect(matches('pkg:npm/@babel/plugin-*@**', purl)).toBe(true)
-      expect(matches('pkg:npm/@babel/*@7.*', purl)).toBe(true)
-      expect(matches('pkg:npm/@babel/*-jsx@7.*', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/@babel/plugin-*@**', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/@babel/*@7.*', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/@babel/*-jsx@7.*', purl)).toBe(true)
     })
 
     it('should match wildcard type with wildcard name', () => {
       const npm = createTestPurl('npm', 'acme-plugin-react')
       const pypi = createTestPurl('pypi', 'acme-something')
 
-      expect(matches('pkg:*/acme-*', npm)).toBe(true)
-      expect(matches('pkg:*/acme-*', pypi)).toBe(true)
+      expect(matchesPurl('pkg:*/acme-*', npm)).toBe(true)
+      expect(matchesPurl('pkg:*/acme-*', pypi)).toBe(true)
     })
   })
 
   describe('edge cases', () => {
     it('should return false for invalid pattern', () => {
       const purl = createTestPurl('npm', 'lodash')
-      expect(matches('not-a-purl', purl)).toBe(false)
-      expect(matches('', purl)).toBe(false)
-      expect(matches('pkg:', purl)).toBe(false)
-      expect(matches('pkg:npm', purl)).toBe(false)
+      expect(matchesPurl('not-a-purl', purl)).toBe(false)
+      expect(matchesPurl('', purl)).toBe(false)
+      expect(matchesPurl('pkg:', purl)).toBe(false)
+      expect(matchesPurl('pkg:npm', purl)).toBe(false)
     })
 
     it('should handle empty components', () => {
       const purl = createTestPurl('npm', 'lodash')
 
       // Pattern with no namespace should match purl with no namespace
-      expect(matches('pkg:npm/lodash', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash', purl)).toBe(true)
 
       // Pattern with no version should match purl with no version
-      expect(matches('pkg:npm/lodash', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash', purl)).toBe(true)
     })
 
     it('should handle special regex characters literally in values', () => {
@@ -223,25 +223,25 @@ describe('matches', () => {
       const purlDash = createTestPurl('npm', 'lodash-get')
 
       // Exact match with dot
-      expect(matches('pkg:npm/lodash.get', purlDot)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash.get', purlDot)).toBe(true)
       // Wildcard * should match the dot
-      expect(matches('pkg:npm/lodash*get', purlDot)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash*get', purlDot)).toBe(true)
       // Dot package should not match dash pattern
-      expect(matches('pkg:npm/lodash-get', purlDot)).toBe(false)
+      expect(matchesPurl('pkg:npm/lodash-get', purlDot)).toBe(false)
       // Dash package should not match dot pattern
-      expect(matches('pkg:npm/lodash.get', purlDash)).toBe(false)
+      expect(matchesPurl('pkg:npm/lodash.get', purlDash)).toBe(false)
     })
 
     it('should handle scoped packages with wildcards', () => {
       const purl = createTestPurl('npm', 'core', { namespace: '@babel' })
-      expect(matches('pkg:npm/@babel/*@**', purl)).toBe(true)
-      expect(matches('pkg:npm/@*/*@**', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/@babel/*@**', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/@*/*@**', purl)).toBe(true)
     })
 
     it('should handle multiple consecutive wildcards', () => {
       const purl = createTestPurl('npm', 'package', { version: '1.0.0' })
-      expect(matches('pkg:npm/*@*', purl)).toBe(true)
-      expect(matches('pkg:*/*@*', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/*@*', purl)).toBe(true)
+      expect(matchesPurl('pkg:*/*@*', purl)).toBe(true)
     })
 
     it('should handle qualifiers (not matched in v1)', () => {
@@ -251,7 +251,7 @@ describe('matches', () => {
       })
 
       // Qualifiers are not compared in pattern matching v1
-      expect(matches('pkg:npm/lodash@4.17.21', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@4.17.21', purl)).toBe(true)
     })
 
     it('should handle subpath (not matched in v1)', () => {
@@ -261,7 +261,7 @@ describe('matches', () => {
       })
 
       // Subpath is not compared in pattern matching v1
-      expect(matches('pkg:npm/lodash@4.17.21', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/lodash@4.17.21', purl)).toBe(true)
     })
   })
 
@@ -273,14 +273,14 @@ describe('matches', () => {
       })
 
       // npm normalizes namespace and name to lowercase
-      expect(matches('pkg:npm/@babel/core@7.23.0', purl)).toBe(true)
+      expect(matchesPurl('pkg:npm/@babel/core@7.23.0', purl)).toBe(true)
     })
 
     it('should match against normalized pypi packages', () => {
       const purl = createTestPurl('pypi', 'Django-REST')
 
       // pypi normalizes name to lowercase and replaces underscores with dashes
-      expect(matches('pkg:pypi/django-rest', purl)).toBe(true)
+      expect(matchesPurl('pkg:pypi/django-rest', purl)).toBe(true)
     })
   })
 })
@@ -396,7 +396,7 @@ describe('createMatcher', () => {
   })
 
   describe('performance comparison', () => {
-    it('should be more efficient than repeated matches() calls', () => {
+    it('should be more efficient than repeated matchesPurl() calls', () => {
       const packages = Array.from({ length: 100 }, (_, i) => {
         const isEven = i % 2 === 0
         return createTestPurl('npm', `package-${i}`, {
@@ -411,10 +411,10 @@ describe('createMatcher', () => {
       const matcherEnd = performance.now()
       const matcherTime = matcherEnd - matcherStart
 
-      // Measure repeated matches() approach
+      // Measure repeated matchesPurl() approach
       const matchesStart = performance.now()
       const matchesResults = packages.filter(p =>
-        matches('pkg:npm/@babel/*', p),
+        matchesPurl('pkg:npm/@babel/*', p),
       )
       const matchesEnd = performance.now()
       const matchesTime = matchesEnd - matchesStart
@@ -426,7 +426,7 @@ describe('createMatcher', () => {
       // createMatcher should be faster (though timing can vary)
       // We don't assert timing to avoid flaky tests, but log for informational purposes
       logger.log(`createMatcher time: ${matcherTime.toFixed(3)}ms`)
-      logger.log(`matches() time: ${matchesTime.toFixed(3)}ms`)
+      logger.log(`matchesPurl() time: ${matchesTime.toFixed(3)}ms`)
       logger.log(`Speedup: ${(matchesTime / matcherTime).toFixed(2)}x faster`)
     })
   })
@@ -436,7 +436,7 @@ describe('createMatcher', () => {
       const purl = createTestPurl('npm', 'lodash')
 
       // Pattern without '/' after type - should not match
-      expect(matches('pkg:npm', purl)).toBe(false)
+      expect(matchesPurl('pkg:npm', purl)).toBe(false)
 
       // createMatcher should also handle it
       const matcher = createMatcher('pkg:npm')
@@ -447,7 +447,7 @@ describe('createMatcher', () => {
       const purl = createTestPurl('pypi', 'typing-extensions')
 
       // PyPI normalizes underscores to dashes
-      expect(matches('pkg:pypi/typing_extensions', purl)).toBe(true)
+      expect(matchesPurl('pkg:pypi/typing_extensions', purl)).toBe(true)
 
       // createMatcher should also normalize
       const matcher = createMatcher('pkg:pypi/typing_extensions')

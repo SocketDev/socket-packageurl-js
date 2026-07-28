@@ -88,7 +88,12 @@ export { PurlError, PurlInjectionError } from './error.mjs'
 // ============================================================================
 // Modular Utilities
 // ============================================================================
-export { comparePurls, createMatcher, equals, matches } from './compare.mjs'
+export {
+  comparePurls,
+  createMatcher,
+  equalsPurls,
+  matchesPurl,
+} from './compare.mjs'
 export { parseNpmSpecifier } from './purl-types/npm.mjs'
 export { splitPurlPackageName } from './split-package-name.mjs'
 export type { PurlPackageNameComponents } from './split-package-name.mjs'

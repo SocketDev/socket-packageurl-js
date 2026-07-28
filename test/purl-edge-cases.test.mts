@@ -65,7 +65,7 @@ import {
 import { PurlQualifierNames } from '../src/purl-qualifier-names.mjs'
 import { PurlType } from '../src/purl-type.mjs'
 import type { PurlObject } from '../src/purl-type.mjs'
-import { comparePurls, equals } from '../src/compare.mjs'
+import { comparePurls, equalsPurls } from '../src/compare.mjs'
 import { PurlBuilder } from '../src/package-url-builder.mjs'
 import { purlExists } from '../src/purl-exists.mjs'
 import { UrlConverter } from '../src/url-converter.mjs'
@@ -2429,22 +2429,22 @@ describe('Edge cases and additional coverage', () => {
 
   describe('compare and equals with string inputs', () => {
     it('should compare two PURL strings for equality', () => {
-      expect(equals('pkg:npm/lodash@4.17.21', 'pkg:npm/lodash@4.17.21')).toBe(
-        true,
-      )
-      expect(equals('pkg:npm/lodash@4.17.21', 'pkg:NPM/lodash@4.17.21')).toBe(
-        true,
-      )
-      expect(equals('pkg:npm/lodash@4.17.21', 'pkg:npm/lodash@4.17.20')).toBe(
-        false,
-      )
+      expect(
+        equalsPurls('pkg:npm/lodash@4.17.21', 'pkg:npm/lodash@4.17.21'),
+      ).toBe(true)
+      expect(
+        equalsPurls('pkg:npm/lodash@4.17.21', 'pkg:NPM/lodash@4.17.21'),
+      ).toBe(true)
+      expect(
+        equalsPurls('pkg:npm/lodash@4.17.21', 'pkg:npm/lodash@4.17.20'),
+      ).toBe(false)
     })
 
     it('should compare PURL string with PackageURL instance', () => {
       const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21')
-      expect(equals(purl, 'pkg:npm/lodash@4.17.21')).toBe(true)
-      expect(equals('pkg:npm/lodash@4.17.21', purl)).toBe(true)
-      expect(equals(purl, 'pkg:npm/lodash@4.17.20')).toBe(false)
+      expect(equalsPurls(purl, 'pkg:npm/lodash@4.17.21')).toBe(true)
+      expect(equalsPurls('pkg:npm/lodash@4.17.21', purl)).toBe(true)
+      expect(equalsPurls(purl, 'pkg:npm/lodash@4.17.20')).toBe(false)
     })
 
     it('should sort PURL strings with compare', () => {

@@ -183,9 +183,9 @@ export function matchComponent(
  *   const purl1 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
  *   const purl2 = PackageURL.fromString('pkg:npm/lodash@4.17.21')
  *
- *   equals(purl1, purl2) // -> true
- *   equals('pkg:npm/lodash@4.17.21', 'pkg:NPM/lodash@4.17.21') // -> true
- *   equals(purl1, 'pkg:npm/lodash@4.17.20') // -> false
+ *   equalsPurls(purl1, purl2) // -> true
+ *   equalsPurls('pkg:npm/lodash@4.17.21', 'pkg:NPM/lodash@4.17.21') // -> true
+ *   equalsPurls(purl1, 'pkg:npm/lodash@4.17.20') // -> false
  *   ```
  *
  * @param a - First `PackageURL` or PURL string to compare.
@@ -193,7 +193,7 @@ export function matchComponent(
  *
  * @returns `true` if the `purl`s are equal, `false` otherwise
  */
-export function equals(a: PurlInput, b: PurlInput): boolean {
+export function equalsPurls(a: PurlInput, b: PurlInput): boolean {
   return toCanonicalString(a) === toCanonicalString(b)
 }
 
@@ -276,7 +276,7 @@ export function parsePattern(pattern: string): ParsedPattern | undefined {
   // name on the LAST `'/'`: namespaces may contain `'/'` (e.g. golang's
   // `github.com/foo`), so the name is the final path segment, not the first.
   // Splitting on the first `'/'` mis-assigned multi-segment namespaces and
-  // broke matches() for those purls.
+  // broke matchesPurl() for those purls.
   let namespacePattern: string | undefined
   let namePattern: string
   let versionPattern: string | undefined
@@ -339,11 +339,11 @@ export function parsePattern(pattern: string): ParsedPattern | undefined {
  * normalization). Each component is matched independently.
  *
  * @example
- *   Wildcard in name: `matches('pkg:npm/lodash-star', purl)`
- *   Wildcard in namespace: `matches('pkg:npm/@babel/star', purl)`
- *   Wildcard in version: `matches('pkg:npm/react@18.star', purl)`
- *   Match any type: `matches('pkg:star/lodash', purl)`
- *   Optional version: `matches('pkg:npm/lodash@star-star', purl)`
+ *   Wildcard in name: `matchesPurl('pkg:npm/lodash-star', purl)`
+ *   Wildcard in namespace: `matchesPurl('pkg:npm/@babel/star', purl)`
+ *   Wildcard in version: `matchesPurl('pkg:npm/react@18.star', purl)`
+ *   Match any type: `matchesPurl('pkg:star/lodash', purl)`
+ *   Optional version: `matchesPurl('pkg:npm/lodash@star-star', purl)`
  *
  *   See `test/pattern-matching.test.mts` for comprehensive examples.
  *
@@ -352,7 +352,7 @@ export function parsePattern(pattern: string): ParsedPattern | undefined {
  *
  * @returns `true` if `purl` matches the pattern
  */
-export function matches(pattern: string, purl: PackageURL): boolean {
+export function matchesPurl(pattern: string, purl: PackageURL): boolean {
   const parsed = parsePattern(pattern)
   if (!parsed) {
     return false

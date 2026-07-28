@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   comparePurls,
-  equals,
+  equalsPurls,
   PackageURL,
   parseNpmSpecifier,
   PurlBuilder,
@@ -116,10 +116,10 @@ describe('Package exports', () => {
       expect(comparePurls(purl1, purl2)).toBe(-1)
     })
 
-    it('should export equals function', () => {
-      expect(equals).toBeDefined()
-      expect(typeof equals).toBe('function')
-      expect(equals.name).toBe('equals')
+    it('should export equalsPurls function', () => {
+      expect(equalsPurls).toBeDefined()
+      expect(typeof equalsPurls).toBe('function')
+      expect(equalsPurls.name).toBe('equalsPurls')
 
       // Test it works
       const purl1 = new PackageURL(
@@ -138,7 +138,7 @@ describe('Package exports', () => {
         undefined,
         undefined,
       )
-      expect(equals(purl1, purl2)).toBe(true)
+      expect(equalsPurls(purl1, purl2)).toBe(true)
     })
 
     it('should export parseNpmSpecifier function', () => {
