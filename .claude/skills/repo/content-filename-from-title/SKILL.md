@@ -1,6 +1,6 @@
 ---
 name: content-filename-from-title
-description: Create short, single-word, URL-friendly filenames from prose titles. Use when naming or renaming published docs, tour parts, guides, or slugs.
+description: Create short, single-word, URL-friendly filenames from prose titles. Use when naming or renaming docs, guides, or slugs.
 ---
 
 # content-filename-from-title

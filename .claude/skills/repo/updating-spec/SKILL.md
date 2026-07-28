@@ -1,6 +1,6 @@
 ---
 name: updating-spec
-description: Sync against upstream PURL, VERS, and ECMA-427 specifications. Use for spec updates, upstream checks, new cases, or normalization changes.
+description: Sync against upstream PURL, VERS, and ECMA-427 specifications. Use for spec updates, upstream checks, or normalization changes.
 user-invocable: true
 allowed-tools: Agent, Task, Bash(pnpm:*), Bash(npm:*), Bash(git:*), Bash(node:*), Bash(rg:*), Bash(grep:*), Bash(find:*), Bash(ls:*), Bash(cat:*), Bash(head:*), Bash(tail:*), Bash(wc:*), Bash(diff:*), Read, Write, Edit, Grep, Glob, WebFetch
 ---
