@@ -8,17 +8,17 @@ trustPolicyExclude:
 # entry — the .claude/hooks/check-new-deps hook references it via
 # "catalog:" so its manifest stays in lockstep with the root.
 catalog:
-  '@anthropic-ai/claude-code': 2.1.215
+  '@anthropic-ai/claude-code': 2.1.216
   '@redwoodjs/agent-ci': 0.17.1
   '@sinclair/typebox': 0.34.52
-  '@socketregistry/packageurl-js': 1.4.7
-  '@socketregistry/packageurl-js-stable': npm:@socketregistry/packageurl-js@1.4.7
+  '@socketregistry/packageurl-js': 1.4.8
+  '@socketregistry/packageurl-js-stable': npm:@socketregistry/packageurl-js@1.4.8
   '@socketsecurity/lib': 6.3.0
   '@socketsecurity/lib-stable': npm:@socketsecurity/lib@6.3.0
-  '@socketsecurity/registry': 2.0.4
-  '@socketsecurity/registry-stable': npm:@socketsecurity/registry@2.0.4
-  '@socketsecurity/sdk': 4.1.1
-  '@socketsecurity/sdk-stable': npm:@socketsecurity/sdk@4.1.1
+  '@socketsecurity/registry': 2.0.5
+  '@socketsecurity/registry-stable': npm:@socketsecurity/registry@2.0.5
+  '@socketsecurity/sdk': 4.1.2
+  '@socketsecurity/sdk-stable': npm:@socketsecurity/sdk@4.1.2
   '@types/mdast': 4.0.4
   '@types/node': 26.1.1
   '@types/semver': 7.7.1
