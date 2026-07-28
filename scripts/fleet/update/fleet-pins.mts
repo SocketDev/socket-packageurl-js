@@ -23,6 +23,7 @@ import { escapeRegExp } from '@socketsecurity/lib-stable/regexps/escape'
 import { gt } from '@socketsecurity/lib-stable/versions/compare'
 import { isValidVersion } from '@socketsecurity/lib-stable/versions/parse'
 
+import { withMirrorLockLiftedSync } from '../_shared/mirror-lock.mts'
 import { parseCatalogBlock } from '../lib/workspace-yaml.mts'
 
 /**
@@ -315,7 +316,8 @@ export function applyFleetPinLockstep(
       text = rewriteBlockPin(text, m.blockKey, m.name, m.liveValue)
     }
     if (mirrors.length > 0) {
-      writeFileSync(file, text)
+      // The fleet catalog mirror is cascade-locked 0444; lift for the write.
+      withMirrorLockLiftedSync(file, () => writeFileSync(file, text))
     }
     if (mirrors.length > 0 || skips.length > 0) {
       results.push({ file, mirrored: mirrors, skipped: skips })
