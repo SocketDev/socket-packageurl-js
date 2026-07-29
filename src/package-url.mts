@@ -41,6 +41,7 @@ import { isObject, recursiveFreeze } from './objects.mjs'
 import { JSONStringify } from '@socketsecurity/lib/primordials/json'
 import {
   ObjectCreate,
+  ObjectFreeze,
   ObjectKeys,
 } from '@socketsecurity/lib/primordials/object'
 import {
@@ -119,6 +120,10 @@ export type ParsedPurlComponents = [
   subpath: string | undefined,
 ]
 
+// Shared options bag for the constructor's seven validator calls. Frozen so a
+// validator cannot mutate the object every later construction reuses.
+const THROWS_OPTIONS = ObjectFreeze({ __proto__: null, throws: true })
+
 /**
  * Package URL parser and constructor implementing the PURL specification.
  * Provides methods to parse, construct, and manipulate Package URLs with
@@ -150,31 +155,31 @@ export class PackageURL {
     rawSubpath: unknown,
   ) {
     const type = isNonEmptyString(rawType) ? normalizeType(rawType) : rawType
-    validateType(type, { throws: true })
+    validateType(type, THROWS_OPTIONS)
 
     const namespace = isNonEmptyString(rawNamespace)
       ? normalizeNamespace(rawNamespace)
       : rawNamespace
-    validateNamespace(namespace, { throws: true })
+    validateNamespace(namespace, THROWS_OPTIONS)
 
     const name = isNonEmptyString(rawName) ? normalizeName(rawName) : rawName
-    validateName(name, { throws: true })
+    validateName(name, THROWS_OPTIONS)
 
     const version = isNonEmptyString(rawVersion)
       ? normalizeVersion(rawVersion)
       : rawVersion
-    validateVersion(version, { throws: true })
+    validateVersion(version, THROWS_OPTIONS)
 
     const qualifiers =
       typeof rawQualifiers === 'string' || isObject(rawQualifiers)
         ? normalizeQualifiers(rawQualifiers)
         : rawQualifiers
-    validateQualifiers(qualifiers, { throws: true })
+    validateQualifiers(qualifiers, THROWS_OPTIONS)
 
     const subpath = isNonEmptyString(rawSubpath)
       ? normalizeSubpath(rawSubpath)
       : rawSubpath
-    validateSubpath(subpath, { throws: true })
+    validateSubpath(subpath, THROWS_OPTIONS)
 
     this.type = type as string
     this.name = name as string
@@ -204,7 +209,7 @@ export class PackageURL {
       _options?: { throws?: boolean | undefined } | undefined,
     ) => boolean
     normalize(this)
-    validate(this, { throws: true })
+    validate(this, THROWS_OPTIONS)
   }
 
   /**
