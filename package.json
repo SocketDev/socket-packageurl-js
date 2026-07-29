@@ -40,6 +40,7 @@
     "provenance": true
   },
   "scripts": {
+    "bench": "node scripts/repo/bench-from-string.mts",
     "build": "node scripts/repo/build.mts",
     "check": "node scripts/fleet/check.mts",
     "check:paths": "node scripts/fleet/check/paths-are-canonical.mts",
