@@ -230,33 +230,30 @@ export class PackageURL {
    * Convert `PackageURL` to a plain object representation.
    */
   toObject(): PackageURLObject {
-    const result: PackageURLObject = { __proto__: null } as PackageURLObject
-    if (this.type !== undefined) {
-      result.type = this.type
-    }
-    if (this.namespace !== undefined) {
-      result.namespace = this.namespace
-    }
-    if (this.name !== undefined) {
-      result.name = this.name
-    }
-    if (this.version !== undefined) {
-      result.version = this.version
-    }
-    if (this.qualifiers !== undefined) {
+    const { qualifiers } = this
+    let qualifiersCopy: QualifiersObject | undefined
+    if (qualifiers !== undefined) {
       // oxlint-disable-next-line socket/prefer-undefined-over-null -- Object.create(null) / Reflect.setPrototypeOf(_, null) require the null sentinel.
-      const qualifiersCopy = ObjectCreate(null) as QualifiersObject
-      const keys = ObjectKeys(this.qualifiers)
+      qualifiersCopy = ObjectCreate(null) as QualifiersObject
+      const keys = ObjectKeys(qualifiers)
       for (let i = 0, { length } = keys; i < length; i += 1) {
         const key = keys[i]!
-        qualifiersCopy[key] = this.qualifiers[key]!
+        qualifiersCopy[key] = qualifiers[key]!
       }
-      result.qualifiers = qualifiersCopy
     }
-    if (this.subpath !== undefined) {
-      result.subpath = this.subpath
-    }
-    return result
+    // Every key is present, absent components carrying `undefined`, so each
+    // returned object shares one hidden class and consumer read sites stay
+    // monomorphic. `JSON.stringify` still drops the `undefined` entries, so the
+    // serialized form is unchanged.
+    return {
+      __proto__: null,
+      type: this.type,
+      namespace: this.namespace,
+      name: this.name,
+      version: this.version,
+      qualifiers: qualifiersCopy,
+      subpath: this.subpath,
+    } as PackageURLObject
   }
 
   /**

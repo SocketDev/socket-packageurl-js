@@ -100,6 +100,53 @@ describe('PackageURL JSON/dict export', () => {
       // Should be a copy, not the same reference
       expect(obj.qualifiers).not.toBe(qualifiers)
     })
+
+    it('should return the same key set whether or not components are set', () => {
+      // Every component key is present so all `toObject()` results share one
+      // object shape; absent components carry `undefined`.
+      const allKeys = [
+        'type',
+        'namespace',
+        'name',
+        'version',
+        'qualifiers',
+        'subpath',
+      ]
+      const minimal = new PackageURL(
+        'npm',
+        undefined,
+        'lodash',
+        undefined,
+        undefined,
+        undefined,
+      )
+      const complete = new PackageURL(
+        'npm',
+        '@types',
+        'node',
+        '16.11.7',
+        { arch: 'x64' },
+        'lib/fs.d.ts',
+      )
+
+      expect(Object.keys(minimal.toObject())).toEqual(allKeys)
+      expect(Object.keys(complete.toObject())).toEqual(allKeys)
+      expect(minimal.toObject().version).toBeUndefined()
+    })
+
+    it('should keep absent components out of the JSON serialization', () => {
+      const purl = new PackageURL(
+        'npm',
+        undefined,
+        'lodash',
+        undefined,
+        undefined,
+        undefined,
+      )
+
+      expect(purl.toJSONString()).toBe('{"type":"npm","name":"lodash"}')
+      expect(JSON.stringify(purl)).toBe('{"type":"npm","name":"lodash"}')
+    })
   })
 
   describe('toJSONString', () => {
