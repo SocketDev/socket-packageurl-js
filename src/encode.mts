@@ -7,6 +7,7 @@ import { ArrayPrototypeToSorted } from '@socketsecurity/lib/primordials/array'
 import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { ObjectKeys } from '@socketsecurity/lib/primordials/object'
 import {
+  StringPrototypeIndexOf,
   StringPrototypeReplaceAll,
   StringPrototypeSlice,
 } from '@socketsecurity/lib/primordials/string'
@@ -130,6 +131,15 @@ export function encodeVersion(version: unknown): string {
  * inside a value — they are not in the spec's no-encode set there.
  */
 export function normalizeSearchParamsEncoding(encoded: string): string {
+  // Every pattern below is either a percent-escape or a literal '+', so a
+  // string holding neither character is already normalized. Most qualifier
+  // values are plain, and the guard turns four full scans into two.
+  if (
+    StringPrototypeIndexOf(encoded, '%') === -1 &&
+    StringPrototypeIndexOf(encoded, '+') === -1
+  ) {
+    return encoded
+  }
   return StringPrototypeReplaceAll(
     StringPrototypeReplaceAll(
       StringPrototypeReplaceAll(
