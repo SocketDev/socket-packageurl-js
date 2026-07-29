@@ -51,6 +51,49 @@ describe('compare edge cases', () => {
       )
       expect(matchesPurl(pattern, purl)).toBe(false)
     })
+
+    it('keeps rejecting an over-limit pattern on every call', () => {
+      // The regex cache is consulted before the length and wildcard-count
+      // guards, so a rejected pattern must never reach the cache — otherwise
+      // the second call would skip the guards and answer from a cache entry.
+      const purl = new PackageURL(
+        'npm',
+        undefined,
+        'lodash',
+        '4.17.21',
+        undefined,
+        undefined,
+      )
+      const tooLong = `pkg:npm/${'*'.repeat(4097)}`
+      const tooManyWildcards = `pkg:npm/${'a*'.repeat(33)}`
+      for (let i = 0; i < 3; i += 1) {
+        expect(matchesPurl(tooLong, purl)).toBe(false)
+        expect(matchesPurl(tooManyWildcards, purl)).toBe(false)
+      }
+    })
+
+    it('answers a cached pattern the same way on repeat calls', () => {
+      const lodash = new PackageURL(
+        'npm',
+        undefined,
+        'lodash',
+        '4.17.21',
+        undefined,
+        undefined,
+      )
+      const express = new PackageURL(
+        'npm',
+        undefined,
+        'express',
+        '4.18.2',
+        undefined,
+        undefined,
+      )
+      for (let i = 0; i < 3; i += 1) {
+        expect(matchesPurl('pkg:npm/lo*sh@**', lodash)).toBe(true)
+        expect(matchesPurl('pkg:npm/lo*sh@**', express)).toBe(false)
+      }
+    })
   })
 
   describe('wildcard cache eviction', () => {

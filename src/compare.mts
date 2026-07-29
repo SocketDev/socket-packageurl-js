@@ -82,16 +82,19 @@ export function countWildcards(pattern: string): number {
 }
 
 export function matchWildcard(pattern: string, value: string): boolean {
-  // Reject excessively long patterns to prevent regex compilation DoS
-  if (pattern.length > MAX_PATTERN_LENGTH) {
-    return false
-  }
-  // Reject patterns with too many wildcards to prevent polynomial backtracking.
-  if (countWildcards(pattern) > MAX_WILDCARDS_PER_PATTERN) {
-    return false
-  }
+  // Look the pattern up before the guards run. A pattern only reaches the cache
+  // after passing both of them, so on a hit the length check and the O(n)
+  // wildcard scan would re-derive an answer already known.
   let regex = wildcardRegexCache.get(pattern)
   if (regex === undefined) {
+    // Reject excessively long patterns to prevent regex compilation DoS
+    if (pattern.length > MAX_PATTERN_LENGTH) {
+      return false
+    }
+    // Reject patterns with too many wildcards to prevent polynomial backtracking.
+    if (countWildcards(pattern) > MAX_WILDCARDS_PER_PATTERN) {
+      return false
+    }
     // Convert glob pattern to regex
     // Escape regex special chars except `*` and `?`
     const regexPattern = StringPrototypeReplace(
