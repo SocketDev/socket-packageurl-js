@@ -56,16 +56,15 @@ export const COMPARATORS: readonly string[] = ObjectFreeze([
   '=',
 ])
 
-const DIGITS_ONLY = ObjectFreeze(/^\d+$/)
+const DIGITS_ONLY = /^\d+$/
 
 // Official SemVer 2.0.0 grammar (semver.org). Capture groups, in order:
 //   1-3: major.minor.patch — each is `0` or a non-zero-leading run of digits.
 //   4: optional `-prerelease` — dot-separated identifiers, each numeric
 //      (no leading zero) or alphanumeric/hyphen.
 //   5: optional `+build` metadata — dot-separated alphanumeric/hyphen runs.
-const regexSemverNumberedGroups = ObjectFreeze(
-  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/,
-)
+const regexSemverNumberedGroups =
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
 /**
  * Compare two prerelease identifier arrays per semver spec. Returns `-1`, `0`,

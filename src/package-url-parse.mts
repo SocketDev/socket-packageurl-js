@@ -28,7 +28,6 @@ SOFTWARE.
 
 import { decodePurlComponent } from './decode.mjs'
 import { PurlError } from './error.mjs'
-import { ObjectFreeze } from '@socketsecurity/lib/primordials/object'
 import { RegExpPrototypeTest } from '@socketsecurity/lib/primordials/regexp'
 import {
   StringPrototypeIncludes,
@@ -49,11 +48,11 @@ import type { ParsedPurlComponents } from './package-url.mjs'
 
 // Pattern to match URLs with schemes other than "pkg"
 // Limited to 256 chars for scheme to prevent ReDoS
-const OTHER_SCHEME_PATTERN = ObjectFreeze(/^[a-zA-Z][a-zA-Z0-9+.-]{0,255}:\/\//)
+const OTHER_SCHEME_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]{0,255}:\/\//
 
 // Pattern to match purl-like strings with type/name format
 // Limited to 256 chars for type to prevent ReDoS
-const PURL_LIKE_PATTERN = ObjectFreeze(/^[a-zA-Z0-9+.-]{1,256}\//)
+const PURL_LIKE_PATTERN = /^[a-zA-Z0-9+.-]{1,256}\//
 
 /**
  * Parse a purl string into its components without constructing a `PackageURL`.
