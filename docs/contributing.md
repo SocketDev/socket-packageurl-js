@@ -244,8 +244,9 @@ The PR body should:
 CI will run:
 
 - `.github/workflows/ci.yml` — full `pnpm check` in a clean env.
-- `.github/workflows/provenance.yml` — on tag, signs + publishes
-  to npm with attestations.
+- Publishing is not part of PR CI: it runs via the manually
+  dispatched `.github/workflows/npm-publish.yml` — see
+  [`docs/release.md`](./release.md).
 
 ## Pre-PR checklist
 
