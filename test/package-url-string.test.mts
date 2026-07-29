@@ -231,6 +231,40 @@ describe('package-url-parse - "@" before the last "/" is not a version separator
   })
 })
 
+describe('PackageURL.fromString instance immutability', () => {
+  it('freezes the instance and its qualifiers', () => {
+    const purl = PackageURL.fromString('pkg:npm/lodash@4.17.21?arch=x64#lib')
+
+    expect(Object.isFrozen(purl)).toBe(true)
+    expect(Object.isFrozen(purl.qualifiers)).toBe(true)
+    expect(() => {
+      // @ts-expect-error -- deliberately mutating a frozen instance.
+      purl.name = 'evil-pkg'
+    }).toThrow(TypeError)
+    expect(() => {
+      purl.qualifiers!['arch'] = 'evil'
+    }).toThrow(TypeError)
+    expect(purl.name).toBe('lodash')
+  })
+
+  it('serializes lazily on the frozen instance', () => {
+    // The canonical-string memo lives in a private field, so `toString()` can
+    // fill it on first call even though the instance is frozen.
+    const purl = PackageURL.fromString('pkg:npm/%40babel/core@7.0.0?x=1#lib')
+
+    expect(Object.isFrozen(purl)).toBe(true)
+    expect(purl.toString()).toBe('pkg:npm/%40babel/core@7.0.0?x=1#lib')
+    expect(purl.toString()).toBe('pkg:npm/%40babel/core@7.0.0?x=1#lib')
+  })
+
+  it('hands the same instance to every caller of one string', () => {
+    const first = PackageURL.fromString('pkg:npm/left-pad@1.3.0')
+    const second = PackageURL.fromString('pkg:npm/left-pad@1.3.0')
+
+    expect(second).toBe(first)
+  })
+})
+
 describe('PackageURL.fromString flyweight cache eviction', () => {
   it('handles more unique purl strings than cache max (1024) without error', () => {
     // Generate enough unique purl strings to exceed the flyweight cache limit

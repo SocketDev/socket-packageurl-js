@@ -135,9 +135,11 @@ export class PackageURL {
   static Type = recursiveFreeze(PurlType)
 
   /**
-   * @internal Cached canonical string representation.
+   * Memoized canonical string. A private field rather than a property so
+   * `toString()` can fill it lazily even after `fromString` freezes the
+   * instance — `Object.freeze` seals properties, not private fields.
    */
-  cachedString?: string | undefined
+  #cachedString: string | undefined
 
   name?: string | undefined
   namespace?: string | undefined
@@ -270,10 +272,10 @@ export class PackageURL {
   }
 
   toString() {
-    let cached = this.cachedString
+    let cached = this.#cachedString
     if (cached === undefined) {
       cached = stringify(this)
-      this.cachedString = cached
+      this.#cachedString = cached
     }
     return cached
   }

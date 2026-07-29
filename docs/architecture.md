@@ -147,8 +147,10 @@ represent a change.
 
 Immutability prevents a whole class of bugs: once a PURL is in a
 data structure (like a dependency graph), consumers can trust it
-will not change under them. Freezing is enforced via
-`Object.freeze` in the constructor.
+will not change under them. `PackageURL.fromString()` enforces it
+with `Object.freeze` on the instance and its qualifiers, which is
+also what makes handing one shared instance to every caller of the
+same purl string safe.
 
 Methods on an instance:
 

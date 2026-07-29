@@ -105,21 +105,21 @@ through URL syntax).
 
 ## The second line: immutable instances
 
-`src/objects.ts` exports `recursiveFreeze(value)`. Every
-`PackageURL` instance runs through it at construction time:
+`PackageURL.fromString(str)` freezes the instance it returns:
 
 - Top-level instance is `Object.freeze`-d.
 - Qualifiers object is frozen.
-- Any nested objects or arrays reachable from the instance are
-  frozen.
 
-That means a `PackageURL` you receive from a library call cannot be
-mutated by a later code path:
+Freezing is what makes the flyweight cache safe. `fromString`
+returns one shared instance per distinct purl string, so every
+caller that parses `pkg:npm/lodash@4.17.21` holds the same object;
+a mutable shared instance would let one holder rewrite what the
+others see.
 
 ```typescript
-const purl = new PackageURL('npm', undefined, 'safe-pkg', '1.0.0')
-purl.name = 'evil-pkg' // silently ignored (strict mode: throws)
-purl.qualifiers.key = 'hax' // silently ignored (strict mode: throws)
+const purl = PackageURL.fromString('pkg:npm/safe-pkg@1.0.0')
+purl.name = 'evil-pkg' // throws (module code is strict mode)
+purl.qualifiers.key = 'hax' // throws
 ```
 
 This matters when a validated PURL is passed through 3+ hops — a
@@ -127,10 +127,18 @@ middle hop can't secretly modify the object and hand it to the next
 hop. Validation up front + freeze means "validated" still means
 something at the endpoint.
 
-The freeze walk is **breadth-first** with a `WeakSet` for cycle
-detection and a hard ceiling at one million nodes
-(`LOOP_SENTINEL`). An adversary-constructed cyclic object cannot
-loop the walker forever; a million-node object graph throws
+The canonical-string memo behind `toString()` is a private field,
+not a property, so the freeze does not seal it and serialization
+stays lazy — a caller that only reads `.name` never pays for a
+string it will not use.
+
+For arbitrary object graphs `src/objects.ts` exports
+`recursiveFreeze(value)`, used on the `PackageURL.Component`,
+`PackageURL.KnownQualifierNames`, and `PackageURL.Type` tables. Its
+walk is **breadth-first** with a `WeakSet` for cycle detection and a
+hard ceiling at one million nodes (`LOOP_SENTINEL`). An
+adversary-constructed cyclic object cannot loop the walker forever;
+a million-node object graph throws
 `Error("Object graph too large…")` rather than OOM-ing the
 process.
 

@@ -28,7 +28,7 @@ SOFTWARE.
  *   imports.
  */
 
-import { isObject, recursiveFreeze } from './objects.mjs'
+import { isObject } from './objects.mjs'
 import { ArrayIsArray } from '@socketsecurity/lib/primordials/array'
 import { BufferByteLength } from '@socketsecurity/lib/primordials/buffer'
 import {
@@ -37,6 +37,7 @@ import {
 } from '@socketsecurity/lib/primordials/error'
 import { JSONParse } from '@socketsecurity/lib/primordials/json'
 import { MapCtor } from '@socketsecurity/lib/primordials/map-set'
+import { ObjectFreeze } from '@socketsecurity/lib/primordials/object'
 import { parseString } from './package-url-parse.mjs'
 import { parseNpmSpecifier } from './purl-types/npm.mjs'
 import { ResultUtils } from './result.mjs'
@@ -54,6 +55,21 @@ let cachedPackageURL: typeof PackageURL | undefined
 // strings. Bounded to prevent memory leaks.
 const FLYWEIGHT_CACHE_MAX = 1024
 export const flyweightCache = new MapCtor<string, PackageURL>()
+
+/**
+ * Freeze a freshly parsed `PackageURL` before it is shared out of the flyweight
+ * cache. A `PackageURL`'s object graph is exactly two levels — the instance,
+ * plus a flat string-valued qualifiers bag — so two `ObjectFreeze` calls cover
+ * it without the queue, `WeakSet`, and `ReflectOwnKeys` walk that the general
+ * `recursiveFreeze` needs for arbitrary graphs.
+ */
+export function freezeParsedPurl(purl: PackageURL): void {
+  const { qualifiers } = purl
+  if (qualifiers !== undefined) {
+    ObjectFreeze(qualifiers)
+  }
+  ObjectFreeze(purl)
+}
 
 /**
  * Create `PackageURL` from JSON string.
@@ -161,8 +177,10 @@ export function fromString(purlStr: unknown): PackageURL {
     }
   }
   const purl = new PackageURL(...parseString(purlStr))
-  purl.toString()
-  recursiveFreeze(purl)
+  // Instances handed out of the cache are shared between every caller that
+  // parses the same string, so they are frozen against mutation. `toString()`
+  // stays lazy: its memo lives in a private field that the freeze cannot seal.
+  freezeParsedPurl(purl)
   if (typeof purlStr === 'string') {
     if (flyweightCache.size >= FLYWEIGHT_CACHE_MAX) {
       // Evict oldest entry (`Map` iteration order is insertion order).
