@@ -4,12 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [Unreleased]
+## [1.5.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.5.0) - 2026-07-30
 
 ### Changed
 
+- **`package-url`** — serialize lazily and freeze narrowly in fromString
+- **`package-url`** — give toObject one object shape
+- **`package-url`** — hoist the shared throws-options bag
+- **`encode`** — skip qualifier normalization when nothing can match
+- **`compare`** — read the wildcard regex cache before the guards
 - **`exports`** — _rename the published equals and matches_
 - **`exports`** — _rename the published Result and compare_
+
+### Fixed
+
+- **`repo`** — redact the hosted version-metadata endpoint from the changelog and restore the docs:llms script
 
 ### Internal
 
