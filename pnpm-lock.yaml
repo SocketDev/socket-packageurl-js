@@ -390,7 +390,7 @@ overrides:
   '@socketregistry/packageurl-js': 1.5.0
   '@socketsecurity/lib': 6.5.1
   '@socketsecurity/registry': 2.0.5
-  '@socketsecurity/sdk': 4.1.2
+  '@socketsecurity/sdk': 4.1.3
   chalk@>=5: 5.6.2
   es-define-property: npm:@socketregistry/es-define-property@1.0.7
   es-set-tostringtag: npm:@socketregistry/es-set-tostringtag@1.0.10
@@ -404,13 +404,13 @@ overrides:
   isexe@>=3: 4.0.0
   js-yaml@>=5.0.0 <5.2.2: 5.2.2
   lru-cache@>=10: 11.5.2
-  magic-string: 1.0.0
+  magic-string: 1.1.0
   mime-db: 1.54.0
   mime-types@>=3: 3.0.2
   minipass@>=4: 7.1.3
   safe-buffer: npm:@socketregistry/safe-buffer@1.0.9
   safer-buffer: npm:@socketregistry/safer-buffer@1.0.10
-  semver@>=5.0.0 <7.6.0: 7.8.1
+  semver@>=5.0.0 <7.6.0: 7.8.5
   side-channel: npm:@socketregistry/side-channel@1.0.10
   ssri@>=12: 13.0.1
   string-width@>=5: 8.2.2
@@ -466,8 +466,8 @@ importers:
         specifier: 'catalog:'
         version: '@socketsecurity/registry@2.0.5(typescript@7.0.2)'
       '@socketsecurity/sdk':
-        specifier: 4.1.2
-        version: 4.1.2
+        specifier: 4.1.3
+        version: 4.1.3
       '@socketsecurity/sdk-stable':
         specifier: 'catalog:'
         version: '@socketsecurity/sdk@4.1.2'
@@ -526,8 +526,8 @@ importers:
         specifier: 16.5.0
         version: 16.5.0
       magic-string:
-        specifier: 1.0.0
-        version: 1.0.0
+        specifier: 1.1.0
+        version: 1.1.0
       markdownlint-cli2:
         specifier: 'catalog:'
         version: 0.23.1(supports-color@7.2.0)
@@ -3773,6 +3773,10 @@ packages:
     resolution: {integrity: sha512-CZ9EjVf6M5MDfkG8eIZ1WGmSnQDB4VdT76QbOHticVEQW4LnU4cJ9Uev6SSDsAVECw1KkNtU0ZkDngI4XQUWOg==}
     engines: {node: '>=18.20.8', npm: '>=12.0.0', pnpm: '>=11.0.5'}
 
+  '@socketsecurity/sdk@4.1.3':
+    resolution: {integrity: sha512-iaUkTWdBvUt5SMkfdhIOdt66sxZ0TakW/Ni533YbuHJpe1qQN3gq7KHCjEqEQUeL4o6YRsJ2G/XoUrwrXx+jvQ==}
+    engines: {node: '>=24', npm: '>=12.0.1', pnpm: '>=11.0.5'}
+
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
@@ -5123,8 +5127,8 @@ packages:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
     engines: {node: '>=12'}
 
-  magic-string@1.0.0:
-    resolution: {integrity: sha512-CGvjzMN08iv6w1mm4/x3Gh1hLb4VnyRUA15FFpl6CsCIGGoe36k7kY5KNz9QDbSBN5I/fWHM6ZlIkUTa5xdUEA==}
+  magic-string@1.1.0:
+    resolution: {integrity: sha512-kS3VHe0nEPST2saQV4Rbkchcd3UBRkVTQHo1D3h/ZTwFDhai/mfKkmtPAtD129EOI7K3HlHIsFOt0WrI2/oU9g==}
 
   magicast@0.5.3:
     resolution: {integrity: sha512-pVKE4UdSQ7DvHzivsCIFx2BJn1mHG6KsyrFcaxFx6tONdneEuThrDx0Cj3AMg58KyN4pzYT+LHOotxDQDjNvkw==}
@@ -5719,11 +5723,6 @@ packages:
   sax@1.6.0:
     resolution: {integrity: sha512-6R3J5M4AcbtLUdZmRv2SygeVaM7IhrLXu9BmnOGmmACak8fiUtOsYNWUS4uK7upbmHIBbLBeFeI//477BKLBzA==}
     engines: {node: '>=11.0.0'}
-
-  semver@7.8.1:
-    resolution: {integrity: sha512-rkVq3IXh+4FDGch+KwzX3aV9W3kO54GyEgpvBzSyctDA6Xtd7RJQV1xmXbeQp5v7+VzLOfVqiutSE6GICgPFvg==}
-    engines: {node: '>=10'}
-    hasBin: true
 
   semver@7.8.5:
     resolution: {integrity: sha512-Y7/KDsb8LjooZpwaqGyulO6DQlksgCncchHGk+sZIY4SBvUocMBEFH5Ur1fI4dV+Jvl0w6cjvucaIi40puRioA==}
@@ -6434,7 +6433,7 @@ snapshots:
 
   '@npmcli/fs@5.0.0':
     dependencies:
-      semver: 7.8.1
+      semver: 7.8.5
 
   '@npmcli/git@7.0.2':
     dependencies:
@@ -6444,7 +6443,7 @@ snapshots:
       lru-cache: 11.5.2
       npm-pick-manifest: 11.0.3
       proc-log: 6.1.0
-      semver: 7.8.1
+      semver: 7.8.5
       which: 7.0.0
 
   '@npmcli/installed-package-contents@4.0.0':
@@ -6461,7 +6460,7 @@ snapshots:
       hosted-git-info: 9.0.2
       json-parse-even-better-errors: 5.0.0
       proc-log: 6.1.0
-      semver: 7.8.1
+      semver: 7.8.5
       spdx-expression-parse: 4.0.0
 
   '@npmcli/promise-spawn@9.0.1':
@@ -6934,6 +6933,8 @@ snapshots:
 
   '@socketsecurity/sdk@4.1.2': {}
 
+  '@socketsecurity/sdk@4.1.3': {}
+
   '@standard-schema/spec@1.1.0': {}
 
   '@swc/core-darwin-arm64@1.15.43':
@@ -7188,7 +7189,7 @@ snapshots:
     dependencies:
       '@vitest/spy': 4.1.10
       estree-walker: 3.0.3
-      magic-string: 1.0.0
+      magic-string: 1.1.0
     optionalDependencies:
       vite: 8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0)
 
@@ -7205,7 +7206,7 @@ snapshots:
     dependencies:
       '@vitest/pretty-format': 4.1.10
       '@vitest/utils': 4.1.10
-      magic-string: 1.0.0
+      magic-string: 1.1.0
       pathe: 2.0.3
 
   '@vitest/spy@4.1.10': {}
@@ -7237,7 +7238,7 @@ snapshots:
       es-module-lexer: 2.1.0
       escape-string-regexp: 5.0.0
       ipaddr.js: 2.4.0
-      magic-string: 1.0.0
+      magic-string: 1.1.0
       valibot: 1.4.2(typescript@7.0.2)
       vite: 8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0)
       vitest: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(@vitest/ui@4.1.10)(vite@8.1.5(@types/node@26.1.1)(jiti@2.7.0)(yaml@2.9.0))
@@ -8094,7 +8095,7 @@ snapshots:
 
   lru-cache@7.18.3: {}
 
-  magic-string@1.0.0:
+  magic-string@1.1.0:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
 
@@ -8106,7 +8107,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.8.1
+      semver: 7.8.5
 
   make-fetch-happen@15.0.5(supports-color@7.2.0):
     dependencies:
@@ -8503,7 +8504,7 @@ snapshots:
       make-fetch-happen: 15.0.5(supports-color@7.2.0)
       nopt: 9.0.0
       proc-log: 6.1.0
-      semver: 7.8.1
+      semver: 7.8.5
       tar: 7.5.13
       tinyglobby: 0.2.17
       which: 7.0.0
@@ -8520,7 +8521,7 @@ snapshots:
     dependencies:
       hosted-git-info: 4.1.0
       is-core-module: 2.16.1
-      semver: 7.8.1
+      semver: 7.8.5
       validate-npm-package-license: 3.0.4
 
   normalize-path@3.0.0: {}
@@ -8531,7 +8532,7 @@ snapshots:
 
   npm-install-checks@8.0.0:
     dependencies:
-      semver: 7.8.1
+      semver: 7.8.5
 
   npm-normalize-package-bin@5.0.0: {}
 
@@ -8539,7 +8540,7 @@ snapshots:
     dependencies:
       hosted-git-info: 9.0.2
       proc-log: 6.1.0
-      semver: 7.8.1
+      semver: 7.8.5
       validate-npm-package-name: 7.0.2
 
   npm-packlist@10.0.4:
@@ -8552,7 +8553,7 @@ snapshots:
       npm-install-checks: 8.0.0
       npm-normalize-package-bin: 5.0.0
       npm-package-arg: 13.0.2
-      semver: 7.8.1
+      semver: 7.8.5
 
   npm-registry-fetch@19.1.1(supports-color@7.2.0):
     dependencies:
@@ -8979,8 +8980,6 @@ snapshots:
 
   sax@1.6.0: {}
 
-  semver@7.8.1: {}
-
   semver@7.8.5: {}
 
   setprototypeof@1.2.0: {}
@@ -9394,7 +9393,7 @@ snapshots:
       '@vitest/utils': 4.1.10
       es-module-lexer: 2.1.0
       expect-type: 1.3.0
-      magic-string: 1.0.0
+      magic-string: 1.1.0
       obug: 2.1.1
       pathe: 2.0.3
       picomatch: 4.0.5
