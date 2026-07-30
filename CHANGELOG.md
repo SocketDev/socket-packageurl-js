@@ -51,7 +51,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - **`check`** — gate every published entry with a child-process load probe
 - **`check`** — gate untyped exports in public-files-are-exported
-- **`ci`** — drop npm.antfu.dev egress from weekly-update
+- **`ci`** — drop the hosted version-metadata egress from weekly-update
 - **`deps`** — adopt the taze 19.16.0 single-registry patch
 
 ## [1.4.5](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.4.5) - 2026-07-24
