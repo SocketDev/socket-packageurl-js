@@ -47,7 +47,7 @@
     "check:dist-entries-are-requirable": "node scripts/repo/check/dist-entries-are-requirable.mts",
     "check:purlerror-messages-are-lowercase": "node scripts/repo/check/purlerror-messages-are-lowercase.mts",
     "ci:validate": "node scripts/repo/ci-validate.mts",
-    "clean": "node -e \"require('node:fs').rmSync('node_modules/.cache', { recursive: true, force: true })\"",
+    "clean": "node scripts/fleet/clean.mts",
     "cover": "node scripts/fleet/cover.mts",
     "fix": "node scripts/fleet/fix.mts",
     "format": "node scripts/fleet/format.mts",
