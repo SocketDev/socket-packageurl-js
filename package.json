@@ -84,7 +84,6 @@
     "update": "node scripts/fleet/update.mts",
     "update:data:npm": "node scripts/repo/update-data-npm.mts",
     "weekly-update": "node scripts/fleet/weekly-update.mts",
-    "weekly-update:ci": "node scripts/fleet/weekly-update-workflow.mts run",
     "setup:sfw-ca": "node scripts/fleet/setup/sfw-ca.mts"
   },
   "devDependencies": {
@@ -109,7 +108,7 @@
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
     "@vitiate/core": "catalog:",
-    "all-the-package-names": "2.0.2510",
+    "all-the-package-names": "2.0.2512",
     "all-the-package-names-v1.3905.0": "npm:all-the-package-names@1.3905.0",
     "c8": "catalog:",
     "chrome-devtools-mcp": "catalog:",
@@ -139,7 +138,7 @@
     "shell-quote": "catalog:",
     "svgo": "4.0.2",
     "taze": "catalog:",
-    "type-coverage": "2.29.7",
+    "type-coverage": "2.30.0",
     "typescript": "catalog:",
     "validate-npm-package-name": "6.0.2",
     "vitest": "catalog:",
