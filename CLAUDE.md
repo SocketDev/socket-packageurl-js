@@ -2,7 +2,7 @@
 
 **MANDATORY**: Act as principal-level engineer. This file is a thin index — every rule's detail lives in `docs/agents.md/{fleet,repo}/<topic>.md`; fleet bullets are canonical (edit only in `template/`, then cascade), repo bullets are host-owned. (`.claude/hooks/fleet/{claude-md-size-guard,claude-md-section-size-guard,claude-md-defer-detail-nudge,claude-md-rule-add-guard}/`)
 
-<!-- <fleet-canonical> -->
+<!-- <fleet> -->
 
 ## 📚 Fleet
 
@@ -114,7 +114,7 @@
 - Stale GitHub Actions run history is pruned weekly by `scripts/fleet/prune-workflow-runs.mts`; never mass-delete by hand. [`workflow-run-retention`](docs/agents.md/fleet/workflow-run-retention.md)
 - A written mermaid fence gets rewritten GitHub-safe at edit time (right-edge control-cluster clearance, margin floors); the fixer is `scripts/repo/gen/mermaid-github-safe.mts`. [`hook-registry`](docs/agents.md/fleet/hook-registry.md)
 
-<!-- </fleet-canonical> -->
+<!-- </fleet> -->
 
 ## 🏗️ Project-Specific
 
