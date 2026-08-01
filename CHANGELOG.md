@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.1](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.5.1) - 2026-08-01
+
+### Internal
+
+- **`fleet`** — add the OTEL knob to ci env and bulletize the repo section
+
 ## [1.5.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.5.0) - 2026-07-30
 
 ### Changed
