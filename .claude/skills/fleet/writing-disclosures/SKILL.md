@@ -1,8 +1,9 @@
 ---
 name: writing-disclosures
-description: Write or review a dual-use DISCLOSURE file so every sentence is verifiably true — npm Trust & Safety reads it, so an inaccurate claim is legal exposure.
+description: Write or review a dual-use DISCLOSURE file; npm Trust & Safety reads it, so every claim must be verifiable.
 user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write
+model: claude-sonnet-4-6
 ---
 
 # writing-disclosures
@@ -22,7 +23,7 @@ plainly written.
 that proves it — a `bin` entry, a dependency, a network call site, a build
 config line — and keep the receipt next to the draft. If no receipt exists,
 the sentence does not go in. The incident this rule comes from: a member's
-first draft named three executables (the manifest shipped five), said the
+first draft named three executables while the manifest shipped five, said the
 packages "transmit only scan data" (one build variant bundles a Sentry SDK
 and reports crashes to Sentry), and asserted "no persistence capability" —
 an absolute nobody can prove.

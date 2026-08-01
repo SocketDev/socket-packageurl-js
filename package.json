@@ -84,7 +84,8 @@
     "update": "node scripts/fleet/update.mts",
     "update:data:npm": "node scripts/repo/update-data-npm.mts",
     "weekly-update": "node scripts/fleet/weekly-update.mts",
-    "setup:sfw-ca": "node scripts/fleet/setup/sfw-ca.mts"
+    "setup:sfw-ca": "node scripts/fleet/setup/sfw-ca.mts",
+    "get-green": "node scripts/fleet/get-green.mts"
   },
   "devDependencies": {
     "@anthropic-ai/claude-code": "catalog:",

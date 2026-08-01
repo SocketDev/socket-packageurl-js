@@ -1,4 +1,4 @@
-/**
+/*
  * @file Cargo target/ janitor. Rust build dirs are the quiet disk killers:
  *   every checkout accumulates multi-GB debug+release artifacts, and the
  *   2026-07-31 incident found ~100 GB of stale target/ dirs across ~16
