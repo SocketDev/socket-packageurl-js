@@ -120,7 +120,8 @@
 
 TypeScript implementation of the [Package URL spec](https://github.com/package-url/purl-spec) (ECMA-427), compiled to CommonJS.
 
-- 🚨 `PurlError` is lowercase with no trailing period, component shape `{type} "{component}" component {violation}`; plain `Error` for argument validation is sentence case with a trailing period. [`architecture`](docs/agents.md/repo/architecture.md)
+- 🚨 `PurlError` is lowercase, no trailing period, shape `{type} "{component}" component {violation}`. [`architecture`](docs/agents.md/repo/architecture.md)
+- 🚨 Plain `Error` for argument validation is sentence case with a trailing period. [`architecture`](docs/agents.md/repo/architecture.md)
 - 🚨 Never throw on a valid purl. [`architecture`](docs/agents.md/repo/architecture.md)
 - `import type` is always a separate statement, never inline. [`architecture`](docs/agents.md/repo/architecture.md)
 - 🚨 `exactOptionalPropertyTypes` is on — assign conditionally, never `?? undefined`. [`architecture`](docs/agents.md/repo/architecture.md)
