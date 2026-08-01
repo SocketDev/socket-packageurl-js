@@ -120,6 +120,10 @@
 
 TypeScript implementation of the [Package URL spec](https://github.com/package-url/purl-spec) (ECMA-427), compiled to CommonJS.
 
-🚨 **Local invariants:** `PurlError` uses lowercase + no trailing period (component shape `{type} "{component}" component {violation}`); plain `Error` for argument validation uses sentence case + trailing period. Never throw on valid purls. `import type` always separate, never inline. `exactOptionalPropertyTypes` is on — assign conditionally, never `?? undefined`. Never `process.chdir()` — pass `{ cwd }`. Coverage must stay at or above the floors in `.config/repo/cover.json` (`pnpm run cover` enforces them; `functions` is 100%).
-
-Layout / commands / error-shape detail / vitest config split in [`docs/agents.md/repo/architecture.md`](docs/agents.md/repo/architecture.md).
+- 🚨 `PurlError` is lowercase with no trailing period, component shape `{type} "{component}" component {violation}`; plain `Error` for argument validation is sentence case with a trailing period. [`architecture`](docs/agents.md/repo/architecture.md)
+- 🚨 Never throw on a valid purl. [`architecture`](docs/agents.md/repo/architecture.md)
+- `import type` is always a separate statement, never inline. [`architecture`](docs/agents.md/repo/architecture.md)
+- 🚨 `exactOptionalPropertyTypes` is on — assign conditionally, never `?? undefined`. [`architecture`](docs/agents.md/repo/architecture.md)
+- 🚨 Never `process.chdir()` — pass `{ cwd }`. [`architecture`](docs/agents.md/repo/architecture.md)
+- 🚨 Coverage stays at or above the floors in `.config/repo/cover.json` (`pnpm run cover` enforces them; `functions` is 100%). [`architecture`](docs/agents.md/repo/architecture.md)
+- Layout, commands, error-shape detail, and the vitest config split live in [`architecture`](docs/agents.md/repo/architecture.md).
