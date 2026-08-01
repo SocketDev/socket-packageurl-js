@@ -129,7 +129,9 @@ async function main(): Promise<void> {
     )
     if (existsSync(rosterPath)) {
       const roster = JSON.parse(readFileSync(rosterPath, 'utf8')) as {
-        repos?: Array<{ name?: string } | string> | undefined
+        repos?:
+          | Array<{ name?: string | undefined } | string>
+          | undefined
       }
       for (const r of roster.repos ?? []) {
         const name = typeof r === 'string' ? r : (r.name ?? '')
@@ -155,7 +157,9 @@ async function main(): Promise<void> {
   let swept = 0
   let stale = 0
   let fresh = 0
-  for (const checkout of [...checkouts].sort()) {
+  const sortedCheckouts = [...checkouts].toSorted()
+  for (let i = 0, { length } = sortedCheckouts; i < length; i += 1) {
+    const checkout = sortedCheckouts[i]!
     const target = targetOf(checkout)
     if (!target) {
       continue
