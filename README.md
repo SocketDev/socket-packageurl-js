@@ -3,8 +3,8 @@
 <a href="https://socket.dev/npm/package/@socketregistry/packageurl-js"><img src="https://socket.dev/api/badge/npm/package/@socketregistry/packageurl-js" alt="Socket Badge" height="20"></a>
 <img src="assets/repo/badges/coverage.svg" width="104" height="20" alt="Coverage" />
 
-[![Follow @SocketSecurity](assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
-[![Follow @socket.dev on Bluesky](assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
+[![Follow @SocketSecurity](https://raw.githubusercontent.com/SocketDev/socket-packageurl-js/HEAD/assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
+[![Follow @socket.dev on Bluesky](https://raw.githubusercontent.com/SocketDev/socket-packageurl-js/HEAD/assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
 
 TypeScript Package URL (purl) parser and builder.
 Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) with full type safety, zero dependencies, and spec compliance with the [Package URL specification](https://github.com/package-url/purl-spec).
