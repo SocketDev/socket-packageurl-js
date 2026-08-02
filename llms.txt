@@ -1,0 +1,9 @@
+# @socketregistry/packageurl-js
+
+> Socket.dev optimized package override for packageurl-js. 1 subpath exports, grouped by namespace.
+
+Import any namespace by its subpath, e.g. `import '@socketregistry/packageurl-js/exists'`. Each link below points at the TypeScript declarations shipped in the package, where the full signature for that subpath lives.
+
+## Top-level
+
+- [@socketregistry/packageurl-js/exists](./dist/exists.d.mts)
