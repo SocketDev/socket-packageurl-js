@@ -25,6 +25,21 @@ export interface PurlObject {
 }
 
 /**
+ * Options for `mavenExists()`. Extends the shared registry existence options
+ * with the Maven-specific `namespace` (group ID) and `version` fields.
+ */
+export type MavenExistsOptions = ExistsOptions & {
+  /**
+   * Group ID (e.g., `'org.apache.commons'`).
+   */
+  namespace?: string | undefined
+  /**
+   * Optional version to validate (e.g., `'3.12.0'`).
+   */
+  version?: string | undefined
+}
+
+/**
  * Check if a Maven package exists in Maven Central.
  *
  * Queries `search.maven.org` API to verify package existence and retrieve the
@@ -34,36 +49,37 @@ export interface PurlObject {
  * @example
  *   ;```typescript
  *   // Check if package exists
- *   const result = await mavenExists('commons-lang3', 'org.apache.commons')
+ *   const result = await mavenExists('commons-lang3', {
+ *     namespace: 'org.apache.commons',
+ *   })
  *   // -> { exists: true, latestVersion: '3.12.0' }
  *
  *   // Validate specific version
- *   const result = await mavenExists(
- *     'commons-lang3',
- *     'org.apache.commons',
- *     '3.12.0',
- *   )
+ *   const result = await mavenExists('commons-lang3', {
+ *     namespace: 'org.apache.commons',
+ *     version: '3.12.0',
+ *   })
  *   // -> { exists: true, latestVersion: '3.12.0' }
  *
  *   // Non-existent package
- *   const result = await mavenExists('fake-artifact', 'com.example')
+ *   const result = await mavenExists('fake-artifact', {
+ *     namespace: 'com.example',
+ *   })
  *   // -> { exists: false, error: 'Package not found' }
  *   ```
  *
  * @param name - Artifact ID (e.g., `'commons-lang3'`)
- * @param namespace - Group ID (e.g., `'org.apache.commons'`)
- * @param version - Optional version to validate (e.g., `'3.12.0'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `namespace` (group ID),
+ *   `version`, and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function mavenExists(
   name: string,
-  namespace?: string | undefined,
-  version?: string | undefined,
-  options?: ExistsOptions | undefined,
+  options?: MavenExistsOptions | undefined,
 ): Promise<ExistsResult> {
-  const opts = { __proto__: null, ...options } as typeof options
+  const opts = { __proto__: null, ...options } as MavenExistsOptions
+  const { namespace, version } = opts
   if (!namespace) {
     return { exists: false, error: 'Maven requires namespace (group ID)' }
   }

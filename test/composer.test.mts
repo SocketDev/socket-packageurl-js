@@ -30,7 +30,9 @@ describe('packagistExists', () => {
           },
         })
 
-      const result = await packagistExists('http-foundation', 'symfony')
+      const result = await packagistExists('http-foundation', {
+        namespace: 'symfony',
+      })
 
       expect(result).toEqual({
         exists: true,
@@ -43,7 +45,9 @@ describe('packagistExists', () => {
         .get('/p2/vendor%2Ffake-package.json')
         .reply(404)
 
-      const result = await packagistExists('fake-package', 'vendor')
+      const result = await packagistExists('fake-package', {
+        namespace: 'vendor',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Package not found')
@@ -65,7 +69,7 @@ describe('packagistExists', () => {
           },
         })
 
-      const result = await packagistExists('package', 'vendor')
+      const result = await packagistExists('package', { namespace: 'vendor' })
 
       expect(result).toEqual({
         exists: true,
@@ -87,11 +91,10 @@ describe('packagistExists', () => {
           },
         })
 
-      const result = await packagistExists(
-        'http-foundation',
-        'symfony',
-        'v6.2.0',
-      )
+      const result = await packagistExists('http-foundation', {
+        namespace: 'symfony',
+        version: 'v6.2.0',
+      })
 
       expect(result).toEqual({
         exists: true,
@@ -108,11 +111,10 @@ describe('packagistExists', () => {
           },
         })
 
-      const result = await packagistExists(
-        'http-foundation',
-        'symfony',
-        'v999.0.0',
-      )
+      const result = await packagistExists('http-foundation', {
+        namespace: 'symfony',
+        version: 'v999.0.0',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version v999.0.0 not found')
@@ -128,7 +130,7 @@ describe('packagistExists', () => {
           packages: {},
         })
 
-      const result = await packagistExists('package', 'vendor')
+      const result = await packagistExists('package', { namespace: 'vendor' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Package not found')
@@ -141,7 +143,7 @@ describe('packagistExists', () => {
         .get('/p2/vendor%2Fpackage.json')
         .replyWithError('Network error')
 
-      const result = await packagistExists('package', 'vendor')
+      const result = await packagistExists('package', { namespace: 'vendor' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('request failed')
@@ -152,7 +154,7 @@ describe('packagistExists', () => {
         .get('/p2/vendor%2Fpackage.json')
         .reply(500, 'Internal Server Error')
 
-      const result = await packagistExists('package', 'vendor')
+      const result = await packagistExists('package', { namespace: 'vendor' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toBeDefined()
@@ -166,12 +168,10 @@ describe('packagistExists', () => {
       const cachedResult = { exists: true, latestVersion: 'v6.3.0' }
       await mockCache.set('composer:symfony/http-foundation', cachedResult)
 
-      const result = await packagistExists(
-        'http-foundation',
-        'symfony',
-        undefined,
-        { cache: mockCache },
-      )
+      const result = await packagistExists('http-foundation', {
+        namespace: 'symfony',
+        cache: mockCache,
+      })
 
       expect(result).toEqual(cachedResult)
     })
@@ -187,12 +187,10 @@ describe('packagistExists', () => {
           },
         })
 
-      const result = await packagistExists(
-        'http-foundation',
-        'symfony',
-        undefined,
-        { cache: mockCache },
-      )
+      const result = await packagistExists('http-foundation', {
+        namespace: 'symfony',
+        cache: mockCache,
+      })
 
       expect(result.exists).toBe(true)
       expect(await mockCache.get('composer:symfony/http-foundation')).toEqual(
@@ -221,7 +219,10 @@ describe('packagistExists dev-version gap cases', () => {
         },
       })
 
-    const result = await packagistExists('only-dev', 'vendor', 'v1.0.0')
+    const result = await packagistExists('only-dev', {
+      namespace: 'vendor',
+      version: 'v1.0.0',
+    })
 
     expect(result.exists).toBe(false)
     expect(result.error).toContain('Version v1.0.0 not found')
@@ -237,7 +238,9 @@ describe('packagistExists dev-version gap cases', () => {
         },
       })
 
-    const result = await packagistExists('only-dev-ok', 'vendor')
+    const result = await packagistExists('only-dev-ok', {
+      namespace: 'vendor',
+    })
 
     expect(result.exists).toBe(true)
     expect(result.latestVersion).toBeUndefined()

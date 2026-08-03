@@ -23,6 +23,21 @@ export interface PurlObject {
 }
 
 /**
+ * Options for `dockerExists()`. Extends the shared registry existence options
+ * with the Docker-specific `namespace` and `version` (tag) fields.
+ */
+export type DockerExistsOptions = ExistsOptions & {
+  /**
+   * Optional namespace/repository (e.g., `'library'` for official images).
+   */
+  namespace?: string | undefined
+  /**
+   * Optional tag to validate (e.g., `'latest'`, `'1.25.3'`).
+   */
+  version?: string | undefined
+}
+
+/**
  * Check if a Docker image exists in Docker Hub.
  *
  * Queries Docker Hub API at https://hub.docker.com/v2/repositories to verify
@@ -38,43 +53,45 @@ export interface PurlObject {
  * @example
  *   ;```typescript
  *   // Check if official image exists
- *   const result = await dockerExists('nginx', 'library')
+ *   const result = await dockerExists('nginx', { namespace: 'library' })
  *   // -> { exists: true, latestVersion: 'latest' }
  *
  *   // Check user image
- *   const result = await dockerExists('myapp', 'myuser')
+ *   const result = await dockerExists('myapp', { namespace: 'myuser' })
  *   // -> { exists: true, latestVersion: 'v1.0.0' }
  *
  *   // Validate specific tag
- *   const result = await dockerExists('nginx', 'library', '1.25.3')
+ *   const result = await dockerExists('nginx', {
+ *     namespace: 'library',
+ *     version: '1.25.3',
+ *   })
  *   // -> { exists: true, latestVersion: 'latest' }
  *
  *   // With caching
  *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'docker' })
- *   const result = await dockerExists('nginx', 'library', undefined, { cache })
+ *   const result = await dockerExists('nginx', { namespace: 'library', cache })
  *
  *   // Non-existent image
- *   const result = await dockerExists('this-image-does-not-exist', 'library')
+ *   const result = await dockerExists('this-image-does-not-exist', {
+ *     namespace: 'library',
+ *   })
  *   // -> { exists: false, error: 'Image not found' }
  *   ```
  *
  * @param name - Image name (e.g., `'nginx'`, `'redis'`)
- * @param namespace - Optional namespace/repository (e.g., `'library'` for
- *   official images)
- * @param version - Optional tag to validate (e.g., `'latest'`, `'1.25.3'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `namespace` (repository),
+ *   `version` (tag), and `cache`
  *
  * @returns `Promise` resolving to existence result with latest tag
  */
 export async function dockerExists(
   name: string,
-  namespace?: string | undefined,
-  version?: string | undefined,
-  options?: ExistsOptions | undefined,
+  options?: DockerExistsOptions | undefined,
 ): Promise<ExistsResult> {
   // Default namespace to `'library'` for official images if not specified
-  const opts = { __proto__: null, ...options } as typeof options
+  const opts = { __proto__: null, ...options } as DockerExistsOptions
+  const { namespace, version } = opts
   const repo = namespace ? `${namespace}/${name}` : name
   const cacheKey = version ? `docker:${repo}:${version}` : `docker:${repo}`
 

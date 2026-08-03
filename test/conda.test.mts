@@ -66,7 +66,7 @@ describe('condaExists', () => {
           versions: ['3.11.0', '3.10.0'],
         })
 
-      const result = await condaExists('python', undefined, 'defaults')
+      const result = await condaExists('python', { channel: 'defaults' })
 
       expect(result).toEqual({
         exists: true,
@@ -98,7 +98,7 @@ describe('condaExists', () => {
           versions: ['1.26.3', '1.26.2', '1.26.1'],
         })
 
-      const result = await condaExists('numpy', '1.26.2')
+      const result = await condaExists('numpy', { version: '1.26.2' })
 
       expect(result).toEqual({
         exists: true,
@@ -114,7 +114,7 @@ describe('condaExists', () => {
           versions: ['1.26.3', '1.26.2'],
         })
 
-      const result = await condaExists('numpy', '999.0.0')
+      const result = await condaExists('numpy', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -128,7 +128,7 @@ describe('condaExists', () => {
           versions: ['1.26.3', '1.26.2'],
         })
 
-      const result = await condaExists('numpy', '999.0.0')
+      const result = await condaExists('numpy', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -142,7 +142,7 @@ describe('condaExists', () => {
           versions: ['1.26.3'],
         })
 
-      const result = await condaExists('numpy', '1.26.3')
+      const result = await condaExists('numpy', { version: '1.26.3' })
 
       expect(result.exists).toBe(true)
       expect(result.latestVersion).toBeUndefined()
@@ -156,7 +156,10 @@ describe('condaExists', () => {
           versions: ['1.11.4', '1.11.3'],
         })
 
-      const result = await condaExists('scipy', '1.11.3', 'anaconda')
+      const result = await condaExists('scipy', {
+        version: '1.11.3',
+        channel: 'anaconda',
+      })
 
       expect(result.exists).toBe(true)
       expect(result.latestVersion).toBe('1.11.4')
@@ -193,7 +196,7 @@ describe('condaExists', () => {
           latest_version: '1.26.3',
         })
 
-      const result = await condaExists('numpy', '1.26.2')
+      const result = await condaExists('numpy', { version: '1.26.2' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 1.26.2 not found')
@@ -222,9 +225,7 @@ describe('condaExists', () => {
       await mockCache.set('conda:conda-forge/numpy', cachedResult)
 
       // Should not make HTTP request
-      const result = await condaExists('numpy', undefined, undefined, {
-        cache: mockCache,
-      })
+      const result = await condaExists('numpy', { cache: mockCache })
 
       expect(result).toEqual(cachedResult)
     })
@@ -239,9 +240,7 @@ describe('condaExists', () => {
           versions: ['2.2.0'],
         })
 
-      const result = await condaExists('pandas', undefined, undefined, {
-        cache: mockCache,
-      })
+      const result = await condaExists('pandas', { cache: mockCache })
 
       expect(result.exists).toBe(true)
 
@@ -260,7 +259,7 @@ describe('condaExists', () => {
           versions: ['1.26.3', '1.26.2'],
         })
 
-      await condaExists('numpy', '1.26.2', undefined, { cache: mockCache })
+      await condaExists('numpy', { version: '1.26.2', cache: mockCache })
 
       expect(
         await mockCache.get('conda:conda-forge/numpy@1.26.2'),
@@ -277,7 +276,7 @@ describe('condaExists', () => {
           versions: ['3.11.0'],
         })
 
-      await condaExists('python', undefined, 'defaults', { cache: mockCache })
+      await condaExists('python', { channel: 'defaults', cache: mockCache })
 
       expect(await mockCache.get('conda:defaults/python')).toBeDefined()
     })

@@ -128,11 +128,13 @@ export function matchWildcard(pattern: string, value: string): boolean {
 
 /**
  * Match a single component value against a pattern. Handles wildcard matching
- * for individual PURL components.
+ * for individual PURL components. `patternValue` and `actualValue` are both
+ * required — pass `''` for an absent component (the function treats an empty
+ * string as "no value", same as the underlying PURL component itself).
  */
 export function matchComponent(
-  patternValue: string | null | undefined,
-  actualValue: string | null | undefined,
+  patternValue: string,
+  actualValue: string,
   matcher?: ((_value: string) => boolean) | undefined,
 ): boolean {
   // The `**` pattern matches any value including an empty one, so handle it
@@ -142,18 +144,12 @@ export function matchComponent(
   }
 
   // If pattern has no value, actual must also have no value
-  if (
-    patternValue === null ||
-    patternValue === undefined ||
-    patternValue === ''
-  ) {
-    return (
-      actualValue === null || actualValue === undefined || actualValue === ''
-    )
+  if (patternValue === '') {
+    return actualValue === ''
   }
 
   // If actual has no value but pattern expects one, no match
-  if (actualValue === null || actualValue === undefined || actualValue === '') {
+  if (actualValue === '') {
     return false
   }
 
@@ -367,10 +363,10 @@ export function matchesPurl(pattern: string, purl: PackageURL): boolean {
 
   // Match each component (always use component matching to properly ignore qualifiers/subpath)
   return (
-    matchComponent(typePattern, purl.type) &&
-    matchComponent(namespacePattern, purl.namespace) &&
-    matchComponent(namePattern, purl.name) &&
-    matchComponent(versionPattern, purl.version)
+    matchComponent(typePattern, purl.type ?? '') &&
+    matchComponent(namespacePattern ?? '', purl.namespace ?? '') &&
+    matchComponent(namePattern, purl.name ?? '') &&
+    matchComponent(versionPattern ?? '', purl.version ?? '')
   )
 }
 
@@ -436,10 +432,14 @@ export function createMatcher(pattern: string): (_purl: PackageURL) => boolean {
   // Return optimized matcher function with pre-compiled matchers
   return (_purl: PackageURL): boolean => {
     return (
-      matchComponent(typePattern, _purl.type, typeMatcher) &&
-      matchComponent(namespacePattern, _purl.namespace, namespaceMatcher) &&
-      matchComponent(namePattern, _purl.name, nameMatcher) &&
-      matchComponent(versionPattern, _purl.version, versionMatcher)
+      matchComponent(typePattern, _purl.type ?? '', typeMatcher) &&
+      matchComponent(
+        namespacePattern ?? '',
+        _purl.namespace ?? '',
+        namespaceMatcher,
+      ) &&
+      matchComponent(namePattern, _purl.name ?? '', nameMatcher) &&
+      matchComponent(versionPattern ?? '', _purl.version ?? '', versionMatcher)
     )
   }
 }

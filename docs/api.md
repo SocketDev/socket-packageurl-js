@@ -550,9 +550,10 @@ await purlExists(purl, { cache })
 
 All registry functions follow the same signature pattern and return `ExistsResult`.
 
-#### `npmExists(name, namespace?, version?, options?)`
+#### `npmExists(name, options?)`
 
-Check npm packages from registry.npmjs.org.
+Check npm packages from registry.npmjs.org. `options` accepts `namespace`,
+`version`, and `cache`.
 
 **Example:**
 
@@ -562,10 +563,10 @@ import { npmExists } from '@socketregistry/packageurl-js/exists'
 await npmExists('lodash')
 // -> { exists: true, latestVersion: '4.17.21' }
 
-await npmExists('core', '@babel') // scoped package
+await npmExists('core', { namespace: '@babel' }) // scoped package
 // -> { exists: true, latestVersion: '7.23.0' }
 
-await npmExists('lodash', undefined, '4.17.21') // validate version
+await npmExists('lodash', { version: '4.17.21' }) // validate version
 // -> { exists: true, latestVersion: '4.17.21' }
 ```
 
@@ -616,16 +617,17 @@ await gemExists('rails')
 
 ---
 
-#### `mavenExists(name, namespace, version?, options?)`
+#### `mavenExists(name, options?)`
 
-Check Java packages from Maven Central. Requires namespace (group ID).
+Check Java packages from Maven Central. `options.namespace` (group ID) is
+required.
 
 **Example:**
 
 ```javascript
 import { mavenExists } from '@socketregistry/packageurl-js/exists'
 
-await mavenExists('commons-lang3', 'org.apache.commons')
+await mavenExists('commons-lang3', { namespace: 'org.apache.commons' })
 // -> { exists: true, latestVersion: '3.12.0' }
 ```
 
@@ -646,9 +648,10 @@ await nugetExists('Newtonsoft.Json')
 
 ---
 
-#### `golangExists(name, namespace?, version?, options?)`
+#### `golangExists(name, options?)`
 
-Check Go modules from proxy.golang.org.
+Check Go modules from proxy.golang.org. `options` accepts `namespace`,
+`version`, and `cache`.
 
 **Example:**
 
@@ -658,22 +661,23 @@ import { golangExists } from '@socketregistry/packageurl-js/exists'
 await golangExists('github.com/gorilla/mux')
 // -> { exists: true, latestVersion: 'v1.8.0' }
 
-await golangExists('mux', 'github.com/gorilla') // with namespace
+await golangExists('mux', { namespace: 'github.com/gorilla' }) // with namespace
 // -> { exists: true, latestVersion: 'v1.8.0' }
 ```
 
 ---
 
-#### `packagistExists(name, namespace, version?, options?)`
+#### `packagistExists(name, options?)`
 
-Check PHP/Composer packages from packagist.org. Requires namespace (vendor).
+Check PHP/Composer packages from packagist.org. `options.namespace` (vendor)
+is required.
 
 **Example:**
 
 ```javascript
 import { packagistExists } from '@socketregistry/packageurl-js/exists'
 
-await packagistExists('http-foundation', 'symfony')
+await packagistExists('http-foundation', { namespace: 'symfony' })
 // -> { exists: true, latestVersion: 'v6.3.0' }
 ```
 
@@ -769,9 +773,10 @@ await hackageExists('aeson')
 
 ---
 
-#### `condaExists(name, version?, channel?, options?)`
+#### `condaExists(name, options?)`
 
 Check Conda packages from an Anaconda channel (defaults to `conda-forge`).
+`options` accepts `version`, `channel`, and `cache`.
 
 **Example:**
 
@@ -781,16 +786,16 @@ import { condaExists } from '@socketregistry/packageurl-js/exists'
 await condaExists('numpy')
 // -> { exists: true, latestVersion: '1.26.0' }
 
-await condaExists('pytorch', undefined, 'pytorch')
+await condaExists('pytorch', { channel: 'pytorch' })
 // -> { exists: true, latestVersion: '2.1.0' }
 ```
 
 ---
 
-#### `dockerExists(name, namespace?, version?, options?)`
+#### `dockerExists(name, options?)`
 
-Check Docker images from Docker Hub. Omit `namespace` for official images
-(resolves to `library/<name>`); `version` is the tag.
+Check Docker images from Docker Hub. Omit `options.namespace` for official
+images (resolves to `library/<name>`); `options.version` is the tag.
 
 **Example:**
 
@@ -800,23 +805,23 @@ import { dockerExists } from '@socketregistry/packageurl-js/exists'
 await dockerExists('nginx')
 // -> { exists: true, latestVersion: 'latest' }
 
-await dockerExists('postgres', undefined, '16')
+await dockerExists('postgres', { version: '16' })
 // -> { exists: true, latestVersion: '16' }
 ```
 
 ---
 
-#### `vscodeExtensionExists(name, namespace, version?, options?)`
+#### `vscodeExtensionExists(name, options?)`
 
-Check Visual Studio Code extensions from the VS Code Marketplace. `namespace`
-(publisher) is required.
+Check Visual Studio Code extensions from the VS Code Marketplace.
+`options.namespace` (publisher) is required.
 
 **Example:**
 
 ```javascript
 import { vscodeExtensionExists } from '@socketregistry/packageurl-js/exists'
 
-await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
+await vscodeExtensionExists('vscode-eslint', { namespace: 'dbaeumer' })
 // -> { exists: true, latestVersion: '3.0.10' }
 ```
 

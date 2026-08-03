@@ -193,8 +193,8 @@ await purlExists(purl)
 
 // Type-specific checks (modular)
 await npmExists('lodash')
-await npmExists('core', '@babel') // scoped package
-await npmExists('lodash', undefined, '4.17.21') // validate version
+await npmExists('core', { namespace: '@babel' }) // scoped package
+await npmExists('lodash', { version: '4.17.21' }) // validate version
 
 // Supported registries:
 // npmExists, pypiExists, cargoExists, gemExists,

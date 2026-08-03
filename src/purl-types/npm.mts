@@ -29,6 +29,7 @@ export {
 export type {
   ExistsOptions,
   ExistsResult,
+  NpmExistsOptions,
   NpmPackageComponents,
   PurlObject,
 } from './npm-utils.mjs'

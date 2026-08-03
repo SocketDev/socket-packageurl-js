@@ -53,7 +53,7 @@ describe('npmExists', () => {
           versions: { '7.23.0': {} },
         })
 
-      const result = await npmExists('core', '@babel')
+      const result = await npmExists('core', { namespace: '@babel' })
 
       expect(result).toEqual({
         exists: true,
@@ -87,7 +87,7 @@ describe('npmExists', () => {
           },
         })
 
-      const result = await npmExists('lodash', undefined, '4.17.20')
+      const result = await npmExists('lodash', { version: '4.17.20' })
 
       expect(result).toEqual({
         exists: true,
@@ -105,7 +105,7 @@ describe('npmExists', () => {
           },
         })
 
-      const result = await npmExists('lodash', undefined, '999.0.0')
+      const result = await npmExists('lodash', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -159,9 +159,7 @@ describe('npmExists', () => {
       await mockCache.set('npm:lodash', cachedResult)
 
       // Should NOT make HTTP request
-      const result = await npmExists('lodash', undefined, undefined, {
-        cache: mockCache,
-      })
+      const result = await npmExists('lodash', { cache: mockCache })
 
       expect(result).toEqual(cachedResult)
     })
@@ -176,9 +174,7 @@ describe('npmExists', () => {
           versions: { '4.17.21': {} },
         })
 
-      const result = await npmExists('lodash', undefined, undefined, {
-        cache: mockCache,
-      })
+      const result = await npmExists('lodash', { cache: mockCache })
 
       expect(result.exists).toBe(true)
       expect(await mockCache.get('npm:lodash')).toEqual(result)
@@ -194,7 +190,7 @@ describe('npmExists', () => {
           versions: { '7.23.0': {} },
         })
 
-      await npmExists('core', '@babel', undefined, { cache: mockCache })
+      await npmExists('core', { namespace: '@babel', cache: mockCache })
 
       expect(await mockCache.get('npm:@babel/core')).toBeDefined()
     })
@@ -209,7 +205,7 @@ describe('npmExists', () => {
           versions: { '4.17.20': {}, '4.17.21': {} },
         })
 
-      await npmExists('lodash', undefined, '4.17.20', { cache: mockCache })
+      await npmExists('lodash', { version: '4.17.20', cache: mockCache })
 
       expect(await mockCache.get('npm:lodash@4.17.20')).toBeDefined()
     })
@@ -219,9 +215,7 @@ describe('npmExists', () => {
 
       nock('https://registry.npmjs.org').get('/nonexistent').reply(404)
 
-      const result = await npmExists('nonexistent', undefined, undefined, {
-        cache: mockCache,
-      })
+      const result = await npmExists('nonexistent', { cache: mockCache })
 
       expect(result.exists).toBe(false)
       expect(await mockCache.get('npm:nonexistent')).toBeUndefined()

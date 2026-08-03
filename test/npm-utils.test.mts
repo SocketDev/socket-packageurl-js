@@ -23,7 +23,7 @@ describe('npmExists omits latestVersion edge cases', () => {
         versions: { '1.0.0': {} },
       })
 
-    const result = await npmExists('gapcase-pkg', undefined, '2.0.0')
+    const result = await npmExists('gapcase-pkg', { version: '2.0.0' })
 
     expect(result.exists).toBe(false)
     expect(result.error).toContain('Version 2.0.0 not found')

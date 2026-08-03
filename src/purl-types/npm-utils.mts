@@ -58,10 +58,25 @@ export type ExistsOptions = {
    *     ttl: 5 * 60 * 1000,
    *     prefix: 'npm-registry',
    *   })
-   *   const result = await npmExists('lodash', undefined, undefined, { cache })
+   *   const result = await npmExists('lodash', { cache })
    *   ```
    */
   cache?: TtlCache | undefined
+}
+
+/**
+ * Options for `npmExists()`. Extends the shared registry existence options
+ * with the `npm`-specific `namespace` and `version` fields.
+ */
+export type NpmExistsOptions = ExistsOptions & {
+  /**
+   * Optional namespace/scope (e.g., `'@babel'`).
+   */
+  namespace?: string | undefined
+  /**
+   * Optional version to validate (e.g., `'4.17.21'`).
+   */
+  version?: string | undefined
 }
 
 /**
@@ -175,17 +190,17 @@ export function normalize(purl: PurlObject): PurlObject {
  *   // -> { exists: true, latestVersion: '4.17.21' }
  *
  *   // Check scoped package
- *   const result = await npmExists('core', '@babel')
+ *   const result = await npmExists('core', { namespace: '@babel' })
  *   // -> { exists: true, latestVersion: '7.23.0' }
  *
  *   // Validate specific version
- *   const result = await npmExists('lodash', undefined, '4.17.21')
+ *   const result = await npmExists('lodash', { version: '4.17.21' })
  *   // -> { exists: true, latestVersion: '4.17.21' }
  *
  *   // With caching
  *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'npm' })
- *   const result = await npmExists('lodash', undefined, undefined, { cache })
+ *   const result = await npmExists('lodash', { cache })
  *
  *   // Non-existent package
  *   const result = await npmExists('this-package-does-not-exist')
@@ -193,20 +208,17 @@ export function normalize(purl: PurlObject): PurlObject {
  *   ```
  *
  * @param name - Package name (e.g., `'lodash'`, `'core'` for scoped packages)
- * @param namespace - Optional namespace/scope (e.g., `'@babel'`)
- * @param version - Optional version to validate (e.g., `'4.17.21'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `namespace`, `version`,
+ *   and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function npmExists(
   name: string,
-  namespace?: string | undefined,
-  version?: string | undefined,
-  options?: ExistsOptions | undefined,
+  options?: NpmExistsOptions | undefined,
 ): Promise<ExistsResult> {
-  // Build cache key
-  const opts = { __proto__: null, ...options } as typeof options
+  const opts = { __proto__: null, ...options } as NpmExistsOptions
+  const { namespace, version } = opts
   const packageName = namespace ? `${namespace}/${name}` : name
   const cacheKey = version
     ? `npm:${packageName}@${version}`

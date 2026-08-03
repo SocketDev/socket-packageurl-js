@@ -83,6 +83,22 @@ export interface PurlObject {
 }
 
 /**
+ * Options for `golangExists()`. Extends the shared registry existence options
+ * with the Go-specific `namespace` and `version` fields.
+ */
+export type GolangExistsOptions = ExistsOptions & {
+  /**
+   * Optional namespace, combined with `name` to form the full module path
+   * (e.g., `'github.com/gorilla'`).
+   */
+  namespace?: string | undefined
+  /**
+   * Optional version to validate (e.g., `'v1.8.0'`).
+   */
+  version?: string | undefined
+}
+
+/**
  * Encode a Go module path or version for the Go module proxy protocol.
  *
  * The proxy escapes every uppercase letter as `!` + its lowercase form so that
@@ -148,15 +164,15 @@ export function encodeGolangProxyPath(path: string): string {
  *   // -> { exists: true, latestVersion: 'v1.8.0' }
  *
  *   // With namespace (constructs full path)
- *   const result = await golangExists('mux', 'github.com/gorilla')
+ *   const result = await golangExists('mux', {
+ *     namespace: 'github.com/gorilla',
+ *   })
  *   // -> { exists: true, latestVersion: 'v1.8.0' }
  *
  *   // Validate specific version
- *   const result = await golangExists(
- *     'github.com/gorilla/mux',
- *     undefined,
- *     'v1.8.0',
- *   )
+ *   const result = await golangExists('github.com/gorilla/mux', {
+ *     version: 'v1.8.0',
+ *   })
  *   // -> { exists: true, latestVersion: 'v1.8.0' }
  *
  *   // Non-existent module
@@ -165,19 +181,17 @@ export function encodeGolangProxyPath(path: string): string {
  *   ```
  *
  * @param name - Full module path (e.g., `'github.com/gorilla/mux'`)
- * @param namespace - Optional namespace (combined with `name` if provided)
- * @param version - Optional version to validate (e.g., `'v1.8.0'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `namespace` (combined
+ *   with `name` if provided), `version`, and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function golangExists(
   name: string,
-  namespace?: string | undefined,
-  version?: string | undefined,
-  options?: ExistsOptions | undefined,
+  options?: GolangExistsOptions | undefined,
 ): Promise<ExistsResult> {
-  const opts = { __proto__: null, ...options } as typeof options
+  const opts = { __proto__: null, ...options } as GolangExistsOptions
+  const { namespace, version } = opts
   const modulePath = namespace ? `${namespace}/${name}` : name
   const cacheKey = version
     ? `golang:${modulePath}@${version}`

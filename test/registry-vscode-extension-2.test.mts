@@ -28,7 +28,9 @@ describe('vscodeExtensionExists (continued)', () => {
         })
         .replyWithError('Network error')
 
-      const result = await vscodeExtensionExists('test-extension', 'publisher')
+      const result = await vscodeExtensionExists('test-extension', {
+        namespace: 'publisher',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('request failed')
@@ -44,7 +46,9 @@ describe('vscodeExtensionExists (continued)', () => {
         })
         .reply(500, 'Internal Server Error')
 
-      const result = await vscodeExtensionExists('test-extension', 'publisher')
+      const result = await vscodeExtensionExists('test-extension', {
+        namespace: 'publisher',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toBeDefined()
@@ -60,7 +64,9 @@ describe('vscodeExtensionExists (continued)', () => {
         })
         .reply(404)
 
-      const result = await vscodeExtensionExists('test-extension', 'publisher')
+      const result = await vscodeExtensionExists('test-extension', {
+        namespace: 'publisher',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Extension not found')
@@ -88,7 +94,9 @@ describe('vscodeExtensionExists (continued)', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
+      const result = await vscodeExtensionExists('vscode-eslint', {
+        namespace: 'dbaeumer',
+      })
 
       expect(result.exists).toBe(true)
     })
@@ -104,14 +112,10 @@ describe('vscodeExtensionExists (continued)', () => {
       )
 
       // Should not make HTTP request
-      const result = await vscodeExtensionExists(
-        'vscode-eslint',
-        'dbaeumer',
-        undefined,
-        {
-          cache: mockCache,
-        },
-      )
+      const result = await vscodeExtensionExists('vscode-eslint', {
+        namespace: 'dbaeumer',
+        cache: mockCache,
+      })
 
       expect(result).toEqual(cachedResult)
     })
@@ -138,14 +142,10 @@ describe('vscodeExtensionExists (continued)', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists(
-        'test-extension',
-        'publisher',
-        undefined,
-        {
-          cache: mockCache,
-        },
-      )
+      const result = await vscodeExtensionExists('test-extension', {
+        namespace: 'publisher',
+        cache: mockCache,
+      })
 
       expect(result.exists).toBe(true)
 
@@ -177,7 +177,9 @@ describe('vscodeExtensionExists (continued)', () => {
           ],
         })
 
-      await vscodeExtensionExists('vscode-eslint', 'dbaeumer', '2.4.1', {
+      await vscodeExtensionExists('vscode-eslint', {
+        namespace: 'dbaeumer',
+        version: '2.4.1',
         cache: mockCache,
       })
 
@@ -204,14 +206,10 @@ describe('vscodeExtensionExists (continued)', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists(
-        'non-existent',
-        'publisher',
-        undefined,
-        {
-          cache: mockCache,
-        },
-      )
+      const result = await vscodeExtensionExists('non-existent', {
+        namespace: 'publisher',
+        cache: mockCache,
+      })
 
       expect(result.exists).toBe(false)
       expect(

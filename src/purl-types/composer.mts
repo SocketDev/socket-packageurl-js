@@ -23,6 +23,22 @@ export interface PurlObject {
 }
 
 /**
+ * Options for `packagistExists()`. Extends the shared registry existence
+ * options with the Composer-specific `namespace` (vendor) and `version`
+ * fields.
+ */
+export type PackagistExistsOptions = ExistsOptions & {
+  /**
+   * Vendor name (e.g., `'symfony'`).
+   */
+  namespace?: string | undefined
+  /**
+   * Optional version to validate (e.g., `'v6.3.0'`).
+   */
+  version?: string | undefined
+}
+
+/**
  * Normalize Composer package URL. Lowercases both `namespace` and `name`.
  */
 export function normalize(purl: PurlObject): PurlObject {
@@ -40,36 +56,37 @@ export function normalize(purl: PurlObject): PurlObject {
  * @example
  *   ;```typescript
  *   // Check if package exists
- *   const result = await packagistExists('http-foundation', 'symfony')
+ *   const result = await packagistExists('http-foundation', {
+ *     namespace: 'symfony',
+ *   })
  *   // -> { exists: true, latestVersion: 'v6.3.0' }
  *
  *   // Validate specific version
- *   const result = await packagistExists(
- *     'http-foundation',
- *     'symfony',
- *     'v6.3.0',
- *   )
+ *   const result = await packagistExists('http-foundation', {
+ *     namespace: 'symfony',
+ *     version: 'v6.3.0',
+ *   })
  *   // -> { exists: true, latestVersion: 'v6.3.0' }
  *
  *   // Non-existent package
- *   const result = await packagistExists('fake-package', 'vendor')
+ *   const result = await packagistExists('fake-package', {
+ *     namespace: 'vendor',
+ *   })
  *   // -> { exists: false, error: 'Package not found' }
  *   ```
  *
  * @param name - Package name (e.g., `'http-foundation'`)
- * @param namespace - Vendor name (e.g., `'symfony'`)
- * @param version - Optional version to validate (e.g., `'v6.3.0'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `namespace` (vendor
+ *   name), `version`, and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function packagistExists(
   name: string,
-  namespace?: string | undefined,
-  version?: string | undefined,
-  options?: ExistsOptions | undefined,
+  options?: PackagistExistsOptions | undefined,
 ): Promise<ExistsResult> {
-  const opts = { __proto__: null, ...options } as typeof options
+  const opts = { __proto__: null, ...options } as PackagistExistsOptions
+  const { namespace, version } = opts
   if (!namespace) {
     return { exists: false, error: 'Composer requires namespace (vendor)' }
   }

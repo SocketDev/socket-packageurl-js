@@ -111,7 +111,7 @@ export async function purlExists(
 
   switch (type) {
     case 'npm':
-      return npmExists(name, namespace, version, options)
+      return npmExists(name, { namespace, version, ...options })
     case 'pypi':
       return pypiExists(name, version, options)
     case 'cargo':
@@ -119,19 +119,19 @@ export async function purlExists(
     case 'gem':
       return gemExists(name, version, options)
     case 'maven':
-      return mavenExists(name, namespace, version, options)
+      return mavenExists(name, { namespace, version, ...options })
     case 'nuget':
       return nugetExists(name, version, options)
     case 'golang':
-      return golangExists(name, namespace, version, options)
+      return golangExists(name, { namespace, version, ...options })
     case 'composer':
-      return packagistExists(name, namespace, version, options)
+      return packagistExists(name, { namespace, version, ...options })
     case 'cocoapods':
       return cocoapodsExists(name, version, options)
     case 'conda':
-      return condaExists(name, version, namespace, options)
+      return condaExists(name, { version, channel: namespace, ...options })
     case 'docker':
-      return dockerExists(name, namespace, version, options)
+      return dockerExists(name, { namespace, version, ...options })
     case 'pub':
       return pubExists(name, version, options)
     case 'hex':

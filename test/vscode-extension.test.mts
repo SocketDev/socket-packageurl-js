@@ -42,7 +42,9 @@ describe('vscodeExtensionExists', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
+      const result = await vscodeExtensionExists('vscode-eslint', {
+        namespace: 'dbaeumer',
+      })
 
       expect(result).toEqual({
         exists: true,
@@ -77,7 +79,9 @@ describe('vscodeExtensionExists', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
+      const result = await vscodeExtensionExists('vscode-eslint', {
+        namespace: 'dbaeumer',
+      })
 
       expect(result.exists).toBe(true)
       expect(result.latestVersion).toBe('2.4.2')
@@ -101,10 +105,9 @@ describe('vscodeExtensionExists', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists(
-        'non-existent-extension',
-        'publisher',
-      )
+      const result = await vscodeExtensionExists('non-existent-extension', {
+        namespace: 'publisher',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Extension not found')
@@ -130,7 +133,9 @@ describe('vscodeExtensionExists', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists('test-extension', 'publisher')
+      const result = await vscodeExtensionExists('test-extension', {
+        namespace: 'publisher',
+      })
 
       expect(result.exists).toBe(true)
       expect(result.latestVersion).toBeUndefined()
@@ -148,7 +153,9 @@ describe('vscodeExtensionExists', () => {
           // No results array
         })
 
-      const result = await vscodeExtensionExists('test-extension', 'publisher')
+      const result = await vscodeExtensionExists('test-extension', {
+        namespace: 'publisher',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Extension not found')
@@ -180,11 +187,10 @@ describe('vscodeExtensionExists', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists(
-        'vscode-eslint',
-        'dbaeumer',
-        '2.4.1',
-      )
+      const result = await vscodeExtensionExists('vscode-eslint', {
+        namespace: 'dbaeumer',
+        version: '2.4.1',
+      })
 
       expect(result).toEqual({
         exists: true,
@@ -212,11 +218,10 @@ describe('vscodeExtensionExists', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists(
-        'vscode-eslint',
-        'dbaeumer',
-        '999.0.0',
-      )
+      const result = await vscodeExtensionExists('vscode-eslint', {
+        namespace: 'dbaeumer',
+        version: '999.0.0',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -243,11 +248,10 @@ describe('vscodeExtensionExists', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists(
-        'vscode-eslint',
-        'dbaeumer',
-        '999.0.0',
-      )
+      const result = await vscodeExtensionExists('vscode-eslint', {
+        namespace: 'dbaeumer',
+        version: '999.0.0',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -274,7 +278,9 @@ describe('vscodeExtensionExists', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists('test-extension', 'publisher')
+      const result = await vscodeExtensionExists('test-extension', {
+        namespace: 'publisher',
+      })
 
       expect(result.exists).toBe(true)
       expect(result.latestVersion).toBeUndefined()
@@ -300,11 +306,10 @@ describe('vscodeExtensionExists', () => {
           ],
         })
 
-      const result = await vscodeExtensionExists(
-        'vscode-eslint',
-        'dbaeumer',
-        '2.4.0',
-      )
+      const result = await vscodeExtensionExists('vscode-eslint', {
+        namespace: 'dbaeumer',
+        version: '2.4.0',
+      })
 
       expect(result.exists).toBe(true)
       expect(result.latestVersion).toBeUndefined()

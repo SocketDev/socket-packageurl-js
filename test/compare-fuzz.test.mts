@@ -206,12 +206,11 @@ describe('compare — fuzz', () => {
     const maybeValue = fc.option(word, { nil: undefined })
     fc.assert(
       fc.property(maybeValue, actual => {
+        const actualValue = actual ?? ''
         // '**' matches every possible actual value.
-        expect(matchComponent('**', actual)).toBe(true)
+        expect(matchComponent('**', actualValue)).toBe(true)
         // An empty pattern matches iff the actual is empty/absent.
-        const emptyActual =
-          actual === undefined || actual === null || actual === ''
-        expect(matchComponent('', actual)).toBe(emptyActual)
+        expect(matchComponent('', actualValue)).toBe(actualValue === '')
       }),
     )
   })

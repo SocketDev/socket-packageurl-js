@@ -26,7 +26,7 @@ describe('dockerExists', () => {
           namespace: 'library',
         })
 
-      const result = await dockerExists('nginx', 'library')
+      const result = await dockerExists('nginx', { namespace: 'library' })
 
       expect(result).toEqual({
         exists: true,
@@ -54,7 +54,9 @@ describe('dockerExists', () => {
         .get('/v2/repositories/library/this-image-does-not-exist')
         .reply(404)
 
-      const result = await dockerExists('this-image-does-not-exist', 'library')
+      const result = await dockerExists('this-image-does-not-exist', {
+        namespace: 'library',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Image not found')
@@ -67,7 +69,7 @@ describe('dockerExists', () => {
           // No name property
         })
 
-      const result = await dockerExists('test-image', 'library')
+      const result = await dockerExists('test-image', { namespace: 'library' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Image not found')
@@ -86,7 +88,10 @@ describe('dockerExists', () => {
           name: '1.25.3',
         })
 
-      const result = await dockerExists('nginx', 'library', '1.25.3')
+      const result = await dockerExists('nginx', {
+        namespace: 'library',
+        version: '1.25.3',
+      })
 
       expect(result).toEqual({
         exists: true,
@@ -103,7 +108,10 @@ describe('dockerExists', () => {
         .get('/v2/repositories/library/nginx/tags/999.0.0')
         .reply(404)
 
-      const result = await dockerExists('nginx', 'library', '999.0.0')
+      const result = await dockerExists('nginx', {
+        namespace: 'library',
+        version: '999.0.0',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Tag 999.0.0 not found')
@@ -120,7 +128,10 @@ describe('dockerExists', () => {
           name: 'v1.0.0',
         })
 
-      const result = await dockerExists('myimage', 'myuser', 'v1.0.0')
+      const result = await dockerExists('myimage', {
+        namespace: 'myuser',
+        version: 'v1.0.0',
+      })
 
       expect(result.exists).toBe(true)
       expect(result.latestVersion).toBe('v1.0.0')
@@ -133,7 +144,7 @@ describe('dockerExists', () => {
         .get('/v2/repositories/library/test-image')
         .replyWithError('Network error')
 
-      const result = await dockerExists('test-image', 'library')
+      const result = await dockerExists('test-image', { namespace: 'library' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('request failed')
@@ -144,7 +155,7 @@ describe('dockerExists', () => {
         .get('/v2/repositories/library/test-image')
         .reply(500, 'Internal Server Error')
 
-      const result = await dockerExists('test-image', 'library')
+      const result = await dockerExists('test-image', { namespace: 'library' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toBeDefined()
@@ -159,7 +170,10 @@ describe('dockerExists', () => {
         .get('/v2/repositories/library/nginx/tags/test')
         .replyWithError('Network error')
 
-      const result = await dockerExists('nginx', 'library', 'test')
+      const result = await dockerExists('nginx', {
+        namespace: 'library',
+        version: 'test',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('request failed')
@@ -174,7 +188,7 @@ describe('dockerExists', () => {
           name: 'nginx',
         })
 
-      const result = await dockerExists('nginx', 'library')
+      const result = await dockerExists('nginx', { namespace: 'library' })
 
       expect(result.exists).toBe(true)
     })
@@ -187,7 +201,8 @@ describe('dockerExists', () => {
       await mockCache.set('docker:library/nginx', cachedResult)
 
       // Should not make HTTP request
-      const result = await dockerExists('nginx', 'library', undefined, {
+      const result = await dockerExists('nginx', {
+        namespace: 'library',
         cache: mockCache,
       })
 
@@ -203,7 +218,8 @@ describe('dockerExists', () => {
           name: 'redis',
         })
 
-      const result = await dockerExists('redis', 'library', undefined, {
+      const result = await dockerExists('redis', {
+        namespace: 'library',
         cache: mockCache,
       })
 
@@ -226,7 +242,11 @@ describe('dockerExists', () => {
           name: '1.25.3',
         })
 
-      await dockerExists('nginx', 'library', '1.25.3', { cache: mockCache })
+      await dockerExists('nginx', {
+        namespace: 'library',
+        version: '1.25.3',
+        cache: mockCache,
+      })
 
       expect(await mockCache.get('docker:library/nginx:1.25.3')).toBeDefined()
     })
@@ -240,7 +260,7 @@ describe('dockerExists', () => {
           name: 'myimage',
         })
 
-      await dockerExists('myimage', undefined, undefined, { cache: mockCache })
+      await dockerExists('myimage', { cache: mockCache })
 
       expect(await mockCache.get('docker:myimage')).toBeDefined()
     })

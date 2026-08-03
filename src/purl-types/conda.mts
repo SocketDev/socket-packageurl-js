@@ -24,6 +24,21 @@ export interface PurlObject {
 }
 
 /**
+ * Options for `condaExists()`. Extends the shared registry existence options
+ * with the Conda-specific `version` and `channel` fields.
+ */
+export type CondaExistsOptions = ExistsOptions & {
+  /**
+   * Optional version to validate (e.g., `'1.24.3'`).
+   */
+  version?: string | undefined
+  /**
+   * Optional channel name (defaults to `'conda-forge'`).
+   */
+  channel?: string | undefined
+}
+
+/**
  * Check if a Conda package exists in Anaconda.org.
  *
  * Queries Anaconda.org at https://api.anaconda.org/package to verify package
@@ -44,17 +59,17 @@ export interface PurlObject {
  *   // -> { exists: true, latestVersion: '1.26.3' }
  *
  *   // Check with custom channel
- *   const result = await condaExists('numpy', undefined, 'defaults')
+ *   const result = await condaExists('numpy', { channel: 'defaults' })
  *   // -> { exists: true, latestVersion: '1.26.3' }
  *
  *   // Validate specific version
- *   const result = await condaExists('pandas', '2.1.4')
+ *   const result = await condaExists('pandas', { version: '2.1.4' })
  *   // -> { exists: true, latestVersion: '2.2.0' }
  *
  *   // With caching
  *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'conda' })
- *   const result = await condaExists('numpy', undefined, undefined, { cache })
+ *   const result = await condaExists('numpy', { cache })
  *
  *   // Non-existent package
  *   const result = await condaExists('this-package-does-not-exist')
@@ -62,21 +77,19 @@ export interface PurlObject {
  *   ```
  *
  * @param name - Package name (e.g., `'numpy'`, `'pandas'`)
- * @param version - Optional version to validate (e.g., `'1.24.3'`)
- * @param channel - Optional channel name (defaults to `'conda-forge'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `version`, `channel`
+ *   (defaults to `'conda-forge'`), and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function condaExists(
   name: string,
-  version?: string | undefined,
-  channel?: string | undefined,
-  options?: ExistsOptions | undefined,
+  options?: CondaExistsOptions | undefined,
 ): Promise<ExistsResult> {
   // Use the provided channel or default to `conda-forge`. It is the most
   // popular community channel.
-  const opts = { __proto__: null, ...options } as typeof options
+  const opts = { __proto__: null, ...options } as CondaExistsOptions
+  const { channel, version } = opts
   const channelName = channel || 'conda-forge'
   const cacheKey = version
     ? `conda:${channelName}/${name}@${version}`

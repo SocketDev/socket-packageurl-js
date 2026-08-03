@@ -30,7 +30,9 @@ describe('mavenExists', () => {
           },
         })
 
-      const result = await mavenExists('commons-lang3', 'org.apache.commons')
+      const result = await mavenExists('commons-lang3', {
+        namespace: 'org.apache.commons',
+      })
 
       expect(result).toEqual({
         exists: true,
@@ -50,7 +52,9 @@ describe('mavenExists', () => {
           },
         })
 
-      const result = await mavenExists('fake-artifact', 'com.example')
+      const result = await mavenExists('fake-artifact', {
+        namespace: 'com.example',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Package not found')
@@ -73,7 +77,7 @@ describe('mavenExists', () => {
           },
         })
 
-      const result = await mavenExists('test', 'com.test')
+      const result = await mavenExists('test', { namespace: 'com.test' })
 
       expect(result).toEqual({
         exists: true,
@@ -103,11 +107,10 @@ describe('mavenExists', () => {
           },
         })
 
-      const result = await mavenExists(
-        'commons-lang3',
-        'org.apache.commons',
-        '3.11.0',
-      )
+      const result = await mavenExists('commons-lang3', {
+        namespace: 'org.apache.commons',
+        version: '3.11.0',
+      })
 
       expect(result).toEqual({
         exists: true,
@@ -135,11 +138,10 @@ describe('mavenExists', () => {
           },
         })
 
-      const result = await mavenExists(
-        'commons-lang3',
-        'org.apache.commons',
-        '999.0.0',
-      )
+      const result = await mavenExists('commons-lang3', {
+        namespace: 'org.apache.commons',
+        version: '999.0.0',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -164,7 +166,10 @@ describe('mavenExists', () => {
           },
         })
 
-      const result = await mavenExists('test', 'com.test', '999.0.0')
+      const result = await mavenExists('test', {
+        namespace: 'com.test',
+        version: '999.0.0',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -181,7 +186,7 @@ describe('mavenExists', () => {
           },
         })
 
-      const result = await mavenExists('test', 'com.test')
+      const result = await mavenExists('test', { namespace: 'com.test' })
 
       expect(result.exists).toBe(true)
       expect(result.latestVersion).toBeUndefined()
@@ -194,7 +199,7 @@ describe('mavenExists', () => {
         .get('/solrsearch/select?q=g:com.test+AND+a:test&rows=1&wt=json')
         .replyWithError('Network error')
 
-      const result = await mavenExists('test', 'com.test')
+      const result = await mavenExists('test', { namespace: 'com.test' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('request failed')
@@ -205,7 +210,7 @@ describe('mavenExists', () => {
         .get('/solrsearch/select?q=g:com.test+AND+a:test&rows=1&wt=json')
         .reply(500, 'Internal Server Error')
 
-      const result = await mavenExists('test', 'com.test')
+      const result = await mavenExists('test', { namespace: 'com.test' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toBeDefined()
@@ -222,12 +227,10 @@ describe('mavenExists', () => {
         cachedResult,
       )
 
-      const result = await mavenExists(
-        'commons-lang3',
-        'org.apache.commons',
-        undefined,
-        { cache: mockCache },
-      )
+      const result = await mavenExists('commons-lang3', {
+        namespace: 'org.apache.commons',
+        cache: mockCache,
+      })
 
       expect(result).toEqual(cachedResult)
     })
@@ -246,12 +249,10 @@ describe('mavenExists', () => {
           },
         })
 
-      const result = await mavenExists(
-        'commons-lang3',
-        'org.apache.commons',
-        undefined,
-        { cache: mockCache },
-      )
+      const result = await mavenExists('commons-lang3', {
+        namespace: 'org.apache.commons',
+        cache: mockCache,
+      })
 
       expect(result.exists).toBe(true)
       expect(

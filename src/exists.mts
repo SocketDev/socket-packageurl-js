@@ -34,5 +34,12 @@ export { purlExists } from './purl-exists.mjs'
 export { pypiExists } from './purl-types/pypi.mjs'
 export { vscodeExtensionExists } from './purl-types/vscode-extension.mjs'
 export type { ExistsOptions, ExistsResult } from './purl-types/npm.mjs'
+export type { CondaExistsOptions } from './purl-types/conda.mjs'
+export type { DockerExistsOptions } from './purl-types/docker.mjs'
+export type { PackagistExistsOptions } from './purl-types/composer.mjs'
+export type { GolangExistsOptions } from './purl-types/golang.mjs'
+export type { MavenExistsOptions } from './purl-types/maven.mjs'
+export type { NpmExistsOptions } from './purl-types/npm.mjs'
+export type { VscodeExtensionExistsOptions } from './purl-types/vscode-extension.mjs'
 
 /* v8 ignore stop */

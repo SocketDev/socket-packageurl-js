@@ -34,6 +34,22 @@ export interface PurlObject {
 }
 
 /**
+ * Options for `vscodeExtensionExists()`. Extends the shared registry
+ * existence options with the VSCode-specific `namespace` (publisher) and
+ * `version` fields.
+ */
+export type VscodeExtensionExistsOptions = ExistsOptions & {
+  /**
+   * Publisher name (e.g., `'dbaeumer'`).
+   */
+  namespace?: string | undefined
+  /**
+   * Optional version to validate (e.g., `'2.4.2'`).
+   */
+  version?: string | undefined
+}
+
+/**
  * Normalize VSCode extension package URL. Lowercases `namespace` (publisher),
  * `name` (extension), and `version` per spec. Spec: `namespace`, `name`, and
  * `version` are all case-insensitive.
@@ -61,46 +77,45 @@ export function normalize(purl: PurlObject): PurlObject {
  * @example
  *   ;```typescript
  *   // Check if extension exists
- *   const result = await vscodeExtensionExists('vscode-eslint', 'dbaeumer')
+ *   const result = await vscodeExtensionExists('vscode-eslint', {
+ *     namespace: 'dbaeumer',
+ *   })
  *   // -> { exists: true, latestVersion: '2.4.2' }
  *
  *   // Validate specific version
- *   const result = await vscodeExtensionExists(
- *     'vscode-eslint',
- *     'dbaeumer',
- *     '2.4.0',
- *   )
+ *   const result = await vscodeExtensionExists('vscode-eslint', {
+ *     namespace: 'dbaeumer',
+ *     version: '2.4.0',
+ *   })
  *   // -> { exists: true, latestVersion: '2.4.2' }
  *
  *   // With caching
  *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'vscode' })
- *   const result = await vscodeExtensionExists(
- *     'vscode-eslint',
- *     'dbaeumer',
- *     undefined,
- *     { cache },
- *   )
+ *   const result = await vscodeExtensionExists('vscode-eslint', {
+ *     namespace: 'dbaeumer',
+ *     cache,
+ *   })
  *
  *   // Non-existent extension
- *   const result = await vscodeExtensionExists('non-existent', 'publisher')
+ *   const result = await vscodeExtensionExists('non-existent', {
+ *     namespace: 'publisher',
+ *   })
  *   // -> { exists: false, error: 'Extension not found' }
  *   ```
  *
  * @param name - Extension name (e.g., `'vscode-eslint'`)
- * @param namespace - Publisher name (e.g., `'dbaeumer'`)
- * @param version - Optional version to validate (e.g., `'2.4.2'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `namespace` (publisher),
+ *   `version`, and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function vscodeExtensionExists(
   name: string,
-  namespace?: string | undefined,
-  version?: string | undefined,
-  options?: ExistsOptions | undefined,
+  options?: VscodeExtensionExistsOptions | undefined,
 ): Promise<ExistsResult> {
-  const opts = { __proto__: null, ...options } as typeof options
+  const opts = { __proto__: null, ...options } as VscodeExtensionExistsOptions
+  const { namespace, version } = opts
   if (!namespace) {
     return {
       exists: false,
