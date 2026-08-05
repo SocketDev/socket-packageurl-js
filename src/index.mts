@@ -106,6 +106,10 @@ export {
   findInjectionCharCode,
   formatInjectionChar,
 } from './strings.mjs'
+export {
+  describeUnresolvableVersion,
+  isResolvableVersion,
+} from './resolvable-version.mjs'
 export { stringify, stringifySpec } from './stringify.mjs'
 export { Vers } from './vers.mjs'
 export type { VersComparator, VersConstraint, VersWildcard } from './vers.mjs'
