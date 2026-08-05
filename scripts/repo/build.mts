@@ -29,6 +29,8 @@ import { configs as rolldownConfigs } from '../../.config/repo/rolldown.config.m
 import { getBuildAnalysis } from './build-analysis.mts'
 import { runSequence } from '../utils/run-command.mts'
 
+import { isMainModule } from '../fleet/_shared/is-main-module.mts'
+
 type BuildScriptValues = FlagValues & {
   analyze: boolean
   help: boolean
@@ -473,7 +475,9 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error: unknown) => {
-  logger.error(error)
-  process.exitCode = 1
-})
+if (isMainModule(import.meta.url)) {
+  main().catch((error: unknown) => {
+    logger.error(error)
+    process.exitCode = 1
+  })
+}

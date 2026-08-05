@@ -30,6 +30,8 @@ import type {
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 import { errorMessage } from '../utils/error-message.mts'
 
+import { isMainModule } from '../fleet/_shared/is-main-module.mts'
+
 type CommandResult = {
   exitCode: number
   stderr: string
@@ -6245,7 +6247,9 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(e => {
-  logger.fail(e)
-  process.exitCode = 1
-})
+if (isMainModule(import.meta.url)) {
+  main().catch(e => {
+    logger.fail(e)
+    process.exitCode = 1
+  })
+}

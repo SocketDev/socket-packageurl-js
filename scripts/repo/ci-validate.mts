@@ -14,6 +14,8 @@ import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from '../utils/error-message.mts'
 
+import { isMainModule } from '../fleet/_shared/is-main-module.mts'
+
 const logger: Logger = getDefaultLogger()
 
 const __dirname: string = path.dirname(fileURLToPath(import.meta.url))
@@ -83,8 +85,10 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((e: unknown) => {
-  const message = errorMessage(e)
-  logger.error(`CI validation crashed: ${message}`)
-  process.exitCode = 1
-})
+if (isMainModule(import.meta.url)) {
+  main().catch((e: unknown) => {
+    const message = errorMessage(e)
+    logger.error(`CI validation crashed: ${message}`)
+    process.exitCode = 1
+  })
+}

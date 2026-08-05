@@ -240,7 +240,7 @@ Candidates: `validation`, `errors`, `results`, `validate`.
 - `results` — rejected, ambiguous (result pattern or outcomes?).
 - `validate` — gerund would be `validating`; `validation` is the
   `-ion` form, used here because the doc treats validation as a
-  topic — the shape of errors/results — not an activity. Mixing
+  topic, the shape of errors/results, rather than an activity. Mixing
   `-ion` forms with gerunds is acceptable when the semantic shift
   is real.
 - Winner: `validation`.
