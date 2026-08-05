@@ -20,6 +20,15 @@ PreToolUse Bash hook that blocks destructive git commands and hook bypasses unle
 | `SKIP_ASSET_DOWNLOAD=1`                                                                                                                 | `Allow asset-download bypass` |
 | Bash file-write (`python -c '…write…'`, heredoc `> file`, `tee <file>`, `dd of=…`)                                                      | `Allow bash-write bypass`     |
 
+`git revert` is NOT in the table. It appends an inverse commit and discards
+nothing — the working tree keeps every uncommitted change and the reverted
+commit stays reachable — so it is not work loss and this guard does not gate it.
+The name "revert" here is the category (putting tracked work back), which every
+row above does. The fleet's position on `git revert` itself is
+`prefer-rebase-over-revert-nudge`, a nudge, which steers an unpushed commit to
+`git reset --soft` / `git rebase -i`. The covered subcommands, the rule label
+derived from them, and this reasoning live in `destructive-git-shapes.mts`.
+
 The three hook-chain rows share one phrase because they are one decision with
 one outcome: the `.git-hooks/` chain does not run. The `core.hooksPath` rule
 stands down when the command names another repository (`-C` / `--git-dir`
