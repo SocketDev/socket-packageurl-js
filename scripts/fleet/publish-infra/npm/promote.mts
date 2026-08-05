@@ -135,7 +135,7 @@ export async function publishedVersion(
   }
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const argv = process.argv.slice(2)
   const version = flag(argv, '--version')
   if (!version) {
@@ -251,6 +251,8 @@ const SCRIPT_META: ScriptMeta = {
   --skip-reconcile    skip the post-promote release-gap reconcile`,
 }
 
+/* c8 ignore start - entrypoint guard; exercised via subprocess */
 if (isMainModule(import.meta.url)) {
   runMain(main, SCRIPT_META)
 }
+/* c8 ignore stop */

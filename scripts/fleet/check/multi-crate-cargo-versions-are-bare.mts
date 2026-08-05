@@ -61,7 +61,7 @@ export function barePolicyViolations(
   return packages.filter(p => isPrereleaseHint(p.version))
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const quiet = process.argv.includes('--quiet')
   if (!existsSync(path.join(REPO_ROOT, 'Cargo.toml'))) {
     return
@@ -98,6 +98,7 @@ const SCRIPT_META: ScriptMeta = {
   --quiet  silent on clean`,
 }
 
+/* c8 ignore start - entrypoint guard; exercised via subprocess */
 if (isMainModule(import.meta.url)) {
   runMain(
     () =>
@@ -109,3 +110,4 @@ if (isMainModule(import.meta.url)) {
     SCRIPT_META,
   )
 }
+/* c8 ignore stop */

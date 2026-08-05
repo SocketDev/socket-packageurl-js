@@ -101,6 +101,15 @@ characters carry the shape in one place and ordinary content in another
   a `pattern` / `regex` config key, and, in a code file, a string literal that is
   itself regex-shaped. A bolded version note in a markdown table cell, a version
   range, a glob, and a semver caret are prose, and prose yields no positions.
+  Those positions are read from a line whose PROSE has had its markdown
+  emphasis delimiters stripped, because `*`, `_`, `~` and the backtick are
+  formatting syntax and regex metacharacters at once: a bolded `**(6+)**` note
+  supplies the trailing quantifier its author never typed. Markdown prose is
+  every line outside a fence or a code span
+  (`prompt-injection-guard/markdown-scan.mts`); code prose is a comment body and
+  a plain string literal, while a regex literal, a regex-shaped literal, and a
+  regex constructor's argument keep their bytes
+  (`prompt-injection-guard/code-scan.mts`).
 - **The megaline pair skips a generated / encoded artifact** — a build output, a
   vendored tree, a minified bundle, a source map, and a lockfile hold long
   unbroken lines because a generator emitted them that way, so their length is
