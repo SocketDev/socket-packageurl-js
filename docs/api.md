@@ -27,6 +27,9 @@ Parse npm package specifier into components.
 
 **Returns:** `NpmPackageComponents`
 
+<details>
+<summary>The returned component shape, examples for a plain and a scoped specifier, and the range-prefix and dist-tag handling notes</summary>
+
 ```typescript
 {
   namespace: string | undefined // e.g., '@babel' for scoped packages
@@ -52,6 +55,8 @@ parseNpmSpecifier('@babel/core@^7.0.0')
 - Strips version range prefixes (`^`, `~`, `>=`, etc.)
 - Handles dist-tags (`latest`, `next`, `beta`)
 - Supports scoped packages
+
+</details>
 
 ---
 
@@ -150,6 +155,9 @@ new PackageURL('npm', '@babel', 'core', '7.20.0', null, null)
 
 ### Static Methods
 
+<details>
+<summary>PackageURL.fromString, fromNpm, fromSpec, fromJSON and parseString: parameters, return type and a call example for each</summary>
+
 #### `PackageURL.fromString(purlStr)`
 
 Parse PURL string into PackageURL instance.
@@ -244,7 +252,12 @@ const [type, namespace, name, version, qualifiers, subpath] =
   PackageURL.parseString('pkg:npm/lodash@4.17.21')
 ```
 
+</details>
+
 ### Instance Methods
+
+<details>
+<summary>toString, toJSON, toObject, equals and compare: parameters and return types</summary>
 
 #### `toString()`
 
@@ -292,6 +305,8 @@ Compare for sorting.
 
 **Returns:** `-1 | 0 | 1`
 
+</details>
+
 ### Properties
 
 All properties are `string | undefined`:
@@ -316,6 +331,9 @@ new PurlBuilder()
 ```
 
 ### Static Factory Methods
+
+<details>
+<summary>PurlBuilder.create, PurlBuilder.from for copying an existing PackageURL, and the type-preset factories npm, pypi, maven, gem, cargo, composer, golang, nuget and 30+ more</summary>
 
 #### `PurlBuilder.create()`
 
@@ -385,9 +403,14 @@ PurlBuilder.nuget()
 const purl = PurlBuilder.npm().name('lodash').version('4.17.21').build()
 ```
 
+</details>
+
 ### Builder Methods
 
 All methods return `this` for chaining:
+
+<details>
+<summary>The chainable setters: type, namespace, name, version, qualifier, qualifiers, subpath and build</summary>
 
 #### `type(value)`
 
@@ -437,6 +460,8 @@ Build and return PackageURL instance.
 
 **Returns:** `PackageURL`
 
+</details>
+
 ### Example
 
 ```javascript
@@ -460,6 +485,9 @@ console.log(purl.toString())
 Convert PURLs to repository and download URLs.
 
 ### Static Methods
+
+<details>
+<summary>UrlConverter.toRepositoryUrl and UrlConverter.toDownloadUrl: parameters, the nullable return shapes and an example of each</summary>
 
 #### `UrlConverter.toRepositoryUrl(purl)`
 
@@ -500,6 +528,8 @@ UrlConverter.toDownloadUrl(purl)
 // -> { type: 'tarball', url: 'https://registry.npmjs.org/...' }
 ```
 
+</details>
+
 ---
 
 ## Registry Existence Checks
@@ -509,6 +539,9 @@ Modular functions to verify package existence across 14 package registries. Each
 ### `purlExists(purl, options?)`
 
 Generic wrapper that dispatches to type-specific existence checks based on the PackageURL type.
+
+<details>
+<summary>Parameters, the ExistsResult shape, a plain and a cached example, and the list of supported types</summary>
 
 **Parameters:**
 
@@ -544,11 +577,16 @@ await purlExists(purl, { cache })
 
 **Supported types:** npm, pypi, cargo, gem, maven, nuget, golang, composer, cocoapods, pub, hex, cpan, cran, hackage, conda, docker, vscode-extension
 
+</details>
+
 ---
 
 ### Type-Specific Functions
 
 All registry functions follow the same signature pattern and return `ExistsResult`.
+
+<details>
+<summary>The 17 per-registry checkers: npmExists, pypiExists, cargoExists, gemExists, mavenExists, nugetExists, golangExists, packagistExists, cocoapodsExists, pubExists, hexExists, cpanExists, cranExists, hackageExists, condaExists, dockerExists and vscodeExtensionExists, each with its registry host, its required options, and an await example</summary>
 
 #### `npmExists(name, options?)`
 
@@ -825,6 +863,8 @@ await vscodeExtensionExists('vscode-eslint', { namespace: 'dbaeumer' })
 // -> { exists: true, latestVersion: '3.0.10' }
 ```
 
+</details>
+
 ---
 
 ## Type Constants
@@ -861,6 +901,9 @@ PurlQualifierNames.Checksum // 'checksum'
 
 **Usage:**
 
+<details>
+<summary>A PurlBuilder example setting checksum and download_url, plus what each known qualifier means: repository_url, download_url, vcs_url, file_name and checksum</summary>
+
 ```javascript
 const purl = PurlBuilder.maven()
   .namespace('org.apache.commons')
@@ -879,6 +922,8 @@ const purl = PurlBuilder.maven()
 - `file_name` - Name of the package file or artifact
 - `checksum` - Checksum value in the format `algorithm:value` (e.g., `sha256:abc123`)
 
+</details>
+
 ---
 
 ### `PurlType`
@@ -893,6 +938,9 @@ PurlType.npm.validate(purl)
 ```
 
 **Type-specific rules:**
+
+<details>
+<summary>Normalization and validation rules per ecosystem: npm, pypi, maven and cargo</summary>
 
 **npm:**
 
@@ -917,6 +965,8 @@ PurlType.npm.validate(purl)
 - Name: Lowercased
 - Namespace: Must be empty
 - Version: Follows semver
+
+</details>
 
 ---
 
@@ -971,6 +1021,9 @@ try {
 
 The library performs strict validation on all components:
 
+<details>
+<summary>Rules and the exact error text for each component: type, name, namespace, version, qualifiers and subpath</summary>
+
 **Type validation:**
 
 - Required for all PURLs
@@ -1023,7 +1076,12 @@ The library performs strict validation on all components:
   - `'subpath' component cannot start with '/'`
   - `'subpath' component cannot contain '..' segments`
 
+</details>
+
 ### Common Error Scenarios
+
+<details>
+<summary>Three failing cases with the PurlError each raises: an invalid PURL string, type-specific violations for npm semver and maven namespace, and an uppercase qualifier key</summary>
 
 **Invalid PURL string:**
 
@@ -1062,6 +1120,8 @@ const purl = PurlBuilder.npm()
   .build()
 // -> PurlError: qualifier 'Arch' must be lowercase
 ```
+
+</details>
 
 ---
 

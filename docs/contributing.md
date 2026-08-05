@@ -97,6 +97,9 @@ and assert on their contents.
 
 Example:
 
+<details>
+<summary>A functional vitest example: parsing a scoped npm PURL and asserting namespace, name and version</summary>
+
 ```typescript
 import { test, expect } from 'vitest'
 import { PackageURL } from '../src/package-url.js'
@@ -108,6 +111,8 @@ test('parses npm scoped package', () => {
   expect(purl.version).toBe('1.0.0')
 })
 ```
+
+</details>
 
 If you are adding a new ecosystem or URL parser, put tests under
 `test/purl-types/<name>.test.mts` or
@@ -178,6 +183,9 @@ editing):
 
 Required for branch work:
 
+<details>
+<summary>The worktree commands for branch work, the explicit-path form of git add, and the WIP-save rule that replaces git stash</summary>
+
 ```bash
 git worktree add -b <task-branch> ../<repo>-<task> main
 cd ../<repo>-<task>
@@ -196,6 +204,8 @@ Never `-A` / `.`.
 
 For a quick WIP save: commit on a new branch from inside a
 worktree, not a stash.
+
+</details>
 
 ## Commit messages
 

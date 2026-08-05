@@ -20,6 +20,9 @@ All types are exported from the main entry point for maximum accessibility.
 
 Plain object representation of a Package URL.
 
+<details>
+<summary>The type definition, an example object literal, and the calls that return it: PackageURL.toObject and JSON.parse of toJSON</summary>
+
 ```typescript
 type PackageURLObject = {
   type?: string | undefined
@@ -48,6 +51,8 @@ const obj: PackageURLObject = {
 - `PackageURL.toObject()`
 - `JSON.parse(purl.toJSON())`
 
+</details>
+
 ---
 
 ### `PackageURLComponentValue`
@@ -67,6 +72,9 @@ Used for dynamic property access on PackageURL instances.
 ### `ParsedPurlComponents`
 
 Labeled tuple of parsed PURL components.
+
+<details>
+<summary>The labeled tuple definition, a destructuring example, and the call that returns it: PackageURL.parseString</summary>
 
 ```typescript
 type ParsedPurlComponents = [
@@ -95,6 +103,8 @@ const [type, namespace, name, version, qualifiers, subpath] = components
 
 - `PackageURL.parseString()`
 
+</details>
+
 ---
 
 ## Parser Types
@@ -102,6 +112,9 @@ const [type, namespace, name, version, qualifiers, subpath] = components
 ### `NpmPackageComponents`
 
 Components parsed from npm package specifier.
+
+<details>
+<summary>The type definition, a parseNpmSpecifier example, and the notes on scopes, stripped range prefixes and preserved dist-tags</summary>
 
 ```typescript
 type NpmPackageComponents = {
@@ -130,6 +143,8 @@ const components: NpmPackageComponents = parseNpmSpecifier('lodash@4.17.21')
 **Returned by:**
 
 - `parseNpmSpecifier()`
+
+</details>
 
 ---
 
@@ -417,6 +432,9 @@ const qualifiers = {
 
 All types can be imported from the main entry point:
 
+<details>
+<summary>The full `import type` list of every exported type, plus the value imports for PurlQualifierNames, PURL_Type, PurlType and PurlComponent</summary>
+
 ```typescript
 import type {
   // PURL types
@@ -453,6 +471,8 @@ import {
   PurlComponent,
 } from '@socketregistry/packageurl-js'
 ```
+
+</details>
 
 ---
 

@@ -29,6 +29,9 @@ not PURL.
  └───────────────────────────────────────────────────────────────┘
 ```
 
+<details>
+<summary>What each of the four static methods does: fromUrl, toDownloadUrl, toRepositoryUrl and getAllUrls, including when each returns undefined</summary>
+
 - **`UrlConverter.fromUrl(str)`** — URL string → PackageURL (or
   `undefined` if the URL is not recognized).
 - **`UrlConverter.toDownloadUrl(purl)`** — PackageURL → artifact
@@ -43,11 +46,16 @@ not PURL.
 All four methods are **static** on `UrlConverter`. Instances are
 not needed or exposed.
 
+</details>
+
 ## Supported hostnames for `fromUrl`
 
 When you call `UrlConverter.fromUrl('https://github.com/lodash/lodash')`
 the library dispatches on the URL's hostname. These hostnames are
 registered:
+
+<details>
+<summary>The hostname dispatch table: 26 hosts from registry.npmjs.org and pypi.org through marketplace.visualstudio.com and bitbucket.org, each mapped to the parser it selects</summary>
 
 | Hostname                               | Dispatches to                          |
 | -------------------------------------- | -------------------------------------- |
@@ -76,6 +84,8 @@ registered:
 | `github.com`                           | github (repo PURL)                     |
 | `gitlab.com`                           | gitlab                                 |
 | `bitbucket.org`                        | bitbucket                              |
+
+</details>
 
 `UrlConverter.supportsFromUrl(str)` answers "is this URL
 recognized?" without parsing.
@@ -243,6 +253,9 @@ The support matrix above grows when you:
 
 A typical `UrlParser` looks like:
 
+<details>
+<summary>A skeleton UrlParser implementation, and why the `new PackageURL` call is wrapped in try/catch so unknown input returns undefined instead of throwing</summary>
+
 ```typescript
 function parseMyEcosystem(url: URL): PackageURL | undefined {
   // Extract (name, version, extras) from url.pathname / url.searchParams
@@ -265,6 +278,8 @@ The **try/catch** around `new PackageURL(...)` is important: a URL
 parser converts unrecognized input to `undefined`, not a thrown
 error. Callers distinguish "unknown URL" from "malformed PURL" by
 the return type.
+
+</details>
 
 ## Hazards and caveats
 

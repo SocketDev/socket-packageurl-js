@@ -99,6 +99,9 @@ cargo, composer, gem, golang, hex, maven, npm, pub, pypi
 
 When implementing new URL types, use these registry URL patterns:
 
+<details>
+<summary>Registry URL template literals for 15 ecosystems: cocoapods, conda, docker, hackage, huggingface, deno, swift, vscode, clojars, bioconductor, cpan, elm, homebrew, conan and chrome</summary>
+
 ```typescript
 // cocoapods
 ;`https://cocoapods.org/pods/${name}`
@@ -131,6 +134,8 @@ When implementing new URL types, use these registry URL patterns:
 // chrome
 `https://chrome.google.com/webstore/detail/${name}`
 ```
+
+</details>
 
 ---
 

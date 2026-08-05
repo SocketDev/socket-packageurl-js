@@ -96,6 +96,9 @@ git status --porcelain
 Check each upstream source for changes since last sync:
 </action>
 
+<details>
+<summary>The four upstream probes: purl-spec commits filtered for SPECIFICATION, TYPES and test changes, vers-spec commits, the purl npm package version, and the TC54 status page</summary>
+
 **2.1: purl-spec repository**
 
 ```bash
@@ -121,6 +124,8 @@ npm view purl version description 2>/dev/null
 **2.4: TC54 status**
 
 Check https://tc54.org/purl/ for standard updates via WebFetch.
+
+</details>
 
 ---
 
@@ -235,6 +240,9 @@ fi
 Generate spec sync report:
 </action>
 
+<details>
+<summary>The spec-sync report template: upstream changes table, types added or updated, test-suite status, commits created, and the next steps for interactive and CI mode</summary>
+
 ```
 ## Spec Sync Complete
 
@@ -265,6 +273,8 @@ Generate spec sync report:
 **CI mode:**
 1. Workflow will push branch and create PR
 ```
+
+</details>
 
 </instructions>
 

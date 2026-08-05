@@ -16,12 +16,17 @@ depend on in their own code.
 
 Today, every package ecosystem has its own version-range syntax:
 
+<details>
+<summary>The six ecosystem range syntaxes VERS replaces: npm, pypi, cargo, maven, composer and nuget</summary>
+
 - **npm** uses `^1.2.3`, `~1.0`, `>=1.0 <2.0` (npm semver).
 - **pypi** uses `>=1.0,<2.0`, `~=1.0.0` (PEP 440).
 - **cargo** uses `^1.2.3` but with different prerelease rules.
 - **maven** uses `[1.0,2.0)` (interval notation).
 - **composer** uses `^1.2.3 || ~2.0`.
 - **nuget** uses `[1.0,2.0)` (similar to maven, different edges).
+
+</details>
 
 A tool that consumes all of them — a vulnerability scanner, an
 SBOM tool, Socket.dev itself — has to implement and maintain eight
@@ -44,6 +49,9 @@ multiple VERS in your own logic (the spec is deliberately simple
 here — it doesn't try to encode every operator every ecosystem has).
 
 ## Worked examples
+
+<details>
+<summary>Six annotated VERS strings: an npm OR range, a pypi range, a cargo caret, the semver wildcard, an npm exact match, and a three-constraint npm range</summary>
 
 ```
 vers:npm/>=1.0.0|<2.0.0
@@ -86,6 +94,8 @@ vers:npm/>=1.0.0|!=1.3.5|<2.0.0
 "≥ 1.0.0 OR not 1.3.5 OR < 2.0.0" — again, grammar demo; the OR
 semantics make this permissive. Real policies usually fit in two
 constraints.
+
+</details>
 
 ## The pre-standard caveat
 

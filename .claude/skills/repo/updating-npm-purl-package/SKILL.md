@@ -164,6 +164,9 @@ gh api repos/ljharb/purl/contents/test --jq '.[].name'
 For each identified gap, implement the feature:
 </action>
 
+<details>
+<summary>What to add per gap class: URL type handlers in url-converter.ts, registry validators in purl-exists.ts, normalization fixes in the per-type handler, plus the validate-then-commit-atomically commands</summary>
+
 For each missing URL type:
 
 1. Add case handler to `src/url-converter.ts` (both `toRepositoryUrl` and `toDownloadUrl`)
@@ -194,6 +197,8 @@ git commit -m "feat(url-converter): add {type} registry URL support
 Added repository and download URL generation for {type} ecosystem."
 ```
 
+</details>
+
 ---
 
 ### Phase 7: Final Validation
@@ -221,6 +226,9 @@ fi
 Generate feature parity report:
 </action>
 
+<details>
+<summary>The feature-parity report template: URL type coverage table, registry validation table, normalization fixes, API features, and commits created</summary>
+
 ```
 ## Feature Parity Sync Complete
 
@@ -245,6 +253,8 @@ Generate feature parity report:
 ### Commits Created:
 - [list commits]
 ```
+
+</details>
 
 </instructions>
 

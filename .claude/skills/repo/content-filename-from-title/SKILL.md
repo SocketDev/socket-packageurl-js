@@ -139,6 +139,9 @@ cute), adjust. Internal consistency matters — don't mix
 These are the filenames currently in `tour.json` at the time
 this skill was written. Each shows the rule that produced the choice.
 
+<details>
+<summary>All 8 tour filenames with the rule that produced each: anatomy, building, parsing, validation, conversion, ecosystems, comparison and security</summary>
+
 <example id="1">
 <title>Anatomy of a PURL</title>
 <filename>anatomy</filename>
@@ -219,7 +222,12 @@ scoped under security (injection + freeze + VERS-as-safety-boundary).
 </reasoning>
 </example>
 
+</details>
+
 ## Counter-examples — choices the procedure rejects
+
+<details>
+<summary>Four rejected filenames and the constraint each breaks: `purl` is not distinguishing, `buildingandstringifying` merges two words, `url-to-purl` carries a hyphen, and `page6` carries a digit</summary>
 
 <example id="bad-1">
 <title>Anatomy of a PURL</title>
@@ -259,6 +267,8 @@ hard constraints (digits) and soft constraints (stability,
 content-bearing).
 </reasoning>
 </example>
+</details>
+
 </examples>
 
 <checklist>

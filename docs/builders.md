@@ -72,6 +72,9 @@ PurlBuilder.npm().name('lodash').version('4.17.21').build()
 
 Available factories:
 
+<details>
+<summary>The 25 preset factories from PurlBuilder.bitbucket through PurlBuilder.swift, each with its ecosystem and the type it presets</summary>
+
 | Factory                     | Ecosystem              | Preset type   |
 | --------------------------- | ---------------------- | ------------- |
 | `PurlBuilder.bitbucket()`   | Bitbucket repos        | `bitbucket`   |
@@ -99,6 +102,8 @@ Available factories:
 | `PurlBuilder.pypi()`        | Python packages        | `pypi`        |
 | `PurlBuilder.rpm()`         | RPM packages           | `rpm`         |
 | `PurlBuilder.swift()`       | Swift packages         | `swift`       |
+
+</details>
 
 Generic entry points:
 
@@ -130,6 +135,9 @@ keys pass through untouched. See
 
 ### Build from a package.json entry
 
+<details>
+<summary>A purlFromPackageJson helper that splits an npm scope into namespace and name, with the output it produces for a plain and a scoped package</summary>
+
 ```typescript
 function purlFromPackageJson(name: string, version: string): PackageURL {
   const builder = PurlBuilder.npm().version(version)
@@ -151,6 +159,8 @@ purlFromPackageJson('lodash', '4.17.21').toString()
 purlFromPackageJson('@scope/pkg', '1.0.0').toString()
 // 'pkg:npm/%40scope/pkg@1.0.0'
 ```
+
+</details>
 
 ### Build with a download URL qualifier
 
@@ -187,6 +197,9 @@ modified copy. Direct mutation is impossible by design (see
 
 ### Chain many qualifiers
 
+<details>
+<summary>The same maven PURL built two ways: repeated .qualifier calls, then one .qualifiers object</summary>
+
 ```typescript
 PurlBuilder.maven()
   .namespace('org.apache.logging.log4j')
@@ -214,6 +227,8 @@ PurlBuilder.maven()
   })
   .build()
 ```
+
+</details>
 
 Both produce the same PURL. Use `.qualifier()` when adding one at
 a time inside a loop; use `.qualifiers()` when you have the whole
