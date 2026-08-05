@@ -112,31 +112,26 @@ export type GolangExistsOptions = ExistsOptions & {
  *
  * ## Provenance — this is official Go, not Artifactory-specific
  *
- * Defined in the official Go module proxy protocol (Go Modules Reference,
- * "Module proxies", and `go help goproxy`), which states that to avoid
- * ambiguity when serving from case-insensitive file systems, the $module and
- * $version elements are case-encoded by replacing every uppercase letter with
- * an exclamation mark followed by the corresponding lower-case letter.
+ * The Go module proxy protocol (Go Modules Reference "Module proxies", and
+ * `go help goproxy`) defines it: to avoid ambiguity on case-insensitive file
+ * systems, $module and $version case-encode each uppercase letter as `!` plus
+ * its lowercase form. The Go toolchain implements it in
+ * `golang.org/x/mod/module` `escapeString` (via `EscapePath`/`EscapeVersion`),
+ * whose rationale is verbatim: "we cannot rely on the file system to keep
+ * rsc.io/QUOTE and rsc.io/quote separate. Windows and macOS don't…"
  *
- * Implemented in the Go toolchain itself — `golang.org/x/mod/module`, function
- * `escapeString` (called by `EscapePath` / `EscapeVersion`). Rationale,
- * verbatim: "we cannot rely on the file system to keep rsc.io/QUOTE and
- * rsc.io/quote separate. Windows and macOS don't… The safe escaped form is to
- * replace every uppercase letter with an exclamation mark followed by the
- * letter's lowercase equivalent."
+ * Every conformant proxy (proxy.golang.org, Athens, Nexus, Artifactory) must
+ * implement it, and the Go client emits `!`-encoded URLs whichever proxy it
+ * talks to. Artifactory merely conforms — it historically had a bug failing to,
+ * and a Go maintainer on golang/go#34084 answered "This is correct as
+ * documented in `go help goproxy`… Please file a bug against Artifactory"
+ * (JFrog RTFACT-20227).
  *
- * All conformant proxies (proxy.golang.org, Athens, Nexus, Artifactory) must
- * implement it; the Go client emits these `!`-encoded URLs regardless of which
- * proxy it talks to. Artifactory merely conforms (and historically had a bug
- * failing to: a Go maintainer on golang/go#34084 told an Artifactory user "This
- * is correct as documented in `go help goproxy`… Please file a bug against
- * Artifactory" -> JFrog ticket RTFACT-20227).
- *
- * Ecosystem note: among the purl libraries, only `packageurl-python` ships this
- * escape (`contrib/purl2url.py` `escape_golang_path`, the same purl->URL role
- * as our url-converter), and it cites the same Go proxy protocol. packageurl-go
- * / java / php / ruby / upstream-js do NOT implement it — purl->proxy-URL is an
- * optional convenience, not core purl parsing, so most libraries skip it.
+ * Ecosystem note: only `packageurl-python` ships this escape among the purl
+ * libraries (`contrib/purl2url.py` `escape_golang_path`, the same purl->URL
+ * role as our url-converter), citing the same protocol. packageurl-go / java /
+ * php / ruby / upstream-js do NOT — purl->proxy-URL is an optional
+ * convenience rather than core purl parsing, so most libraries skip it.
  *
  * @see https://go.dev/ref/mod#goproxy-protocol
  * @see https://github.com/golang/mod/blob/v0.36.0/module/module.go#L707 (escapeString)
