@@ -102,7 +102,7 @@ catalog:
   # candidates before simulating what a port actually cuts. Published
   # 2026-06-08, past the 7-day soak.
   'npm-high-impact': 1.13.0
-  'npm-run-all2': 9.0.2
+  'npm-run-all2': 9.0.3
   'oxfmt': 0.61.0
   'oxlint': 1.76.0
   # oxlint-tsgolint — tsgolint sidecar for oxlint --type-aware (same oxc release train).
