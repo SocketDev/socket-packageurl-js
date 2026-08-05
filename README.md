@@ -87,23 +87,23 @@ parseNpmSpecifier('@babel/core@^7.0.0')
 // -> { namespace: '@babel', name: 'core', version: '7.0.0' }
 ```
 
-**Stringify PURLs:**
+<details>
+<summary><b>Stringify and compare</b> — <code>stringify</code>, <code>equals</code>, <code>compare</code></summary>
 
 ```javascript
-import { stringify } from '@socketregistry/packageurl-js'
+import { compare, equals, stringify } from '@socketregistry/packageurl-js'
 
 stringify(purl)
 // -> 'pkg:npm/lodash@4.17.21'
-```
-
-**Compare PURLs:**
-
-```javascript
-import { equals, compare } from '@socketregistry/packageurl-js'
 
 equals(purl1, purl2) // -> boolean
 compare(purl1, purl2) // -> -1 | 0 | 1
 ```
+
+`compare` returns a sort-friendly ordering, so an array of PURLs sorts with
+`purls.sort(compare)`.
+
+</details>
 
 ### Class API
 
