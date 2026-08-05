@@ -58,12 +58,17 @@ This doc is how the library refuses all six.
 `src/strings.ts` exports `isInjectionCharCode(code: number)`. It
 returns `true` for any character code in one of four classes:
 
+<details>
+<summary>The four blocked classes with their code ranges and the reason each is blocked: C0 controls, shell metacharacters with brackets and quotes, C1 controls, and Unicode invisible or directional marks</summary>
+
 | Class                                        | Codes                                                                                                                                              | Why                                                                                                   |
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **C0 control characters**                    | `0x00`–`0x1f`                                                                                                                                      | NUL (truncation), TAB / LF / CR (log injection), ESC (terminal escape), everything else in that range |
 | **Shell metacharacters + brackets + quotes** | `0x20` (space), `!`, `"`, `#`, `$`, `%`, `&`, `'`, `(`, `)`, `*`, `;`, `<`, `=`, `>`, `?`, `[`, `\`, `]`, `` ` ``, `{`, `\|` (pipe), `}`, `~`, DEL | Shell interpretation, SQL quote-escape, URL-fragment injection                                        |
 | **C1 control characters**                    | `0x80`–`0x9f`                                                                                                                                      | Legacy control bytes; some terminals still act on them                                                |
 | **Unicode invisible/directional**            | `U+200B`–`U+200F`, `U+202A`–`U+202E`, `U+2060`, `U+FEFF`, `U+FFFC`, `U+FFFD`                                                                       | Zero-width chars, bidi override characters (IDN-homograph attacks), BOM, object replacement           |
+
+</details>
 
 Any input containing one of these characters in a component where
 we scan for injection throws `PurlInjectionError` before the
@@ -127,6 +132,9 @@ middle hop can't secretly modify the object and hand it to the next
 hop. Validation up front + freeze means "validated" still means
 something at the endpoint.
 
+<details>
+<summary>Two further freeze details: why the toString memo is a private field so serialization stays lazy, and recursiveFreeze with its WeakSet cycle detection and one-million-node ceiling</summary>
+
 The canonical-string memo behind `toString()` is a private field,
 not a property, so the freeze does not seal it and serialization
 stays lazy — a caller that only reads `.name` never pays for a
@@ -141,6 +149,8 @@ adversary-constructed cyclic object cannot loop the walker forever;
 a million-node object graph throws
 `Error("Object graph too large…")` rather than OOM-ing the
 process.
+
+</details>
 
 ## The third line: error messages that don't leak
 

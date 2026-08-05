@@ -36,6 +36,9 @@ the latest published spec + all accepted amendments.
 
 ## The module map
 
+<details>
+<summary>The `src/` tree: the public index, the PackageURL and PurlBuilder entry points, the decode, encode, stringify, normalize and validate pipeline, the PurlComponent and PurlType rule loaders, url-converter, compare, exists and vers, the shared utility modules, and the 41 handlers under purl-types/</summary>
+
 ```
 src/
 ├── index.ts                     ← public API surface (re-exports)
@@ -82,6 +85,8 @@ src/
     └── yocto.ts
 ```
 
+</details>
+
 ## Data flow — parsing a PURL string
 
 ```mermaid
@@ -101,6 +106,9 @@ normalized to its canonical form.
 ## Data flow — building a PURL from scratch
 
 Two entry points:
+
+<details>
+<summary>The same PURL built two ways: the six-argument constructor and the fluent PackageURL.builder chain</summary>
 
 **Constructor** (all-at-once):
 
@@ -127,6 +135,8 @@ PackageURL.builder()
   .subpath('lib')
   .build()
 ```
+
+</details>
 
 Both paths converge:
 
