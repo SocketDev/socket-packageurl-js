@@ -126,7 +126,8 @@ new PackageURL('npm', null, 'express', '4.18.2')
 // -> 'pkg:npm/express@4.18.2'
 ```
 
-**Builder pattern:**
+<details>
+<summary><b>Builder pattern</b> — <code>PurlBuilder</code>, for assembling a PURL piece by piece</summary>
 
 ```javascript
 import { PurlBuilder } from '@socketregistry/packageurl-js'
@@ -135,7 +136,10 @@ PurlBuilder.npm().name('lodash').version('4.17.21').build()
 // -> 'pkg:npm/lodash@4.17.21'
 ```
 
-**URL conversion:**
+</details>
+
+<details>
+<summary><b>URL conversion</b> — PURL to repository/download URL, and back from a URL or bare filename</summary>
 
 ```javascript
 import { UrlConverter } from '@socketregistry/packageurl-js'
@@ -182,7 +186,13 @@ UrlConverter.fromDownloadUrl(
 // fromLuarocksUrl, fromSwiftUrl, fromVscodeMarketplaceUrl, fromOpenVsxUrl
 ```
 
-**Registry existence checks:**
+</details>
+
+<details>
+<summary><b>Registry existence checks</b> — does this package actually exist, across 17 registries</summary>
+
+Network calls, so they live in a separate `/exists` entry point and stay out of
+the main bundle.
 
 ```javascript
 import { purlExists, npmExists } from '@socketregistry/packageurl-js/exists'
@@ -203,6 +213,8 @@ await npmExists('lodash', { version: '4.17.21' }) // validate version
 // cranExists, hackageExists, condaExists, dockerExists,
 // vscodeExtensionExists
 ```
+
+</details>
 
 ### VERS (Version Range Specifier)
 
