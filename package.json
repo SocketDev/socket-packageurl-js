@@ -1,6 +1,6 @@
 {
   "name": "@socketregistry/packageurl-js",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Socket.dev optimized package override for packageurl-js",
   "keywords": [
     "Socket.dev",
