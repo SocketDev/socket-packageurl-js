@@ -18,8 +18,9 @@
  *   `paths.mts` cascades; the gitignore-block source does not):
  *     - `_dist/` is EXCLUSIVELY build output: no tracked file may live under it.
  *     - the named generated files in mixed dirs (`_shared/dispatch-table*.mts`,
- *       `excluded-fleet-pack.cjs`, `_shared/dispatch-manifest.json`, the oxlint
- *       `.mjs`) may never be tracked.
+ *       `excluded-fleet-pack.cjs`, `_shared/dispatch-manifest.json`,
+ *       `_shared/generated-validators.mts`, the oxlint `.mjs`) may never be
+ *       tracked.
  *
  *   Bundle-placed generated outputs — fleet-pack.cjs, the dispatch table + manifest,
  *   the release manifest's `generatedPaths` — EXIST ON DISK in every member:
@@ -49,10 +50,14 @@ import {
   DISPATCH_TABLE_SNAPSHOT_PATH,
   DIST_DIR,
   EXCLUDED_BUNDLE_PATH,
+  HOOK_VALIDATORS_PATH,
   OXLINT_PLUGIN_BUNDLE_PATH,
   REPO_ROOT,
 } from '../paths.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -139,6 +144,7 @@ async function main(): Promise<void> {
       DISPATCH_TABLE_EXCLUDED_PATH,
       EXCLUDED_BUNDLE_PATH,
       DISPATCH_MANIFEST_PATH,
+      HOOK_VALIDATORS_PATH,
       OXLINT_PLUGIN_BUNDLE_PATH,
     ].map(outputTail),
     seedTails: SANCTIONED_TRACKED_SEEDS,
@@ -170,11 +176,15 @@ async function main(): Promise<void> {
   process.exitCode = 1
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe: 'verifies no git-tracked file is a generated build output',
+  help: `Usage: node scripts/fleet/check/generated-outputs-are-untracked.mts [flags]
+
+  --quiet  suppress the success message`,
+}
+
 /* c8 ignore start - entrypoint guard; exercised via subprocess */
 if (isMainModule(import.meta.url)) {
-  main().catch((e: unknown) => {
-    logger.fail(`generated-outputs-are-untracked failed: ${String(e)}`)
-    process.exitCode = 1
-  })
+  runMain(main, SCRIPT_META)
 }
 /* c8 ignore stop */

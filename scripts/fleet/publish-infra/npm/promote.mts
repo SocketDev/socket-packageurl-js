@@ -37,6 +37,8 @@ import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
 import { isMainModule } from '../../_shared/is-main-module.mts'
 import { runMain } from '../../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../../_shared/run-main.mts'
 import { PACKAGE_JSON, PUBLISH_PIPELINE_SCRIPT } from '../../paths.mts'
 import { otpCommand, planOtpRun } from './otp-runner.mts'
 
@@ -239,6 +241,16 @@ async function main(): Promise<void> {
   }
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'promotes a staged npm package to public, then cuts its tag and GitHub release',
+  help: `Usage: node scripts/fleet/publish-infra/npm/promote.mts [flags]
+  --version <x.y.z>   the staged version to promote
+  --stage-id <id>     select a specific stage record
+  --dry-run           print the plan; no registry writes
+  --skip-reconcile    skip the post-promote release-gap reconcile`,
+}
+
 if (isMainModule(import.meta.url)) {
-  runMain(main)
+  runMain(main, SCRIPT_META)
 }

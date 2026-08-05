@@ -20,6 +20,9 @@ import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 import { classifyMarkdownPath } from '../../../.claude/hooks/fleet/_shared/markdown-path.mts'
 import { REPO_ROOT } from '../paths.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -63,7 +66,7 @@ export function trackedMarkdownFiles(rootDir: string): string[] {
     .filter(Boolean)
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const violations = findViolations(trackedMarkdownFiles(REPO_ROOT), REPO_ROOT)
   if (violations.length === 0) {
     logger.success('All markdown filenames are canonical')
@@ -78,11 +81,14 @@ async function main(): Promise<void> {
   process.exitCode = 1
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'checks every tracked markdown file has a canonical lowercase-with-hyphens filename',
+  help: 'Usage: node scripts/fleet/check/markdown-filenames-are-canonical.mts',
+}
+
 // Entrypoint-guarded so the test can import findViolations without triggering
 // the git scan (the check runs as a standalone `node` entrypoint via check.mts).
 if (isMainModule(import.meta.url)) {
-  main().catch((error: unknown) => {
-    logger.fail('markdown-filenames check failed:', error)
-    process.exitCode = 1
-  })
+  runMain(main, SCRIPT_META)
 }

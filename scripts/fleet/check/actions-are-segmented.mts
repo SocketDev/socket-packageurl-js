@@ -25,6 +25,9 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { REPO_ROOT } from '../paths.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -55,7 +58,7 @@ export function findUnsegmentedEntries(actionsDir: string): string[] {
   return violations.toSorted()
 }
 
-function main(): void {
+export function main(): void {
   const quiet = process.argv.includes('--quiet')
   const actionsDir = path.join(REPO_ROOT, '.github', 'actions')
   const violations = findUnsegmentedEntries(actionsDir)
@@ -81,6 +84,14 @@ function main(): void {
   process.exitCode = 1
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'checks that .github/actions/ is segmented into fleet/ and repo/ tiers',
+  help: `Usage: node scripts/fleet/check/actions-are-segmented.mts [--quiet]
+
+  --quiet  suppress the success line`,
+}
+
 if (isMainModule(import.meta.url)) {
-  main()
+  runMain(main, SCRIPT_META)
 }

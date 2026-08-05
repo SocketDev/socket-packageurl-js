@@ -28,6 +28,8 @@ import process from 'node:process'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../_shared/run-main.mts'
 import { loadPricing } from '../estimate-ai-cost.mts'
 import { REPO_ROOT } from '../paths.mts'
 
@@ -119,7 +121,7 @@ export function staleServices(pricing: PricingData, now: Date): StaleService[] {
 
 // Fall back to the combined routing-doc marker (for a repo that carries the doc
 // but not the JSON). Same behavior the v1 check had.
-function checkDocMarker(quiet: boolean): void {
+export function checkDocMarker(quiet: boolean): void {
   if (!existsSync(ROUTING_DOC)) {
     return
   }
@@ -145,7 +147,7 @@ function checkDocMarker(quiet: boolean): void {
   }
 }
 
-function main(): void {
+export function main(): void {
   const quiet = process.argv.includes('--quiet')
   let pricing: PricingData | undefined
   try {
@@ -177,6 +179,12 @@ function main(): void {
   }
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe: 'report model-pricing services with a stale pricing snapshot',
+  help: `Usage: node scripts/fleet/check/pricing-data-is-current.mts [flags]
+  --quiet   suppress the success line`,
+}
+
 if (isMainModule(import.meta.url)) {
-  void main()
+  runMain(main, SCRIPT_META)
 }

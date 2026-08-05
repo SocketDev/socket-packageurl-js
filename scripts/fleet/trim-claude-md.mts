@@ -24,6 +24,9 @@ import {
   trimFleetBlockToFit,
 } from './lib/claude-md-trim.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
+import { runMain } from './_shared/run-main.mts'
+
+import type { ScriptMeta } from './_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -38,7 +41,7 @@ export function claudeMdFiles(repoRoot: string): string[] {
   ]
 }
 
-function reportFile(file: string): boolean {
+export function reportFile(file: string): boolean {
   if (!existsSync(file)) {
     return false
   }
@@ -63,7 +66,7 @@ function reportFile(file: string): boolean {
   return true
 }
 
-function main(): void {
+export function main(): void {
   const files = claudeMdFiles(REPO_ROOT)
   if (process.argv.includes('--apply')) {
     const results = applyClaudeMdTrim(files)
@@ -98,6 +101,15 @@ function main(): void {
   }
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'trims the CLAUDE.md fleet-canonical block under its byte cap by dropping bullet clauses',
+  help: `Usage: node scripts/fleet/trim-claude-md.mts [flags]
+
+  (no flags)  report what it would trim; exit 1 when a block is over cap
+  --apply     trim in place`,
+}
+
 if (isMainModule(import.meta.url)) {
-  main()
+  runMain(main, SCRIPT_META)
 }

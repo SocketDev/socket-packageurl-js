@@ -34,16 +34,18 @@
 
 import process from 'node:process'
 
-import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { assertPluginLoads } from '../lib/oxlint-plugin-loads.mts'
 import { REPO_ROOT } from '../paths.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const quiet = process.argv.includes('--quiet')
   const result = await assertPluginLoads(REPO_ROOT)
   if (result.status === 'no-plugin') {
@@ -84,9 +86,14 @@ async function main(): Promise<void> {
   }
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'checks the fleet socket/ oxlint plugin loads at runtime and registers every rule dir',
+  help: `Usage: node scripts/fleet/check/oxlint-plugin-loads.mts [flags]
+
+  --quiet  silent on clean`,
+}
+
 if (isMainModule(import.meta.url)) {
-  main().catch((e: unknown) => {
-    logger.error(`check-oxlint-plugin-loads failed: ${errorMessage(e)}`)
-    process.exitCode = 1
-  })
+  runMain(main, SCRIPT_META)
 }

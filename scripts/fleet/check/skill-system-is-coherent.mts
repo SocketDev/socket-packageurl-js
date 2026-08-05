@@ -16,7 +16,9 @@ import {
 } from '../lib/skill-system.mts'
 import { OWNS_RELOCATED_TESTS, REPO_ROOT } from '../paths.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
-import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
+import { runMain } from '../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -50,7 +52,7 @@ export function findSkillSystemDefects(
   return defects.toSorted()
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const root = path.join(REPO_ROOT, '.claude/skills/fleet')
   const names = readdirSync(root).filter(name => !name.startsWith('_'))
   const sources = Object.fromEntries(
@@ -71,9 +73,11 @@ async function main(): Promise<void> {
   process.exitCode = 1
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe: 'checks skill catalog coverage and cross-skill handoff links',
+  help: 'Usage: node scripts/fleet/check/skill-system-is-coherent.mts',
+}
+
 if (isMainModule(import.meta.url)) {
-  main().catch(error => {
-    logger.error(errorMessage(error))
-    process.exitCode = 1
-  })
+  runMain(main, SCRIPT_META)
 }

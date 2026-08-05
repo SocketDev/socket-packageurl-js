@@ -23,6 +23,9 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { REPO_ROOT } from '../paths.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -33,7 +36,7 @@ const HEADROOM_LIB = path.join(
   '.claude/hooks/fleet/setup-security-tools/lib/headroom.mts',
 )
 
-async function main(): Promise<number> {
+export async function main(): Promise<number> {
   if (!existsSync(HEADROOM_LIB)) {
     logger.log(
       'headroom-is-telemetry-locked-down: no headroom installer (n/a).',
@@ -96,8 +99,14 @@ async function main(): Promise<number> {
   return 0
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'verifies the headroom install forces telemetry and the model fetch off for every invocation',
+  help: `Usage: node scripts/fleet/check/headroom-is-telemetry-locked-down.mts [flags]
+
+  --quiet  suppress the success message`,
+}
+
 if (isMainModule(import.meta.url)) {
-  main().then(code => {
-    process.exitCode = code
-  })
+  runMain(main, SCRIPT_META)
 }

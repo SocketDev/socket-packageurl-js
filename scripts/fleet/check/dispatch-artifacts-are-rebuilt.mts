@@ -57,6 +57,8 @@ import {
 } from '../paths.mts'
 import { hasFleetHookSource } from '../_shared/fleet-source-present.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -434,7 +436,7 @@ export function scanDispatchArtifacts(config: {
   return { failures, present }
 }
 
-function main(): number {
+export function main(): number {
   const quiet = process.argv.includes('--quiet')
   // A bundle-only member has no per-hook SOURCE dirs, so a fresh regen would
   // render an EMPTY table and call the release-shipped bundle stale. The
@@ -475,6 +477,14 @@ function main(): number {
   return 0
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'checks every built dispatch artifact carries the current dispatch-table routing',
+  help: `Usage: node scripts/fleet/check/dispatch-artifacts-are-rebuilt.mts [flags]
+
+  --quiet  suppress the pass message`,
+}
+
 if (isMainModule(import.meta.url)) {
-  process.exitCode = main()
+  runMain(main, SCRIPT_META)
 }

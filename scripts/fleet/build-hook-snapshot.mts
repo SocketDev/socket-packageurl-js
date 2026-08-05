@@ -40,6 +40,7 @@ import {
   FLEET_HOOKS_DIR,
   generateDispatchTableSource,
 } from './gen/hook-dispatch.mts'
+import { writeHookValidators } from './gen/hook-validators.mts'
 import {
   DISPATCH_TABLE_EXCLUDED_PATH,
   DISPATCH_TABLE_SNAPSHOT_PATH,
@@ -52,6 +53,8 @@ import {
   liftMirrorLockSync,
   writeThroughMirrorLock,
 } from './_shared/mirror-lock.mts'
+import { runMain } from './_shared/run-main.mts'
+import type { ScriptMeta } from './_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -131,6 +134,9 @@ function main(): void {
     DISPATCH_TABLE_EXCLUDED_PATH,
     generateDispatchTableSource(FLEET_HOOKS_DIR, 'excluded'),
   )
+  // The ahead-of-time TypeBox validators refresh alongside the tables, so the
+  // snapshot freezes a hook graph that no longer carries the TypeBox compiler.
+  writeHookValidators()
 
   mkdirSync(DISPATCH_DIR, { recursive: true })
 
@@ -214,6 +220,12 @@ function main(): void {
   pruneStaleBlobs(blobOut)
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'build the V8 startup-snapshot variant of the fleet hook dispatch bundle',
+  help: 'Usage: node scripts/fleet/build-hook-snapshot.mts',
+}
+
 if (isMainModule(import.meta.url)) {
-  main()
+  runMain(main, SCRIPT_META)
 }

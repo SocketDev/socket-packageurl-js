@@ -28,6 +28,8 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { isMainModule } from './_shared/is-main-module.mts'
+import { runMain } from './_shared/run-main.mts'
+import type { ScriptMeta } from './_shared/run-main.mts'
 
 const HOOKS_DIR = '.git-hooks'
 
@@ -39,7 +41,7 @@ const HOOKS_DIR = '.git-hooks'
 // depth-independent — unlike a hardcoded `..` count, it survives the script
 // moving between directories (the 73c691d9 scripts-into-fleet/ refactor broke
 // the old count).
-function resolveRepoRoot(): string {
+export function resolveRepoRoot(): string {
   let cur = path.dirname(fileURLToPath(import.meta.url))
   const root = path.parse(cur).root
   while (cur && cur !== root) {
@@ -59,7 +61,7 @@ function resolveRepoRoot(): string {
 
 const REPO_ROOT = resolveRepoRoot()
 
-function main(): void {
+export function main(): void {
   if (!existsSync(path.join(REPO_ROOT, '.git'))) {
     return
   }
@@ -95,8 +97,14 @@ function main(): void {
   }
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'point git core.hooksPath at the committed .git-hooks/ dispatcher dir',
+  help: 'Usage: node scripts/fleet/install-git-hooks.mts',
+}
+
 // Entrypoint-guarded: importing this module (unit tests of its exported
 // helpers) must not execute the script.
 if (isMainModule(import.meta.url)) {
-  main()
+  runMain(main, SCRIPT_META)
 }

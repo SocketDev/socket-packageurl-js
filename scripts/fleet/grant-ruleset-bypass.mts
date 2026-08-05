@@ -70,6 +70,8 @@ import type {
   ManagedRulesetSelector,
 } from './_shared/managed-ruleset-identity.mts'
 import { runMain } from './_shared/run-main.mts'
+
+import type { ScriptMeta } from './_shared/run-main.mts'
 import { fleetReposPath } from './check/member-ci-fires-on-push.mts'
 import {
   absentRulesetRefusal,
@@ -489,8 +491,21 @@ export async function main(): Promise<number> {
   })
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'reads, grants, or revokes a SELF bypass on a managed GitHub ruleset for one fleet repo',
+  help: `Usage: node scripts/fleet/grant-ruleset-bypass.mts <repo> [flags]
+
+  (no flags)  print the ruleset's bypass status
+  --grant     add the SELF bypass (requires --yes to confirm)
+  --revoke    remove the SELF bypass
+  --status    print status explicitly
+  --yes       confirm a --grant
+  --tags      target the tag ruleset instead of the branch ruleset`,
+}
+
 /* c8 ignore start - entrypoint guard; exercised via subprocess */
 if (isMainModule(import.meta.url)) {
-  runMain(main)
+  runMain(main, SCRIPT_META)
 }
 /* c8 ignore stop */

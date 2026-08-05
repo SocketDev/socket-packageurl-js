@@ -37,6 +37,9 @@ import { buildOxfmtArgs } from './_shared/format-scope.mts'
 import { nodeModulesBinPath, REPO_ROOT } from './paths.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
 import { writeThroughMirrorLock } from './_shared/mirror-lock.mts'
+import { runMain } from './_shared/run-main.mts'
+
+import type { ScriptMeta } from './_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -271,11 +274,13 @@ export function readToolVersions(externalTools: Record<string, unknown>): {
   return { pnpmVersion, npmVersion }
 }
 
-function readJson(filePath: string): Record<string, unknown> {
+export function readJson(filePath: string): Record<string, unknown> {
   return JSON.parse(readFileSync(filePath, 'utf8')) as Record<string, unknown>
 }
 
-function readPnpmFloor(pkgJson: Record<string, unknown>): string | undefined {
+export function readPnpmFloor(
+  pkgJson: Record<string, unknown>,
+): string | undefined {
   const engines = pkgJson['engines']
   if (!engines || typeof engines !== 'object') {
     return undefined
@@ -288,7 +293,7 @@ function readPnpmFloor(pkgJson: Record<string, unknown>): string | undefined {
   return match?.[1]
 }
 
-function main(): number {
+export function main(): number {
   const checkOnly = process.argv.includes('--check')
   const quiet = process.argv.includes('--quiet')
   const extPath = path.join(
@@ -366,6 +371,16 @@ function main(): number {
   return 0
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'derives package.json devEngines/engines pins from external-tools.json',
+  help: `Usage: node scripts/fleet/sync-package-manager-pins.mts [flags]
+
+  (no flags)  rewrite package.json to match external-tools.json
+  --check     warn on a behind pin, exit non-zero only on real drift
+  --quiet     suppress the in-sync line`,
+}
+
 if (isMainModule(import.meta.url)) {
-  main()
+  runMain(main, SCRIPT_META)
 }

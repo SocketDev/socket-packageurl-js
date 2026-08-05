@@ -86,10 +86,10 @@
     "setup:sfw-ca": "node scripts/fleet/setup/sfw-ca.mts",
     "get-green": "node scripts/fleet/get-green.mts",
     "gen:llms-txt": "node scripts/fleet/gen/llms-txt.mts",
-    "weekly-update:ci": "gh workflow run weekly-update.lock.yml"
+    "weekly-update:ci": "gh workflow run weekly-update.lock.yml",
+    "prune:backups": "node scripts/fleet/backup-branches.mts prune"
   },
   "devDependencies": {
-    "@actions/cache": "catalog:",
     "@anthropic-ai/claude-code": "catalog:",
     "@oxlint/migrate": "1.51.0",
     "@redwoodjs/agent-ci": "catalog:",
@@ -142,6 +142,7 @@
     "svgo": "4.0.2",
     "taze": "catalog:",
     "type-coverage": "2.30.1",
+    "typebox": "catalog:",
     "typescript": "catalog:",
     "validate-npm-package-name": "6.0.2",
     "vitest": "catalog:",
@@ -168,7 +169,7 @@
   },
   "engines": {
     "node": ">=24",
-    "npm": ">=12.0.1",
+    "npm": ">=12.0.2",
     "pnpm": ">=11.0.5"
   },
   "allowScripts": {

@@ -92,6 +92,8 @@ import type {
 import type { BumpLevel, ConventionalCommit } from './lib/changelog.mts'
 import type { ReleaseDerivation, ReleaseLane } from './lib/release-anchor.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
+import type { ScriptMeta } from './_shared/run-main.mts'
+import { runMain } from './_shared/run-main.mts'
 import { writeThroughMirrorLock } from './_shared/mirror-lock.mts'
 
 const logger = getDefaultLogger()
@@ -357,7 +359,7 @@ export async function warnBackupBranchesWithUnreleased(
   }
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   // The CLI preamble — usage, unknown-flag refusal, flag resolution — is
   // resolveBumpInvocation, so those branches are assertable without running
   // a bump. main() only plumbs the decision to output and an exit code.
@@ -875,9 +877,14 @@ async function main(): Promise<void> {
   )
 }
 
-if (isMainModule(import.meta.url)) {
-  main().catch((e: unknown) => {
-    logger.error(e)
-    process.exitCode = 1
-  })
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'derive the next version from the conventional commits since the last release, write package.json + CHANGELOG.md, and commit the bump',
+  help: BUMP_USAGE,
 }
+
+/* c8 ignore start - entrypoint guard; exercised via subprocess */
+if (isMainModule(import.meta.url)) {
+  runMain(main, SCRIPT_META)
+}
+/* c8 ignore stop */

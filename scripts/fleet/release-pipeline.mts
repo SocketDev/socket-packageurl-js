@@ -84,10 +84,12 @@ import {
   renderStatus,
 } from './release-pipeline/summary.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
+import { runMain } from './_shared/run-main.mts'
 
 import type { RunnerSeams, StageOutcome } from './release-pipeline/seams.mts'
 import type { RunStageId, StageId } from './release-pipeline/stages.mts'
 import type { PipelineState } from './release-pipeline/state.mts'
+import type { ScriptMeta } from './_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -329,7 +331,10 @@ export async function runPipeline(
  * truth (verifyAgainstRegistry — re-pack at the bump commit, compare against
  * the packument digests) and the invocation continues into the normal
  * release stage. `options.persist`/`options.seams` are injectable for tests
- * (defaults: persistOutcome + the real runner seams).
+ * (defaults: persistOutcome + the real runner seams), and `options.repoRoot`
+ * redirects every root-anchored read/write — the registry-truth re-pack and
+ * the release stage's checksums.txt land there, so a test can hand a tmpdir
+ * fixture instead of this repo's working tree (default: REPO_ROOT).
  */
 export async function runApproveMode(
   state: PipelineState,
@@ -337,12 +342,14 @@ export async function runApproveMode(
   options?:
     | {
         persist?: typeof persistOutcome | undefined
+        repoRoot?: string | undefined
         seams?: RunnerSeams | undefined
       }
     | undefined,
 ): Promise<void> {
   const opts = { __proto__: null, ...options } as NonNullable<typeof options>
   const persist = opts.persist ?? persistOutcome
+  const repoRoot = opts.repoRoot ?? REPO_ROOT
   let state_ = state
   const targetVersion = state_.targetVersion ?? ''
   const verify = state_.stages['verify']
@@ -373,7 +380,7 @@ export async function runApproveMode(
     )
     const truth = targetVersion
       ? await verifyAgainstRegistry({
-          cwd: REPO_ROOT,
+          cwd: repoRoot,
           seams: opts.seams,
           targetVersion,
         })
@@ -414,7 +421,7 @@ export async function runApproveMode(
     } else {
       logger.fail(
         `No passing verify receipt for ${targetVersion || '<no target version>'} — refusing to approve.\n` +
-          `  Where: ${statePath(REPO_ROOT)}\n` +
+          `  Where: ${statePath(repoRoot)}\n` +
           `  Saw ${saw}; wanted a real passed verify keyed at the target version` +
           `${truth ? ` (and ${truth.detail} — nothing to reconcile from)` : ''}.\n` +
           `  Fix: run \`node scripts/fleet/publish-pipeline.mts\` through the verify stage first ` +
@@ -449,7 +456,7 @@ export async function runApproveMode(
         : 'no scan receipt'
       logger.fail(
         `No scan receipt for ${targetVersion || '<no target version>'} — refusing to approve unscanned bytes.\n` +
-          `  Where: ${statePath(REPO_ROOT)}\n` +
+          `  Where: ${statePath(repoRoot)}\n` +
           `  Saw ${saw}; wanted a passed (or explicitly skipped) scan keyed at the target version.\n` +
           `  Fix: run \`node scripts/fleet/publish-pipeline.mts\` — it stages, verifies, then scans; ` +
           `re-run --approve after. To promote without scan evidence, re-run the pipeline with ` +
@@ -461,7 +468,7 @@ export async function runApproveMode(
     logger.log('── stage: approve ──')
     const approveStartMs = Date.now()
     const outcome = await runApproveStep({
-      cwd: REPO_ROOT,
+      cwd: repoRoot,
       dryRun: cli.dryRun,
       seams: opts.seams,
       yes: cli.yes,
@@ -492,7 +499,7 @@ export async function runApproveMode(
   const releaseStartMs = Date.now()
   const releaseOutcome = await runReleaseStage({
     approveReceipt: state_.stages['approve'],
-    cwd: REPO_ROOT,
+    cwd: repoRoot,
     dryRun: cli.dryRun,
     releaseChecksums: state_.releaseChecksums,
     seams: opts.seams,
@@ -537,7 +544,10 @@ export async function runApproveMode(
  * file: reconcile stands on registry evidence alone), then the normal release
  * stage cuts the tag + immutable GH release via ensureTagAndRelease behind
  * requireRegistryLive. `options.summaryPath` appends a job summary — the
- * workflow passes GITHUB_STEP_SUMMARY; unit tests omit it.
+ * workflow passes GITHUB_STEP_SUMMARY; unit tests omit it. `options.repoRoot`
+ * redirects every root-anchored read/write (package.json, the re-pack, the
+ * release stage's checksums.txt) so tests hand a tmpdir fixture instead of
+ * this repo's working tree (default: REPO_ROOT).
  */
 export async function runReconcileMode(
   targetVersion: string,
@@ -545,6 +555,7 @@ export async function runReconcileMode(
   options?:
     | {
         persist?: typeof persistOutcome | undefined
+        repoRoot?: string | undefined
         seams?: RunnerSeams | undefined
         summaryPath?: string | undefined
       }
@@ -552,13 +563,14 @@ export async function runReconcileMode(
 ): Promise<void> {
   const opts = { __proto__: null, ...options } as NonNullable<typeof options>
   const persist = opts.persist ?? persistOutcome
-  const pkg = readPkg(REPO_ROOT)
+  const repoRoot = opts.repoRoot ?? REPO_ROOT
+  const pkg = readPkg(repoRoot)
   let state = withTargetVersion(newState(pkg.name, nowIso()), targetVersion)
   logger.log(
     `Reconcile: probing registry truth for ${pkg.name}@${targetVersion}…`,
   )
   const truth = await verifyAgainstRegistry({
-    cwd: REPO_ROOT,
+    cwd: repoRoot,
     seams: opts.seams,
     targetVersion,
   })
@@ -602,7 +614,7 @@ export async function runReconcileMode(
   const releaseStartMs = Date.now()
   const releaseOutcome = await runReleaseStage({
     approveReceipt: state.stages['approve'],
-    cwd: REPO_ROOT,
+    cwd: repoRoot,
     dryRun: cli.dryRun,
     releaseChecksums: state.releaseChecksums,
     seams: opts.seams,
@@ -654,7 +666,6 @@ async function main(): Promise<void> {
       'ci-timeout': { default: '900', type: 'string' },
       'ci-wait': { default: false, type: 'boolean' },
       'dry-run': { default: false, type: 'boolean' },
-      help: { default: false, type: 'boolean' },
       'preflight-all': { default: false, type: 'boolean' },
       reset: { default: false, type: 'boolean' },
       status: { default: false, type: 'boolean' },
@@ -663,10 +674,6 @@ async function main(): Promise<void> {
     allowPositionals: false,
     strict: false,
   })
-  if (values['help']) {
-    logger.log(USAGE)
-    return
-  }
   const file = statePath(REPO_ROOT)
   if (values['reset']) {
     resetState(file)
@@ -744,9 +751,12 @@ async function main(): Promise<void> {
   await runPipeline(state, cli)
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'runs the resumable release-readiness chain through the bump commit (never stages, publishes, or cuts the release)',
+  help: USAGE,
+}
+
 if (isMainModule(import.meta.url)) {
-  main().catch((e: unknown) => {
-    logger.error(e)
-    process.exitCode = 1
-  })
+  runMain(main, SCRIPT_META)
 }

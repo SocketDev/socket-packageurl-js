@@ -53,6 +53,8 @@ import { groupPaths } from './land-work.mts'
 import { commitMessage } from './land-work/message.mts'
 import { REPO_ROOT } from './paths.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
+import type { ScriptMeta } from './_shared/run-main.mts'
+import { runMain } from './_shared/run-main.mts'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 
 const logger = getDefaultLogger()
@@ -172,7 +174,7 @@ function isAncestor(ancestor: string, descendant: string): boolean {
   return git(['merge-base', '--is-ancestor', ancestor, descendant]).status === 0
 }
 
-function main(): void {
+export function main(): void {
   const { values } = parseArgs({
     args: process.argv.slice(2),
     options: {
@@ -437,6 +439,19 @@ function main(): void {
   )
 }
 
-if (isMainModule(import.meta.url)) {
-  main()
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'regroups the commits since a base ref into logical commits, preserving a trailing bump commit',
+  help: `Usage: node scripts/fleet/consolidate-commits.mts [flags]
+
+  --repo <path>             operate on the repo at <path> instead of this one
+  --base <ref>              consolidate the range above <ref> (default: previous bump commit, else latest v tag)
+  --dry-run                 print the regroup plan without rewriting
+  --allow-off-lineage-base  accept a base on a force-push-replaced line of history (local-only lineages)`,
 }
+
+/* c8 ignore start - entrypoint guard; exercised via subprocess */
+if (isMainModule(import.meta.url)) {
+  runMain(main, SCRIPT_META)
+}
+/* c8 ignore stop */

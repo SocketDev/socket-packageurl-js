@@ -40,10 +40,11 @@ import {
   readDeclaredTestCommands,
   resolveCommandCollection,
   RUNNER_LABELS,
-  TestConfigResolutionError,
 } from '../_shared/test-collection.mts'
+import { runMain } from '../_shared/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
+import type { ScriptMeta } from '../_shared/run-main.mts'
 import type {
   RunnerCollection,
   TestCommand,
@@ -169,7 +170,7 @@ export function sortCollectionFindings(
   )
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const root = REPO_ROOT
   const commands = readDeclaredTestCommands(root)
   const testFiles = listRepoTestFiles(root)
@@ -263,12 +264,13 @@ async function main(): Promise<void> {
   process.exit(0)
 }
 
-if (isMainModule(import.meta.url)) {
-  main().catch((e: unknown) => {
-    if (e instanceof TestConfigResolutionError) {
-      logger.fail(`[test-files-are-runner-collected] ${e.message}`)
-      process.exit(1)
-    }
-    throw e
-  })
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'checks every declared test command and the repo test files actually meet',
+  help: 'Usage: node scripts/fleet/check/test-files-are-runner-collected.mts',
 }
+
+if (isMainModule(import.meta.url)) {
+  runMain(main, SCRIPT_META)
+}
+/* c8 ignore stop */

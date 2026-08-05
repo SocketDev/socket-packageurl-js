@@ -341,6 +341,18 @@ export const DISPATCH_MANIFEST_PATH = path.join(
 )
 
 /**
+ * The GENERATED ahead-of-time TypeBox validators (gen/hook-validators writes
+ * this). A hook process is one-per-tool-event, so compiling a schema at startup
+ * pays JIT codegen on every run and amortizes it over a single check; the maker
+ * emits the compiler's own JavaScript at BUILD time instead, and the runtime
+ * graph never loads TypeBox at all.
+ */
+export const HOOK_VALIDATORS_PATH = path.join(
+  DISPATCH_DIR,
+  'generated-validators.mts',
+)
+
+/**
  * The dispatcher entry that rolldown bundles.
  */
 export const DISPATCH_ENTRY_PATH = path.join(DISPATCH_DIR, 'dispatch-entry.mts')

@@ -95,12 +95,15 @@ import { parseListBlock } from './lib/workspace-yaml.mts'
 import { brewfilePath, findManifestBrewSites } from './update/brew-parse.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
 import { writeThroughMirrorLock } from './_shared/mirror-lock.mts'
+import { runMain } from './_shared/run-main.mts'
 import { REPO_ROOT } from './paths.mts'
+
+import type { ScriptMeta } from './_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
 // Print a finding in the canonical four-ingredient format.
-function printFinding(f: DoctorFinding, idx: number): void {
+export function printFinding(f: DoctorFinding, idx: number): void {
   logger.error('')
   logger.info(`Finding ${idx + 1}:`)
   logger.info(`  What:  ${f.what}`)
@@ -146,7 +149,7 @@ function discoverPackageJsonPaths(config: {
 // Read the fleet-pinned TruffleHog version from the security-tools config the
 // cascade ships into every member. Undefined when the config is absent (repo
 // not set up) or malformed.
-function readPinnedTrufflehogVersion(cwd: string): string | undefined {
+export function readPinnedTrufflehogVersion(cwd: string): string | undefined {
   const cfgPath = path.join(
     cwd,
     '.claude/hooks/fleet/setup-security-tools/external-tools.json',
@@ -203,7 +206,7 @@ export function resolveTrufflehogBinaries(): string[] {
 // (PATH then the dlx cache), accepts only the pinned --version, then scans the
 // repo's git tree. Fails LOUD, tool-missing finding, rather than silent-clean
 // when the pinned binary is unavailable or the wrong version.
-async function runSecretScan(cwd: string): Promise<DoctorFinding[]> {
+export async function runSecretScan(cwd: string): Promise<DoctorFinding[]> {
   const pinnedVersion = readPinnedTrufflehogVersion(cwd)
   if (!pinnedVersion) {
     return [formatToolMissingFinding()]
@@ -254,7 +257,7 @@ async function runSecretScan(cwd: string): Promise<DoctorFinding[]> {
   return formatSecretFindings(parseTruffleHogFindings(out))
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const argv = process.argv.slice(2)
   const doFix = argv.includes('--fix')
   const doProbeGit = argv.includes('--probe-git')
@@ -488,11 +491,19 @@ async function main(): Promise<void> {
   }
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'diagnoses and optionally repairs fleet-member onboarding gaps that break pnpm install',
+  help: `Usage: node scripts/fleet/doctor.mts [flags]
+
+  --fix              apply the auto-fixable repairs (catalog entries, pin shadows, Brewfile, gh default repo)
+  --probe-git        also run the git probes (signatures, divergence, worktrees)
+  --probe-install    also probe for soak-window install failures
+  --probe-secrets    also run the pinned TruffleHog committed-tree secret scan
+  --root <path>      doctor the repo at <path> instead of this one
+  --await-quiescent  wait for the repo to settle before diagnosing a moving tree`,
+}
+
 if (isMainModule(import.meta.url)) {
-  void (async () => {
-    await main()
-  })().catch((e: unknown) => {
-    logger.error(errorMessage(e))
-    process.exitCode = 1
-  })
+  runMain(main, SCRIPT_META)
 }

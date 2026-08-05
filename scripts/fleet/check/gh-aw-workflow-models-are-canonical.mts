@@ -23,6 +23,9 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { KNOWN_MODELS } from '../lib/known-models.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -44,7 +47,7 @@ export function declaredModel(frontmatter: string): string | undefined {
 }
 
 // Enumerate tracked gh-aw workflow markdown sources.
-function listAgenticMarkdown(): string[] {
+export function listAgenticMarkdown(): string[] {
   try {
     const r = spawnSync('git', ['ls-files', '*.github/workflows/*.md'], {
       stdio: 'pipe',
@@ -62,7 +65,7 @@ function listAgenticMarkdown(): string[] {
   }
 }
 
-function main(): void {
+export function main(): void {
   const mdFiles = listAgenticMarkdown()
   const problems: string[] = []
   let checked = 0
@@ -108,6 +111,12 @@ function main(): void {
   process.exitCode = 1
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'verifies every explicit gh-aw workflow model pin is a canonical fleet model id',
+  help: 'Usage: node scripts/fleet/check/gh-aw-workflow-models-are-canonical.mts',
+}
+
 if (isMainModule(import.meta.url)) {
-  main()
+  runMain(main, SCRIPT_META)
 }

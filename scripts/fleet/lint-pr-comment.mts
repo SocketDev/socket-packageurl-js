@@ -17,6 +17,9 @@ import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { isMainModule } from './_shared/is-main-module.mts'
+import { runMain } from './_shared/run-main.mts'
+
+import type { ScriptMeta } from './_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -434,14 +437,14 @@ export function lintPrReviewComment(body: string): CommentViolation[] {
   ].toSorted((a, b) => a.line - b.line)
 }
 
-function readInput(target: string): string {
+export function readInput(target: string): string {
   if (target === '-' || target === '--stdin') {
     return readFileSync(0, 'utf8')
   }
   return readFileSync(target, 'utf8')
 }
 
-function main(): void {
+export function main(): void {
   const args = process.argv.slice(2).filter(a => a !== '--quiet')
   const quiet = process.argv.includes('--quiet')
   const target = args[0]
@@ -476,6 +479,15 @@ function main(): void {
   }
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'validates a draft PR review comment against the fleet comment format',
+  help: `Usage: node scripts/fleet/lint-pr-comment.mts <draft.md> [flags]
+
+  <draft.md>  the draft comment file, or \`-\` to read stdin
+  --quiet     suppress the success message`,
+}
+
 if (isMainModule(import.meta.url)) {
-  main()
+  runMain(main, SCRIPT_META)
 }

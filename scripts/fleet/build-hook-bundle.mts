@@ -29,9 +29,12 @@ import {
   generateDispatchTableSource,
   HOOK_BUNDLE_PATH,
 } from './gen/hook-dispatch.mts'
+import { writeHookValidators } from './gen/hook-validators.mts'
 import { REPO_ROOT } from './paths.mts'
 import { hasFleetHookSource } from './_shared/fleet-source-present.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
+import { runMain } from './_shared/run-main.mts'
+import type { ScriptMeta } from './_shared/run-main.mts'
 import {
   liftMirrorLockSync,
   writeThroughMirrorLock,
@@ -131,6 +134,10 @@ function main(): void {
   // lock-step with the table so the two never drift (this is the dogfood path —
   // build-hook-bundle writes the table directly, not via gen/hook-dispatch).
   writeThroughMirrorLock(DISPATCH_MANIFEST_PATH, generatedManifest)
+  // The ahead-of-time TypeBox validators are the same class of artifact as the
+  // table — generated, gitignored, imported by a hook the bundle pulls in — so
+  // they refresh in the same step. rolldown resolves the import below.
+  writeHookValidators()
 
   // Dogfood: the wheelhouse carries template/base/ a member does not. Mirror
   // the generated table + manifest into the template so its CI readers + the
@@ -194,6 +201,14 @@ function main(): void {
   logger.log(`Built ${path.relative(REPO_ROOT, HOOK_BUNDLE_PATH)}.`)
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'regenerate the hook dispatch table and rolldown-bundle the fleet hooks into _dist/fleet-pack.cjs',
+  help: `Usage: node scripts/fleet/build-hook-bundle.mts [flags]
+
+  --check  fail (exit 2) if the dispatch table is stale; does not rebuild`,
+}
+
 if (isMainModule(import.meta.url)) {
-  main()
+  runMain(main, SCRIPT_META)
 }

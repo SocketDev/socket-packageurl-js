@@ -32,6 +32,8 @@ import {
 import { REPO_ROOT } from '../paths.mts'
 import { hasFleetHookSource } from '../_shared/fleet-source-present.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -64,7 +66,7 @@ export function dispatchManifestIsCurrent(
   return onDisk === generated
 }
 
-function main(): void {
+export function main(): void {
   const quiet = process.argv.includes('--quiet')
   // A bundle-only member has no per-hook SOURCE dirs — a fresh regen over the
   // (absent) hook dirs would compare an empty table against the shipped one.
@@ -118,6 +120,14 @@ function main(): void {
   }
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'checks the committed dispatch table matches a fresh regen from the hook dirs',
+  help: `Usage: node scripts/fleet/check/dispatch-table-is-current.mts [flags]
+
+  --quiet  suppress the pass message`,
+}
+
 if (isMainModule(import.meta.url)) {
-  main()
+  runMain(main, SCRIPT_META)
 }

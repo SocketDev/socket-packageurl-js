@@ -43,6 +43,9 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { REPO_ROOT } from '../paths.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -217,7 +220,7 @@ export function scanCheckNames(repoRoot: string): NameViolation[] {
   return violations
 }
 
-function main(): void {
+export function main(): void {
   const quiet = process.argv.includes('--quiet')
   const violations = scanCheckNames(REPO_ROOT)
   if (violations.length) {
@@ -243,6 +246,13 @@ function main(): void {
   }
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe: 'checks that every check script basename reads as an assertion',
+  help: `Usage: node scripts/fleet/check/check-names-are-assertions.mts [--quiet]
+
+  --quiet  suppress the success line`,
+}
+
 if (isMainModule(import.meta.url)) {
-  main()
+  runMain(main, SCRIPT_META)
 }

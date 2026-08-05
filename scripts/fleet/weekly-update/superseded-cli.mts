@@ -15,6 +15,9 @@
 import process from 'node:process'
 
 import { isMainModule } from '../_shared/is-main-module.mts'
+import { runMain } from '../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../_shared/run-main.mts'
 
 import { supersededPrNumbers } from './superseded.mts'
 
@@ -87,6 +90,14 @@ export async function main(): Promise<void> {
   }
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'prints the open PR numbers the rolling dependency PR supersedes, one per line, from gh pr list JSON on stdin',
+  help: `Usage: gh pr list --json number,headRefName,labels,author | node scripts/fleet/weekly-update/superseded-cli.mts [flags]
+
+  --branch <name>  the rolling PR's head branch (its own PR is excluded)`,
+}
+
 if (isMainModule(import.meta.url)) {
-  void main()
+  runMain(main, SCRIPT_META)
 }

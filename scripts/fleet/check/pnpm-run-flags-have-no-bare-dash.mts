@@ -36,6 +36,8 @@ import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
 import { isMainModule } from '../_shared/is-main-module.mts'
 import { runMain } from '../_shared/run-main.mts'
+
+import type { ScriptMeta } from '../_shared/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
 const logger = getDefaultLogger()
@@ -135,6 +137,12 @@ async function main(): Promise<void> {
   process.exitCode = 1
 }
 
+const SCRIPT_META: ScriptMeta = {
+  describe:
+    'checks no surface spells `pnpm run <script> -- --flag` — the bare dash-dash silently drops the flags',
+  help: `Usage: node scripts/fleet/check/pnpm-run-flags-have-no-bare-dash.mts`,
+}
+
 if (isMainModule(import.meta.url)) {
-  runMain(main)
+  runMain(main, SCRIPT_META)
 }

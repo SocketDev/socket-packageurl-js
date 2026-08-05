@@ -22,9 +22,8 @@
  *   blindness-is-not-absence rule the retirement sweep follows.
  */
 
-import { tryParse } from './ast/core.mts'
-import { walkComments } from './ast/comments.mts'
-import type { ParseOptions } from './ast/core.mts'
+import { tryParse, walkSimple } from './ast/core.mts'
+import type { AcornNode, ParseOptions } from './ast/core.mts'
 
 /**
  * Which spelling a marker uses. Both are live during the migration to oxlint's
@@ -86,14 +85,16 @@ const LINE_STARTS_WITH_COMMENT_RE = /^(?:#|\/\*|\/\/)/
  */
 export function markerInCommentBody(
   body: string,
-): { id: string | undefined; spelling: MarkerSpelling } | undefined {
+):
+  | { id: string | undefined; index: number; spelling: MarkerSpelling }
+  | undefined {
   const oxlint = OXLINT_IN_BODY_RE.exec(body)
   if (oxlint) {
-    return { id: oxlint[2], spelling: 'oxlint' }
+    return { id: oxlint[2], index: oxlint.index, spelling: 'oxlint' }
   }
   const legacy = LEGACY_IN_BODY_RE.exec(body)
   if (legacy) {
-    return { id: legacy[1], spelling: 'legacy' }
+    return { id: legacy[1], index: legacy.index, spelling: 'legacy' }
   }
   return undefined
 }
@@ -111,32 +112,90 @@ export function findMarkerSites(
   source: string,
   options?: ParseOptions | undefined,
 ): MarkerScan {
-  // Parse once up front purely to learn whether the file is parseable at all.
-  // `walkComments` swallows its own parse failure and returns [], which is
-  // indistinguishable from a clean file with no comments.
   if (tryParse(source, options) === undefined) {
     return { parsed: false, sites: [] }
   }
-  const comments = walkComments(source, {
-    __proto__: null,
-    ...options,
-    comments: true,
-  } as unknown as ParseOptions)
+  const literals = stringLiteralRanges(source, options)
   const sites: MarkerSite[] = []
-  for (let i = 0, { length } = comments; i < length; i += 1) {
-    const comment = comments[i]!
-    const marker = markerInCommentBody(comment.value)
-    if (!marker) {
-      continue
+  const lines = source.split('\n')
+  // UTF-8 BYTE offset of the current line's start. The parser reports node
+  // ranges in bytes while a JS string index counts UTF-16 code units, so the
+  // two only agree on pure ASCII. Fleet prose is full of em-dashes; mixing the
+  // spaces drifts the comparison by a byte per non-ASCII character and silently
+  // mis-answers every containment test after the first one.
+  let lineStart = 0
+  for (let i = 0, { length } = lines; i < length; i += 1) {
+    const line = lines[i]!
+    const marker = markerInCommentBody(line)
+    if (marker) {
+      const at = lineStart + Buffer.byteLength(line.slice(0, marker.index))
+      if (!offsetIsInsideAny(at, literals)) {
+        sites.push({
+          id: marker.id,
+          line: i + 1,
+          ownLine: LINE_STARTS_WITH_COMMENT_RE.test(line.trim()),
+          spelling: marker.spelling,
+        })
+      }
     }
-    sites.push({
-      id: marker.id,
-      line: comment.line,
-      ownLine: LINE_STARTS_WITH_COMMENT_RE.test(comment.text.trim()),
-      spelling: marker.spelling,
-    })
+    lineStart += Buffer.byteLength(line) + 1
   }
   return { parsed: true, sites }
+}
+
+/**
+ * Byte ranges of every string and template literal in `source`. A marker whose
+ * offset lands inside one is a MENTION — a guard's help text, a rule's error
+ * message, a doc example — not an opt-out.
+ *
+ * Ranges rather than comment nodes on purpose. The parser's comment
+ * attachment is unreliable at the pinned version — the same reason
+ * `lib/comment-markers.mts` line-scans instead of reading comment APIs — and
+ * it silently returned 1 of 9 real markers on a real file, mangling the body
+ * of the one it did return. Literal ranges come straight off node
+ * `start`/`end`, which the parser gets right.
+ */
+export function stringLiteralRanges(
+  source: string,
+  options?: ParseOptions | undefined,
+): Array<[number, number]> {
+  const ranges: Array<[number, number]> = []
+  const record = (node: AcornNode): void => {
+    ranges.push([node.start, node.end])
+  }
+  walkSimple(
+    source,
+    {
+      Literal: (node: AcornNode) => {
+        // Only string literals can host marker prose; a number or regex
+        // literal cannot contain one.
+        if (typeof node['value'] === 'string') {
+          record(node)
+        }
+      },
+      TemplateLiteral: record,
+    },
+    options,
+  )
+  return ranges
+}
+
+/**
+ * Whether `offset` falls inside any of `ranges`. Linear: a source file's
+ * literal count is small, and a sort-plus-binary-search would cost more to
+ * read than it saves.
+ */
+export function offsetIsInsideAny(
+  offset: number,
+  ranges: ReadonlyArray<readonly [number, number]>,
+): boolean {
+  for (let i = 0, { length } = ranges; i < length; i += 1) {
+    const range = ranges[i]!
+    if (offset >= range[0] && offset < range[1]) {
+      return true
+    }
+  }
+  return false
 }
 
 /**
