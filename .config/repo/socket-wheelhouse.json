@@ -15,6 +15,10 @@
   "release": {
     "provenanceOrphanBaseline": [
       {
+        "id": "@socketregistry/packageurl-js@1.5.1",
+        "reason": "Published with no SLSA attestation at all, so no commit can be proven to have produced it. npm mints attestations at publish time and they are immutable, so this is not repairable after the fact. Baselining does not weaken the gate: 1.5.2 and later are absent from this list and still fail unless published through the pipeline with publishConfig.provenance:true."
+      },
+      {
         "id": "@socketregistry/packageurl-js@1.5.0",
         "reason": "Attested commit daac6c59 carries the right 1.5.0 manifest, but v1.5.0 tags a different commit (2b810e49) and a re-pack at the attested tree DIVERGES from the published tarball — the built dist/ bytes differ, so the build is not reproducible and no tag can be proven to mark the published content."
       }
