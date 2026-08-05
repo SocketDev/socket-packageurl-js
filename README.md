@@ -264,16 +264,20 @@ PackageURL.fromUrl(
 
 ### TypeScript Types
 
-All types are exported for maximum flexibility:
+Every type is exported, so nothing needs to be re-declared to annotate a value
+this library hands back.
+
+<details>
+<summary><b>Type imports</b> — <code>PackageURLObject</code>, <code>NpmPackageComponents</code>, and the rest</summary>
 
 ```typescript
 import type {
-  PackageURLObject,
-  NpmPackageComponents,
-  ParsedPurlComponents,
-  QualifiersObject,
   ComponentEncoder,
   DownloadUrl,
+  NpmPackageComponents,
+  PackageURLObject,
+  ParsedPurlComponents,
+  QualifiersObject,
   RepositoryUrl,
 } from '@socketregistry/packageurl-js'
 
@@ -284,10 +288,13 @@ const components: NpmPackageComponents = parseNpmSpecifier('lodash@4.17.21')
 const obj: PackageURLObject = purl.toObject()
 ```
 
-**Constants:**
+</details>
+
+<details>
+<summary><b>Constants</b> — <code>PurlQualifierNames</code> and <code>PURL_Type</code>, instead of bare strings</summary>
 
 ```typescript
-import { PurlQualifierNames, PURL_Type } from '@socketregistry/packageurl-js'
+import { PURL_Type, PurlQualifierNames } from '@socketregistry/packageurl-js'
 
 // Standard qualifier keys
 PurlQualifierNames.Checksum // 'checksum'
@@ -298,7 +305,9 @@ PURL_Type.NPM // 'npm'
 PURL_Type.PYPI // 'pypi'
 ```
 
-See [docs/types.md](docs/types.md) for complete type reference.
+</details>
+
+See [docs/types.md](docs/types.md) for the complete type reference.
 
 ## API Reference
 
