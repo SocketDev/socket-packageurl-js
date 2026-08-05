@@ -93,8 +93,6 @@ import type { BumpLevel, ConventionalCommit } from './lib/changelog.mts'
 import type { ReleaseDerivation, ReleaseLane } from './lib/release-anchor.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
 import { writeThroughMirrorLock } from './_shared/mirror-lock.mts'
-import { runMain } from './_shared/run-main.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 const rootPath = REPO_ROOT
@@ -729,14 +727,17 @@ async function main(): Promise<void> {
       )
       return
     }
-    logger.fail(
-      `CHANGELOG.md already has a ${nextVersion} section but package.json ` +
-        `reads ${pkg.version} — a half-applied bump.\n` +
-        `  Fix: reconcile the manifest with the changelog (or remove the ` +
-        `stale section), then re-run.`,
+    // A hand-authored (or restored) `## [nextVersion]` section ahead of the
+    // manifest bump is a legitimate accrual home, same standing as
+    // [Unreleased]: composeReleaseSection absorbs it into the union below,
+    // preserving its date. Fall through and complete the bump instead of
+    // failing — the half-bump this guard once caught is the section landing
+    // WITH a mismatched already-released manifest, which the re-entry no-op
+    // above still catches.
+    logger.log(
+      `CHANGELOG.md already carries a ${nextVersion} section; absorbing it ` +
+        `into the composed release section and completing the bump.`,
     )
-    process.exitCode = 1
-    return
   }
   const versionHeading = changelogHeading(
     nextVersion,
@@ -874,12 +875,9 @@ async function main(): Promise<void> {
   )
 }
 
-const SCRIPT_META: ScriptMeta = {
-  describe:
-    'derive the next version from the conventional commits since the last release, write package.json + CHANGELOG.md, and commit the bump',
-  help: BUMP_USAGE,
-}
-
 if (isMainModule(import.meta.url)) {
-  runMain(main, SCRIPT_META)
+  main().catch((e: unknown) => {
+    logger.error(e)
+    process.exitCode = 1
+  })
 }

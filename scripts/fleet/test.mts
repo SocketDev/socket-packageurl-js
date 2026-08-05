@@ -47,7 +47,6 @@ import type { SpawnSyncOptions } from '@socketsecurity/lib-stable/process/spawn/
 
 import { hasLiveForeignActiveRun } from './_shared/active-run-marker.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
 import { isScopeFlag, resolveScopeMode } from './_shared/scope-flags.mts'
 import {
   GENERATED_GLOBS,
@@ -72,7 +71,6 @@ import {
 } from './test-runner/scope-decisions.mts'
 
 import type { ParsedTestRunnerArgs } from './test-runner/cli-args.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -123,7 +121,7 @@ const useShell = process.platform === 'win32'
 const rerunArgvTail = process.argv.slice(2).join(' ')
 const rerunHint = rerunArgvTail ? `pnpm test ${rerunArgvTail}` : 'pnpm test'
 
-function log(msg: string): void {
+export function log(msg: string): void {
   if (!quiet) {
     logger.log(msg)
   }
@@ -141,7 +139,7 @@ const runVitest = createVitestRunner({
   warn: msg => logger.warn(msg),
 })
 
-function runWorkspaceTests(): number {
+export function runWorkspaceTests(): number {
   // `pnpm -r run` (recursive run, not the banned `pnpm exec`) invokes each
   // package's own test script, so every package runs under its configured env
   // wrapper / vitest config. `--if-present` skips packages lacking the script
@@ -177,7 +175,7 @@ function runWorkspaceTests(): number {
 // package manifests to disambiguate. Globs the manifests directly rather than
 // parsing `pnpm -r list --json` (whose stdout the Socket Firewall wrapper
 // prefixes with a banner, breaking JSON.parse and silently defeating the scan).
-function workspaceHasScript(script: string): boolean {
+export function workspaceHasScript(script: string): boolean {
   const manifests = globSync(['**/package.json'], {
     cwd: repoRoot,
     absolute: true,
@@ -204,7 +202,7 @@ function workspaceHasScript(script: string): boolean {
 // or hangs. In that layout every scope delegates to per-package `test:unit`;
 // the per-file related/changed filtering vitest would do at the root is the
 // optimization that breaks, and a per-package full run is the safe trade.
-function isDelegatedWorkspace(): boolean {
+export function isDelegatedWorkspace(): boolean {
   return shouldDelegateWorkspace(mode, {
     rootVitestConfigExists: existsSync(ROOT_VITEST_CONFIG),
     workspaceManifestExists: existsSync(ROOT_WORKSPACE_MANIFEST),
@@ -219,7 +217,7 @@ function isDelegatedWorkspace(): boolean {
 // for the no-root-config layout, extended to the root-config-present one.
 // Counts co-located `src/**` specs too, socket-webext's layout, so a repo
 // whose config includes them isn't misread as test-less.
-function totalTestFileCount(): number {
+export function totalTestFileCount(): number {
   return globSync(
     [
       `**/src/**/*.test.${TEST_EXTENSIONS}`,
@@ -441,21 +439,8 @@ function main(): void {
   process.exitCode = runChanged()
 }
 
-const SCRIPT_META: ScriptMeta = {
-  describe:
-    'runs the vitest suite scoped to changed, staged, or all files via pnpm test',
-  help: `Usage: pnpm test [files...] [flags]
-
-  (no flags)             local-dev scope: vitest --changed vs HEAD
-  --staged               pre-commit scope: staged tests + mirror tests only
-  --all                  full suite; --shard=<index>/<count> partitions it
-  --lane fast|mid|slow   speed lane (default: fast)
-  --quiet, --silent      suppress progress output
-  [files...]             run the named test files directly`,
-}
-
 // Entrypoint-guarded so importing this module (e.g. a unit test of
 // buildRelatedArgs) doesn't kick off a vitest run.
 if (isMainModule(import.meta.url)) {
-  runMain(main, SCRIPT_META)
+  main()
 }

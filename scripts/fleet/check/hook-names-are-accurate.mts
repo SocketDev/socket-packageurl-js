@@ -26,9 +26,6 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { REPO_ROOT } from '../paths.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
-
-import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -130,7 +127,7 @@ export async function findMismatches(
   return out
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const quiet = process.argv.includes('--quiet')
   const hooksDir = path.join(REPO_ROOT, '.claude', 'hooks', 'fleet')
   const mismatches = await findMismatches(hooksDir)
@@ -163,14 +160,9 @@ async function main(): Promise<void> {
   }
 }
 
-const SCRIPT_META: ScriptMeta = {
-  describe:
-    'verifies every -guard hook declares type guard and every -nudge declares type nudge',
-  help: `Usage: node scripts/fleet/check/hook-names-are-accurate.mts [flags]
-
-  --quiet  suppress the success message`,
-}
-
 if (isMainModule(import.meta.url)) {
-  runMain(main, SCRIPT_META)
+  main().catch((e: unknown) => {
+    logger.error(e)
+    process.exitCode = 1
+  })
 }

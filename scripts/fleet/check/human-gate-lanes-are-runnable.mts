@@ -32,10 +32,7 @@ import process from 'node:process'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
-
-import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -127,7 +124,7 @@ export function findLaneDefects(repoRoot: string): string[] {
   return out.toSorted()
 }
 
-function main(): number {
+export function main(): number {
   const offenders = findLaneDefects(REPO_ROOT)
   if (offenders.length) {
     logger.fail(
@@ -158,14 +155,6 @@ function main(): number {
   return 0
 }
 
-const SCRIPT_META: ScriptMeta = {
-  describe:
-    'verifies every human-gate lane hands the operator a paste-and-run command',
-  help: `Usage: node scripts/fleet/check/human-gate-lanes-are-runnable.mts [flags]
-
-  --quiet  suppress the success message`,
-}
-
 if (isMainModule(import.meta.url)) {
-  runMain(main, SCRIPT_META)
+  main()
 }

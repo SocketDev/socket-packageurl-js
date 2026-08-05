@@ -150,9 +150,12 @@ export function buildHookAndDocSteps(forwardedArgs: string[]): CheckStep[] {
     // assumption. A lane the operator edits, or runs in their own terminal, is
     // a gate that strands the agent.
     () =>
-      run('node', [
-        'scripts/fleet/check/human-gate-lanes-are-runnable.mts',
-      ]),
+      run('node', ['scripts/fleet/check/human-gate-lanes-are-runnable.mts']),
+    // A `pnpm run <script> -- --flag` invocation leaks a literal `--` argument
+    // to the script on pnpm (unlike npm), so the bare separator is banned in
+    // scripts, workflows, and docs; spell `pnpm run <script> --flag`.
+    () =>
+      run('node', ['scripts/fleet/check/pnpm-run-flags-have-no-bare-dash.mts']),
     // Prose in tracked markdown must reference a PR/issue as a clickable
     // `[#N](url)` link, not a bare `#N` — dead text in a rendered .md or a
     // terminal report. Complements the anti-backref rule (bare `#N` is correct

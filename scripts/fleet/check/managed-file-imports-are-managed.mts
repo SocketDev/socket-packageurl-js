@@ -38,9 +38,6 @@ import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 
 import { isMainModule } from '../_shared/is-main-module.mts'
 import { REPO_ROOT } from '../paths.mts'
-import { runMain } from '../_shared/run-main.mts'
-
-import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -316,7 +313,7 @@ export function expandManagedEntries(
   return out
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const quiet = process.argv.includes('--quiet')
   // A cascaded member has no template/base and no scripts/repo — vacuous pass.
   if (!existsSync(TEMPLATE_BASE_DIR)) {
@@ -378,14 +375,9 @@ async function main(): Promise<void> {
   process.exitCode = 1
 }
 
-const SCRIPT_META: ScriptMeta = {
-  describe:
-    'checks every managed file relative-imports only files the cascade also manages',
-  help: `Usage: node scripts/fleet/check/managed-file-imports-are-managed.mts [flags]
-
-  --quiet  silent on clean`,
-}
-
 if (isMainModule(import.meta.url)) {
-  runMain(main, SCRIPT_META)
+  main().catch((e: unknown) => {
+    logger.fail(`managed-file-imports-are-managed failed: ${String(e)}`)
+    process.exitCode = 1
+  })
 }

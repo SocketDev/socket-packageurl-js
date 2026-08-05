@@ -35,9 +35,6 @@ import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
 
 import { REPO_ROOT } from '../paths.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
-
-import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -231,7 +228,9 @@ export function findDanglingEntries(repoRoot: string): DanglingEntry[] {
  * `rehome-to-fleet` / `move-to-repo`. Operates on the filesystem; commit + push
  * is the caller's job.
  */
-async function applyFix(entries: readonly DanglingEntry[]): Promise<void> {
+export async function applyFix(
+  entries: readonly DanglingEntry[],
+): Promise<void> {
   for (const e of entries) {
     if (e.action === 'dup-of-fleet') {
       await safeDelete(e.src)
@@ -249,7 +248,7 @@ async function applyFix(entries: readonly DanglingEntry[]): Promise<void> {
   }
 }
 
-function formatReport(entries: readonly DanglingEntry[]): string {
+export function formatReport(entries: readonly DanglingEntry[]): string {
   if (entries.length === 0) {
     return ''
   }
@@ -284,7 +283,7 @@ function formatReport(entries: readonly DanglingEntry[]): string {
   return lines.join('\n')
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const fix = process.argv.includes('--fix')
   const entries = findDanglingEntries(REPO_ROOT)
   if (entries.length === 0) {
@@ -302,14 +301,9 @@ async function main(): Promise<void> {
   logger.log('[check-claude-dirs-are-segmented] Done.')
 }
 
-const SCRIPT_META: ScriptMeta = {
-  describe:
-    'checks that .claude/{agents,commands,hooks,skills}/ entries are segmented into fleet/ and repo/',
-  help: `Usage: node scripts/fleet/check/claude-dirs-are-segmented.mts [--fix]
-
-  --fix  move each dangling entry into fleet/ or repo/ and remove duplicates`,
-}
-
 if (isMainModule(import.meta.url)) {
-  runMain(main, SCRIPT_META)
+  main().catch((e: unknown) => {
+    logger.error(`[check-claude-dirs-are-segmented] error: ${e}`)
+    process.exitCode = 1
+  })
 }

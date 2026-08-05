@@ -69,10 +69,22 @@ import process from 'node:process'
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+
 import { REPO_ROOT } from './paths.mts'
-import { nowIso, readLatest, runCascade } from './socket-lib-cascade/drive.mts'
+import {
+  nowIso,
+  readLatest,
+  resolveProjectsDir,
+  runCascade,
+} from './socket-lib-cascade/drive.mts'
 import { renderStatus } from './socket-lib-cascade/render.mts'
-import { LIB_PKG, producedPackages } from './socket-lib-cascade/stages.mts'
+import {
+  LIB_PKG,
+  producedPackages,
+  siblingRepoDir,
+} from './socket-lib-cascade/stages.mts'
 import {
   loadState,
   resetState,
@@ -80,14 +92,13 @@ import {
 } from './socket-lib-cascade/state.mts'
 import {
   ensureCascadeState,
+  manifestAheadWarning,
   resolveTargetVersion,
 } from './socket-lib-cascade/target.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
 
 import type { CliFlags } from './socket-lib-cascade/drive.mts'
 import type { RegistryReader } from './socket-lib-cascade/target.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -129,6 +140,26 @@ export function defaultCascadeCliIo(): CascadeCliIo {
   }
 }
 
+/**
+ * Socket-lib's own manifest version, or undefined when the checkout is absent
+ * or unreadable. Read here rather than inside the pure checker so the checker
+ * stays testable without a filesystem.
+ */
+export function readSocketLibManifestVersion(): string | undefined {
+  try {
+    const dir = siblingRepoDir(resolveProjectsDir(), 'socket-lib')
+    const raw = readFileSync(path.join(dir, 'package.json'), 'utf8')
+    const parsed: unknown = JSON.parse(raw)
+    if (parsed === null || typeof parsed !== 'object') {
+      return undefined
+    }
+    const version: unknown = Reflect.get(parsed, 'version')
+    return typeof version === 'string' ? version : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export async function main(
   io?: Partial<CascadeCliIo> | undefined,
 ): Promise<void> {
@@ -141,6 +172,7 @@ export async function main(
     args: cfg.args,
     options: {
       'dry-run': { default: false, type: 'boolean' },
+      help: { default: false, type: 'boolean' },
       reset: { default: false, type: 'boolean' },
       status: { default: false, type: 'boolean' },
       version: { type: 'string' },
@@ -148,6 +180,10 @@ export async function main(
     allowPositionals: false,
     strict: false,
   })
+  if (values['help']) {
+    logger.log(USAGE)
+    return
+  }
   const file = cfg.stateFile
   if (values['reset']) {
     resetState(file)
@@ -182,6 +218,13 @@ export async function main(
     return
   }
   const target = resolved.version
+  const ahead = manifestAheadWarning({
+    manifestVersion: readSocketLibManifestVersion(),
+    targetVersion: target,
+  })
+  if (ahead !== undefined) {
+    logger.warn(ahead)
+  }
   const setup = await ensureCascadeState({
     file,
     now: nowIso(),
@@ -207,12 +250,9 @@ export async function main(
   await cfg.runCascade(setup.state, cli)
 }
 
-const SCRIPT_META: ScriptMeta = {
-  describe:
-    'drives the socket-lib downstream release cascade as resumable, receipt-producing stages',
-  help: USAGE,
-}
-
 if (isMainModule(import.meta.url)) {
-  runMain(main, SCRIPT_META)
+  main().catch((e: unknown) => {
+    logger.error(e)
+    process.exitCode = 1
+  })
 }

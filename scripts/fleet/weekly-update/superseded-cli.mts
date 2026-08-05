@@ -14,14 +14,19 @@
 
 import process from 'node:process'
 
+import { isMainModule } from '../_shared/is-main-module.mts'
+
 import { supersededPrNumbers } from './superseded.mts'
 
-function flag(argv: readonly string[], name: string): string | undefined {
+export function flag(
+  argv: readonly string[],
+  name: string,
+): string | undefined {
   const i = argv.indexOf(name)
   return i === -1 ? undefined : argv[i + 1]
 }
 
-async function readStdin(): Promise<string> {
+export async function readStdin(): Promise<string> {
   if (process.stdin.isTTY) {
     return ''
   }
@@ -34,7 +39,7 @@ async function readStdin(): Promise<string> {
 
 // gh's shape to ours. An unrecognized payload yields an empty list, so a gh
 // change can only ever close FEWER PRs, never more.
-function parsePrs(text: string): Array<{
+export function parsePrs(text: string): Array<{
   number: number
   headRefName: string
   labels: string[]
@@ -74,7 +79,7 @@ function parsePrs(text: string): Array<{
   return out
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const branch = flag(process.argv.slice(2), '--branch') ?? 'weekly-update'
   const numbers = supersededPrNumbers(parsePrs(await readStdin()), branch)
   if (numbers.length) {
@@ -82,4 +87,6 @@ async function main(): Promise<void> {
   }
 }
 
-void main()
+if (isMainModule(import.meta.url)) {
+  void main()
+}

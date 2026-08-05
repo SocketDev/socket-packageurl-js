@@ -33,8 +33,6 @@ import {
 } from '../../../.claude/hooks/fleet/_shared/ast/core.mts'
 import type { AcornNode } from '../../../.claude/hooks/fleet/_shared/ast/core.mts'
 import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -419,7 +417,7 @@ export function readFacts(file: string, tree: FileFacts['tree']): FileFacts {
   return facts
 }
 
-function main(): void {
+export function main(): void {
   // Parse every file in both trees once. A _shared module's fork-able surface is
   // its EXPORTED symbols, what a consumer can import; a re-fork is a consumer
   // re-declaring one of those exported names. A module's PRIVATE helper (e.g. a
@@ -507,11 +505,6 @@ function main(): void {
   }
 }
 
-const SCRIPT_META: ScriptMeta = {
-  describe: 'check that shared hook-tree matchers are never re-forked inline',
-  help: 'Usage: node scripts/fleet/check/scanner-parity.mts',
-}
-
 if (isMainModule(import.meta.url)) {
-  runMain(main, SCRIPT_META)
+  main()
 }

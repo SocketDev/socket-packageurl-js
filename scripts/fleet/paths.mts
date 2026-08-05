@@ -410,6 +410,19 @@ export const PACKAGE_JSON = path.join(REPO_ROOT, 'package.json')
 export const PNPM_LOCK = path.join(REPO_ROOT, 'pnpm-lock.yaml')
 
 /**
+ * Absolute path to the release pipeline runner. Callers that re-enter the
+ * pipeline as a child process (the promote runner's `--reconcile` hand-off)
+ * resolve it from here rather than rebuilding the segments, so a move updates
+ * one definition instead of every call site.
+ */
+export const PUBLISH_PIPELINE_SCRIPT = path.join(
+  REPO_ROOT,
+  'scripts',
+  'fleet',
+  'publish-pipeline.mts',
+)
+
+/**
  * Absolute path to the script-only check tsconfig (`tsc -p`'d directly by the
  * check step, never editor/language-server discovered — that's the root
  * `tsconfig.json`'s job). Lives at `.config/fleet/`, not the repo root.
