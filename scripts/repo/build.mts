@@ -21,13 +21,13 @@ import type { Logger } from '@socketsecurity/lib-stable/logger/types'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
-import { errorMessage } from '../utils/error-message.mts'
+import { errorMessage } from './utils/error-message.mts'
 
 const logger: Logger = getDefaultLogger()
 
 import { configs as rolldownConfigs } from '../../.config/repo/rolldown.config.mts'
 import { getBuildAnalysis } from './build-analysis.mts'
-import { runSequence } from '../utils/run-command.mts'
+import { runSequence } from './utils/run-command.mts'
 
 import { isMainModule } from '../fleet/_shared/is-main-module.mts'
 
