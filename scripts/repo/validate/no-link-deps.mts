@@ -9,6 +9,8 @@ import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
+import { REPO_ROOT } from '../../fleet/paths.mts'
+
 const logger = getDefaultLogger()
 
 const rootPath = REPO_ROOT
