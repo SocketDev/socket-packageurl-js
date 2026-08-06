@@ -241,7 +241,7 @@ export async function main(): Promise<void> {
   }
 }
 
-const SCRIPT_META: ScriptMeta = {
+export const SCRIPT_META: ScriptMeta = {
   describe:
     'promotes a staged npm package to public, then cuts its tag and GitHub release',
   help: `Usage: node scripts/fleet/publish-infra/npm/promote.mts [flags]

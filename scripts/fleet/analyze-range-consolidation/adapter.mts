@@ -43,6 +43,7 @@
  *     rule is that an override's value is measured and never predicted.
  */
 
+import type { OverrideAuditRead } from './override-audit.mts'
 import { judgeFamily, satisfiesSemverRange } from './verdict.mts'
 import type {
   ConsolidationVerdict,
@@ -108,6 +109,10 @@ export interface EcosystemAdapter {
   detect(config: EcosystemProbe): Promise<boolean>
   // The duplicate families, with every consumer's DECLARED range.
   readFamilies(config: EcosystemProbe): Promise<EcosystemFamilyRead>
+  // Every override entry this repo carries, classified by what it buys. Absent
+  // means this ecosystem has no override audit yet, which the report says out
+  // loud rather than printing a zero it never measured.
+  auditOverrides?(config: EcosystemProbe): Promise<OverrideAuditRead>
   // Why this ecosystem cannot be analyzed, when it structurally cannot.
   readonly notApplicableReason?: string | undefined
 }

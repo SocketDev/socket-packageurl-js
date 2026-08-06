@@ -192,7 +192,7 @@ export function scan(repoRoot: string = REPO_ROOT): Finding[] {
   return findings
 }
 
-function main(): number {
+export function main(): number {
   const findings = scan()
   if (findings.length === 0) {
     logger.log('✔ every fleet/repo CLI entry is fail-soft')

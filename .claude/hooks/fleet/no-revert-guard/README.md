@@ -4,6 +4,11 @@ PreToolUse Bash hook that blocks destructive git commands and hook bypasses unle
 
 ## What it blocks
 
+Every history-destroying git shape, each with its matching bypass phrase.
+
+<details>
+<summary><b>The full pattern table</b> — checkout/restore/reset/stash/clean/rm under <code>Allow revert bypass</code>; hook-dodging (<code>--no-verify</code>, HUSKY=0, hooksPath) under <code>Allow no-verify bypass</code></summary>
+
 | Pattern                                                                                                                                 | Bypass phrase                 |
 | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
 | `git checkout -- <files>` / `git checkout <ref> -- <files>`                                                                             | `Allow revert bypass`         |
@@ -34,6 +39,8 @@ one outcome: the `.git-hooks/` chain does not run. The `core.hooksPath` rule
 stands down when the command names another repository (`-C` / `--git-dir`
 outside the acting repo, or a `cd` out of the fleet), which is the hardening
 idiom `docs/agents.md/fleet/untrusted-cwd.md` mandates for a scanned checkout.
+
+</details>
 
 ## Which repository it reads
 

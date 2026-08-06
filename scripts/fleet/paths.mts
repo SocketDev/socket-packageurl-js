@@ -447,6 +447,22 @@ export function resolvePnpmVirtualStoreDir(repoRoot: string): string {
 export const PNPM_LOCK = resolvePnpmLockPath(REPO_ROOT)
 
 /**
+ * Absolute path to a given repo root's `FLEET_CANONICAL_OVERRIDES` pin manifest
+ * — the wheelhouse-owned source of the `overrides:` block every member carries.
+ * Only the wheelhouse has one, so a caller checks existence before reading.
+ */
+export function resolveOverridePinManifestPath(repoRoot: string): string {
+  return path.join(
+    repoRoot,
+    'scripts',
+    'repo',
+    'sync-scaffolding',
+    'manifest',
+    'catalog-overrides.mts',
+  )
+}
+
+/**
  * Absolute path to the release pipeline runner. Callers that re-enter the
  * pipeline as a child process (the promote runner's `--reconcile` hand-off)
  * resolve it from here rather than rebuilding the segments, so a move updates

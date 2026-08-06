@@ -88,6 +88,20 @@ export interface DeclaredRangeResolution {
   readonly unreadableReason: string | undefined
 }
 
+// An `npm:` alias specifier split into the package it aliases and the range it
+// declares against that package.
+export interface NpmAliasSpecifier {
+  readonly name: string
+  readonly range: string
+}
+
+// An `overrides:` key split into the package it forces and the optional
+// `@<range>` suffix narrowing which declared specs it rewrites.
+export interface PnpmOverrideKey {
+  readonly name: string
+  readonly scopeRange: string | undefined
+}
+
 /**
  * Read the lockfile's `catalogs:` section — the declared range every `catalog:`
  * specifier defers to.
@@ -139,24 +153,35 @@ export function collectPnpmCatalogSpecifiers(
 }
 
 /**
+ * An `overrides:` key split into the package it forces and its optional
+ * `@<range>` narrowing suffix. Returns `undefined` for a key that is not a
+ * package reference.
+ */
+export function parsePnpmOverrideKey(key: string): PnpmOverrideKey | undefined {
+  const m = OVERRIDE_KEY_RE.exec(key)
+  return m ? { name: m[1]!, scopeRange: m[2] } : undefined
+}
+
+/**
  * The package name out of an `overrides:` key, dropping any `@<range>`
  * narrowing suffix. Returns `undefined` for a key that is not a package
  * reference.
  */
 export function parsePnpmOverrideKeyName(key: string): string | undefined {
-  const m = OVERRIDE_KEY_RE.exec(key)
-  return m ? m[1]! : undefined
+  return parsePnpmOverrideKey(key)?.name
 }
 
 /**
- * Every package name the lockfile's `overrides:` section forces, range-narrowed
- * keys included. A name here is a family whose collapse was already paid for
- * with an override.
+ * Every entry the lockfile's `overrides:` section applies, raw key to raw
+ * value. The key keeps any `@<range>` narrowing so a scoped entry stays
+ * distinguishable, and the value is what the resolver actually forced: pnpm
+ * writes a `catalog:` override into the lockfile already reduced to the version
+ * the catalog carries.
  */
-export function collectPnpmOverriddenNames(
+export function collectPnpmOverrideEntries(
   lines: readonly string[],
-): Set<string> {
-  const names = new Set<string>()
+): Map<string, string> {
+  const entries = new Map<string, string>()
   let inSection = false
   for (let i = 0, { length } = lines; i < length; i += 1) {
     const line = lines[i] ?? ''
@@ -174,10 +199,25 @@ export function collectPnpmOverriddenNames(
     }
     const entryMatch = OVERRIDE_ENTRY_RE.exec(line)
     if (entryMatch) {
-      const name = parsePnpmOverrideKeyName(entryMatch[1]!)
-      if (name !== undefined) {
-        names.add(name)
-      }
+      entries.set(entryMatch[1]!, stripYamlQuotes(entryMatch[2]!.trim()))
+    }
+  }
+  return entries
+}
+
+/**
+ * Every package name the lockfile's `overrides:` section forces, range-narrowed
+ * keys included. A name here is a family whose collapse was already paid for
+ * with an override.
+ */
+export function collectPnpmOverriddenNames(
+  lines: readonly string[],
+): Set<string> {
+  const names = new Set<string>()
+  for (const key of collectPnpmOverrideEntries(lines).keys()) {
+    const name = parsePnpmOverrideKeyName(key)
+    if (name !== undefined) {
+      names.add(name)
     }
   }
   return names
@@ -277,6 +317,17 @@ export function resolveNpmDeclaredRange(config: {
 }
 
 /**
+ * An `npm:` alias specifier split into the package it aliases and the range it
+ * declares against it. Returns `undefined` for any other specifier.
+ */
+export function parseNpmAliasSpecifier(
+  specifier: string,
+): NpmAliasSpecifier | undefined {
+  const m = NPM_ALIAS_SPECIFIER_RE.exec(specifier)
+  return m ? { name: m[1]!, range: m[2]! } : undefined
+}
+
+/**
  * Reduce a non-`catalog:` specifier to a registry range. An `npm:` alias
  * carries its range after the aliased package's name; a location specifier
  * carries none.
@@ -285,9 +336,9 @@ export function reduceNpmSpecifier(specifier: string): {
   range: string | undefined
   unreadableReason: string | undefined
 } {
-  const aliasMatch = NPM_ALIAS_SPECIFIER_RE.exec(specifier)
-  if (aliasMatch) {
-    return { range: aliasMatch[2]!, unreadableReason: undefined }
+  const alias = parseNpmAliasSpecifier(specifier)
+  if (alias) {
+    return { range: alias.range, unreadableReason: undefined }
   }
   const prefix = NON_REGISTRY_SPECIFIER_PREFIXES.find(candidate =>
     specifier.startsWith(candidate),

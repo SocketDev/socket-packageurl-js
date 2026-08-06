@@ -35,7 +35,7 @@ import {
 // intended state, not a defect. Resolves the repo name from the origin remote,
 // falling back to the directory name. Any read/parse error yields false (the
 // divergence probe then behaves as before).
-function isSquashHistoryRepo(cwd: string): boolean {
+export function isSquashHistoryRepo(cwd: string): boolean {
   const rosterPath = path.join(
     cwd,
     '.claude/skills/fleet/cascading-fleet/lib/fleet-repos.json',
@@ -73,7 +73,7 @@ function isSquashHistoryRepo(cwd: string): boolean {
 }
 
 // Resolve the default branch name for git probes. Falls back to 'main'.
-function resolveDefaultBranch(cwd: string): string {
+export function resolveDefaultBranch(cwd: string): string {
   const r = spawnSync(
     'git',
     ['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'],

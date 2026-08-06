@@ -23,6 +23,7 @@ import { REPO_ROOT } from '../paths.mts'
 import { buildConsolidationCandidates } from './adapter.mts'
 import type { ConsolidationCandidate, EcosystemAdapter } from './adapter.mts'
 import { npmEcosystemAdapter } from './ecosystems/npm.mts'
+import { formatOverrideAuditReportLines } from './override-audit-report.mts'
 
 const logger = getDefaultLogger()
 
@@ -86,7 +87,7 @@ export function summarizeCandidateStatuses(
     .join(', ')
 }
 
-async function main(): Promise<number> {
+export async function main(): Promise<number> {
   let failed = false
   for (
     let a = 0, { length: adapterCount } = ECOSYSTEM_ADAPTERS;
@@ -123,6 +124,26 @@ async function main(): Promise<number> {
         logger.log(line)
       }
     }
+    logger.log('')
+    if (!adapter.auditOverrides) {
+      logger.log(
+        `${purlType}: no override audit for this ecosystem yet, so its ` +
+          `override entries were NOT measured`,
+      )
+      continue
+    }
+    const audit = await adapter.auditOverrides({ repoRoot: REPO_ROOT })
+    if (!audit.ok) {
+      logger.error(`${purlType}: ${audit.reason}`)
+      failed = true
+      continue
+    }
+    for (const line of formatOverrideAuditReportLines({
+      purlType,
+      rows: audit.rows,
+    })) {
+      logger.log(line)
+    }
   }
   return failed ? 1 : 0
 }
@@ -133,6 +154,8 @@ const SCRIPT_META: ScriptMeta = {
   help: 'Usage: node scripts/fleet/analyze-range-consolidation/cli.mts',
 }
 
+/* c8 ignore start - entrypoint guard; exercised via subprocess */
 if (isMainModule(import.meta.url)) {
   runMain(main, SCRIPT_META)
 }
+/* c8 ignore stop */

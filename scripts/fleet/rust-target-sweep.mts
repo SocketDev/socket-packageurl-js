@@ -201,6 +201,8 @@ export const SCRIPT_META: ScriptMeta = {
   --fix            delete the stale dirs (dry-run by default)`,
 }
 
+/* c8 ignore start - entrypoint guard; only runs when node executes this file as the process entry, never under the in-process test runner */
 if (isMainModule(import.meta.url)) {
   runMain(main, SCRIPT_META)
 }
+/* c8 ignore stop */

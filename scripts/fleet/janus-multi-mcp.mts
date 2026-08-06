@@ -324,6 +324,8 @@ export const SCRIPT_META: ScriptMeta = {
   help: 'Usage: node scripts/fleet/janus-multi-mcp.mts',
 }
 
+/* c8 ignore start - entrypoint guard; exercised via subprocess */
 if (isMainModule(import.meta.url)) {
   runMain(main, SCRIPT_META)
 }
+/* c8 ignore stop */

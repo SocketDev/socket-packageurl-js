@@ -33,7 +33,12 @@ import {
   TAZE_PASS_SOCKET_ARGS,
   TAZE_PASS_THIRD_PARTY_ARGS,
 } from './constants/taze-passes.mts'
-import { FLEET_CATALOG_YAML, PNPM_WORKSPACE_YAML, REPO_ROOT } from './paths.mts'
+import {
+  FLEET_CATALOG_YAML,
+  PNPM_WORKSPACE_YAML,
+  REPO_ROOT,
+  resolveOverridePinManifestPath,
+} from './paths.mts'
 import { isMainModule } from './_shared/is-main-module.mts'
 import { writeThroughMirrorLock } from './_shared/mirror-lock.mts'
 import { runMain } from './_shared/run-main.mts'
@@ -72,14 +77,7 @@ const TEMPLATE_FLEET_CATALOG_YAML = path.join(
   'fleet',
   'pnpm-workspace.fleet.yaml',
 )
-const OVERRIDE_PIN_MANIFEST = path.join(
-  REPO_ROOT,
-  'scripts',
-  'repo',
-  'sync-scaffolding',
-  'manifest',
-  'catalog-overrides.mts',
-)
+const OVERRIDE_PIN_MANIFEST = resolveOverridePinManifestPath(REPO_ROOT)
 
 const logger = getDefaultLogger()
 
@@ -390,7 +388,17 @@ export async function main(): Promise<void> {
   // and pnpm's minimumReleaseAge derive from. Network goes through tazeEnv() so it
   // works behind the Socket Firewall, exactly like the taze passes above.
   if (process.exitCode !== 1) {
-    const ecosystems = ['brew', 'cargo', 'docker', 'go', 'node']
+    // `external-tools` covers the pinned build/release binaries (pnpm, npm, uv,
+    // zizmor, sfw, fff, janus, …). They live in the external-tools.json
+    // manifests rather than package.json, so no taze pass above ever sees them.
+    const ecosystems = [
+      'brew',
+      'cargo',
+      'docker',
+      'external-tools',
+      'go',
+      'node',
+    ]
     for (let i = 0, { length } = ecosystems; i < length; i += 1) {
       const eco = ecosystems[i]!
       const runner = path.join(
@@ -474,8 +482,8 @@ const SCRIPT_META: ScriptMeta = {
     'Takes no flags. Runs, in order: taze pass 1 (third-party, soak-gated),\n' +
     'taze pass 2 (Socket-owned scopes, no cooldown), the fleet-pin lockstep +\n' +
     'pin floor, the `-stable` alias reconcile, `pnpm install`, the brew/cargo/\n' +
-    'docker/go/node soak plans (plan only), the telemetry scan, and the fleet\n' +
-    'scaffolding refresh.\n' +
+    'docker/external-tools/go/node soak plans (plan only), the telemetry scan,\n' +
+    'and the fleet scaffolding refresh.\n' +
     '\n' +
     'Apply one ecosystem plan with:\n' +
     '  node scripts/fleet/update/<eco>.mts --soak-days N --apply',

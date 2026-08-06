@@ -35,7 +35,7 @@ export interface StrandedCascadeReport {
 // real cleanup-stranded output passes through the lib logger before reaching
 // this parser; stripping here keeps `saw` entries clean and makes the regexes
 // robust across logger format changes.
-function stripLoggerPrefix(line: string): string {
+export function stripLoggerPrefix(line: string): string {
   // Remove ANSI CSI sequences (e.g. \x1b[94m … \x1b[39m).
   // oxlint-disable-next-line prefer-regex-literals -- constructed for clarity
   const noAnsi = line.replace(/\x1b\[[0-9;]*m/g, '')

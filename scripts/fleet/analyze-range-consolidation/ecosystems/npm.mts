@@ -59,6 +59,7 @@ import type {
   EcosystemProbe,
   FamilyReading,
 } from '../adapter.mts'
+import type { OverrideAuditRead } from '../override-audit.mts'
 import { compareSemverVersions, satisfiesSemverRange } from '../verdict.mts'
 import {
   collectPnpmCatalogSpecifiers,
@@ -73,6 +74,7 @@ import type {
   PnpmCatalogSpecifiers,
   PnpmPeerRanges,
 } from './npm-declared-ranges.mts'
+import { auditNpmOverrides } from './npm-override-audit.mts'
 
 export const NPM_PURL_TYPE = 'pkg:npm'
 
@@ -222,74 +224,145 @@ export function readPackageConsumerEvidence(config: {
 }
 
 /**
+ * The registry versions of one family, ordered. A name the graph never resolved
+ * yields an empty list, which is a measurable state rather than an absent one:
+ * an override on a package this tree never installed collapses nothing here.
+ */
+export function collectNpmRegistryVersions(
+  versions: Iterable<string> | undefined,
+): readonly string[] {
+  return [...(versions ?? [])]
+    .filter(isNpmRegistryVersion)
+    .toSorted((a, b) => compareSemverVersions(a, b) || a.localeCompare(b))
+}
+
+/**
+ * Everything a family reading needs that is read once per lockfile rather than
+ * once per family: the catalog and override sections, the inverted consumer
+ * graph, and the virtual-store listing.
+ */
+export interface PnpmReadingContext {
+  readonly catalogs: PnpmCatalogSpecifiers
+  readonly consumersByChild: Map<string, Set<string>>
+  readonly importerDeclarations: readonly PnpmImporterDeclaration[]
+  readonly overriddenNames: Set<string>
+  readonly peerRanges: PnpmPeerRanges
+  readonly storeEntries: readonly string[]
+  readonly virtualStoreDir: string
+}
+
+/**
+ * Read every per-lockfile section once, so a pass over many families pays for
+ * the catalog walk, the override walk, and the store listing a single time.
+ */
+export function buildPnpmReadingContext(config: {
+  readonly graph: PnpmLockfileGraph
+  readonly repoRoot: string
+}): PnpmReadingContext {
+  const { graph, repoRoot } = config
+  const virtualStoreDir = resolvePnpmVirtualStoreDir(repoRoot)
+  return {
+    catalogs: collectPnpmCatalogSpecifiers(graph.lines),
+    consumersByChild: invertConsumerEdges(graph.consumerEdges),
+    importerDeclarations: graph.importerDeclarations,
+    overriddenNames: collectPnpmOverriddenNames(graph.lines),
+    peerRanges: collectPnpmPeerRanges(graph.lines),
+    storeEntries: readPnpmVirtualStoreEntries(virtualStoreDir),
+    virtualStoreDir,
+  }
+}
+
+/**
+ * One family's reading: every workspace declaration of it, every published
+ * package that names it as a production child, and the declared range behind
+ * each. Takes the resolved versions rather than looking them up, so a caller
+ * can read a family that resolved once, twice, or not at all.
+ */
+export function readPnpmFamilyReading(config: {
+  readonly context: PnpmReadingContext
+  readonly name: string
+  readonly resolvedVersions: readonly string[]
+}): FamilyReading {
+  const { context, name, resolvedVersions } = config
+  const {
+    catalogs,
+    consumersByChild,
+    importerDeclarations,
+    overriddenNames,
+    peerRanges,
+    storeEntries,
+    virtualStoreDir,
+  } = context
+  const consumers: ConsumerEvidence[] = []
+  for (
+    let d = 0, { length: declarationCount } = importerDeclarations;
+    d < declarationCount;
+    d += 1
+  ) {
+    const row = readImporterConsumerEvidence({
+      catalogs,
+      declaration: importerDeclarations[d]!,
+      familyName: name,
+    })
+    if (row) {
+      consumers.push(row)
+    }
+  }
+  for (
+    let v = 0, { length: versionCount } = resolvedVersions;
+    v < versionCount;
+    v += 1
+  ) {
+    const resolvedVersion = resolvedVersions[v]!
+    const parents = consumersByChild.get(`${name}@${resolvedVersion}`)
+    for (const consumerDepPath of parents ?? []) {
+      consumers.push(
+        readPackageConsumerEvidence({
+          consumerDepPath,
+          familyName: name,
+          peerRanges,
+          resolvedVersion,
+          storeEntries,
+          virtualStoreDir,
+        }),
+      )
+    }
+  }
+  return {
+    evidence: { consumers, name, resolvedVersions },
+    input: {
+      compare: compareSemverVersions,
+      consumers: consumers.map(row => ({
+        consumer: row.consumer,
+        range: row.declaredRange,
+      })),
+      hasOverride: overriddenNames.has(name),
+      name,
+      resolvedVersions,
+      satisfies: satisfiesSemverRange,
+    },
+  }
+}
+
+/**
  * Every duplicated family in a pnpm graph, with the evidence behind each
  * consumer's declared range. A family with fewer than two registry resolutions
- * is not a duplicate and is skipped.
+ * is not a duplicate, so it is skipped here and audited by the override pass
+ * instead, which is where a single-version family still matters.
  */
 export function readPnpmFamilyReadings(config: {
   readonly graph: PnpmLockfileGraph
   readonly repoRoot: string
 }): readonly FamilyReading[] {
   const { graph, repoRoot } = config
-  const catalogs = collectPnpmCatalogSpecifiers(graph.lines)
-  const overriddenNames = collectPnpmOverriddenNames(graph.lines)
-  const peerRanges = collectPnpmPeerRanges(graph.lines)
-  const consumersByChild = invertConsumerEdges(graph.consumerEdges)
-  const virtualStoreDir = resolvePnpmVirtualStoreDir(repoRoot)
-  const storeEntries = readPnpmVirtualStoreEntries(virtualStoreDir)
+  const context = buildPnpmReadingContext({ graph, repoRoot })
   const readings: FamilyReading[] = []
   for (const [name, versionSet] of graph.versionsByName) {
-    const resolvedVersions = [...versionSet]
-      .filter(isNpmRegistryVersion)
-      .toSorted((a, b) => compareSemverVersions(a, b) || a.localeCompare(b))
+    const resolvedVersions = collectNpmRegistryVersions(versionSet)
     if (resolvedVersions.length < 2) {
       continue
     }
-    const consumers: ConsumerEvidence[] = []
-    for (const declaration of graph.importerDeclarations) {
-      const row = readImporterConsumerEvidence({
-        catalogs,
-        declaration,
-        familyName: name,
-      })
-      if (row) {
-        consumers.push(row)
-      }
-    }
-    for (
-      let v = 0, { length: versionCount } = resolvedVersions;
-      v < versionCount;
-      v += 1
-    ) {
-      const resolvedVersion = resolvedVersions[v]!
-      const parents = consumersByChild.get(`${name}@${resolvedVersion}`)
-      for (const consumerDepPath of parents ?? []) {
-        consumers.push(
-          readPackageConsumerEvidence({
-            consumerDepPath,
-            familyName: name,
-            peerRanges,
-            resolvedVersion,
-            storeEntries,
-            virtualStoreDir,
-          }),
-        )
-      }
-    }
-    readings.push({
-      evidence: { consumers, name, resolvedVersions },
-      input: {
-        compare: compareSemverVersions,
-        consumers: consumers.map(row => ({
-          consumer: row.consumer,
-          range: row.declaredRange,
-        })),
-        hasOverride: overriddenNames.has(name),
-        name,
-        resolvedVersions,
-        satisfies: satisfiesSemverRange,
-      },
-    })
+    readings.push(readPnpmFamilyReading({ context, name, resolvedVersions }))
   }
   return readings
 }
@@ -323,6 +396,9 @@ export function readNpmFamilies(config: EcosystemProbe): EcosystemFamilyRead {
 }
 
 export const npmEcosystemAdapter: EcosystemAdapter = {
+  auditOverrides(config: EcosystemProbe): Promise<OverrideAuditRead> {
+    return Promise.resolve(auditNpmOverrides(config))
+  },
   detect(config: EcosystemProbe): Promise<boolean> {
     return Promise.resolve(detectNpmEcosystem(config))
   },
