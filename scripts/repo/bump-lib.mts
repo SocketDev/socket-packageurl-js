@@ -77,9 +77,11 @@ export async function checkGitBranch(): Promise<boolean> {
     'HEAD',
   ])
   const branch = result.stdout.trim()
-  // oxlint-disable-next-line socket/inclusive-language -- inclusive-language: external-api — legacy branch name reference.
+  // Legacy branch name reference.
+  // oxlint-disable-next-line socket/inclusive-language -- external-api
   if (branch !== 'main' && branch !== 'master') {
-    // oxlint-disable-next-line socket/inclusive-language -- inclusive-language: external-api — legacy branch name reference.
+    // Legacy branch name reference.
+    // oxlint-disable-next-line socket/inclusive-language -- external-api
     logger.warn(`Not on main/master branch (current: ${branch})`)
     return false
   }

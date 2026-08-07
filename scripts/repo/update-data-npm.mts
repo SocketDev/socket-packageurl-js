@@ -50,7 +50,9 @@ async function main(): Promise<void> {
         // Node 23 introduces 'node:sea', 'node:sqlite', 'node:test', and 'node:test/reporters'
         // that have no unprefixed version so we skip them
         .filter(n => !n.startsWith('node:'))
-        // oxlint-disable-next-line unicorn/no-array-sort -- engines.node is < 20, so Array#toSorted is unavailable at the supported floor.
+        // engines.node is < 20, so Array#toSorted is unavailable at the
+        // supported floor.
+        // oxlint-disable-next-line unicorn/no-array-sort -- Node <20 floor
         .sort(naturalCompare)
       await writeJson(npmBuiltinNamesJsonPath, builtinNames, { spaces: 2 })
     } else {
@@ -82,7 +84,9 @@ async function main(): Promise<void> {
     // Instead let registry.npmjs.org be our source of truth to whether a
     // package exists or not
     .filter(n => !validateNpmPackageName(n).validForNewPackages)
-    // oxlint-disable-next-line unicorn/no-array-sort -- engines.node is < 20, so Array#toSorted is unavailable at the supported floor.
+    // engines.node is < 20, so Array#toSorted is unavailable at the
+    // supported floor.
+    // oxlint-disable-next-line unicorn/no-array-sort -- Node <20 floor
     .sort(naturalCompare)
   const seenNames = new Set<string>()
   const invalidNames = new Set<string>()

@@ -32,7 +32,8 @@ export async function interactiveReviewChangelog(
     const action = await prompts.select({
       message: 'What would you like to do?',
       choices: [
-        // oxlint-disable-next-line socket/no-status-emoji -- interactive prompt menu labels need glyphs, not logger calls.
+        // Interactive prompt menu labels need glyphs, not logger calls.
+        // oxlint-disable-next-line socket/no-status-emoji -- menu glyphs
         { value: 'accept', name: '✅ Accept this changelog' },
         {
           value: 'regenerate',
@@ -43,7 +44,8 @@ export async function interactiveReviewChangelog(
         { value: 'simplify', name: '📝 Simplify and make more concise' },
         { value: 'technical', name: '🔧 Make more technical/detailed' },
         { value: 'manual', name: '✍️  Write manually' },
-        // oxlint-disable-next-line socket/no-status-emoji -- interactive prompt menu label needs glyph, not logger call.
+        // Interactive prompt menu label needs a glyph, not a logger call.
+        // oxlint-disable-next-line socket/no-status-emoji -- menu glyph
         { value: 'cancel', name: '❌ Cancel' },
       ],
     })

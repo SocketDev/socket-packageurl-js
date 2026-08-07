@@ -1,5 +1,7 @@
+// Helpers grouped by domain (predicates, mutators, transforms,
+// injection-detection); alphabetical order would scatter related functions.
 /* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- domain-grouped layout (pipeline flow / dispatch table); per-call would scatter the grouping with many redundant disables. */
-/* oxlint-disable socket/sort-source-methods -- helpers grouped by domain (predicates, mutators, transforms, injection-detection) — reordering alphabetically scatters tightly-related functions. */
+/* oxlint-disable socket/sort-source-methods -- domain-grouped helpers */
 /**
  * @file String utility functions for PURL processing. Includes whitespace
  *   detection, semver validation, locale comparison, and character
@@ -121,8 +123,9 @@ let cachedLocaleCompare: Intl.Collator['compare'] | undefined
  */
 export function localeCompare(x: string, y: string): number {
   if (cachedLocaleCompare === undefined) {
-    // Lazily call `new Intl.Collator()` because in Node it can take 10-14ms
-    // oxlint-disable-next-line typescript/unbound-method -- the Intl.Collator `compare` getter returns a function already bound to its collator per spec, so detaching it is safe.
+    // Lazily create the collator (10-14ms in Node). Per spec the `compare`
+    // getter returns a function bound to its collator, so detaching is safe.
+    // oxlint-disable-next-line typescript/unbound-method -- bound per spec
     cachedLocaleCompare = new Intl.Collator().compare
   }
   return cachedLocaleCompare(x, y)

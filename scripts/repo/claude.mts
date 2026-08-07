@@ -1,7 +1,9 @@
+// Subcommand helpers grouped by domain (snapshot, cache, review, validate)
+// and ordered to match the dispatch table at the bottom.
 /* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- domain-grouped layout (pipeline flow / dispatch table); per-call would scatter the grouping with many redundant disables. */
-/* oxlint-disable socket/sort-source-methods -- subcommand helpers grouped by domain (snapshot, cache, review, validate) and ordered to match the dispatch table at the bottom. */
+/* oxlint-disable socket/sort-source-methods -- dispatch-table order */
 /* oxlint-disable-next-line socket/no-file-scope-oxlint-disable -- one-shot script / file iterates non-array iterables predominantly; per-call would produce many redundant disables. */
-/* oxlint-disable socket/prefer-cached-for-loop -- one-shot CLI utility, not a hot path. */
+/* oxlint-disable socket/prefer-cached-for-loop -- not a hot path */
 /* max-file-lines: table -- subcommand dispatch table; splitting would scatter the table. */
 
 /**
@@ -294,7 +296,8 @@ export async function cleanupOldData(): Promise<void> {
     for (let i = 0, { length } = snapshots; i < length; i += 1) {
       const snap = snapshots[i]
       const snapPath = path.join(REPO_STORAGE.snapshots, snap)
-      // oxlint-disable-next-line socket/prefer-exists-sync -- mtime is the retention signal.
+      // mtime is the retention signal.
+      // oxlint-disable-next-line socket/prefer-exists-sync -- mtime signal
       const stats = await fs.stat(snapPath)
       if (now - stats.mtime.getTime() > RETENTION.snapshots) {
         toDelete.push(snapPath)
@@ -315,7 +318,8 @@ export async function cleanupOldData(): Promise<void> {
     for (let i = 0, { length } = cached; i < length; i += 1) {
       const file = cached[i]
       const filePath = path.join(STORAGE_PATHS.cache, file)
-      // oxlint-disable-next-line socket/prefer-exists-sync -- mtime is the retention signal.
+      // mtime is the retention signal.
+      // oxlint-disable-next-line socket/prefer-exists-sync -- mtime signal
       const stats = await fs.stat(filePath)
       if (now - stats.mtime.getTime() > RETENTION.cache) {
         toDelete.push(filePath)
@@ -554,7 +558,9 @@ class ProgressTracker {
     const durations = similar
       .map(s => s.phases.find(p => p.name === phaseName)?.duration)
       .filter(d => d)
-      // oxlint-disable-next-line unicorn/no-array-sort -- engines.node is < 20, so Array#toSorted is unavailable at the supported floor.
+      // engines.node is < 20, so Array#toSorted is unavailable at the
+      // supported floor.
+      // oxlint-disable-next-line unicorn/no-array-sort -- Node <20 floor
       .sort((a, b) => a - b)
 
     if (durations.length === 0) {
@@ -1338,8 +1344,10 @@ export async function runClaude(
         }, 10_000)
       }
 
-      // Run command with timeout
-      // oxlint-disable-next-line socket/no-promise-race -- one-shot script timeout; no per-request handler accumulation; spawnSync alternative would block the event loop.
+      // Run command with timeout — one-shot script timeout; no per-request
+      // handler accumulation; a spawnSync alternative would block the event
+      // loop.
+      // oxlint-disable-next-line socket/no-promise-race -- one-shot timeout
       result = await Promise.race([
         runCommandWithOutput(claudeCmd, args, {
           ...opts,
@@ -1874,7 +1882,9 @@ export async function getSmartContext(
 
   context.hotspots = Object.entries(frequency)
     .filter(([_, count]) => count > 1)
-    // oxlint-disable-next-line unicorn/no-array-sort -- engines.node is < 20, so Array#toSorted is unavailable at the supported floor.
+    // engines.node is < 20, so Array#toSorted is unavailable at the
+    // supported floor.
+    // oxlint-disable-next-line unicorn/no-array-sort -- Node <20 floor
     .sort(([_, a], [__, b]) => b - a)
     .map(([file]) => file)
 
@@ -2108,9 +2118,11 @@ export function filterCILogs(rawLogs: string): string {
       line.includes('Error:') ||
       line.includes('error TS') ||
       line.includes('FAIL') ||
-      // oxlint-disable-next-line socket/no-status-emoji -- pattern matcher: scans for emoji emitted by external tooling, not output.
+      // Pattern matcher: scans for emoji emitted by external tooling.
+      // oxlint-disable-next-line socket/no-status-emoji -- external emoji scan
       line.includes('✗') ||
-      // oxlint-disable-next-line socket/no-status-emoji -- pattern matcher: scans for emoji emitted by external tooling, not output.
+      // Pattern matcher: scans for emoji emitted by external tooling.
+      // oxlint-disable-next-line socket/no-status-emoji -- external emoji scan
       line.includes('❌') ||
       line.includes('failed') ||
       line.includes('ELIFECYCLE')
@@ -4282,7 +4294,8 @@ export async function validateBeforePush(cwd: string): Promise<boolean> {
   }
 
   // Check 4: deferral markers without issue link.
-  // oxlint-disable-next-line socket/no-placeholders -- regex detects placeholder markers in diffs.
+  // Regex detects placeholder markers in diffs.
+  // oxlint-disable-next-line socket/no-placeholders -- placeholder detector
   const todoMatches = diff.match(/^\+.*\/\/\s*(FIXME|TODO)(?!\s*\(#\d+\))/gim)
   if (todoMatches && todoMatches.length > 0) {
     warnings.push(

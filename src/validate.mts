@@ -188,9 +188,11 @@ export function validateQualifiers(
     typeof keysProperty === 'function'
       ? ReflectApply(keysProperty, qualifiersObj, [])
       : ObjectKeys(qualifiers)
-  // Use `for-of` to work with `URLSearchParams#keys` iterators
-  // oxlint-disable-next-line socket/prefer-cached-for-loop -- `keysIterable` is a generic `Iterable<string>` (URLSearchParams keys iterator), not an indexable array.
-  // type-coverage:ignore-next-line -- TypeScript correctly infers the iteration type
+  // Use `for-of` to work with `URLSearchParams#keys` iterators —
+  // `keysIterable` is a generic `Iterable<string>` (URLSearchParams keys
+  // iterator), not an indexable array. TypeScript correctly infers the
+  // iteration type.
+  // oxlint-disable-next-line socket/prefer-cached-for-loop -- generic iterable
   for (const key of keysIterable) {
     if (typeof key !== 'string') {
       if (throws) {

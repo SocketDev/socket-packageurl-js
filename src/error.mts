@@ -25,7 +25,9 @@ export function errorMessage(e: unknown): string {
   if (e === null || e === undefined) {
     return 'Unknown error'
   }
-  // oxlint-disable-next-line typescript/no-base-to-string -- last-resort fallback for unknown throwables; '[object Object]' for exotic objects is acceptable here.
+  // Last-resort fallback for unknown throwables; '[object Object]' for
+  // exotic objects is acceptable here.
+  // oxlint-disable-next-line typescript/no-base-to-string -- String fallback
   return String(e) || 'Unknown error'
 }
 

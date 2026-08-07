@@ -134,7 +134,9 @@ function listSuiteJson(dir: string): string[] {
   return (
     readdirSync(dir)
       .filter(name => name.endsWith('.json'))
-      // oxlint-disable-next-line unicorn/no-array-sort -- engines.node floor is <20 so Array#toSorted is unavailable; filter() already returned a fresh array.
+      // engines.node floor is <20 so Array#toSorted is unavailable; filter()
+      // already returned a fresh array.
+      // oxlint-disable-next-line unicorn/no-array-sort -- Node <20 floor
       .sort()
   )
 }

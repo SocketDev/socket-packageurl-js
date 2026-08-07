@@ -115,7 +115,9 @@ export function createPathShorteningPlugin(): Plugin {
 
         // Order longest-first so a longer path containing a shorter
         // prefix doesn't get a partial replacement.
-        // oxlint-disable-next-line unicorn/no-array-sort -- engines.node is < 20, so Array#toSorted is unavailable at the supported floor.
+        // engines.node is < 20, so Array#toSorted is unavailable at the
+        // supported floor.
+        // oxlint-disable-next-line unicorn/no-array-sort -- Node <20 floor
         const sortedKeys = [...pathMap.keys()].sort(
           (a, b) => b.length - a.length,
         )

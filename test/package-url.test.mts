@@ -229,7 +229,8 @@ describe('PackageURL', () => {
       return args
     }
 
-    // oxlint-disable-next-line socket/no-vitest-empty-test -- assertions run inside the testValidParam/testInvalidParam helpers.
+    // Assertions run inside the testValidParam/testInvalidParam helpers.
+    // oxlint-disable-next-line socket/no-vitest-empty-test -- helper asserts
     it('should validate required params', () => {
       // Tests that type and name are required (various invalid inputs)
 
@@ -239,7 +240,9 @@ describe('PackageURL', () => {
       }
     })
 
-    // oxlint-disable-next-line socket/no-vitest-empty-test -- assertions run inside the testValidStringParam/testInvalidStringParam helpers.
+    // Assertions run inside the testValidStringParam and
+    // testInvalidStringParam helpers.
+    // oxlint-disable-next-line socket/no-vitest-empty-test -- helper asserts
     it('should validate string params', () => {
       // Tests that namespace, version, subpath only accept strings or null/undefined
 
