@@ -1,4 +1,7 @@
 {
+  "ai": {
+    "localAssist": true
+  },
   "$schema": "./socket-wheelhouse-schema.json",
   "schemaVersion": 1,
   "repoName": "socket-packageurl-js",
@@ -24,7 +27,7 @@
       },
       {
         "id": "@socketregistry/packageurl-js@1.5.0",
-        "reason": "Attested commit daac6c59 carries the right 1.5.0 manifest, but v1.5.0 tags a different commit (2b810e49) and a re-pack at the attested tree DIVERGES from the published tarball — the built dist/ bytes differ, so the build is not reproducible and no tag can be proven to mark the published content."
+        "reason": "Attested commit daac6c59 carries the right 1.5.0 manifest, but v1.5.0 tags a different commit (2b810e49) and a re-pack at the attested tree DIVERGES from the published tarball \u2014 the built dist/ bytes differ, so the build is not reproducible and no tag can be proven to mark the published content."
       }
     ]
   }
