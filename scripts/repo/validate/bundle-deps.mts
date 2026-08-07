@@ -1,4 +1,4 @@
-/**
+/*
  * @file Validates that bundled vs external dependencies are correctly declared
  *   in package.json. Rules:
  *
@@ -18,6 +18,7 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { REPO_ROOT } from '../../fleet/paths.mts'
 import { errorMessage } from '../utils/error-message.mts'
+import { isMainModule } from '../../fleet/_shared/is-main-module.mts'
 
 const logger = getDefaultLogger()
 
@@ -475,7 +476,9 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error: unknown) => {
-  logger.fail(`Validation failed: ${errorMessage(error)}`)
-  process.exitCode = 1
-})
+if (isMainModule(import.meta.url)) {
+  main().catch((error: unknown) => {
+    logger.fail(`Validation failed: ${errorMessage(error)}`)
+    process.exitCode = 1
+  })
+}

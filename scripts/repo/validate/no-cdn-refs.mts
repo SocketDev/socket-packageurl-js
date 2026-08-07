@@ -40,6 +40,7 @@ import process from 'node:process'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { REPO_ROOT } from '../../fleet/paths.mts'
 import { errorMessage } from '../utils/error-message.mts'
+import { isMainModule } from '../../fleet/_shared/is-main-module.mts'
 
 const logger = getDefaultLogger()
 
@@ -267,8 +268,10 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error: unknown) => {
-  const message = errorMessage(error)
-  logger.fail(`Unexpected error: ${message}`)
-  process.exitCode = 1
-})
+if (isMainModule(import.meta.url)) {
+  main().catch((error: unknown) => {
+    const message = errorMessage(error)
+    logger.fail(`Unexpected error: ${message}`)
+    process.exitCode = 1
+  })
+}

@@ -1,4 +1,4 @@
-/**
+/*
  * @file Validates that commits don't contain too many files. Rules:
  *
  *   - No single commit should contain 50+ files
@@ -14,6 +14,7 @@ import { promisify } from 'node:util'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { REPO_ROOT } from '../../fleet/paths.mts'
 import { errorMessage } from '../utils/error-message.mts'
+import { isMainModule } from '../../fleet/_shared/is-main-module.mts'
 
 const logger = getDefaultLogger()
 const execAsync = promisify(exec)
@@ -115,7 +116,9 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error: unknown) => {
-  logger.fail(`Validation failed: ${error}`)
-  process.exitCode = 1
-})
+if (isMainModule(import.meta.url)) {
+  main().catch((error: unknown) => {
+    logger.fail(`Validation failed: ${error}`)
+    process.exitCode = 1
+  })
+}
