@@ -44,11 +44,12 @@ actually constrains the choice. Open debate: purl-spec issues #67 / #136, PR
 ### npm case: the legacy-name conditional
 
 Only upstream packageurl-js (and this repo) lowercase npm names _conditionally_
+
 - mixed-case "legacy" names (grandfathered in before npm required lowercase in 2015) are preserved; everything else is lowercased. python and php lowercase
-unconditionally; go, java, ruby preserve. The npm spec definition's name note
-records the 2015 grandfathering rationale. purl-spec #136 argues npm is
-case-_sensitive_ (not merely case-preserving), which would make even the
-conditional lowercasing wrong - unresolved upstream.
+  unconditionally; go, java, ruby preserve. The npm spec definition's name note
+  records the 2015 grandfathering rationale. purl-spec #136 argues npm is
+  case-_sensitive_ (not merely case-preserving), which would make even the
+  conditional lowercasing wrong - unresolved upstream.
 
 ## Go module proxy `!`-escape
 

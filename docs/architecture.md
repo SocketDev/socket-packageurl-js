@@ -314,8 +314,8 @@ Vitest with two configs:
   ~95% of tests. Fast, parallel.
 - **`.config/vitest.config.isolated.mts`** (forks, full isolation)
   - tests that mock globals (via `vi.doMock`) or modify
-  `process.env` / `process.chdir`. File naming:
-  `*.isolated.test.mts`.
+    `process.env` / `process.chdir`. File naming:
+    `*.isolated.test.mts`.
 
 Test style in this repo: **functional**, not source-scanning.
 Tests assert behavior (inputs → outputs) via the public API.
