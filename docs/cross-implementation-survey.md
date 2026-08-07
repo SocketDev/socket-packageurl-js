@@ -26,13 +26,13 @@ The implementations do not agree on any of the three columns.
 ### golang case: a 3-3 split
 
 - **Lowercase**: packageurl-go, java, php.
-- **Preserve**: packageurl-python, ruby, and upstream packageurl-js — which
+- **Preserve**: packageurl-python, ruby, and upstream packageurl-js - which
   deliberately commented its golang lowercaser out: _"Ignore case-insensitive
   rule because go.mod are case-sensitive. Pending spec change:
   <https://github.com/package-url/purl-spec/pull/196>"_.
 
 We preserve case (matching our closest sibling, upstream packageurl-js). Go
-module identity is genuinely case-sensitive — `github.com/User/Repo` and
+module identity is genuinely case-sensitive - `github.com/User/Repo` and
 `github.com/user/repo` are distinct modules, and the wrong case resolves to the
 wrong module or none. The purl-spec golang definition is self-contradictory
 (`case_sensitive: true` yet a note reading "must be lowercased"), and the
@@ -44,11 +44,11 @@ actually constrains the choice. Open debate: purl-spec issues #67 / #136, PR
 ### npm case: the legacy-name conditional
 
 Only upstream packageurl-js (and this repo) lowercase npm names _conditionally_
-— mixed-case "legacy" names (grandfathered in before npm required lowercase in 2015) are preserved; everything else is lowercased. python and php lowercase
+- mixed-case "legacy" names (grandfathered in before npm required lowercase in 2015) are preserved; everything else is lowercased. python and php lowercase
 unconditionally; go, java, ruby preserve. The npm spec definition's name note
 records the 2015 grandfathering rationale. purl-spec #136 argues npm is
 case-_sensitive_ (not merely case-preserving), which would make even the
-conditional lowercasing wrong — unresolved upstream.
+conditional lowercasing wrong - unresolved upstream.
 
 ## Go module proxy `!`-escape
 
@@ -57,7 +57,7 @@ uppercase letter becomes `!` + its lowercase form (`github.com/Azure` ->
 `github.com/!azure`). This is an **official Go module proxy protocol** transport
 detail (`go help goproxy`, <https://go.dev/ref/mod#goproxy-protocol>), implemented
 in the Go toolchain's `golang.org/x/mod/module` (`escapeString` /
-`unescapeString`) — **not** an Artifactory invention. Artifactory merely
+`unescapeString`) - **not** an Artifactory invention. Artifactory merely
 conforms (golang/go#34084 -> JFrog RTFACT-20227 was a conformance bug on their
 side).
 
@@ -74,20 +74,20 @@ and apply them only at the proxy boundary in `src/url-converter.mts`.
 Drawn from the other libraries' regression tests and the canonical purl-spec
 suite. All pass in this repo unless noted:
 
-- `+` is a literal plus, never a decoded space — `v4.8.3+incompatible`,
+- `+` is a literal plus, never a decoded space - `v4.8.3+incompatible`,
   SemVer build metadata, and `download_url=...+security...` qualifier values
   all encode to `%2B`. (purl-spec discussion #814; packageurl-go regression.)
 - Go pseudo-versions (`v0.0.0-20210101000000-abcdef123456`) and
   `+incompatible` round-trip.
 - `pkg:` / `pkg://` / `pkg:///` leading-slash forms all normalize to the bare
   `pkg:type/...` form.
-- mlflow name casing is conditional on `repository_url` host — lowercased for
+- mlflow name casing is conditional on `repository_url` host - lowercased for
   Databricks, preserved for Azure ML.
 - Duplicate qualifier keys resolve last-wins (packageurl-java rejects instead;
-  both are defensible — the spec does not mandate one).
+  both are defensible - the spec does not mandate one).
 - Invalid golang versions starting with `v` are rejected with a clean
   `PurlError` (upstream packageurl-js#87 was a `ReferenceError: throws is not
-defined` crash in the same code path — we do not share that bug).
+defined` crash in the same code path - we do not share that bug).
 
 ## Worth adding upstream coverage for
 

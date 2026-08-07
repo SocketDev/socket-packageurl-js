@@ -8,8 +8,8 @@ description: Create short, single-word, URL-friendly filenames from prose titles
 <task>
 Produce a single-word, lowercase, ASCII-only filename (no extension,
 no hyphens, no digits) that best represents the content of a titled
-page. The filename goes into a config manifest — `tour.json`
-part entries, `docs/` frontmatter, or similar — where it becomes the
+page. The filename goes into a config manifest - `tour.json`
+part entries, `docs/` frontmatter, or similar - where it becomes the
 public URL segment for that page.
 </task>
 
@@ -30,9 +30,9 @@ procedure so the output is reproducible.
 
 ## Where it fits in the repo
 
-- `tour.json` — the `parts[].filename` field is the URL segment
+- `tour.json` - the `parts[].filename` field is the URL segment
   the page is published under at `socketdev.github.io/socket-packageurl-js/<filename>.html`.
-- `docs/*.md` — the file stem becomes the URL segment when docs are
+- `docs/*.md` - the file stem becomes the URL segment when docs are
   stitched into the GH Pages flow (see `docs/pages-design-system.md`
   for the surrounding design system).
 - Any future blog or guide manifest added to this repo.
@@ -46,13 +46,13 @@ A build-time validator in `scripts/tour.mts` enforces the
 ## Hard constraints (validator-enforced)
 
 - **ASCII lowercase letters only:** matches `^[a-z]+$`.
-  - No digits (`part2` — FORBIDDEN)
-  - No hyphens (`url-conversion` — FORBIDDEN)
+  - No digits (`part2` - FORBIDDEN)
+  - No hyphens (`url-conversion` - FORBIDDEN)
   - No underscores, dots, slashes, or unicode
 - **Unique across all entries in the manifest.** If the word you picked
   is already taken, pick another that's still content-bearing.
 - **Single word.** Compound phrases (`buildingandstringifying`) are
-  FORBIDDEN — pick the stronger of the two nouns instead.
+  FORBIDDEN - pick the stronger of the two nouns instead.
 
 ## Soft constraints (style)
 
@@ -73,18 +73,18 @@ A build-time validator in `scripts/tour.mts` enforces the
 Apply these rules in order. Stop at the first rule that produces a
 clean single word.
 
-### Step 1 — Inventory the nouns in the title
+### Step 1 - Inventory the nouns in the title
 
 Write out every noun and nominalized action (gerund, `-ion`, `-ance`).
 Discard every filler word (articles, prepositions, conjunctions, "of",
 "and", "&"). Discard every word that appears in 2+ other titles of the
-same manifest — those are qualifiers, not distinguishers.
+same manifest - those are qualifiers, not distinguishers.
 
 > **Why:** a filename needs to distinguish this page from its
 > siblings. A word that isn't unique within the set can never be
 > load-bearing.
 
-### Step 2 — Among remaining candidates, pick the distinguishing noun
+### Step 2 - Among remaining candidates, pick the distinguishing noun
 
 If one noun is unique to this title and the others are not, that noun
 wins.
@@ -93,28 +93,28 @@ wins.
 > `PURL`, `Conversion`). `URL` and `PURL` appear in multiple titles;
 > `Conversion` is unique to this one. → `conversion`.
 
-### Step 3 — If several nouns are candidates, pick the superset
+### Step 3 - If several nouns are candidates, pick the superset
 
 If the title lists multiple concepts that are facets of one bigger
 concept, pick the bigger one.
 
-> **Example:** `"Validation, Errors & Results"` — errors and
+> **Example:** `"Validation, Errors & Results"` - errors and
 > `Result<T,E>` are outputs of validation. → `validation`.
 
-### Step 4 — If the title is "verb on a subject", pick the verb's nominal form
+### Step 4 - If the title is "verb on a subject", pick the verb's nominal form
 
 Gerund (`-ing`) if the activity itself is the topic; `-ion` / `-ance`
 if the state or result is the topic.
 
-> **Example:** `"Parsing & Normalization"` — normalization is a
+> **Example:** `"Parsing & Normalization"` - normalization is a
 > substep of parsing. The activity is the topic. → `parsing`.
 
-### Step 5 — If the title is a plain subject noun, use it directly
+### Step 5 - If the title is a plain subject noun, use it directly
 
 If the title is already a single content noun (`Ecosystems`), that's
 the filename. Just lowercase it.
 
-### Step 6 — Check hard constraints, then pick an alternative if needed
+### Step 6 - Check hard constraints, then pick an alternative if needed
 
 Now validate the chosen word against the hard constraints:
 
@@ -123,18 +123,18 @@ Now validate the chosen word against the hard constraints:
 2. Is it unique across the manifest? If not, go back to Step 2 and
    pick the next-best candidate.
 3. Is it content-bearing? If it's generic (`items`, `details`), go
-   back to Step 3 — you probably picked too abstract a word.
+   back to Step 3 - you probably picked too abstract a word.
 
-### Step 7 — Sanity check
+### Step 7 - Sanity check
 
 Read your picks as a list. Does it feel like a coherent table of
 contents? If one word feels off-tempo (too long, too clinical, too
-cute), adjust. Internal consistency matters — don't mix
+cute), adjust. Internal consistency matters - don't mix
 `gerunds` + `nouns` + `adjectives`.
 </instructions>
 
 <examples>
-## Worked examples — the 8 tour parts
+## Worked examples - the 8 tour parts
 
 These are the filenames currently in `tour.json` at the time
 this skill was written. Each shows the rule that produced the choice.
@@ -224,7 +224,7 @@ scoped under security (injection + freeze + VERS-as-safety-boundary).
 
 </details>
 
-## Counter-examples — choices the procedure rejects
+## Counter-examples - choices the procedure rejects
 
 <details>
 <summary>Four rejected filenames and the constraint each breaks: `purl` is not distinguishing, `buildingandstringifying` merges two words, `url-to-purl` carries a hyphen, and `page6` carries a digit</summary>
@@ -243,7 +243,7 @@ might want `purl`.
 <title>Building & Stringifying PURLs</title>
 <rejected>buildingandstringifying</rejected>
 <reasoning>
-Compound phrase — violates the "single word" hard constraint. The
+Compound phrase - violates the "single word" hard constraint. The
 procedure always picks one over merging.
 </reasoning>
 </example>
@@ -298,7 +298,7 @@ again.
 
 - The filename is **internal** (e.g. a build artifact under `dist/`,
   an intermediate JSON in `.cache/`). Internal paths don't need to be
-  pretty — use whatever the code naturally emits.
+  pretty - use whatever the code naturally emits.
 - The filename is **code-shaped**, not content-shaped. TypeScript
   source files follow the convention of the ecosystem (kebab-case,
   matching export names). This skill is for _content_ filenames only.
@@ -308,15 +308,15 @@ again.
   </when-not-to-use>
 
 <further-reading>
-- [reference.md](./reference.md) — extended reference: edge cases,
+- [reference.md](./reference.md) - extended reference: edge cases,
   manifest types beyond `tour.json`, acronym / proper-noun handling,
   decision history for the 8 current filenames, rejected candidates,
   regex/validator quick-checks.
-- `CLAUDE.md` § ERROR MESSAGES — the error-shape the filename
+- `CLAUDE.md` § ERROR MESSAGES - the error-shape the filename
   validator uses when it rejects a bad filename.
-- `docs/pages-design-system.md` — the surrounding design system for
+- `docs/pages-design-system.md` - the surrounding design system for
   pages that use these filenames.
-- `scripts/tour.mts` → `validatePartFilenames()` — the
+- `scripts/tour.mts` → `validatePartFilenames()` - the
   validator implementation that enforces the hard constraints.
-- `tour.json` — the current live manifest applying this skill.
+- `tour.json` - the current live manifest applying this skill.
 </further-reading>

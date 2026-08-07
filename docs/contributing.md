@@ -54,9 +54,9 @@ be working on the same checkout. Plain `git checkout -b` inside the
 main clone yanks the working tree out from under any other session.
 Use one of:
 
-- **Worktree** — `git worktree add -b my-task ../socket-packageurl-js-my-task main`
-- **Sibling clone** — clone the repo elsewhere entirely
-- **Same clone** — only if you are sure nobody else has a session
+- **Worktree** - `git worktree add -b my-task ../socket-packageurl-js-my-task main`
+- **Sibling clone** - clone the repo elsewhere entirely
+- **Same clone** - only if you are sure nobody else has a session
   going
 
 See the `PARALLEL CLAUDE SESSIONS` section of `CLAUDE.md` for the
@@ -68,15 +68,15 @@ Per `CLAUDE.md`:
 
 - TypeScript strict mode; type imports must be in separate
   `import type` lines.
-- No `null` except `__proto__: null` or external-API requirement —
+- No `null` except `__proto__: null` or external-API requirement -
   use `undefined`.
 - `{ __proto__: null, ...payload }` for config/return/internal
   objects.
 - No dynamic imports (`await import(...)`).
-- No `fetch()` — use `httpJson` / `httpText` / `httpRequest` from
+- No `fetch()` - use `httpJson` / `httpText` / `httpRequest` from
   `@socketsecurity/lib/http-request`.
 - For file existence: `existsSync` from `node:fs`. For deletion:
-  `safeDelete` / `safeDeleteSync` from `@socketsecurity/lib/fs` —
+  `safeDelete` / `safeDeleteSync` from `@socketsecurity/lib/fs` -
   never reach directly for `fs.rm` / `fs.unlink` / `fs.rmdir`.
 - Default to NO comments in code. Only where the WHY is
   non-obvious to a senior engineer.
@@ -92,7 +92,7 @@ Two vitest configs:
 | `.config/vitest.config.isolated.mts` | Tests that mock globals via `vi.doMock`, modify `process.env`, or `process.chdir`. Forks, full isolation. | `*.isolated.test.mts` |
 
 **Test style in this repo:** functional. Tests assert behavior via
-the public API — inputs → outputs. Tests never read source files
+the public API - inputs → outputs. Tests never read source files
 and assert on their contents.
 
 Example:
@@ -128,9 +128,9 @@ pnpm check
 
 It runs:
 
-1. `pnpm type` — tsgo strict type-check.
-2. `pnpm lint` — oxlint across the tree.
-3. `pnpm test` — vitest (both configs).
+1. `pnpm type` - tsgo strict type-check.
+2. `pnpm lint` - oxlint across the tree.
+3. `pnpm test` - vitest (both configs).
 4. Format verification.
 
 Every step runs independently too:
@@ -141,14 +141,14 @@ Every step runs independently too:
 | `pnpm type`           | Strict TypeScript check, no emit.                                                                                        |
 | `pnpm lint`           | oxlint.                                                                                                                  |
 | `pnpm fix`            | Auto-fix what's auto-fixable (formatter + lint autofixes).                                                               |
-| `pnpm test`           | Run vitest. `pnpm test:unit path/to/file.test.mts` for a single file. Never use `--` before test paths — runs ALL tests. |
+| `pnpm test`           | Run vitest. `pnpm test:unit path/to/file.test.mts` for a single file. Never use `--` before test paths - runs ALL tests. |
 | `pnpm testu`          | Update vitest snapshots (review the diff before committing).                                                             |
 | `pnpm cover`          | Coverage. Must stay at 100%.                                                                                             |
 | `pnpm format`         | Run oxfmt across the tree (writes fixes).                                                                                |
 | `pnpm format --check` | Verify formatting without writing.                                                                                       |
 | `pnpm security`       | AgentShield + zizmor security scan.                                                                                      |
 
-### Coverage — the 100% rule
+### Coverage - the 100% rule
 
 `pnpm cover` must report 100% line/branch/function coverage.
 
@@ -164,7 +164,7 @@ a justification comment.
 ### Snapshot tests
 
 `pnpm testu` regenerates snapshots. Never run this unless the
-snapshot drift is intentional — otherwise you are deleting future-
+snapshot drift is intentional - otherwise you are deleting future-
 you's safety net. Review the snapshot diff before committing.
 
 ## The parallel-session git rules
@@ -172,13 +172,13 @@ you's safety net. Review the snapshot diff before committing.
 Forbidden in the primary checkout (the one another session may be
 editing):
 
-- `git stash` / `git stash pop` — shared store; another session
+- `git stash` / `git stash pop` - shared store; another session
   can pop yours.
-- `git add -A` / `git add .` — sweeps files belonging to other
+- `git add -A` / `git add .` - sweeps files belonging to other
   sessions.
-- `git checkout <branch>` / `git switch <branch>` — yanks the
+- `git checkout <branch>` / `git switch <branch>` - yanks the
   working tree.
-- `git reset --hard` against a non-HEAD ref — discards another
+- `git reset --hard` against a non-HEAD ref - discards another
   session's commits.
 
 Required for branch work:
@@ -221,13 +221,13 @@ worktree, not a stash.
 
 Types used in this repo:
 
-- `feat` — new feature
-- `fix` — bug fix
-- `refactor` — restructure without behavior change
-- `docs` — documentation only
-- `test` — tests only
-- `chore` — tooling, deps, repo config
-- `style` — formatting / whitespace
+- `feat` - new feature
+- `fix` - bug fix
+- `refactor` - restructure without behavior change
+- `docs` - documentation only
+- `test` - tests only
+- `chore` - tooling, deps, repo config
+- `style` - formatting / whitespace
 
 Scopes are free-form but stable: `purl-types/npm`, `url-converter`,
 `hardening`. One commit = one concern. If the body
@@ -253,9 +253,9 @@ The PR body should:
 
 CI will run:
 
-- `.github/workflows/ci.yml` — full `pnpm check` in a clean env.
+- `.github/workflows/ci.yml` - full `pnpm check` in a clean env.
 - Publishing is not part of PR CI: it runs via the manually
-  dispatched `.github/workflows/npm-publish.yml` — see
+  dispatched `.github/workflows/npm-publish.yml` - see
   [`docs/release.md`](./release.md).
 
 ## Pre-PR checklist
@@ -278,24 +278,24 @@ Copy into your PR description and tick off:
 
 Things that have caught contributors before:
 
-- **Running `pnpm testu` by accident** — if you only wanted to
+- **Running `pnpm testu` by accident** - if you only wanted to
   run tests, use `pnpm test`. `testu` updates snapshots.
-- **Editing `dist/` directly** — it's a build artifact. Changes
+- **Editing `dist/` directly** - it's a build artifact. Changes
   here are lost on next build. Edit `src/` and rebuild.
-- **`pnpm install` side-effects** — the install step runs `husky`
+- **`pnpm install` side-effects** - the install step runs `husky`
   to set up git hooks. A bare `npm install` in this repo will skip
   that and PRs will push with unformatted files. Use pnpm.
-- **`.env.local` accidentally committed** — it's gitignored; don't
+- **`.env.local` accidentally committed** - it's gitignored; don't
   `git add -A`.
-- **`minimumReleaseAge` exclusions** — NEVER add packages to
+- **`minimumReleaseAge` exclusions** - NEVER add packages to
   `minimumReleaseAgeExclude` in CI. Locally, ask before adding.
   The age threshold is a security control.
 
 ## Further reading
 
-- [`CLAUDE.md`](../CLAUDE.md) — project-wide conventions, error
+- [`CLAUDE.md`](../CLAUDE.md) - project-wide conventions, error
   message doctrine, safe-deletion rule, parallel-sessions rules.
-- [`docs/architecture.md`](./architecture.md) — how `src/` fits
+- [`docs/architecture.md`](./architecture.md) - how `src/` fits
   together.
-- [`docs/release.md`](./release.md) — what happens when we tag.
-- [`package.json`](../package.json) — every script spelled out.
+- [`docs/release.md`](./release.md) - what happens when we tag.
+- [`package.json`](../package.json) - every script spelled out.

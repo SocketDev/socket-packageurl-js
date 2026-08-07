@@ -87,7 +87,7 @@ src/
 
 </details>
 
-## Data flow — parsing a PURL string
+## Data flow - parsing a PURL string
 
 ```mermaid
 flowchart TD
@@ -103,7 +103,7 @@ pieces, invalid percent-encoding, rule violations). Valid PURLs
 never throw; the result is a frozen instance with every field
 normalized to its canonical form.
 
-## Data flow — building a PURL from scratch
+## Data flow - building a PURL from scratch
 
 Two entry points:
 
@@ -149,7 +149,7 @@ flowchart TD
 
 ## Core abstractions
 
-### `PackageURL` — the main class
+### `PackageURL` - the main class
 
 Instances are **immutable**. You cannot mutate `.name` after
 construction; you build a new instance (builder or constructor) to
@@ -164,14 +164,14 @@ same purl string safe.
 
 Methods on an instance:
 
-- `.toString()` — canonical serialization (calls `stringify.ts`)
-- `.toJSON()` — plain object for `JSON.stringify()`
-- `.toObject()` — alias for `toJSON`
+- `.toString()` - canonical serialization (calls `stringify.ts`)
+- `.toJSON()` - plain object for `JSON.stringify()`
+- `.toObject()` - alias for `toJSON`
 
 There is no `.clone()` method because instances are already
-immutable — aliasing is safe.
+immutable - aliasing is safe.
 
-### `PurlBuilder` — the fluent alternative
+### `PurlBuilder` - the fluent alternative
 
 Use when you are constructing a PURL from computed values and want
 to validate each piece as you go:
@@ -192,14 +192,14 @@ const purl = builder.build()
 
 See `docs/builders.md` for the full API.
 
-### `PurlComponent` — per-field policy
+### `PurlComponent` - per-field policy
 
 A `PurlComponent` is the triple `(normalize, encode, validate)`
 applied to a field like `name` or `namespace`. Lives in
 `src/purl-component.ts`. Example: the `name` component's normalize
 step lowercases for some types, preserves case for others.
 
-### `PurlType` — per-ecosystem rule bundle
+### `PurlType` - per-ecosystem rule bundle
 
 A `PurlType` is the rule-set for one ecosystem (`npm`, `maven`,
 `pypi`, …). Each file under `src/purl-types/` exports a type object
@@ -219,13 +219,13 @@ See `docs/converters.md` for how each ecosystem handles URL
 conversion, and `src/purl-types/README.md` (TODO) for a rule
 template.
 
-### `Result<T, E>` — functional error handling
+### `Result<T, E>` - functional error handling
 
 The library supports two error-handling styles:
 
-1. **Throwing** — the default on `new PackageURL(str)`. Convenient
+1. **Throwing** - the default on `new PackageURL(str)`. Convenient
    for code that can afford to catch at a boundary.
-2. **Result** — `PackageURL.fromStringResult(str)` returns a
+2. **Result** - `PackageURL.fromStringResult(str)` returns a
    `Result<PackageURL, PurlError>` that is `Ok(purl)` on success or
    `Err(err)` on failure. Convenient for validation pipelines where
    you want every failure aggregated, not the first one.
@@ -243,12 +243,12 @@ const errors = results.filter(r => !r.ok).map(r => r.error)
 
 Two error classes:
 
-- **`PurlError`** — spec-level rule violation. Message shape is
+- **`PurlError`** - spec-level rule violation. Message shape is
   lowercase, no trailing period, follows
   `{type} "{component}" component {violation}`.
-- **`PurlInjectionError`** — the input contained a dangerous
+- **`PurlInjectionError`** - the input contained a dangerous
   control character that could desync a downstream consumer (URL
-  encoder, shell interpolation, SQL). Thrown before parse — we
+  encoder, shell interpolation, SQL). Thrown before parse - we
   refuse to even _interpret_ input that could smuggle injection
   payloads.
 
@@ -289,7 +289,7 @@ object. Adding a new ecosystem:
 5. Commit.
 
 All existing ecosystem handlers are small (50–200 lines each).
-They share a template — see `src/purl-types/npm.ts` as a baseline
+They share a template - see `src/purl-types/npm.ts` as a baseline
 for registry-style ecosystems or `src/purl-types/docker.ts` for
 container-style.
 
@@ -310,10 +310,10 @@ mode means we don't need `.mjs`/`.cjs` exports proliferation.
 
 Vitest with two configs:
 
-- **`.config/vitest.config.mts`** (threads, shared memory) —
+- **`.config/vitest.config.mts`** (threads, shared memory) -
   ~95% of tests. Fast, parallel.
 - **`.config/vitest.config.isolated.mts`** (forks, full isolation)
-  — tests that mock globals (via `vi.doMock`) or modify
+  - tests that mock globals (via `vi.doMock`) or modify
   `process.env` / `process.chdir`. File naming:
   `*.isolated.test.mts`.
 
@@ -341,11 +341,11 @@ See `docs/contributing.md` for the full workflow.
 
 ## Further reading
 
-- [`docs/builders.md`](./builders.md) — PurlBuilder fluent API
-- [`docs/converters.md`](./converters.md) — URL ↔ PURL
-- [`docs/safety.md`](./safety.md) — injection detection, freeze
-- [`docs/vers.md`](./vers.md) — version-range specifiers
-- [`docs/api.md`](./api.md) — complete API reference
-- [`docs/types.md`](./types.md) — TypeScript type reference
-- [package-url/purl-spec](https://github.com/package-url/purl-spec) —
+- [`docs/builders.md`](./builders.md) - PurlBuilder fluent API
+- [`docs/converters.md`](./converters.md) - URL ↔ PURL
+- [`docs/safety.md`](./safety.md) - injection detection, freeze
+- [`docs/vers.md`](./vers.md) - version-range specifiers
+- [`docs/api.md`](./api.md) - complete API reference
+- [`docs/types.md`](./types.md) - TypeScript type reference
+- [package-url/purl-spec](https://github.com/package-url/purl-spec) -
   the upstream spec

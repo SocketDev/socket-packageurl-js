@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**MANDATORY**: Act as principal-level engineer. This file is a thin index — every rule's detail lives in `docs/agents.md/{fleet,repo}/<topic>.md`; fleet bullets are canonical (edit only in `template/`, then cascade), repo bullets are host-owned. (`.claude/hooks/fleet/{claude-md-size-guard,claude-md-section-size-guard,claude-md-defer-detail-nudge,claude-md-rule-add-guard}/`)
+**MANDATORY**: Act as principal-level engineer. This file is a thin index - every rule's detail lives in `docs/agents.md/{fleet,repo}/<topic>.md`; fleet bullets are canonical (edit only in `template/`, then cascade), repo bullets are host-owned. (`.claude/hooks/fleet/{claude-md-size-guard,claude-md-section-size-guard,claude-md-defer-detail-nudge,claude-md-rule-add-guard}/`)
 
 <!-- <fleet> -->
 
@@ -143,7 +143,7 @@ TypeScript implementation of the [Package URL spec](https://github.com/package-u
 - 🚨 Plain `Error` for argument validation is sentence case with a trailing period. [`architecture`](docs/agents.md/repo/architecture.md)
 - 🚨 Never throw on a valid purl. [`architecture`](docs/agents.md/repo/architecture.md)
 - `import type` is always a separate statement, never inline. [`architecture`](docs/agents.md/repo/architecture.md)
-- 🚨 `exactOptionalPropertyTypes` is on — assign conditionally, never `?? undefined`. [`architecture`](docs/agents.md/repo/architecture.md)
-- 🚨 Never `process.chdir()` — pass `{ cwd }`. [`architecture`](docs/agents.md/repo/architecture.md)
+- 🚨 `exactOptionalPropertyTypes` is on - assign conditionally, never `?? undefined`. [`architecture`](docs/agents.md/repo/architecture.md)
+- 🚨 Never `process.chdir()` - pass `{ cwd }`. [`architecture`](docs/agents.md/repo/architecture.md)
 - 🚨 Coverage stays at or above the floors in `.config/repo/cover.json` (`pnpm run cover` enforces them; `functions` is 100%). [`architecture`](docs/agents.md/repo/architecture.md)
 - Layout, commands, error-shape detail, and the vitest config split live in [`architecture`](docs/agents.md/repo/architecture.md).

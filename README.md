@@ -9,7 +9,7 @@
 TypeScript Package URL (purl) parser and builder.
 Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) with full type safety, zero dependencies, and spec compliance with the [Package URL specification](https://github.com/package-url/purl-spec).
 
-`@socketregistry/packageurl-js` is the Socket-maintained drop-in replacement for `packageurl-js` — same API, but ships with built-in TypeScript types, zero runtime dependencies, full [purl-spec](https://github.com/package-url/purl-spec) coverage, and first-class [VERS](https://github.com/package-url/vers-spec) support. It exists because the upstream package lacked types and a maintained tree-shakeable surface; this fork closes both gaps without breaking compatibility.
+`@socketregistry/packageurl-js` is the Socket-maintained drop-in replacement for `packageurl-js` - same API, but ships with built-in TypeScript types, zero runtime dependencies, full [purl-spec](https://github.com/package-url/purl-spec) coverage, and first-class [VERS](https://github.com/package-url/vers-spec) support. It exists because the upstream package lacked types and a maintained tree-shakeable surface; this fork closes both gaps without breaking compatibility.
 
 ## What is a PURL?
 
@@ -88,7 +88,7 @@ parseNpmSpecifier('@babel/core@^7.0.0')
 ```
 
 <details>
-<summary><b>Stringify and compare</b> — <code>stringify</code>, <code>equals</code>, <code>compare</code></summary>
+<summary><b>Stringify and compare</b> - <code>stringify</code>, <code>equals</code>, <code>compare</code></summary>
 
 ```javascript
 import { compare, equals, stringify } from '@socketregistry/packageurl-js'
@@ -127,7 +127,7 @@ new PackageURL('npm', null, 'express', '4.18.2')
 ```
 
 <details>
-<summary><b>Builder pattern</b> — <code>PurlBuilder</code>, for assembling a PURL piece by piece</summary>
+<summary><b>Builder pattern</b> - <code>PurlBuilder</code>, for assembling a PURL piece by piece</summary>
 
 ```javascript
 import { PurlBuilder } from '@socketregistry/packageurl-js'
@@ -139,7 +139,7 @@ PurlBuilder.npm().name('lodash').version('4.17.21').build()
 </details>
 
 <details>
-<summary><b>URL conversion</b> — PURL to repository/download URL, and back from a URL or bare filename</summary>
+<summary><b>URL conversion</b> - PURL to repository/download URL, and back from a URL or bare filename</summary>
 
 ```javascript
 import { UrlConverter } from '@socketregistry/packageurl-js'
@@ -189,7 +189,7 @@ UrlConverter.fromDownloadUrl(
 </details>
 
 <details>
-<summary><b>Registry existence checks</b> — does this package actually exist, across 17 registries</summary>
+<summary><b>Registry existence checks</b> - does this package actually exist, across 17 registries</summary>
 
 Network calls, so they live in a separate `/exists` entry point and stay out of
 the main bundle.
@@ -268,7 +268,7 @@ Every type is exported, so nothing needs to be re-declared to annotate a value
 this library hands back.
 
 <details>
-<summary><b>Type imports</b> — <code>PackageURLObject</code>, <code>NpmPackageComponents</code>, and the rest</summary>
+<summary><b>Type imports</b> - <code>PackageURLObject</code>, <code>NpmPackageComponents</code>, and the rest</summary>
 
 ```typescript
 import type {
@@ -291,7 +291,7 @@ const obj: PackageURLObject = purl.toObject()
 </details>
 
 <details>
-<summary><b>Constants</b> — <code>PurlQualifierNames</code> and <code>PURL_Type</code>, instead of bare strings</summary>
+<summary><b>Constants</b> - <code>PurlQualifierNames</code> and <code>PURL_Type</code>, instead of bare strings</summary>
 
 ```typescript
 import { PURL_Type, PurlQualifierNames } from '@socketregistry/packageurl-js'

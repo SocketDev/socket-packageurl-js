@@ -1,6 +1,6 @@
 # Builders
 
-The `PurlBuilder` fluent API — construct a `PackageURL` step by
+The `PurlBuilder` fluent API - construct a `PackageURL` step by
 step, with per-field setters and per-ecosystem factories. Read
 this when you want to build a PURL from computed values rather
 than handing every argument to a constructor all at once.
@@ -8,7 +8,7 @@ than handing every argument to a constructor all at once.
 ## Who this is for
 
 Callers with a runtime shape that doesn't fit a single constructor
-call — you have a loop, a conditional, or a pipeline where each
+call - you have a loop, a conditional, or a pipeline where each
 piece of the PURL lands at a different step. Also contributors
 adding a new ecosystem factory.
 
@@ -16,10 +16,10 @@ adding a new ecosystem factory.
 
 | You have…                                          | Use                                                                                                     |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| All six pieces in hand at once                     | `new PackageURL(type, ns, name, version, qualifiers, subpath)` — positional, fastest.                   |
-| A loop / conditional that sets fields over time    | `PurlBuilder` — method chaining, field-by-field.                                                        |
-| An existing PackageURL and want to tweak one field | `PurlBuilder.from(existing).name('new').build()` — creates a fresh instance since PackageURL is frozen. |
-| A string from the wire                             | `new PackageURL(str)` or `PackageURL.fromStringResult(str)` — see `docs/hardening.md`.                  |
+| All six pieces in hand at once                     | `new PackageURL(type, ns, name, version, qualifiers, subpath)` - positional, fastest.                   |
+| A loop / conditional that sets fields over time    | `PurlBuilder` - method chaining, field-by-field.                                                        |
+| An existing PackageURL and want to tweak one field | `PurlBuilder.from(existing).name('new').build()` - creates a fresh instance since PackageURL is frozen. |
+| A string from the wire                             | `new PackageURL(str)` or `PackageURL.fromStringResult(str)` - see `docs/hardening.md`.                  |
 
 The builder is not faster than the constructor; it is easier to
 read when construction is spread across code.
@@ -43,7 +43,7 @@ purl.toString()
 ```
 
 Every setter returns `this` so calls chain. `build()` returns the
-frozen `PackageURL` and validates — if a required field is missing
+frozen `PackageURL` and validates - if a required field is missing
 or a value fails its component's validator, `build()` throws.
 
 ## The setters
@@ -52,7 +52,7 @@ or a value fails its component's validator, `build()` throws.
 | ------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | `.type(str)`             | The package type (`npm`, `pypi`, `maven`, …). Required.                            | Lowercased. Must match a registered `PurlType`.                                      |
 | `.namespace(str)`        | Namespace / scope / group (e.g. `@scope` for npm, `org.acme` for maven). Optional. | Normalization depends on type. npm lowercases; maven preserves case.                 |
-| `.name(str)`             | Package name. Required.                                                            | Same as namespace — normalization per type.                                          |
+| `.name(str)`             | Package name. Required.                                                            | Same as namespace - normalization per type.                                          |
 | `.version(str)`          | Version string. Optional.                                                          | Free-form; validated for injection chars but not semver-shape (ecosystems disagree). |
 | `.qualifier(key, value)` | One key-value qualifier. Add many by chaining multiple calls.                      | See the known-qualifier list below.                                                  |
 | `.qualifiers(obj)`       | Set all qualifiers at once from an object.                                         | Replaces any previously-set qualifiers.                                              |
@@ -107,9 +107,9 @@ Available factories:
 
 Generic entry points:
 
-- `PurlBuilder.create()` — no type preset. You must call `.type()`
+- `PurlBuilder.create()` - no type preset. You must call `.type()`
   before `.build()`.
-- `PurlBuilder.from(existing: PackageURL)` — seeds every field from
+- `PurlBuilder.from(existing: PackageURL)` - seeds every field from
   an existing `PackageURL`. Useful for "take this PURL but change
   one field."
 
@@ -236,7 +236,7 @@ object already.
 
 ## Validation timing
 
-The builder does **not** validate as you set — so:
+The builder does **not** validate as you set - so:
 
 ```typescript
 PurlBuilder.create().type('npm').name('') // empty name — won't error here
@@ -299,14 +299,14 @@ Conventions:
 
 ## Further reading
 
-- [`docs/architecture.md`](./architecture.md) — where the builder
+- [`docs/architecture.md`](./architecture.md) - where the builder
   sits in the module map.
-- [`docs/converters.md`](./converters.md) — builder's cousin for
+- [`docs/converters.md`](./converters.md) - builder's cousin for
   URL ↔ PURL round-trips.
-- [`docs/hardening.md`](./hardening.md) — why built instances are
+- [`docs/hardening.md`](./hardening.md) - why built instances are
   frozen.
-- [`docs/api.md`](./api.md) — full API reference.
-- [`src/package-url-builder.ts`](../src/package-url-builder.ts) —
+- [`docs/api.md`](./api.md) - full API reference.
+- [`src/package-url-builder.ts`](../src/package-url-builder.ts) -
   the implementation.
-- [`src/purl-qualifier-names.ts`](../src/purl-qualifier-names.ts) —
+- [`src/purl-qualifier-names.ts`](../src/purl-qualifier-names.ts) -
   canonical list of known qualifier keys.

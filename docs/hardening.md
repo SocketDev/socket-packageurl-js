@@ -22,8 +22,8 @@ it into code.
 A well-formed PURL (passes spec shape + no dangerous characters)
 builds a frozen `PackageURL` instance the caller can rely on. An
 ill-formed PURL throws a `PurlError`. An input that looks like it
-wants to be interpreted twice — once as a PURL, and again by a
-downstream consumer (shell, SQL, URL, log pipeline) — throws a
+wants to be interpreted twice - once as a PURL, and again by a
+downstream consumer (shell, SQL, URL, log pipeline) - throws a
 `PurlInjectionError` **before parse**. The caller never sees a
 half-interpreted object.
 
@@ -95,7 +95,7 @@ Callers who want to treat injection attempts as auditable events
 
 Some PURL components (like version strings or URL-based qualifier
 values) are legitimately allowed to carry characters that are
-dangerous elsewhere — a URL qualifier value may contain `?`, `&`,
+dangerous elsewhere - a URL qualifier value may contain `?`, `&`,
 `=`, `:`, `/` as part of a normal URL. For those contexts
 `src/strings.ts` exports a narrower scanner that only blocks the
 characters that actually enable shell execution or code injection:
@@ -127,7 +127,7 @@ purl.name = 'evil-pkg' // throws (module code is strict mode)
 purl.qualifiers.key = 'hax' // throws
 ```
 
-This matters when a validated PURL is passed through 3+ hops — a
+This matters when a validated PURL is passed through 3+ hops - a
 middle hop can't secretly modify the object and hand it to the next
 hop. Validation up front + freeze means "validated" still means
 something at the endpoint.
@@ -137,7 +137,7 @@ something at the endpoint.
 
 The canonical-string memo behind `toString()` is a private field,
 not a property, so the freeze does not seal it and serialization
-stays lazy — a caller that only reads `.name` never pays for a
+stays lazy - a caller that only reads `.name` never pays for a
 string it will not use.
 
 For arbitrary object graphs `src/objects.ts` exports
@@ -167,7 +167,7 @@ shape:
 
 - Is grep-able (every one starts with `Invalid purl:`).
 - Never renders attacker-controlled bytes verbatim when injection is
-  detected — the `PurlInjectionError` message says _the char label_
+  detected - the `PurlInjectionError` message says _the char label_
   (e.g. "SPACE", "NUL", "BACKTICK"), not the raw character, so a
   terminal that pipes the log never interprets an ESC sequence the
   attacker embedded.
@@ -176,10 +176,10 @@ shape:
 
 | Situation                                                        | Use                                                                                                                      |
 | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Parsing a full PURL string from untrusted input                  | `new PackageURL(str)` — catches `PurlInjectionError` + `PurlError`                                                       |
-| Validating a user-submitted PURL in a form                       | `PackageURL.fromStringResult(str)` — returns `Result`, collect failures                                                  |
-| Building a PURL from already-trusted pieces (internal codepaths) | `new PackageURL(type, ns, name, version, qualifiers, subpath)` — still runs validation but you know the inputs are clean |
-| Comparing two PURLs                                              | `purl.equals(other)` / `purl.matches(pattern)` — both ReDoS-safe                                                         |
+| Parsing a full PURL string from untrusted input                  | `new PackageURL(str)` - catches `PurlInjectionError` + `PurlError`                                                       |
+| Validating a user-submitted PURL in a form                       | `PackageURL.fromStringResult(str)` - returns `Result`, collect failures                                                  |
+| Building a PURL from already-trusted pieces (internal codepaths) | `new PackageURL(type, ns, name, version, qualifiers, subpath)` - still runs validation but you know the inputs are clean |
+| Comparing two PURLs                                              | `purl.equals(other)` / `purl.matches(pattern)` - both ReDoS-safe                                                         |
 
 For converter utilities (URL → PURL, PURL → URL) see
 `docs/converters.md`; for the builder API see `docs/builders.md`.
@@ -192,7 +192,7 @@ If a PR touches PURL-component handling, pause if you see any of:
    `isInjectionCharCode` for this type because the user won't ever
    put weird characters there" is exactly the kind of assumption
    that gets a library blamed for the next CVE. If the scan is
-   expensive in a hot path, optimize the scan — never skip it.
+   expensive in a hot path, optimize the scan - never skip it.
 2. **Unfreezing.** No `Object.freeze(purl, { writable: true })`.
    No cloning into a mutable shape unless it is a new instance
    being built from scratch. If you see code that hands back a
@@ -227,7 +227,7 @@ Be honest about scope:
   `purl.matches(userPattern)`, validate that pattern yourself.
 - **Typosquatting / ecosystem-level package confusion.** That is a
   policy problem at the package-registry layer (Socket's main
-  product, in fact) — not a string-level check this library can
+  product, in fact) - not a string-level check this library can
   make.
 - **Crafted URLs in URL-converter inputs.** `urlConverter.fromUrl`
   trusts its input is a real URL string. Pass untrusted URLs
@@ -240,11 +240,11 @@ boundary; don't try to push it into the library.
 
 - [ ] Handler file at `src/purl-types/<name>.ts`.
 - [ ] `normalize`, `validate` rules use the shared `PurlComponent`
-      helpers — no ad-hoc parsing.
+      helpers - no ad-hoc parsing.
 - [ ] Any custom check calls `isInjectionCharCode` (or the narrower
       command-execution scanner) before other logic.
 - [ ] Tests include at least one case per injection class (shell
-      char, control char, unicode invisible) — expect
+      char, control char, unicode invisible) - expect
       `PurlInjectionError`.
 - [ ] No mutation of the PURL instance after construction.
 - [ ] No catch-and-swallow of `PurlInjectionError`.
@@ -254,16 +254,16 @@ boundary; don't try to push it into the library.
 
 ## Further reading
 
-- [`docs/architecture.md`](./architecture.md) — where these modules
+- [`docs/architecture.md`](./architecture.md) - where these modules
   fit in the larger design.
-- [`docs/api.md`](./api.md) — the full public API reference.
-- [`docs/vers.md`](./vers.md) — version-range specifiers; also
+- [`docs/api.md`](./api.md) - the full public API reference.
+- [`docs/vers.md`](./vers.md) - version-range specifiers; also
   hostile-input territory.
-- [`src/strings.ts`](../src/strings.ts) — `isInjectionCharCode` +
+- [`src/strings.ts`](../src/strings.ts) - `isInjectionCharCode` +
   narrower scanners.
-- [`src/objects.ts`](../src/objects.ts) — `recursiveFreeze` +
+- [`src/objects.ts`](../src/objects.ts) - `recursiveFreeze` +
   `LOOP_SENTINEL`.
-- [`src/error.ts`](../src/error.ts) — `PurlError` +
+- [`src/error.ts`](../src/error.ts) - `PurlError` +
   `PurlInjectionError` + `formatPurlErrorMessage`.
-- [package-url/purl-spec](https://github.com/package-url/purl-spec) —
+- [package-url/purl-spec](https://github.com/package-url/purl-spec) -
   the upstream spec this library implements.

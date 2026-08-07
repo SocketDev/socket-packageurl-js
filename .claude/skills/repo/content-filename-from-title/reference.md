@@ -26,14 +26,14 @@ The decision procedure covers the common cases. When it does not, apply these ti
 
 ### Two words feel equally strong
 
-If Steps 2–4 produce two candidates that both read as "the topic" —
+If Steps 2–4 produce two candidates that both read as "the topic" -
 pick the one that is:
 
 1. **Shorter.** Fewer keystrokes, fewer chances to mistype.
 2. **More common English.** A word the reader has seen before in other contexts.
 3. **Closer to the verb form your neighbors use.** If the manifest's other entries are all gerunds, prefer the gerund. If all `-ion` forms, prefer `-ion`. Internal consistency is worth more than individually-optimal word choice.
 
-If still tied — flip a coin or ask the user; the downstream cost of a wrong pick is low because the filename validator only checks shape, not "optimality."
+If still tied - flip a coin or ask the user; the downstream cost of a wrong pick is low because the filename validator only checks shape, not "optimality."
 
 ### The title is in a second language
 
@@ -41,7 +41,7 @@ Translate to English first, then apply the procedure. The filename
 is a URL segment consumed globally; English is the lowest-common-
 denominator, not a cultural preference. If the original-language
 word happens to be a better fit _and_ passes `^[a-z]+$`, that is
-acceptable — but default to English.
+acceptable - but default to English.
 
 ### The title is a person's name, a product name, or a brand
 
@@ -61,11 +61,11 @@ need to pick a different word.
 ### Every candidate noun is generic
 
 If the title is something like "Overview" or "Introduction" and
-you're staring at `overview`, `introduction`, `intro`, `summary` —
+you're staring at `overview`, `introduction`, `intro`, `summary` -
 these are all generic. Escape by picking a word that describes
 **the thing you are introducing**, not the act of introduction:
 
-- "Introduction to PURLs" → `purl` — the subject, not the gerund.
+- "Introduction to PURLs" → `purl` - the subject, not the gerund.
 - "Overview of the Build Pipeline" → `pipeline`.
 
 If the title truly has no distinguishing noun, the content probably
@@ -74,7 +74,7 @@ inventing a filename.
 
 ### The title contains a URL-unsafe character
 
-Unicode, emoji, arrows, operators — all of these have to be
+Unicode, emoji, arrows, operators - all of these have to be
 translated to the nearest ASCII equivalent during Step 6:
 
 - `URL ↔ PURL Conversion` → the arrow is visual; ignore it for
@@ -106,7 +106,7 @@ generalize. Quick guide per manifest type:
 
 ### tour.json parts
 
-What you've seen — `anatomy`, `building`, `parsing`, etc. Internal
+What you've seen - `anatomy`, `building`, `parsing`, etc. Internal
 consistency matters because there are 8+ of them in a visible list.
 Stick with one style family (all gerunds / all `-ion` / all plain
 nouns) where possible.
@@ -131,7 +131,7 @@ because "design system" is a term of art.
 
 ### Blog slugs, if one ever exists
 
-Blog posts usually get 2–4 word slugs — different grammar from the
+Blog posts usually get 2–4 word slugs - different grammar from the
 tour. The skill's rules don't apply. Use this skill only for
 **content identifiers in a bounded manifest**, not for prose-heavy
 URLs.
@@ -139,7 +139,7 @@ URLs.
 ### CLI subcommand names
 
 Subcommands (`pnpm tour:build`, `pnpm tour:serve`) follow the same
-rules — short, lowercase, content-bearing. `:` is the separator
+rules - short, lowercase, content-bearing. `:` is the separator
 within pnpm; each segment on its own side of the colon should pass
 `^[a-z]+$`.
 
@@ -169,7 +169,7 @@ CamelCase (`json` not `JSON`, which violates `^[a-z]+$`). Do not
 hyphenate (`sbom` not `s-bom`).
 
 If the acronym clashes with another entry, fall back to a noun
-that describes what the acronym _is about_ — `json` collides? Use
+that describes what the acronym _is about_ - `json` collides? Use
 `config` or `manifest` depending on context.
 
 ### Proper nouns / product names
@@ -180,7 +180,7 @@ Use the most recognizable lowercase form:
 - `TypeScript` → `typescript` (or `ts` if space-constrained, but
   `typescript` is preferred)
 - `Socket.dev` → `socket`
-- `Val Town` → `valtown` (concatenated — space is not legal)
+- `Val Town` → `valtown` (concatenated - space is not legal)
 
 ### Non-English source text
 
@@ -189,7 +189,7 @@ underlying concept noun:
 
 - "こんにちは" → the title is a greeting; use `greeting` or
   `hello`, not transliterate to `konnichiwa`.
-- "packageurl-js 入門" → `intro` or the target ("PURL") — `purl` or
+- "packageurl-js 入門" → `intro` or the target ("PURL") - `purl` or
   `getting-started`-style (but this skill is for single words, so
   `intro` or `purl`).
 
@@ -205,22 +205,22 @@ Why each of the 8 tour-part filenames was chosen over alternatives.
 
 Candidates: `anatomy`, `purl`, `structure`, `shape`.
 
-- `purl` — rejected, shared with Parts 2 and 5.
-- `structure` — considered; `anatomy` is more distinctive and
+- `purl` - rejected, shared with Parts 2 and 5.
+- `structure` - considered; `anatomy` is more distinctive and
   carries the right "take a thing apart to see how it works"
   connotation.
-- `shape` — too visual.
+- `shape` - too visual.
 - Winner: `anatomy`. Clinical, short, distinctive.
 
 ### Part 2: `building` (title: "Building & Stringifying PURLs")
 
 Candidates: `building`, `stringifying`, `construction`, `build`.
 
-- `build` — same root, shorter, but less gerund-consistent with
+- `build` - same root, shorter, but less gerund-consistent with
   Part 3 (`parsing`).
-- `stringifying` — rejected. Stringifying is a specific substep
+- `stringifying` - rejected. Stringifying is a specific substep
   (the final serialization). Building is the superset.
-- `construction` — considered; `building` is shorter + reads as an
+- `construction` - considered; `building` is shorter + reads as an
   activity rather than an abstract state.
 - Winner: `building`. Gerund form matches Part 3's `parsing`.
 
@@ -228,17 +228,17 @@ Candidates: `building`, `stringifying`, `construction`, `build`.
 
 Candidates: `parsing`, `normalization`, `parse`.
 
-- `normalization` — rejected, it's a substep of parsing.
-- `parse` — shorter but breaks gerund consistency.
+- `normalization` - rejected, it's a substep of parsing.
+- `parse` - shorter but breaks gerund consistency.
 - Winner: `parsing`.
 
 ### Part 4: `validation` (title: "Validation, Errors & Results")
 
 Candidates: `validation`, `errors`, `results`, `validate`.
 
-- `errors` — rejected, output of validation.
-- `results` — rejected, ambiguous (result pattern or outcomes?).
-- `validate` — gerund would be `validating`; `validation` is the
+- `errors` - rejected, output of validation.
+- `results` - rejected, ambiguous (result pattern or outcomes?).
+- `validate` - gerund would be `validating`; `validation` is the
   `-ion` form, used here because the doc treats validation as a
   topic, the shape of errors/results, rather than an activity. Mixing
   `-ion` forms with gerunds is acceptable when the semantic shift
@@ -249,8 +249,8 @@ Candidates: `validation`, `errors`, `results`, `validate`.
 
 Candidates: `conversion`, `url`, `purl`, `converter`.
 
-- `url`, `purl` — rejected, both appear in multiple titles.
-- `converter` — the tool name, not the activity. Awkward as a URL
+- `url`, `purl` - rejected, both appear in multiple titles.
+- `converter` - the tool name, not the activity. Awkward as a URL
   segment (reads like a product name).
 - Winner: `conversion`.
 
@@ -258,21 +258,21 @@ Candidates: `conversion`, `url`, `purl`, `converter`.
 
 Candidates: `ecosystems`, `types`, `handlers`.
 
-- `types` — rejected, too generic (collides with `docs/types.md`
+- `types` - rejected, too generic (collides with `docs/types.md`
   type reference).
-- `handlers` — technical, not reader-facing.
+- `handlers` - technical, not reader-facing.
 - Winner: `ecosystems`. Plain noun, already in the title.
 
 ### Part 7: `comparison` (title: "Comparison, Matching & Existence")
 
 Candidates: `comparison`, `matching`, `existence`, `compare`.
 
-- `matching` — considered strongly; matching is adjacent to
+- `matching` - considered strongly; matching is adjacent to
   comparison with wildcards. Rejected as narrower than
   `comparison`.
-- `existence` — rejected, it's a separate concern (registry
+- `existence` - rejected, it's a separate concern (registry
   checks) awkwardly bundled into this part.
-- `compare` — shorter but less gerund-stable.
+- `compare` - shorter but less gerund-stable.
 - Winner: `comparison`.
 
 ### Part 8: `security` (title: "Security Primitives & VERS")
@@ -280,10 +280,10 @@ Candidates: `comparison`, `matching`, `existence`, `compare`.
 Candidates: `security`, `primitives`, `vers`, `safety`,
 `hardening`.
 
-- `primitives` — rejected, too abstract.
-- `vers` — rejected. VERS is covered in `docs/vers.md`; having a
+- `primitives` - rejected, too abstract.
+- `vers` - rejected. VERS is covered in `docs/vers.md`; having a
   tour part also use `vers` would be redundant and collision-prone.
-- `safety` / `hardening` — considered for the later-added
+- `safety` / `hardening` - considered for the later-added
   `docs/hardening.md` doc. In the context of Part 8 (which is
   broader than injection detection), `security` reads as the
   superset.
@@ -305,7 +305,7 @@ thought about.
 | `doc`                     | Generic. Every doc is "a doc."                           |
 | `item`                    | Generic.                                                 |
 | `content`                 | Generic.                                                 |
-| `index`                   | Reserved — conflicts with `index.html`.                  |
+| `index`                   | Reserved - conflicts with `index.html`.                  |
 | `part`                    | Too generic; collides with the structure word itself.    |
 | `part1`, `part2`, …       | Contains digit. Fails `^[a-z]+$`. Also unstable.         |
 | `first`, `second`         | Ordinal. Unstable; renames on reorder.                   |
@@ -370,14 +370,14 @@ Every part has a `filename` set. Validator errors if missing.
 
 ## 7. Cross-references
 
-- **SKILL.md** — this skill's main file: the decision procedure
+- **SKILL.md** - this skill's main file: the decision procedure
   and 8 worked examples.
-- `CLAUDE.md` § ERROR MESSAGES — the shape of errors the validator
+- `CLAUDE.md` § ERROR MESSAGES - the shape of errors the validator
   emits when you break a rule.
-- `docs/pages-design-system.md` — the surrounding design system for
+- `docs/pages-design-system.md` - the surrounding design system for
   pages that use these filenames.
-- `docs/tour.md` — the tour pipeline, including how filenames
+- `docs/tour.md` - the tour pipeline, including how filenames
   become public URLs.
 - `scripts/tour.mts` → `validatePartFilenames()` +
-  `validateDocFilenames()` — the two validator functions.
-- `tour.json` — the live manifest applying this skill.
+  `validateDocFilenames()` - the two validator functions.
+- `tour.json` - the live manifest applying this skill.

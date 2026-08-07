@@ -30,7 +30,7 @@ Detailed feature comparison, implementation guidance, and edge cases for syncing
 | Language detection  | lang.ts                | Detect programming language from PURL     |
 | 15+ registry checks | purl-exists.ts         | More ecosystems than purl                 |
 
-### Features purl has — check for parity
+### Features purl has - check for parity
 
 | Feature             | purl API                          | Our equivalent                 | Gap?                  |
 | ------------------- | --------------------------------- | ------------------------------ | --------------------- |
@@ -177,7 +177,7 @@ equals(
 
 ### Component accessor functions
 
-purl exports standalone accessor functions (`type()`, `name()`, etc.) that accept PURL strings. We use instance properties. This is a design difference, not a gap — our approach is more efficient for multiple accesses.
+purl exports standalone accessor functions (`type()`, `name()`, etc.) that accept PURL strings. We use instance properties. This is a design difference, not a gap - our approach is more efficient for multiple accesses.
 
 ---
 
@@ -251,7 +251,7 @@ git commit -m "fix(normalize): align {type} normalization with purl package"
 
 ### purl returns null vs we throw
 
-purl's `parse()` returns `null` for invalid input. Our `PackageURL.fromString()` throws `PurlError`. This is an intentional design difference — we provide Result types (`ok`/`err`) as an alternative to try/catch.
+purl's `parse()` returns `null` for invalid input. Our `PackageURL.fromString()` throws `PurlError`. This is an intentional design difference - we provide Result types (`ok`/`err`) as an alternative to try/catch.
 
 ### Version ranges in fromNPM
 
@@ -292,4 +292,4 @@ If normalization differs from purl, check:
 2. The purl-spec PURL-TYPES.rst for type-specific rules
 3. Our type handler in `src/purl-types/{type}.ts`
 
-The TC54 spec is authoritative — if purl deviates, we follow the spec.
+The TC54 spec is authoritative - if purl deviates, we follow the spec.

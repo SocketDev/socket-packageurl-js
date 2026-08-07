@@ -1,6 +1,6 @@
 # Converters
 
-The `UrlConverter` class — convert between URLs (repository,
+The `UrlConverter` class - convert between URLs (repository,
 download, registry) and PURLs. Read this when you are turning a
 human-copyable URL into a PURL, or going the other way to hand a
 user a clickable download link.
@@ -15,7 +15,7 @@ not PURL.
 
 <!-- Box-drawing alignment note: every frame line below must
      render at exactly 66 display cells. No emoji or CJK chars
-     — those are 2 cells wide in monospace. Verify widths with:
+     - those are 2 cells wide in monospace. Verify widths with:
        python3 -c "import unicodedata; [print(sum(2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in l.rstrip())) for l in open('docs/converters.md').readlines()[21:29]]"
 -->
 
@@ -32,15 +32,15 @@ not PURL.
 <details>
 <summary>What each of the four static methods does: fromUrl, toDownloadUrl, toRepositoryUrl and getAllUrls, including when each returns undefined</summary>
 
-- **`UrlConverter.fromUrl(str)`** — URL string → PackageURL (or
+- **`UrlConverter.fromUrl(str)`** - URL string → PackageURL (or
   `undefined` if the URL is not recognized).
-- **`UrlConverter.toDownloadUrl(purl)`** — PackageURL → artifact
+- **`UrlConverter.toDownloadUrl(purl)`** - PackageURL → artifact
   download URL (tarball, jar, wheel, …). Returns `undefined` if the
   type doesn't support downloads.
-- **`UrlConverter.toRepositoryUrl(purl)`** — PackageURL → source
+- **`UrlConverter.toRepositoryUrl(purl)`** - PackageURL → source
   repository URL (GitHub/GitLab/Bitbucket page or clone URL).
   Returns `undefined` if the type doesn't know its repository.
-- **`UrlConverter.getAllUrls(purl)`** — convenience wrapper
+- **`UrlConverter.getAllUrls(purl)`** - convenience wrapper
   returning both download and repository URLs in one call.
 
 All four methods are **static** on `UrlConverter`. Instances are
@@ -90,9 +90,9 @@ registered:
 `UrlConverter.supportsFromUrl(str)` answers "is this URL
 recognized?" without parsing.
 
-## Worked examples — `fromUrl`
+## Worked examples - `fromUrl`
 
-### npm — both registry and website
+### npm - both registry and website
 
 ```typescript
 UrlConverter.fromUrl('https://www.npmjs.com/package/lodash')
@@ -105,7 +105,7 @@ UrlConverter.fromUrl('https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz')
 // → PackageURL('npm', undefined, 'lodash', '4.17.21')
 ```
 
-### GitHub / GitLab / Bitbucket — VCS-style
+### GitHub / GitLab / Bitbucket - VCS-style
 
 ```typescript
 UrlConverter.fromUrl('https://github.com/lodash/lodash')
@@ -148,7 +148,7 @@ function parseOrThrow(url: string): PackageURL {
 }
 ```
 
-## Worked examples — `toDownloadUrl`
+## Worked examples - `toDownloadUrl`
 
 ```typescript
 const purl = new PackageURL('npm', undefined, 'lodash', '4.17.21')
@@ -160,7 +160,7 @@ UrlConverter.toDownloadUrl(pypi)
 // → { url: 'https://files.pythonhosted.org/…/requests-2.31.0.tar.gz' }
 ```
 
-`toDownloadUrl` requires the PURL have a `version` — you cannot
+`toDownloadUrl` requires the PURL have a `version` - you cannot
 download "some version of lodash." If version is missing, returns
 `undefined`.
 
@@ -170,7 +170,7 @@ where the download requires API metadata lookup (e.g. resolving a
 sha digest), the converter returns `undefined` and you will need
 to use the ecosystem's own API.
 
-## Worked examples — `toRepositoryUrl`
+## Worked examples - `toRepositoryUrl`
 
 ```typescript
 const github = new PackageURL('github', 'lodash', 'lodash')
@@ -220,7 +220,7 @@ the right command for `type: 'git'` but **not** for `type: 'svn'`
 or `type: 'web'` (the latter is a browsable page, not a clone
 target).
 
-## `getAllUrls` — both in one call
+## `getAllUrls` - both in one call
 
 ```typescript
 const urls = UrlConverter.getAllUrls(purl)
@@ -289,12 +289,12 @@ the return type.
 - **http vs https is ignored.** The converter normalizes both to the
   same parser.
 - **URL canonicalization.** `fromUrl('https://github.com/X/')` and
-  `fromUrl('https://github.com/X')` produce the same PURL — trailing
+  `fromUrl('https://github.com/X')` produce the same PURL - trailing
   slashes are stripped. Query strings and fragments are parser-
   dependent; check the individual parser before relying on them.
 - **`toDownloadUrl` + unversioned PURLs.** If your PURL has no
   `version`, download URL is `undefined`. Don't default to
-  "latest" — the PURL spec treats an unversioned PURL as ambiguous,
+  "latest" - the PURL spec treats an unversioned PURL as ambiguous,
   not as "latest."
 - **Don't feed untrusted URLs without pre-validation.** `fromUrl`
   does not throw on garbage, but a very long string or a weird
@@ -303,10 +303,10 @@ the return type.
 
 ## Further reading
 
-- [`docs/architecture.md`](./architecture.md) — module map.
-- [`docs/builders.md`](./builders.md) — the fluent API.
-- [`docs/hardening.md`](./hardening.md) — injection / freeze /
+- [`docs/architecture.md`](./architecture.md) - module map.
+- [`docs/builders.md`](./builders.md) - the fluent API.
+- [`docs/hardening.md`](./hardening.md) - injection / freeze /
   error shape, including url-converter's try/catch pattern.
-- [`docs/api.md`](./api.md) — full API reference.
-- [`src/url-converter.ts`](../src/url-converter.ts) — the
-  implementation (~1300 lines — the biggest source file by far).
+- [`docs/api.md`](./api.md) - full API reference.
+- [`src/url-converter.ts`](../src/url-converter.ts) - the
+  implementation (~1300 lines - the biggest source file by far).

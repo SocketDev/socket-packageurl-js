@@ -16,13 +16,13 @@ repos (`socket-lib`, `socket-sdk-js`).
 | Dimension        | esbuild today                                          | Rolldown 1.0                                                                                         |
 | ---------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | Bundle perf      | ~1× baseline                                           | ~2× faster on 500+ module projects (Evan You's benchmarks); roughly equal on simple library bundles. |
-| Plugin API       | esbuild-specific                                       | Rollup-compatible — opens the entire Rollup plugin ecosystem.                                        |
+| Plugin API       | esbuild-specific                                       | Rollup-compatible - opens the entire Rollup plugin ecosystem.                                        |
 | Chunking control | Limited (esbuild's known weakness for code-splitting). | Full Rollup-style manualChunks + per-output controls.                                                |
 | Tree-shaking     | Aggressive but coarse.                                 | Aggressive AND respects Rollup's pure-annotation conventions.                                        |
 | Author           | Single-maintainer (Evan Wallace)                       | VoidZero (Evan You + team), aligned with rest of our toolchain (Vite, Vitest, Oxc).                  |
 | Stability        | 7+ years, very stable                                  | 1.0 (May 2026); production-ready per release notes; default in Vite 8.                               |
 
-**Concrete win for socket-packageurl-js:** the path-shortening plugin is straightforward; the lib-stub plugin avoids ~3MB of unreachable code via esbuild's `onLoad` hook. Rolldown's `load()` hook covers the same ground with less ceremony, and Rollup's tree-shaker may cut some of those unreachable paths _without_ a custom plugin — the `@socketsecurity/lib` lazy-load pattern uses `require()` inside conditionals, which esbuild's bundler follows greedily but Rollup may not.
+**Concrete win for socket-packageurl-js:** the path-shortening plugin is straightforward; the lib-stub plugin avoids ~3MB of unreachable code via esbuild's `onLoad` hook. Rolldown's `load()` hook covers the same ground with less ceremony, and Rollup's tree-shaker may cut some of those unreachable paths _without_ a custom plugin - the `@socketsecurity/lib` lazy-load pattern uses `require()` inside conditionals, which esbuild's bundler follows greedily but Rollup may not.
 
 **Concrete risk:** rewrite cost. Both custom plugins must be re-implemented against the Rollup plugin API. Output byte-equivalence is unlikely; we trade equivalent-or-smaller bundles for some shape drift.
 
@@ -30,7 +30,7 @@ repos (`socket-lib`, `socket-sdk-js`).
 
 | File                             | Today                                                | After                                                                                                                     |
 | -------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `.config/esbuild.config.mjs`     | 352 lines, two custom esbuild plugins.               | `.config/rolldown.config.mts` — Rollup-API plugins (path-shortening, lib-stub).                                           |
+| `.config/esbuild.config.mjs`     | 352 lines, two custom esbuild plugins.               | `.config/rolldown.config.mts` - Rollup-API plugins (path-shortening, lib-stub).                                           |
 | `scripts/repo/build.mts`         | 487 lines, imports `build`/`context` from `esbuild`. | Same shape, imports `rolldown`'s analogous APIs. CLI flag surface unchanged (`--analyze`, `--watch`, `--types`, `--src`). |
 | `package.json` `devDependencies` | `esbuild`.                                           | `rolldown` (replaces).                                                                                                    |
 | `pnpm-workspace.yaml` `catalog:` | `esbuild: <version>`.                                | `rolldown: <version>` added; `esbuild` entry kept until other fleet repos migrate, then removed fleet-wide.               |
@@ -38,7 +38,7 @@ repos (`socket-lib`, `socket-sdk-js`).
 ## Migration steps
 
 1. **Audit current esbuild output.** Capture `dist/` byte counts + tree shape; this is the regression baseline. Run `pnpm run build --analyze` and save the JSON metafile.
-2. **Add `rolldown` as a `devDependency`.** Pin to 1.0.x. Don't remove esbuild yet — both ship in parallel during validation.
+2. **Add `rolldown` as a `devDependency`.** Pin to 1.0.x. Don't remove esbuild yet - both ship in parallel during validation.
 3. **Port `createPathShorteningPlugin`.** Convert the esbuild `setup(build)` shape to Rollup's `name + resolveId/load` plugin shape. The path-rewriting logic is pure regex on `id` strings; the rewrite itself stays the same.
 4. **Port `createLibStubPlugin`.** Same conversion. Verify the `@socketsecurity/lib/{globs,sorts}.js` paths still resolve to the absolute paths the regex expects (Rollup may resolve module IDs differently than esbuild).
 5. **Write `.config/rolldown.config.mts`.** Mirror the esbuild config: same entries (`src/index.ts`, `src/exists.ts`), same outdir, same external (Node built-ins), same target, same format (CJS).
@@ -67,18 +67,18 @@ repos (`socket-lib`, `socket-sdk-js`).
 If acceptance passes for `socket-packageurl-js`:
 
 1. Apply the same migration to `socket-sdk-js` (similar shape, same lib-stub trick may apply).
-2. Apply to `socket-lib` (more complex — the build is monorepo-aware).
+2. Apply to `socket-lib` (more complex - the build is monorepo-aware).
 3. Migrate the `_shared/scripts/` resolver (per the Vite+ inspiration in
    `socket-wheelhouse/template/.claude/skills/_shared/skill-authoring.md`)
    so future bundler swaps are one-line changes per fleet.
 
 ## Stage 2 (optional, post-rolldown): comptime
 
-Once rolldown lands and stabilizes, evaluate [`comptime`](https://github.com/lukeed/comptime) — a Zig-inspired build-time evaluation plugin from `@lukeed` that exposes `comptime(() => pure())` as an identity helper, then statically replaces the call with the serialized result at build time. Available as both a Vite and Rolldown plugin.
+Once rolldown lands and stabilizes, evaluate [`comptime`](https://github.com/lukeed/comptime) - a Zig-inspired build-time evaluation plugin from `@lukeed` that exposes `comptime(() => pure())` as an identity helper, then statically replaces the call with the serialized result at build time. Available as both a Vite and Rolldown plugin.
 
-**Why it could fit:** `socket-packageurl-js` ships static data tables (PURL ecosystem definitions, parser rule sets) computed at module load. Replacing those with comptime calls would inline the result into the bundle — smaller runtime cost, smaller bundle (no parsing logic shipped for data that's known at build).
+**Why it could fit:** `socket-packageurl-js` ships static data tables (PURL ecosystem definitions, parser rule sets) computed at module load. Replacing those with comptime calls would inline the result into the bundle - smaller runtime cost, smaller bundle (no parsing logic shipped for data that's known at build).
 
-**Why defer:** comptime is at v0.1.0 — early. Per the fleet's adoption rule (stable 1.0+), it doesn't meet the bar yet. The rolldown migration is independent and shouldn't be blocked on comptime maturity.
+**Why defer:** comptime is at v0.1.0 - early. Per the fleet's adoption rule (stable 1.0+), it doesn't meet the bar yet. The rolldown migration is independent and shouldn't be blocked on comptime maturity.
 
 **When to revisit:** when comptime hits 1.0 or when we have a concrete bundle-size finding that comptime would address. Until then, capture the idea here so it doesn't get lost.
 
@@ -90,7 +90,7 @@ If acceptance fails: drop the migration commits, file findings with the rolldown
 
 - [Rolldown 1.0.0 release notes](https://github.com/rolldown/rolldown/releases/tag/v1.0.0)
 - [Rolldown introduction docs](https://rolldown.rs/guide/introduction)
-- [VoidZero — announcing rolldown](https://voidzero.dev/posts/announcing-rolldown)
+- [VoidZero - announcing rolldown](https://voidzero.dev/posts/announcing-rolldown)
 - esbuild config (current): [`.config/esbuild.config.mjs`](../.config/esbuild.config.mjs)
 - Build runner (current): [`scripts/repo/build.mts`](../scripts/repo/build.mts)
 - Fleet build-tool decision: [`socket-wheelhouse/template/.claude/skills/_shared/skill-authoring.md`](https://github.com/SocketDev/socket-wheelhouse/blob/main/template/.claude/skills/_shared/skill-authoring.md)

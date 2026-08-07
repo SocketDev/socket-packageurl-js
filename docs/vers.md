@@ -1,6 +1,6 @@
 # VERS
 
-**VE**rsion **R**ange **S**pecifiers — the pre-standard grammar for
+**VE**rsion **R**ange **S**pecifiers - the pre-standard grammar for
 saying "any version of package X that matches this range" in a way
 every ecosystem can parse the same way. This doc covers what VERS is,
 how to read and write it, how this library implements it, and what
@@ -28,8 +28,8 @@ Today, every package ecosystem has its own version-range syntax:
 
 </details>
 
-A tool that consumes all of them — a vulnerability scanner, an
-SBOM tool, Socket.dev itself — has to implement and maintain eight
+A tool that consumes all of them - a vulnerability scanner, an
+SBOM tool, Socket.dev itself - has to implement and maintain eight
 different parsers just to answer "does version 1.4.2 satisfy this
 range?"
 
@@ -46,7 +46,7 @@ Each `<constraint>` is a comparator (`=`, `!=`, `<`, `<=`, `>`,
 
 Constraints inside a single VERS are **ORed**. To express AND, use
 multiple VERS in your own logic (the spec is deliberately simple
-here — it doesn't try to encode every operator every ecosystem has).
+here - it doesn't try to encode every operator every ecosystem has).
 
 ## Worked examples
 
@@ -58,7 +58,7 @@ vers:npm/>=1.0.0|<2.0.0
 ```
 
 "Any npm version ≥ 1.0.0, OR any npm version < 2.0.0." (OR semantics
-across constraints — note this matches almost everything; the example
+across constraints - note this matches almost everything; the example
 is intentionally showing the grammar, not a useful range.)
 
 ```
@@ -73,25 +73,25 @@ before release; semver: same, but "1.0.0-a" form).
 vers:cargo/^1.2.3
 ```
 
-Cargo's caret — any version ≥ 1.2.3 and < 2.0.0.
+Cargo's caret - any version ≥ 1.2.3 and < 2.0.0.
 
 ```
 vers:semver/*
 ```
 
-Wildcard — matches any semver version.
+Wildcard - matches any semver version.
 
 ```
 vers:npm/=1.2.3
 ```
 
-Exact match — only version 1.2.3 satisfies.
+Exact match - only version 1.2.3 satisfies.
 
 ```
 vers:npm/>=1.0.0|!=1.3.5|<2.0.0
 ```
 
-"≥ 1.0.0 OR not 1.3.5 OR < 2.0.0" — again, grammar demo; the OR
+"≥ 1.0.0 OR not 1.3.5 OR < 2.0.0" - again, grammar demo; the OR
 semantics make this permissive. Real policies usually fit in two
 constraints.
 
@@ -110,7 +110,7 @@ with Ecma submission planned for **late 2026**. That means:
 - **Some ecosystems aren't covered yet.** The library today
   implements the semver scheme and its common aliases (see below).
   Schemes like PEP 440, maven, and nuget are planned but not yet
-  implemented — the grammar parses, but comparison under those
+  implemented - the grammar parses, but comparison under those
   schemes would throw.
 - **Use cautiously in hot paths.** If your product hinges on VERS
   behavior, review every release's changelog for spec-driven
@@ -140,7 +140,7 @@ comparison scheme** and its common aliases:
 
 Unsupported-but-declared schemes (`pypi`, `maven`, `nuget`, `deb`,
 `rpm`, …) parse as VERS grammar but throw when a comparison is
-attempted. If you need one, open an issue or PR — the scheme table
+attempted. If you need one, open an issue or PR - the scheme table
 is a single-line addition plus the comparison function.
 
 ## The `Vers` class
@@ -162,7 +162,7 @@ class Vers {
 
 ### Parsing
 
-Two synonymous entry points — `Vers.parse('vers:npm/>=1.0.0|<2.0.0')`
+Two synonymous entry points - `Vers.parse('vers:npm/>=1.0.0|<2.0.0')`
 or `Vers.fromString(...)`. Both:
 
 1. Verify the string starts with `vers:`.
@@ -172,7 +172,7 @@ or `Vers.fromString(...)`. Both:
    against the COMPARATORS table).
 5. Validate the comparator + version combination.
 6. Freeze the resulting `Vers` instance (immutable, per the
-   hardening doctrine — see `docs/hardening.md`).
+   hardening doctrine - see `docs/hardening.md`).
 
 Failure modes, all throwing `PurlError`:
 
@@ -188,10 +188,10 @@ Failure modes, all throwing `PurlError`:
 `vers.contains(version)` returns `true` if at least one constraint
 in the VERS accepts the version. For the semver scheme that means:
 
-- `=` — `compareSemver(range.version, v) === 0`
-- `!=` — `compareSemver(range.version, v) !== 0`
-- `<` / `<=` / `>` / `>=` — the obvious comparisons
-- `*` — always true
+- `=` - `compareSemver(range.version, v) === 0`
+- `!=` - `compareSemver(range.version, v) !== 0`
+- `<` / `<=` / `>` / `>=` - the obvious comparisons
+- `*` - always true
 
 ```typescript
 const range = Vers.parse('vers:npm/>=1.0.0|<2.0.0')
@@ -220,7 +220,7 @@ const v = Vers.parse('vers:npm/>=1.0.0|<2.0.0')
 v.toString() // 'vers:npm/>=1.0.0|<2.0.0'
 ```
 
-Round-tripping is lossless — `Vers.parse(v.toString())` always
+Round-tripping is lossless - `Vers.parse(v.toString())` always
 produces an equivalent VERS. (Not byte-identical if the input had
 redundant whitespace; the string form strips.)
 
@@ -235,9 +235,9 @@ Cheat sheet for the most common patterns:
 | ≥ X                                                 | `vers:npm/>=X`                                                                                                                             |
 | Strict greater than X                               | `vers:npm/>X`                                                                                                                              |
 | Everything except X                                 | `vers:npm/!=X`                                                                                                                             |
-| "X inclusive through Y exclusive" (intent: `[X,Y)`) | **Not expressible directly** — VERS uses OR between constraints; use your ecosystem's native range or pair a lower bound with a validator. |
+| "X inclusive through Y exclusive" (intent: `[X,Y)`) | **Not expressible directly** - VERS uses OR between constraints; use your ecosystem's native range or pair a lower bound with a validator. |
 
-Note the last row — **VERS constraints OR together**, so writing
+Note the last row - **VERS constraints OR together**, so writing
 `>=1.0|<2.0` does not mean "≥1.0 AND <2.0" (the intuition from npm
 semver), it means "≥1.0 OR <2.0" (everything). This is the biggest
 hazard in writing VERS by hand, and a source of "this range matches
@@ -267,7 +267,7 @@ Read these before relying on VERS in production:
   case for more, open an issue with the scenario.
 - **MAX string length: not enforced here.** Callers receiving VERS
   strings from the wire should size-limit at the boundary.
-- **OR semantics surprise.** As noted above — hand-written ranges
+- **OR semantics surprise.** As noted above - hand-written ranges
   with multiple constraints often mean what the author intended
   (AND) but match what they wrote (OR). A linter rule for
   "VERS with ≥2 constraints should be reviewed" is not a bad idea
@@ -281,12 +281,12 @@ Read these before relying on VERS in production:
 
 ## Further reading
 
-- [`docs/architecture.md`](./architecture.md) — where `vers.ts`
+- [`docs/architecture.md`](./architecture.md) - where `vers.ts`
   fits in the module map.
-- [`docs/hardening.md`](./hardening.md) — why `Vers` instances are
+- [`docs/hardening.md`](./hardening.md) - why `Vers` instances are
   frozen and constraint-count capped.
-- [`src/vers.ts`](../src/vers.ts) — the implementation.
+- [`src/vers.ts`](../src/vers.ts) - the implementation.
 - [package-url/vers-spec](https://github.com/package-url/vers-spec)
-  — the upstream spec this library tracks.
-- [semver.org](https://semver.org/) — the version comparison
+  - the upstream spec this library tracks.
+- [semver.org](https://semver.org/) - the version comparison
   semantics the default scheme follows.

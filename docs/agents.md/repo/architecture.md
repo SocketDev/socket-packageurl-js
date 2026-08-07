@@ -6,10 +6,10 @@ TypeScript implementation of the [Package URL spec](https://github.com/package-u
 
 ## Layout
 
-- `src/package-url.ts` — main exports and API
-- `src/purl-types/` — type-specific handlers (npm, pypi, maven, etc.)
-- `src/error.js` — `PurlError`
-- `dist/` — CommonJS build output
+- `src/package-url.ts` - main exports and API
+- `src/purl-types/` - type-specific handlers (npm, pypi, maven, etc.)
+- `src/error.js` - `PurlError`
+- `dist/` - CommonJS build output
 
 ## Commands
 
@@ -32,5 +32,5 @@ TypeScript implementation of the [Package URL spec](https://github.com/package-u
 - Type imports MUST be separate `import type` statements, never inline `type` in value imports.
 - `exactOptionalPropertyTypes` is on: assign conditionally, never `prop = value ?? undefined`.
 - Bracket notation with index signatures: `obj['prop']?.['method']`.
-- Never `process.chdir()` — pass `{ cwd }` options instead.
+- Never `process.chdir()` - pass `{ cwd }` options instead.
 - Vitest configs: `.config/vitest.config.mts` (threads, shared) and `.config/vitest.config.isolated.mts` (forks). File suffix `*.isolated.test.mts` for tests that mock globals or use `vi.doMock()`.
