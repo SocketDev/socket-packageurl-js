@@ -10,7 +10,7 @@ import type { RolldownOptions } from 'rolldown'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { REPO_ROOT } from '../fleet/paths.mts'
+import { REPO_ROOT } from '../../fleet/paths.mts'
 import { errorMessage } from '../utils/error-message.mts'
 
 type RolldownConfigModule = {

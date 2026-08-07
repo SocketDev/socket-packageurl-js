@@ -16,7 +16,7 @@ import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
 import type { Logger } from '@socketsecurity/lib-stable/logger/types'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { createSectionHeader } from '@socketsecurity/lib-stable/stdio/header'
-import { errorMessage } from '../utils/error-message.mts'
+import { errorMessage } from './utils/error-message.mts'
 
 import { isMainModule } from '../fleet/_shared/is-main-module.mts'
 

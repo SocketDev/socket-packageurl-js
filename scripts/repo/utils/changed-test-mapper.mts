@@ -10,7 +10,7 @@ import { getChangedFilesSync } from '@socketsecurity/lib-stable/git/changed'
 import { getStagedFilesSync } from '@socketsecurity/lib-stable/git/staged'
 import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 
-import { REPO_ROOT } from '../paths.mts'
+import { REPO_ROOT } from '../../fleet/paths.mts'
 
 type TestsToRunOptions = {
   all?: boolean | undefined

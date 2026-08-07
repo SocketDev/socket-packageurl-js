@@ -12,7 +12,7 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import type { SpawnResult } from '@socketsecurity/lib-stable/process/spawn/types'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
-import { errorMessage } from '../utils/error-message.mts'
+import { errorMessage } from './utils/error-message.mts'
 
 import { isMainModule } from '../fleet/_shared/is-main-module.mts'
 
