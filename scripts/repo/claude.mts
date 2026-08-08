@@ -728,7 +728,7 @@ export async function runPreCommitScan(claudeCmd: string): Promise<ScanResult> {
     return { issues: [], safe: true }
   }
 
-  const files = staged.stdout.trim().split('\n')
+  const files = staged.stdout.trim().split(/\r?\n/)
   log.substep(`Scanning ${files.length} staged file(s)`)
 
   const diff = await runCommandWithOutput('git', ['diff', '--cached'], {
@@ -1858,8 +1858,8 @@ export async function getSmartContext(
 
     context.uncommitted = [
       ...new Set([
-        ...stagedResult.stdout.trim().split('\n').filter(Boolean),
-        ...unstagedResult.stdout.trim().split('\n').filter(Boolean),
+        ...stagedResult.stdout.trim().split(/\r?\n/).filter(Boolean),
+        ...unstagedResult.stdout.trim().split(/\r?\n/).filter(Boolean),
       ]),
     ]
   }
@@ -1871,7 +1871,7 @@ export async function getSmartContext(
     { cwd: rootPath },
   )
 
-  context.recent = recentResult.stdout.trim().split('\n').filter(Boolean)
+  context.recent = recentResult.stdout.trim().split(/\r?\n/).filter(Boolean)
 
   // Find hotspots. These are the files that change most frequently.
   const frequency = {}
@@ -1895,7 +1895,7 @@ export async function getSmartContext(
     { cwd: rootPath },
   )
 
-  context.commitMessages = logResult.stdout.trim().split('\n')
+  context.commitMessages = logResult.stdout.trim().split(/\r?\n/)
 
   // Build priority list
   context.priority = [
@@ -2085,7 +2085,7 @@ export async function buildEnhancedPrompt(
  * setup noise and focuses on actual errors.
  */
 export function filterCILogs(rawLogs: string): string {
-  const lines = rawLogs.split('\n')
+  const lines = rawLogs.split(/\r?\n/)
   const relevantLines = []
   let inErrorSection = false
 
@@ -2360,7 +2360,7 @@ export async function ensureClaudeInGitignore(): Promise<void> {
   try {
     // Check if .gitignore exists.
     const gitignoreContent = await fs.readFile(gitignorePath, 'utf8')
-    const lines = gitignoreContent.split('\n')
+    const lines = gitignoreContent.split(/\r?\n/)
 
     // Check if .claude is already ignored.
     const hasClaudeEntry = lines.some(line => {
@@ -3330,7 +3330,7 @@ export async function runClaudeCommit(
         // Show current changes.
         if (project.changes) {
           log.substep('Changes detected:')
-          const changeLines = project.changes.split('\n')
+          const changeLines = project.changes.split(/\r?\n/)
           for (
             let i = 0, { length } = changeLines.slice(0, 10);
             i < length;
@@ -3398,7 +3398,7 @@ Remember: small commits, follow project standards, no AI attribution.`
       // Show current changes.
       if (project.changes) {
         log.substep('Changes detected:')
-        const changeLines = project.changes.split('\n')
+        const changeLines = project.changes.split(/\r?\n/)
         for (
           let i = 0, { length } = changeLines.slice(0, 10);
           i < length;
@@ -4169,7 +4169,7 @@ Commit message:`
 
   // Extract just the commit message (Claude might add extra text)
   // Look for the actual message after "Commit message:" or just use the whole output
-  const lines = result.split('\n').filter(line => line.trim())
+  const lines = result.split(/\r?\n/).filter(line => line.trim())
 
   // Return the first substantial line that looks like a commit message
   for (let i = 0, { length } = lines; i < length; i += 1) {
@@ -5096,7 +5096,7 @@ Let's work through this together to get CI passing.`
         const rawLogs = logsResult.stdout || 'No logs available'
         const filteredLogs = filterCILogs(rawLogs)
 
-        const logLines = filteredLogs.split('\n').slice(0, 10)
+        const logLines = filteredLogs.split(/\r?\n/).slice(0, 10)
         log.substep('Error summary:')
         for (let i = 0, { length } = logLines; i < length; i += 1) {
           const line = logLines[i]
@@ -5104,9 +5104,9 @@ Let's work through this together to get CI passing.`
             log.substep(`  ${line.trim().substring(0, 100)}`)
           }
         }
-        if (filteredLogs.split('\n').length > 10) {
+        if (filteredLogs.split(/\r?\n/).length > 10) {
           log.substep(
-            `  ... (${filteredLogs.split('\n').length - 10} more lines)`,
+            `  ... (${filteredLogs.split(/\r?\n/).length - 10} more lines)`,
           )
         }
 
@@ -5284,7 +5284,7 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
           // Show what files were changed
           const changedFiles = fixStatusResult.stdout
             .trim()
-            .split('\n')
+            .split(/\r?\n/)
             .map(line => line.substring(3))
             .join(', ')
           log.substep(`Changed files: ${changedFiles}`)
@@ -5454,7 +5454,7 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
               const filteredLogs = filterCILogs(rawLogs)
 
               // Show summary to user (not full logs)
-              const logLines = filteredLogs.split('\n').slice(0, 10)
+              const logLines = filteredLogs.split(/\r?\n/).slice(0, 10)
               log.substep('Error summary:')
               for (let i = 0, { length } = logLines; i < length; i += 1) {
                 const line = logLines[i]
@@ -5462,9 +5462,9 @@ Fix all issues by making necessary file changes. Be direct, don't ask questions.
                   log.substep(`  ${line.trim().substring(0, 100)}`)
                 }
               }
-              if (filteredLogs.split('\n').length > 10) {
+              if (filteredLogs.split(/\r?\n/).length > 10) {
                 log.substep(
-                  `  ... (${filteredLogs.split('\n').length - 10} more lines)`,
+                  `  ... (${filteredLogs.split(/\r?\n/).length - 10} more lines)`,
                 )
               }
 
@@ -5623,7 +5623,7 @@ Fix the issue by making necessary file changes. Be direct, don't ask questions.`
 
                 const changedFiles = fixStatusResult.stdout
                   .trim()
-                  .split('\n')
+                  .split(/\r?\n/)
                   .map(line => line.substring(3))
                   .join(', ')
                 log.substep(`Changed files: ${changedFiles}`)
