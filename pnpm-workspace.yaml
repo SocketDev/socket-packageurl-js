@@ -599,12 +599,6 @@ catalogShadowIgnore:
   # nock 15 (msw-interceptors rewrite) breaks member mock suites — hold until the fleet #339 migration.
   - 'nock'
 
-# Opt in to pnpm's Rust install engine (pacquet). pnpm 11.5.3+ fetches and
-# signature-verifies this config dependency; the integrity is inlined here (and
-# mirrored in pnpm-lock.yaml) so a tampered registry copy is rejected.
-configDependencies:
-  '@pnpm/pacquet': 0.11.2+sha512-MjsAWpW5K1xOaaspquMhk5j9sjpADLH3c3hxq07VVZwS9uu1W6gzMBHxlhy1NX/+ZacqMhfyScvgQqymCc1znQ==
-
 patchedDependencies:
   # default-export interop (managed by socket-wheelhouse sync; do not edit):
   # 5.0.7 dropped the default export from BOTH builds. The CJS half breaks
