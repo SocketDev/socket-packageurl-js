@@ -139,7 +139,7 @@ export function scanFile(
   } catch {
     return []
   }
-  const lines = source.split('\n')
+  const lines = source.split(/\r?\n/)
   const violations: MessageViolation[] = []
   const rel = path.relative(repoRoot, filePath)
   for (let i = 0, { length } = lines; i < length; i += 1) {
@@ -216,7 +216,7 @@ function main(): void {
     )
     for (let i = 0, { length } = violations; i < length; i += 1) {
       const v = violations[i]
-      logger.error(`  ✗ ${v.file}:${v.line} "${v.message}" — ${v.reason}`)
+      logger.fail(`  ${v.file}:${v.line} "${v.message}" — ${v.reason}`)
     }
     logger.error(
       '  PurlError first-arg literals must start with a lowercase character and must not end with a period.',

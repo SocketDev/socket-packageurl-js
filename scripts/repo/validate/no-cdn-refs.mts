@@ -172,7 +172,7 @@ export async function checkFileForCdnRefs(
 
   try {
     const content = await fs.readFile(filePath, 'utf8')
-    const lines = content.split('\n')
+    const lines = content.split(/\r?\n/)
     const violations: CdnViolation[] = []
 
     for (let i = 0; i < lines.length; i++) {

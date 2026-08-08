@@ -195,7 +195,7 @@ describe('scanSrc integration', () => {
     const violations = scanSrc(REPO_ROOT)
     if (violations.length) {
       for (const v of violations) {
-        logger.fail(`  ✗ ${v.file}:${v.line} "${v.message}" — ${v.reason}`)
+        logger.fail(`  ${v.file}:${v.line} "${v.message}" — ${v.reason}`)
       }
     }
     expect(violations).toHaveLength(0)

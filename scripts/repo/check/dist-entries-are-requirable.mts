@@ -176,8 +176,8 @@ export function runCheck(
     )
     for (let i = 0, { length } = failures; i < length; i += 1) {
       const f = failures[i]
-      logger.error(`  ✗ ${f.mode}(${path.relative(repoRoot, f.target)})`)
-      const stderrLines = f.stderr.split('\n').slice(0, 6)
+      logger.fail(`  ${f.mode}(${path.relative(repoRoot, f.target)})`)
+      const stderrLines = f.stderr.split(/\r?\n/).slice(0, 6)
       for (let j = 0, { length: jlen } = stderrLines; j < jlen; j += 1) {
         logger.error(`    ${stderrLines[j]}`)
       }
