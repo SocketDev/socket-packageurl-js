@@ -9,7 +9,8 @@
         "Required: yes (all platforms)",
         "Preinstalled on macOS (Xcode CLT) and most Linux distros",
         "Windows: https://git-scm.com/download/win or via winget/scoop"
-      ]
+      ],
+      "origin": "system"
     },
     "node": {
       "description": "Node.js — runs the build scripts and TypeScript stripping.",
@@ -20,7 +21,8 @@
         "Install via volta / nvm / fnm / official installer",
         "The pinned version lives in .node-version at the repo root",
         "Docker prebakes: node-base (docker/fleet/node-base.Dockerfile) builds node from source at the .node-version pin with V8 pointer compression (--experimental-enable-pointer-compression = lower memory), replicating the vendored platformatic/node-caged recipe rather than pulling its DockerHub image. scripts/repo/build-prebakes.mts injects NODE_VERSION (.node-version) + PNPM_VERSION (pnpm pin) as build-args; every compiler-base build COPYs node --from=node-base instead of installing it."
-      ]
+      ],
+      "origin": "system"
     },
     "pnpm": {
       "notes": [
@@ -31,47 +33,42 @@
       ],
       "description": "Fast, disk space efficient package manager",
       "repository": "github:pnpm/pnpm",
-      "version": "11.20.0",
-      "soakBypass": {
-        "published": "2026-08-03",
-        "removable": "2026-08-10",
-        "version": "11.20.0"
-      },
-      "release": "asset",
+      "version": "11.21.0",
       "platforms": {
         "darwin-arm64": {
           "asset": "pnpm-darwin-arm64.tar.gz",
-          "integrity": "sha512-3ox43Vw8fYSoRZhR92ish7Jt7plCdTFUJc/JbI1gdechbfl6tTg4/NVapzEG8ruKAViwMq0xXte3OzfB3wCxZg=="
+          "integrity": "sha512-l2jFPzHUG5Q23s94DgKV76erfg0vVhwG4CdKZCHkRSfct8LTWu1oLtH8WJqb84Eg5ZIy5BTMfyY+APoeLuTm0Q=="
         },
         "darwin-x64": {
-          "asset": "pnpm-11.20.0.tgz",
-          "integrity": "sha512-mm8zCpW2ZEbqCI+vFSFAWooB8H/ecSTMmVjf7VLUu0NnN+ZbCPhfN7Rvy6N1CSVYrFEmK4FoRLIvY0Bu0Wa/7g=="
+          "asset": "pnpm-11.21.0.tgz",
+          "integrity": "sha512-UhcFvOaJkk6scvWjWHEi82JonvZXHlW6gAdv1jfBETLs/62ib61Op5xIW/3b/T1aKlsFgFp36JPeceyKbMo7sQ=="
         },
         "linux-arm64": {
           "asset": "pnpm-linux-arm64.tar.gz",
-          "integrity": "sha512-+XqPn1raDqeOE9mfKX6CjPOYBiqQpaUhWX7CJv6I2PRjlXdGiWHqKhEaHELmBRx3iUHSctFV3eIGumBwc/OVNw=="
+          "integrity": "sha512-thFUlWeQIphtc8AkfTm0FPhMSyMVYOdrA2XqpJit+OEeMStRhqvF6i4yPs5k06UiVLvIFkOQszCVoyjZmezzsg=="
         },
         "linux-arm64-musl": {
           "asset": "pnpm-linux-arm64-musl.tar.gz",
-          "integrity": "sha512-uy38eCPmeGbn8BOkkq9ZaT5s0tVollsAPmwjj0sItluq1hXyFipdPAhV8I2V6hXiAVRpMfLgYFtoMQssx1622w=="
+          "integrity": "sha512-bbFyhWWvphDpll91+ddNT/fk588DAJwpLqFkUTfZ4FxYFFUkgZ2YCifOFPTEZWIV+Zsa8EPojyA2hQoXnbMxXg=="
         },
         "linux-x64": {
           "asset": "pnpm-linux-x64.tar.gz",
-          "integrity": "sha512-cSwNCOth2fSGu6boYrhJIidKMj7maAO+MbJoQ+H1qxhSMZOwkE5LGnhzJhFoRjXe3uJTNaVwEWYya0E1YvKG7A=="
+          "integrity": "sha512-B8OLLdn1CEgvoo2oH1RYIJ1tiiSsUNQcbeTlGytCbPsrwvLo+lVM7as3/yphexA8D/WSiiWLZXAa89t0G1lNgg=="
         },
         "linux-x64-musl": {
           "asset": "pnpm-linux-x64-musl.tar.gz",
-          "integrity": "sha512-Ua5x4k4xR9Fq2wco0z0bigSJZ0+xzn9r/vSkBZ9Z4o0h6bl4y/2B7BVYdGZeqD5ulTFKsgzpWz+0ihXpNdUIEg=="
+          "integrity": "sha512-cBovlI9TaTK2RjCae2HO9u41Z1novo55EPrBJbxKGnL1Gy8nHGdwUI+BlKMSvN6eLDSn55UX7vGJCBXfJHEZLw=="
         },
-        "win-arm64": {
+        "win32-arm64": {
           "asset": "pnpm-win32-arm64.zip",
-          "integrity": "sha512-eb8gM+gNPSr31ZS5kooT9OLjA+THmUGUQVtjCp7O9MYX2tKpnXFcsiJVy0UveqoJVMqhlJZV1wsspUV0obJ1ig=="
+          "integrity": "sha512-a7x1RBGuoqNXh3K9iA4HLbuN9QNJRnxazJ5Njf748u26Lm9j6D26Y2esi5ewhAOkkb8GTM8lcVDRwU2Ui/+H8Q=="
         },
-        "win-x64": {
+        "win32-x64": {
           "asset": "pnpm-win32-x64.zip",
-          "integrity": "sha512-Lpc1lzGdjMwaDKESMkhKVsJSNr3/76l5zJSKfKYP3LhofTEu4kKJxXsQwbI7OHpDPmyVveNr1PUwiZ8PkzznOA=="
+          "integrity": "sha512-FFyPTtPoRjRCSEpSVhcbe1AW4Bq/e6Sm3TXewVsvr/sNjRBszNooNEwPehQq7rD3ecUb0oqjul0iBtwmb16njw=="
         }
-      }
+      },
+      "origin": "gh-asset"
     }
   }
 }
