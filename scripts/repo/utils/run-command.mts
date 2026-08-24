@@ -38,7 +38,11 @@ export type SequenceEntry = {
 export async function logAndRun(
   description: string,
   command: string,
-  args: string[] = [],
+  // REQUIRED, and deliberately positional: this mirrors node's
+  // `spawn(command, args, options)`, so folding args into the bag would fight
+  // the shape every reader already knows. Required is what keeps it from
+  // being an optional param before the bag. Pass `[]` for a bare command.
+  args: string[],
   options: CommandOptions = {},
 ): Promise<number> {
   logger.log(description)
@@ -50,7 +54,8 @@ export async function logAndRun(
  */
 export async function runCommand(
   command: string,
-  args: string[] = [],
+  // REQUIRED — see logAndRun's comment above.
+  args: string[],
   options: CommandOptions = {},
 ): Promise<number> {
   try {
@@ -75,7 +80,8 @@ export async function runCommand(
  */
 export async function runCommandQuiet(
   command: string,
-  args: string[] = [],
+  // REQUIRED — see logAndRun's comment above.
+  args: string[],
   options: CommandOptions = {},
 ): Promise<CommandResult> {
   try {
@@ -117,13 +123,13 @@ export async function runCommandQuiet(
  */
 export function runCommandSync(
   command: string,
-  args: string[] = [],
-  options: SpawnSyncOptions = {},
+  options: SpawnSyncOptions & { args?: string[] | undefined } = {},
 ): number {
+  const { args = [], ...spawnOptions } = { __proto__: null, ...options }
   const result: SpawnSyncReturns<string | Buffer> = spawnSync(command, args, {
     stdio: 'inherit',
     shell: WIN32,
-    ...options,
+    ...spawnOptions,
   })
 
   return result.status || 0
@@ -149,7 +155,8 @@ export async function runParallel(
  */
 export async function runPnpmScript(
   scriptName: string,
-  extraArgs: string[] = [],
+  // REQUIRED — see logAndRun's comment above.
+  extraArgs: string[],
   options: CommandOptions = {},
 ): Promise<number> {
   return runCommand('pnpm', ['run', scriptName, ...extraArgs], options)

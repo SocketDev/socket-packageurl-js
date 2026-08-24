@@ -43,13 +43,13 @@ export interface PurlObject {
  *   // -> { exists: true, latestVersion: '7.1.3' }
  *
  *   // Validate specific version
- *   const result = await gemExists('rake', '13.0.0')
+ *   const result = await gemExists('rake', { version: '13.0.0' })
  *   // -> { exists: true, latestVersion: '13.1.0' }
  *
  *   // With caching
  *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'gem' })
- *   const result = await gemExists('rails', undefined, { cache })
+ *   const result = await gemExists('rails', { cache })
  *
  *   // Non-existent gem
  *   const result = await gemExists('this-gem-does-not-exist')
@@ -57,17 +57,16 @@ export interface PurlObject {
  *   ```
  *
  * @param name - Gem name (e.g., `'rails'`, `'rake'`)
- * @param version - Optional version to validate (e.g., `'7.0.0'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `version` and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function gemExists(
   name: string,
-  version?: string | undefined,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
+  const { version } = opts ?? { __proto__: null }
   const cacheKey = version ? `gem:${name}@${version}` : `gem:${name}`
 
   // Try cache first if provided

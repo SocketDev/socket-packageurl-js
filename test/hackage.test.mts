@@ -80,7 +80,7 @@ describe('hackageExists', () => {
           'normal-version': ['2.1.0.0', '2.2.0.0'],
         })
 
-      const result = await hackageExists('aeson', '2.1.0.0')
+      const result = await hackageExists('aeson', { version: '2.1.0.0' })
 
       expect(result).toEqual({
         exists: true,
@@ -95,7 +95,7 @@ describe('hackageExists', () => {
           'normal-version': ['2.2.0.0'],
         })
 
-      const result = await hackageExists('aeson', '999.0.0.0')
+      const result = await hackageExists('aeson', { version: '999.0.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0.0 not found')
@@ -134,7 +134,7 @@ describe('hackageExists', () => {
       const cachedResult = { exists: true, latestVersion: '2.2.0.0' }
       await mockCache.set('hackage:aeson', cachedResult)
 
-      const result = await hackageExists('aeson', undefined, {
+      const result = await hackageExists('aeson', {
         cache: mockCache,
       })
 
@@ -150,7 +150,7 @@ describe('hackageExists', () => {
           'normal-version': ['2.2.0.0'],
         })
 
-      const result = await hackageExists('aeson', undefined, {
+      const result = await hackageExists('aeson', {
         cache: mockCache,
       })
 

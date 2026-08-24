@@ -73,7 +73,7 @@ export interface PurlObject {
  *   // -> { exists: true, latestVersion: '5.8.1' }
  *
  *   // Validate specific version
- *   const result = await cocoapodsExists('Alamofire', '5.8.1')
+ *   const result = await cocoapodsExists('Alamofire', { version: '5.8.1' })
  *   // -> { exists: true, latestVersion: '5.8.1' }
  *
  *   // Non-existent pod
@@ -82,17 +82,16 @@ export interface PurlObject {
  *   ```
  *
  * @param name - Pod name (e.g., `'Alamofire'`)
- * @param version - Optional version to validate (e.g., `'5.8.1'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `version` and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function cocoapodsExists(
   name: string,
-  version?: string | undefined,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
+  const { version } = opts ?? { __proto__: null }
   const cacheKey = version
     ? `cocoapods:${name}@${version}`
     : `cocoapods:${name}`

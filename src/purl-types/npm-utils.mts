@@ -62,6 +62,10 @@ export type ExistsOptions = {
    *   ```
    */
   cache?: TtlCache | undefined
+  /**
+   * Optional version to validate.
+   */
+  version?: string | undefined
 }
 
 /**

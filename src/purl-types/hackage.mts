@@ -35,7 +35,7 @@ export interface PurlObject {
  *   // -> { exists: true, latestVersion: '2.2.0.0' }
  *
  *   // Validate specific version
- *   const result = await hackageExists('aeson', '2.2.0.0')
+ *   const result = await hackageExists('aeson', { version: '2.2.0.0' })
  *   // -> { exists: true, latestVersion: '2.2.0.0' }
  *
  *   // Non-existent package
@@ -44,17 +44,16 @@ export interface PurlObject {
  *   ```
  *
  * @param name - Package name (e.g., `'aeson'`)
- * @param version - Optional version to validate (e.g., `'2.2.0.0'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `version` and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function hackageExists(
   name: string,
-  version?: string | undefined,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
+  const { version } = opts ?? { __proto__: null }
   const cacheKey = version ? `hackage:${name}@${version}` : `hackage:${name}`
 
   // Try cache first if provided

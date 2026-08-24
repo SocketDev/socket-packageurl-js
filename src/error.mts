@@ -60,10 +60,7 @@ export function formatPurlErrorMessage(message = ''): string {
  * Custom error class for Package URL parsing and validation failures.
  */
 export class PurlError extends Error {
-  constructor(
-    message?: string | undefined,
-    options?: ErrorOptions | undefined,
-  ) {
+  constructor(message: string, options?: ErrorOptions | undefined) {
     super(formatPurlErrorMessage(message), options)
   }
 }

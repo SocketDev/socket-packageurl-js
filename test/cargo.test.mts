@@ -79,7 +79,7 @@ describe('cargoExists', () => {
           versions: [{ num: '1.0.196' }, { num: '1.0.197' }],
         })
 
-      const result = await cargoExists('serde', '1.0.196')
+      const result = await cargoExists('serde', { version: '1.0.196' })
 
       expect(result).toEqual({
         exists: true,
@@ -95,7 +95,7 @@ describe('cargoExists', () => {
           versions: [{ num: '1.0.197' }],
         })
 
-      const result = await cargoExists('serde', '999.0.0')
+      const result = await cargoExists('serde', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -109,7 +109,7 @@ describe('cargoExists', () => {
           crate: { max_version: '1.0.197' },
         })
 
-      const result = await cargoExists('serde', '1.0.196')
+      const result = await cargoExists('serde', { version: '1.0.196' })
 
       expect(result.exists).toBe(true)
       expect(result.latestVersion).toBe('1.0.197')
@@ -122,7 +122,7 @@ describe('cargoExists', () => {
           versions: [{}],
         })
 
-      const result = await cargoExists('serde', '999.0.0')
+      const result = await cargoExists('serde', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -161,7 +161,7 @@ describe('cargoExists', () => {
       const cachedResult = { exists: true, latestVersion: '1.0.197' }
       await mockCache.set('cargo:serde', cachedResult)
 
-      const result = await cargoExists('serde', undefined, { cache: mockCache })
+      const result = await cargoExists('serde', { cache: mockCache })
 
       expect(result).toEqual(cachedResult)
     })
@@ -176,7 +176,7 @@ describe('cargoExists', () => {
           versions: [{ num: '1.0.197' }],
         })
 
-      const result = await cargoExists('serde', undefined, { cache: mockCache })
+      const result = await cargoExists('serde', { cache: mockCache })
 
       expect(result.exists).toBe(true)
       expect(await mockCache.get('cargo:serde')).toEqual(result)

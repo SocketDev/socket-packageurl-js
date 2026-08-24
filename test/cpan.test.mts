@@ -69,7 +69,7 @@ describe('cpanExists', () => {
           version: '2.2205',
         })
 
-      const result = await cpanExists('Moose', '2.2205')
+      const result = await cpanExists('Moose', { version: '2.2205' })
 
       expect(result).toEqual({
         exists: true,
@@ -86,7 +86,7 @@ describe('cpanExists', () => {
         .get('/v1/module/Moose/999.0')
         .reply(404)
 
-      const result = await cpanExists('Moose', '999.0')
+      const result = await cpanExists('Moose', { version: '999.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0 not found')
@@ -100,7 +100,7 @@ describe('cpanExists', () => {
         .get('/v1/module/Moose/999.0')
         .reply(404)
 
-      const result = await cpanExists('Moose', '999.0')
+      const result = await cpanExists('Moose', { version: '999.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0 not found')
@@ -139,7 +139,7 @@ describe('cpanExists', () => {
       const cachedResult = { exists: true, latestVersion: '2.2206' }
       await mockCache.set('cpan:Moose', cachedResult)
 
-      const result = await cpanExists('Moose', undefined, {
+      const result = await cpanExists('Moose', {
         cache: mockCache,
       })
 
@@ -153,7 +153,7 @@ describe('cpanExists', () => {
         version: '2.2206',
       })
 
-      const result = await cpanExists('Moose', undefined, {
+      const result = await cpanExists('Moose', {
         cache: mockCache,
       })
 

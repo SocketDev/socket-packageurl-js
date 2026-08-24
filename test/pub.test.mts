@@ -66,7 +66,7 @@ describe('pubExists', () => {
           versions: [{ version: '8.1.3' }, { version: '8.1.2' }],
         })
 
-      const result = await pubExists('flutter_bloc', '8.1.2')
+      const result = await pubExists('flutter_bloc', { version: '8.1.2' })
 
       expect(result).toEqual({
         exists: true,
@@ -82,7 +82,7 @@ describe('pubExists', () => {
           versions: [{ version: '8.1.3' }],
         })
 
-      const result = await pubExists('flutter_bloc', '999.0.0')
+      const result = await pubExists('flutter_bloc', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -96,7 +96,7 @@ describe('pubExists', () => {
           versions: [{ version: '8.1.3' }],
         })
 
-      const result = await pubExists('flutter_bloc', '999.0.0')
+      const result = await pubExists('flutter_bloc', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -110,7 +110,7 @@ describe('pubExists', () => {
           latest: { version: '8.1.3' },
         })
 
-      const result = await pubExists('flutter_bloc', '999.0.0')
+      const result = await pubExists('flutter_bloc', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -149,7 +149,7 @@ describe('pubExists', () => {
       const cachedResult = { exists: true, latestVersion: '8.1.3' }
       await mockCache.set('pub:flutter_bloc', cachedResult)
 
-      const result = await pubExists('flutter_bloc', undefined, {
+      const result = await pubExists('flutter_bloc', {
         cache: mockCache,
       })
 
@@ -166,7 +166,7 @@ describe('pubExists', () => {
           versions: [{ version: '8.1.3' }],
         })
 
-      const result = await pubExists('flutter_bloc', undefined, {
+      const result = await pubExists('flutter_bloc', {
         cache: mockCache,
       })
 

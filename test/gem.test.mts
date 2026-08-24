@@ -88,7 +88,7 @@ describe('gemExists', () => {
           { number: '12.3.0' },
         ])
 
-      const result = await gemExists('rake', '13.0.0')
+      const result = await gemExists('rake', { version: '13.0.0' })
 
       expect(result).toEqual({
         exists: true,
@@ -101,7 +101,7 @@ describe('gemExists', () => {
         .get('/api/v1/versions/rake.json')
         .reply(200, [{ number: '13.1.0' }])
 
-      const result = await gemExists('rake', '999.0.0')
+      const result = await gemExists('rake', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -113,7 +113,7 @@ describe('gemExists', () => {
         .get('/api/v1/versions/rake.json')
         .reply(200, [])
 
-      const result = await gemExists('rake', '999.0.0')
+      const result = await gemExists('rake', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('No versions found')
@@ -125,7 +125,7 @@ describe('gemExists', () => {
         .get('/api/v1/versions/rake.json')
         .reply(200, [{}])
 
-      const result = await gemExists('rake', '999.0.0')
+      const result = await gemExists('rake', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -164,7 +164,7 @@ describe('gemExists', () => {
       const cachedResult = { exists: true, latestVersion: '7.1.3' }
       await mockCache.set('gem:rails', cachedResult)
 
-      const result = await gemExists('rails', undefined, { cache: mockCache })
+      const result = await gemExists('rails', { cache: mockCache })
 
       expect(result).toEqual(cachedResult)
     })
@@ -176,7 +176,7 @@ describe('gemExists', () => {
         .get('/api/v1/versions/rails.json')
         .reply(200, [{ number: '7.1.3' }])
 
-      const result = await gemExists('rails', undefined, { cache: mockCache })
+      const result = await gemExists('rails', { cache: mockCache })
 
       expect(result.exists).toBe(true)
       expect(await mockCache.get('gem:rails')).toEqual(result)

@@ -71,7 +71,7 @@ describe('pypiExists', () => {
           },
         })
 
-      const result = await pypiExists('django', '4.2.0')
+      const result = await pypiExists('django', { version: '4.2.0' })
 
       expect(result).toEqual({
         exists: true,
@@ -89,7 +89,7 @@ describe('pypiExists', () => {
           },
         })
 
-      const result = await pypiExists('django', '999.0.0')
+      const result = await pypiExists('django', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -105,7 +105,7 @@ describe('pypiExists', () => {
           },
         })
 
-      const result = await pypiExists('django', '999.0.0')
+      const result = await pypiExists('django', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -144,7 +144,7 @@ describe('pypiExists', () => {
       const cachedResult = { exists: true, latestVersion: '2.31.0' }
       await mockCache.set('pypi:requests', cachedResult)
 
-      const result = await pypiExists('requests', undefined, {
+      const result = await pypiExists('requests', {
         cache: mockCache,
       })
 
@@ -161,7 +161,7 @@ describe('pypiExists', () => {
           releases: { '2.31.0': [] },
         })
 
-      const result = await pypiExists('requests', undefined, {
+      const result = await pypiExists('requests', {
         cache: mockCache,
       })
 

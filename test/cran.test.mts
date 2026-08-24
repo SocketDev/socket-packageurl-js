@@ -68,7 +68,7 @@ describe('cranExists', () => {
           versions: ['3.4.4', '3.4.3', '3.4.2'],
         })
 
-      const result = await cranExists('ggplot2', '3.4.3')
+      const result = await cranExists('ggplot2', { version: '3.4.3' })
 
       expect(result).toEqual({
         exists: true,
@@ -84,7 +84,7 @@ describe('cranExists', () => {
           versions: ['3.4.4'],
         })
 
-      const result = await cranExists('ggplot2', '999.0.0')
+      const result = await cranExists('ggplot2', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -98,7 +98,7 @@ describe('cranExists', () => {
           versions: ['3.4.4'],
         })
 
-      const result = await cranExists('ggplot2', '999.0.0')
+      const result = await cranExists('ggplot2', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -112,7 +112,7 @@ describe('cranExists', () => {
           Version: '3.4.4',
         })
 
-      const result = await cranExists('ggplot2', '999.0.0')
+      const result = await cranExists('ggplot2', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -151,7 +151,7 @@ describe('cranExists', () => {
       const cachedResult = { exists: true, latestVersion: '3.4.4' }
       await mockCache.set('cran:ggplot2', cachedResult)
 
-      const result = await cranExists('ggplot2', undefined, {
+      const result = await cranExists('ggplot2', {
         cache: mockCache,
       })
 
@@ -168,7 +168,7 @@ describe('cranExists', () => {
           versions: ['3.4.4'],
         })
 
-      const result = await cranExists('ggplot2', undefined, {
+      const result = await cranExists('ggplot2', {
         cache: mockCache,
       })
 

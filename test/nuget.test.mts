@@ -109,7 +109,7 @@ describe('nugetExists', () => {
           ],
         })
 
-      const result = await nugetExists('Newtonsoft.Json', '13.0.1')
+      const result = await nugetExists('Newtonsoft.Json', { version: '13.0.1' })
 
       expect(result).toEqual({
         exists: true,
@@ -128,7 +128,9 @@ describe('nugetExists', () => {
           ],
         })
 
-      const result = await nugetExists('Newtonsoft.Json', '999.0.0')
+      const result = await nugetExists('Newtonsoft.Json', {
+        version: '999.0.0',
+      })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -167,9 +169,7 @@ describe('nugetExists', () => {
       const cachedResult = { exists: true, latestVersion: '13.0.3' }
       await mockCache.set('nuget:Newtonsoft.Json', cachedResult)
 
-      const result = await nugetExists('Newtonsoft.Json', undefined, {
-        cache: mockCache,
-      })
+      const result = await nugetExists('Newtonsoft.Json', { cache: mockCache })
 
       expect(result).toEqual(cachedResult)
     })
@@ -187,9 +187,7 @@ describe('nugetExists', () => {
           ],
         })
 
-      const result = await nugetExists('Newtonsoft.Json', undefined, {
-        cache: mockCache,
-      })
+      const result = await nugetExists('Newtonsoft.Json', { cache: mockCache })
 
       expect(result.exists).toBe(true)
       expect(await mockCache.get('nuget:Newtonsoft.Json')).toEqual(result)

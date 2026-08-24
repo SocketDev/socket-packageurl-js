@@ -40,7 +40,7 @@ export interface PurlObject {
  *   // -> { exists: true, latestVersion: '2.2206' }
  *
  *   // Validate specific version
- *   const result = await cpanExists('Moose', '2.2206')
+ *   const result = await cpanExists('Moose', { version: '2.2206' })
  *   // -> { exists: true, latestVersion: '2.2206' }
  *
  *   // Non-existent module
@@ -49,17 +49,16 @@ export interface PurlObject {
  *   ```
  *
  * @param name - Module name (e.g., `'Moose'`)
- * @param version - Optional version to validate (e.g., `'2.2206'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `version` and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function cpanExists(
   name: string,
-  version?: string | undefined,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
+  const { version } = opts ?? { __proto__: null }
   const cacheKey = version ? `cpan:${name}@${version}` : `cpan:${name}`
 
   // Try cache first if provided

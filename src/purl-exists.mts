@@ -113,35 +113,35 @@ export async function purlExists(
     case 'npm':
       return npmExists(name, { namespace, version, ...options })
     case 'pypi':
-      return pypiExists(name, version, options)
+      return pypiExists(name, { version, ...options })
     case 'cargo':
-      return cargoExists(name, version, options)
+      return cargoExists(name, { version, ...options })
     case 'gem':
-      return gemExists(name, version, options)
+      return gemExists(name, { version, ...options })
     case 'maven':
       return mavenExists(name, { namespace, version, ...options })
     case 'nuget':
-      return nugetExists(name, version, options)
+      return nugetExists(name, { version, ...options })
     case 'golang':
       return golangExists(name, { namespace, version, ...options })
     case 'composer':
       return packagistExists(name, { namespace, version, ...options })
     case 'cocoapods':
-      return cocoapodsExists(name, version, options)
+      return cocoapodsExists(name, { version, ...options })
     case 'conda':
       return condaExists(name, { version, channel: namespace, ...options })
     case 'docker':
       return dockerExists(name, { namespace, version, ...options })
     case 'pub':
-      return pubExists(name, version, options)
+      return pubExists(name, { version, ...options })
     case 'hex':
-      return hexExists(name, version, options)
+      return hexExists(name, { version, ...options })
     case 'cpan':
-      return cpanExists(name, version, options)
+      return cpanExists(name, { version, ...options })
     case 'cran':
-      return cranExists(name, version, options)
+      return cranExists(name, { version, ...options })
     case 'hackage':
-      return hackageExists(name, version, options)
+      return hackageExists(name, { version, ...options })
     default:
       return {
         exists: false,

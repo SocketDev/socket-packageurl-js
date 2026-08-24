@@ -66,7 +66,7 @@ describe('hexExists', () => {
           releases: [{ version: '1.7.10' }, { version: '1.7.9' }],
         })
 
-      const result = await hexExists('phoenix', '1.7.9')
+      const result = await hexExists('phoenix', { version: '1.7.9' })
 
       expect(result).toEqual({
         exists: true,
@@ -82,7 +82,7 @@ describe('hexExists', () => {
           releases: [{ version: '1.7.10' }],
         })
 
-      const result = await hexExists('phoenix', '999.0.0')
+      const result = await hexExists('phoenix', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -96,7 +96,7 @@ describe('hexExists', () => {
           releases: [{ version: '1.7.10' }],
         })
 
-      const result = await hexExists('phoenix', '999.0.0')
+      const result = await hexExists('phoenix', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -108,7 +108,7 @@ describe('hexExists', () => {
         latest_version: '1.7.10',
       })
 
-      const result = await hexExists('phoenix', '999.0.0')
+      const result = await hexExists('phoenix', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -147,7 +147,7 @@ describe('hexExists', () => {
       const cachedResult = { exists: true, latestVersion: '1.7.10' }
       await mockCache.set('hex:phoenix', cachedResult)
 
-      const result = await hexExists('phoenix', undefined, {
+      const result = await hexExists('phoenix', {
         cache: mockCache,
       })
 
@@ -164,7 +164,7 @@ describe('hexExists', () => {
           releases: [{ version: '1.7.10' }],
         })
 
-      const result = await hexExists('phoenix', undefined, {
+      const result = await hexExists('phoenix', {
         cache: mockCache,
       })
 

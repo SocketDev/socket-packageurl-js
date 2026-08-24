@@ -48,7 +48,7 @@ export function normalize(purl: PurlObject): PurlObject {
  *   // -> { exists: true, latestVersion: '8.1.3' }
  *
  *   // Validate specific version
- *   const result = await pubExists('flutter_bloc', '8.1.3')
+ *   const result = await pubExists('flutter_bloc', { version: '8.1.3' })
  *   // -> { exists: true, latestVersion: '8.1.3' }
  *
  *   // Non-existent package
@@ -57,17 +57,16 @@ export function normalize(purl: PurlObject): PurlObject {
  *   ```
  *
  * @param name - Package name (e.g., `'flutter_bloc'`)
- * @param version - Optional version to validate (e.g., `'8.1.3'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `version` and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function pubExists(
   name: string,
-  version?: string | undefined,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
+  const { version } = opts ?? { __proto__: null }
   const cacheKey = version ? `pub:${name}@${version}` : `pub:${name}`
 
   if (opts?.cache) {

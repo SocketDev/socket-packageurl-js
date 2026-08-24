@@ -41,7 +41,7 @@ export interface PurlObject {
  *   // -> { exists: true, latestVersion: '13.0.3' }
  *
  *   // Validate specific version
- *   const result = await nugetExists('Newtonsoft.Json', '13.0.3')
+ *   const result = await nugetExists('Newtonsoft.Json', { version: '13.0.3' })
  *   // -> { exists: true, latestVersion: '13.0.3' }
  *
  *   // Non-existent package
@@ -50,17 +50,16 @@ export interface PurlObject {
  *   ```
  *
  * @param name - Package name (e.g., `'Newtonsoft.Json'`)
- * @param version - Optional version to validate (e.g., `'13.0.3'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `version` and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function nugetExists(
   name: string,
-  version?: string | undefined,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
+  const { version } = opts ?? { __proto__: null }
   const cacheKey = version ? `nuget:${name}@${version}` : `nuget:${name}`
 
   if (opts?.cache) {

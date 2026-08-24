@@ -36,7 +36,7 @@ export interface PurlObject {
  *   // -> { exists: true, latestVersion: '1.7.10' }
  *
  *   // Validate specific version
- *   const result = await hexExists('phoenix', '1.7.10')
+ *   const result = await hexExists('phoenix', { version: '1.7.10' })
  *   // -> { exists: true, latestVersion: '1.7.10' }
  *
  *   // Non-existent package
@@ -45,17 +45,16 @@ export interface PurlObject {
  *   ```
  *
  * @param name - Package name (e.g., `'phoenix'`)
- * @param version - Optional version to validate (e.g., `'1.7.10'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `version` and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function hexExists(
   name: string,
-  version?: string | undefined,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
+  const { version } = opts ?? { __proto__: null }
   const cacheKey = version ? `hex:${name}@${version}` : `hex:${name}`
 
   if (opts?.cache) {

@@ -39,7 +39,7 @@ export interface PurlObject {
  *   // -> { exists: true, latestVersion: '3.4.4' }
  *
  *   // Validate specific version
- *   const result = await cranExists('ggplot2', '3.4.4')
+ *   const result = await cranExists('ggplot2', { version: '3.4.4' })
  *   // -> { exists: true, latestVersion: '3.4.4' }
  *
  *   // Non-existent package
@@ -48,17 +48,16 @@ export interface PurlObject {
  *   ```
  *
  * @param name - Package name (e.g., `'ggplot2'`)
- * @param version - Optional version to validate (e.g., `'3.4.4'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `version` and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function cranExists(
   name: string,
-  version?: string | undefined,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
+  const { version } = opts ?? { __proto__: null }
   const cacheKey = version ? `cran:${name}@${version}` : `cran:${name}`
 
   // Try cache first if provided

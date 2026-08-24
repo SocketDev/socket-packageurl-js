@@ -86,7 +86,7 @@ describe('cocoapodsExists', () => {
           versions: [{ name: '5.8.1' }, { name: '5.8.0' }],
         })
 
-      const result = await cocoapodsExists('Alamofire', '5.8.0')
+      const result = await cocoapodsExists('Alamofire', { version: '5.8.0' })
 
       expect(result).toEqual({
         exists: true,
@@ -101,7 +101,7 @@ describe('cocoapodsExists', () => {
           versions: [{ name: '5.8.1' }],
         })
 
-      const result = await cocoapodsExists('Alamofire', '999.0.0')
+      const result = await cocoapodsExists('Alamofire', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -115,7 +115,7 @@ describe('cocoapodsExists', () => {
           versions: [{}],
         })
 
-      const result = await cocoapodsExists('Alamofire', '999.0.0')
+      const result = await cocoapodsExists('Alamofire', { version: '999.0.0' })
 
       expect(result.exists).toBe(false)
       expect(result.error).toContain('Version 999.0.0 not found')
@@ -154,7 +154,7 @@ describe('cocoapodsExists', () => {
       const cachedResult = { exists: true, latestVersion: '5.8.1' }
       await mockCache.set('cocoapods:Alamofire', cachedResult)
 
-      const result = await cocoapodsExists('Alamofire', undefined, {
+      const result = await cocoapodsExists('Alamofire', {
         cache: mockCache,
       })
 
@@ -170,7 +170,7 @@ describe('cocoapodsExists', () => {
           versions: [{ name: '5.8.1' }],
         })
 
-      const result = await cocoapodsExists('Alamofire', undefined, {
+      const result = await cocoapodsExists('Alamofire', {
         cache: mockCache,
       })
 

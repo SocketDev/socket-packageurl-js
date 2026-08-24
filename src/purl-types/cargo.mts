@@ -42,13 +42,13 @@ export interface PurlObject {
  *   // -> { exists: true, latestVersion: '1.0.197' }
  *
  *   // Validate specific version
- *   const result = await cargoExists('tokio', '1.35.0')
+ *   const result = await cargoExists('tokio', { version: '1.35.0' })
  *   // -> { exists: true, latestVersion: '1.36.0' }
  *
  *   // With caching
  *   import { createTtlCache } from '@socketsecurity/lib/cache/ttl/store'
  *   const cache = createTtlCache({ ttl: 5 * 60 * 1000, prefix: 'cargo' })
- *   const result = await cargoExists('serde', undefined, { cache })
+ *   const result = await cargoExists('serde', { cache })
  *
  *   // Non-existent crate
  *   const result = await cargoExists('this-crate-does-not-exist')
@@ -56,17 +56,16 @@ export interface PurlObject {
  *   ```
  *
  * @param name - Crate name (e.g., `'serde'`, `'tokio'`)
- * @param version - Optional version to validate (e.g., `'1.0.152'`)
- * @param options - Optional configuration including `cache`
+ * @param options - Optional configuration including `version` and `cache`
  *
  * @returns `Promise` resolving to existence result with latest version
  */
 export async function cargoExists(
   name: string,
-  version?: string | undefined,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
   const opts = { __proto__: null, ...options } as typeof options
+  const { version } = opts ?? { __proto__: null }
   const cacheKey = version ? `cargo:${name}@${version}` : `cargo:${name}`
 
   // Try cache first if provided
