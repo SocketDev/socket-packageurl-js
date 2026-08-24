@@ -14,11 +14,15 @@ import {
 } from '@socketsecurity/lib/primordials/object'
 
 /**
- * Create namespace object organizing helpers by property names.
+ * Create namespace object organizing helpers by property names. Callers
+ * (PurlType, PurlComponent) each pass an open, growing key domain, so the
+ * generic namespace inverter below stays Record-typed rather than branded.
  */
 export function createHelpersNamespaceObject(
+  // oxlint-disable-next-line socket/prefer-refined-record -- open key domain
   helpers: Record<string, Record<string, unknown>>,
   options_: Record<string, unknown> = {},
+  // oxlint-disable-next-line socket/prefer-refined-record -- open key domain
 ): Record<string, Record<string, unknown>> {
   const { comparator, ...defaults } = {
     __proto__: null,
@@ -39,7 +43,9 @@ export function createHelpersNamespaceObject(
     ],
     comparator,
   )
-  // oxlint-disable-next-line socket/prefer-undefined-over-null -- Object.create(null) / Reflect.setPrototypeOf(_, null) require the null sentinel.
+  // `ObjectCreate(null)` requires the null sentinel; the record's key
+  // domain is open (see file header).
+  // oxlint-disable-next-line socket/prefer-undefined-over-null, socket/prefer-refined-record -- null sentinel; open domain
   const nsObject: Record<string, Record<string, unknown>> = ObjectCreate(null)
   // Build inverted structure: property -> {helper1: value1, helper2: value2}
   for (let i = 0, { length } = propNames; i < length; i += 1) {

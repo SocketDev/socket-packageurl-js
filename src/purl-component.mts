@@ -42,6 +42,10 @@ export type ComponentValidator = (
   _options?: { throws?: boolean | undefined } | undefined,
 ) => boolean
 export type QualifiersValue = string | number | boolean | null | undefined
+/**
+ * Purl spec qualifier keys are consumer-defined, an open domain.
+ */
+// oxlint-disable-next-line socket/prefer-refined-record -- open key domain
 export type QualifiersObject = Record<string, QualifiersValue>
 
 const componentSortOrderLookup = {
@@ -54,6 +58,24 @@ const componentSortOrderLookup = {
   subpath: 7,
   type: 0,
   version: 3,
+}
+
+/**
+ * Compare two component names for sorting.
+ */
+export function componentComparator(compA: string, compB: string): number {
+  return componentSortOrder(compA) - componentSortOrder(compB)
+}
+
+/**
+ * Get numeric sort order for component name.
+ */
+export function componentSortOrder(comp: string): number {
+  return (
+    (componentSortOrderLookup as unknown as Record<string, number>)[comp] ??
+    // Unknown components sort after all known ones
+    8
+  )
 }
 
 /**
@@ -80,24 +102,6 @@ export function PurlComponentValidator(
   _options?: { throws?: boolean | undefined } | undefined,
 ): boolean {
   return true
-}
-
-/**
- * Compare two component names for sorting.
- */
-export function componentComparator(compA: string, compB: string): number {
-  return componentSortOrder(compA) - componentSortOrder(compB)
-}
-
-/**
- * Get numeric sort order for component name.
- */
-export function componentSortOrder(comp: string): number {
-  return (
-    (componentSortOrderLookup as unknown as Record<string, number>)[comp] ??
-    // Unknown components sort after all known ones
-    8
-  )
 }
 
 // Rules for each purl component:

@@ -93,13 +93,6 @@ export interface PurlObject {
 }
 
 /**
- * Default normalizer for PURL types without specific normalization rules.
- */
-export function PurlTypNormalizer(purl: PurlObject) {
-  return purl
-}
-
-/**
  * Default validator for PURL types without specific validation rules. Rejects
  * injection characters in `name` and `namespace` components. This ensures all
  * types get injection protection by default, and that includes any newly added
@@ -138,6 +131,13 @@ export function PurlTypeValidator(
     return false
   }
   return true
+}
+
+/**
+ * Default normalizer for PURL types without specific normalization rules.
+ */
+export function PurlTypNormalizer(purl: PurlObject) {
+  return purl
 }
 
 // PURL types:

@@ -3,8 +3,8 @@
  *   the on-disk dist/ output and reports per-file + total sizes. Replaces
  *   esbuild's metafile analyzer — rolldown doesn't ship an equivalent metafile
  *   by default, and the only consumer is the `--analyze` CLI flag, so reading
- *   the produced files directly is enough. Split from build.mts along the
- *   one-domain-per-file seam.
+ *   the produced files directly is enough. Split from build.mts to keep each
+ *   file focused on one domain.
  */
 
 import { existsSync, statSync } from 'node:fs'

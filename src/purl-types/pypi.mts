@@ -99,6 +99,7 @@ export async function pypiExists(
 
       const data = await httpJson<{
         info?: { version?: string | undefined } | undefined
+        // oxlint-disable-next-line socket/prefer-refined-record -- open key domain
         releases?: Record<string, unknown[]> | undefined
       }>(url)
 

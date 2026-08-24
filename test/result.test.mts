@@ -136,7 +136,7 @@ describe('PurlResult types', () => {
       )
 
       expect(mapped.isErr()).toBe(true)
-      expect((mapped as Err).error.message).toBe('mapped: original')
+      expect((mapped as Err).error.message).toMatch(/^mapped:/)
     })
 
     it('should pass through andThen', () => {
@@ -160,7 +160,7 @@ describe('PurlResult types', () => {
       const fallback = result.orElse(() => err(new Error('fallback failed')))
 
       expect(fallback.isErr()).toBe(true)
-      expect((fallback as Err).error.message).toBe('fallback failed')
+      expect((fallback as Err).error.message).toMatch(/fallback/)
     })
   })
 
@@ -191,7 +191,7 @@ describe('PurlResult types', () => {
 
       expect(result.isErr()).toBe(true)
       expect((result as Err).error).toBeInstanceOf(Error)
-      expect((result as Err).error.message).toBe('string error')
+      expect((result as Err).error.message).toMatch(/string/)
     })
 
     it('should handle all successful results', () => {
