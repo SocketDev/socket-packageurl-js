@@ -37,9 +37,8 @@ module identity is genuinely case-sensitive - `github.com/User/Repo` and
 wrong module or none. The purl-spec golang definition is self-contradictory
 (`case_sensitive: true` yet a note reading "must be lowercased"), and the
 shared spec test suite has no uppercase golang name/namespace case, so nothing
-actually constrains the choice. Open debate: purl-spec issues #67 / #136, PR
-
-# 196.
+actually constrains the choice. Open debate: purl-spec issues #67 / #136 and
+PR #196.
 
 ### npm case: the legacy-name conditional
 
