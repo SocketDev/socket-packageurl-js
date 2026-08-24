@@ -57,12 +57,12 @@ export function getTestsToRun(
   const { all = false, staged = false } = options
 
   // All mode runs all tests
-  if (all || process.env.FORCE_TEST === '1') {
+  if (all || process.env['FORCE_TEST'] === '1') {
     return { tests: 'all', reason: 'explicit --all flag', mode: 'all' }
   }
 
   // CI always runs all tests
-  if (process.env.CI === 'true') {
+  if (process.env['CI'] === 'true') {
     return { tests: 'all', reason: 'CI environment', mode: 'all' }
   }
 
@@ -80,7 +80,7 @@ export function getTestsToRun(
   let runAllReason = ''
 
   for (let i = 0, { length } = changedFiles; i < length; i += 1) {
-    const file = changedFiles[i]
+    const file = changedFiles[i]!
     const normalized = normalizePath(file)
 
     // Test files always run themselves
@@ -101,7 +101,7 @@ export function getTestsToRun(
         break
       }
       for (let j = 0, { length: jl } = tests; j < jl; j += 1) {
-        const test = tests[j]
+        const test = tests[j]!
         // Skip deleted files.
         if (existsSync(path.join(rootPath, test))) {
           testFiles.add(test)

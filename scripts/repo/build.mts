@@ -17,7 +17,7 @@ import { isQuiet } from '@socketsecurity/lib-stable/argv/flag-predicates'
 import type { FlagValues } from '@socketsecurity/lib-stable/argv/flag-types'
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
 import { WIN32 } from '@socketsecurity/lib-stable/constants/platform'
-import type { Logger } from '@socketsecurity/lib-stable/logger/types'
+import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
@@ -111,7 +111,7 @@ export async function buildSource(
     const outputs: RolldownOutput[] = []
 
     for (let i = 0, { length } = rolldownConfigs; i < length; i += 1) {
-      const config = rolldownConfigs[i]
+      const config = rolldownConfigs[i]!
       const bundle = await rolldown(config)
       const output = config.output
       if (!output || Array.isArray(output)) {
@@ -125,9 +125,9 @@ export async function buildSource(
     // Post-build load gate: a bundle that crashes at require() must fail the
     // BUILD, not a later consumer. The staged-publish workflow runs
     // `pnpm run build` and then stages the tarball without running
-    // `check --all`, so this is the last repo-owned seam in front of npm —
-    // 1.4.5 shipped a dist/exists.js that threw at module load and every
-    // green lane missed it because nothing ever loaded the built entry.
+    // `check --all`, so this is the last repo-owned check before npm — 1.4.5
+    // shipped a dist/exists.js that threw at module load and every green
+    // lane missed it because nothing ever loaded the built entry.
     const gateExitCode = await runSequence([
       {
         args: ['scripts/repo/check/dist-entries-are-requirable.mts'],
@@ -230,7 +230,7 @@ export async function watchBuild(
     const watchers = rolldownConfigs.map(config => rolldownWatch(config))
 
     for (let i = 0, { length } = watchers; i < length; i += 1) {
-      const watcher = watchers[i]
+      const watcher = watchers[i]!
       watcher.on('event', event => {
         if (event.code === 'BUNDLE_END' && !quiet) {
           logger.success(`Rebuild succeeded (${event.duration}ms)`)

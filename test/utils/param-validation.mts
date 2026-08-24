@@ -61,9 +61,9 @@ export function testParam(
   options: { shouldThrow: boolean },
 ) {
   const { shouldThrow } = options
-  const paramIndex = paramMap[paramName]
+  const paramIndex = paramMap[paramName]!
   for (let i = 0, { length } = testValues; i < length; i += 1) {
-    const value = testValues[i]
+    const value = testValues[i]!
     const args = createArgs(paramName, value)
     const message = JSON.stringify(args[paramIndex])
     if (shouldThrow) {

@@ -29,11 +29,11 @@ import { isQuiet } from '@socketsecurity/lib-stable/argv/flag-predicates'
 import { readJson } from '@socketsecurity/lib-stable/fs/read-json'
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
 import { writeJson } from '@socketsecurity/lib-stable/fs/write-json'
-import type { Logger } from '@socketsecurity/lib-stable/logger/types'
+import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { NODE_MODULES_CACHE_DIR, REPO_ROOT } from '../fleet/paths.mts'
+import { NODE_MODULES_DIR, REPO_ROOT } from '../fleet/paths.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -43,7 +43,7 @@ const PIN_JSON_PATH = path.join(
   'repo',
   'purl-spec-pin.json',
 )
-const SPEC_CACHE_DIR = path.join(NODE_MODULES_CACHE_DIR, 'purl-spec')
+const SPEC_CACHE_DIR = path.join(NODE_MODULES_DIR, '.cache', 'purl-spec')
 const VENDORED_SUITE_DIR = path.join(REPO_ROOT, 'test', 'fixtures', 'purl-spec')
 
 // Upstream suite directory → vendored directory, relative pairs.
@@ -182,7 +182,7 @@ export async function applySuite(
   drift: SuiteDrift[],
 ): Promise<void> {
   for (let i = 0, { length } = drift; i < length; i += 1) {
-    const entry = drift[i]
+    const entry = drift[i]!
     const vendoredPath = path.join(VENDORED_SUITE_DIR, entry.relPath)
     if (entry.kind === 'stale') {
       await safeDelete(vendoredPath)

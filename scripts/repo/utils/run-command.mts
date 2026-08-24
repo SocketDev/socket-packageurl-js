@@ -3,7 +3,7 @@
  */
 
 import { WIN32 } from '@socketsecurity/lib-stable/constants/platform'
-import type { Logger } from '@socketsecurity/lib-stable/logger/types'
+import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import type {
   SpawnErrorWithOutputString,
@@ -63,7 +63,7 @@ export async function runCommand(
   } catch (e) {
     // spawn() from @socketsecurity/lib-stable throws on non-zero exit
     // Return the exit code from the error
-    if (e && typeof e === 'object' && 'code' in e) {
+    if (typeof e === 'object' && e !== null && 'code' in e) {
       return e.code as number
     }
     throw e
@@ -95,13 +95,13 @@ export async function runCommandQuiet(
     // spawn() from @socketsecurity/lib-stable throws on non-zero exit
     // Return the exit code and output from the error
     if (
-      e &&
       typeof e === 'object' &&
+      e !== null &&
       'code' in e &&
       'stdout' in e &&
       'stderr' in e
     ) {
-      const spawnError: SpawnErrorWithOutputString = e
+      const spawnError = e as SpawnErrorWithOutputString
       return {
         exitCode: spawnError.code,
         stderr: spawnError.stderr,

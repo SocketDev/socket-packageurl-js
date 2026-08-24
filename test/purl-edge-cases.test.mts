@@ -90,16 +90,29 @@ import { createTestFunction, createTestPurl } from './utils/test-helpers.mjs'
 // `normalize` / `validate` signatures through generics. Cast to a typed
 // alias here so the tests can call `.validate(...)` without `any` casts.
 // Recipe: docs/agents.md/fleet/export-and-no-any.md.
-type PurlTypeHelpers = Record<
-  string,
-  {
-    readonly validate: (
-      purl: PurlObject,
-      options?: { throws?: boolean | undefined } | undefined,
-    ) => boolean
-    readonly normalize: (purl: PurlObject) => PurlObject
-  }
->
+type PurlTypeHelperEntry = {
+  readonly validate: (
+    purl: PurlObject,
+    options?: { throws?: boolean | undefined } | undefined,
+  ) => boolean
+  readonly normalize: (purl: PurlObject) => PurlObject
+}
+// Named members for every ecosystem this file accesses directly — an index
+// signature alone types each access `T | undefined` under
+// noUncheckedIndexedAccess and forces bracket notation under
+// noPropertyAccessFromIndexSignature. The index signature stays alongside
+// the named members: PurlType's ecosystem set grows over time, so a closed
+// branded-key union would need hand-maintenance on every new purl type.
+// oxlint-disable-next-line socket/prefer-refined-record -- open key domain
+type PurlTypeHelpers = Record<string, PurlTypeHelperEntry> & {
+  cocoapods: PurlTypeHelperEntry
+  conan: PurlTypeHelperEntry
+  cpan: PurlTypeHelperEntry
+  golang: PurlTypeHelperEntry
+  npm: PurlTypeHelperEntry
+  pub: PurlTypeHelperEntry
+  swid: PurlTypeHelperEntry
+}
 const PurlTypeT = PurlType as unknown as PurlTypeHelpers
 
 // Shared validator-options shape — matches `validate*` exports in
@@ -110,17 +123,18 @@ type ValidateOpts = { throws?: boolean | undefined } | undefined
 // `<component>.<method>` (not `<method>.<component>`), so calls read as
 // `PurlComponent.name.normalize(value)`. Generics collapse the per-method
 // signatures into the loose helper shape.
-type PurlComponentHelpers = Record<
-  string,
-  {
-    readonly encode: (comp: unknown) => string
-    readonly normalize: (comp: unknown) => string | undefined
-    readonly validate: (
-      comp: unknown,
-      options?: { throws?: boolean | undefined } | undefined,
-    ) => boolean
-  }
->
+type PurlComponentHelperEntry = {
+  readonly encode: (comp: unknown) => string
+  readonly normalize: (comp: unknown) => string | undefined
+  readonly validate: (
+    comp: unknown,
+    options?: { throws?: boolean | undefined } | undefined,
+  ) => boolean
+}
+// oxlint-disable-next-line socket/prefer-refined-record -- open key domain
+type PurlComponentHelpers = Record<string, PurlComponentHelperEntry> & {
+  name: PurlComponentHelperEntry
+}
 const PurlComponentT = PurlComponent as unknown as PurlComponentHelpers
 
 describe('Edge cases and additional coverage', () => {
@@ -323,7 +337,7 @@ describe('Edge cases and additional coverage', () => {
     it('should handle plus signs in qualifiers', () => {
       // Tests that + is preserved in qualifiers (not converted to space)
       const purl = PackageURL.fromString('pkg:type/name?key=value+with+plus')
-      expect(purl.qualifiers?.key).toBe('value+with+plus')
+      expect(purl.qualifiers?.['key']).toBe('value+with+plus')
     })
   })
 
@@ -412,7 +426,7 @@ describe('Edge cases and additional coverage', () => {
     it('should handle duplicate qualifier keys (last wins)', () => {
       // Tests duplicate key behavior. The last value takes precedence.
       const purl = PackageURL.fromString('pkg:type/name?key=first&key=second')
-      expect(purl.qualifiers?.key).toBe('second')
+      expect(purl.qualifiers?.['key']).toBe('second')
     })
 
     it('should normalize qualifier keys to lowercase', () => {
@@ -429,7 +443,7 @@ describe('Edge cases and additional coverage', () => {
     it('should handle qualifiers with special characters in values', () => {
       // Tests special character encoding in qualifier values
       const purl = PackageURL.fromString('pkg:type/name?key=%3D%26%3F%23')
-      expect(purl.qualifiers?.key).toBe('=&?#')
+      expect(purl.qualifiers?.['key']).toBe('=&?#')
     })
 
     it('should convert qualifier objects to URLSearchParams correctly', () => {
@@ -906,7 +920,7 @@ describe('Edge cases and additional coverage', () => {
         version: '1.0',
       })
       expect(purl.type).toBe('mlflow')
-      expect(purl.qualifiers?.repository_url).toBe('https://example.com')
+      expect(purl.qualifiers?.['repository_url']).toBe('https://example.com')
     })
 
     it('should handle qpkg type', () => {
@@ -917,7 +931,7 @@ describe('Edge cases and additional coverage', () => {
         version: '1.0',
       })
       expect(purl.type).toBe('qpkg')
-      expect(purl.qualifiers?.arch).toBe('x86_64')
+      expect(purl.qualifiers?.['arch']).toBe('x86_64')
     })
 
     // Test index.js exports
@@ -1253,8 +1267,8 @@ describe('Edge cases and additional coverage', () => {
     it('should handle PurlComponent edge cases', () => {
       // Test PurlComponent exports
       expect(PurlComponent).toBeDefined()
-      expect(PurlComponent.name).toBeDefined()
-      expect(PurlComponent.name.encode).toBeDefined()
+      expect(PurlComponentT.name).toBeDefined()
+      expect(PurlComponentT.name.encode).toBeDefined()
 
       // Test component encoder with empty string
       // This tests PurlComponentEncoder function (line 32-33)
@@ -1447,9 +1461,9 @@ describe('Edge cases and additional coverage', () => {
       // This exercises line 36 in purl-component.js
 
       // Test that components have the expected structure
-      expect(PurlComponent.name).toBeDefined()
-      expect(PurlComponent.name.normalize).toBeDefined()
-      expect(PurlComponent.name.validate).toBeDefined()
+      expect(PurlComponentT.name).toBeDefined()
+      expect(PurlComponentT.name.normalize).toBeDefined()
+      expect(PurlComponentT.name.validate).toBeDefined()
 
       // Test normalizing name with a number (tests line 36)
       const result = PurlComponentT['name'].normalize('test123')

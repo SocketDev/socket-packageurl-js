@@ -59,10 +59,10 @@ export function collectRuntimeTargets(pkg: PackageJsonEntries): string[] {
       }
       return
     }
-    if (node && typeof node === 'object' && !Array.isArray(node)) {
+    if (typeof node === 'object' && node !== null && !Array.isArray(node)) {
       const entries = Object.entries(node as Record<string, unknown>)
       for (let i = 0, { length } = entries; i < length; i += 1) {
-        const [key, value] = entries[i]
+        const [key, value] = entries[i]!
         // Subpath keys start with '.'; anything else is a condition name.
         if (!key.startsWith('.') && NON_RUNTIME_CONDITIONS.has(key)) {
           continue
@@ -106,7 +106,7 @@ export function probeEntry(absTarget: string): EntryProbeFailure[] {
     })
   }
   for (let i = 0, { length } = probes; i < length; i += 1) {
-    const probe = probes[i]
+    const probe = probes[i]!
     const result = spawnSync(process.execPath, probe.args, {
       encoding: 'utf8',
       timeout: 30_000,
@@ -131,7 +131,8 @@ export function runCheck(
   repoRoot: string,
   options?: { quiet?: boolean | undefined } | undefined,
 ): number {
-  const { quiet = false } = { __proto__: null, ...options }
+  const { quiet = false } = { __proto__: null, ...options } as typeof options &
+    object
   const pkgJsonPath = path.join(repoRoot, 'package.json')
   const pkg = JSON.parse(
     readFileSync(pkgJsonPath, 'utf8'),
@@ -157,7 +158,7 @@ export function runCheck(
 
   const failures: EntryProbeFailure[] = []
   for (let i = 0, { length } = targets; i < length; i += 1) {
-    const target = targets[i]
+    const target = targets[i]!
     const abs = path.join(repoRoot, target)
     if (!existsSync(abs)) {
       failures.push({
@@ -175,7 +176,7 @@ export function runCheck(
       '[dist-entries-are-requirable] published entry points that crash on load:',
     )
     for (let i = 0, { length } = failures; i < length; i += 1) {
-      const f = failures[i]
+      const f = failures[i]!
       logger.fail(`  ${f.mode}(${path.relative(repoRoot, f.target)})`)
       const stderrLines = f.stderr.split(/\r?\n/).slice(0, 6)
       for (let j = 0, { length: jlen } = stderrLines; j < jlen; j += 1) {

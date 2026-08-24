@@ -13,7 +13,7 @@ import fastGlob from 'fast-glob'
 import { isQuiet } from '@socketsecurity/lib-stable/argv/flag-predicates'
 import type { FlagValues } from '@socketsecurity/lib-stable/argv/flag-types'
 import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
-import type { Logger } from '@socketsecurity/lib-stable/logger/types'
+import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { createSectionHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'
@@ -59,7 +59,7 @@ export async function cleanDirectories(
   const { quiet = false } = options
 
   for (let i = 0, { length } = tasks; i < length; i += 1) {
-    const task = tasks[i]
+    const task = tasks[i]!
     const { name, pattern, patterns } = task
     const patternsToDelete: string[] = patterns || [pattern!]
 
@@ -103,7 +103,7 @@ export async function cleanDirectories(
 async function main(): Promise<void> {
   try {
     // Parse arguments
-    const { values } = parseArgs({
+    const { values } = parseArgs<CleanScriptValues>({
       options: {
         help: {
           type: 'boolean',

@@ -124,6 +124,7 @@ catalog:
   # override below pins every transitive `vite` (vitest, @vitest/*,
   # plugin authors) to it.
   'typescript': 7.0.2
+  'yaml': 2.9.0
   'vitest': 4.1.10
   '@vitest/coverage-v8': 4.1.10
   c8: 12.0.0

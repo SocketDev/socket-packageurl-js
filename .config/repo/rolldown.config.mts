@@ -6,7 +6,6 @@
 
 import { builtinModules } from 'node:module'
 import path from 'node:path'
-import process from 'node:process'
 import type { Plugin, RolldownOptions } from 'rolldown'
 
 import { REPO_ROOT } from '../../scripts/fleet/paths.mts'
@@ -54,7 +53,7 @@ export function buildPathMap(
   const pathMap = new Map<string, string>()
   for (const [shortPath, entries] of shortPathGroups) {
     if (entries.length === 1) {
-      pathMap.set(entries[0].longPath, shortPath)
+      pathMap.set(entries[0]!.longPath, shortPath)
     } else {
       for (const { info, longPath } of entries) {
         pathMap.set(
@@ -85,7 +84,7 @@ export function createPathShorteningPlugin(): Plugin {
     generateBundle(_options, bundle) {
       const fileNames = Object.keys(bundle)
       for (let i = 0, { length } = fileNames; i < length; i += 1) {
-        const fileName = fileNames[i]
+        const fileName = fileNames[i]!
         const asset = bundle[fileName]
         if (!asset || asset.type !== 'chunk') {
           continue
@@ -127,7 +126,7 @@ export function createPathShorteningPlugin(): Plugin {
           j < keysLength;
           j += 1
         ) {
-          const key = sortedKeys[j]
+          const key = sortedKeys[j]!
           const value = pathMap.get(key)!
           if (key === value) {
             continue

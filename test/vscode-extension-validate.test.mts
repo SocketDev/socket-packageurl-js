@@ -55,7 +55,7 @@ describe('vscode-extension validate + normalize', () => {
         'win32-arm64',
       ]
       for (let i = 0, { length } = platforms; i < length; i += 1) {
-        const platform = platforms[i]
+        const platform = platforms[i]!
         expect(
           validateVscodeExtension(
             {
@@ -125,7 +125,7 @@ describe('vscode-extension validate + normalize', () => {
     it('should reject illegal characters in name', () => {
       const illegal = ['ext|x', 'ext&x', 'ext;x', 'ext<x>', 'ext{x}']
       for (let i = 0, { length } = illegal; i < length; i += 1) {
-        const name = illegal[i]
+        const name = illegal[i]!
         expect(
           validateVscodeExtension(
             { name, namespace: 'ms-python' },
@@ -163,7 +163,7 @@ describe('vscode-extension validate + normalize', () => {
     it('should reject illegal characters in platform qualifier', () => {
       const illegal = ['linux x64', 'linux|x64', 'linux&x64', 'linux;x64']
       for (let i = 0, { length } = illegal; i < length; i += 1) {
-        const platform = illegal[i]
+        const platform = illegal[i]!
         expect(
           validateVscodeExtension(
             {

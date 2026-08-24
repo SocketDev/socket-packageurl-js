@@ -238,7 +238,6 @@ describe('PackageURL.fromString instance immutability', () => {
     expect(Object.isFrozen(purl)).toBe(true)
     expect(Object.isFrozen(purl.qualifiers)).toBe(true)
     expect(() => {
-      // @ts-expect-error -- deliberately mutating a frozen instance.
       purl.name = 'evil-pkg'
     }).toThrow(TypeError)
     expect(() => {

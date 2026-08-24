@@ -47,7 +47,7 @@ export async function checkBundledDependencies(content: string): Promise<{
     ]
 
     for (let i = 0, { length } = bundledPackagePatterns; i < length; i += 1) {
-      const pattern = bundledPackagePatterns[i]
+      const pattern = bundledPackagePatterns[i]!
       // Check if package name appears in context that suggests bundling.
       // Look for: var import_package = require("package") without the actual require call.
       // This would indicate the package code is bundled inline.
@@ -63,7 +63,7 @@ export async function checkBundledDependencies(content: string): Promise<{
     // If we have dependencies, check that they remain external (not bundled).
     const depNames = Object.keys(dependencies)
     for (let i = 0, { length } = depNames; i < length; i += 1) {
-      const dep = depNames[i]
+      const dep = depNames[i]!
       const escapedDep = dep.replace(/[/\\^$*+?.()|[\]{}]/g, '\\$&')
       // Check if dependency code is bundled by looking for __toCommonJS pattern.
       const bundlePattern = new RegExp(
@@ -100,7 +100,7 @@ export function hasAbsolutePaths(content: string): {
 
   const matches: string[] = []
   for (let i = 0, { length } = patterns; i < length; i += 1) {
-    const pattern = patterns[i]
+    const pattern = patterns[i]!
     const found = content.match(pattern)
     if (found) {
       matches.push(...found)

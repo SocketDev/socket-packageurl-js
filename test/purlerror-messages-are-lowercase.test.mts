@@ -3,7 +3,7 @@
  *   Covers both arms (compliant passes, violation detected) for every exported
  *   function, ensuring the check is self-consistent.
  */
-import { unlinkSync, writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
 import process from 'node:process'
 
 import { describe, expect, it } from 'vitest'

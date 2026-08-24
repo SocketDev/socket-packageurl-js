@@ -31,7 +31,7 @@ afterAll(async () => {
   for (let i = 0, { length } = tmpDirs; i < length; i += 1) {
     // Teardown of a handful of dirs; sequential is fine.
     // eslint-disable-next-line no-await-in-loop -- sequential teardown
-    await safeDelete(tmpDirs[i])
+    await safeDelete(tmpDirs[i]!)
   }
 })
 

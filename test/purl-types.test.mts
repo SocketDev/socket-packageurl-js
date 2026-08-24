@@ -49,7 +49,7 @@ describe('PackageURL type-specific tests', () => {
       // caught by the injection scanner before reaching npm-specific validation.
       const injectionCharPattern = /[!*~]/
       for (let i = 0, { length } = npmLegacyNames; i < length; i += 1) {
-        const legacyName = npmLegacyNames[i]
+        const legacyName = npmLegacyNames[i]!
         const parts = legacyName.split('/')
         const namespace = parts.length > 1 ? parts[0] : ''
         const name = parts.at(-1)
@@ -93,7 +93,7 @@ describe('PackageURL type-specific tests', () => {
     it('should not allow non-legacy builtin names', () => {
       // Tests npm builtin module validation (only legacy builtins allowed)
       for (let i = 0, { length } = npmBuiltinNames; i < length; i += 1) {
-        const builtinName = npmBuiltinNames[i]
+        const builtinName = npmBuiltinNames[i]!
         if (!npmLegacyNames.includes(builtinName)) {
           expect(() => {
             const parts = builtinName.split('/')

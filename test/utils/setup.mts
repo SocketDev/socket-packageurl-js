@@ -8,8 +8,8 @@ import process from 'node:process'
 import { afterAll, beforeAll } from 'vitest'
 
 // Disable debug output during tests
-process.env.DEBUG = ''
-delete process.env.NODE_DEBUG
+process.env['DEBUG'] = ''
+delete process.env['NODE_DEBUG']
 
 // Fail closed on live network: tests must never reach a third-party server.
 // Any unmocked request throws `NetConnectNotAllowedError`; localhost stays

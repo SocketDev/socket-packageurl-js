@@ -66,7 +66,7 @@ describe('Type exports accessibility', () => {
       arch: 'x86_64',
       os: 'linux',
     }
-    expect(qualifiers.arch).toBe('x86_64')
+    expect(qualifiers['arch']).toBe('x86_64')
   })
 
   it('should export QualifiersValue type', () => {

@@ -300,7 +300,7 @@ describe('PackageURL.fromJSON security features', () => {
 
       const result = PackageURL.fromJSON(json)
       expect(result.name).toBe('test-😀-package')
-      expect(result.qualifiers?.note).toBe('你好世界')
+      expect(result.qualifiers?.['note']).toBe('你好世界')
     })
   })
 

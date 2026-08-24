@@ -7,7 +7,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import type { Logger } from '@socketsecurity/lib-stable/logger/types'
+import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import type { SpawnResult } from '@socketsecurity/lib-stable/process/spawn/types'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'

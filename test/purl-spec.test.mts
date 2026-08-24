@@ -58,9 +58,9 @@ export function toUrlSearchParams(search: string) {
   const searchParams = new URLSearchParams()
   const entries = search.split('&')
   for (let i = 0, { length } = entries; i < length; i += 1) {
-    const pairs = entries[i].split('=')
+    const pairs = entries[i]!.split('=')
     const value = decodeURIComponent(pairs.at(1) ?? '')
-    searchParams.append(pairs[0], value)
+    searchParams.append(pairs[0]!, value)
   }
   return searchParams
 }
@@ -85,7 +85,7 @@ describe('PackageURL purl-spec test suite', async () => {
     )
 
   for (let i = 0, { length } = TEST_FILES; i < length; i += 1) {
-    const obj = TEST_FILES[i]
+    const obj = TEST_FILES[i]!
     const { expected_failure, expected_output, test_type } = obj
 
     const inputObj = isObject(obj.input)
