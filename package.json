@@ -4,7 +4,11 @@
   "description": "Socket.dev optimized package override for packageurl-js",
   "keywords": [
     "Socket.dev",
-    "package-overrides"
+    "package url",
+    "package-overrides",
+    "package-url",
+    "packageurl",
+    "purl"
   ],
   "homepage": "https://github.com/SocketDev/socket-packageurl-js",
   "license": "MIT",
