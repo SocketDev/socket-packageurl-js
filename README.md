@@ -15,7 +15,7 @@ Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/package
 
 A Package URL (purl) standardizes how to identify software packages:
 
-```
+```text
 pkg:npm/lodash@4.17.21
 pkg:pypi/requests@2.28.1
 pkg:maven/org.springframework/spring-core@5.3.21
@@ -23,7 +23,7 @@ pkg:maven/org.springframework/spring-core@5.3.21
 
 **Format breakdown**:
 
-```
+```text
   pkg:type/namespace/name@version?qualifiers#subpath
   │   │    │         │    │       │          │
   │   │    │         │    │       │          └─ Optional subpath

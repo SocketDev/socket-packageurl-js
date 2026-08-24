@@ -19,7 +19,7 @@ not PURL.
        python3 -c "import unicodedata; [print(sum(2 if unicodedata.east_asian_width(c) in ('W','F') else 1 for c in l.rstrip())) for l in open('docs/converters.md').readlines()[21:29]]"
 -->
 
-```
+```text
  ┌───────────────────────────────────────────────────────────────┐
  │   URL      -----------------fromUrl()----------->  PackageURL │
  │            <---------------toRepositoryUrl()----              │

@@ -18,14 +18,14 @@ required; this doc introduces concepts as it goes.
 
 The canonical form:
 
-```
+```text
 pkg:type/namespace/name@version?qualifier=value#subpath
 ```
 
 Each piece is optional except `type` and `name`. Two concrete
 examples:
 
-```
+```text
 pkg:npm/left-pad@1.3.0
 pkg:pypi/requests@2.31.0?extension=tar.gz#src/urllib3
 ```
@@ -39,7 +39,7 @@ the latest published spec + all accepted amendments.
 <details>
 <summary>The `src/` tree: the public index, the PackageURL and PurlBuilder entry points, the decode, encode, stringify, normalize and validate pipeline, the PurlComponent and PurlType rule loaders, url-converter, compare, exists and vers, the shared utility modules, and the 41 handlers under purl-types/</summary>
 
-```
+```text
 src/
 ├── index.ts                     ← public API surface (re-exports)
 │

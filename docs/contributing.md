@@ -34,7 +34,7 @@ pnpm install
 
 ## Repo layout
 
-```
+```text
 socket-packageurl-js/
 ├── src/                    ← library source (see docs/architecture.md)
 ├── test/                   ← functional tests (vitest)
@@ -211,7 +211,7 @@ worktree, not a stash.
 
 [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
 
-```
+```text
 <type>(<scope>): <description>
 
 <optional body>

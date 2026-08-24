@@ -37,7 +37,7 @@ VERS proposes a single grammar that any consumer can parse, with
 a `scheme` field telling you how to _compare_ versions within the
 range (semver semantics, PEP 440 semantics, etc.):
 
-```
+```text
 vers:<scheme>/<constraint>[|<constraint>…]
 ```
 
@@ -53,7 +53,7 @@ here - it doesn't try to encode every operator every ecosystem has).
 <details>
 <summary>Six annotated VERS strings: an npm OR range, a pypi range, a cargo caret, the semver wildcard, an npm exact match, and a three-constraint npm range</summary>
 
-```
+```text
 vers:npm/>=1.0.0|<2.0.0
 ```
 
@@ -61,7 +61,7 @@ vers:npm/>=1.0.0|<2.0.0
 across constraints - note this matches almost everything; the example
 is intentionally showing the grammar, not a useful range.)
 
-```
+```text
 vers:pypi/>=1.0,<2.0
 ```
 
@@ -69,25 +69,25 @@ Same shape, pypi semantics. The `scheme` (`pypi`) tells the parser
 how to compare "1.0.0a1" vs "1.0.0" (PEP 440: prereleases sort
 before release; semver: same, but "1.0.0-a" form).
 
-```
+```text
 vers:cargo/^1.2.3
 ```
 
 Cargo's caret - any version ≥ 1.2.3 and < 2.0.0.
 
-```
+```text
 vers:semver/*
 ```
 
 Wildcard - matches any semver version.
 
-```
+```text
 vers:npm/=1.2.3
 ```
 
 Exact match - only version 1.2.3 satisfies.
 
-```
+```text
 vers:npm/>=1.0.0|!=1.3.5|<2.0.0
 ```
 

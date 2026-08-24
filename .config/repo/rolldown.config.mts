@@ -1,7 +1,5 @@
 /**
- * @file Rolldown configuration. Mirrors the esbuild config in
- *   `esbuild.config.mjs` for byte-equivalent output during the migration
- *   dual-build phase. See `docs/rolldown-migration.md`.
+ * @file Rolldown configuration for the build runner.
  */
 
 import { builtinModules } from 'node:module'
