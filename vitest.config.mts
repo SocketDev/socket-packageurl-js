@@ -45,5 +45,8 @@ export default defineConfig({
   ],
   test: {
     include: ['test/**/*.fuzz.mts'],
+    // An empty match is not a failure - a repo with no fuzz target yet
+    // stays quiet instead of failing its scheduled run.
+    passWithNoTests: true,
   },
 })
