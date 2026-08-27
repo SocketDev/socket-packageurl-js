@@ -466,11 +466,6 @@ enablePrePostScripts: true
 # also be exact pins (5.24.0, not ^5.24.0).
 saveExact: true
 
-# Hold nock at v14 due to breaking changes in v15 that conflict with the test suite.
-catalogShadowIgnore:
-  # nock 15 (msw-interceptors rewrite) breaks member mock suites — hold until the fleet #339 migration.
-  - 'nock'
-
 patchedDependencies:
   # default-export interop (managed by socket-wheelhouse sync; do not edit):
   # 5.0.7 dropped the default export from BOTH builds. The CJS half breaks
