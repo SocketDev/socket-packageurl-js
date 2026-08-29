@@ -1,0 +1,211 @@
+{
+  "//": [
+    "Fleet-owned host allowlist, schema v2. ONE canonical list, two scopes:",
+    "'runtime' (a host a local agent run may reach at runtime) and 'fetch' (a",
+    "host an agent's own curl/wget/fetch may target directly — enforced by",
+    "fetch-allowlist-is-respected-at-edit + fetch-allowlist-is-respected-at-commit.mts). A",
+    "fetch-only host is a deliberate category - see the note further down.",
+    "PHASE 1 is plumbing only: mode is 'off' — nothing enforces egress yet.",
+    "INVARIANT: every runtime-scoped host must be a SUBSET of gh-aw's expanded",
+    "firewall allowDomains (the CI agent already trusts these) — enforced by",
+    "the fleet check-all gate. Grow this list only from traffic proven in the",
+    "observe soak, and only with a host gh-aw already permits. A leading '*.'",
+    "entry is a suffix wildcard (matches any subdomain of the suffix).",
+    "'allowDomains' is the pre-v2 key, DERIVED from the runtime-scoped hosts",
+    "(regenerate with check/fetch-allowlist-derived-copies-are-current.mts",
+    "--fix; never hand-edit it), kept so a member still on",
+    "an old bundled hook (which only reads allowDomains) sees no behavior",
+    "change during rollout. Drop it one soak window after every roster member",
+    "repins past the v2 reader.",
+    "'fetch'-without-'runtime' is a deliberate second category: a host with",
+    "real, evidenced fetch usage (a committed non-agentic file — a Dockerfile",
+    "RUN, a GH Actions step — OR a local-agent-only script/convenience that",
+    "never runs inside a gh-aw-fenced CI agent session) that has not been",
+    "PROVEN to need egress containment. Nothing enforces egress yet (mode is",
+    "'off'), so leaving these fetch-only changes zero real behavior versus the",
+    "pre-v2 ALLOWED_CDN_HOSTS list — it just defers the egress⊆gh-aw question",
+    "until someone actually needs one of these reachable from inside a gh-aw",
+    "session. dl.google.com / go.dev / static.rust-lang.org are proven by",
+    "fetch-allowlist-is-respected-at-commit.mts's own commit-time scan (a Dockerfile /",
+    "workflow literal). The rest — astral.sh, crates.io, badge.socket.dev,",
+    "api.fireworks.ai, api.openai.com, api.synthetic.new, claude.ai,",
+    "nodejs.org, sh.rustup.rs, socketusercontent.com — are the pre-v2 list's",
+    "own documented local-agent usages (spend meters, offload pickers, MCP",
+    "package-file reads, registry-infra state reads); none showed up in a",
+    "gh-aw lock measured 2026-08-20 in odai, the runner the fleet uses",
+    "(.github/workflows/weekly-update.lock.yml + get-green.lock.yml, 55 hosts",
+    "unioned). The wheelhouse itself carries no lock - it retired gh-aw for",
+    "keyless on-device workflows - so the subset gate is vacuous HERE and does",
+    "its containment work in the members that run agentic workflows.",
+    "because none of them are gh-aw-agent traffic in the first place.",
+    "Promoting any of these to 'runtime' needs BOTH real evidence the fetch",
+    "must survive inside a gh-aw session AND an explicit 'network.allowed'",
+    "addition in that session's gh-aw workflow source, recompiled and",
+    "re-measured here — not a default, and not required for fetch scope alone."
+  ],
+  "mode": "off",
+  "hosts": [
+    {
+      "host": "*.githubusercontent.com",
+      "reason": "gh release-asset redirects at runtime.",
+      "scopes": ["runtime"]
+    },
+    {
+      "host": "anthropic.com",
+      "reason": "Anthropic API domain apex, alongside api.anthropic.com.",
+      "scopes": ["runtime"]
+    },
+    {
+      "host": "api.anthropic.com",
+      "reason": "Anthropic's API — the Claude seat the spend meter measures, and one of the endpoints the model-availability poller probes (verify-state-before-acting for the tier env vars: a down alias fails the auto-mode permission classifier closed, so the probe is the read before the swap).",
+      "scopes": ["runtime", "fetch"]
+    },
+    {
+      "host": "api.fireworks.ai",
+      "reason": "Fireworks' inference API — the default spend seat. fireworks-usage reads the month's spend from it, the offload model picker lists what it serves, and the availability poller probes its aliases before falling a tier back. Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "api.github.com",
+      "reason": "GitHub's REST API — the external-tools updater reads a repo's release list to find the newest soak-cleared version, and the pinned-label gate resolves a tag to its sha.",
+      "scopes": ["runtime", "fetch"]
+    },
+    {
+      "host": "api.openai.com",
+      "reason": "The seat behind the codex offload route. Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "api.synthetic.new",
+      "reason": "Synthetic's API — synthetic-quota reads the request-rate window the gauge fills against, and the offload model picker lists what it serves. Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "astral.sh",
+      "reason": "uv installer: curl -LsSf https://astral.sh/uv/install.sh, fleet Python tooling. Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "avatars.githubusercontent.com",
+      "reason": "GitHub's avatar CDN — brand work reads a reference org/user avatar when a member logo derives from an upstream mark. Exact host, never a *.githubusercontent.com fetch target: raw./gist. content stay fetch-denied even though the egress wildcard above covers the redirect case.",
+      "scopes": ["runtime", "fetch"]
+    },
+    {
+      "host": "badge.socket.dev",
+      "reason": "Socket's own badge service — the fleet README skeleton's Socket Badge; agents verify badge markup/dimensions against the live SVG. Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "claude.ai",
+      "reason": "Claude's subscription console — a usage read checks the seat's real level against the page the meter estimates. Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "code.claude.com",
+      "reason": "Claude Code documentation. Read-only reference for the hook events, settings keys and tool names the fleet hook tree is written against; consulted when an artifact shape needs grounding in the upstream contract rather than in this repo’s own copy of it.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "codeload.github.com",
+      "reason": "gh CLI / git archive download redirects.",
+      "scopes": ["runtime"]
+    },
+    {
+      "host": "crates.io",
+      "reason": "The Rust package registry's public API — the cargo registry-infra (registry.mts, trusted-publisher.mts, crate-release-sha.mts) reads crate state before acting (verify-state-before-acting). Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "dl.google.com",
+      "reason": "Google Chrome stable .deb — .github/workflows/on-device-model-cache.yml's odai chrome-builtin provisioning step. Non-agentic CI step; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "ghcr.io",
+      "reason": "GitHub Container Registry image pulls.",
+      "scopes": ["runtime"]
+    },
+    {
+      "host": "github-cloud.githubusercontent.com",
+      "reason": "GitHub release-asset CDN redirect target.",
+      "scopes": ["runtime"]
+    },
+    {
+      "host": "github.com",
+      "reason": "gh CLI (release assets, clones, API) + release-asset downloads; fleet-wide.",
+      "scopes": ["runtime", "fetch"]
+    },
+    {
+      "host": "go.dev",
+      "reason": "Go toolchain download — docker/fleet/go-base.Dockerfile. Non-agentic Docker build step; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "lfs.github.com",
+      "reason": "Git LFS object transfer.",
+      "scopes": ["runtime"]
+    },
+    {
+      "host": "nodejs.org",
+      "reason": "Official Node.js distribution host for versioned source and binary archives. Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "objects.githubusercontent.com",
+      "reason": "GitHub release-asset CDN redirect target.",
+      "scopes": ["runtime"]
+    },
+    {
+      "host": "pypi.org",
+      "reason": "The Python package registry's public API — soak math reads a release's upload date (multi-ecosystem minimumReleaseAge), and the uv-locked headroom pin reads package state before acting (verify-state-before-acting).",
+      "scopes": ["runtime", "fetch"]
+    },
+    {
+      "host": "raw.githubusercontent.com",
+      "reason": "gh-aw / CI raw-file reads; not a fetch target (JSON $schema references to this host are keys, not invocations).",
+      "scopes": ["runtime"]
+    },
+    {
+      "host": "registry.npmjs.org",
+      "reason": "The npm registry's public API — the npm registry-infra reads package state before acting (verify-state-before-acting), and provenance verification reads the SLSA attestation bundle to recover the source commit a published version was built from.",
+      "scopes": ["runtime", "fetch"]
+    },
+    {
+      "host": "sh.rustup.rs",
+      "reason": "rustup one-line installer host — an allowed Rust installer CDN for convenience-installer bootstraps. Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "socketusercontent.com",
+      "reason": "Socket's public package-content host. The CLI's MCP package-file tools (package_file_contents / package_file_grep) read blob content from it, so agents verify those reads against the live host. Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "static.rust-lang.org",
+      "reason": "Official Rust distribution CDN: versioned rustup-init binaries + .sha256 — docker/fleet/{rust,acorn}-base.Dockerfile pin + verify rustup-init. Non-agentic Docker build step; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "statsig.anthropic.com",
+      "reason": "Anthropic client telemetry endpoint reached by the Claude Code CLI itself in CI.",
+      "scopes": ["runtime"]
+    }
+  ],
+  "allowDomains": [
+    "*.githubusercontent.com",
+    "anthropic.com",
+    "api.anthropic.com",
+    "api.github.com",
+    "avatars.githubusercontent.com",
+    "codeload.github.com",
+    "ghcr.io",
+    "github-cloud.githubusercontent.com",
+    "github.com",
+    "lfs.github.com",
+    "objects.githubusercontent.com",
+    "pypi.org",
+    "raw.githubusercontent.com",
+    "registry.npmjs.org",
+    "statsig.anthropic.com"
+  ]
+}

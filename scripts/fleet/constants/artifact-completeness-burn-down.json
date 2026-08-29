@@ -1,0 +1,4 @@
+{
+  "//": "Artifacts exempt from fleet-artifacts-are-complete. EMPTY: the backlog is cleared, so the gate is strict for every artifact. Shrink-only - an entry is removed when the artifact is completed and never added, so a new artifact fixes its shape rather than being listed here.",
+  "entries": []
+}

@@ -1,0 +1,100 @@
+# Layer 1 — leaf action (no internal SocketDev refs). The first-party Go
+# toolchain installer: downloads the official tarball from go.dev, SRI-verifies
+# its SHA-256 BEFORE extract (the pin lives in
+# scripts/fleet/setup/external-tools.json under the `go` manager entry), and
+# puts it on PATH. Replaces the third-party actions/setup-go so the consumer's
+# allowlist doesn't need actions/setup-go@*. When this file bumps, the cascade
+# is: 2b → 3 → 4 → external repos. See updating-workflows skill.
+#
+# No tool cache (re-downloads each run); a cache layer can be added later the
+# way setup-rust-cache wraps the cache CLIs. The go.dev download is SFW-bypass
+# listed (it is the canonical Go source). Integrity is verified by
+# _shared/install-tool.mjs (sha256 in-process via node:crypto) before tar/unzip
+# touches the archive — no more `curl | tar` without verification.
+
+name: 'Setup Go Toolchain'
+description: |
+  Install the Go toolchain by downloading the official tarball from go.dev and
+  adding it to PATH. Replaces the third-party actions/setup-go action so the
+  consumer's allowlist doesn't need actions/setup-go@*. Supports an exact
+  version (e.g. 1.22.0) or 'stable' (resolves to the latest stable release).
+  The download is SHA-256-verified against the pin in external-tools.json (or
+  the go.dev release manifest for a custom version) BEFORE extraction.
+
+inputs:
+  go-version:
+    description: |
+      The Go version to install: an exact version like "1.22.0", or "stable"
+      (resolves to the fleet-pinned version from external-tools.json, which is
+      kept at the latest stable). Default: "stable".
+    required: false
+    default: 'stable'
+  go-version-file:
+    description: |
+      A go.mod file to read the Go version from (the `go <version>` line).
+      Overrides go-version when set. The resolved version's SHA-256 is fetched
+      from the go.dev release manifest so the download is still SRI-verified.
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install or update Go toolchain
+      shell: bash
+      env:
+        GO_VERSION: ${{ inputs.go-version }}
+        GO_VERSION_FILE: ${{ inputs.go-version-file }}
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
+        GITHUB_WORKSPACE: ${{ github.workspace }}
+      run: | # zizmor: ignore[github-env]
+        set -euo pipefail
+
+        RESOLVER="${GITHUB_ACTION_PATH}/../_shared/resolve-external-tool-asset.mjs"
+        JQ="${GITHUB_ACTION_PATH}/../_shared/jq.mjs"
+        INSTALL_TOOL="${GITHUB_ACTION_PATH}/../_shared/install-tool.mjs"
+
+        # Resolve the asset URL + SRI integrity for THIS runner's platform
+        # from external-tools.json. For 'stable' (the default) this is the
+        # fleet-pinned version + its pinned sha256; for an exact version or a
+        # go-version-file override, the resolver fetches the matching sha256
+        # from the go.dev release manifest. Either way the download is
+        # SHA-256-verified before extract.
+        PLAN_JSON="$(node "$RESOLVER" \
+          --tool go \
+          --version "$GO_VERSION" \
+          --version-file "$GO_VERSION_FILE")"
+        ASSET="$(printf '%s' "$PLAN_JSON" | node "$JQ" - asset)"
+        INTEGRITY="$(printf '%s' "$PLAN_JSON" | node "$JQ" - integrity)"
+        RESOLVED_VERSION="$(printf '%s' "$PLAN_JSON" | node "$JQ" - version)"
+        echo "Go toolchain: ${RESOLVED_VERSION} (${ASSET})"
+
+        # Forward the object-form integrity provenance (src/date) so
+        # install-tool.mjs can live-verify the pin against the publisher's
+        # current checksum + check staleness AFTER the static SRI check. Empty
+        # for a custom-version manifest resolution (no provenance) — jq.mjs
+        # exits non-zero on empty, so tolerate it with `|| true`.
+        SRC="$(printf '%s' "$PLAN_JSON" | node "$JQ" - src 2>/dev/null || true)"
+        DATE="$(printf '%s' "$PLAN_JSON" | node "$JQ" - date 2>/dev/null || true)"
+        PROVENANCE_ARGS=()
+        [[ -n "$SRC" ]] && PROVENANCE_ARGS+=(--src "$SRC")
+        [[ -n "$DATE" ]] && PROVENANCE_ARGS+=(--date "$DATE")
+
+        # Download + SRI-verify, THEN live-verify provenance, THEN extract.
+        # install-tool.mjs streams the asset, verifies sha256 in-process via
+        # node:crypto (aborts on mismatch, exit 2), live-verifies the pin
+        # against src + checks date staleness, and extracts .tar.gz with tar /
+        # .zip with unzip.
+        dest="$HOME/go-toolchain"
+        rm -rf "$dest"
+        mkdir -p "$dest"
+        node "$INSTALL_TOOL" "$ASSET" "$INTEGRITY" "$dest" "${PROVENANCE_ARGS[@]}"
+
+        # The tarball/zip extracts to a 'go/' directory under dest.
+        echo "${dest}/go/bin" >> "${GITHUB_PATH:-/dev/null}"
+
+        # Export for the rest of this step + verify.
+        export PATH="${dest}/go/bin:${PATH}"
+        echo
+        echo "Go toolchain summary:"
+        go version

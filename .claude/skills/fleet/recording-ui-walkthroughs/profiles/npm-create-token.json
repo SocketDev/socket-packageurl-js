@@ -1,0 +1,29 @@
+{
+  "startUrl": "file:///REPO/mockups/npm-granular-token.html",
+  "viewport": { "height": 900, "width": 1060 },
+  "fps": 10,
+  "steps": [
+    { "setText": "#npm-account", "text": "example-user" },
+    { "guideStep": "step1", "hold": 8 },
+    {
+      "guideStep": "step2",
+      "type": "#token-name",
+      "text": "socket-staged-scanning"
+    },
+    { "point": "#bypass" },
+    { "hold": 6 },
+    { "guideStep": "step3", "point": "#ips" },
+    { "hold": 6 },
+    { "guideStep": "step4", "click": "#pkg-summary" },
+    { "click": "#pkg-read" },
+    { "hold": 6 },
+    { "guideStep": "step5", "point": "#org-summary" },
+    { "hold": 8 },
+    { "guideStep": "step6", "click": "#exp-summary" },
+    { "click": "#exp-90" },
+    { "hold": 6 },
+    { "scrollTo": "#generate" },
+    { "click": "#generate" },
+    { "hold": 12 }
+  ]
+}

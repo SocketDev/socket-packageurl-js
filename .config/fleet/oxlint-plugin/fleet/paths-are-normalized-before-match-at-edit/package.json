@@ -1,0 +1,12 @@
+{
+  "name": "local-paths-are-normalized-before-match-at-edit",
+  "private": true,
+  "type": "module",
+  "main": "./index.mts",
+  "exports": {
+    ".": "./index.mts"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mts"
+  }
+}

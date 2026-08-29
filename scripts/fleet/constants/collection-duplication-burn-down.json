@@ -1,0 +1,20 @@
+{
+  "$comment": "Collection literals duplicated across files, predating collections-are-single-sourced.mts. The list ONLY SHRINKS: consolidate a group into one module and delete its line. A group that no longer duplicates is reported as stale, so the list cannot outlive the debt. Signature = the files a group spans, sorted and joined, so a group that gains a copy stops matching and is reported fresh.",
+  "groups": [
+    ".claude/hooks/fleet/_shared/dependency-spec-forms.mts + scripts/fleet/check/private-packages-are-unpublishable.mts + scripts/fleet/check/published-packages-are-release-ready.mts + scripts/fleet/lib/doctor/catalog-gap.mts + scripts/fleet/weekly-update/dep-changes.mts",
+    ".claude/hooks/fleet/_shared/foreign-paths.mts + .claude/hooks/fleet/dirty-worktree-stop-guard/index.mts + scripts/fleet/land-work.mts",
+    ".claude/hooks/fleet/ai-config-drift-nudge/index.mts + .claude/hooks/fleet/ai-config-poisoning-guard/index.mts",
+    ".claude/hooks/fleet/claude-segmentation-guard/index.mts + scripts/fleet/check/claude-dirs-are-segmented.mts",
+    ".claude/hooks/fleet/no-revert-guard/destructive-git-shapes.mts + .claude/hooks/fleet/no-revert-guard/target-repo.mts",
+    ".claude/hooks/fleet/readme-fleet-shape-guard/index.mts + scripts/repo/sync-scaffolding/checks/readme-skeleton-drift.mts",
+    "scripts/fleet/_shared/claude-model.mts + scripts/fleet/_shared/model-choices.mts + scripts/fleet/ai-shims/claude-code-shim.mts",
+    "scripts/fleet/_shared/spend-report-charts.mts + scripts/fleet/_shared/spend-report-html.mts",
+    "scripts/fleet/check/ai-spawns-have-paired-effort.mts + scripts/fleet/check/fable-spawns-have-opus-fallback.mts",
+    "scripts/fleet/check/coverage-thresholds-are-ratcheted.mts + scripts/fleet/cover/runner.mts",
+    "scripts/fleet/update/docker.mts + scripts/repo/gen/bootstrap/src/ghcr-fetch.mts",
+    "scripts/fleet/util/pack-app-triplets.mts + scripts/repo/build-statusline-render.mts",
+    "scripts/repo/bootstrap/prepare.mts + scripts/repo/gen/bootstrap/prepare.mts",
+    "scripts/repo/gen/mark-variant.mts + scripts/repo/gen/showcase.mts",
+    "scripts/repo/sync-scaffolding/checks/oxlint-rule-activations.mts + scripts/repo/sync-scaffolding/fixers/block-splicers.mts"
+  ]
+}

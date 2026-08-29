@@ -1,0 +1,10 @@
+{
+  "browser": {
+    "isolated": false,
+    "launchOptions": {
+      "channel": "chrome",
+      "chromiumSandbox": true,
+      "ignoreDefaultArgs": ["--enable-automation", "--disable-extensions"]
+    }
+  }
+}
