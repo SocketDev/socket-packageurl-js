@@ -4,6 +4,8 @@
  *   function, ensuring the check is self-consistent.
  */
 import { writeFileSync } from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import process from 'node:process'
 
 import { describe, expect, it } from 'vitest'
@@ -111,7 +113,10 @@ describe('extractFirstStringArg', () => {
 // ---------------------------------------------------------------------------
 describe('scanFile with a temp fixture', () => {
   it('reports violations in a file containing uppercase literals', () => {
-    const tmpFile = `/tmp/purlerror-check-test-${process.pid}.mts`
+    const tmpFile = path.join(
+      os.tmpdir(),
+      `purlerror-check-test-${process.pid}.mts`,
+    )
     writeFileSync(
       tmpFile,
       [
@@ -122,7 +127,7 @@ describe('scanFile with a temp fixture', () => {
       ].join('\n'),
     )
     try {
-      const violations = scanFile(tmpFile, '/tmp')
+      const violations = scanFile(tmpFile, os.tmpdir())
       expect(violations.length).toBe(3)
       const messages = violations.map(v => v.message)
       expect(messages).toContain('VERS string is required')
@@ -135,7 +140,10 @@ describe('scanFile with a temp fixture', () => {
   })
 
   it('detects violations in a two-line call (arg on next line)', () => {
-    const tmpFile = `/tmp/purlerror-check-test-multiline-${process.pid}.mts`
+    const tmpFile = path.join(
+      os.tmpdir(),
+      `purlerror-check-test-multiline-${process.pid}.mts`,
+    )
     writeFileSync(
       tmpFile,
       [
@@ -148,7 +156,7 @@ describe('scanFile with a temp fixture', () => {
       ].join('\n'),
     )
     try {
-      const violations = scanFile(tmpFile, '/tmp')
+      const violations = scanFile(tmpFile, os.tmpdir())
       expect(violations.length).toBe(1)
       expect(violations[0]?.message).toBe('VERS constraint must not be empty')
     } finally {
@@ -157,7 +165,10 @@ describe('scanFile with a temp fixture', () => {
   })
 
   it('returns empty array for a file with only compliant messages', () => {
-    const tmpFile = `/tmp/purlerror-check-test-clean-${process.pid}.mts`
+    const tmpFile = path.join(
+      os.tmpdir(),
+      `purlerror-check-test-clean-${process.pid}.mts`,
+    )
     writeFileSync(
       tmpFile,
       [
@@ -166,7 +177,7 @@ describe('scanFile with a temp fixture', () => {
       ].join('\n'),
     )
     try {
-      const violations = scanFile(tmpFile, '/tmp')
+      const violations = scanFile(tmpFile, os.tmpdir())
       expect(violations.length).toBe(0)
     } finally {
       safeDeleteSync(tmpFile)
@@ -174,7 +185,9 @@ describe('scanFile with a temp fixture', () => {
   })
 
   it('returns empty array for a nonexistent file', () => {
-    expect(scanFile('/tmp/does-not-exist-999.mts', '/tmp')).toEqual([])
+    expect(
+      scanFile(path.join(os.tmpdir(), 'does-not-exist-999.mts'), os.tmpdir()),
+    ).toEqual([])
   })
 })
 
@@ -183,7 +196,11 @@ describe('scanFile with a temp fixture', () => {
 // ---------------------------------------------------------------------------
 describe('collectSourceFiles', () => {
   it('returns empty array for a nonexistent directory', () => {
-    expect(collectSourceFiles('/tmp/nonexistent-dir-for-test-999')).toEqual([])
+    expect(
+      collectSourceFiles(
+        path.join(os.tmpdir(), 'nonexistent-dir-for-test-999'),
+      ),
+    ).toEqual([])
   })
 })
 
