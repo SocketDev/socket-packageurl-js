@@ -51,8 +51,11 @@ fuzz('the single-value normalizers never throw on arbitrary bytes', data => {
 // `__proto__` key surviving into the result is the bug the detector watches for.
 // Fed both as a raw string and as a key/value pair so the string-splitting and
 // the object-entry paths both get driven.
-fuzz('normalizeQualifiers never throws or pollutes on arbitrary bytes', data => {
-  const raw = data.toString('utf8')
-  normalizeQualifiers(raw)
-  normalizeQualifiers({ [raw]: raw })
-})
+fuzz(
+  'normalizeQualifiers never throws or pollutes on arbitrary bytes',
+  data => {
+    const raw = data.toString('utf8')
+    normalizeQualifiers(raw)
+    normalizeQualifiers({ [raw]: raw })
+  },
+)

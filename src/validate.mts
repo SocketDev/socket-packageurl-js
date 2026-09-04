@@ -136,18 +136,16 @@ export function validateQualifierKey(
     if (
       !(
         // 0-9
-        (
-          (code >= 48 && code <= 57) ||
-          // A-Z
-          (code >= 65 && code <= 90) ||
-          // a-z
-          (code >= 97 && code <= 122) ||
-          // .
-          code === 46 ||
-          // -
-          code === 45 ||
-          code === 95
-        )
+        (code >= 48 && code <= 57) ||
+        // A-Z
+        (code >= 65 && code <= 90) ||
+        // a-z
+        (code >= 97 && code <= 122) ||
+        // .
+        code === 46 ||
+        // -
+        code === 45 ||
+        code === 95
         // _
       )
     ) {
@@ -302,16 +300,14 @@ export function validateType(
     if (
       !(
         // 0-9
-        (
-          (code >= 48 && code <= 57) ||
-          // A-Z
-          (code >= 65 && code <= 90) ||
-          // a-z
-          (code >= 97 && code <= 122) ||
-          // .
-          code === 46 ||
-          code === 45
-        )
+        (code >= 48 && code <= 57) ||
+        // A-Z
+        (code >= 65 && code <= 90) ||
+        // a-z
+        (code >= 97 && code <= 122) ||
+        // .
+        code === 46 ||
+        code === 45
         // -
       )
     ) {

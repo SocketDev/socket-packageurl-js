@@ -155,12 +155,10 @@ export function pubValidate(
     if (
       !(
         // 0-9
-        (
-          (code >= 48 && code <= 57) ||
-          // a-z
-          (code >= 97 && code <= 122) ||
-          code === 95
-        )
+        (code >= 48 && code <= 57) ||
+        // a-z
+        (code >= 97 && code <= 122) ||
+        code === 95
         // _
       )
     ) {

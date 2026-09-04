@@ -62,7 +62,7 @@ export function collectRuntimeTargets(pkg: PackageJsonEntries): string[] {
     if (typeof node === 'object' && node !== null && !Array.isArray(node)) {
       const entries = Object.entries(node as Record<string, unknown>)
       for (let i = 0, { length } = entries; i < length; i += 1) {
-        const [key, value] = entries[i]!
+        const { 0: key, 1: value } = entries[i]!
         // Subpath keys start with '.'; anything else is a condition name.
         if (!key.startsWith('.') && NON_RUNTIME_CONDITIONS.has(key)) {
           continue

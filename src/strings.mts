@@ -30,56 +30,54 @@ export function isBlank(str: string): boolean {
         // Whitespace characters according to ECMAScript spec:
         // https://tc39.es/ecma262/#sec-white-space
         // Space
-        (
-          code === 0x00_20 ||
-          // Tab
-          code === 0x00_09 ||
-          // Line Feed
-          code === 0x00_0a ||
-          // Vertical Tab
-          code === 0x00_0b ||
-          // Form Feed
-          code === 0x00_0c ||
-          // Carriage Return
-          code === 0x00_0d ||
-          // No-Break Space
-          code === 0x00_a0 ||
-          // Ogham Space Mark
-          code === 0x16_80 ||
-          // En Quad
-          code === 0x20_00 ||
-          // Em Quad
-          code === 0x20_01 ||
-          // En Space
-          code === 0x20_02 ||
-          // Em Space
-          code === 0x20_03 ||
-          // Three-Per-Em Space
-          code === 0x20_04 ||
-          // Four-Per-Em Space
-          code === 0x20_05 ||
-          // Six-Per-Em Space
-          code === 0x20_06 ||
-          // Figure Space
-          code === 0x20_07 ||
-          // Punctuation Space
-          code === 0x20_08 ||
-          // Thin Space
-          code === 0x20_09 ||
-          // Hair Space
-          code === 0x20_0a ||
-          // Line Separator
-          code === 0x20_28 ||
-          // Paragraph Separator
-          code === 0x20_29 ||
-          // Narrow No-Break Space
-          code === 0x20_2f ||
-          // Medium Mathematical Space
-          code === 0x20_5f ||
-          // Ideographic Space
-          code === 0x30_00 ||
-          code === 0xfe_ff
-        )
+        code === 0x00_20 ||
+        // Tab
+        code === 0x00_09 ||
+        // Line Feed
+        code === 0x00_0a ||
+        // Vertical Tab
+        code === 0x00_0b ||
+        // Form Feed
+        code === 0x00_0c ||
+        // Carriage Return
+        code === 0x00_0d ||
+        // No-Break Space
+        code === 0x00_a0 ||
+        // Ogham Space Mark
+        code === 0x16_80 ||
+        // En Quad
+        code === 0x20_00 ||
+        // Em Quad
+        code === 0x20_01 ||
+        // En Space
+        code === 0x20_02 ||
+        // Em Space
+        code === 0x20_03 ||
+        // Three-Per-Em Space
+        code === 0x20_04 ||
+        // Four-Per-Em Space
+        code === 0x20_05 ||
+        // Six-Per-Em Space
+        code === 0x20_06 ||
+        // Figure Space
+        code === 0x20_07 ||
+        // Punctuation Space
+        code === 0x20_08 ||
+        // Thin Space
+        code === 0x20_09 ||
+        // Hair Space
+        code === 0x20_0a ||
+        // Line Separator
+        code === 0x20_28 ||
+        // Paragraph Separator
+        code === 0x20_29 ||
+        // Narrow No-Break Space
+        code === 0x20_2f ||
+        // Medium Mathematical Space
+        code === 0x20_5f ||
+        // Ideographic Space
+        code === 0x30_00 ||
+        code === 0xfe_ff
         // Byte Order Mark
       )
     ) {

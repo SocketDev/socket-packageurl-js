@@ -1087,14 +1087,14 @@ describe('Edge cases and additional coverage', () => {
     ])(
       'should support both option object and legacy boolean parameter for %s',
       (...row: unknown[]) => {
-        const [
-          _name,
-          validatorFn,
-          field,
-          invalidValue,
-          expectedMessage,
-          validValue,
-        ] = row as [
+        const {
+          0: _name,
+          1: validatorFn,
+          2: field,
+          3: invalidValue,
+          4: expectedMessage,
+          5: validValue,
+        } = row as [
           string,
           (field: string, value: unknown, opts: ValidateOpts) => boolean,
           string,
