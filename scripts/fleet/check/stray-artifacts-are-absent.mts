@@ -37,11 +37,11 @@ import process from 'node:process'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -203,7 +203,7 @@ async function main(): Promise<void> {
     'What: a tool wrote scratch output into the tree; it belongs outside any repo.',
   )
   logger.fail(
-    'Fix: clear the listed path(s) from the tree, then re-point the writing tool at a scratch dir outside any repo, the way .config/fleet/playwright/launch-playwright-mcp.sh passes --output-dir. A genuinely-scratch DIRECTORY goes in SCRATCH_DIR_SEGMENTS with a reason, never a new basename pattern.',
+    'Fix: clear the listed path(s) from the tree, then re-point the writing tool at a scratch dir outside any repo, the way .config/fleet/playwright/launch-mcp.sh passes --output-dir. A genuinely-scratch DIRECTORY goes in SCRATCH_DIR_SEGMENTS with a reason, never a new basename pattern.',
   )
   process.exitCode = 1
 }

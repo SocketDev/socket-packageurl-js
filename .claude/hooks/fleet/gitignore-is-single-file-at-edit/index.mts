@@ -16,7 +16,7 @@
 // deps/…, node_modules/, *-vendored/*-bundled) are upstream-owned and exempt.
 //
 // Fix: put the ignore pattern in the repo root `.gitignore` (use `**/<path>` to
-//      reach depth). Detail: docs/agents.md/fleet/single-gitignore.md.
+//      reach depth). Detail: docs/fleet/agents.md/single-gitignore.md.
 //
 // Bypass: `Allow nested-gitignore bypass`.
 //

@@ -21,35 +21,26 @@
  *   `skills-are-well-formed`), and duplicating those here would be a second
  *   enforcer for one doctrine.
  *
- *   Shrink-only burn-down. The backlog is seeded from the day this landed, so a
- *   NEW artifact is gated strictly while the existing gaps burn down; an entry
- *   that has been fixed is reported so the list cannot grow stale, exactly like
- *   the fixture-name and canonical-sources burn-downs.
+ *   Every artifact is gated. The backlog reached zero, so there is no exempt
+ *   set: a new artifact ships its parts and its test or the run fails.
  *
- *   Exit codes: 0 — every artifact outside the burn-down is complete; 1 — a
- *   gap outside the burn-down, or a stale burn-down entry.
+ *   Exit codes: 0 - every artifact is complete; 1 - any artifact is missing a
+ *   part or a test.
  */
 
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
-
-const BURN_DOWN_FILE = path.join(
-  'scripts',
-  'fleet',
-  'constants',
-  'artifact-completeness-burn-down.json',
-)
 
 export interface ArtifactKind {
   /**
@@ -224,54 +215,6 @@ export function findArtifactGaps(repoRoot: string): ArtifactGap[] {
 }
 
 /**
- * The burn-down list, or an empty set when the file is absent.
- *
- * Prefers the `template/base` copy for the same reason the artifacts are read
- * from there: the live constant is a cascaded mirror, so a freshly shrunk list
- * is only visible at the source until the next cascade runs.
- */
-export function readBurnDown(repoRoot: string): Set<string> {
-  const templated = path.join(repoRoot, 'template', 'base', BURN_DOWN_FILE)
-  const file = existsSync(templated)
-    ? templated
-    : path.join(repoRoot, BURN_DOWN_FILE)
-  if (!existsSync(file)) {
-    return new Set()
-  }
-  try {
-    const parsed = JSON.parse(readFileSync(file, 'utf8')) as unknown
-    const entries = Array.isArray(parsed)
-      ? parsed
-      : ((parsed as { entries?: unknown[] | undefined } | null)?.entries ?? [])
-    return new Set(entries.filter((e): e is string => typeof e === 'string'))
-  } catch {
-    return new Set()
-  }
-}
-
-export interface ArtifactVerdict {
-  /**
-   * Gaps not covered by the burn-down. These fail.
-   */
-  readonly fresh: ArtifactGap[]
-  /**
-   * Burn-down entries that are complete now. The list only shrinks.
-   */
-  readonly cleared: string[]
-}
-
-export function judgeArtifacts(
-  gaps: readonly ArtifactGap[],
-  burnDown: ReadonlySet<string>,
-): ArtifactVerdict {
-  const seen = new Set(gaps.map(gapKey))
-  return {
-    cleared: [...burnDown].filter(entry => !seen.has(entry)).toSorted(),
-    fresh: gaps.filter(gap => !burnDown.has(gapKey(gap))),
-  }
-}
-
-/**
  * One report line for a gap.
  */
 export function describeGap(gap: ArtifactGap): string {
@@ -288,14 +231,13 @@ export function describeGap(gap: ArtifactGap): string {
 export async function main(): Promise<void> {
   const isQuiet = process.argv.includes('--quiet')
   const gaps = findArtifactGaps(REPO_ROOT)
-  const { cleared, fresh } = judgeArtifacts(gaps, readBurnDown(REPO_ROOT))
 
-  if (fresh.length) {
+  if (gaps.length) {
     logger.fail(
-      `[fleet-artifacts-are-complete] ${fresh.length} artifact(s) are missing a part or a test.`,
+      `[fleet-artifacts-are-complete] ${gaps.length} artifact(s) are missing a part or a test.`,
     )
     logger.group()
-    for (const gap of fresh) {
+    for (const gap of gaps) {
       logger.error(describeGap(gap))
     }
     logger.error(
@@ -305,22 +247,9 @@ export async function main(): Promise<void> {
     process.exitCode = 1
   }
 
-  if (cleared.length) {
-    logger.warn(
-      `[fleet-artifacts-are-complete] ${cleared.length} burn-down entry(s) are complete now.`,
-    )
-    logger.group()
-    for (const entry of cleared) {
-      logger.warn(entry)
-    }
-    logger.warn(`Remove them from ${BURN_DOWN_FILE} — the list only shrinks.`)
-    logger.groupEnd()
-    process.exitCode = 1
-  }
-
-  if (!fresh.length && !cleared.length && !isQuiet) {
+  if (!gaps.length && !isQuiet) {
     logger.log(
-      `[fleet-artifacts-are-complete] ok — every artifact outside the burn-down ships its parts and a test (${gaps.length} known gap(s))`,
+      '[fleet-artifacts-are-complete] ok - every artifact ships its parts and a test.',
     )
   }
 }

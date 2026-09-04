@@ -27,27 +27,23 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
-import { whichLocalBin } from '@socketsecurity/lib-stable/bin/which'
+import { parseArgs } from 'node:util'
+import { whichLocalBin } from '@socketsecurity/lib-stable/exe/path/which'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 import { sleep } from '@socketsecurity/lib-stable/promises/timers'
 
-import { isMainModule } from './_shared/is-main-module.mts'
-import { writeModelSelection } from './_shared/model-choices.mts'
-import { GAUGE_PROVIDERS } from './_shared/offload-spend.mts'
-import type { GaugeProvider } from './_shared/offload-spend.mts'
-import {
-  REPORTS_PORT,
-  REPORTS_ROUTE,
-  reportsUrl,
-} from './_shared/report-url.mts'
-import { runMain } from './_shared/run-main.mts'
-import { fleetReportsRoot } from './_shared/spend-report-path.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { writeModelSelection } from './ai/model-choices.mts'
+import { GAUGE_PROVIDERS } from './spend/offload.mts'
+import type { GaugeProvider } from './spend/offload.mts'
+import { REPORTS_PORT, REPORTS_ROUTE, reportsUrl } from './reports/url.mts'
+import { runMain } from './process/run-main.mts'
+import { fleetReportsRoot } from './spend/report-path.mts'
 import { REPO_ROOT } from './paths.mts'
 
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 
 const logger = getDefaultLogger()
 

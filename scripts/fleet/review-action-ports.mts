@@ -8,7 +8,7 @@
  *   whether the port needs a change. `--advance <composite>` writes the
  *   portedAt bump into the TEMPLATE port map (never the live mirror) and prints
  *   the cascade reminder + a suggested commit message carrying the verdict.
- *   Doctrine: docs/agents.md/fleet/upstream-references.md. The gate is
+ *   Doctrine: docs/fleet/agents.md/upstream-references.md. The gate is
  *   `action-ports-are-lock-stepped.mts`; this script is the review surface that
  *   feeds it.
  *   Usage: node scripts/fleet/review-action-ports.mts
@@ -25,14 +25,14 @@ import { REPO_ROOT } from './paths.mts'
 import {
   COMPOSITE_ACTION_PORTS,
   upstreamSubmoduleName,
-} from './_shared/action-port-map.mts'
-import { parseGitmodules } from './_shared/gitmodules.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
+} from './github/action-port-map.mts'
+import { parseGitmodules } from './git/modules.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { runMain } from './process/run-main.mts'
 
-import type { CompositePort } from './_shared/action-port-map.mts'
-import type { GitmodulesEntry } from './_shared/gitmodules.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { CompositePort } from './github/action-port-map.mts'
+import type { GitmodulesEntry } from './git/modules.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 
 const logger = getDefaultLogger()
@@ -45,7 +45,7 @@ const TEMPLATE_PORT_MAP = path.join(
   'base',
   'scripts',
   'fleet',
-  '_shared',
+  'github',
   'action-port-map.mts',
 )
 
@@ -283,7 +283,7 @@ export function advancePortedAt(
   const ports = portMap[composite]
   if (!ports) {
     logger.fail(
-      `${composite}: no port-map entry — check the composite name in scripts/fleet/_shared/action-port-map.mts.`,
+      `${composite}: no port-map entry — check the composite name in scripts/fleet/github/action-port-map.mts.`,
     )
     return 1
   }
@@ -330,9 +330,7 @@ export function advancePortedAt(
     `${composite}: advanced portedAt ${prevTag} -> ${nextTag} in ${path.relative(REPO_ROOT, portMapPath)}.`,
   )
   logger.group('Next: cascade + verify.')
-  logger.log(
-    'node scripts/repo/sync-scaffolding/cli.mts --target . --fix --no-commit',
-  )
+  logger.log('node scripts/repo/dogfood/run.mts --fix --no-commit')
   logger.log('node scripts/fleet/check/action-ports-are-lock-stepped.mts')
   logger.groupEnd()
   logger.log(

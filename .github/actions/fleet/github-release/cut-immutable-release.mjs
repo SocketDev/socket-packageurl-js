@@ -166,98 +166,155 @@ export function dryRunPlan({ assetPaths, notesArgs, tag, title }) {
 }
 
 /**
- * The whole cut: refuse on the probe results, resolve notes + assets, then
- * either print the dry-run plan or run the immutable 3-step via gh. Returns
- * the process exit code. Injectable exec + fs + loggers keep it drivable
- * end-to-end by the unit suite with no gh on PATH.
+ * The action's env contract, read once. The inline block saw an unset
+ * variable as the empty string and compared the two boolean probes against
+ * the literal `true`, so both shapes are reproduced here.
  */
-export function runCut({
-  assets = process.env.ASSETS ?? '',
-  dryRun = process.env.DRY_RUN ?? 'true',
-  execImpl = defaultExec,
-  fsLike = defaultFsLike,
-  log = console.log,
-  logError = console.error,
-  notes = process.env.NOTES ?? '',
-  notesFile = process.env.NOTES_FILE ?? '',
-  releaseExists = process.env.RELEASE_EXISTS === 'true',
-  repository = process.env.GITHUB_REPOSITORY ?? '',
-  tag = process.env.TAG ?? '',
-  tagOnOrigin = process.env.TAG_ON_ORIGIN === 'true',
-  title = process.env.TITLE ?? '',
-} = {}) {
+function readCutEnv(env) {
+  return {
+    assets: env.ASSETS ?? '',
+    dryRun: env.DRY_RUN ?? 'true',
+    notes: env.NOTES ?? '',
+    notesFile: env.NOTES_FILE ?? '',
+    releaseExists: env.RELEASE_EXISTS === 'true',
+    repository: env.GITHUB_REPOSITORY ?? '',
+    tag: env.TAG ?? '',
+    tagOnOrigin: env.TAG_ON_ORIGIN === 'true',
+    title: env.TITLE ?? '',
+  }
+}
+
+/**
+ * The real exec + fs + log sinks, the ones the unit suite substitutes.
+ */
+function defaultCutSinks() {
+  return {
+    execImpl: defaultExec,
+    fsLike: defaultFsLike,
+    log: console.log,
+    logError: console.error,
+  }
+}
+
+/**
+ * Caller options over the env + sink defaults. A key carrying `undefined`
+ * takes the default, matching destructuring-default semantics.
+ */
+function withCutDefaults(config) {
+  const cfg = { __proto__: null, ...config }
+  const merged = { ...readCutEnv(process.env), ...defaultCutSinks() }
+  const keys = Object.keys(cfg)
+  for (let i = 0, { length } = keys; i < length; i += 1) {
+    const key = keys[i]
+    if (cfg[key] !== undefined) {
+      merged[key] = cfg[key]
+    }
+  }
+  return merged
+}
+
+/**
+ * Everything the gh steps need, or the single refusal that stops the cut.
+ * Refusal order matches the inline block: probes, then notes, then assets.
+ */
+function prepareCutPlan(o) {
   const probeRefusal = refusalForProbes({
-    releaseExists,
-    repository,
-    tag,
-    tagOnOrigin,
+    releaseExists: o.releaseExists,
+    repository: o.repository,
+    tag: o.tag,
+    tagOnOrigin: o.tagOnOrigin,
   })
   if (probeRefusal) {
-    logError(probeRefusal)
-    return 1
+    return { refusal: probeRefusal }
   }
-  const resolvedTitle = resolveTitle(title, tag)
-  const resolvedNotes = resolveNotesArgs({ notes, notesFile, tag }, fsLike)
+  const resolvedNotes = resolveNotesArgs(
+    { notes: o.notes, notesFile: o.notesFile, tag: o.tag },
+    o.fsLike,
+  )
   if (resolvedNotes.refusal) {
-    logError(resolvedNotes.refusal)
-    return 1
+    return { refusal: resolvedNotes.refusal }
   }
-  const assetPaths = parseAssetList(assets)
-  const missingAsset = assetRefusal(assetPaths, fsLike)
+  const assetPaths = parseAssetList(o.assets)
+  const missingAsset = assetRefusal(assetPaths, o.fsLike)
   if (missingAsset) {
-    logError(missingAsset)
-    return 1
+    return { refusal: missingAsset }
   }
-  if (dryRun !== 'false') {
-    const plan = dryRunPlan({
-      assetPaths,
-      notesArgs: resolvedNotes.notesArgs,
-      tag,
-      title: resolvedTitle,
-    })
-    for (const line of plan) {
-      log(line)
-    }
-    return 0
+  return {
+    assetPaths,
+    notesArgs: resolvedNotes.notesArgs,
+    title: resolveTitle(o.title, o.tag),
   }
-  // The immutable 3-step (immutable-release-guard): a draft assembles
-  // everything privately; publishing (un-drafting) happens exactly once.
-  // A failing gh step stops the cut and propagates its exit status, the way
-  // the inline block's `set -e` did; gh's own error output already reached
-  // the log via inherited stdio.
-  log(`creating draft release ${tag}…`)
-  const createStatus = execImpl([
+}
+
+/**
+ * The immutable 3-step (immutable-release-guard): a draft assembles
+ * everything privately; publishing (un-drafting) happens exactly once.
+ * A failing gh step stops the cut and propagates its exit status, the way
+ * the inline block's `set -e` did; gh's own error output already reached
+ * the log via inherited stdio.
+ */
+function executeImmutableRelease(o, plan) {
+  o.log(`creating draft release ${o.tag}…`)
+  const createStatus = o.execImpl([
     'release',
     'create',
-    tag,
+    o.tag,
     '--draft',
     '--title',
-    resolvedTitle,
-    ...resolvedNotes.notesArgs,
+    plan.title,
+    ...plan.notesArgs,
   ])
   if (createStatus !== 0) {
     return createStatus
   }
-  if (assetPaths.length > 0) {
-    log(`uploading ${assetPaths.length} asset(s)…`)
-    const uploadStatus = execImpl([
+  if (plan.assetPaths.length > 0) {
+    o.log(`uploading ${plan.assetPaths.length} asset(s)…`)
+    const uploadStatus = o.execImpl([
       'release',
       'upload',
-      tag,
-      ...assetPaths,
+      o.tag,
+      ...plan.assetPaths,
       '--clobber',
     ])
     if (uploadStatus !== 0) {
       return uploadStatus
     }
   }
-  log('publishing (un-drafting)…')
-  const editStatus = execImpl(['release', 'edit', tag, '--draft=false'])
+  o.log('publishing (un-drafting)…')
+  const editStatus = o.execImpl(['release', 'edit', o.tag, '--draft=false'])
   if (editStatus !== 0) {
     return editStatus
   }
-  log(`Created release ${tag}.`)
+  o.log(`Created release ${o.tag}.`)
   return 0
+}
+
+/**
+ * The whole cut: refuse on the probe results, resolve notes + assets, then
+ * either print the dry-run plan or run the immutable 3-step via gh. Returns
+ * the process exit code. Injectable exec + fs + loggers keep it drivable
+ * end-to-end by the unit suite with no gh on PATH.
+ */
+export function runCut(options = {}) {
+  const o = withCutDefaults(options)
+  const plan = prepareCutPlan(o)
+  if (plan.refusal) {
+    o.logError(plan.refusal)
+    return 1
+  }
+  if (o.dryRun !== 'false') {
+    const lines = dryRunPlan({
+      assetPaths: plan.assetPaths,
+      notesArgs: plan.notesArgs,
+      tag: o.tag,
+      title: plan.title,
+    })
+    for (let i = 0, { length } = lines; i < length; i += 1) {
+      o.log(lines[i])
+    }
+    return 0
+  }
+  return executeImmutableRelease(o, plan)
 }
 
 function main() {
@@ -265,7 +322,7 @@ function main() {
 }
 
 // Realpath both sides — the naive argv[1] comparison is symlink-fragile, the
-// same pitfall scripts/fleet/_shared/is-main-module.mts documents; that
+// same pitfall scripts/fleet/process/is-main-module.mts documents; that
 // helper is .mts and this script must stay importless-runnable on system
 // Node, so the comparison is inlined.
 function isEntrypoint(invokedPath) {

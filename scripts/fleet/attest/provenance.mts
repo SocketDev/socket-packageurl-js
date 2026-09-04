@@ -3,7 +3,7 @@
  *
  *   This is the shape `gh attestation verify` reads, and the fleet's own
  *   consumer depends on it: multi-package-publish verifies the checksums
- *   manifest and every binary tail before staging them for a pnpm publish, so a
+ *   manifest and every binary tail before staging them for a `pnpm publish`, so a
  *   predicate that is subtly wrong stops an npm release rather than passing
  *   quietly. Pure, so it is pinned by unit tests and by an oracle test that
  *   compares it against the upstream implementation for identical claims.

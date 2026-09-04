@@ -16,7 +16,7 @@ Config DATA only (.json/.yaml/.yml/.toml); code configs are exempt. Bypass:
 `Allow loose-config-ref bypass` for a genuinely external/loose config. Fails
 open on hook bugs (exit 0 + stderr log).
 
-Rule: docs/agents.md/fleet/config-segregation.md.
+Rule: docs/fleet/agents.md/config-segregation.md.
 
 ## Bypass
 

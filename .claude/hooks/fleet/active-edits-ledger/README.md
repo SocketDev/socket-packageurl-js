@@ -22,7 +22,7 @@ Actor key: hash of `transcript_path` (first 16 hex chars). The
 transcript_path discriminates actors because each subagent / workflow-
 agent gets its own JSONL file while the main interactive session has a
 different one. Keying by its hash gives a stable, content-free
-filesystem key per actor - the same scheme foreign-paths.mts uses for
+filesystem key per actor - the same scheme peer-paths.mts uses for
 its same-turn ledger.
 
 Store: `CLAUDE_PROJECT_DIR/.cache/fleet/socket-active-edits/`

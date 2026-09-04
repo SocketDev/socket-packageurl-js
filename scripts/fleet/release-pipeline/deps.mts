@@ -13,7 +13,7 @@ import process from 'node:process'
 
 import { sleep } from '@socketsecurity/lib-stable/promises/timers'
 
-import { resolveReleaseSubject } from '../_shared/release-subject.mts'
+import { resolveReleaseSubject } from '../release/subject.mts'
 import { npmIdentityFor } from '../registry-infra/npm/auth-identity.mts'
 import { resolveNpmWorkspaceLayout } from '../registry-infra/npm/workspace.mts'
 
@@ -273,31 +273,95 @@ function defaultRegistryLive(name: string, version: string): Promise<boolean> {
 }
 
 /**
+ * The tarball-handling dependencies: packing the local subject, downloading a
+ * published or staged one, and comparing extracted contents.
+ */
+function resolveTarballDeps(
+  deps: RunnerDeps,
+): Pick<
+  ResolvedDeps,
+  | 'compareTarballContents'
+  | 'downloadRegistryTarball'
+  | 'downloadStagedTarball'
+  | 'packTarball'
+> {
+  return {
+    compareTarballContents:
+      deps.compareTarballContents ?? compareExtractedTarballs,
+    downloadRegistryTarball:
+      deps.downloadRegistryTarball ?? defaultDownloadRegistryTarball,
+    downloadStagedTarball:
+      deps.downloadStagedTarball ?? defaultDownloadStagedTarball,
+    packTarball: deps.packTarball ?? defaultPackTarball,
+  }
+}
+
+/**
+ * The registry-facing dependencies: what the pipeline reads off npm and what
+ * cuts the tag + immutable GitHub release.
+ */
+function resolveRegistryDeps(
+  deps: RunnerDeps,
+): Pick<
+  ResolvedDeps,
+  | 'ensureRelease'
+  | 'fetchRegistryDist'
+  | 'identityFor'
+  | 'listStaged'
+  | 'registryLive'
+> {
+  return {
+    ensureRelease: deps.ensureRelease ?? ensureTagAndRelease,
+    fetchRegistryDist: deps.fetchRegistryDist ?? defaultFetchRegistryDist,
+    identityFor: deps.identityFor ?? npmIdentityFor,
+    listStaged: deps.listStaged ?? listStagedPackages,
+    registryLive: deps.registryLive ?? defaultRegistryLive,
+  }
+}
+
+/**
+ * The process-facing dependencies: how a runner spawns, whether it holds a
+ * real terminal, and how it waits.
+ */
+function resolveProcessDeps(
+  deps: RunnerDeps,
+): Pick<
+  ResolvedDeps,
+  'isTty' | 'runCapture' | 'runInherit' | 'runPtyPumped' | 'sleep'
+> {
+  return {
+    isTty: deps.isTty ?? Boolean(process.stdin.isTTY && process.stdout.isTTY),
+    runCapture: deps.runCapture ?? runCapture,
+    runInherit: deps.runInherit ?? runInherit,
+    runPtyPumped: deps.runPtyPumped ?? runPtyPumped,
+    sleep: deps.sleep ?? sleep,
+  }
+}
+
+/**
+ * The integrity-gate dependencies: the Socket scan auth + per-entry full scan,
+ * and the staged-entry verify the approve step is unreachable without.
+ */
+function resolveScanDeps(
+  deps: RunnerDeps,
+): Pick<ResolvedDeps, 'scanAuth' | 'scanEntry' | 'verifyEntry'> {
+  return {
+    scanAuth: deps.scanAuth ?? (() => preflightSocketScanAuth()),
+    scanEntry: deps.scanEntry ?? scanStagedEntryDetailed,
+    verifyEntry: deps.verifyEntry ?? verifyStagedEntryRouted,
+  }
+}
+
+/**
  * Fill unset dependencies with the real implementations.
  */
 export function resolveDeps(deps: RunnerDeps | undefined): ResolvedDeps {
   const s = { __proto__: null, ...deps } as RunnerDeps
   return {
-    compareTarballContents:
-      s.compareTarballContents ?? compareExtractedTarballs,
-    downloadRegistryTarball:
-      s.downloadRegistryTarball ?? defaultDownloadRegistryTarball,
-    downloadStagedTarball:
-      s.downloadStagedTarball ?? defaultDownloadStagedTarball,
-    ensureRelease: s.ensureRelease ?? ensureTagAndRelease,
-    fetchRegistryDist: s.fetchRegistryDist ?? defaultFetchRegistryDist,
-    identityFor: s.identityFor ?? npmIdentityFor,
-    isTty: s.isTty ?? Boolean(process.stdin.isTTY && process.stdout.isTTY),
-    listStaged: s.listStaged ?? listStagedPackages,
-    packTarball: s.packTarball ?? defaultPackTarball,
-    registryLive: s.registryLive ?? defaultRegistryLive,
-    runCapture: s.runCapture ?? runCapture,
-    runInherit: s.runInherit ?? runInherit,
-    runPtyPumped: s.runPtyPumped ?? runPtyPumped,
-    scanAuth: s.scanAuth ?? (() => preflightSocketScanAuth()),
-    scanEntry: s.scanEntry ?? scanStagedEntryDetailed,
-    sleep: s.sleep ?? sleep,
-    verifyEntry: s.verifyEntry ?? verifyStagedEntryRouted,
+    ...resolveTarballDeps(s),
+    ...resolveRegistryDeps(s),
+    ...resolveProcessDeps(s),
+    ...resolveScanDeps(s),
   }
 }
 

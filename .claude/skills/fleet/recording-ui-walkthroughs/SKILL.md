@@ -3,7 +3,7 @@ name: recording-ui-walkthroughs
 description: Records UI flows as video guides and mocks vendor screens. Use when a guide must show a flow.
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash(node:*), Bash(ffmpeg:*), Bash(ls:*)
-model: sonnet
+model: claude-sonnet-5
 metadata:
   internal: true
 ---

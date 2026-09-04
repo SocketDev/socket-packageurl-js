@@ -24,11 +24,11 @@ import process from 'node:process'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
+import { isMainModule } from '../process/is-main-module.mts'
 import { REPO_ROOT } from '../paths.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { runMain } from '../process/run-main.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 

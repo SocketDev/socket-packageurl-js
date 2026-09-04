@@ -12,12 +12,12 @@
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import process from 'node:process'
 
-import { isMainModule } from './_shared/is-main-module.mts'
-import { ensureOnePasswordGraft } from './_shared/browser-control/one-password.mts'
-import { profileById, PROFILES } from './_shared/browser-control/profiles.mts'
-import { isJsonRequested, runMain } from './_shared/run-main.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { ensureOnePasswordGraft } from './browser/control/one-password.mts'
+import { profileById, PROFILES } from './browser/control/profiles.mts'
+import { isJsonRequested, runMain } from './process/run-main.mts'
 
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 
 const logger = getDefaultLogger()
 

@@ -197,9 +197,26 @@ runs:
           echo "  Got: $RESULT_JSON" >&2
           exit 1
         fi
-        # Put the odai binary on PATH for this step + subsequent steps (the
-        # fill step below runs `odai summarize`).
-        BINDIR="$(dirname "$BIN")"
+        # Put `odai` on PATH for this step + subsequent steps (the fill step
+        # below runs `odai summarize`).
+        #
+        # Through a SHIM, not `dirname "$BIN"`. downloadNpmPackage answers the
+        # package's JS ENTRY — the same shape as agentshield's
+        # `.../node_modules/ecc-agentshield/dist/index.js` — so its directory is
+        # `dist/`, which holds `index.js` and nothing named `odai`. Adding that
+        # directory to PATH therefore provisioned nothing, and the `odai --help`
+        # on the next line died with `odai: command not found` and exit 127.
+        # The -x guard above did not catch it: an entry file ships chmod +x, so
+        # the path IS executable, just not under the name callers use.
+        #
+        # `exec node` rather than relying on the entry's own shebang: a package
+        # published without one is not executable by name on any PATH, and the
+        # node that runs it must be the runner's, not whatever a shebang names.
+        BINDIR="${RUNNER_TEMP:-/tmp}/setup-odai-bin"
+        mkdir -p "$BINDIR"
+        printf '#!/usr/bin/env bash\nexec node %s "$@"\n' "$(printf '%q' "$BIN")" \
+          > "$BINDIR/odai"
+        chmod +x "$BINDIR/odai"
         echo "$BINDIR" >> "${GITHUB_PATH:-/dev/null}"
         export PATH="$BINDIR:$PATH"
         odai --help >/dev/null

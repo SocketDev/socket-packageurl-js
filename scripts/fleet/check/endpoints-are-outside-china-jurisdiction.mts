@@ -26,12 +26,13 @@ import process from 'node:process'
 
 import { globSync } from '@socketsecurity/lib-stable/globs/match'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
+import { escapeRegExp } from '@socketsecurity/lib-stable/regexps/escape'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -130,7 +131,7 @@ export function scanEndpoints(
   for (let i = 0, { length } = hosts; i < length; i += 1) {
     const host = hosts[i]!
     const pattern = new RegExp(
-      `(?<![A-Za-z0-9.-])${host.replace(/\./g, '\\.')}(?![A-Za-z0-9.-])`,
+      `(?<![A-Za-z0-9.-])${escapeRegExp(host)}(?![A-Za-z0-9.-])`,
       'g',
     )
     for (const match of text.matchAll(pattern)) {

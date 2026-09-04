@@ -32,11 +32,11 @@ import {
   hasEnforcementStamp,
   memoryFrontmatterType,
 } from '../../../.claude/hooks/fleet/_shared/memory-store.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
+import { isMainModule } from '../process/is-main-module.mts'
 import { CLAUDE_HOME, REPO_ROOT } from '../paths.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { runMain } from '../process/run-main.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 

@@ -1,5 +1,5 @@
 /*
- * @file Per docs/agents.md/fleet/code-style.md "Refined Record types — a
+ * @file Per docs/fleet/agents.md/code-style.md "Refined Record types — a
  *   Record<string, T> is a smell when the key is a path or a domain type".
  *   Reports a `Record<string, T>` annotation whose value type is a plain array
  *   or primitive, because the refined form is a Map (when the key is a path or
@@ -16,6 +16,48 @@
 
 import { makeBypassChecker } from '../../lib/comment-markers.mts'
 import type { AstNode, RuleContext } from '../../lib/rule-types.mts'
+
+/**
+ * True when the Record key parameter is a bare `string`. A number or a
+ * template-literal key is already refined, so it is never flagged.
+ */
+function isBareStringRecordKey(keyParam: AstNode | undefined): boolean {
+  return (
+    keyParam?.type === 'TSStringKeyword' ||
+    keyParam?.typeName?.name === 'string'
+  )
+}
+
+/**
+ * Name the Record value type when it is a plain value (array or primitive).
+ * Returns undefined for a branded or mapped value, which is already refined.
+ */
+function resolveRecordValueTypeName(
+  valueParam: AstNode | undefined,
+): string | undefined {
+  return (
+    valueParam?.typeName?.name ??
+    (valueParam?.type === 'TSArrayType'
+      ? (valueParam.elementType?.typeName?.name ?? 'array')
+      : undefined)
+  )
+}
+
+/**
+ * True when the linted file serializes to JSON anywhere. A record that is
+ * JSON-serialized is exempt: a Map does not JSON.stringify without a replacer,
+ * so Record is the honest shape for a document. The dependency map in
+ * emit-ownership.mts is exactly that case — a path-keyed record that lands on
+ * disk as JSON.
+ */
+function fileSerializesJson(context: RuleContext): boolean {
+  const fileText =
+    context.getSourceCode?.().text ??
+    context.getSourceCode?.().getText?.() ??
+    ''
+  // Either the JSON.stringify call itself or the writeFileSync that lands it.
+  return /JSON\.stringify|writeFileSync/.test(fileText)
+}
 
 const rule = {
   meta: {
@@ -48,37 +90,18 @@ const rule = {
         if (!Array.isArray(params) || params.length !== 2) {
           return
         }
-        const [keyParam, valueParam] = params
-        // Only flag string keys — a number or template-literal key is already
-        // refined.
-        if (
-          keyParam?.type !== 'TSStringKeyword' &&
-          keyParam?.typeName?.name !== 'string'
-        ) {
+        const { 0: keyParam, 1: valueParam } = params
+        if (!isBareStringRecordKey(keyParam)) {
           return
         }
-        // Only flag a plain value (array or primitive) — a branded or mapped
-        // value is already refined.
-        const valueName =
-          valueParam?.typeName?.name ??
-          (valueParam?.type === 'TSArrayType'
-            ? (valueParam.elementType?.typeName?.name ?? 'array')
-            : undefined)
+        const valueName = resolveRecordValueTypeName(valueParam)
         if (valueName === undefined) {
           return
         }
         if (hasBypassComment(node)) {
           return
         }
-        // A record that is JSON-serialized is exempt: a Map does not
-        // JSON.stringify without a replacer, so Record is the honest shape for
-        // a document. The dependency map in emit-ownership.mts is exactly that
-        // case — a path-keyed record that lands on disk as JSON.
-        const fileText =
-          context.getSourceCode?.().text ??
-          context.getSourceCode?.().getText?.() ??
-          ''
-        if (/JSON\.stringify|writeFileSync/.test(fileText)) {
+        if (fileSerializesJson(context)) {
           return
         }
         context.report({

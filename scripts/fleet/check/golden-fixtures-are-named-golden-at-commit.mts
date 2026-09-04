@@ -9,20 +9,20 @@
  *   `golden-fixtures-are-named-golden-at-edit` hook (imported directly —
  *   `runHook` is entrypoint-guarded, so importing the hook is a no-op) so the
  *   write-time guard and this belt scan can never diverge on what counts as a
- *   violation. Detail: docs/agents.md/fleet/golden-fixtures.md.
+ *   violation. Detail: docs/fleet/agents.md/golden-fixtures.md.
  */
 
 import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
-import { gitSync } from '../_shared/git-exec.mts'
+import { gitSync } from '../git/exec.mts'
 
 import { goldenTarget } from '../../../.claude/hooks/fleet/_shared/golden-fixture-target.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -71,7 +71,7 @@ export function main(): void {
   }
   logger.log('')
   logger.log('  Also update the loader that reads these fixtures.')
-  logger.log('  Detail: docs/agents.md/fleet/golden-fixtures.md')
+  logger.log('  Detail: docs/fleet/agents.md/golden-fixtures.md')
   process.exitCode = 1
 }
 

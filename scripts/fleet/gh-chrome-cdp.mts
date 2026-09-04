@@ -4,10 +4,8 @@
  * it there. Log into whatever you need in the window; later commands attach over
  * CDP. Close Chrome (or Ctrl-C here) to end the script.
  *
- * `gh:attach` no longer needs this run first — it brings up a browser itself
- * through the same launcher (`_shared/chrome-cdp.mts`). This stays for the case
- * where the sign-in and the work happen at different times, or where an operator
- * wants one long-lived window several commands attach to in turn.
+ * Useful where the sign-in and the work happen at different times, or where an
+ * operator wants one long-lived window several commands attach to in turn.
  *
  * Held in the FOREGROUND on purpose: a detached child was measured to die with
  * its parent and take the CDP port with it.
@@ -22,11 +20,11 @@ import {
   DEFAULT_CDP_PORT,
   DEFAULT_CDP_PROFILE_DIR,
   openChromeCdpSession,
-} from './_shared/chrome-cdp.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
+} from './browser/chrome-cdp.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { runMain } from './process/run-main.mts'
 
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 
 const logger = getDefaultLogger()
 

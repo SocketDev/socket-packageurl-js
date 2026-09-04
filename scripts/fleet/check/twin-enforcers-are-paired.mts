@@ -7,7 +7,7 @@
  *   a Claude hook catches it as you write, and a check re-scans committed
  *   source for whatever was written before the guard existed or landed around
  *   it. That pairing is deliberate and documented in
- *   docs/agents.md/fleet/twin-enforcers.md.
+ *   docs/fleet/agents.md/twin-enforcers.md.
  *
  *   What it was NOT is discoverable. The path-normalization policy shipped as
  *   `normalize-path-before-match` (rule) and
@@ -44,11 +44,11 @@ import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -209,7 +209,7 @@ function main(): number {
   logger.error(
     'Wanted: one base per policy, with a suffix saying when it runs. ' +
       'Fix: add the missing twin, or rename the existing one so the pair ' +
-      'shares a base (docs/agents.md/fleet/twin-enforcers.md).',
+      'shares a base (docs/fleet/agents.md/twin-enforcers.md).',
   )
   return 1
 }

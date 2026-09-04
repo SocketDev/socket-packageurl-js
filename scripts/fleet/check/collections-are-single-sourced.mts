@@ -3,7 +3,7 @@
  * @file Gate: a collection literal is declared in exactly one file.
  *
  *   Two modules holding the same array of strings is the DRY violation
- *   docs/agents.md/fleet/single-source-of-truth.md forbids, and the copies do
+ *   docs/fleet/agents.md/single-source-of-truth.md forbids, and the copies do
  *   not stay equal: one gets the new entry, the other keeps shipping the old
  *   list, and a green gate hides the gap. `KINDS` lived in both
  *   check/claude-dirs-are-segmented.mts and the claude-segmentation-guard hook,
@@ -35,11 +35,11 @@ import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -298,7 +298,7 @@ function main(): number {
         ...bucket.map(d => `    ${d.name} — ${d.file}`),
         '  Copies drift: one gains the new entry, the other keeps shipping the old',
         '  list. Move it to ONE module and import it',
-        '  (docs/agents.md/fleet/single-source-of-truth.md), or add the signature',
+        '  (docs/fleet/agents.md/single-source-of-truth.md), or add the signature',
         `  to ${BURN_DOWN_PATH} with the reason it stands.`,
       ].join('\n'),
     )

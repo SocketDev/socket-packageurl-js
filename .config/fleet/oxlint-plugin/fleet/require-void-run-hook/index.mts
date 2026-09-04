@@ -2,7 +2,7 @@
  * @file Require `void` on a hook's `runHook(hook, import.meta.url)` entry call.
  *
  *   This is not a style preference and the cost of missing it is not an
- *   unhandled rejection. `scripts/fleet/_shared/dispatch-scan.mts` decides which
+ *   unhandled rejection. `scripts/fleet/hooks/dispatch-scan.mts` decides which
  *   hooks are bundle-safe by MATCHING SOURCE TEXT:
  *
  *     const ENTRYPOINT_GUARD_RE =

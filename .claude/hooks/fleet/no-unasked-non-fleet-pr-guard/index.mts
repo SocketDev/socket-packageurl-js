@@ -228,10 +228,23 @@ export function envAllowedNonFleet(ownerRepo: string): boolean {
   return false
 }
 
-export const check = bashGuard((command, payload) => {
-  // The invocation form decides how the target is found: REST names it in
-  // the endpoint path, `gh pr create` uses --repo/cwd, and GraphQL falls
-  // back to cwd (its repository argument is a node id, not a slug).
+export interface PrCreateInvocation extends PrRepoTarget {
+  /**
+   * How the PR is being opened, named in the block message.
+   */
+  readonly via: string
+}
+
+/**
+ * The repo a PR-creating command targets, plus the invocation form that names
+ * it. The form decides how the target is found: REST names it in the endpoint
+ * path, `gh pr create` uses --repo/cwd, and GraphQL falls back to cwd (its
+ * repository argument is a node id, not a slug). Undefined when the command
+ * opens no PR, or opens one at a repo that cannot be resolved.
+ */
+export function resolvePrCreateInvocation(
+  command: string,
+): PrCreateInvocation | undefined {
   const restTarget = ghApiRestPrCreate(command)
   const graphql = restTarget === undefined && isGhApiGraphqlPrCreate(command)
   const prCreate = restTarget === undefined && !graphql && isGhPrCreate(command)
@@ -242,6 +255,20 @@ export const check = bashGuard((command, payload) => {
   if (!slug) {
     return undefined
   }
+  const via = restTarget
+    ? 'gh api (REST)'
+    : graphql
+      ? 'gh api graphql'
+      : 'gh pr create'
+  return { ownerRepo, slug, via }
+}
+
+export const check = bashGuard((command, payload) => {
+  const invocation = resolvePrCreateInvocation(command)
+  if (!invocation) {
+    return undefined
+  }
+  const { ownerRepo, slug, via } = invocation
   if (isFleetRepo(slug)) {
     return undefined
   }
@@ -259,11 +286,6 @@ export const check = bashGuard((command, payload) => {
     return undefined
   }
   const label = ownerRepo || slug
-  const via = restTarget
-    ? 'gh api (REST)'
-    : graphql
-      ? 'gh api graphql'
-      : 'gh pr create'
   return block(
     [
       `no-unasked-non-fleet-pr-guard: opening a PR on non-fleet repo ${label} via ${via} needs a yes first - it summons reviewers and CI you don't own, and closing it is not a clean undo.`,

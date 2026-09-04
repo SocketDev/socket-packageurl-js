@@ -21,10 +21,10 @@ white in dark.
 
 In the dashboard theme this is the `gray` palette's solid, not a literal `black`:
 
-| Token | Light | Dark |
-| --- | --- | --- |
-| `gray.solid` (fill) | `gray.900` | `white` |
-| `gray.contrast` (label) | `white` | `gray.950` |
+| Token                   | Light      | Dark       |
+| ----------------------- | ---------- | ---------- |
+| `gray.solid` (fill)     | `gray.900` | `white`    |
+| `gray.contrast` (label) | `white`    | `gray.950` |
 
 So `PrimaryButton` is `colorPalette: 'gray'` + `variant: 'solid'`, and it reads
 black on a light page and white on a dark one without a second definition. Never
@@ -35,7 +35,7 @@ hard-code `black`: the token is what makes the inversion work.
 Purple did not go away, it moved off the fill:
 
 - **Focus rings.** The button recipe's base sets `focusRingColor:
-  'purple.focusRing'` for every variant, including the black one. A black button
+'purple.focusRing'` for every variant, including the black one. A black button
   with a purple focus ring is correct, not a leftover.
 - **Accents and our own asides.** `purple.fg` on `purple.subtle`/`subtler` marks
   something as Socket speaking - a note about what the product will do with what
@@ -77,4 +77,5 @@ way (2026-08, depscan#24068):
 
 They keep the desired state in Figma. When a screen's direction is unclear, ask
 them for that rather than inferring from whatever the nearest existing page does
+
 - an old page is evidence of the old standard.

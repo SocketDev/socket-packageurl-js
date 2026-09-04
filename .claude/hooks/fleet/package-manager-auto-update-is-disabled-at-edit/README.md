@@ -21,22 +21,22 @@ A Bash command invoking a covered manager while that manager reports auto-update
 
 | Manager    | Platform | Disable knob                                   |
 | ---------- | -------- | ---------------------------------------------- |
-| Homebrew   | macOS    | `HOMEBREW_NO_AUTO_UPDATE=1`                     |
+| Homebrew   | macOS    | `HOMEBREW_NO_AUTO_UPDATE=1`                    |
 | Chocolatey | Windows  | `choco feature disable -n autoUpdate`          |
 | winget     | Windows  | `settings.json` source `autoUpdateInterval: 0` |
 | Scoop      | Windows  | no scheduled `scoop update` task               |
 | npm        | all      | `update-notifier=false` / `NO_UPDATE_NOTIFIER` |
-| pnpm       | all      | `NO_UPDATE_NOTIFIER=1`                          |
+| pnpm       | all      | `NO_UPDATE_NOTIFIER=1`                         |
 
 A manager that isn't installed (`absent`) or already hardened (`disabled`)
 passes.
 
 ## Bypass
 
-| To green…              | Phrase                                       |
-| ---------------------- | -------------------------------------------- |
-| one manager (e.g. brew) | `Allow brew auto-update bypass`             |
-| all managers            | `Allow package-manager-auto-update bypass`  |
+| To green…               | Phrase                                     |
+| ----------------------- | ------------------------------------------ |
+| one manager (e.g. brew) | `Allow brew auto-update bypass`            |
+| all managers            | `Allow package-manager-auto-update bypass` |
 
 Per-manager phrases accept either the binary name (`brew`) or the manager id
 (`homebrew`).

@@ -13,8 +13,9 @@ PreToolUse (Write/Edit/MultiEdit) guard. Blocks CREATING a nested per-directory
 - **Bypass:** `Allow nested-gitignore bypass` (typed verbatim in a recent turn).
 
 Fix a would-be nested entry with a `**/`-anchored line in the root `.gitignore`
+
 - it reaches any depth including the `template/base/` mirror.
 
 The `isNestedGitignore` predicate is shared with the commit-/CI-time belt check
 `scripts/fleet/check/gitignore-is-single-file-at-commit.mts` so the two never diverge.
-Detail: `docs/agents.md/fleet/single-gitignore.md`.
+Detail: `docs/fleet/agents.md/single-gitignore.md`.

@@ -23,11 +23,11 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 
 import { REPO_ROOT } from '../paths.mts'
-import { collectTrackedFiles } from '../_shared/tracked-globs.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { isJsonRequested, runMain } from '../_shared/run-main.mts'
+import { collectTrackedFiles } from '../fs/tracked-globs.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { isJsonRequested, runMain } from '../process/run-main.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -41,7 +41,7 @@ const logger = getDefaultLogger()
  * itself the moment it became tracked, which is exactly how it first behaved.
  */
 export const REPORTS_DIR_NAMERS: readonly string[] = [
-  'scripts/fleet/_shared/spend-report-path.mts',
+  'scripts/fleet/spend/report-path.mts',
   'scripts/fleet/check/report-paths-are-helper-built.mts',
   'scripts/fleet/paths.mts',
 ]
@@ -138,7 +138,7 @@ export function formatFailure(scan: ReportPathScan): string {
     `Saw: a direct reference to ${REPORTS_DIR_SYMBOL}.`,
     'Wanted: a call to fleetReportPath / fleetReportDir / fleetReportAssetPath.',
     '',
-    'Fix: import the helper from scripts/fleet/_shared/spend-report-path.mts. It',
+    'Fix: import the helper from scripts/fleet/spend/report-path.mts. It',
     'owns the reports/<script>/index.html + assets/ layout, so a hand-joined path',
     'can put a file where no consumer looks for it.',
   )

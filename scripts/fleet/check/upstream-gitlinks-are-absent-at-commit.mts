@@ -4,7 +4,7 @@
  *   as a gitlink. Upstream references are `.gitmodules`-only — the `ref =
  *   <40hex>` field is the pinned commit of record, so a tracked gitlink (a
  *   `160000` index entry under `upstream/`) is a redundant second copy of that
- *   SHA and is forbidden (see docs/agents.md/fleet/upstream-references.md). The
+ *   SHA and is forbidden (see docs/fleet/agents.md/upstream-references.md). The
  *   write-time twin is `upstream-gitlinks-are-absent-at-edit`; this belt
  *   re-asserts the invariant over the committed index — catching a gitlink
  *   hand-staged past the guard. `--fix` drops each gitlink from the index (`git
@@ -25,15 +25,15 @@ import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
 import { REPO_ROOT } from '../paths.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import {
   executeUntrackActions,
   formatUntrackAction,
   planUntrackActions,
-} from '../_shared/untrack-offenders.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
-import type { UntrackAction } from '../_shared/untrack-offenders.mts'
+} from '../checks/untrack-offenders.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
+import type { UntrackAction } from '../checks/untrack-offenders.mts'
 
 const logger = getDefaultLogger()
 

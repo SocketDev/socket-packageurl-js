@@ -7,8 +7,8 @@
 Blocks a Write/Edit to a TEST file that wipes a cache-isolation environment
 variable AFTER setting the environment for the command it is about to spawn.
 Clause 2 of the test-isolation law
-(`scripts/fleet/_shared/test-isolation-law.mts`,
-`docs/agents.md/fleet/test-layout.md` "Isolation"): scrub the ambient
+(`scripts/fleet/prose/test-isolation-law.mts`,
+`docs/fleet/agents.md/test-layout.md` "Isolation"): scrub the ambient
 environment FIRST, then apply the overrides. `Command`'s env operations are
 keyed by variable name and the LAST call for a name wins, so a scrub helper
 invoked after the seeding code silently undoes it.
@@ -28,11 +28,11 @@ DETECTION, narrow on purpose. The shared law module reports only two
 provable shapes, and this guard blocks on both:
 
 1. A function sets a variable the law pins and then removes that same
-variable before spawning.
+   variable before spawning.
 2. A function sets env, then calls a same-file helper whose body removes a
-variable the law pins. The origin case is this one: the caller fed the
-key in through a `for (k, v) in extra_env` loop, so nothing at the set
-site named it.
+   variable the law pins. The origin case is this one: the caller fed the
+   key in through a `for (k, v) in extra_env` loop, so nothing at the set
+   site named it.
 
 Deliberately NOT blocked, because the false-positive evidence says so: a
 scrub of keys the law does not pin. `run_bin_with_env` in the same repo

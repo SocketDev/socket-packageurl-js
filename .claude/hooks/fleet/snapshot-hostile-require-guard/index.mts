@@ -7,7 +7,7 @@
 // serialize, so `node --build-snapshot` aborts with `Unknown external reference
 // 0x… / <unresolved>` and exit 133 — naming neither the module nor the hook.
 //
-// The build-time reporter (scripts/fleet/_shared/snapshot-hostile-builtins.mts)
+// The build-time reporter (scripts/fleet/hooks/snapshot-hostile-builtins.mts)
 // names the offender AFTER the abort. This one refuses the keystroke, while the
 // author still has the context to fix it cheaply.
 //

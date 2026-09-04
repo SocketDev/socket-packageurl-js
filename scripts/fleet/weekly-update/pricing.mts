@@ -33,7 +33,9 @@ import {
   localAssistEnabled,
   resolveOdaiBin,
   runOdaiBatch,
-} from '../_shared/odai.mts'
+} from '../ai/odai.mts'
+
+import type { OdaiBatchLine } from '../ai/odai.mts'
 
 /**
  * Per extraction task's prompt budget. Extraction reads a narrowed page, so
@@ -80,17 +82,25 @@ interface StaleService {
  * rendered pricing tables, so a naive flatten keeps every number.
  */
 export function htmlToText(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
-    .replace(/\s+/g, ' ')
-    .trim()
+  return (
+    html
+      // `\s*` before the `>`: HTML allows `</script >`, and without it the
+      // body of such a block survives into the extracted text.
+      .replace(/<script[\s\S]*?<\/script\s*>/gi, ' ')
+      .replace(/<style[\s\S]*?<\/style\s*>/gi, ' ')
+      // Comments go before tags: `<!-- a > b -->` ends at `-->`, not the
+      // first `>`, so stripping tags first leaves `b -->` as visible text.
+      .replace(/<!--[\s\S]*?-->/g, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      // `&amp;` decodes LAST, or `&amp;lt;` would round-trip into a literal `<`.
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;|&apos;/g, "'")
+      .replace(/&amp;/g, '&')
+      .replace(/\s+/g, ' ')
+      .trim()
+  )
 }
 
 /**
@@ -134,7 +144,7 @@ export function stalePerTokenServices(
   const stale: StaleService[] = []
   const services = Object.entries(data.services ?? {})
   for (let i = 0, { length } = services; i < length; i += 1) {
-    const [id, service] = services[i]!
+    const { 0: id, 1: service } = services[i]!
     const models = service.models ?? {}
     const entries = Object.entries(models)
     const perToken = entries.some(
@@ -190,7 +200,7 @@ export function validatedRates(
     >,
   )
   for (let i = 0, { length } = rateEntries; i < length; i += 1) {
-    const [id, rate] = rateEntries[i]!
+    const { 0: id, 1: rate } = rateEntries[i]!
     if (!known.has(id)) {
       continue
     }
@@ -243,6 +253,80 @@ async function writeServicePrices(
   }
 }
 
+/**
+ * One odai extraction entry per stale service whose pricing page could be
+ * sourced. A service with no recorded source, or a page that would not fetch,
+ * contributes a left-as-is line to `notes` instead — the leg is fail-open.
+ */
+async function pricingExtractionEntries(
+  stale: readonly StaleService[],
+  notes: string[],
+): Promise<{
+  entries: Array<{ id: string; input: string; task: 'pricing' }>
+  modelIdsByService: Map<string, string[]>
+}> {
+  const entries: Array<{ id: string; input: string; task: 'pricing' }> = []
+  const modelIdsByService = new Map<string, string[]>()
+  for (const service of stale) {
+    if (service.pricingSource === undefined) {
+      notes.push(`- ${service.id}: no pricingSource recorded — left as-is`)
+      continue
+    }
+    const html = await fetchPageText(service.pricingSource)
+    if (html === undefined) {
+      notes.push(
+        `- ${service.id}: pricingSource fetch failed — left as-is ` +
+          `(snapshot ${service.snapshot})`,
+      )
+      continue
+    }
+    const sourceText = narrowPricingText(htmlToText(html), service.modelIds)
+    entries.push({
+      id: service.id,
+      input: JSON.stringify({ models: service.modelIds, sourceText }),
+      task: 'pricing',
+    })
+    modelIdsByService.set(service.id, service.modelIds)
+  }
+  return { entries, modelIdsByService }
+}
+
+/**
+ * Write each odai result line's validated rates and record what happened. A
+ * failed extraction and an empty rate set both leave the committed rates as
+ * they are, so a bad page can never blank a service.
+ */
+async function notePricingBatchLines(
+  lines: readonly OdaiBatchLine[],
+  modelIdsByService: ReadonlyMap<string, string[]>,
+  notes: string[],
+  cwd: string,
+): Promise<void> {
+  for (const line of lines) {
+    const modelIds = modelIdsByService.get(line.id) ?? []
+    if (!line.ok) {
+      notes.push(
+        `- ${line.id}: extraction failed (${line.error ?? 'no detail'}) — left as-is`,
+      )
+      continue
+    }
+    const rates = validatedRates(line.value, modelIds)
+    const count = Object.keys(rates).length
+    if (count === 0) {
+      notes.push(
+        `- ${line.id}: the page priced nothing on the committed list — left as-is`,
+      )
+      continue
+    }
+    const written = await writeServicePrices(line.id, rates, cwd)
+    notes.push(
+      written
+        ? `- ${line.id}: refreshed ${count} model rate(s) and restamped the snapshot`
+        : `- ${line.id}: update-model-pricing write failed — left as-is`,
+    )
+  }
+}
+
 export async function runPricingRefresh(
   config: PricingRefreshConfig,
 ): Promise<PricingRefreshRun> {
@@ -273,33 +357,10 @@ export async function runPricingRefresh(
   }
 
   const notes: string[] = []
-  const entries: Array<{
-    id: string
-    input: string
-    task: 'pricing'
-  }> = []
-  const modelIdsByService = new Map<string, string[]>()
-  for (const service of stale) {
-    if (service.pricingSource === undefined) {
-      notes.push(`- ${service.id}: no pricingSource recorded — left as-is`)
-      continue
-    }
-    const html = await fetchPageText(service.pricingSource)
-    if (html === undefined) {
-      notes.push(
-        `- ${service.id}: pricingSource fetch failed — left as-is ` +
-          `(snapshot ${service.snapshot})`,
-      )
-      continue
-    }
-    const sourceText = narrowPricingText(htmlToText(html), service.modelIds)
-    entries.push({
-      id: service.id,
-      input: JSON.stringify({ models: service.modelIds, sourceText }),
-      task: 'pricing',
-    })
-    modelIdsByService.set(service.id, service.modelIds)
-  }
+  const { entries, modelIdsByService } = await pricingExtractionEntries(
+    stale,
+    notes,
+  )
 
   if (entries.length > 0) {
     const batch = await runOdaiBatch(entries, {
@@ -314,29 +375,12 @@ export async function runPricingRefresh(
       const detail = notes.length > 0 ? ` (${notes.join('; ')})` : ''
       return { outcome: 'skipped', reason: `${batch.reason}${detail}` }
     }
-    for (const line of batch.lines) {
-      const modelIds = modelIdsByService.get(line.id) ?? []
-      if (!line.ok) {
-        notes.push(
-          `- ${line.id}: extraction failed (${line.error ?? 'no detail'}) — left as-is`,
-        )
-        continue
-      }
-      const rates = validatedRates(line.value, modelIds)
-      const count = Object.keys(rates).length
-      if (count === 0) {
-        notes.push(
-          `- ${line.id}: the page priced nothing on the committed list — left as-is`,
-        )
-        continue
-      }
-      const written = await writeServicePrices(line.id, rates, config.cwd)
-      notes.push(
-        written
-          ? `- ${line.id}: refreshed ${count} model rate(s) and restamped the snapshot`
-          : `- ${line.id}: update-model-pricing write failed — left as-is`,
-      )
-    }
+    await notePricingBatchLines(
+      batch.lines,
+      modelIdsByService,
+      notes,
+      config.cwd,
+    )
   }
 
   return {

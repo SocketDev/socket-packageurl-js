@@ -18,7 +18,7 @@ import process from 'node:process'
 
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
-import { whichSync } from '@socketsecurity/lib-stable/bin/which'
+import { whichSync } from '@socketsecurity/lib-stable/exe/path/which'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
 import type { ToolEntry } from './tool-config.mts'

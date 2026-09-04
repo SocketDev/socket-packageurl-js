@@ -18,11 +18,12 @@ has ≥ MIN_REPLACED commits past the merge-base while the local side adds
 exactly one, the push is a total squash and blocks.
 
 Sanctioned paths through:
+
 - The `squashing-history` skill (mirror-squash of a squashed-remote
-repo) sets the SQUASH_HISTORY sentinel - see
-`_shared/squash-sentinel.mts` - and passes: that flow byte-verifies
-the tree against a backup branch first, and a single commit IS its
-contract.
+  repo) sets the SQUASH_HISTORY sentinel - see
+  `_shared/squash-sentinel.mts` - and passes: that flow byte-verifies
+  the tree against a backup branch first, and a single commit IS its
+  contract.
 - The user types the exact phrase `Allow total squash bypass`.
 
 A grouped consolidation (many→several logical commits) never triggers

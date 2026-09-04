@@ -56,13 +56,13 @@ Silent on the happy path. When stale worktrees or redundant branches are
 found, writes to stderr:
 
 ```
-💡 branch-worktree-sweep-nudge: 1 stale worktree(s):
-  branch 'feat/done' is merged into main — `git worktree remove /path/to/wt`
-💡 branch-worktree-sweep-nudge: 2 redundant branch(es) safe to delete:
-  branch 'feat/merged' is an ancestor of main — safe to delete
-  branch 'feat/squashed' content is contained in main (content-verified) — safe to delete
-💡 branch-worktree-sweep-nudge: 1 branch(es) need verification before deleting:
-  branch 'feat/maybe' looks redundant but content containment unproven — VERIFY before deleting
+branch-worktree-sweep-nudge: 1 stale worktree(s):
+  branch 'feat/done' is merged into main - `git worktree remove /path/to/wt`
+branch-worktree-sweep-nudge: 2 redundant branch(es) safe to delete:
+  branch 'feat/merged' is an ancestor of main - safe to delete
+  branch 'feat/squashed' content is contained in main (content-verified) - safe to delete
+branch-worktree-sweep-nudge: 1 branch(es) need verification before deleting:
+  branch 'feat/maybe' looks redundant but content containment unproven - VERIFY before deleting
 ```
 
 ## Bypass

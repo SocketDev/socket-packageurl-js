@@ -6,7 +6,7 @@
 # command runs normally — network behavior is OS-independent, so the Linux job
 # is the gate. Fail-closed: if no namespace can be created the step errors, it
 # never silently runs the command with the network up.
-# See docs/agents.md/fleet/no-live-network-in-tests.md.
+# See docs/fleet/agents.md/no-live-network-in-tests.md.
 name: 'Run Offline'
 description: 'Run a command with external network disabled (loopback-only) for network-off unit tests.'
 inputs:

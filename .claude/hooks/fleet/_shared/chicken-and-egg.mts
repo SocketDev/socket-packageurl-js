@@ -21,10 +21,11 @@ import path from 'node:path'
 
 import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 
-// The generated ownership map: one entry per fleet-governed path, carrying who
-// owns it, whether it is a cascade-locked mirror, and whether it seeds.
-export const FLEET_MANIFEST_REL =
-  'scripts/repo/sync-scaffolding/manifest/fleet-files.json'
+import { FLEET_FILES_MANIFEST_REL } from '../../../../scripts/fleet/fs/file-ownership.mts'
+
+// Re-exported under this file's historical name so callers keep one import,
+// while the path itself has exactly one definition.
+export { FLEET_FILES_MANIFEST_REL as FLEET_MANIFEST_REL }
 
 // The canonical template trees. A body authored here is fleet source, and the
 // manifest rather than a path-shape guard decides which of them exist.
@@ -66,7 +67,7 @@ export function findFleetManifest(
     if (cached !== undefined) {
       return cached
     }
-    const candidate = path.join(dir, FLEET_MANIFEST_REL)
+    const candidate = path.join(dir, FLEET_FILES_MANIFEST_REL)
     if (existsSync(candidate)) {
       let found: ManifestLookup | undefined
       try {

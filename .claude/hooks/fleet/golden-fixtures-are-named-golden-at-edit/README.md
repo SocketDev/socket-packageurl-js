@@ -10,7 +10,7 @@ A committed test reference-output fixture is the on-disk oracle a test diffs its
 (`expect(actual).toEqual(expected)`), so `*.expected.json` overloads one word for
 both the file and the operand. `golden` is the established
 authority-verified-output term (Go's `testdata/*.golden`). Full rationale +
-migration steps: [`golden-fixtures`](../../../../docs/agents.md/fleet/golden-fixtures.md).
+migration steps: [`golden-fixtures`](../../../../docs/fleet/agents.md/golden-fixtures.md).
 
 ## Scope
 

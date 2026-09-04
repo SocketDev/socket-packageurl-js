@@ -17,15 +17,12 @@ import process from 'node:process'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
-import {
-  COMPOSITE_ACTION_PORTS,
-  splitSlug,
-} from './_shared/action-port-map.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { runMain } from './process/run-main.mts'
+import { COMPOSITE_ACTION_PORTS, splitSlug } from './github/action-port-map.mts'
 
-import type { CompositePort } from './_shared/action-port-map.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { CompositePort } from './github/action-port-map.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -75,7 +72,7 @@ export async function main(): Promise<number> {
   const entries = Object.entries(COMPOSITE_ACTION_PORTS)
   const behind: string[] = []
   for (let i = 0, { length } = entries; i < length; i += 1) {
-    const [composite, ports] = entries[i]!
+    const { 0: composite, 1: ports } = entries[i]!
     for (let j = 0, portCount = ports.length; j < portCount; j += 1) {
       const port = ports[j]!
       const slug = splitSlug(port.upstream)

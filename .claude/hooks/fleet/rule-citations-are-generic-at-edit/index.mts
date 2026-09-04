@@ -2,7 +2,7 @@
 // Claude Code PreToolUse hook — rule-citations-are-generic-at-edit.
 //
 // BLOCKS (exit 2) when an Edit/Write ADDS a dated-incident citation to a
-// fleet-facing rule-prose surface (CLAUDE.md, docs/agents.md/fleet,
+// fleet-facing rule-prose surface (CLAUDE.md, docs/fleet/agents.md,
 // .claude/skills/**/SKILL.md, .claude/hooks/fleet/**/README.md).
 //
 // The fleet rule (CLAUDE.md "Compound lessons into rules"): when rule/hook/doc

@@ -1,55 +1,55 @@
 #!/usr/bin/env node
 /**
- * @file `offload-model` — see and change which model each offload provider runs.
- *   THE TERMINAL PATH, BESIDE THE PAGE ONE. The report page has a dropdown, but
- *   a page is a detour when the question is "what is Fireworks set to" and the
- *   answer is one line. Both write the same file and the routed agents read it,
- *   so neither is a second source of truth.
- *   IT LISTS WHAT THE PROVIDER SERVES TODAY. The choices come from the
- *   provider's own `/models` endpoint when a credential resolves, falling back
- *   to the curated catalog. A menu built only from the catalog would hide most
- *   of what is reachable - which is how a request for a live model got refused.
- *   Usage:
- *   pnpm run offload:model                       # show what each runs
- *   pnpm run offload:model --list fireworks-ai   # every model it serves
- *   pnpm run offload:model --next fireworks-ai   # step one down that list
- *   pnpm run offload:model --pick fireworks-ai   # choose from it interactively
- *   pnpm run offload:model --set fireworks-ai --model <id>
+ * @file `offload-model` — see and change which model each offload provider
+ *   runs. THE TERMINAL PATH, BESIDE THE PAGE ONE. The report page has a
+ *   dropdown, but a page is a detour when the question is "what is Fireworks
+ *   set to" and the answer is one line. Both write the same file and the routed
+ *   agents read it, so neither is a second source of truth. IT LISTS WHAT THE
+ *   PROVIDER SERVES TODAY. The choices come from the provider's own `/models`
+ *   endpoint when a credential resolves, falling back to the curated catalog. A
+ *   menu built only from the catalog would hide most of what is reachable -
+ *   which is how a request for a live model got refused. Usage: `pnpm run`
+ *   offload:model # show what each runs `pnpm run` offload:model --list
+ *   fireworks-ai # every model it serves `pnpm run` offload:model --next
+ *   fireworks-ai # step one down that list `pnpm run` offload:model --pick
+ *   fireworks-ai # choose from it interactively `pnpm run` offload:model --set
+ *   fireworks-ai --model <id>
  */
 
+import { joinAnd, joinOr } from '@socketsecurity/lib-stable/arrays/join'
 import process from 'node:process'
 
-import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import { parseArgs } from 'node:util'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { select } from '@socketsecurity/lib-stable/stdio/prompts'
 
-import { isMainModule } from './_shared/is-main-module.mts'
+import { isMainModule } from './process/is-main-module.mts'
 import {
   livePickerRowsFor,
   selectedModel,
   writeModelSelection,
-} from './_shared/model-choices.mts'
+} from './ai/model-choices.mts'
 import {
   readAvailabilityTable,
   servingStateFor,
-} from './_shared/provider-availability.mts'
+} from './ai/provider-availability.mts'
 import {
   advanceModelTarget,
   isModelTargetId,
   MODEL_TARGETS,
   readModelTarget,
-} from './_shared/model-targets.mts'
-import { GAUGE_PROVIDERS, PROVIDER_META } from './_shared/offload-spend.mts'
+} from './ai/model-targets.mts'
+import { GAUGE_PROVIDERS, PROVIDER_META } from './spend/offload.mts'
 import {
   listProviderModels,
   providerModelIsSelectable,
-} from './_shared/provider-models.mts'
-import { renderPickerLines, renderPromptChoices } from './_shared/picker.mts'
-import { runMain } from './_shared/run-main.mts'
+} from './ai/provider-models.mts'
+import { renderPickerLines, renderPromptChoices } from './cli/picker.mts'
+import { runMain } from './process/run-main.mts'
 
-import type { GaugeProvider } from './_shared/offload-spend.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { GaugeProvider } from './spend/offload.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -81,7 +81,7 @@ export function summaryLines(): string[] {
 export function advanceProvider(name: string): number {
   if (!isModelTargetId(name)) {
     logger.fail(
-      `Unknown seat "${name}". Where: --next. Saw a name no gauge is drawn for; wanted one of ${MODEL_TARGETS.join(', ')}.`,
+      `Unknown seat "${name}". Where: --next. Saw a name no gauge is drawn for; wanted one of ${joinOr(MODEL_TARGETS)}.`,
     )
     return 1
   }
@@ -136,7 +136,7 @@ export function warnIfSeatDown(name: string): void {
 export async function pickProvider(name: string): Promise<number> {
   if (!isGaugeProvider(name)) {
     logger.fail(
-      `Unknown provider "${name}". Where: --pick. Saw a name no gauge is drawn for; wanted one of ${GAUGE_PROVIDERS.join(', ')}.`,
+      `Unknown provider "${name}". Where: --pick. Saw a name no gauge is drawn for; wanted one of ${joinOr(GAUGE_PROVIDERS)}.`,
     )
     return 1
   }
@@ -211,7 +211,7 @@ export async function main(): Promise<number> {
   if (typeof listTarget === 'string') {
     if (!isGaugeProvider(listTarget)) {
       logger.fail(
-        `Unknown provider "${listTarget}". Where: --list. Saw a name no gauge is drawn for; wanted one of ${GAUGE_PROVIDERS.join(', ')}.`,
+        `Unknown provider "${listTarget}". Where: --list. Saw a name no gauge is drawn for; wanted one of ${joinOr(GAUGE_PROVIDERS)}.`,
       )
       return 1
     }
@@ -231,7 +231,7 @@ export async function main(): Promise<number> {
     const model = values['model']
     if (!isGaugeProvider(setTarget)) {
       logger.fail(
-        `Unknown provider "${setTarget}". Where: --set. Saw a name no gauge is drawn for; wanted one of ${GAUGE_PROVIDERS.join(', ')}.`,
+        `Unknown provider "${setTarget}". Where: --set. Saw a name no gauge is drawn for; wanted one of ${joinOr(GAUGE_PROVIDERS)}.`,
       )
       return 1
     }
@@ -274,7 +274,7 @@ export const SCRIPT_META: ScriptMeta = {
   --pick <provider>            choose from that list interactively
   --set <provider> --model ID  point it at one
 
-Providers: ${GAUGE_PROVIDERS.join(', ')}
+Providers: ${joinAnd(GAUGE_PROVIDERS)}
 
 The choice is stored per machine and read by the routed agents, so it changes
 what code-reviewer, fix, and refactor-cleaner actually run. The report page's

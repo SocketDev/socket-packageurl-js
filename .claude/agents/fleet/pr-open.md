@@ -1,6 +1,6 @@
 ---
 name: pr-open
-model: sonnet
+model: claude-sonnet-5
 description: Drafts a PR body from the branch's commits and diff - leads with impact, detail behind a fold, repo PR style. Use to open a PR or draft one.
 tools: Read, Grep, Glob, Edit, Write, Bash(git:*), Bash(gh:*)
 ---
@@ -61,7 +61,7 @@ docs it links, so a model that has read none of them writes a body that trips
 the guards and has to be rewritten, paying twice for the cheaper seat. The
 output is also one short document rather than a long read-heavy loop, so there
 is little metered cost to move. The routing table in
-`scripts/fleet/_shared/agent-offload.mts` records the absence deliberately, and
+`scripts/fleet/ai/agent-offload.mts` records the absence deliberately, and
 `check/agent-offload-routes-are-declared.mts` fails if this line and that table
 ever disagree.
 

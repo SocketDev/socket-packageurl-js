@@ -16,17 +16,18 @@ Banned shapes (module scope only - leading whitespace == top level):
 export const foo = (...) => { ... }
 export const foo = async (...) => expr
 export const foo = function (...) { ... }
-const foo = (...) => { ... }                  no leading whitespace
+const foo = (...) => { ... } no leading whitespace
 const foo = async () => { ... }
 const foo = function () { ... }
 
 Allowed, passes through:
+
 - Indented `const foo = () => ...` - that's an inner-function
-expression, not module-scope; arrows correctly inherit `this`.
+  expression, not module-scope; arrows correctly inherit `this`.
 - `const foo: SomeType = () => ...` - TS type annotation locks the
-contract; refactor requires human judgment.
+  contract; refactor requires human judgment.
 - `const foo = (... rest of complex destructuring ...) = ...` -
-non-Identifier declarators; let the human untangle.
+  non-Identifier declarators; let the human untangle.
 - `_internal/` files, `dist/`, `build/`, `node_modules/`.
 
 Reads PreToolUse JSON payload from stdin:
@@ -34,8 +35,8 @@ Reads PreToolUse JSON payload from stdin:
 "tool_input": { "file_path": "...", "content"|"new_string": "..." } }
 
 Verdict:
-block  - at least one banned const-fn-expression found.
-allow  - no banned shape (silent).
+block - at least one banned const-fn-expression found.
+allow - no banned shape (silent).
 
 Fails open on malformed payloads via runGuard.
 

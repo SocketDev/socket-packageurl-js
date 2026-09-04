@@ -45,7 +45,7 @@ export function stampBlockMessage(filePath: string): string {
   return [
     'memories-are-codified-at-edit: memory entry has no `enforcement:` disposition - the store would drift into policy-on-paper.',
     `Where: ${name}`,
-    'Fix: add `enforcement: .claude/hooks/fleet/<name>` (or `deferred #<task>` / `n/a - <reason>`) to the frontmatter. Detail: docs/agents.md/fleet/memory-codification.md',
+    'Fix: add `enforcement: .claude/hooks/fleet/<name>` (or `deferred #<task>` / `n/a - <reason>`) to the frontmatter. Detail: docs/fleet/agents.md/memory-codification.md',
   ].join('\n')
 }
 

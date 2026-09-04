@@ -6,7 +6,7 @@ repo that has never published (still `0.0.0` on every registry) has no boundary 
 as below. A repo with a resolved boundary **always** runs **tail mode**, regardless of the
 local-vs-origin relationship - every commit through the boundary stays byte-identical, and only
 `boundary..tip` collapses to one fresh commit. See
-[`squash-until-release`](../../../../../docs/agents.md/fleet/squash-until-release.md).
+[`squash-until-release`](../../../../../docs/fleet/agents.md/squash-until-release.md).
 
 With no boundary, the runner picks a mode from the local-vs-origin relationship (local main is
 canonical in the fleet):
@@ -19,16 +19,16 @@ canonical in the fleet):
 - **Diverged** (origin holds commits local lacks): REFUSED loudly - reconcile forward (merge origin
   into local) first, then re-run.
 
-| #   | Phase           | What it does (origin mode)                                                                        |
-| --- | --------------- | ------------------------------------------------------------------------------------------------ |
-| 1   | Pre-flight      | Resolve default branch (main → master fallback); fetch; capture orig HEAD + count.               |
-| 2   | Worktree        | Add `chore/squash` worktree at `<repo>-squash` tracking `origin/$BASE`.                           |
-| 3   | Backup          | Push `$ORIG_HEAD` to `refs/heads/backup-YYYYMMDD-HHMMSS` before any destructive op.               |
-| 4   | Squash          | Soft-reset to the root commit, then amend it; verify commit count == 1.                           |
-| 5   | Integrity       | Diff against `$ORIG_HEAD` (ignoring submodules) must be empty (HARD exit otherwise).              |
-| 6   | Push            | Lease-push the single commit to `$BASE` under the sentinel.                                       |
-| 7   | Cleanup         | Remove worktree + delete the temp branch.                                                         |
-| 8   | Report          | Print new SHA + backup ref name + recovery one-liner.                                             |
+| #   | Phase      | What it does (origin mode)                                                           |
+| --- | ---------- | ------------------------------------------------------------------------------------ |
+| 1   | Pre-flight | Resolve default branch (main → master fallback); fetch; capture orig HEAD + count.   |
+| 2   | Worktree   | Add `chore/squash` worktree at `<repo>-squash` tracking `origin/$BASE`.              |
+| 3   | Backup     | Push `$ORIG_HEAD` to `refs/heads/backup-YYYYMMDD-HHMMSS` before any destructive op.  |
+| 4   | Squash     | Soft-reset to the root commit, then amend it; verify commit count == 1.              |
+| 5   | Integrity  | Diff against `$ORIG_HEAD` (ignoring submodules) must be empty (HARD exit otherwise). |
+| 6   | Push       | Lease-push the single commit to `$BASE` under the sentinel.                          |
+| 7   | Cleanup    | Remove worktree + delete the temp branch.                                            |
+| 8   | Report     | Print new SHA + backup ref name + recovery one-liner.                                |
 
 **Tail mode** runs whenever a boundary is resolved. It uses the same
 worktree/backup/integrity/lease-push shape, with two differences: the reset target is the frozen

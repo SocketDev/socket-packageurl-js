@@ -17,11 +17,12 @@ import process from 'node:process'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { globSync } from '@socketsecurity/lib-stable/globs/match'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { isReadOnlyMirror } from '../fs/mirror/registry.mts'
+import { runMain } from '../process/run-main.mts'
 import { loadSocketWheelhouseConfig, REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -75,14 +76,41 @@ export function findExportedFunctions(filePath: string): string[] {
  *
  * Pure over the given texts so the arm is testable without a repo walk.
  */
+// The pre-split layout, one flat directory whose filenames already carried
+// their subject: `_shared/git-exec.mts` was the module named `git-exec`.
+const FLAT_SHARED_IMPORT_RE =
+  /from '[^']*scripts\/fleet\/_shared\/([\w.-]+)\.mts'/gu
+
+// The subject layout that replaced it: `git/exec.mts` is the same module, so
+// its name is rebuilt from the directory plus the basename.
+const SUBJECT_SHARED_IMPORT_RE =
+  /from '[^']*scripts\/fleet\/(?!_shared\/)([a-z][\w-]*)\/([\w.-]+)\.mts'/gu
+
+/**
+ * A subject directory as it reads in a module name: singular.
+ *
+ * The directory is plural where a plural reads better as a folder, so `hooks/`
+ * holds `hook-wiring`. A trailing `s` is stripped only when the word is a real
+ * plural: a word ending in `ss` is not, which is why `process` stays whole. My
+ * first cut checked length alone and produced `proces-run-main`.
+ */
+export function singularSubject(subject: string): string {
+  return subject.endsWith('s') && !subject.endsWith('ss')
+    ? subject.slice(0, -1)
+    : subject
+}
+
 export function importedSharedModules(
   testTexts: readonly string[],
 ): Set<string> {
   const imported = new Set<string>()
-  const importRe = /from '[^']*scripts\/fleet\/_shared\/([\w.-]+)\.mts'/gu
   for (let i = 0, { length } = testTexts; i < length; i += 1) {
-    for (const match of testTexts[i]!.matchAll(importRe)) {
+    const text = testTexts[i]!
+    for (const match of text.matchAll(FLAT_SHARED_IMPORT_RE)) {
       imported.add(match[1]!)
+    }
+    for (const match of text.matchAll(SUBJECT_SHARED_IMPORT_RE)) {
+      imported.add(`${singularSubject(match[1]!)}-${match[2]!}`)
     }
   }
   return imported
@@ -154,9 +182,13 @@ function checkSharedModulesHaveTests(): CheckResult {
   // globbing both and not deduping double-counted every finding — 14 uncovered
   // modules reported as 28.
   const byModule = new Map<string, string>()
+  // TEMPLATE FIRST, then the live mirror. The order decides which copy of a
+  // module the finding points at, and the canonical one is the only copy an
+  // operator can edit. Reversed, the wheelhouse reported its own mirror - mode
+  // 444 - and the skip below would then disable the check here entirely.
   for (const pattern of [
-    'scripts/fleet/_shared/*.mts',
     'template/base/scripts/fleet/_shared/*.mts',
+    'scripts/fleet/_shared/*.mts',
   ]) {
     for (const rel of globSync(pattern, { cwd: REPO_ROOT })) {
       const baseName = path.basename(rel, '.mts')
@@ -173,7 +205,15 @@ function checkSharedModulesHaveTests(): CheckResult {
     if (imported.has(baseName) || grandfathered.has(baseName)) {
       continue
     }
-    const exports = findExportedFunctions(path.join(REPO_ROOT, rel))
+    const abs = path.join(REPO_ROOT, rel)
+    // A module whose ONLY copy is a read-only mirror belongs to the fleet, not
+    // to this repo: the wheelhouse ships it and tests it there. A member asked
+    // to test it would duplicate that suite once per member, and could not edit
+    // the module it was testing.
+    if (isReadOnlyMirror(abs)) {
+      continue
+    }
+    const exports = findExportedFunctions(abs)
     if (exports.length > 0) {
       untestedModules.push(`${baseName} (${exports.length} exports)`)
       untestedBaseNames.push(baseName)

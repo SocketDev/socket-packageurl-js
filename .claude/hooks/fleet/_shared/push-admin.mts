@@ -29,7 +29,7 @@ import {
   PUSH_PERMISSION_TTL_MS,
   readRepoPushPermission,
   writeRepoPushPermission,
-} from '../../../../scripts/fleet/_shared/socket-state.mts'
+} from '../../../../scripts/fleet/state/db.mts'
 import { normalizeRepoSlug } from './gh-target-repo.mts'
 
 // A probe must never hang a push. `gh` is a local binary talking to a warm API;
@@ -107,7 +107,7 @@ export function parsePermissionTsv(
   if (fields.length !== 2) {
     return undefined
   }
-  const [admin, maintain] = fields
+  const { 0: admin, 1: maintain } = fields
   if (
     (admin !== 'false' && admin !== 'true') ||
     (maintain !== 'false' && maintain !== 'true')

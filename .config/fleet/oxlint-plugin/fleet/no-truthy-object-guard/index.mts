@@ -1,5 +1,5 @@
 /*
- * @file Per docs/agents.md/fleet/code-style.md "Object type guards": an object
+ * @file Per docs/fleet/agents.md/code-style.md "Object type guards": an object
  *   guard must be `typeof x === 'object' && x !== null` (or the lib's
  *   isPlainObject), NEVER `x && typeof x === 'object'`. `typeof null ===
  *   'object'` is a JavaScript hazard older than the fleet; a truthiness guard
@@ -22,6 +22,21 @@
 import { makeBypassChecker } from '../../lib/comment-markers.mts'
 import type { AstNode, RuleContext, RuleFixer } from '../../lib/rule-types.mts'
 
+// Is `operand` the string literal `'object'`?
+function isObjectStringLiteral(operand: AstNode): boolean {
+  return operand?.type === 'Literal' && operand.value === 'object'
+}
+
+// Is `operand` the unary expression `typeof <name>`?
+function isTypeofOperandFor(operand: AstNode, name: string): boolean {
+  return (
+    operand?.type === 'UnaryExpression' &&
+    operand.operator === 'typeof' &&
+    operand.argument?.type === 'Identifier' &&
+    operand.argument.name === name
+  )
+}
+
 // Is `node` a `typeof X === 'object'` (or `'object' === typeof X`) binary
 // expression over the identifier `name`? Returns the matched identifier node
 // so the caller can compare it to the truthiness operand.
@@ -34,25 +49,11 @@ function matchTypeofObjectCheck(
   }
   const { left, right } = node
   // `typeof X === 'object'`
-  if (
-    left?.type === 'UnaryExpression' &&
-    left.operator === 'typeof' &&
-    left.argument?.type === 'Identifier' &&
-    left.argument.name === name &&
-    right?.type === 'Literal' &&
-    right.value === 'object'
-  ) {
+  if (isTypeofOperandFor(left, name) && isObjectStringLiteral(right)) {
     return left.argument
   }
   // `'object' === typeof X`
-  if (
-    right?.type === 'UnaryExpression' &&
-    right.operator === 'typeof' &&
-    right.argument?.type === 'Identifier' &&
-    right.argument.name === name &&
-    left?.type === 'Literal' &&
-    left.value === 'object'
-  ) {
+  if (isTypeofOperandFor(right, name) && isObjectStringLiteral(left)) {
     return right.argument
   }
   return undefined

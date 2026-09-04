@@ -10,7 +10,7 @@ must therefore declare how it is enforced, and
 `scripts/fleet/check/memories-are-codified-at-commit.mts` fails the commit-time gate when
 one does not. That check detects the gap after the fact. This guard prevents it,
 so a stamped store stays stamped. Full rationale:
-[`memory-codification`](../../../../docs/agents.md/fleet/memory-codification.md).
+[`memory-codification`](../../../../docs/fleet/agents.md/memory-codification.md).
 
 ## Scope
 
@@ -31,9 +31,9 @@ concerns, two surfaces; keep them separate.
 ## Accepted dispositions
 
 ```yaml
-enforcement: .claude/hooks/fleet/<name>     # a hook, lint rule, or check ref
+enforcement: .claude/hooks/fleet/<name> # a hook, lint rule, or check ref
 enforcement: deferred #<task>               # a tracked follow-up
-enforcement: n/a — <reason>                 # a pure-preference lesson
+enforcement: n/a — <reason> # a pure-preference lesson
 ```
 
 ## Bypass

@@ -208,6 +208,55 @@ export function parseWorktreeList(output: string): WorktreeEntry[] {
 }
 
 /**
+ * Why one worktree counts as stale, or `undefined` when it is still live.
+ * Dirty worktrees are never stale — uncommitted work is never swept.
+ */
+function classifyStaleWorktree(
+  entry: WorktreeEntry,
+  repoDir: string,
+  defaultBranch: string,
+): StaleWorktree | undefined {
+  // Directory gone — stale, nudge to prune.
+  if (!existsSync(entry.path)) {
+    return { path: entry.path, detached: entry.detached, reason: 'gone' }
+  }
+  // Skip worktrees with uncommitted changes — never touch dirty work.
+  if (gitOut(entry.path, ['status', '--porcelain'])) {
+    return undefined
+  }
+  // Git already marked it prunable.
+  if (entry.prunable) {
+    return {
+      path: entry.path,
+      branch: entry.branchName,
+      detached: entry.detached,
+      reason: 'prunable',
+    }
+  }
+  // Branch merged into default — safe to remove.
+  if (
+    entry.branchName &&
+    isAncestor(repoDir, entry.branchName, defaultBranch)
+  ) {
+    return {
+      path: entry.path,
+      branch: entry.branchName,
+      detached: false,
+      reason: 'merged',
+    }
+  }
+  // Detached HEAD older than threshold.
+  if (entry.detached && entry.head) {
+    const age = commitAgeSeconds(repoDir, entry.head)
+    const now = Math.floor(Date.now() / 1000)
+    if (age !== undefined && now - age > DETACHED_HEAD_MAX_AGE_SEC) {
+      return { path: entry.path, detached: true, reason: 'detached-stale' }
+    }
+  }
+  return undefined
+}
+
+/**
  * Find stale worktrees that are safe to remove. Never touches the primary
  * checkout, the session's own worktree, locked worktrees, or worktrees
  * with uncommitted changes.
@@ -225,68 +274,15 @@ export function findStaleWorktrees(
   const stale: StaleWorktree[] = []
   for (let i = 0, { length } = entries; i < length; i += 1) {
     const entry = entries[i]!
-    // The first entry is always the primary checkout (per git docs).
-    if (i === 0) {
+    // The first entry is always the primary checkout (per git docs), the
+    // session's own worktree is in use, and a locked one was locked on
+    // purpose.
+    if (i === 0 || entry.path === sessionDir || entry.locked) {
       continue
     }
-    // Skip the worktree the session is running in.
-    if (entry.path === sessionDir) {
-      continue
-    }
-    // Skip locked worktrees — the operator locked them on purpose.
-    if (entry.locked) {
-      continue
-    }
-    // Directory gone — stale, nudge to prune.
-    if (!existsSync(entry.path)) {
-      stale.push({
-        path: entry.path,
-        detached: entry.detached,
-        reason: 'gone',
-      })
-      continue
-    }
-    // Skip worktrees with uncommitted changes — never touch dirty work.
-    const status = gitOut(entry.path, ['status', '--porcelain'])
-    if (status) {
-      continue
-    }
-    // Git already marked it prunable.
-    if (entry.prunable) {
-      stale.push({
-        path: entry.path,
-        branch: entry.branchName,
-        detached: entry.detached,
-        reason: 'prunable',
-      })
-      continue
-    }
-    // Branch merged into default — safe to remove.
-    if (
-      entry.branchName &&
-      isAncestor(repoDir, entry.branchName, defaultBranch)
-    ) {
-      stale.push({
-        path: entry.path,
-        branch: entry.branchName,
-        detached: false,
-        reason: 'merged',
-      })
-      continue
-    }
-    // Detached HEAD older than threshold.
-    if (entry.detached && entry.head) {
-      const age = commitAgeSeconds(repoDir, entry.head)
-      if (age !== undefined) {
-        const now = Math.floor(Date.now() / 1000)
-        if (now - age > DETACHED_HEAD_MAX_AGE_SEC) {
-          stale.push({
-            path: entry.path,
-            detached: true,
-            reason: 'detached-stale',
-          })
-        }
-      }
+    const classified = classifyStaleWorktree(entry, repoDir, defaultBranch)
+    if (classified) {
+      stale.push(classified)
     }
   }
   return stale
@@ -387,7 +383,7 @@ export function buildSweepReport(
   }
   const lines: string[] = []
   lines.push(
-    `🧹 branch-worktree-sweep-nudge: ${staleWorktrees.length} stale ` +
+    `branch-worktree-sweep-nudge: ${staleWorktrees.length} stale ` +
       `worktree(s), ${redundantBranches.length} redundant branch(es) ` +
       `- cleanup is your call (reminder only).`,
   )
@@ -455,6 +451,9 @@ export const hook = defineHook({
     }
   },
   event: 'Stop',
+  // Machine-wide: stale branches and worktrees accumulate in every checkout,
+  // member or not, so the sweep reminder is not a member-only concern.
+  global: true,
   type: 'nudge',
 })
 

@@ -19,7 +19,7 @@ this nudge makes verification the precondition for the assertion.
 Verdict: notify (informational; never blocks - a Stop hook has no tool call to
 refuse). Code-fenced / inline-code text is ignored. Fail-open on any error.
 
-Rule: docs/agents.md/fleet/judgment-and-self-evaluation.md.
+Rule: docs/fleet/agents.md/judgment-and-self-evaluation.md.
 
 ## Bypass
 

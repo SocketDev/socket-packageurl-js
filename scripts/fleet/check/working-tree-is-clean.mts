@@ -17,13 +17,13 @@
 
 import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { getCI } from '@socketsecurity/lib-stable/env/ci'
+import { isCI } from '@socketsecurity/lib-stable/env/ci'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { REPO_ROOT } from '../paths.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -43,11 +43,11 @@ const logger = getDefaultLogger()
  * which is why this asserts only where the premise holds.
  */
 export function cleanTreeIsExpected(): boolean {
-  return getCI() || process.argv.includes('--release')
+  return isCI() || process.argv.includes('--release')
 }
 
 export function workingTreeChanges(): string[] {
-  // Sync check runner: git status is a one-shot gate, not parallel work.
+  // Sync check runner: `git status` is a one-shot gate, not parallel work.
   // oxlint-disable-next-line socket/prefer-async-spawn -- sync gate
   const result = spawnSync('git', ['status', '--porcelain'], {
     cwd: REPO_ROOT,

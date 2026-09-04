@@ -34,11 +34,11 @@ import {
   FETCHER_PAIR,
   pinnedBundleRef,
 } from './member-fetcher-matches-pinned-pack.mts'
-import { collectTrackedFiles } from '../_shared/tracked-globs.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { isJsonRequested, runMain } from '../_shared/run-main.mts'
+import { collectTrackedFiles } from '../fs/tracked-globs.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { isJsonRequested, runMain } from '../process/run-main.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 

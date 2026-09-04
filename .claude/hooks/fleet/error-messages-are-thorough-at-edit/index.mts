@@ -106,7 +106,7 @@ export const check = (payload: ToolCallPayload): GuardResult => {
     verdictLine(
       'hint',
       'error-messages-are-thorough-at-edit',
-      `vague error message: throw new ${first.errorClass}("${first.message}") - ${first.label} - rewrite per CLAUDE.md's error-messages rule (What / Where / Saw / Fix): docs/agents.md/error-messages.md.`,
+      `vague error message: throw new ${first.errorClass}("${first.message}") - ${first.label} - rewrite per CLAUDE.md's error-messages rule (What / Where / Saw / Fix): docs/fleet/agents.md/error-messages.md.`,
     ),
   ]
   for (let i = 1, { length } = findings; i < length; i += 1) {

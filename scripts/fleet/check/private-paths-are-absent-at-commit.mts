@@ -29,7 +29,7 @@
 // Needs typed string stdout from `git ls-files`, sequential gate.
 // oxlint-disable-next-line socket/prefer-async-spawn -- sync check
 import { suppressionWaives } from '../../../.claude/hooks/fleet/_shared/suppression-rules.mts'
-import { gitSync } from '../_shared/git-exec.mts'
+import { gitSync } from '../git/exec.mts'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
@@ -48,9 +48,9 @@ import type { PrivatePathFinding } from '../../../.claude/hooks/fleet/_shared/pr
 import { SOURCE_FILE_RE } from '../../../.git-hooks/_shared/file-scan.mts'
 import { isPurePlaceholder } from '../../../.git-hooks/_shared/personal-path.mts'
 import { REPO_ROOT } from '../paths.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
+import { runMain } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -101,8 +101,8 @@ function isSelfExempt(relFile: string): boolean {
 
 /**
  * True when a finding on `rawLine` is documentation, not a leak — so the check
- * skips it. Two exemptions: a per-line `socket-lint: allow` marker, OR (for the
- * home-path class) a PURE placeholder line per the fleet's canonical
+ * skips it. Two exemptions: a per-line `oxlint-disable-next-line` marker, OR
+ * (for the home-path class) a PURE placeholder line per the fleet's canonical
  * `isPurePlaceholder` (a bracketed user token, a `$VAR`, or a CI
  * service-account home) — the same posture the fleet's personal-path scanner
  * already takes.
@@ -143,7 +143,7 @@ export { matchPrivatePath }
 
 /**
  * AST comment walk for JS/TS: a path inside a string literal or real code never
- * reaches the matcher. Honors a per-line `socket-lint: allow` marker.
+ * reaches the matcher. Honors a per-line `oxlint-disable-next-line` marker.
  */
 function scanJsTs(relFile: string, text: string): PrivatePathHit[] {
   const hits: PrivatePathHit[] = []
@@ -171,8 +171,8 @@ function scanJsTs(relFile: string, text: string): PrivatePathHit[] {
  * Lexical scan for non-JS sources, Rust, Go, Python, C, shell. Defers
  * comment-body extraction (block spans, single-line `/* … *\/`, line comments)
  * to the shared `extractLexicalCommentBodies` — same source of truth as the
- * hook — and checks the RAW source line for a per-line `socket-lint: allow`
- * marker before recording a hit.
+ * hook — and checks the RAW source line for a per-line
+ * `oxlint-disable-next-line` marker before recording a hit.
  */
 function scanLexical(relFile: string, text: string): PrivatePathHit[] {
   const hits: PrivatePathHit[] = []
@@ -269,7 +269,7 @@ export function main(): void {
       '  These leak internal fleet layout, operator-local notes, or a dev-box path into committed source.',
     )
     logger.error(
-      '  Remove the path from the comment (describe the constraint, not where a plan doc lives), or waive it with `// oxlint-disable-next-line socket/no-private-path-in-source -- <reason>` above a line that must keep an illustrative example. See docs/agents.md/fleet/public-surface-hygiene.md.',
+      '  Remove the path from the comment (describe the constraint, not where a plan doc lives), or waive it with `// oxlint-disable-next-line socket/no-private-path-in-source -- <reason>` above a line that must keep an illustrative example. See docs/fleet/agents.md/public-surface-hygiene.md.',
     )
     process.exitCode = 1
     return

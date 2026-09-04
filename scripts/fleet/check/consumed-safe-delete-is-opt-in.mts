@@ -39,7 +39,7 @@
  *   Report-only is NOT the mitigation. A loud check does not stop a delete; it
  *   only makes the exposure visible. The mitigation is a corrected release, or
  *   a `patches/` entry correcting `force` in the consumed build until one
- *   ships. Detail: docs/agents.md/fleet/fix-forward-not-revert.md.
+ *   ships. Detail: docs/fleet/agents.md/fix-forward-not-revert.md.
  *
  *   Exit codes: 0 — the guard is on by default, or a gap under report mode;
  *   1 — the guard is disabled under strict.
@@ -52,11 +52,11 @@ import process from 'node:process'
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 

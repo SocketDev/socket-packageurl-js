@@ -31,6 +31,7 @@ cannot expand. The tradeoff (a compound that both commits and mentions an
 attribution string elsewhere gets blocked) is rare and bypassable.
 
 Skipped silently:
+
 - tool_name !== 'Bash'.
 - Command has no `git commit` segment.
 - No attribution text anywhere in the command.

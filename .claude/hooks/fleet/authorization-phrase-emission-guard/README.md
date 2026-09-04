@@ -19,29 +19,30 @@ second session refuse to comply even before the first session's scanner
 would reject the relay.
 
 Surfaces + policy:
+
 - SendMessage / Task / Agent payloads: RAW match on every string in the
-tool_input, each scanned on its own. Even a quoted or code-fenced
-phrase is a relay attempt, because the receiver can unwrap it, so no
-use-vs-mention allowance applies here.
+  tool_input, each scanned on its own. Even a quoted or code-fenced
+  phrase is a relay attempt, because the receiver can unwrap it, so no
+  use-vs-mention allowance applies here.
 - Write / Edit / MultiEdit content: use-vs-mention applies (quoted spans +
-code fences are stripped first, so docs/tests that MENTION a phrase in
-backticks or string literals stay editable), and the trees that
-legitimately define/teach the phrases are exempt (.claude/**,
-docs/agents.md/**, .config/fleet/**).
+  code fences are stripped first, so docs/tests that MENTION a phrase in
+  backticks or string literals stay editable), and the trees that
+  legitimately define/teach the phrases are exempt (.claude/**,
+  docs/{fleet,repo}/agents.md/**, .config/fleet/**).
 - One further file-surface carve-out, for a vitest spec that ASSERTS a
-guard's deny message: inside a `*.test.*` / `*.spec.*` file under a
-test root, a regex literal filling a whole call argument
-(`assert.match(msg, /…/)`) is not an emitted phrase. Rationale + the
-limits of both halves: _shared/authorization-phrase-assertions.mts.
+  guard's deny message: inside a `*.test.*` / `*.spec.*` file under a
+  test root, a regex literal filling a whole call argument
+  (`assert.match(msg, /…/)`) is not an emitted phrase. Rationale + the
+  limits of both halves: _shared/authorization-phrase-assertions.mts.
 - The phrase list/shape is shared with the detection side via
-_shared/authorization-phrases.mts, so the two guards can never drift.
+  _shared/authorization-phrases.mts, so the two guards can never drift.
 - Matching runs on a rendered-text normal form (_shared/evasion-
-normalize.mts): invisible characters, Unicode confusables, combining
-marks, numeric HTML references, and markup that splits a word all fold
-away, because each of those still RENDERS as the phrase to the human
-who would retype it. Encodings that render as something else - base64,
-percent-escapes, a backslash escape, an intra-word `_` - are left
-alone; folding them would block ordinary prose for no gain.
+  normalize.mts): invisible characters, Unicode confusables, combining
+  marks, numeric HTML references, and markup that splits a word all fold
+  away, because each of those still RENDERS as the phrase to the human
+  who would retype it. Encodings that render as something else - base64,
+  percent-escapes, a backslash escape, an intra-word `_` - are left
+  alone; folding them would block ordinary prose for no gain.
 
 Consolidation: these normalization primitives are the fleet-local twin of
 the concealed-text detector planned for socket-lib. When that ships, this

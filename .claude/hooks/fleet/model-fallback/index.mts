@@ -46,15 +46,13 @@ import {
 import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
 
-import { whichSync } from '@socketsecurity/lib-stable/bin/which'
+import { whichSync } from '@socketsecurity/lib-stable/exe/path/which'
 import { pRetry } from '@socketsecurity/lib-stable/promises/retry'
-import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 import { isPlainObject } from '@socketsecurity/lib-stable/objects/predicates'
 import { readSecret } from '@socketsecurity/lib-stable/secrets/keychain'
 
-import { balancerModeIsOff } from '../_shared/balancer-mode.mts'
+import { isAiBalancerEnabled } from '../_shared/balancer/detect.mts'
 import { getBuiltin } from '../_shared/builtin-module.mts'
 import { defineHook, notify, runHook } from '../_shared/guard.mts'
 
@@ -233,7 +231,7 @@ export function suspendedFamilyAliases(): ReadonlySet<string> {
       j < entryCount;
       j += 1
     ) {
-      const [id, entry] = modelEntries[j]!
+      const { 0: id, 1: entry } = modelEntries[j]!
       if (
         typeof entry === 'object' &&
         entry !== null &&
@@ -876,7 +874,7 @@ export interface FallbackRun {
 /**
  * Remove every managed alias this hook owns from settings.json.
  *
- * The counterpart to the normal write path, for AI_BALANCER_MODE=off. Only a
+ * The counterpart to the normal write path, for when routing is off. Only a
  * tier whose MODEL key currently holds a managed value is cleared, so an alias
  * the operator pointed somewhere else by hand is left alone. Returns undefined
  * when there was nothing to strip, which is the steady state once off.
@@ -917,8 +915,86 @@ function stripManagedAliases(
   return {
     moves: [],
     notes: [
-      `AI_BALANCER_MODE=off: removed ${String(removed.length)} managed alias key(s); restart the session for plain Anthropic defaults`,
+      `balancer routing off: removed ${String(removed.length)} managed alias key(s); restart the session for plain Anthropic defaults`,
     ],
+  }
+}
+
+/**
+ * The settings document on disk, or undefined when nothing readable is there
+ * — no settings, no tiers to manage.
+ */
+function readFallbackSettings(
+  settingsPath: string,
+): Record<string, unknown> | undefined {
+  try {
+    const parsed: unknown = JSON.parse(readFileSync(settingsPath, 'utf8'))
+    return isPlainObject(parsed) ? parsed : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Walk each managed tier's ladder: the rung that answers, plus one note per
+ * alias that did not. Availability is recorded per tier so a click mid-run
+ * still reads a fresh verdict.
+ */
+async function chooseRungsForTiers(
+  home: string,
+  managedTiers: readonly TierSpec[],
+  config: ProbeConfig,
+): Promise<{ chosen: Map<string, LadderRung>; notes: string[] }> {
+  const chosen = new Map<string, LadderRung>()
+  const notes: string[] = []
+  for (let i = 0, { length } = managedTiers; i < length; i += 1) {
+    const tier = managedTiers[i]!
+    const { rung, verdicts } = await chooseRung(tier, config)
+    chosen.set(tier.env, rung)
+    writeAvailability(home, verdicts)
+    const verdictKeys = Object.keys(verdicts)
+    for (let k = 0, { length: keyCount } = verdictKeys; k < keyCount; k += 1) {
+      const key = verdictKeys[k]!
+      if (verdicts[key] === 'down') {
+        notes.push(`${key} not serving`)
+      }
+    }
+  }
+  return { chosen, notes }
+}
+
+/**
+ * Land the plan on the settings file.
+ *
+ * The probes ran for seconds, so the document is re-read now rather than
+ * writing back the copy from before the probe window, or any edit the file
+ * gained in that window (a sibling top-level key, or another env entry) would
+ * be lost wholesale. Only the `env` key gets mutated, onto whichever env
+ * sub-object is now on disk.
+ */
+function writeFallbackPlan(
+  settingsPath: string,
+  settings: Record<string, unknown>,
+  env: Record<string, unknown>,
+  routing: RungEnvPatch | undefined,
+  tierChanges: readonly TierChange[],
+): void {
+  let latest = settings
+  const reread = readFallbackSettings(settingsPath)
+  if (reread) {
+    latest = reread
+  }
+  const latestEnvRaw = latest['env']
+  const latestEnv: Record<string, unknown> = isPlainObject(latestEnvRaw)
+    ? latestEnvRaw
+    : env
+  latest['env'] = applyPlan(latestEnv, routing, tierChanges)
+  const scratch = `${settingsPath}.${process.pid}.tmp`
+  writeFileSync(scratch, `${JSON.stringify(latest, null, 2)}\n`, 'utf8')
+  renameSync(scratch, settingsPath)
+  const envFile = process.env['CLAUDE_ENV_FILE']
+  if (envFile) {
+    exportToSessionEnv(envFile, routing, tierChanges)
   }
 }
 
@@ -927,15 +1003,8 @@ export async function runFallbackOnce(
   probeOverrides?: Pick<ProbeConfig, 'probeRemote' | 'probeServer'> | undefined,
 ): Promise<FallbackRun | undefined> {
   const settingsPath = homeSettingsPath(home)
-  let settings: Record<string, unknown>
-  try {
-    const parsed: unknown = JSON.parse(readFileSync(settingsPath, 'utf8'))
-    if (!isPlainObject(parsed)) {
-      return undefined
-    }
-    settings = parsed
-  } catch {
-    // No readable settings, no tiers to manage.
+  const settings = readFallbackSettings(settingsPath)
+  if (!settings) {
     return undefined
   }
   const envRaw = settings['env']
@@ -955,63 +1024,27 @@ export async function runFallbackOnce(
     const current = env[tier.env]
     return typeof current === 'string' && managed.has(current)
   })
-  // AI_BALANCER_MODE=off means plain Anthropic defaults, so the aliases this
-  // hook owns have to COME BACK OUT. Leaving them while the base-URL rewrite
-  // is skipped is the exact broken half-state the flag exists to prevent: the
-  // aliases name models only the offload providers serve, so every request
-  // 400s on a model Anthropic has never heard of.
-  if (balancerModeIsOff()) {
+  // Routing off means plain Anthropic defaults, so the aliases this hook owns
+  // have to COME BACK OUT. Leaving them while the base-URL rewrite is skipped
+  // is the exact broken half-state the flag exists to prevent: the aliases
+  // name models only the offload providers serve, so every request 400s on a
+  // model Anthropic has never heard of.
+  if (!isAiBalancerEnabled()) {
     return stripManagedAliases(settingsPath, settings, env, tiers, managed)
   }
   if (managedTiers.length === 0) {
     return undefined
   }
-  const chosen = new Map<string, LadderRung>()
-  const notes: string[] = []
-  for (let i = 0, { length } = managedTiers; i < length; i += 1) {
-    const tier = managedTiers[i]!
-    const { rung, verdicts } = await chooseRung(tier, config)
-    chosen.set(tier.env, rung)
-    writeAvailability(home, verdicts)
-    const verdictKeys = Object.keys(verdicts)
-    for (let k = 0, { length: keyCount } = verdictKeys; k < keyCount; k += 1) {
-      const key = verdictKeys[k]!
-      if (verdicts[key] === 'down') {
-        notes.push(`${key} not serving`)
-      }
-    }
-  }
+  const { chosen, notes } = await chooseRungsForTiers(
+    home,
+    managedTiers,
+    config,
+  )
   const { routing, tierChanges } = planChanges(env, tiers, chosen, config)
   if (routing === undefined && tierChanges.length === 0) {
     return undefined
   }
-  // The probes above ran for seconds; re-read the document now rather than
-  // writing back the copy from before the probe window, or any edit the
-  // file gained in that window (a sibling top-level key, or another env
-  // entry) would be lost wholesale. Only the `env` key gets mutated, onto
-  // whichever env sub-object is now on disk.
-  let latest = settings
-  try {
-    const parsed: unknown = JSON.parse(readFileSync(settingsPath, 'utf8'))
-    if (isPlainObject(parsed)) {
-      latest = parsed
-    }
-  } catch {
-    // The file vanished or turned unreadable between the two reads: fall
-    // back to the copy read before the probes rather than losing the write.
-  }
-  const latestEnvRaw = latest['env']
-  const latestEnv: Record<string, unknown> = isPlainObject(latestEnvRaw)
-    ? latestEnvRaw
-    : env
-  latest['env'] = applyPlan(latestEnv, routing, tierChanges)
-  const scratch = `${settingsPath}.${process.pid}.tmp`
-  writeFileSync(scratch, `${JSON.stringify(latest, null, 2)}\n`, 'utf8')
-  renameSync(scratch, settingsPath)
-  const envFile = process.env['CLAUDE_ENV_FILE']
-  if (envFile) {
-    exportToSessionEnv(envFile, routing, tierChanges)
-  }
+  writeFallbackPlan(settingsPath, settings, env, routing, tierChanges)
   return {
     moves: tierChanges.map(c => `${c.env}: ${c.from} -> ${c.to}`),
     notes,
@@ -1071,127 +1104,8 @@ function writeAvailability(
   }
 }
 
-/**
- * How often the watch daemon probes: a minute. A 1-token probe per alias per
- * pass costs fractions of a cent, and a minute is fast enough that a flapping
- * tier is healed before a second turn of work hits it.
- */
-export const WATCH_INTERVAL_MS = 60_000
-
-function watchPidPath(home: string): string {
-  return path.join(home, '.cache', 'fleet', 'model-fallback-watch.pid')
-}
-
-function pidIsAlive(pid: number): boolean {
-  try {
-    process.kill(pid, 0)
-    return true
-  } catch {
-    return false
-  }
-}
-
-/**
- * Take the watch lease, or report that another watcher holds it. The lease
- * file carries the holder's pid; a dead holder's lease is reaped by
- * overwrite, so a crashed watcher never blocks the next one from starting.
- */
-export function acquireWatchLease(home: string): boolean {
-  const file = watchPidPath(home)
-  try {
-    const existing = JSON.parse(readFileSync(file, 'utf8')) as {
-      pid?: number | undefined
-    }
-    if (typeof existing.pid === 'number' && pidIsAlive(existing.pid)) {
-      return false
-    }
-  } catch {
-    // No lease yet, or a malformed one: take it.
-  }
-  try {
-    const { mkdirSync } = process.getBuiltinModule('node:fs')
-    mkdirSync(path.dirname(file), { recursive: true })
-    writeFileSync(
-      file,
-      `${JSON.stringify({ pid: process.pid, startedAtMs: Date.now() })}\n`,
-      'utf8',
-    )
-    return true
-  } catch {
-    return false
-  }
-}
-
-export function releaseWatchLease(home: string): void {
-  try {
-    const { unlinkSync } = process.getBuiltinModule('node:fs')
-    unlinkSync(watchPidPath(home))
-  } catch {
-    // Never held, or already gone.
-  }
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms)
-  })
-}
-
-/**
- * The watch daemon: one per machine, started detached by the SessionStart
- * hook. Probes the ladder on a minute, applies any move, and keeps the
- * availability record warm, so a mid-session outage is healed without waiting
- * for the next session to start. Exits immediately when another watcher
- * holds the lease, and unwinds on SIGTERM rather than dying with its lease
- * held.
- */
-export async function watchMain(): Promise<void> {
-  const home = os.homedir()
-  if (!acquireWatchLease(home)) {
-    return
-  }
-  let stopping = false
-  process.on('SIGTERM', () => {
-    stopping = true
-  })
-  try {
-    for (;;) {
-      await runFallbackOnce(home).catch(() => undefined)
-      if (stopping) {
-        return
-      }
-      await sleep(WATCH_INTERVAL_MS)
-    }
-  } finally {
-    releaseWatchLease(home)
-  }
-}
-
-/**
- * Spawn the watch daemon detached so it survives this hook's exit. One lease
- * means a second SessionStart's spawn exits quietly rather than doubling the
- * probes. The daemon's script path comes from this module's own URL, never
- * from argv: under the dispatcher the module was imported, and argv names
- * something else entirely.
- */
-export function ensureWatcher(): void {
-  const script = fileURLToPath(import.meta.url)
-  if (!existsSync(script)) {
-    return
-  }
-  const result = spawn(process.execPath, [script, '--watch'], {
-    detached: true,
-    stdio: 'ignore',
-  })
-  // Best-effort start: a missing or unspawnable daemon is a quiet no-watch,
-  // never a hook failure - the next SessionStart tries again.
-  result.catch(() => undefined)
-  result.process.unref()
-}
-
 export const hook = defineHook({
   check: async () => {
-    ensureWatcher()
     const run = await runFallbackOnce(os.homedir())
     if (run === undefined) {
       return undefined
@@ -1206,9 +1120,5 @@ export const hook = defineHook({
 })
 
 /* c8 ignore start - entrypoint guard; exercised via subprocess */
-if (process.argv.includes('--watch')) {
-  void watchMain()
-} else {
-  void runHook(hook, import.meta.url)
-}
+void runHook(hook, import.meta.url)
 /* c8 ignore stop */

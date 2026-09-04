@@ -11,29 +11,30 @@
  *      scripts/fleet/check/training-models-respect-visibility.mts
  */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { BALANCER_PROXY_RELATIVE_PATH } from '../paths.mts'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import {
   filterLadderForTrainingPolicy,
   MODELS_THAT_TRAIN,
   modelTrainsOnData,
   resetTrainingPolicyState,
-} from '../_shared/model-training-policy.mts'
+} from '../ai/model-training-policy.mts'
 import {
   getRosterStats,
   isRepoPublic,
   rosterIsFresh,
-} from '../_shared/repo-visibility.mts'
+} from '../github/repo-visibility.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -242,30 +243,66 @@ function checkVisibilityLookup(): CheckResult {
   }
 }
 
-function getProxySource(): string | undefined {
+/**
+ * Every balancer source to search, or undefined in a non-balancer repo.
+ */
+function getProxySources(): string[] | undefined {
   const proxyPath = path.join(
     REPO_ROOT,
-    'scripts',
-    'fleet',
-    'ai-balancer',
-    'proxy.mts',
+    ...BALANCER_PROXY_RELATIVE_PATH.split('/'),
   )
-  if (!existsSync(proxyPath)) {
-    const templatePath = path.join(
-      REPO_ROOT,
-      'template',
-      'base',
-      'scripts',
-      'fleet',
-      'ai-balancer',
-      'proxy.mts',
-    )
-    if (!existsSync(templatePath)) {
-      return undefined
-    }
-    return readFileSync(templatePath, 'utf8')
+  if (existsSync(proxyPath)) {
+    return balancerSources(proxyPath)
   }
-  return readFileSync(proxyPath, 'utf8')
+  const templatePath = path.join(
+    REPO_ROOT,
+    'template',
+    'base',
+    ...BALANCER_PROXY_RELATIVE_PATH.split('/'),
+  )
+  return existsSync(templatePath) ? balancerSources(templatePath) : undefined
+}
+
+/**
+ * The proxy's source and every sibling `.mts` in its directory, as SEPARATE
+ * sources.
+ *
+ * The control this check asserts is that the balancer's request path records
+ * file accesses and filters the ladder - not that one named FILE does. Pinning
+ * it to `proxy.mts` made a routine module split read as a privacy control gone
+ * missing: the calls moved into `request-facts.mts` and the check reported
+ * failures against wiring that was fully intact.
+ *
+ * Separate sources, never concatenated: joining files produces invalid syntax
+ * (repeated imports), the AST parse then fails, and the parse-failure path
+ * answers "not found" - so a broken read would look exactly like a removed
+ * control. One file per parse keeps a failure to measure distinguishable from a
+ * real absence.
+ *
+ * An unreadable sibling is skipped, since a check that cannot measure a file
+ * must not condemn the whole directory for it.
+ */
+function balancerSources(proxyPath: string): string[] {
+  const sources = [readFileSync(proxyPath, 'utf8')]
+  const dir = path.dirname(proxyPath)
+  let entries: string[]
+  try {
+    entries = readdirSync(dir)
+  } catch {
+    return sources
+  }
+  for (let i = 0, { length } = entries; i < length; i += 1) {
+    const entry = entries[i]!
+    if (!entry.endsWith('.mts') || path.join(dir, entry) === proxyPath) {
+      continue
+    }
+    try {
+      sources.push(readFileSync(path.join(dir, entry), 'utf8'))
+    } catch {
+      // Unreadable sibling — skip it rather than fail the whole read.
+    }
+  }
+  return sources
 }
 
 interface AstNode {
@@ -299,6 +336,33 @@ function acornWasm(): AcornWasm {
 }
 
 /**
+ * Every module specifier `moduleSource` imports from, in source order.
+ * Reads the module's typed import graph via its AST, per
+ * socket/no-source-sniffing, instead of pattern-matching the file's text.
+ */
+export function moduleImportSpecifiers(moduleSource: string): string[] {
+  const specifiers: string[] = []
+  try {
+    acornWasm().simple(
+      moduleSource,
+      {
+        ImportDeclaration(node) {
+          const source = node['source'] as AstNode | undefined
+          const value = source?.['value']
+          if (typeof value === 'string') {
+            specifiers.push(value)
+          }
+        },
+      },
+      AST_PARSE_OPTIONS,
+    )
+  } catch {
+    // Parse failure — report no imports; the caller's own parse check flags it.
+  }
+  return specifiers
+}
+
+/**
  * Whether `moduleSource` has a named import of `name` from `moduleSpecifier`.
  * Reads the module's typed import graph via its AST, per
  * socket/no-source-sniffing, instead of pattern-matching the file's text.
@@ -318,7 +382,15 @@ export function moduleImportsName(
             return
           }
           const specifierNode = node['source'] as AstNode | undefined
-          if (specifierNode?.['value'] !== moduleSpecifier) {
+          const value = specifierNode?.['value']
+          // Match on the module's own filename, not the whole relative path.
+          // Either file can move a directory without changing which module is
+          // imported, and a path-literal comparison turns that move into a
+          // missing-import report while the import is right there.
+          if (
+            typeof value !== 'string' ||
+            path.basename(value) !== path.basename(moduleSpecifier)
+          ) {
             return
           }
           const specifiers = (node['specifiers'] as AstNode[] | undefined) ?? []
@@ -375,8 +447,8 @@ export function moduleCallsFunction(
 }
 
 function checkProxyImportsTrainingPolicy(): CheckResult {
-  const source = getProxySource()
-  if (!source) {
+  const sources = getProxySources()
+  if (!sources) {
     return {
       name: 'proxy.mts imports training policy',
       passed: true,
@@ -390,11 +462,15 @@ function checkProxyImportsTrainingPolicy(): CheckResult {
     'recordFileAccesses',
   ]
 
+  // ANY balancer module may hold the import: a split moves the call, not the
+  // control.
   const missing: string[] = []
   for (let i = 0, { length } = requiredImports; i < length; i += 1) {
     const fn = requiredImports[i]!
     if (
-      !moduleImportsName(source, '../_shared/model-training-policy.mts', fn)
+      !sources.some(source =>
+        moduleImportsName(source, '../ai/model-training-policy.mts', fn),
+      )
     ) {
       missing.push(fn)
     }
@@ -416,8 +492,8 @@ function checkProxyImportsTrainingPolicy(): CheckResult {
 }
 
 function checkProxyCallsExtractFilePaths(): CheckResult {
-  const source = getProxySource()
-  if (!source) {
+  const sources = getProxySources()
+  if (!sources) {
     return {
       name: 'proxy.mts calls extractFilePathsFromRequest',
       passed: true,
@@ -425,7 +501,11 @@ function checkProxyCallsExtractFilePaths(): CheckResult {
     }
   }
 
-  if (!moduleCallsFunction(source, 'extractFilePathsFromRequest')) {
+  if (
+    !sources.some(source =>
+      moduleCallsFunction(source, 'extractFilePathsFromRequest'),
+    )
+  ) {
     return {
       name: 'proxy.mts calls extractFilePathsFromRequest',
       passed: false,
@@ -441,8 +521,8 @@ function checkProxyCallsExtractFilePaths(): CheckResult {
 }
 
 function checkProxyCallsRecordFileAccesses(): CheckResult {
-  const source = getProxySource()
-  if (!source) {
+  const sources = getProxySources()
+  if (!sources) {
     return {
       name: 'proxy.mts calls recordFileAccesses',
       passed: true,
@@ -450,7 +530,9 @@ function checkProxyCallsRecordFileAccesses(): CheckResult {
     }
   }
 
-  if (!moduleCallsFunction(source, 'recordFileAccesses')) {
+  if (
+    !sources.some(source => moduleCallsFunction(source, 'recordFileAccesses'))
+  ) {
     return {
       name: 'proxy.mts calls recordFileAccesses',
       passed: false,
@@ -466,8 +548,8 @@ function checkProxyCallsRecordFileAccesses(): CheckResult {
 }
 
 function checkProxyCallsFilterLadder(): CheckResult {
-  const source = getProxySource()
-  if (!source) {
+  const sources = getProxySources()
+  if (!sources) {
     return {
       name: 'proxy.mts calls filterLadderForTrainingPolicy',
       passed: true,
@@ -475,7 +557,11 @@ function checkProxyCallsFilterLadder(): CheckResult {
     }
   }
 
-  if (!moduleCallsFunction(source, 'filterLadderForTrainingPolicy')) {
+  if (
+    !sources.some(source =>
+      moduleCallsFunction(source, 'filterLadderForTrainingPolicy'),
+    )
+  ) {
     return {
       name: 'proxy.mts calls filterLadderForTrainingPolicy',
       passed: false,

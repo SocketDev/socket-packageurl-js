@@ -25,12 +25,13 @@ This hook fires on Bash commands that contain a bare `cd <path>`
 without one of the above safeguards. Stderr reminder; never blocks.
 
 Scope: Bash tool only. Skips:
+
 - `cd ` inside a `()` subshell (pattern (b) - safe)
 - `cd ` followed by `&& pwd` or `; pwd` at the end (pattern (c) -
-evidenced)
+  evidenced)
 - `cd -`, return to previous dir, intentional
 - `cd <path> 2>/dev/null` short forms used for existence probes
-caller knows what they're doing
+  caller knows what they're doing
 
 ## Bypass
 

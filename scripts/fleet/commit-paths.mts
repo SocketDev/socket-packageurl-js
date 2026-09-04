@@ -37,12 +37,12 @@ import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { gitSync, withIsolatedIndex } from './_shared/git-exec.mts'
-import { isIndexLockFailure, nextBackoffMs } from './_shared/git-lock-retry.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
+import { gitSync, withIsolatedIndex } from './git/exec.mts'
+import { isIndexLockFailure, nextBackoffMs } from './git/lock-retry.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { runMain } from './process/run-main.mts'
 
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 
 const logger = getDefaultLogger()

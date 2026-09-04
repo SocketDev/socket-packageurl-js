@@ -20,7 +20,7 @@
 // carry a specificity token are flagged — a bare date in a SHA-pin comment,
 // soak annotation, .gitmodules stamp, or CHANGELOG entry is left alone.
 //
-// Scope: the fleet-facing rule-prose surfaces — CLAUDE.md, docs/agents.md/fleet,
+// Scope: the fleet-facing rule-prose surfaces — CLAUDE.md, docs/fleet/agents.md,
 // .claude/skills/**/SKILL.md, .claude/hooks/fleet/**/README.md. Reporting-only;
 // never auto-fixed, rewriting to the generic form needs judgment.
 //
@@ -38,9 +38,9 @@ import {
   isRuleProseSurface,
 } from '../../../.claude/hooks/fleet/_shared/dated-citation.mts'
 import { REPO_ROOT } from '../paths.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 

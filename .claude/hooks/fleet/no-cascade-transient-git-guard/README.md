@@ -21,6 +21,7 @@ layer so NO commit path, script, loop, or manual, can land a cascade on
 a transient ref.
 
 Skipped silently:
+
 - tool_name !== 'Bash'.
 - Command isn't a cascade-prefixed `git commit`.
 - Target repo is on a normal branch tip, the common case.
@@ -29,8 +30,8 @@ No bypass: there is never a legitimate reason to land a cascade commit
 on a transient ref. Finish, or abort, the in-progress operation first.
 
 Exit codes:
-0  - allow.
-2  - block. Stderr carries the operator-facing message.
+0 - allow.
+2 - block. Stderr carries the operator-facing message.
 
 Fails open on any internal error (exit 0 + stderr log).
 

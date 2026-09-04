@@ -25,19 +25,18 @@ import { globSync } from '@socketsecurity/lib-stable/globs/match'
 import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
 /**
  * The one module allowed to reach the keychain.
  */
-export const SANCTIONED_READER =
-  'scripts/fleet/_shared/provider-credentials.mts'
+export const SANCTIONED_READER = 'scripts/fleet/ai/provider-credentials.mts'
 
 /**
  * What a keychain read looks like in source.

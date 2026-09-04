@@ -27,17 +27,80 @@ import {
   ALLOWLIST_REL,
   ALLOWLIST_SCOPES,
 } from '../../../.claude/hooks/fleet/_shared/fetch-allowlist.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
 export interface AllowlistEntryFinding {
   readonly host: string
   readonly reason: string
+}
+
+/**
+ * Findings for one entry's `scopes` list: absent or empty, or naming a scope
+ * outside {@link ALLOWLIST_SCOPES}. Pure.
+ */
+export function scanEntryScopes(
+  label: string,
+  scopes: unknown,
+): AllowlistEntryFinding[] {
+  if (!Array.isArray(scopes) || scopes.length === 0) {
+    return [
+      {
+        host: label,
+        reason: `scopes is missing or empty - one or more of ${ALLOWLIST_SCOPES.join(', ')}`,
+      },
+    ]
+  }
+  const findings: AllowlistEntryFinding[] = []
+  for (let j = 0, { length: scopesLength } = scopes; j < scopesLength; j += 1) {
+    const scope = scopes[j]
+    if (
+      typeof scope !== 'string' ||
+      !ALLOWLIST_SCOPES.includes(scope as (typeof ALLOWLIST_SCOPES)[number])
+    ) {
+      findings.push({
+        host: label,
+        reason: `unknown scope ${JSON.stringify(scope)} - expected one of ${ALLOWLIST_SCOPES.join(', ')}`,
+      })
+    }
+  }
+  return findings
+}
+
+/**
+ * Findings for ONE host entry: its shape, its `host` name, its `reason`, and
+ * its `scopes`. `index` supplies the positional label an unnamed entry falls
+ * back to. Pure.
+ */
+export function scanHostEntry(
+  entry: unknown,
+  index: number,
+): AllowlistEntryFinding[] {
+  if (typeof entry !== 'object' || entry === null) {
+    return [{ host: `hosts[${index}]`, reason: 'entry is not an object' }]
+  }
+  const fields = entry as Record<string, unknown>
+  const named = fields['host']
+  const label =
+    typeof named === 'string' && named.trim() ? named : `hosts[${index}]`
+  const findings: AllowlistEntryFinding[] = []
+  if (typeof named !== 'string' || !named.trim()) {
+    findings.push({ host: label, reason: 'host is missing or empty' })
+  }
+  const reason = fields['reason']
+  if (typeof reason !== 'string' || !reason.trim()) {
+    findings.push({
+      host: label,
+      reason: 'reason is missing or empty - name why the host is granted',
+    })
+  }
+  findings.push(...scanEntryScopes(label, fields['scopes']))
+  return findings
 }
 
 /**
@@ -57,48 +120,7 @@ export function scanAllowlistEntries(parsed: unknown): AllowlistEntryFinding[] {
   }
   const findings: AllowlistEntryFinding[] = []
   for (let i = 0, { length } = hosts; i < length; i += 1) {
-    const entry = hosts[i] as Record<string, unknown> | undefined
-    if (typeof entry !== 'object' || entry === null) {
-      findings.push({ host: `hosts[${i}]`, reason: 'entry is not an object' })
-      continue
-    }
-    const named = entry['host']
-    const label =
-      typeof named === 'string' && named.trim() ? named : `hosts[${i}]`
-    if (typeof named !== 'string' || !named.trim()) {
-      findings.push({ host: label, reason: 'host is missing or empty' })
-    }
-    const reason = entry['reason']
-    if (typeof reason !== 'string' || !reason.trim()) {
-      findings.push({
-        host: label,
-        reason: 'reason is missing or empty - name why the host is granted',
-      })
-    }
-    const scopes = entry['scopes']
-    if (!Array.isArray(scopes) || scopes.length === 0) {
-      findings.push({
-        host: label,
-        reason: `scopes is missing or empty - one or more of ${ALLOWLIST_SCOPES.join(', ')}`,
-      })
-      continue
-    }
-    for (
-      let j = 0, { length: scopesLength } = scopes;
-      j < scopesLength;
-      j += 1
-    ) {
-      const scope = scopes[j]
-      if (
-        typeof scope !== 'string' ||
-        !ALLOWLIST_SCOPES.includes(scope as (typeof ALLOWLIST_SCOPES)[number])
-      ) {
-        findings.push({
-          host: label,
-          reason: `unknown scope ${JSON.stringify(scope)} - expected one of ${ALLOWLIST_SCOPES.join(', ')}`,
-        })
-      }
-    }
+    findings.push(...scanHostEntry(hosts[i], i))
   }
   return findings
 }

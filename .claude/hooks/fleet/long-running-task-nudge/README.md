@@ -19,19 +19,20 @@ task, the nudge lands at its next tool call, not at the exact threshold. That
 is on goal - the point is to prompt a progress check the next time it acts.
 
 Discovery: three on-disk sources.
+
 1. Workflow runs at <session>/workflows/wf_*.json - runId, status, and
-startTime in epoch ms. Terminal status ends a run; anything else runs.
+   startTime in epoch ms. Terminal status ends a run; anything else runs.
 2. Agents at <session>/subagents/agent-*.jsonl - no status field, so an
-agent runs while its transcript mtime is fresh within the live window;
-age is now minus the transcript ctime.
+   agent runs while its transcript mtime is fresh within the live window;
+   age is now minus the transcript ctime.
 3. Bash tasks at <tmp>/claude-<uid>/<cwd-slug>/<session>/tasks/<id>.output,
-rooted off the cwd rather than the transcript. Nothing on disk marks one
-finished, so SILENCE is the measure: age is now minus the output mtime,
-bounded above by BASH_TASK_STALE_CEILING_MS so finished tasks in a long
-session's dir stay quiet. Symlinked entries are Agent tasks, already
-counted by arm 2, and are skipped rather than double-reported.
-Paths anchor on os.homedir(), transcript_path, and the payload cwd; the one
-hardcoded root is the harness's own tmp dir, injectable for tests.
+   rooted off the cwd rather than the transcript. Nothing on disk marks one
+   finished, so SILENCE is the measure: age is now minus the output mtime,
+   bounded above by BASH_TASK_STALE_CEILING_MS so finished tasks in a long
+   session's dir stay quiet. Symlinked entries are Agent tasks, already
+   counted by arm 2, and are skipped rather than double-reported.
+   Paths anchor on os.homedir(), transcript_path, and the payload cwd; the one
+   hardcoded root is the harness's own tmp dir, injectable for tests.
 
 Idempotent: warns once per task per threshold crossing. A fail-open JSON
 store maps each task id to the highest tier warned; a task re-warns only when

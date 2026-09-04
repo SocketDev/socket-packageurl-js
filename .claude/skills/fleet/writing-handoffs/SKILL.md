@@ -3,7 +3,7 @@ name: writing-handoffs
 description: Write a handoff doc under .claude/reports and report its absolute path.
 user-invocable: true
 # Mechanical: it assembles a doc from state the session already has.
-model: haiku
+model: claude-haiku-4-5
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash(node scripts/fleet/write-handoff.mts:*), Bash(node scripts/fleet/consolidate-reports.mts:*), Bash(git:*), Bash(ls:*)
 metadata:
   internal: true

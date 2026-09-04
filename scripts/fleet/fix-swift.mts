@@ -16,9 +16,9 @@ import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { runMain } from './process/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 import { REPO_ROOT } from './paths.mts'
 
 const logger = getDefaultLogger()

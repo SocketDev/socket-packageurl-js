@@ -110,7 +110,7 @@ export function parseAssetChecksums(
     if (!/^[0-9a-f]{64}$/.test(sha256)) {
       throw new Error(`malformed sha256 in --sha ${platform}=…`)
     }
-    const [osPart, archPart] = platform.split('-')
+    const { 0: osPart, 1: archPart } = platform.split('-')
     const os =
       osPart === 'macos' ? 'macos' : osPart === 'linux' ? 'linux' : undefined
     const arch =

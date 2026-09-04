@@ -21,7 +21,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 
-import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import { parseArgs } from 'node:util'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
@@ -30,9 +30,9 @@ import {
   costUsage,
   readBudgetConfig,
   scanUsage,
-} from './_shared/claude-usage.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
+} from './spend/claude-usage.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { runMain } from './process/run-main.mts'
 import {
   BURN_WINDOW_DAYS,
   burnRate,
@@ -40,12 +40,12 @@ import {
   projectSpend,
   tiersForAllowance,
   utcDayKey,
-} from './_shared/spend-projection.mts'
+} from './spend/projection.mts'
 import { findModelPricing, loadPricing } from './estimate-ai-cost.mts'
 
-import type { ModelRate, UsageScan } from './_shared/claude-usage.mts'
-import type { SpendProjection } from './_shared/spend-projection.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { ModelRate, UsageScan } from './spend/claude-usage.mts'
+import type { SpendProjection } from './spend/projection.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 import type { PricingData } from './estimate-ai-cost.mts'
 
 const logger = getDefaultLogger()
@@ -219,7 +219,7 @@ export async function main(): Promise<number> {
   let projection: SpendProjection
   let monthLabel: string
   try {
-    const [scan, budget] = await Promise.all([
+    const { 0: scan, 1: budget } = await Promise.all([
       scanUsage(scanFromMs, nowMs),
       readBudgetConfig(),
     ])

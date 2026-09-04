@@ -29,11 +29,11 @@ import { fileURLToPath } from 'node:url'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { gitSync as runGit } from './_shared/git-exec.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
+import { gitSync as runGit } from './git/exec.mts'
+import { isMainModule } from './process/is-main-module.mts'
 import { uploadNpmPackage } from './registry-infra/npm/publish-command.mts'
-import { runMainAsync } from './_shared/run-main.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
+import { runMainAsync } from './process/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 import { safeDeleteSync } from '@socketsecurity/lib-stable/fs/safe'
 
 const logger = getDefaultLogger()

@@ -27,26 +27,25 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { FLEET_CACHE_DIR } from './paths.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
-import { readBudgetConfig } from './_shared/claude-usage.mts'
-import { readAvailabilityTable } from './_shared/provider-availability.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { readBudgetConfig } from './spend/claude-usage.mts'
+import { readAvailabilityTable } from './ai/provider-availability.mts'
 // From the leaf, not model-choices.mts: that module asks providers what they
 // serve, which reads a credential and reaches socket-lib's keychain.
-import { selectedModel } from './_shared/model-catalog.mts'
+import { selectedModel } from './ai/model-catalog.mts'
 // From the leaf, not provider-models.mts: that module reads a credential,
 // which reaches socket-lib's keychain and from there its spawn, and perry
 // cannot compile that chain.
-import { providerModelIsSelectable } from './_shared/provider-apis.mts'
-import { readCodexModel } from './_shared/codex-model.mts'
-import { claudeSettingsPath } from './_shared/claude-model.mts'
-import { spendReportPath } from './_shared/spend-report-path.mts'
+import { providerModelIsSelectable } from './ai/provider-apis.mts'
+import { readCodexModel } from './ai/codex-model.mts'
+import { claudeSettingsPath } from './ai/claude-model.mts'
+import { spendReportPath } from './spend/report-path.mts'
 import {
-  claudeSeatIsParked,
   formatSpendStatusline,
   neutralSpendLine,
-} from './_shared/spend-statusline-render.mts'
-import { GAUGE_PROVIDERS } from './_shared/offload-spend.mts'
-import type { GaugeProvider, ProviderSpend } from './_shared/offload-spend.mts'
+} from './spend/statusline-render.mts'
+import { GAUGE_PROVIDERS } from './spend/offload.mts'
+import type { GaugeProvider, ProviderSpend } from './spend/offload.mts'
 
 const SPEND_CACHE_DIR = path.join(FLEET_CACHE_DIR, 'socket-model-cost')
 const SPEND_CACHE_TTL_MS = 300_000
@@ -114,6 +113,31 @@ function readPayload():
 }
 
 /**
+ * True when `parsed` should replace `freshest`: it must be a measured snapshot
+ * for the SAME month window, and either the first such candidate or newer than
+ * the one already held.
+ */
+function isFresherSnapshot(
+  parsed: SpendSnapshot,
+  freshest: SpendSnapshot | undefined,
+  windowFromMs: number,
+): boolean {
+  if (
+    typeof parsed.measuredAtMs !== 'number' ||
+    parsed.windowFromMs !== windowFromMs
+  ) {
+    return false
+  }
+  if (freshest === undefined) {
+    return true
+  }
+  return (
+    typeof freshest.measuredAtMs === 'number' &&
+    parsed.measuredAtMs > freshest.measuredAtMs
+  )
+}
+
+/**
  * The freshest servable snapshot in the cache, or undefined when none is fresh
  * enough for the current month.
  */
@@ -137,18 +161,7 @@ async function readSnapshot(
       const parsed = JSON.parse(
         readFileSync(path.join(SPEND_CACHE_DIR, name), 'utf8'),
       ) as SpendSnapshot
-      if (
-        typeof parsed.measuredAtMs === 'number' &&
-        parsed.windowFromMs === windowFromMs &&
-        freshest === undefined
-      ) {
-        freshest = parsed
-      } else if (
-        typeof parsed.measuredAtMs === 'number' &&
-        parsed.windowFromMs === windowFromMs &&
-        typeof freshest?.measuredAtMs === 'number' &&
-        parsed.measuredAtMs > freshest.measuredAtMs
-      ) {
+      if (isFresherSnapshot(parsed, freshest, windowFromMs)) {
         freshest = parsed
       }
     } catch {
@@ -182,6 +195,37 @@ function claudeModel(): string | undefined {
   return undefined
 }
 
+// The fresh model name for one gauge: the selection file for a selectable
+// provider, the codex config for the openai seat, nothing for the rest.
+function gaugeModelFor(provider: GaugeProvider): string {
+  if (providerModelIsSelectable(provider)) {
+    return selectedModel(provider)
+  }
+  return provider === 'openai' ? (readCodexModel() ?? '') : ''
+}
+
+// The authoritative fields a figure carries, spread-ready. Each is omitted
+// rather than zeroed when absent: an absent authoritative reading and a zero
+// one mean opposite things to the renderer.
+function authoritativeSpendFields(
+  figure: OffloadSpendFigure | undefined,
+): Partial<ProviderSpend> {
+  if (figure === undefined) {
+    return {}
+  }
+  return {
+    ...(figure.authoritativeRemaining !== undefined
+      ? { authoritativeRemaining: figure.authoritativeRemaining }
+      : {}),
+    ...(figure.authoritativeUsd !== undefined
+      ? { authoritativeUsd: figure.authoritativeUsd }
+      : {}),
+    ...(figure.rateWindowMinutes !== undefined
+      ? { rateWindowMinutes: figure.rateWindowMinutes }
+      : {}),
+  }
+}
+
 /**
  * Build the offload ProviderSpend[] for the renderer: the snapshot's spend
  * figures plus the fresh model names (the selection file for selectable
@@ -193,23 +237,11 @@ function offloadSpends(snapshot: SpendSnapshot): ProviderSpend[] {
     const figure = offload?.[provider]
     return {
       messages: figure?.messages ?? 0,
-      model: providerModelIsSelectable(provider)
-        ? selectedModel(provider)
-        : provider === 'openai'
-          ? (readCodexModel() ?? '')
-          : '',
+      model: gaugeModelFor(provider),
       provider,
       usd: figure?.usd ?? 0,
       windowRequests: figure?.windowRequests ?? 0,
-      ...(figure?.authoritativeRemaining !== undefined
-        ? { authoritativeRemaining: figure.authoritativeRemaining }
-        : {}),
-      ...(figure?.authoritativeUsd !== undefined
-        ? { authoritativeUsd: figure.authoritativeUsd }
-        : {}),
-      ...(figure?.rateWindowMinutes !== undefined
-        ? { rateWindowMinutes: figure.rateWindowMinutes }
-        : {}),
+      ...authoritativeSpendFields(figure),
     }
   })
 }
@@ -244,11 +276,40 @@ async function refreshSnapshot(
   return readSnapshot(windowFromMs, nowMs)
 }
 
+/**
+ * The model the seat is running, preferring what the Claude settings name over
+ * what the render payload reports.
+ */
+function seatModelName(
+  payload:
+    | {
+        model?:
+          | { display_name?: string | undefined; id?: string | undefined }
+          | undefined
+      }
+    | undefined,
+): string | undefined {
+  return claudeModel() ?? payload?.model?.display_name ?? payload?.model?.id
+}
+
+/**
+ * The spend report path when one has been written, else undefined. An absent
+ * report is the ordinary first-run state, never an error.
+ */
+async function existingSpendReportPath(): Promise<string | undefined> {
+  try {
+    const target = spendReportPath()
+    await access(target)
+    return target
+  } catch {
+    return undefined
+  }
+}
+
 export async function main(): Promise<number> {
   try {
     const payload = readPayload()
-    const model =
-      claudeModel() ?? payload?.model?.display_name ?? payload?.model?.id
+    const model = seatModelName(payload)
     const budget = await readBudgetConfig()
     if (!budget) {
       process.stdout.write(`${neutralSpendLine(model)}\n`)
@@ -265,16 +326,8 @@ export async function main(): Promise<number> {
       // No snapshot and no refresh: print nothing, leave the previous line.
       return 0
     }
-    const isOffloaded = claudeSeatIsParked()
-    const seatName = isOffloaded ? (model ?? 'claude') : (model ?? 'claude')
-    let reportPath: string | undefined
-    try {
-      const target = spendReportPath()
-      await access(target)
-      reportPath = target
-    } catch {
-      reportPath = undefined
-    }
+    const seatName = model ?? 'claude'
+    const reportPath = await existingSpendReportPath()
     process.stdout.write(
       `${formatSpendStatusline({
         availabilityTable: readAvailabilityTable(),

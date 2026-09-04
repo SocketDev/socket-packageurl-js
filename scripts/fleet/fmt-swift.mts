@@ -19,13 +19,13 @@
 import path from 'node:path'
 import process from 'node:process'
 
-import { whichSync } from '@socketsecurity/lib-stable/bin/which'
+import { whichSync } from '@socketsecurity/lib-stable/exe/path/which'
 import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
-import { findSwiftTargetDirs } from './_shared/swift-targets.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
+import { findSwiftTargetDirs } from './eco/swift-targets.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { runMain } from './process/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 import { REPO_ROOT } from './paths.mts'
 
 const logger = getDefaultLogger()

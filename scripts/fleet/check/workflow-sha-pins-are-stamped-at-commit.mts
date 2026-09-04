@@ -16,13 +16,13 @@
  *   sees generated and hand-written bytes alike.
  *   Scope, and why it is wider than the cascade's own check:
  *
- *   - Workflows at ANY depth: `**​/.github/workflows/*.{yml,yaml}` — the root
+ *   - Workflows at ANY depth: `**`/`.github/workflows/*.{yml,yaml}` — the root
  *     tree AND every wheelhouse template layer (`template/base`,
  *     `template/presets`, `template/conditional/*`, `template/overrides/*`). A
  *     preset is SEEDED into a member as its initial file, so an unstamped pin
  *     there propagates fleet-wide.
  *   - Composite actions at ANY depth:
- *     `**​/.github/actions/**​/action.{yml,yaml}`. The fleet layout is
+ *     `**`/`.github/actions/**`/`action.{yml,yaml}`. The fleet layout is
  *     segmented (`.github/actions/{fleet,repo}/<name>/`), so a one-level-deep
  *     probe finds nothing at all.
  *   - Local-action refs (`uses: ./.github/actions/foo`) and unpinned tag refs
@@ -47,14 +47,14 @@ import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
-import { gitSync } from '../_shared/git-exec.mts'
+import { gitSync } from '../git/exec.mts'
 
-import { isNeverGated } from '../_shared/format-scope.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isNeverGated } from '../lint/format-scope.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 

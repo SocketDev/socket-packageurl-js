@@ -26,23 +26,25 @@ draft still creates the PR and its notifications.
 `gh pr create` is not the only way to open a PR, and a guard that covers
 just it teaches the agent to route around the guard, so the other two
 vectors are covered too:
+
 - REST: `gh api repos/{owner}/{repo}/pulls` with an explicit `-X POST`,
-or with `-f`/`-F` fields (which make gh POST implicitly). An explicit
-`-X GET` stays read-only. The endpoint path names the target repo, so
-detection and target resolution come from the same argument.
+  or with `-f`/`-F` fields (which make gh POST implicitly). An explicit
+  `-X GET` stays read-only. The endpoint path names the target repo, so
+  detection and target resolution come from the same argument.
 - GraphQL: `gh api graphql` whose arguments carry `createPullRequest`.
-The mutation takes a repository node id, not a slug, so the target
-falls back to the origin of the directory the command runs in - and,
-unresolvable, fails OPEN like the base case.
-`hub pull-request` is intentionally NOT covered: hub is not installed on
-fleet machines, and an agent inventive enough to install it has more
-general supply-chain guards to answer to first.
+  The mutation takes a repository node id, not a slug, so the target
+  falls back to the origin of the directory the command runs in - and,
+  unresolvable, fails OPEN like the base case.
+  `hub pull-request` is intentionally NOT covered: hub is not installed on
+  fleet machines, and an agent inventive enough to install it has more
+  general supply-chain guards to answer to first.
 
 Target resolution, in priority order:
+
 1. `--repo` / `-R owner/name` on the command
 2. the REST endpoint's `{owner}/{repo}` path segments
 3. the origin remote of the directory the command runs in (`cd x && gh …`,
-else the session cwd)
+   else the session cwd)
 
 Fires everywhere via `global: true` - a non-fleet repo is exactly where this
 has to work, so it cannot be scoped to fleet checkouts.

@@ -7,7 +7,7 @@ that appears in `new_string`, not a version bump of an existing one.
 Reaching for npm for a small, single-purpose, permissively-licensed utility
 adds a `node_modules` entry, a lockfile bump, and a transitive-dep surface
 for logic that could be ported in-tree instead. See
-[`docs/agents.md/fleet/prefer-inlining-small-deps.md`](../../../../docs/agents.md/fleet/prefer-inlining-small-deps.md).
+[`docs/fleet/agents.md/prefer-inlining-small-deps.md`](../../../../docs/fleet/agents.md/prefer-inlining-small-deps.md).
 
 ## What it flags
 

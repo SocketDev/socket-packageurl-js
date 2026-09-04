@@ -8,7 +8,7 @@
  *   gh-aw version bump that re-expands `defaults` must not flap this check. We
  *   only fail when the fleet list grants a host gh-aw does NOT permit — a local
  *   egress reach the CI fence would block, i.e. a hole. Background:
- *   docs/agents.md/fleet/agent-egress.md.
+ *   docs/fleet/agents.md/agent-egress.md.
  *   The fleet side is the `"runtime"`-scoped subset of the ONE `hosts[]` list,
  *   read through _shared/fetch-allowlist.mts — the same reader the guard uses,
  *   so a grant cannot be visible to one consumer and not the other.
@@ -23,7 +23,7 @@
 
 // Needs typed string stdout from `git ls-files`, no async.
 // oxlint-disable-next-line socket/prefer-async-spawn -- sync check
-import { gitSync } from '../_shared/git-exec.mts'
+import { gitSync } from '../git/exec.mts'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'

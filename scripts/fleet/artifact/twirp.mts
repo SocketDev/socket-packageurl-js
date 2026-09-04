@@ -28,7 +28,7 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import {
   readActionsResultsUrl,
   readActionsRuntimeToken,
-} from '../_shared/actions-runtime.mts'
+} from '../github/actions-runtime.mts'
 
 import type { HttpResponse } from '@socketsecurity/lib-stable/http-request'
 

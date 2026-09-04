@@ -2,7 +2,7 @@
 // Claude Code PreToolUse hook — pr-comment-brevity-guard.
 //
 // The wiring, not the law. Every rule this guard blocks on is DEFINED in
-// `scripts/fleet/_shared/review-comment-law.mts` — `summaryIntroSmell` for a
+// `scripts/fleet/prose/review-comment-law.mts` — `summaryIntroSmell` for a
 // review's top-level intro, `inlineBrevitySmell` for one `comments[].body` —
 // and both of those already carry the `<details>`-escape-valve layering and
 // the clean-bill-of-health tightening. This file's only job is: extract the
@@ -60,8 +60,8 @@ import { verdictContinuation, verdictLine } from '../_shared/verdict.mts'
 import {
   inlineBrevitySmell,
   summaryIntroSmell,
-} from '../../../../scripts/fleet/_shared/review-comment-law.mts'
-import type { ReviewCommentSmell } from '../../../../scripts/fleet/_shared/review-comment-law.mts'
+} from '../../../../scripts/fleet/prose/review-comment-law.mts'
+import type { ReviewCommentSmell } from '../../../../scripts/fleet/prose/review-comment-law.mts'
 
 // Dispatcher pre-flight: every path this guard cares about invokes `gh`.
 export const triggers: readonly string[] = ['gh']
@@ -207,16 +207,15 @@ interface JsonPayloadShape {
 }
 
 /**
- * Read and JSON-parse `filePath` (resolved against `baseDir` when relative),
- * pulling `.body` and every `.comments[].body`. Returns undefined on a
- * missing file, invalid JSON, a non-object payload, or a payload carrying
- * neither field — fail-open, same posture every other guard takes on a parse
- * failure.
+ * The `gh api --input` payload object at `filePath` (resolved against
+ * `baseDir` when relative), or undefined on a missing file, invalid JSON, or
+ * a non-object payload — fail-open, same posture every other guard takes on a
+ * parse failure.
  */
-function readJsonInputBody(
+function readPayloadObject(
   filePath: string,
   baseDir: string,
-): OutboundBody | undefined {
+): JsonPayloadShape | undefined {
   const resolved = path.isAbsolute(filePath)
     ? filePath
     : path.join(baseDir, filePath)
@@ -235,22 +234,47 @@ function readJsonInputBody(
   if (parsed === null || typeof parsed !== 'object') {
     return undefined
   }
-  const obj = parsed as JsonPayloadShape
-  const bodyText =
-    typeof obj.body === 'string' && obj.body ? obj.body : undefined
-  const comments: BodyPart[] = []
-  if (Array.isArray(obj.comments)) {
-    for (let i = 0, { length } = obj.comments; i < length; i += 1) {
-      const entry = obj.comments[i] as unknown
-      if (entry === null || typeof entry !== 'object') {
-        continue
-      }
-      const text = (entry as Record<string, unknown>)['body']
-      if (typeof text === 'string' && text) {
-        comments.push({ label: `comments[${i}]`, kind: 'comment', text })
-      }
+  return parsed as JsonPayloadShape
+}
+
+/**
+ * One BodyPart per `.comments[]` entry carrying a non-empty string `body`.
+ * A non-array field, a non-object entry, and a bodyless entry all drop out.
+ */
+function commentBodyParts(comments: unknown): BodyPart[] {
+  const parts: BodyPart[] = []
+  if (!Array.isArray(comments)) {
+    return parts
+  }
+  for (let i = 0, { length } = comments; i < length; i += 1) {
+    const entry = comments[i] as unknown
+    if (entry === null || typeof entry !== 'object') {
+      continue
+    }
+    const text = (entry as Record<string, unknown>)['body']
+    if (typeof text === 'string' && text) {
+      parts.push({ label: `comments[${i}]`, kind: 'comment', text })
     }
   }
+  return parts
+}
+
+/**
+ * Read the JSON payload at `filePath` and pull `.body` plus every
+ * `.comments[].body` out of it. Returns undefined when the payload is
+ * unreadable (see readPayloadObject) or carries neither field.
+ */
+function readJsonInputBody(
+  filePath: string,
+  baseDir: string,
+): OutboundBody | undefined {
+  const obj = readPayloadObject(filePath, baseDir)
+  if (obj === undefined) {
+    return undefined
+  }
+  const bodyText =
+    typeof obj.body === 'string' && obj.body ? obj.body : undefined
+  const comments = commentBodyParts(obj.comments)
   if (bodyText === undefined && comments.length === 0) {
     return undefined
   }

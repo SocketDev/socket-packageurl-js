@@ -21,13 +21,13 @@ import {
   findRepoRoot,
   probeHttpOk,
   spawnDetachedServer,
-} from '../../../../scripts/fleet/_shared/ai-infra.mts'
+} from '../../../../scripts/fleet/ai/infra.mts'
 import {
   CLAUDE_SHIM_PORT,
   CODEX_SHIM_PORT,
   SHIM_SPAWN_WAIT_BUDGET_MS as SPAWN_WAIT_BUDGET_MS,
   SPAWN_POLL_INTERVAL_MS,
-} from '../../../../scripts/fleet/_shared/fleet-ports.mts'
+} from '../../../../scripts/fleet/balancer/fleet-ports.mts'
 
 export { CODEX_SHIM_PORT, CLAUDE_SHIM_PORT, probeHttpOk }
 

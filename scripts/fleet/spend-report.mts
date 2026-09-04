@@ -18,25 +18,25 @@ import path from 'node:path'
 import process from 'node:process'
 import { pathToFileURL } from 'node:url'
 
-import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import { parseArgs } from 'node:util'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { readBudgetConfig, scanUsage } from './_shared/claude-usage.mts'
-import { renderSpendReportHtml } from './_shared/spend-report-html.mts'
-import { livePickerRowsFor } from './_shared/model-choices.mts'
-import { GAUGE_PROVIDERS, PROVIDER_META } from './_shared/offload-spend.mts'
-import type { PickerGroup } from './_shared/picker.mts'
-import { reportHref } from './_shared/report-url.mts'
-import { spendReportPath } from './_shared/spend-report-path.mts'
+import { readBudgetConfig, scanUsage } from './spend/claude-usage.mts'
+import { renderSpendReportHtml } from './spend/report-html.mts'
+import { livePickerRowsFor } from './ai/model-choices.mts'
+import { GAUGE_PROVIDERS, PROVIDER_META } from './spend/offload.mts'
+import type { PickerGroup } from './cli/picker.mts'
+import { reportHref } from './reports/url.mts'
+import { spendReportPath } from './spend/report-path.mts'
 import { ensureReportsServer } from './serve-reports.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { runMain } from './process/run-main.mts'
 import { loadPricing } from './estimate-ai-cost.mts'
 import { summarizeSpend } from './report-claude-usage.mts'
 
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -94,7 +94,7 @@ export async function main(): Promise<number> {
   let html: string
   const target = spendReportPath()
   try {
-    const [scan, budget] = await Promise.all([
+    const { 0: scan, 1: budget } = await Promise.all([
       scanUsage(window.fromMs, window.toMs),
       readBudgetConfig(),
     ])

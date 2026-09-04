@@ -10,19 +10,19 @@
  *   entry point for the same work: seeding a machine whose roster table has
  *   never been written, and refreshing it afterwards.
  *   Usage:
- *   pnpm run setup:roster-db           # refresh stale entries only
- *   pnpm run setup:roster-db --force   # force refresh all owners
- *   pnpm run setup:roster-db --stats   # show roster stats without refresh.
+ *   `pnpm run` setup:roster-db           # refresh stale entries only
+ *   `pnpm run` setup:roster-db --force   # force refresh all owners
+ *   `pnpm run` setup:roster-db --stats   # show roster stats without refresh.
  */
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 import {
   forceRefreshOwnerRoster,
   getRosterStats,
   setupRosterDb,
-} from '../_shared/repo-visibility.mts'
+} from '../github/repo-visibility.mts'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 const logger = getDefaultLogger()

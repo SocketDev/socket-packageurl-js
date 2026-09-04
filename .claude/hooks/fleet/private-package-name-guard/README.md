@@ -11,10 +11,11 @@ possibly in a lockfile, and possibly referenced by a sibling. Renaming then
 costs a reference sweep. Renaming at the edit costs one keystroke.
 
 Three ways a private package reads as publishable, all blocked here:
+
 - a SCOPE (`@acme/tests`), which squats a namespace the repo may not own
 - a name that is not `local-<own directory>`
 - a version other than `0.0.0`, which invites release reasoning about
-something that never ships
+  something that never ships
 
 The name is the package's OWN directory, never its path. A path-derived name
 renames on every move, so relocating a directory would rewrite every

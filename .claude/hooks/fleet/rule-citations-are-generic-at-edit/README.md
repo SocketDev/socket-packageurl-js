@@ -6,7 +6,7 @@ explanation.
 ## What it does
 
 Blocks adding a dated-incident citation to a fleet-facing rule-prose surface:
-`CLAUDE.md`, `docs/agents.md/fleet/**`, `.claude/skills/**/SKILL.md`,
+`CLAUDE.md`, `docs/fleet/agents.md/**`, `.claude/skills/**/SKILL.md`,
 `.claude/hooks/fleet/**/README.md`.
 
 The fleet rule ("Compound lessons into rules"): cite the case that motivated a

@@ -10,7 +10,7 @@
  *   the pin reaches it, naming every marker still outstanding.
  *
  *   The motivating case is a marker that removes working behavior if honored
- *   naively. `scripts/fleet/_shared/git-exec.mts` becomes a thin re-export of
+ *   naively. `scripts/fleet/git/exec.mts` becomes a thin re-export of
  *   the lib's own `git/exec` at `lib@7.0.0`, but that module throws on a locked
  *   index without retrying, so collapsing it drops the retry and restores a
  *   hard failure — and the re-export type-checks cleanly while doing it. A gate
@@ -31,12 +31,13 @@ import process from 'node:process'
 import { gte } from '@socketsecurity/lib-stable/versions/compare'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { gitSync } from '../_shared/git-exec.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { gitSync } from '../git/exec.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
+import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 
 const logger = getDefaultLogger()
 
@@ -118,12 +119,32 @@ export function findPinTodos(file: string, text: string): PinTodo[] {
  * a build output, a vendored tree, or an untracked scratch file cannot make the
  * gate red.
  */
+export const SELF_SCAN_BASENAMES: readonly string[] = [
+  'pin-coupled-todos-are-resolved.mts',
+  'check-pin-coupled-todos-are-resolved.test.mts',
+]
+
+/**
+ * Whether a path is this gate's own source or its specs.
+ *
+ * Both spell real markers as DATA: the matcher's own doc gives
+ * `TODO(lib@7.0.0)` as the example it recognizes, and the specs feed marker
+ * strings in as fixtures. Scanning them reports the gate against itself, which
+ * is a finding no edit outside the gate can clear.
+ */
+export function isSelfScan(file: string): boolean {
+  const base = normalizePath(file).split('/').pop() ?? ''
+  return SELF_SCAN_BASENAMES.includes(base)
+}
+
 export function scannableFiles(repoRoot: string): string[] {
   const listed = gitSync(['ls-files'], { cwd: repoRoot })
   return String(listed.stdout ?? '')
     .split(/\r?\n/)
-    .filter(file =>
-      /\.(?:cjs|cts|js|json|jsonc|mjs|mts|ts|yaml|yml)$/.test(file),
+    .filter(
+      file =>
+        /\.(?:cjs|cts|js|json|jsonc|mjs|mts|ts|yaml|yml)$/.test(file) &&
+        !isSelfScan(file),
     )
 }
 

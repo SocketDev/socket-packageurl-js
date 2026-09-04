@@ -18,7 +18,7 @@
 // separators + stripping a leading `./`. Fails open on parse errors — a guard
 // bug must not block every Bash call.
 //
-// Convention: docs/agents.md/fleet/upstream-references.md.
+// Convention: docs/fleet/agents.md/upstream-references.md.
 // Bypass: `Allow upstream-gitlink bypass`.
 
 import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
@@ -95,7 +95,7 @@ export function detectUpstreamGitlinkStage(
 export function formatBlock(detection: UpstreamGitlinkDetection): string {
   return [
     `upstream-gitlinks-are-absent-at-edit: \`${detection.command}\` would stage \`${detection.path}\` under upstream/ - \`.gitmodules\`-only, a tracked gitlink duplicates the pinned SHA.`,
-    'Fix: record the pin in .gitmodules (`gen/gitmodules-hash.mts --set`); drop a stray gitlink with `git update-index --force-remove <path>`. See docs/agents.md/fleet/upstream-references.md.',
+    'Fix: record the pin in .gitmodules (`gen/gitmodules-hash.mts --set`); drop a stray gitlink with `git update-index --force-remove <path>`. See docs/fleet/agents.md/upstream-references.md.',
   ].join('\n')
 }
 

@@ -8,12 +8,12 @@
 // Lives in its own file because installers.mts is at the 500-line soft cap.
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
-import { whichSync } from '@socketsecurity/lib-stable/bin/which'
+import { whichSync } from '@socketsecurity/lib-stable/exe/path/which'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
 import { releaseTag, resolvePlatformEntry } from './installers.mts'
 
-import { integrityValue } from './tool-config.mts'
+import { integrityValue } from '../../../../../scripts/fleet/external-tools/integrity.mts'
 import type { ToolEntry } from './tool-config.mts'
 
 const logger = getDefaultLogger()

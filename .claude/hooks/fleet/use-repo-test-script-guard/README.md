@@ -23,23 +23,25 @@ flags, the config path, the setup files, and the env - none of which
 a hand-written invocation reproduces by accident.
 
 DENIES (only when a matching script exists):
-- vitest run …                → <pm> run test:unit
-- node --test 'src/**/*.mts'  → <pm> run test:unit
-- pnpm exec jest              → <pm> run test
-A TEST-SHAPED script that DELEGATES (`test: "node scripts/fleet/test.mts"`)
-counts as a match when the wrapper file wraps a runner - the fleet test
-runner hides vitest behind exactly that shape, one hop past the
-package.json text. Non-test-shaped delegators never match: a build script
-whose file happens to mention a runner word is not the repo's test law.
+
+- vitest run … → <pm> run test:unit
+- node --test 'src/**/*.mts' → <pm> run test:unit
+- pnpm exec jest → <pm> run test
+  A TEST-SHAPED script that DELEGATES (`test: "node scripts/fleet/test.mts"`)
+  counts as a match when the wrapper file wraps a runner - the fleet test
+  runner hides vitest behind exactly that shape, one hop past the
+  package.json text. Non-test-shaped delegators never match: a build script
+  whose file happens to mention a runner word is not the repo's test law.
 
 DENIES ALWAYS (in a pnpm-pinned repo): any runner launched via npx - npx
 runs npm, which devEngines rejects, and fetches an unpinned runner copy.
 Suggestions follow the repo's own package manager (pnpm vs npm).
 
 ALLOWS:
+
 - the package script itself (npm/pnpm run <script>)
 - a direct run when NO script matches that runner - there is nothing
-better to point at, and blocking would leave no way to run tests
+  better to point at, and blocking would leave no way to run tests
 - any non-test command
 
 CROSS-REPO: a leading `cd <repo> &&` retargets the package.json lookup to

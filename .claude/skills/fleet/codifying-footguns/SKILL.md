@@ -4,7 +4,7 @@ description: Turn a repeated mistake into an enforcement artifact: hook, lint ru
 user-invocable: true
 # Judgment: choosing the right enforcement artifact for a mistake is a design
 # call, not a mechanical edit.
-model: sonnet
+model: claude-sonnet-5
 allowed-tools: Read, Edit, Write, Glob, Grep, Bash(node scripts/fleet/*:*), Bash(pnpm run *:*), Bash(git:*), Bash(ls:*)
 metadata:
   internal: true
@@ -20,7 +20,7 @@ This skill exists because "I hit X again" was said several times in one session
 about mistakes that already had notes written about them. A note is not
 enforcement.
 
-The memory side of this is `docs/agents.md/fleet/memory-codification.md`: a
+The memory side of this is `docs/fleet/agents.md/memory-codification.md`: a
 memory stating an enforceable rule carries an `enforcement:` line naming the
 artifact. That page says a lesson needs an enforcer; this one is how to build
 one.
@@ -53,21 +53,21 @@ turned a real count of 5 into a chased 33.
 
 ## Pick the artifact
 
-| The footgun is | Use | Because |
-| --- | --- | --- |
-| A command shape (bash, git, a CLI) | **hook**, PreToolUse | Only a hook sees a tool call before it runs |
-| Something written into a file | **oxlint rule** | It is checkable from source, in CI, forever |
-| Advice you handed the operator | **hook**, Stop/PostToolUse | Prose is not a tool call; the bash-side guard never sees it |
-| A multi-step flow people re-derive | **script** (`.mts`) + a `package.json` entry | The script owns the argv nobody should retype |
-| A judgement call with no single right answer | **skill** | A checklist beats a blocker when the answer is contextual |
-| A fact about intent or preference | **doctrine line** in `CLAUDE.md`, or a memory | Nothing to detect, so nothing to enforce |
+| The footgun is                               | Use                                           | Because                                                     |
+| -------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------- |
+| A command shape (bash, git, a CLI)           | **hook**, PreToolUse                          | Only a hook sees a tool call before it runs                 |
+| Something written into a file                | **oxlint rule**                               | It is checkable from source, in CI, forever                 |
+| Advice you handed the operator               | **hook**, Stop/PostToolUse                    | Prose is not a tool call; the bash-side guard never sees it |
+| A multi-step flow people re-derive           | **script** (`.mts`) + a `package.json` entry  | The script owns the argv nobody should retype               |
+| A judgement call with no single right answer | **skill**                                     | A checklist beats a blocker when the answer is contextual   |
+| A fact about intent or preference            | **doctrine line** in `CLAUDE.md`, or a memory | Nothing to detect, so nothing to enforce                    |
 
 One artifact per pattern. Two patterns in one rule cannot be dropped
 independently when one stops earning its keep.
 
 ## Checklist: a new hook
 
-- [ ] Registry bullet in `docs/agents.md/fleet/hook-registry.md`, or inline in
+- [ ] Registry bullet in `docs/fleet/agents.md/hook-registry.md`, or inline in
       `CLAUDE.md`. `new-hook-claude-md-guard` BLOCKS the `Write` until this
       exists - policy with no entry is policy nobody can look up.
 - [ ] `void runHook(hook, import.meta.url)`, with the `void`. `dispatch-scan`
@@ -117,7 +117,7 @@ independently when one stops earning its keep.
 
 - [ ] One line in `CLAUDE.md`, with the enforcing artifact in parentheses if one
       exists.
-- [ ] A `docs/agents.md/fleet/*.md` page when it needs more than a line.
+- [ ] A `docs/fleet/agents.md/*.md` page when it needs more than a line.
 - [ ] Say plainly that it is unenforced. An unenforced rule is a preference, and
       calling it a law is how it gets ignored.
 

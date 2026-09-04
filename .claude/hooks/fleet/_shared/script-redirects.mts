@@ -62,9 +62,15 @@ export const SCRIPT_REDIRECTS: readonly ScriptRedirect[] = [
   },
   {
     // `npm login` / `npm adduser`, the two spellings of the same flow.
+    //
+    // The browser lane FIRST, and it is not interchangeable with the CLI one:
+    // npmjs.com's bot management drops a login transaction performed in a
+    // CDP-driven browser, so the session has to be seeded by plain Chrome
+    // (`npm:auth:browser`) before any automation reuses it. `npm:auth` alone is
+    // the generic PTY passthrough and skips that seeding.
     pattern: /\bnpm\s+(?:adduser|login)\b/,
-    script: 'pnpm run npm:auth',
-    owns: 'the browser-vs-CLI lane, and it does not EOF without a TTY',
+    script: 'pnpm run npm:auth:browser',
+    owns: 'the plain-Chrome session seed that npm bot management requires, which a CDP launch cannot do',
   },
 ]
 

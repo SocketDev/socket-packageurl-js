@@ -15,7 +15,7 @@
  *   found); 1 — at least one off-allowlist fetch is committed.
  */
 
-import { gitSync } from '../_shared/git-exec.mts'
+import { gitSync } from '../git/exec.mts'
 import { readFileSync } from 'node:fs'
 import process from 'node:process'
 

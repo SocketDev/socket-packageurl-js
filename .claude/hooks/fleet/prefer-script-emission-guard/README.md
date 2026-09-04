@@ -1,6 +1,6 @@
 # prefer-script-emission-guard
 
-**Type:** PostToolUse hook (GUARD - blocks). Global: it fires in any cwd.
+**Type:** PostToolUse hook (GUARD - blocks). Global: wired into every repo session, but `mode: 'fleet'` stands it down outside a roster member - the redirect scripts it points at are fleet-cascaded and do not exist in a foreign repo.
 
 ## What it does
 

@@ -31,12 +31,12 @@ import process from 'node:process'
 import { globSync } from '@socketsecurity/lib-stable/globs/match'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
-import { AGENT_ROUTES, routeForAgent } from '../_shared/agent-offload.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { AGENT_ROUTES, routeForAgent } from '../ai/agent-offload.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -91,7 +91,7 @@ export function findRoutingGaps(
     if (route === undefined) {
       if (!decl.optsOut) {
         gaps.push(
-          `${decl.file}: '${decl.agent}' has no entry in AGENT_ROUTES and no '${OPT_OUT_MARKER}' line. Saw an agent nobody decided where to run; wanted either a route or a recorded opt-out. Fix: add it to AGENT_ROUTES in scripts/fleet/_shared/agent-offload.mts, or add a '${OPT_OUT_MARKER}' line naming why it stays on the Claude seat.`,
+          `${decl.file}: '${decl.agent}' has no entry in AGENT_ROUTES and no '${OPT_OUT_MARKER}' line. Saw an agent nobody decided where to run; wanted either a route or a recorded opt-out. Fix: add it to AGENT_ROUTES in scripts/fleet/ai/agent-offload.mts, or add a '${OPT_OUT_MARKER}' line naming why it stays on the Claude seat.`,
         )
       }
       continue
@@ -159,7 +159,7 @@ export const SCRIPT_META: ScriptMeta = {
 
   --quiet   report only failures
 
-The routing table is scripts/fleet/_shared/agent-offload.mts. An agent that
+The routing table is scripts/fleet/ai/agent-offload.mts. An agent that
 should stay on the Claude seat says so with an '${OPT_OUT_MARKER}' line, so the
 absence of a route is a decision on the record rather than an oversight.
 

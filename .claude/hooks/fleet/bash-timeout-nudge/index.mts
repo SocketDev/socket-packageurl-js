@@ -20,7 +20,7 @@
 
 import { bashGuard, defineHook, notify, runHook } from '../_shared/guard.mts'
 import { readTimeoutMs } from '../_shared/payload.mts'
-import { timeoutHintFor } from '../../../../scripts/fleet/_shared/duration-budgets.mts'
+import { timeoutHintFor } from '../../../../scripts/fleet/process/duration-budgets.mts'
 
 /**
  * The Bash tool's own default when a call names no timeout. A call that omits

@@ -12,7 +12,7 @@
  *   Consumers, all reading this one list:
  *     - `snapshot-hostile-require-guard` blocks the write.
  *     - `socket/no-snapshot-hostile-builtin` fails the lint.
- *     - `scripts/fleet/_shared/snapshot-hostile-builtins.mts` names the offender
+ *     - `scripts/fleet/hooks/snapshot-hostile-builtins.mts` names the offender
  *       in a build that already aborted.
  */
 
@@ -110,33 +110,14 @@ export function findModuleScopeHostileLoads(source: string): HostileImport[] {
     if (FUNCTION_TYPES.has(type)) {
       return
     }
-    if (type === 'ImportDeclaration' || type === 'ImportExpression') {
-      // A type-only import is erased at compile time, so it loads nothing at
-      // runtime and is the sanctioned way to keep the type while deferring the
-      // load. `importKind` is `type` for `import type …`, `value` otherwise.
-      if (current['importKind'] === 'type') {
-        return
-      }
-      const value = (
-        current['source'] as { value?: unknown | undefined } | undefined
-      )?.value
-      if (typeof value === 'string') {
-        record(current, value)
-      }
-    }
-    if (type === 'CallExpression') {
-      const args = current['arguments']
-      const first = Array.isArray(args) ? args[0] : undefined
-      const value = (first as { value?: unknown | undefined } | undefined)
-        ?.value
-      if (typeof value === 'string' && isBuiltinLoader(current)) {
-        record(current, value)
-      }
+    const specifier = moduleScopeLoadSpecifier(current, type)
+    if (specifier !== undefined) {
+      record(current, specifier)
     }
     const keys = Object.keys(current)
     for (let i = 0, { length } = keys; i < length; i += 1) {
       const key = keys[i]!
-      if (key === 'end' || key === 'start' || key === 'type') {
+      if (isNodePositionKey(key)) {
         continue
       }
       visit(current[key])
@@ -144,6 +125,65 @@ export function findModuleScopeHostileLoads(source: string): HostileImport[] {
   }
   visit(tree)
   return found
+}
+
+/**
+ * True for the keys every acorn node carries that hold a number rather than a
+ * child node, so the walk never descends into them.
+ */
+export function isNodePositionKey(key: string): boolean {
+  return key === 'end' || key === 'start' || key === 'type'
+}
+
+/**
+ * The specifier an `import` declaration loads at runtime, or undefined when it
+ * loads nothing. A type-only import is erased at compile time, so it is the
+ * sanctioned way to keep the type while deferring the load: `importKind` is
+ * `type` for `import type …`, `value` otherwise.
+ */
+export function importDeclarationSpecifier(
+  node: AcornNode & Record<string, unknown>,
+): string | undefined {
+  if (node['importKind'] === 'type') {
+    return undefined
+  }
+  const value = (node['source'] as { value?: unknown | undefined } | undefined)
+    ?.value
+  return typeof value === 'string' ? value : undefined
+}
+
+/**
+ * The specifier a builtin-loading call takes, or undefined when the call loads
+ * no statically-known builtin.
+ */
+export function builtinLoaderCallSpecifier(
+  node: AcornNode & Record<string, unknown>,
+): string | undefined {
+  if (!isBuiltinLoader(node)) {
+    return undefined
+  }
+  const args = node['arguments']
+  const first = Array.isArray(args) ? args[0] : undefined
+  const value = (first as { value?: unknown | undefined } | undefined)?.value
+  return typeof value === 'string' ? value : undefined
+}
+
+/**
+ * The builtin specifier a statement loads, or undefined when it loads nothing.
+ * The caller has already refused to enter a function body, so every node
+ * reaching here runs at module eval.
+ */
+export function moduleScopeLoadSpecifier(
+  node: AcornNode & Record<string, unknown>,
+  type: string,
+): string | undefined {
+  if (type === 'ImportDeclaration' || type === 'ImportExpression') {
+    return importDeclarationSpecifier(node)
+  }
+  if (type === 'CallExpression') {
+    return builtinLoaderCallSpecifier(node)
+  }
+  return undefined
 }
 
 /**

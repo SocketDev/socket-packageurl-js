@@ -13,7 +13,7 @@ you happen to open. Finding it costs a grep for `nock`, a second grep for
 pattern in front of the edit that needs it.
 
 Trigger surface, test files only, by path:
-test/**/*.test.{ts,mts,js,mjs} | tests/**/*.test.* | __tests__/**/*.test.*
+test/**/\*.test.{ts,mts,js,mjs} | tests/**/_.test._ | **tests**/**/_.test._
 Plus content carrying a request call and no interception marker.
 
 Silent when the test is loopback-oriented: a fixture server on 127.0.0.1 is

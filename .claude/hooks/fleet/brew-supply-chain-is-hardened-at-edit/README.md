@@ -29,11 +29,11 @@ the same source-of-truth lib so they never diverge: this guard reads
 
 A Bash command invoking `brew` while the machine reports either:
 
-| Condition                              | Fix                                                       |
-| -------------------------------------- | --------------------------------------------------------- |
-| Homebrew < 6.0.0                       | `brew update && brew upgrade` (or reinstall) to ≥6.0.0    |
-| `HOMEBREW_REQUIRE_TAP_TRUST` unset     | `export HOMEBREW_REQUIRE_TAP_TRUST=1`                     |
-| `HOMEBREW_CASK_OPTS_REQUIRE_SHA` unset | `export HOMEBREW_CASK_OPTS_REQUIRE_SHA=1`                 |
+| Condition                              | Fix                                                    |
+| -------------------------------------- | ------------------------------------------------------ |
+| Homebrew < 6.0.0                       | `brew update && brew upgrade` (or reinstall) to ≥6.0.0 |
+| `HOMEBREW_REQUIRE_TAP_TRUST` unset     | `export HOMEBREW_REQUIRE_TAP_TRUST=1`                  |
+| `HOMEBREW_CASK_OPTS_REQUIRE_SHA` unset | `export HOMEBREW_CASK_OPTS_REQUIRE_SHA=1`              |
 
 `setup-security-tools` persists both env knobs into the managed shell-rc block.
 A machine without `brew` on PATH (`absent`) passes - the check is not

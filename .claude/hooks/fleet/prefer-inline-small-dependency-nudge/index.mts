@@ -7,7 +7,7 @@
 // one - this reminds the agent to check whether the package is small and
 // single-purpose enough to inline its logic directly instead, the way
 // `xml-parse.mts` ports `strnum`'s number-coercion branch rather than
-// depending on it. See docs/agents.md/fleet/prefer-inlining-small-deps.md.
+// depending on it. See docs/fleet/agents.md/prefer-inlining-small-deps.md.
 //
 // PreToolUse, notify only - never blocks, always exits 0. No bypass phrase.
 
@@ -72,7 +72,7 @@ export const check = editGuard((filePath, content, payload) => {
     return undefined
   }
   return notify(
-    `prefer-inline-small-dependency-nudge: new dependenc${added.length === 1 ? 'y' : 'ies'} ${added.join(', ')} - if it's small and single-purpose, consider porting the needed logic in-tree (with attribution) instead of depending on it. See docs/agents.md/fleet/prefer-inlining-small-deps.md.`,
+    `prefer-inline-small-dependency-nudge: new dependenc${added.length === 1 ? 'y' : 'ies'} ${added.join(', ')} - if it's small and single-purpose, consider porting the needed logic in-tree (with attribution) instead of depending on it. See docs/fleet/agents.md/prefer-inlining-small-deps.md.`,
   )
 })
 

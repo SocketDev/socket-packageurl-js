@@ -27,6 +27,9 @@ only that this `git add` did not name it.
 
 ## Scope
 
+- Global: wired into every repo session, but `mode: 'fleet'` stands it down
+  outside a roster member - `scripts/fleet/commit-paths.mts` is a
+  fleet-cascaded script that does not exist in a foreign repo.
 - Silent on a clean index, and silent when every staged path is covered by the
   add's own pathspecs.
 - A sweeping form (`-A`, `--all`, `-u`, `--update`) covers everything, so it

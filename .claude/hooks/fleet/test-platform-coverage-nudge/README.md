@@ -14,7 +14,7 @@ returns `python.exe` there. The implementation was right; the test
 expectation was POSIX-only.
 
 Trigger surface, test files only, by path:
-test/**/*.test.{ts,mts,js,mjs} | tests/**/*.test.* | __tests__/**/*.test.*
+test/**/\*.test.{ts,mts,js,mjs} | tests/**/_.test._ | **tests**/**/_.test._
 Plus the content carrying a known platform-divergent path token but
 no `process.platform` / `WIN32` / `os.platform()` branch in the same
 edit.

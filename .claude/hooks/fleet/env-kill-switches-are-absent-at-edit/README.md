@@ -10,12 +10,12 @@ Hooks are guardrails for AI-generated code. A per-hook `SOCKET_*_DISABLED` env v
 
 In a `.claude/hooks/{fleet,repo}/<name>/index.mts`:
 
-| Shape | Example |
-| --- | --- |
-| `disabledEnvVar` config field | `disabledEnvVar: 'SOCKET_FOO_DISABLED'` |
-| `process.env[...]` read of a `*_DISABLED` name | `process.env['SOCKET_FOO_DISABLED']` |
-| dot-form read | `process.env.SOCKET_FOO_DISABLED` |
-| a disable-by-env helper | `isHookDisabled('foo')` |
+| Shape                                          | Example                                 |
+| ---------------------------------------------- | --------------------------------------- |
+| `disabledEnvVar` config field                  | `disabledEnvVar: 'SOCKET_FOO_DISABLED'` |
+| `process.env[...]` read of a `*_DISABLED` name | `process.env['SOCKET_FOO_DISABLED']`    |
+| dot-form read                                  | `process.env.SOCKET_FOO_DISABLED`       |
+| a disable-by-env helper                        | `isHookDisabled('foo')`                 |
 
 ## Allowed
 

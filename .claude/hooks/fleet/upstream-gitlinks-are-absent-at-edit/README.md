@@ -21,7 +21,7 @@ the first bare token; a path argument is "under upstream/" after normalizing
 separators + stripping a leading `./`. Fails open on parse errors - a guard
 bug must not block every Bash call.
 
-Convention: docs/agents.md/fleet/upstream-references.md.
+Convention: docs/fleet/agents.md/upstream-references.md.
 Bypass: `Allow upstream-gitlink bypass`.
 
 ## Bypass

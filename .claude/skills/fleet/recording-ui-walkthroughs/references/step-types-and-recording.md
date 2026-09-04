@@ -2,16 +2,16 @@
 
 The eight step types:
 
-| Step | Does |
-| --- | --- |
-| `click` | glides to the target, ripples, clicks |
-| `type` | same, then fills the field |
-| `check` | same, then ticks a box |
-| `point` | glides there and leaves it alone - for "leave this as it is" steps |
-| `scrollTo` | glides an element into view |
-| `hold` | lingers on the current view |
-| `goto` | navigates |
-| `setText` | rewrites an element's text before filming, to replace an identity with a placeholder |
+| Step       | Does                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------ |
+| `click`    | glides to the target, ripples, clicks                                                |
+| `type`     | same, then fills the field                                                           |
+| `check`    | same, then ticks a box                                                               |
+| `point`    | glides there and leaves it alone - for "leave this as it is" steps                   |
+| `scrollTo` | glides an element into view                                                          |
+| `hold`     | lingers on the current view                                                          |
+| `goto`     | navigates                                                                            |
+| `setText`  | rewrites an element's text before filming, to replace an identity with a placeholder |
 
 Add `"guideStep": "<key>"` to a step to mark which written step the frames from
 there on illustrate.

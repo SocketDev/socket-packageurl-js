@@ -1,6 +1,6 @@
 /*
  * @file Flag path-string operations on un-normalized variables. Supersedes the
- *   dual-separator-only surface of `prefer-normalize-path` at the write-time
+ *   dual-separator-only surface of `prefer-socket-lib-normalize-path` at the write-time
  *   AST layer: that rule catches explicit `replace(/[/\\]/…)` rewrites; this
  *   rule catches separator-regex `.test/.exec` where the path-like variable is
  *   the argument, not the receiver, AND string separator ops (`.split('/')` /
@@ -94,6 +94,54 @@ function getIdentifierName(node: AstNode): string | undefined {
     return node.name as string
   }
   return undefined
+}
+
+/**
+ * The path-like identifier one separator-sensitive call puts at risk: the node
+ * the fixer wraps and the name the message quotes.
+ */
+interface PathSubject {
+  node: AstNode
+  name: string
+}
+
+/**
+ * The subject of a `/separator/.test(x)` or `.exec(x)` call — the ARGUMENT,
+ * because the regex sits on the receiver side. `undefined` when the receiver is
+ * not a separator regex, so an unrelated `/foo/.test(filePath)` stays quiet.
+ */
+function separatorRegexSubject(
+  node: AstNode,
+  receiver: AstNode,
+): PathSubject | undefined {
+  if (!isSeparatorRegexLiteral(receiver)) {
+    return undefined
+  }
+  const arg0 = node.arguments?.[0]
+  const argName = getIdentifierName(arg0)
+  if (!argName || !isPathLikeName(argName)) {
+    return undefined
+  }
+  return { name: argName, node: arg0 }
+}
+
+/**
+ * The subject of a separator string op such as `filePath.split('/')` — the
+ * RECEIVER. `undefined` when the receiver name is not path-like or the argument
+ * is not a separator-anchored literal.
+ */
+function separatorStringSubject(
+  node: AstNode,
+  receiver: AstNode,
+): PathSubject | undefined {
+  const receiverName = getIdentifierName(receiver)
+  if (!receiverName || !isPathLikeName(receiverName)) {
+    return undefined
+  }
+  if (!isSeparatorStringLiteral(node.arguments?.[0])) {
+    return undefined
+  }
+  return { name: receiverName, node: receiver }
 }
 
 const rule = {
@@ -256,47 +304,29 @@ const rule = {
         const receiver = callee.object
 
         // --- /separator-regex/.test(pathVar) / .exec(pathVar) ----------------
-        // The regex is the RECEIVER; the path-like variable is the ARGUMENT.
-        // Only fires when the receiver IS a separator regex (avoids flagging
-        // /foo/.test(filePath) which is unrelated to path separators).
         if (RECEIVER_REGEX_METHODS.has(method)) {
-          if (isSeparatorRegexLiteral(receiver)) {
-            const arg0 = node.arguments?.[0]
-            const argName = getIdentifierName(arg0)
-            if (
-              argName &&
-              isPathLikeName(argName) &&
-              !normalizedVars.has(argName)
-            ) {
-              context.report({
-                node,
-                messageId: 'normalizeBeforeRegexMatch',
-                data: { name: argName },
-                fix: makeFix(arg0, argName),
-              })
-            }
+          const subject = separatorRegexSubject(node, receiver)
+          if (subject && !normalizedVars.has(subject.name)) {
+            context.report({
+              node,
+              messageId: 'normalizeBeforeRegexMatch',
+              data: { name: subject.name },
+              fix: makeFix(subject.node, subject.name),
+            })
           }
           return
         }
 
         // --- String separator methods: .split('/') / .startsWith('/') etc. ---
-        // The path-like variable is the RECEIVER.
         if (PATH_STRING_METHODS.has(method)) {
-          const receiverName = getIdentifierName(receiver)
-          if (
-            receiverName &&
-            isPathLikeName(receiverName) &&
-            !normalizedVars.has(receiverName)
-          ) {
-            const arg0 = node.arguments?.[0]
-            if (isSeparatorStringLiteral(arg0)) {
-              context.report({
-                node,
-                messageId: 'normalizeBeforeStringSep',
-                data: { name: receiverName },
-                fix: makeFix(receiver, receiverName),
-              })
-            }
+          const subject = separatorStringSubject(node, receiver)
+          if (subject && !normalizedVars.has(subject.name)) {
+            context.report({
+              node,
+              messageId: 'normalizeBeforeStringSep',
+              data: { name: subject.name },
+              fix: makeFix(subject.node, subject.name),
+            })
           }
         }
       },

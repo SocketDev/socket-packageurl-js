@@ -25,13 +25,13 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { globSync } from '@socketsecurity/lib-stable/globs/match'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { ensureTool } from '../_shared/external-tools.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { ensureTool } from '../external-tools/manager.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { defaultCommandExists as commandExists } from '../setup/ecosystems.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 

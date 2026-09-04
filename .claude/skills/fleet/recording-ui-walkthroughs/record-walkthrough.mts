@@ -34,9 +34,9 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import type { Page } from 'playwright-core'
 
 import { openNpmBrowserSession } from '../../../../scripts/fleet/registry-infra/npm/browser-session.mts'
-import { isMainModule } from '../../../../scripts/fleet/_shared/is-main-module.mts'
-import { runMain } from '../../../../scripts/fleet/_shared/run-main.mts'
-import type { ScriptMeta } from '../../../../scripts/fleet/_shared/run-main.mts'
+import { isMainModule } from '../../../../scripts/fleet/process/is-main-module.mts'
+import { runMain } from '../../../../scripts/fleet/process/run-main.mts'
+import type { ScriptMeta } from '../../../../scripts/fleet/process/run-main.mts'
 import { safeDeleteSync } from '@socketsecurity/lib-stable/fs/safe'
 
 const logger = getDefaultLogger()

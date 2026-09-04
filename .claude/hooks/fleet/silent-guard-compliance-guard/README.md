@@ -24,14 +24,14 @@ a block, so it is ALLOWED.
 Two signals:
 
 1. Acknowledgment phrases - past-tense / compliance language that
-names a guard or hook as the actor that just acted: "the guard
-flagged", "the hook blocked", "noted - avoiding", "I'll comply",
-"blocked by", "silent compliance". Always block.
+   names a guard or hook as the actor that just acted: "the guard
+   flagged", "the hook blocked", "noted - avoiding", "I'll comply",
+   "blocked by", "silent compliance". Always block.
 2. Guard-name mentions - a kebab-case `*-guard` / `*-nudge` token,
-the fleet naming convention. Block UNLESS the reply carries
-build-proposal language ("add a new guard", "create a guard
-that"), which marks the mention as architecture, not
-acknowledgment.
+   the fleet naming convention. Block UNLESS the reply carries
+   build-proposal language ("add a new guard", "create a guard
+   that"), which marks the mention as architecture, not
+   acknowledgment.
 
 The human-gate carve-out is checked FIRST and short-circuits both
 signals: a reply surfacing a 🖐 HUMAN GATE is allowed whole, even when

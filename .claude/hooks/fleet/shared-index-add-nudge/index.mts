@@ -44,7 +44,7 @@ const SHOWN_PATHS = 5
  * An empty array means the add named no paths.
  *
  * Tokenized through the shared quote-aware parser so a quoted commit message
- * mentioning "git add" in prose stays one token and never reads as an
+ * mentioning "`git add`" in prose stays one token and never reads as an
  * invocation.
  */
 export function gitAddPathspecs(command: string): string[] | undefined {
@@ -173,8 +173,13 @@ export const hook = defineHook({
     return notify(formatNudge(foreign))
   }),
   event: 'PreToolUse',
+  // Machine-wide-wired so the shared-index risk is caught in any repo session,
+  // but `mode: 'fleet'` stands it down outside a roster member: the fix this
+  // nudges toward, `scripts/fleet/commit-paths.mts`, is a fleet-cascaded
+  // script that does not exist in a foreign repo.
   global: true,
   matcher: ['Bash'],
+  mode: 'fleet',
   type: 'nudge',
 })
 

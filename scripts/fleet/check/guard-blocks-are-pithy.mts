@@ -19,7 +19,7 @@
  *   repo-tier hook is host-owned wherever it lives, so it always gates from the
  *   live tree.
  *
- *   The analyzer is `scripts/fleet/_shared/guard-block-shape.mts`. This file
+ *   The analyzer is `scripts/fleet/hooks/guard-block-shape.mts`. This file
  *   owns the walk and the verdict.
  *
  *   Usage: node scripts/fleet/check/guard-blocks-are-pithy.mts [--json] [--quiet]
@@ -36,13 +36,13 @@ import { REPO_ROOT } from '../paths.mts'
 import {
   renderGuardBlockFinding,
   scanGuardBlocks,
-} from '../_shared/guard-block-shape.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { collectTrackedFiles } from '../_shared/tracked-globs.mts'
-import { isJsonRequested, runMain } from '../_shared/run-main.mts'
+} from '../hooks/guard-block-shape.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { collectTrackedFiles } from '../fs/tracked-globs.mts'
+import { isJsonRequested, runMain } from '../process/run-main.mts'
 
-import type { GuardBlockFinding } from '../_shared/guard-block-shape.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { GuardBlockFinding } from '../hooks/guard-block-shape.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 

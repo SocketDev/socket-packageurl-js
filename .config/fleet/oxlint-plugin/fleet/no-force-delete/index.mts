@@ -36,6 +36,15 @@ const DELETE_CALLEES: ReadonlySet<string> = new Set([
   'safeDeleteSync',
 ])
 
+// The entry points that force by NAME rather than by flag. The fleet wrapper
+// dropped its readable `force` option precisely so the dangerous case needs a
+// distinct callee a rule can match, and that only works if the rule matches it.
+// These take no flag to inspect, so the CALL is the finding.
+const FORCING_CALLEES: ReadonlySet<string> = new Set([
+  'forceDelete',
+  'forceDeleteSync',
+])
+
 /**
  * The callee's plain name, for `fn(…)` and `obj.fn(…)` alike.
  */
@@ -117,6 +126,8 @@ const rule = {
     messages: {
       forced:
         '`force: true` on `{{callee}}` disables the cwd-and-above delete guard. Drop it (temp, cacache, and the Socket user dir are already exempt), or keep it behind `// oxlint-disable-next-line socket/no-force-delete -- <why>`.',
+      forcingCallee:
+        '`{{callee}}` disables the cwd-and-above delete guard by name. Call `safeDelete`/`safeDeleteSync` instead (temp, cacache, and the Socket user dir are already exempt), or keep it behind `// oxlint-disable-next-line socket/no-force-delete -- <why>`.',
     },
     schema: [],
     type: 'problem',
@@ -125,7 +136,18 @@ const rule = {
     return {
       CallExpression(node: AstNode) {
         const name = calleeName(node)
-        if (!name || !DELETE_CALLEES.has(name)) {
+        if (!name) {
+          return
+        }
+        if (FORCING_CALLEES.has(name)) {
+          context.report({
+            node,
+            messageId: 'forcingCallee',
+            data: { callee: name },
+          })
+          return
+        }
+        if (!DELETE_CALLEES.has(name)) {
           return
         }
         const args = ((node as { arguments?: AstNode[] | undefined })

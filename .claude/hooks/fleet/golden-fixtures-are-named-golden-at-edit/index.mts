@@ -13,7 +13,7 @@
 //
 // Fix: name the fixture `<name>.golden.json`. A generator that mints it from a
 //      reference implementation writes the `.golden.json` path; the test loads
-//      and diffs that. Detail: docs/agents.md/fleet/golden-fixtures.md.
+//      and diffs that. Detail: docs/fleet/agents.md/golden-fixtures.md.
 //
 // Bypass: `Allow golden-fixture-naming bypass`.
 
@@ -46,7 +46,7 @@ export const check = editGuard((filePath, content, payload) => {
         'golden-fixtures-are-named-golden-at-edit',
         'refusing to create a `*.expected.json` test fixture - the name is `*.golden.json`.',
       ),
-      `Fix: name it \`${target.slice(target.lastIndexOf('/') + 1)}\` (detail: docs/agents.md/fleet/golden-fixtures.md).`,
+      `Fix: name it \`${target.slice(target.lastIndexOf('/') + 1)}\` (detail: docs/fleet/agents.md/golden-fixtures.md).`,
       ``,
     ].join('\n'),
   )

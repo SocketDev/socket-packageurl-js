@@ -272,23 +272,12 @@ export function assertMethodName(node: AstNode): string | undefined {
 }
 
 /**
- * The matcher name of an `expect(...).<matcher>(...)` call plus the value the
- * inner `expect(...)` received, or undefined when the call is not a matcher
- * invocation.
+ * The `expect(…)` call a matcher chain sits on, or undefined when the chain
+ * does not bottom out in one. Any number of plain member links are skipped on
+ * the way down, which is how `expect(x).not.toBe(…)` reaches its head.
  */
-export function expectMatcher(
-  node: AstNode,
-): { matcher: string; subject: AstNode } | undefined {
-  const { callee } = node
-  if (
-    callee?.type !== 'MemberExpression' ||
-    callee.computed ||
-    callee.property?.type !== 'Identifier'
-  ) {
-    return undefined
-  }
-  let inner: AstNode | undefined = callee.object
-  // `expect(x).not.toBe(...)` puts a `.not` between the call and the matcher.
+function expectCallHead(node: AstNode | undefined): AstNode | undefined {
+  let inner: AstNode | undefined = node
   while (
     inner?.type === 'MemberExpression' &&
     !inner.computed &&
@@ -304,7 +293,30 @@ export function expectMatcher(
   ) {
     return undefined
   }
-  return { matcher: callee.property.name, subject: inner.arguments[0] }
+  return inner
+}
+
+/**
+ * The matcher name of an `expect(...).<matcher>(...)` call plus the value the
+ * inner `expect(...)` received, or undefined when the call is not a matcher
+ * invocation.
+ */
+export function expectMatcher(
+  node: AstNode,
+): { matcher: string; subject: AstNode } | undefined {
+  const { callee } = node
+  if (
+    callee?.type !== 'MemberExpression' ||
+    callee.computed ||
+    callee.property?.type !== 'Identifier'
+  ) {
+    return undefined
+  }
+  const head = expectCallHead(callee.object)
+  if (!head) {
+    return undefined
+  }
+  return { matcher: callee.property.name, subject: head.arguments[0] }
 }
 
 /**
@@ -327,6 +339,73 @@ export function substringCall(
   }
   const text = comparedText(node.arguments[0])
   return text === undefined ? undefined : { subject: node.callee.object, text }
+}
+
+/**
+ * Whether `assert.ok(msg.includes('…'))` or `assert.match(…)` wraps a substring
+ * call whose receiver is a message and whose literal reads as prose.
+ */
+function assertsProseViaSubstring(
+  args: readonly AstNode[],
+  assertName: string,
+): boolean {
+  if (assertName !== 'match' && assertName !== 'ok') {
+    return false
+  }
+  const inner = substringCall(args[0])
+  return Boolean(
+    inner && isMessageSubject(inner.subject) && isProseComparison(inner.text),
+  )
+}
+
+/**
+ * Whether a node:assert comparison pins message prose. Either argument can hold
+ * the subject, so both orders are tried.
+ */
+function assertsProseByComparison(
+  args: readonly AstNode[],
+  assertName: string,
+): boolean {
+  const exact = ASSERT_EQUALITY_METHODS.has(assertName)
+  if (!exact && !ASSERT_PATTERN_METHODS.has(assertName)) {
+    return false
+  }
+  const { 0: first, 1: second } = args
+  const pairs: Array<[AstNode, AstNode]> = [
+    [first, second],
+    [second, first],
+  ]
+  for (const [subject, expected] of pairs) {
+    const text = comparedText(expected)
+    if (
+      text !== undefined &&
+      isMessageSubject(subject) &&
+      isProseComparison(text, { exact })
+    ) {
+      return true
+    }
+  }
+  return false
+}
+
+/**
+ * Whether a vitest `expect(…).<matcher>(…)` call pins message prose.
+ */
+function expectsProseMatch(node: AstNode, args: readonly AstNode[]): boolean {
+  const matched = expectMatcher(node)
+  if (!matched) {
+    return false
+  }
+  const exact = EXPECT_EQUALITY_MATCHERS.has(matched.matcher)
+  if (!exact && !EXPECT_PATTERN_MATCHERS.has(matched.matcher)) {
+    return false
+  }
+  const text = comparedText(args[0])
+  return (
+    text !== undefined &&
+    isMessageSubject(matched.subject) &&
+    isProseComparison(text, { exact })
+  )
 }
 
 const rule = {
@@ -360,53 +439,16 @@ const rule = {
           ? node.arguments
           : []
         const assertName = assertMethodName(node)
-        if (assertName === 'match' || assertName === 'ok') {
-          const inner = substringCall(args[0])
+        if (assertName !== undefined) {
           if (
-            inner &&
-            isMessageSubject(inner.subject) &&
-            isProseComparison(inner.text)
+            assertsProseViaSubstring(args, assertName) ||
+            assertsProseByComparison(args, assertName)
           ) {
             report(node)
-            return
-          }
-        }
-        if (assertName !== undefined) {
-          const exact = ASSERT_EQUALITY_METHODS.has(assertName)
-          if (exact || ASSERT_PATTERN_METHODS.has(assertName)) {
-            const [first, second] = args
-            const pairs: Array<[AstNode, AstNode]> = [
-              [first, second],
-              [second, first],
-            ]
-            for (const [subject, expected] of pairs) {
-              const text = comparedText(expected)
-              if (
-                text !== undefined &&
-                isMessageSubject(subject) &&
-                isProseComparison(text, { exact })
-              ) {
-                report(node)
-                return
-              }
-            }
           }
           return
         }
-        const matched = expectMatcher(node)
-        if (!matched) {
-          return
-        }
-        const exact = EXPECT_EQUALITY_MATCHERS.has(matched.matcher)
-        if (!exact && !EXPECT_PATTERN_MATCHERS.has(matched.matcher)) {
-          return
-        }
-        const text = comparedText(args[0])
-        if (
-          text !== undefined &&
-          isMessageSubject(matched.subject) &&
-          isProseComparison(text, { exact })
-        ) {
+        if (expectsProseMatch(node, args)) {
           report(node)
         }
       },

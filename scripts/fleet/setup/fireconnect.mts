@@ -13,7 +13,7 @@
  *   INSTALLING ROUTES NOTHING. `fireconnect <harness> on` rewrites that
  *   harness's model routing persistently, and Claude Code is a supported
  *   harness. That is a separate deliberate command; this script never runs it.
- *   Usage: pnpm run setup:fireconnect.
+ *   Usage: `pnpm run` setup:fireconnect.
  */
 
 import { readFileSync } from 'node:fs'
@@ -22,11 +22,11 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 
 import { installClonedTool } from '../external-tools/install-cloned.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
+import { isMainModule } from '../process/is-main-module.mts'
 import { resolveManifestPaths } from '../external-tools/_shared.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { runMain } from '../process/run-main.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 

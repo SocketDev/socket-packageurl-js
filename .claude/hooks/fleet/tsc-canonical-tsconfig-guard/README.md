@@ -17,13 +17,15 @@ guard exists to close.
 
 BLOCKED: a Bash segment that runs tsc with `--noEmit` where the
 `-p`/`--project` value is missing or points outside `.config/` -
+
 - `tsc --noEmit`, `tsc --noEmit -p tsconfig.json`
 - `node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json`
 - `pnpm exec tsc --noEmit`
 
 ALLOWED, never blocked:
+
 - `tsc --noEmit -p .config/fleet/tsconfig.check.json` - the canonical
-check surface, any `.config/`-rooted project file.
+  check surface, any `.config/`-rooted project file.
 - `pnpm run check` and the check scripts - they match no rule here.
 - tsc WITHOUT `--noEmit` - a build invocation is a different surface.
 
@@ -34,9 +36,10 @@ quoting, and `&&` / `;` / `|` chains - so a quoted "tsc --noEmit" inside a
 commit message never false-fires.
 
 Does NOT fire when:
+
 - the context is CI - CI runs the gates through its own workflow.
 - the acted-on repo is not fleet-managed - scope 'convention' stands the
-hook down in a foreign repo.
+  hook down in a foreign repo.
 
 Bypass: `Allow tsc-raw-tsconfig bypass` typed verbatim in a recent user
 turn - for the genuine case of type-checking a non-fleet project file.

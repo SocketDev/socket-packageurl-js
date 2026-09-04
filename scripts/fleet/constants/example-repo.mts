@@ -1,7 +1,7 @@
 /*
  * @file Canonical fictional GitHub `owner/repo` placeholder for tests and
  *   docs — the owner/repo analog of `Acme Inc` for company names and the
- *   `acme-*` family for package names (docs/agents.md/fleet/
+ *   `acme-*` family for package names (docs/fleet/agents.md/
  *   public-surface-hygiene.md). `example.com`/`example.org` are IANA-reserved
  *   for documentation (RFC 2606), which is why `example-org` is the safer
  *   root than an invented name like `acme` — it can never collide with a

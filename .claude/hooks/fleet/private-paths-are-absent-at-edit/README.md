@@ -25,4 +25,4 @@ Markdown, docs, JSON/YAML, and the `.claude/` tree itself are **out of scope** -
 
 ## Source of truth
 
-The rule lives in [`CLAUDE.md`](../../../CLAUDE.md) (the public-surface-hygiene bullet) and [`docs/agents.md/fleet/public-surface-hygiene.md`](../../../docs/agents.md/fleet/public-surface-hygiene.md). The shared matcher is `_shared/private-paths.mts`; the same patterns are mirrored by the `socket/no-private-path-in-source` lint rule and the `scripts/fleet/check/private-paths-are-absent-at-commit.mts` commit-time check.
+The rule lives in [`CLAUDE.md`](../../../CLAUDE.md) (the public-surface-hygiene bullet) and [`docs/fleet/agents.md/public-surface-hygiene.md`](../../../docs/fleet/agents.md/public-surface-hygiene.md). The shared matcher is `_shared/private-paths.mts`; the same patterns are mirrored by the `socket/no-private-path-in-source` lint rule and the `scripts/fleet/check/private-paths-are-absent-at-commit.mts` commit-time check.

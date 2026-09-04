@@ -49,7 +49,7 @@ export function parseChangelogCommits(raw: string): ConventionalCommit[] {
     if (!record) {
       continue
     }
-    const [hash, subject, body] = record.split(COMMIT_FIELD_SEP)
+    const { 0: hash, 1: subject, 2: body } = record.split(COMMIT_FIELD_SEP)
     const commit = parseChangelogCommit(hash ?? '', subject ?? '', body ?? '')
     if (commit) {
       out.push(commit)

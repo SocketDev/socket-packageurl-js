@@ -24,7 +24,7 @@ node scripts/fleet/sync-inline-action-pins.mts
 
 A port behind its upstream is a drift-watch defect. Re-review the port against
 the upstream diff + advance `portedAt` in
-`scripts/fleet/_shared/action-port-map.mts`. The
+`scripts/fleet/github/action-port-map.mts`. The
 `action-ports-are-lock-stepped` check enforces the pin matches the upstream
 block.
 

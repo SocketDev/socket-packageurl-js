@@ -49,7 +49,7 @@ honest report the expensive one to write.
 - **`memory-codify-nudge`** (PostToolUse) fires on the memory write itself.
 
 Detail:
-[`memory-codification`](../../../../docs/agents.md/fleet/memory-codification.md)
+[`memory-codification`](../../../../docs/fleet/agents.md/memory-codification.md)
 
 ## Bypass
 

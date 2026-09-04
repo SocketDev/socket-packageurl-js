@@ -29,12 +29,12 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 
 import { LOOSE_CONFIG_PATTERNS } from '../../../.claude/hooks/fleet/config-refs-are-segregated-at-edit/index.mts'
-import { gitSync } from '../_shared/git-exec.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { gitSync } from '../git/exec.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -75,7 +75,12 @@ const SELF_REFERENTIAL: readonly string[] = [
  * in the SOURCE cannot survive into the bundle: gating it would report a
  * finding whose only fix is to edit a generated file.
  */
-const GENERATED_SEEDS: readonly string[] = ['scripts/repo/bootstrap/fleet.mjs']
+const GENERATED_SEEDS: readonly string[] = [
+  'scripts/repo/bootstrap/fleet.mjs',
+  '.claude/hooks/fleet/_dist/fleet-pack.cjs',
+  '.claude/hooks/fleet/_shared/snapshot-fleet-pack.cjs',
+  '.claude/hooks/fleet/_shared/excluded-fleet-pack.cjs',
+]
 
 export interface LooseRefFinding {
   readonly file: string

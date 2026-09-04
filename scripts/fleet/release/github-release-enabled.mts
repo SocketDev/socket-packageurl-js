@@ -22,11 +22,11 @@
 import { appendFileSync } from 'node:fs'
 import process from 'node:process'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
+import { isMainModule } from '../process/is-main-module.mts'
 import { loadSocketWheelhouseConfig, REPO_ROOT } from '../paths.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { runMain } from '../process/run-main.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 /**
  * Read the `release.github` flag out of an already-parsed settings object.

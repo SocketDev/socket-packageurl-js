@@ -27,12 +27,12 @@ import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 import {
   gateWriteDest,
   parseNonMemberOverride,
-} from './_shared/fleet-membership.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
+} from './member/fleet-membership.mts'
+import { isMainModule } from './process/is-main-module.mts'
 import { REPO_ROOT } from './paths.mts'
-import { runMain } from './_shared/run-main.mts'
+import { runMain } from './process/run-main.mts'
 
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 
 const logger = getDefaultLogger()
 

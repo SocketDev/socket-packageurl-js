@@ -20,7 +20,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 
-import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import { parseArgs } from 'node:util'
 import { errorMessage } from '@socketsecurity/lib-stable/errors/message'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { sleep } from '@socketsecurity/lib-stable/promises/timers'
@@ -32,11 +32,11 @@ import {
 import { REPO_ROOT } from './paths.mts'
 import { runCapture } from './registry-infra/shared.mts'
 
-import { ghcrContainerVersionsPath } from './_shared/ghcr-package.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
+import { ghcrContainerVersionsPath } from './github/ghcr-package.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { runMain } from './process/run-main.mts'
 
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -316,7 +316,7 @@ export async function main(): Promise<number> {
 
   let plan: PrunePlan
   try {
-    const [tags, ghcrTags] = await Promise.all([
+    const { 0: tags, 1: ghcrTags } = await Promise.all([
       listReleaseTags(repo),
       listGhcrTags(owner),
     ])

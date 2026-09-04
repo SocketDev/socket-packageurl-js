@@ -8,20 +8,20 @@
  *   `isNestedGitignore` predicate from the `gitignore-is-single-file-at-edit`
  *   hook (imported directly — `runHook` is entrypoint-guarded, so importing the
  *   hook is a no-op) so the write-time guard and this belt scan can never
- *   diverge. Detail: docs/agents.md/fleet/single-gitignore.md.
+ *   diverge. Detail: docs/fleet/agents.md/single-gitignore.md.
  */
 
 import process from 'node:process'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
-import { gitSync } from '../_shared/git-exec.mts'
+import { gitSync } from '../git/exec.mts'
 
 import { isNestedGitignore } from '../../../.claude/hooks/fleet/_shared/nested-gitignore.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -67,7 +67,7 @@ function main(): void {
     '  Add each pattern to the ROOT .gitignore (use a **/-anchored line',
   )
   logger.log('  to reach depth), then delete the nested file.')
-  logger.log('  Detail: docs/agents.md/fleet/single-gitignore.md')
+  logger.log('  Detail: docs/fleet/agents.md/single-gitignore.md')
   process.exitCode = 1
 }
 

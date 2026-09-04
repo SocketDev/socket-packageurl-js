@@ -18,6 +18,7 @@ does it fall back to suggesting `gen/repo-map --write` (which also warms the
 cache for next time).
 
 Advisory only - never blocks. Skips:
+
 - non-Read tools
 - a scoped read, offset or limit present - already reading a span
 - small files, below the size threshold - nothing to save

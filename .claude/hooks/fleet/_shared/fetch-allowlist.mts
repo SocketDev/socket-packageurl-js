@@ -100,6 +100,7 @@ export const SNAPSHOT_HOSTS: Readonly<
     'github.com',
     'go.dev',
     'nodejs.org',
+    'platform.claude.com',
     'pypi.org',
     'registry.npmjs.org',
     'sh.rustup.rs',

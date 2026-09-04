@@ -42,7 +42,7 @@ never false-fires.
 ## Two extraction paths
 
 - **Inline** - `gh pr comment --body "…"`, `gh pr review --comment --body
-  "…"`, `gh api … -f body=…`, `--body-file`/`-F <file>`. Reuses `extractProse`
+"…"`, `gh api … -f body=…`, `--body-file`/`-F <file>`. Reuses `extractProse`
   (`no-github-ai-attribution-guard`'s) and `extractBodyArg`
   (`convo-prose-nudge`'s) rather than restating either extractor - the same
   two extractors `outbound-voice-nudge`'s `extractGhVoiceProse` composes for

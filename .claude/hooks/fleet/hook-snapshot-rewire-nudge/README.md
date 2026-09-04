@@ -27,7 +27,7 @@ incoming content introduces `dispatch-launcher`, and a Bash write (`sed -i`,
 `tee`, `>`/`>>` redirect) of `dispatch-launcher` into `settings.json`. Reads
 are ignored; fails open on parse errors - a nudge must never block a call.
 
-Convention: docs/agents.md/fleet/hook-registry.md.
+Convention: docs/fleet/agents.md/hook-registry.md.
 
 ## Bypass
 

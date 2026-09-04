@@ -23,7 +23,7 @@ Sibling: `history-rewrite-guard` BLOCKS the raw rewrite tools -
 `git filter-branch`, `git filter-repo`, and an unsigned `git commit-tree` -
 which have no safe fleet use. The split is by severity of the trigger: a
 scripted-editor rebase is sometimes right (nudge, here), `filter-branch`
-never is (guard, there). Detail: docs/agents.md/fleet/history-rewrites.md
+never is (guard, there). Detail: docs/fleet/agents.md/history-rewrites.md
 
 ## Bypass
 

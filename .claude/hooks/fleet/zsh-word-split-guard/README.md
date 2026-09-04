@@ -9,11 +9,11 @@ unquoted parameter expansions (no SH_WORD_SPLIT). A variable built as
 a space-joined list -
 
 files=$(find test -name '*.test.mts' | tr '\n' ' ')
-vitest run $files            # zsh: ONE argument, matches nothing
+vitest run $files # zsh: ONE argument, matches nothing
 
 - silently passes as a single argument. Paired with tools that exit 0
-on zero matches (vitest passWithNoTests, rg -l, xargs -r), the failure
-is invisible: the command "succeeds" having done nothing.
+  on zero matches (vitest passWithNoTests, rg -l, xargs -r), the failure
+  is invisible: the command "succeeds" having done nothing.
 
 The EMPTY case is worse still: an empty list leaves no argument at all, so
 the tool falls back to its default input. `rg -c pat $files` with `files`
@@ -22,9 +22,10 @@ thing. That is why this BLOCKS rather than advises - both shapes yield a
 wrong measurement that reads as a successful one.
 
 Working alternatives:
-- command substitution (zsh DOES split it):  vitest run $(cat /tmp/list)
-- forced splitting:                          vitest run ${=files}
-- a pipe into xargs:                         ... | xargs vitest run
+
+- command substitution (zsh DOES split it): vitest run $(cat /tmp/list)
+- forced splitting: vitest run ${=files}
+- a pipe into xargs: ... | xargs vitest run
 
 This hook fires when a Bash command both (a) assigns a variable from a
 command substitution that produces a multi-entry list (`tr '\n' ' '`,

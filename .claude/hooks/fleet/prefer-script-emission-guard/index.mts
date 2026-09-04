@@ -75,10 +75,14 @@ export const hook = defineHook({
   bypassMode: 'manual',
   check,
   event: ['PostToolUse', 'Stop'],
-  // The reply is judged wherever it is written: a raw command recommended from
-  // a foreign checkout misleads the operator just as much, and the script it
-  // points at lives in the fleet repo the operator is working on.
+  // Machine-wide-wired so the reply is judged wherever it is written, but
+  // `mode: 'fleet'` stands it down outside a roster member: the redirects in
+  // `_shared/script-redirects.mts` (`gh:auth`, `npm:auth`, `commit-paths`) are
+  // fleet-cascaded scripts that do not exist in a foreign repo, so recommending
+  // them there would hand the operator a command that fails identically to the
+  // raw one this guard exists to replace.
   global: true,
+  mode: 'fleet',
   triggers: ['gh', 'npm'],
   type: 'guard',
 })

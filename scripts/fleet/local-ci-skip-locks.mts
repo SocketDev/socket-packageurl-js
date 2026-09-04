@@ -9,7 +9,7 @@
  *   steps), so it returns a template with no `.jobs` and Local CI aborts
  *   every task with the cryptic `No jobs found in workflow`. gh-aw workflows
  *   are exercised with `gh aw trial`, an isolated trial repo, never Local CI
- *   — see docs/agents.md/fleet/shared-workflow-cascade.md. This wrapper
+ *   — see docs/fleet/agents.md/shared-workflow-cascade.md. This wrapper
  *   makes that boundary legible instead of cryptic:
  *
  *   - An explicit `--workflow <X>.lock.yml` target exits with an informative
@@ -24,38 +24,36 @@
  */
 
 import { existsSync, readdirSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import process from 'node:process'
 
-import { whichSync } from '@socketsecurity/lib-stable/bin/which'
+import { whichLocalBin } from '@socketsecurity/lib-stable/exe/path/which'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
-const WIN32 = process.platform === 'win32'
+import { REPO_ROOT } from './paths.mts'
+
+const isWin32 = process.platform === 'win32'
 const logger = getDefaultLogger()
 
-// Resolve the workspace-local bin first: a bare-PATH lookup outside `pnpm
-// run ci:local` can pick a wrong or global local-ci (fleet doctrine is
-// node_modules/.bin via whichSync, per the agent-ci skill).
-const localCiResolved = whichSync('local-ci', {
-  // The repo root is one level up from this script (scripts/fleet/).
-  path: path.join(
-    path.dirname(path.dirname(fileURLToPath(import.meta.url))),
-    'node_modules',
-    '.bin',
-  ),
-})
-// whichSync returns string[] under its `all` option; single-hit mode here, so
-// anything non-string reads as absent and falls back to PATH resolution.
-const LOCAL_CI_BIN =
-  typeof localCiResolved === 'string' ? localCiResolved : 'local-ci'
+// Resolve the workspace-local bin first: a bare-PATH lookup outside `pnpm run
+// ci:local` can pick a wrong or global local-ci, and `local-ci` is a
+// devDependency with no global install, so a missed resolve does not degrade
+// to a slower path - it dies `ENOENT`.
+//
+// `whichLocalBin` is the helper for exactly this: it searches
+// <cwd>/node_modules/.bin, returns the platform-correct entry (the .cmd/.exe
+// shim on Windows, the symlink on POSIX), and falls back to PATH. The
+// hand-rolled version here walked `dirname` twice from this FILE and landed on
+// <root>/scripts, whose node_modules/.bin does not exist, so every resolve
+// missed silently.
+const LOCAL_CI_BIN = whichLocalBin('local-ci', { cwd: REPO_ROOT }) ?? 'local-ci'
 const WORKFLOWS_DIR = path.join('.github', 'workflows')
 const TRIAL_HINT =
   'gh-aw compiled .lock.yml workflows are not Local-CI-simulatable ' +
   '(GitHub’s @actions/workflow-parser crashes on their agent-runtime jobs). ' +
   'Exercise them with `gh aw trial <workflow>.md` against an isolated trial ' +
-  'repo instead. See docs/agents.md/fleet/shared-workflow-cascade.md.'
+  'repo instead. See docs/fleet/agents.md/shared-workflow-cascade.md.'
 
 export function logTrialHint(): void {
   logger.error(TRIAL_HINT)
@@ -120,7 +118,7 @@ export async function main(): Promise<number> {
   }
 
   const result = await spawn(LOCAL_CI_BIN, argv, {
-    shell: WIN32,
+    shell: isWin32,
     stdio: 'inherit',
   })
   return result.code ?? 1

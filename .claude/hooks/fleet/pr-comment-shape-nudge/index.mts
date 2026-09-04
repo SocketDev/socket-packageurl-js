@@ -38,7 +38,7 @@ import type {
   OutboundBody,
 } from '../pr-comment-brevity-guard/index.mts'
 import { verdictContinuation, verdictLine } from '../_shared/verdict.mts'
-import { suggestionBlocks } from '../../../../scripts/fleet/_shared/review-comment-law.mts'
+import { suggestionBlocks } from '../../../../scripts/fleet/prose/review-comment-law.mts'
 
 // Dispatcher pre-flight: every path this nudge cares about invokes `gh`.
 export const triggers: readonly string[] = ['gh']

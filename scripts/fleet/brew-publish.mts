@@ -34,7 +34,7 @@ import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 
-import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import { parseArgs } from 'node:util'
 import { safeDeleteSync } from '@socketsecurity/lib-stable/fs/safe'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
@@ -45,9 +45,9 @@ import {
 import type { FormulaSpec } from './registry-infra/brew/shared.mts'
 import { assertGhAuth } from './registry-infra/gh-auth.mts'
 import { logger } from './registry-infra/shared.mts'
-import { isMainModule } from './_shared/is-main-module.mts'
-import { runMain } from './_shared/run-main.mts'
-import type { ScriptMeta } from './_shared/run-main.mts'
+import { isMainModule } from './process/is-main-module.mts'
+import { runMain } from './process/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 
 export { parseAssetChecksums, renderFormula }
 

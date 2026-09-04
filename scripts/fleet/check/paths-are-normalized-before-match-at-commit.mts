@@ -29,10 +29,10 @@ import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 
 import { REPO_ROOT } from '../paths.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 // Source-code extensions to scan (TypeScript only — bundled .cjs/.mjs output
 // is vendored/generated and intentionally excluded; see git ls-files filter).
@@ -58,7 +58,8 @@ const NORMALIZE_CALL_RE = /\b(?:normalizePath|toUnixPath)\s*\(/
 
 // The hand-rolled backslash→slash rewrite IS a normalization — flagging it
 // tells the author to normalize a line that already normalizes. The lint
-// rule `prefer-normalize-path` owns nudging this idiom toward normalizePath().
+// rule `prefer-socket-lib-normalize-path` owns nudging this idiom toward
+// normalizePath().
 // require-regex-comment: replace/replaceAll of a backslash/dual-separator regex with '/'.
 const INLINE_NORMALIZE_IDIOM_RE =
   /\.\s*replace(?:All)?\s*\(\s*\/(?:\[\/\\\\]|\[\\\\\/]|\\\\)\/g?\s*,\s*['"`]\//
@@ -105,6 +106,60 @@ export function isLintSuppressed(
 }
 
 /**
+ * True when a `normalizePath(varName)` / `toUnixPath(varName)` call sits within
+ * the 20 lines above the use, inclusive of the use line itself.
+ */
+export function hasNearbyNormalizeCall(
+  lines: readonly string[],
+  index: number,
+  varName: string,
+): boolean {
+  const windowStart = Math.max(0, index - 20)
+  for (let j = windowStart; j <= index; j += 1) {
+    const wLine = lines[j] ?? ''
+    if (NORMALIZE_CALL_RE.test(wLine) && wLine.includes(varName)) {
+      return true
+    }
+  }
+  return false
+}
+
+/**
+ * True when the variable is BORN from a normalize call anywhere in the file.
+ * Assignment provenance beats proximity: `const x = normalizePath(…)` makes `x`
+ * normalized at every later use, however far from the assignment.
+ */
+export function hasNormalizeAssignment(
+  lines: readonly string[],
+  varName: string,
+): boolean {
+  const assignRe = new RegExp(
+    `\\b${varName}\\s*=\\s*(?:normalizePath|toUnixPath)\\(`,
+  )
+  for (let j = 0, { length } = lines; j < length; j += 1) {
+    if (assignRe.test(lines[j] ?? '')) {
+      return true
+    }
+  }
+  return false
+}
+
+/**
+ * True when the path variable used at `index` is proven normalized, by a
+ * nearby normalize call or by assignment provenance.
+ */
+export function isPathVarNormalized(
+  lines: readonly string[],
+  index: number,
+  varName: string,
+): boolean {
+  return (
+    hasNearbyNormalizeCall(lines, index, varName) ||
+    hasNormalizeAssignment(lines, varName)
+  )
+}
+
+/**
  * Scan the raw text of a source file for un-normalized path operations.
  * Returns one finding per affected line.
  */
@@ -131,31 +186,7 @@ export function scan(filePath: string, rawText: string): PathFinding[] {
     if (!PATH_VAR_IDENT_RE.test(varName)) {
       continue
     }
-    // Look back up to 20 lines for a normalizePath(varName) / toUnixPath(varName) call.
-    const windowStart = Math.max(0, i - 20)
-    let proven = false
-    for (let j = windowStart; j <= i; j += 1) {
-      const wLine = lines[j] ?? ''
-      if (NORMALIZE_CALL_RE.test(wLine) && wLine.includes(varName)) {
-        proven = true
-        break
-      }
-    }
-    // Assignment provenance beats proximity: a variable BORN from a
-    // normalize call (`const x = normalizePath(…)` anywhere in the file)
-    // is normalized at every later use, however far from the assignment.
-    if (!proven) {
-      const assignRe = new RegExp(
-        `\\b${varName}\\s*=\\s*(?:normalizePath|toUnixPath)\\(`,
-      )
-      for (let j = 0, { length } = lines; j < length; j += 1) {
-        if (assignRe.test(lines[j] ?? '')) {
-          proven = true
-          break
-        }
-      }
-    }
-    if (!proven) {
+    if (!isPathVarNormalized(lines, i, varName)) {
       findings.push({
         file: filePath,
         line: i + 1,
@@ -247,7 +278,7 @@ export function main(): void {
     '\nPath-like variables used in separator-sensitive operations must be\n' +
       'normalized first via `normalizePath()` from `@socketsecurity/lib/paths/normalize`\n' +
       'or `toUnixPath()` in the 20-line window before the operation.\n\n' +
-      'Reference: docs/agents.md/fleet/paths-are-normalized-before-match-at-edit.md\n',
+      'Reference: docs/fleet/agents.md/paths-are-normalized-before-match-at-edit.md\n',
   )
   process.exit(1)
 }

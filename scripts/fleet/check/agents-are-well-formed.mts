@@ -26,8 +26,8 @@ import process from 'node:process'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { REPO_ROOT } from '../paths.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { nameMatchesFile } from './output-styles-are-well-formed.mts'
 import {
   extractFrontmatter,
@@ -35,7 +35,7 @@ import {
   MAX_SKILL_DESCRIPTION_LENGTH,
 } from './skills-are-well-formed.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 

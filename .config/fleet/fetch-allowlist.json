@@ -156,6 +156,16 @@
       "scopes": ["runtime"]
     },
     {
+      "host": "platform.claude.com",
+      "reason": "Claude platform documentation, the sibling of code.claude.com. Read-only reference for the API-side contracts the fleet writes against - tool-use schemas, strict tool use, prompt-engineering guidance per model tier. Local-agent-only; fetch-only, see the file header.",
+      "scopes": ["fetch"]
+    },
+    {
+      "host": "opencode.ai",
+      "reason": "OpenCode's own site — the config JSON schema (config.json) the fleet's generated opencode.json declares, the v2 docs the harness adapters are written against, and the auth endpoint an OpenCode session signs in through. Read-only on our side; the fleet publishes nothing here.",
+      "scopes": ["runtime", "fetch"]
+    },
+    {
       "host": "pypi.org",
       "reason": "The Python package registry's public API — soak math reads a release's upload date (multi-ecosystem minimumReleaseAge), and the uv-locked headroom pin reads package state before acting (verify-state-before-acting).",
       "scopes": ["runtime", "fetch"]

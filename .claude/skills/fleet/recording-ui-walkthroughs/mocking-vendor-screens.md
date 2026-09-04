@@ -1,6 +1,7 @@
 # Mocking a vendor's screen
 
 ## Contents
+
 - Why a mockup rather than the real site
 - Build the pages
 - Adding another vendor

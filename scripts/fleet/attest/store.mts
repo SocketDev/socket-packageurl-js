@@ -34,7 +34,7 @@ export function parseRepoSlug(
   if (parts.length !== 2) {
     return undefined
   }
-  const [owner, repo] = parts
+  const { 0: owner, 1: repo } = parts
   return owner && repo ? { owner, repo } : undefined
 }
 

@@ -1,6 +1,6 @@
 ---
 name: pr-review
-model: sonnet
+model: claude-sonnet-5
 description: First-pass PR review: posts findings as review comments, requests changes on critical issues, and inline-suggests small fixes.
 tools: Read, Grep, Glob, Edit, Write, Bash(git:*), Bash(gh:*), Bash(codex:*)
 ---
@@ -10,7 +10,7 @@ introduced by a pull request, post findings as GitHub review comments, and set
 the review verdict: **Approve**, **Comment**, or **Request changes**.
 
 Read the project's `CLAUDE.md` before reviewing. Its linked
-`docs/agents.md/fleet/` rules are binding: the fleet hooks enforce them at the
+`docs/fleet/agents.md/` rules are binding: the fleet hooks enforce them at the
 tool layer, so reading them first is faster than discovering them one refusal
 at a time.
 

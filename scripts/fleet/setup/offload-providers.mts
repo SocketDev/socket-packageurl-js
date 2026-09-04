@@ -12,7 +12,7 @@
  *   human can clear. What only needs checking (a credential's existence in
  *   the keychain, the odai server answering) it checks read-only - no
  *   keychain prompt, no server started, no secret ever printed. `--check`
- *   reports without installing. Usage: pnpm run setup:offload-providers
+ *   reports without installing. Usage: `pnpm run` setup:offload-providers
  *   [--check].
  */
 
@@ -20,21 +20,21 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 
-import { whichSync } from '@socketsecurity/lib-stable/bin/which'
+import { whichSync } from '@socketsecurity/lib-stable/exe/path/which'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
 import { CLAUDE_HOME } from '../paths.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
+import { isMainModule } from '../process/is-main-module.mts'
 import {
   odaiServerAnswers,
   odaiServerUrl,
   resolveOdaiBin,
-} from '../_shared/odai.mts'
-import { storeCredentialCommand } from '../_shared/provider-credentials.mts'
-import { runMain } from '../_shared/run-main.mts'
+} from '../ai/odai.mts'
+import { storeCredentialCommand } from '../ai/provider-credentials.mts'
+import { runMain } from '../process/run-main.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -177,18 +177,22 @@ function binExists(name: string): boolean {
  * Read the machine's current state. Every check is read-only.
  */
 export async function readMachineState(): Promise<MachineState> {
-  const [fireworksKey, syntheticKey, codexServerUp, serverUp] =
-    await Promise.all([
-      process.env['FIREWORKS_API_KEY'] !== undefined ||
-      settingsHeadersCarryFireworksKey()
-        ? Promise.resolve(true)
-        : keychainSlotExists('fireworks-api-key'),
-      process.env['SYNTHETIC_API_KEY'] !== undefined
-        ? Promise.resolve(true)
-        : keychainSlotExists('synthetic-api-key'),
-      Promise.resolve(binExists('codex')),
-      odaiServerAnswers(odaiServerUrl()),
-    ])
+  const {
+    0: fireworksKey,
+    1: syntheticKey,
+    2: codexServerUp,
+    3: serverUp,
+  } = await Promise.all([
+    process.env['FIREWORKS_API_KEY'] !== undefined ||
+    settingsHeadersCarryFireworksKey()
+      ? Promise.resolve(true)
+      : keychainSlotExists('fireworks-api-key'),
+    process.env['SYNTHETIC_API_KEY'] !== undefined
+      ? Promise.resolve(true)
+      : keychainSlotExists('synthetic-api-key'),
+    Promise.resolve(binExists('codex')),
+    odaiServerAnswers(odaiServerUrl()),
+  ])
   return {
     codexServerUp,
     fireworksKey,

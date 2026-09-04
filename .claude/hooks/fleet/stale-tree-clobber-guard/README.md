@@ -10,14 +10,14 @@ nobody meant to touch. Two of them ate the same one-line fix
 in `.github/actions/fleet/setup-and-install/action.yml` and its
 `template/base/` twin:
 
-688e1408f  fix(test-collection): conformance-tier files are owned, not orphans
-e987c0a95  chore(wheelhouse): mirror the skill and doc updates into the live tree
-6e6c296f0  docs(claude-md): index the persistent sfw CA rule  (same class,
-different victim: silently dropped 16 lines from
-docs/agents.md/fleet/adversarial-self-review.md)
+688e1408f fix(test-collection): conformance-tier files are owned, not orphans
+e987c0a95 chore(wheelhouse): mirror the skill and doc updates into the live tree
+6e6c296f0 docs(claude-md): index the persistent sfw CA rule (same class,
+different target: silently dropped 16 lines from
+docs/fleet/agents.md/adversarial-self-review.md)
 
 None was a blanket sweep. All three were small, scoped, correctly authored
-commits, and `cascade-and-land.mts` already forbids `git add -A`. The
+commits, and no fleet tool stages with `git add -A`. The
 clobbered paths were never edited by their authors and are nowhere near
 the subject line. What happened is simpler: a session held a working tree
 long enough for another session to land a newer version of a file, then
@@ -33,7 +33,7 @@ commit granularity is meaningless under squash, but content loss is
 permanent either way.
 
 DOCTRINE - this adds no new rule, it enforces one already written down.
-See `docs/agents.md/fleet/parallel-claude-sessions.md` ("Reconcile
+See `docs/fleet/agents.md/parallel-claude-sessions.md` ("Reconcile
 FORWARD, never rewind"; "Leave it, or land it") and the squash-history
 advice `.git-hooks/fleet/pre-push.mts` already prints: local main is
 canonical and flattens, so a parallel session's newer content is something
@@ -41,13 +41,13 @@ to LAND, not something to work around, wait out, or revert. Three
 consequences the block message repeats rather than reinventing:
 
 1. Land forward. Take HEAD's newer version for the paths you did not
-mean to change, and land everything else in the same breath. Nothing
-is held back and nothing is reverted.
+   mean to change, and land everything else in the same breath. Nothing
+   is held back and nothing is reverted.
 2. Do not hold a working tree across another session's landings. In a
-land-fast repo the staleness window should barely exist.
+   land-fast repo the staleness window should barely exist.
 3. Land the dirty files BEFORE squashing. A squash over an uncommitted
-tree either sweeps that work under someone else's subject or strands
-it. Commit first, then squash - never the reverse.
+   tree either sweeps that work under someone else's subject or strands
+   it. Commit first, then squash - never the reverse.
 
 Stashing, branching, waiting for a quiet window, and retreating into a
 private worktree are all the wrong instinct here, and the message says so.

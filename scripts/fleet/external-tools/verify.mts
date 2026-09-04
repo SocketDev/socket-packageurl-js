@@ -19,11 +19,13 @@ import {
   requireValue,
   resolveTargets,
 } from './_shared.mts'
+import { integrityValue } from './integrity.mts'
+import type { IntegrityField } from './integrity.mts'
 import { curlSha512, hexToSri } from './update.mts'
 import type { GithubReleaseTool } from './update.mts'
 
-import { runMain } from '../_shared/run-main.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import { runMain } from '../process/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -57,20 +59,6 @@ export function parseArgs(
     }
   }
   return opts
-}
-
-/**
- * Extract the SRI string from an `integrity` field that may be a bare string
- * or a provenance object `{ value, src?, date? }`. Returns the SRI string or
- * `undefined` when the field is absent.
- */
-export function integrityValue(
-  integrity: string | { value: string } | undefined,
-): string | undefined {
-  if (typeof integrity === 'string') {
-    return integrity
-  }
-  return integrity?.value
 }
 
 interface Mismatch {
@@ -107,9 +95,7 @@ export function verifyGithubIntegrities(
     for (let j = 0, { length: pLen } = platformKeys; j < pLen; j += 1) {
       const pkey = platformKeys[j]!
       const entry = tool.platforms[pkey]!
-      const expected = integrityValue(
-        entry.integrity as string | { value: string } | undefined,
-      )
+      const expected = integrityValue(entry.integrity as IntegrityField)
       if (!expected) {
         mismatches.push({
           actual: '(no integrity recorded)',

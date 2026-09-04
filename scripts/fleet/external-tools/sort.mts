@@ -10,6 +10,7 @@
 import process from 'node:process'
 
 import type { EditableJsonInstance } from '@socketsecurity/lib-stable/json/types'
+import { compareStr } from '@socketsecurity/lib-stable/sorts/strings'
 
 import {
   loadManifest,
@@ -19,9 +20,9 @@ import {
 } from './_shared.mts'
 import type { ExternalToolsJson } from './update.mts'
 
-import { reportSkippedMirrors } from '../_shared/cascaded-mirrors.mts'
-import { runMain } from '../_shared/run-main.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import { reportSkippedMirrors } from '../fs/cascaded-mirrors.mts'
+import { runMain } from '../process/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 export interface SortConfig {
   target: string | undefined
@@ -62,9 +63,7 @@ export function parseArgs(
 export function sortTools(
   tools: Record<string, unknown>,
 ): Record<string, unknown> {
-  const keys = Object.keys(tools).toSorted((a, b) =>
-    a < b ? -1 : a > b ? 1 : 0,
-  )
+  const keys = Object.keys(tools).toSorted(compareStr)
   const out: Record<string, unknown> = {}
   for (let i = 0, { length } = keys; i < length; i += 1) {
     const key = keys[i]!
@@ -78,7 +77,7 @@ export function sortTools(
  */
 export function isSorted(tools: Record<string, unknown>): boolean {
   const keys = Object.keys(tools)
-  const sorted = [...keys].toSorted((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+  const sorted = [...keys].toSorted(compareStr)
   for (let i = 0, { length } = keys; i < length; i += 1) {
     if (keys[i] !== sorted[i]) {
       return false

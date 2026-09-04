@@ -37,12 +37,13 @@ import process from 'node:process'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 
-import { gitSync } from '../_shared/git-exec.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { gitSync } from '../git/exec.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { isReadOnlyMirror } from '../fs/mirror/registry.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -194,6 +195,14 @@ export function trackedTextFiles(repoRoot: string): string[] {
   for (let l = 0, { length: linesLength } = lines; l < linesLength; l += 1) {
     const file = lines[l]!.trim()
     if (!file || isExcluded(file)) {
+      continue
+    }
+    // A cascaded mirror ships mode 444, so a member has no fix it can apply:
+    // the write is refused, and editing it anyway forks the file from its
+    // template source. The wheelhouse gates the same content at that source, so
+    // skipping here loses no coverage and stops a member's `check` from failing
+    // on 14 exports it cannot touch.
+    if (isReadOnlyMirror(path.join(REPO_ROOT, file))) {
       continue
     }
     for (

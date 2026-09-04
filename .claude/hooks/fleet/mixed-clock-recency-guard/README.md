@@ -13,11 +13,11 @@ The damage is not a wrong number, it is a wrong decision. The active-edits rule 
 
 A session on a machine at UTC-7 compared `stat -f '%Sm'` output against `date -u +%H:%M:%S` and concluded, three separate times, that files touched seconds earlier were "7 hours cold, no live actor". Acting on that reading it:
 
-| Consequence | What actually happened |
-| --- | --- |
-| Read a module mid-write | chased a `checkOverrideDeclarations is not a function` that was only a half-saved file |
-| Adapted its own code to a moving signature | the function it adapted to changed again a minute later |
-| Lost staged work to another commit | its explicitly staged paths were swept into a live actor's commit, more than once |
+| Consequence                                | What actually happened                                                                 |
+| ------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Read a module mid-write                    | chased a `checkOverrideDeclarations is not a function` that was only a half-saved file |
+| Adapted its own code to a moving signature | the function it adapted to changed again a minute later                                |
+| Lost staged work to another commit         | its explicitly staged paths were swept into a live actor's commit, more than once      |
 
 Each of those followed from the offset, not from a reasoning error downstream of it. That is what makes this a guard rather than a note: the input was wrong, so every conclusion built on it was unreachable by care.
 
@@ -28,7 +28,10 @@ Each of those followed from the offset, not from a reasoning error downstream of
 **When the question is "is another live actor on this path"** - which is what the active-edits rule is defined in terms of - use the ledger:
 
 ```ts
-import { attributeDirtyPath, lookupPath } from '../_shared/active-edits-ledger.mts'
+import {
+  attributeDirtyPath,
+  lookupPath,
+} from '../_shared/active-edits-ledger.mts'
 ```
 
 It judges against `COLLISION_WINDOW_MS` and needs no clock arithmetic from the caller.

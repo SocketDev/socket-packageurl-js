@@ -33,21 +33,21 @@
 
 import process from 'node:process'
 
-import { isMainModule } from './_shared/is-main-module.mts'
+import { isMainModule } from './process/is-main-module.mts'
 import {
   advanceModelTarget,
   isModelTargetId,
   MODEL_TARGETS,
-} from './_shared/model-targets.mts'
-import { runMain } from './_shared/run-main.mts'
+} from './ai/model-targets.mts'
+import { runMain } from './process/run-main.mts'
 import {
   COPY_ACTION,
   NEXT_MODEL_ACTION,
   parseFleetUrl,
-} from './_shared/terminal-link.mts'
+} from './cli/terminal-link.mts'
 import { copyToClipboard, decodeCopyText } from './clipboard-decode.mts'
 
-import type { ScriptMeta } from './_shared/run-main.mts'
+import type { ScriptMeta } from './process/run-main.mts'
 
 /**
  * Run a `next-model` click: step the named seat to the next model on its list.

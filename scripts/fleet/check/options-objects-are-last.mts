@@ -21,9 +21,9 @@ import { globSync } from '@socketsecurity/lib-stable/globs/match'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { normalizePath } from '@socketsecurity/lib-stable/paths/normalize'
 
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
 const logger = getDefaultLogger()
@@ -42,58 +42,58 @@ export const SCAN_GLOBS: readonly string[] = [
  * New violations fail; entries that stop violating fail for removal.
  */
 export const TRAILING_SCALAR_BASELINE: readonly string[] = [
-  'scripts/fleet/_shared/active-run-marker.mts#activeRunsDir',
-  'scripts/fleet/_shared/claude-model.mts#claudeSettingsPath',
-  'scripts/fleet/_shared/claude-model.mts#readClaudeModel',
-  'scripts/fleet/_shared/claude-model.mts#writeClaudeModel',
-  'scripts/fleet/_shared/claude-usage.mts#costUsage',
-  'scripts/fleet/_shared/claude-usage.mts#leverRate',
-  'scripts/fleet/_shared/claude-usage.mts#listTranscripts',
-  'scripts/fleet/_shared/claude-usage.mts#projectSlugFromPath',
-  'scripts/fleet/_shared/claude-usage.mts#readAccountIdentity',
-  'scripts/fleet/_shared/claude-usage.mts#readBudgetConfig',
-  'scripts/fleet/_shared/claude-usage.mts#renderMeterBar',
-  'scripts/fleet/_shared/claude-usage.mts#renderSpendMeter',
-  'scripts/fleet/_shared/claude-usage.mts#renderSpendMeterWide',
-  'scripts/fleet/_shared/claude-usage.mts#scanTranscript',
-  'scripts/fleet/_shared/claude-usage.mts#scanUsage',
-  'scripts/fleet/_shared/codex-model.mts#codexConfigPath',
-  'scripts/fleet/_shared/codex-model.mts#readCodexModel',
-  'scripts/fleet/_shared/codex-model.mts#writeCodexModel',
-  'scripts/fleet/_shared/codex-usage.mts#codexSessionsDir',
-  'scripts/fleet/_shared/codex-usage.mts#readCodexRateLimit',
-  'scripts/fleet/_shared/fireconnect-config.mts#fireconnectConfigPath',
-  'scripts/fleet/_shared/fireconnect-config.mts#readFireconnectAccountId',
-  'scripts/fleet/_shared/fireworks-usage.mts#readFireworksSpend',
-  'scripts/fleet/_shared/fixer-lock.mts#acquireFixerLock',
-  'scripts/fleet/_shared/ghcr-package.mts#ghcrContainerVersionsPath',
-  'scripts/fleet/_shared/is-main-module.mts#isMainModule',
-  'scripts/fleet/_shared/model-choices.mts#isKnownModel',
-  'scripts/fleet/_shared/model-choices.mts#pickerRowsFor',
-  'scripts/fleet/_shared/model-choices.mts#writeModelSelection',
-  'scripts/fleet/_shared/offload-spend-read.mts#readOffloadSpend',
-  'scripts/fleet/_shared/offload-spend.mts#opencodeDbPath',
-  'scripts/fleet/_shared/offload-spend.mts#remainingFractionFor',
-  'scripts/fleet/_shared/pack-inspect.mts#readPackEntryText',
-  'scripts/fleet/_shared/process-lifecycle.mts#installChildTeardown',
-  'scripts/fleet/_shared/process-lifecycle.mts#teardownChildren',
-  'scripts/fleet/_shared/provider-models.mts#listProviderModels',
-  'scripts/fleet/_shared/quiescence.mts#readQuiescenceSignal',
-  'scripts/fleet/_shared/report-url.mts#reportHref',
-  'scripts/fleet/_shared/report-url.mts#reportsUrl',
-  'scripts/fleet/_shared/run-main.mts#runMain',
-  'scripts/fleet/_shared/run-main.mts#runMainAsync',
-  'scripts/fleet/_shared/spend-projection.mts#burnRate',
-  'scripts/fleet/_shared/spend-report-charts.mts#drillBands',
-  'scripts/fleet/_shared/spend-report-html.mts#ditherBar',
-  'scripts/fleet/_shared/spend-report-path.mts#fleetReportAssetPath',
-  'scripts/fleet/_shared/spend-report-path.mts#fleetReportAssetsDir',
-  'scripts/fleet/_shared/spend-report-path.mts#fleetReportDir',
-  'scripts/fleet/_shared/spend-report-path.mts#fleetReportPath',
-  'scripts/fleet/_shared/spend-report-path.mts#spendReportPath',
-  'scripts/fleet/_shared/synthetic-quota.mts#readSyntheticQuota',
-  'scripts/fleet/_shared/tar-executable.mts#tarExecutable',
-  'scripts/fleet/_shared/test-collection.mts#detectTestCommandRunner',
+  'scripts/fleet/process/active-run-marker.mts#activeRunsDir',
+  'scripts/fleet/ai/claude-model.mts#claudeSettingsPath',
+  'scripts/fleet/ai/claude-model.mts#readClaudeModel',
+  'scripts/fleet/ai/claude-model.mts#writeClaudeModel',
+  'scripts/fleet/spend/claude-usage.mts#costUsage',
+  'scripts/fleet/spend/claude-usage.mts#leverRate',
+  'scripts/fleet/spend/claude-usage.mts#listTranscripts',
+  'scripts/fleet/spend/claude-usage.mts#projectSlugFromPath',
+  'scripts/fleet/spend/claude-usage.mts#readAccountIdentity',
+  'scripts/fleet/spend/claude-usage.mts#readBudgetConfig',
+  'scripts/fleet/spend/claude-usage.mts#renderMeterBar',
+  'scripts/fleet/spend/claude-usage.mts#renderSpendMeter',
+  'scripts/fleet/spend/claude-usage.mts#renderSpendMeterWide',
+  'scripts/fleet/spend/claude-usage.mts#scanTranscript',
+  'scripts/fleet/spend/claude-usage.mts#scanUsage',
+  'scripts/fleet/ai/codex-model.mts#codexConfigPath',
+  'scripts/fleet/ai/codex-model.mts#readCodexModel',
+  'scripts/fleet/ai/codex-model.mts#writeCodexModel',
+  'scripts/fleet/spend/codex-usage.mts#codexSessionsDir',
+  'scripts/fleet/spend/codex-usage.mts#readCodexRateLimit',
+  'scripts/fleet/ai/fireconnect-config.mts#fireconnectConfigPath',
+  'scripts/fleet/ai/fireconnect-config.mts#readFireconnectAccountId',
+  'scripts/fleet/spend/fireworks-usage.mts#readFireworksSpend',
+  'scripts/fleet/process/fixer-lock.mts#acquireFixerLock',
+  'scripts/fleet/github/ghcr-package.mts#ghcrContainerVersionsPath',
+  'scripts/fleet/process/is-main-module.mts#isMainModule',
+  'scripts/fleet/ai/model-choices.mts#isKnownModel',
+  'scripts/fleet/ai/model-choices.mts#pickerRowsFor',
+  'scripts/fleet/ai/model-choices.mts#writeModelSelection',
+  'scripts/fleet/spend/offload-read.mts#readOffloadSpend',
+  'scripts/fleet/spend/offload.mts#opencodeDbPath',
+  'scripts/fleet/spend/offload.mts#remainingFractionFor',
+  'scripts/fleet/pack/inspect.mts#readPackEntryText',
+  'scripts/fleet/process/lifecycle.mts#installChildTeardown',
+  'scripts/fleet/process/lifecycle.mts#teardownChildren',
+  'scripts/fleet/ai/provider-models.mts#listProviderModels',
+  'scripts/fleet/git/quiescence.mts#readQuiescenceSignal',
+  'scripts/fleet/reports/url.mts#reportHref',
+  'scripts/fleet/reports/url.mts#reportsUrl',
+  'scripts/fleet/process/run-main.mts#runMain',
+  'scripts/fleet/process/run-main.mts#runMainAsync',
+  'scripts/fleet/spend/projection.mts#burnRate',
+  'scripts/fleet/spend/report-charts.mts#drillBands',
+  'scripts/fleet/spend/report-html.mts#ditherBar',
+  'scripts/fleet/spend/report-path.mts#fleetReportAssetPath',
+  'scripts/fleet/spend/report-path.mts#fleetReportAssetsDir',
+  'scripts/fleet/spend/report-path.mts#fleetReportDir',
+  'scripts/fleet/spend/report-path.mts#fleetReportPath',
+  'scripts/fleet/spend/report-path.mts#spendReportPath',
+  'scripts/fleet/ai/synthetic-quota.mts#readSyntheticQuota',
+  'scripts/fleet/archives/tar-executable.mts#tarExecutable',
+  'scripts/fleet/test-support/collection.mts#detectTestCommandRunner',
   'scripts/fleet/apple-notarize.mts#notarizeMachO',
   'scripts/fleet/apple-sign.mts#adHocSign',
   'scripts/fleet/backup-branches/prune.mts#discoverBackupRefs',
@@ -210,7 +210,7 @@ export const TRAILING_SCALAR_BASELINE: readonly string[] = [
   'scripts/fleet/go-publish.mts#runGoPublish',
   'scripts/fleet/grant-ruleset-bypass.mts#runGh',
   'scripts/fleet/hide-comments.mts#isBotAuthor',
-  'scripts/fleet/janus-multi-runner.mts#nextTicketArgs',
+  'scripts/fleet/mcp/janus/runner.mts#nextTicketArgs',
   'scripts/fleet/janus.mts#readJanusEntry',
   'scripts/fleet/land-work.mts#main',
   'scripts/fleet/land-work/message.mts#commitMessage',
@@ -309,7 +309,6 @@ export const TRAILING_SCALAR_BASELINE: readonly string[] = [
   'scripts/repo/anti-fleet-tooling.mts#antiFleetDeps',
   'scripts/repo/bundle-release.mts#deriveTag',
   'scripts/repo/bundle-release.mts#main',
-  'scripts/repo/cascade-and-land.mts#validateWheelhouse',
   'scripts/repo/check/categorical-prose-bans-are-live.mts#main',
   'scripts/repo/check/fleet-has-no-wheelhouse-only-refs.mts#findWheelhouseRefs',
   'scripts/repo/check/fleet-has-no-wheelhouse-only-refs.mts#scanFile',
@@ -323,7 +322,6 @@ export const TRAILING_SCALAR_BASELINE: readonly string[] = [
   'scripts/repo/gen/bootstrap/src/ghcr-fetch.mts#fetchBlob',
   'scripts/repo/gen/bootstrap/src/ghcr-fetch.mts#fetchOciManifest',
   'scripts/repo/gen/bootstrap/src/ghcr-fetch.mts#getGhcrToken',
-  'scripts/repo/gen/bootstrap/src/ghcr-fetch.mts#listOciTags',
   'scripts/repo/gen/showcase.mts#lightDarkGlow',
   'scripts/repo/gen/socket-icon-render.mts#rasterize',
   'scripts/repo/onboard/contract.mts#greenVerdict',
@@ -346,15 +344,15 @@ export const TRAILING_SCALAR_BASELINE: readonly string[] = [
   'scripts/repo/sync-fleet-about.mts#buildGhViewArgs',
   'scripts/repo/sync-fleet-about.mts#ghAbout',
   'scripts/repo/sync-fleet-about.mts#ghSetAbout',
-  'scripts/repo/sync-scaffolding/_shared/tree-hash.mts#hashTree',
-  'scripts/repo/sync-scaffolding/checks/bundle-pin.mts#checkBundlePin',
-  'scripts/repo/sync-scaffolding/conditional-triggers.mts#activeConditionalLayers',
-  'scripts/repo/sync-scaffolding/dir-mirror-skip.mts#dirMirrorSkipPredicate',
-  'scripts/repo/sync-scaffolding/fix-dispatch-codegen.mts#dispatchCodegenFinding',
-  'scripts/repo/sync-scaffolding/splice-patched-dependencies.mts#splicePatchedDependenciesEntry',
-  'scripts/repo/sync-scaffolding/template-layers.mts#allLayerDirs',
-  'scripts/repo/sync-scaffolding/template-layers.mts#conditionalLayerFor',
-  'scripts/repo/sync-scaffolding/template-layers.mts#existsInAnyLayer',
+  'scripts/repo/commit-cascade/_shared/tree-hash.mts#hashTree',
+  'scripts/repo/commit-cascade/checks/bundle-pin.mts#checkBundlePin',
+  'scripts/repo/commit-cascade/conditional-triggers.mts#activeConditionalLayers',
+  'scripts/repo/commit-cascade/dir-mirror-skip.mts#dirMirrorSkipPredicate',
+  'scripts/repo/commit-cascade/fix-dispatch-codegen.mts#dispatchCodegenFinding',
+  'scripts/repo/commit-cascade/splice-patched-dependencies.mts#splicePatchedDependenciesEntry',
+  'scripts/repo/commit-cascade/template-layers.mts#allLayerDirs',
+  'scripts/repo/commit-cascade/template-layers.mts#conditionalLayerFor',
+  'scripts/repo/commit-cascade/template-layers.mts#existsInAnyLayer',
   'scripts/repo/tag-release.mts#changelogTopMatches',
   'scripts/repo/tag-release.mts#readVersion',
   'scripts/repo/user-global/wheelhouse-dispatch.mts#repoOwnsHook',
@@ -395,6 +393,36 @@ const OBJECT_TYPE_RE =
   /(?:^|[<\s{])\{|Record<|Partial<|ProcessEnv\b|\w*(?:Config|Options|Params|Settings)\b/
 
 /**
+ * The index just past the string or template literal opening at `index`. The
+ * character at `index` is the quote. Escapes are consumed in pairs, so a `\"`
+ * inside a default value never ends the literal early. An unterminated
+ * literal returns a past-the-end index, which ends the caller's scan. Pure.
+ */
+export function stringLiteralEnd(text: string, index: number): number {
+  const quote = text[index]
+  let i = index + 1
+  const { length } = text
+  while (i < length && text[i] !== quote) {
+    i += text[i] === '\\' ? 2 : 1
+  }
+  return i + 1
+}
+
+/**
+ * The nesting delta one character applies to paren/bracket/brace depth: +1
+ * for an opener, -1 for a closer, 0 for anything else. Pure.
+ */
+export function bracketDepthDelta(ch: string): number {
+  if (ch === '(' || ch === '[' || ch === '{') {
+    return 1
+  }
+  if (ch === ')' || ch === ']' || ch === '}') {
+    return -1
+  }
+  return 0
+}
+
+/**
  * The index just past the top-level close paren of the param list starting
  * at `openIndex` (the position of `(`), or -1 when unbalanced. Depth-aware
  * over parens, braces, and brackets; strings and template literals skipped
@@ -407,11 +435,7 @@ export function paramListEnd(text: string, openIndex: number): number {
   while (i < length) {
     const ch = text[i]!
     if (ch === "'" || ch === '"' || ch === '`') {
-      i += 1
-      while (i < length && text[i] !== ch) {
-        i += text[i] === '\\' ? 2 : 1
-      }
-      i += 1
+      i = stringLiteralEnd(text, i)
       continue
     }
     if (ch === '(' || ch === '[' || ch === '{') {
@@ -446,17 +470,12 @@ export function splitTopLevelParams(body: string): string[] {
   while (i < length) {
     const ch = body[i]!
     if (ch === "'" || ch === '"' || ch === '`') {
-      i += 1
-      while (i < length && body[i] !== ch) {
-        i += body[i] === '\\' ? 2 : 1
-      }
-      i += 1
+      i = stringLiteralEnd(body, i)
       continue
     }
-    if (ch === '(' || ch === '[' || ch === '{') {
-      depth += 1
-    } else if (ch === ')' || ch === ']' || ch === '}') {
-      depth -= 1
+    const delta = bracketDepthDelta(ch)
+    if (delta !== 0) {
+      depth += delta
     } else if (ch === '<') {
       angleDepth += 1
     } else if (ch === '>' && angleDepth > 0) {

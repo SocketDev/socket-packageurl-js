@@ -18,7 +18,7 @@ Unknown external reference 0x104fdaf60.
 Exit 133, and the message names neither the module nor the hook that pulled it
 in - against a 2.9 MB pack. Finding it by hand costs a bisect of the whole hook
 set. It has already cost one: `node:sqlite` reached the pack from
-`scripts/fleet/_shared/socket-state.mts`, and the abort said nothing about
+`scripts/fleet/state/db.mts`, and the abort said nothing about
 either name.
 
 A load inside a function body is fine. The function runs after
@@ -28,14 +28,14 @@ function that needs it is the standing fix.
 
 ## What it blocks
 
-| Written at module scope                              | Verdict |
-| ---------------------------------------------------- | ------- |
-| `import { DatabaseSync } from 'node:sqlite'`          | blocked |
-| `const { DatabaseSync } = require('node:sqlite')`     | blocked |
-| `process.getBuiltinModule('node:sqlite')`             | blocked |
-| the same three inside a function body                 | passes  |
-| any of them in a `@dispatch-snapshot-exclude` hook     | passes  |
-| a file outside the snapshot graph                      | passes  |
+| Written at module scope                            | Verdict |
+| -------------------------------------------------- | ------- |
+| `import { DatabaseSync } from 'node:sqlite'`       | blocked |
+| `const { DatabaseSync } = require('node:sqlite')`  | blocked |
+| `process.getBuiltinModule('node:sqlite')`          | blocked |
+| the same three inside a function body              | passes  |
+| any of them in a `@dispatch-snapshot-exclude` hook | passes  |
+| a file outside the snapshot graph                  | passes  |
 
 Scope is `.claude/hooks/fleet/**` plus `scripts/fleet/_shared/**`. A `_shared`
 module counts because a hostile load there reaches every hook importing it.
@@ -57,5 +57,5 @@ One list and one detector, three surfaces:
 
 - this guard, at write time;
 - `socket/no-snapshot-hostile-builtin`, at lint time;
-- `scripts/fleet/_shared/snapshot-hostile-builtins.mts`, which names the
+- `scripts/fleet/hooks/snapshot-hostile-builtins.mts`, which names the
   offender in a build that already aborted.

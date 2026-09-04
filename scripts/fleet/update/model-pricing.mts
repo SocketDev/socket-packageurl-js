@@ -31,10 +31,11 @@
  *     node scripts/fleet/update/model-pricing.mts
  *       Dry plan (default): print stale services, unpriced observed ids, and
  *       the proposals it could apply. Touches nothing.
- *     node scripts/fleet/update/model-pricing.mts --apply
+ *     node scripts/fleet/update/model-pricing.mts
  *       Hand the resolved proposals to the pricing writer.
  */
 
+import { assertKnownFlags, isDryRun } from './_shared.mts'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
@@ -47,12 +48,12 @@ import {
 } from '../check/priced-models-cover-observed-usage.mts'
 import { staleServices } from '../check/pricing-data-is-current.mts'
 import { loadPricing } from '../estimate-ai-cost.mts'
-import { isMainModule } from '../_shared/is-main-module.mts'
-import { runMain } from '../_shared/run-main.mts'
+import { isMainModule } from '../process/is-main-module.mts'
+import { runMain } from '../process/run-main.mts'
 import { REPO_ROOT } from '../paths.mts'
 
 import type { StaleService } from '../check/pricing-data-is-current.mts'
-import type { ScriptMeta } from '../_shared/run-main.mts'
+import type { ScriptMeta } from '../process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -213,11 +214,11 @@ export function reportPlan(plan: PricingPlan): number {
 export const SCRIPT_META: ScriptMeta = {
   describe:
     'reconciles model pricing weekly: reports stale snapshots and unpriced billed ids, resolving aliases from local sources',
-  help: `Usage: node scripts/fleet/update/model-pricing.mts [--apply]
+  help: `Usage: node scripts/fleet/update/model-pricing.mts [--dry-run]
 
   (no mode flag)  dry plan: print stale snapshots, unpriced billed ids, and the
                   alias rates it could apply, touching nothing
-  --apply         hand the resolved alias rates to update-model-pricing.mts`,
+  --dry-run       print the resolved alias rates, write nothing`,
 }
 
 /**
@@ -260,9 +261,10 @@ export async function planFromRepo(
 
 /* c8 ignore start - entrypoint glue; the pure planner carries the coverage */
 export async function main(argv: readonly string[]): Promise<number> {
+  assertKnownFlags(argv, {})
   const plan = await planFromRepo()
   const code = reportPlan(plan)
-  if (argv.includes('--apply') && plan.proposals.length) {
+  if (!isDryRun(argv) && plan.proposals.length) {
     logger.log(
       'apply: hand these to `update-model-pricing.mts --service <id>`; this runner never writes the file itself.',
     )

@@ -2,14 +2,14 @@
  * @file Forbid a MODULE-SCOPE load of a snapshot-hostile builtin in a file the
  *   V8 startup snapshot bundles. Third surface of one rule, beside the
  *   `snapshot-hostile-require-guard` edit-time hook and the build-time reporter
- *   in `scripts/fleet/_shared/snapshot-hostile-builtins.mts` — code is law.
+ *   in `scripts/fleet/hooks/snapshot-hostile-builtins.mts` — code is law.
  *
  *   A builtin backed by a native binding registers an external reference V8
  *   cannot serialize, so loading one while a bundled module evaluates aborts
  *   `node --build-snapshot` with `Unknown external reference 0x… /
  *   <unresolved>` and exit 133, naming neither the module nor the hook. The
  *   incident: `node:sqlite` reached the pack from
- *   `scripts/fleet/_shared/socket-state.mts` and cost a bisect of the whole
+ *   `scripts/fleet/state/db.mts` and cost a bisect of the whole
  *   hook set to find.
  *
  *   The same load inside a function body is fine: it runs after

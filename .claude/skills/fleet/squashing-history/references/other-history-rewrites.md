@@ -13,4 +13,4 @@ owners already exist - never hand-roll one:
 `history-rewrite-guard` blocks `git filter-branch` / `git filter-repo` / an
 unsigned `git commit-tree` - they re-mint commits unsigned, and `filter-branch`
 restores the original `GIT_COMMITTER_*`, so even a re-signed commit fails
-GitHub's verification. See [`history-rewrites`](../../../../../docs/agents.md/fleet/history-rewrites.md).
+GitHub's verification. See [`history-rewrites`](../../../../../docs/fleet/agents.md/history-rewrites.md).

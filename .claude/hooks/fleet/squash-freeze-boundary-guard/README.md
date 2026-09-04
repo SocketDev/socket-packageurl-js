@@ -11,12 +11,12 @@ prevent, caught here BEFORE a hand-rolled command ever reaches git. Three
 shapes, all of them mint (or land on) a NEW root with no ancestor:
 
 1. `git reset --soft <ref>` where `<ref>` resolves to the repo's ROOT
-commit - the first half of a hand-rolled full-root squash.
+   commit - the first half of a hand-rolled full-root squash.
 2. `git rebase --root` (any form) - rebases the whole branch onto a new
-root, discarding every parent link below it.
+   root, discarding every parent link below it.
 3. `git commit-tree <tree>` with NO `-p <parent>` - mints a PARENTLESS
-commit, the exact shape `mintSquashRoot()` uses, run by hand instead
-of through the runner.
+   commit, the exact shape `mintSquashRoot()` uses, run by hand instead
+   of through the runner.
 
 Gated on a CHEAP, LOCAL, no-network signal: the repo is opted into
 `squash-history` AND its root manifest (package.json / Cargo.toml) reports
