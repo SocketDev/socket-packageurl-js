@@ -63,7 +63,7 @@
     "lockstep": "node scripts/fleet/lockstep.mts",
     "lockstep:emit-mirror-globs": "node scripts/fleet/lockstep-emit-mirror-globs.mts",
     "lockstep:emit-schema": "node scripts/fleet/lockstep-emit-schema.mts",
-    "mcp:reset": "node scripts/fleet/mcp-reset.mts",
+    "mcp:reset": "node scripts/fleet/mcp/reset.mts",
     "npm:publish": "node scripts/fleet/publish-pipeline.mts",
     "precommit": "pnpm run check --lint --staged",
     "prepare": "node scripts/repo/bootstrap/prepare.mts && node scripts/fleet/install-git-hooks.mts && node scripts/fleet/prepare.mts",
@@ -121,7 +121,6 @@
     "build:snapshot-launcher": "node scripts/fleet/build-snapshot-launcher.mts"
   },
   "devDependencies": {
-    "@anthropic-ai/claude-code": "catalog:",
     "@mdn/browser-compat-data": "catalog:",
     "@oxlint/migrate": "1.51.0",
     "@playwright/mcp": "catalog:",
