@@ -25,7 +25,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import { isQuiet } from '@socketsecurity/lib-stable/argv/flag-predicates'
+import { isQuiet } from '@socketsecurity/lib-stable/exe/argv/flag-predicates'
 import { readJson } from '@socketsecurity/lib-stable/fs/read-json'
 import { safeDelete } from '@socketsecurity/lib-stable/fs/safe'
 import { writeJson } from '@socketsecurity/lib-stable/fs/write-json'
@@ -188,7 +188,7 @@ export async function applySuite(
       await safeDelete(vendoredPath)
       continue
     }
-    const [suiteDir] = SUITE_DIRS.filter(d =>
+    const { 0: suiteDir } = SUITE_DIRS.filter(d =>
       entry.relPath.startsWith(`${d.to}${path.sep}`),
     )
     if (!suiteDir) {

@@ -13,10 +13,10 @@ import { rolldown, watch as rolldownWatch } from 'rolldown'
 import type { RolldownOutput } from 'rolldown'
 import colors from 'yoctocolors-cjs'
 
-import { isQuiet } from '@socketsecurity/lib-stable/argv/flag-predicates'
-import type { FlagValues } from '@socketsecurity/lib-stable/argv/flag-types'
-import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
-import { WIN32 } from '@socketsecurity/lib-stable/constants/platform'
+import { isQuiet } from '@socketsecurity/lib-stable/exe/argv/flag-predicates'
+import type { FlagValues } from '@socketsecurity/lib-stable/exe/argv/flag-types'
+import { parseArgs } from '@socketsecurity/lib-stable/exe/argv/parse'
+import { isWin32 } from '@socketsecurity/lib-stable/constants/platform'
 import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
@@ -29,7 +29,7 @@ import { configs as rolldownConfigs } from '../../.config/repo/rolldown.config.m
 import { getBuildAnalysis } from './build-analysis.mts'
 import { runSequence } from './utils/run-command.mts'
 
-import { isMainModule } from '../fleet/_shared/is-main-module.mts'
+import { isMainModule } from '../fleet/process/is-main-module.mts'
 
 type BuildScriptValues = FlagValues & {
   analyze: boolean
@@ -184,7 +184,7 @@ export async function buildTypes(
     args: ['exec', 'tsgo', '--project', 'tsconfig.dts.json'],
     command: 'pnpm',
     options: {
-      shell: WIN32,
+      shell: isWin32(),
     },
   })
 

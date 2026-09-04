@@ -2,7 +2,7 @@
  * @file Utility for running shell commands with proper error handling.
  */
 
-import { WIN32 } from '@socketsecurity/lib-stable/constants/platform'
+import { isWin32 } from '@socketsecurity/lib-stable/constants/platform'
 import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import type {
@@ -61,7 +61,7 @@ export async function runCommand(
   try {
     const result = await spawn(command, args, {
       stdio: 'inherit',
-      shell: WIN32,
+      shell: isWin32(),
       ...options,
     })
     return result.code
@@ -87,7 +87,7 @@ export async function runCommandQuiet(
   try {
     const result = await spawn(command, args, {
       ...options,
-      shell: WIN32,
+      shell: isWin32(),
       stdio: 'pipe',
       stdioString: true,
     })
@@ -128,7 +128,7 @@ export function runCommandSync(
   const { args = [], ...spawnOptions } = { __proto__: null, ...options }
   const result: SpawnSyncReturns<string | Buffer> = spawnSync(command, args, {
     stdio: 'inherit',
-    shell: WIN32,
+    shell: isWin32(),
     ...spawnOptions,
   })
 

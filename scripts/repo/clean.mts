@@ -10,15 +10,15 @@ import { fileURLToPath } from 'node:url'
 import { deleteAsync } from 'del'
 import fastGlob from 'fast-glob'
 
-import { isQuiet } from '@socketsecurity/lib-stable/argv/flag-predicates'
-import type { FlagValues } from '@socketsecurity/lib-stable/argv/flag-types'
-import { parseArgs } from '@socketsecurity/lib-stable/argv/parse'
+import { isQuiet } from '@socketsecurity/lib-stable/exe/argv/flag-predicates'
+import type { FlagValues } from '@socketsecurity/lib-stable/exe/argv/flag-types'
+import { parseArgs } from '@socketsecurity/lib-stable/exe/argv/parse'
 import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { createSectionHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'
 
-import { isMainModule } from '../fleet/_shared/is-main-module.mts'
+import { isMainModule } from '../fleet/process/is-main-module.mts'
 
 const logger: Logger = getDefaultLogger()
 
