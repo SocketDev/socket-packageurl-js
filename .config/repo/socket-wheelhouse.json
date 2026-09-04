@@ -6,8 +6,8 @@
   "schemaVersion": 1,
   "repoName": "socket-packageurl-js",
   "bundle": {
-    "ref": "fleet-pack-032f3ab16d90b200918e61a3cc1a9fe9e20e95df",
-    "cascadeSha": "032f3ab16d90b200918e61a3cc1a9fe9e20e95df"
+    "ref": "fleet-pack-ae00485b4a1a28d570790e2e2830a122570fd83d",
+    "cascadeSha": "ae00485b4a1a28d570790e2e2830a122570fd83d"
   },
   "repo": {
     "type": "solo"
