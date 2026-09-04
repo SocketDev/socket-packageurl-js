@@ -95,6 +95,8 @@ export {
   matchesPurl,
 } from './compare.mjs'
 export { parseNpmSpecifier } from './purl-types/npm.mjs'
+export { gitDepToPurl, ownerRepoFromGitUrl } from './git-dep-to-purl.mjs'
+export type { GitDepLike } from './git-dep-to-purl.mjs'
 export { splitPurlPackageName } from './split-package-name.mjs'
 export type { PurlPackageNameComponents } from './split-package-name.mjs'
 // Registry existence checks (`*Exists` functions) are available from the
