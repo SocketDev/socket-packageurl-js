@@ -44,12 +44,12 @@ import {
 const SANDBOX_SUBPATHS: Record<string, readonly string[]> = {
   __proto__: null,
   HOME: [],
+  npm_config_cache: ['.npm'],
   USERPROFILE: [],
   XDG_CACHE_HOME: ['.cache'],
   XDG_CONFIG_HOME: ['.config'],
   XDG_DATA_HOME: ['.local', 'share'],
   XDG_STATE_HOME: ['.local', 'state'],
-  npm_config_cache: ['.npm'],
 } as unknown as Record<string, readonly string[]>
 
 // XDG_CONFIG_HOME is pinned here but is NOT in the law's list, which stops at

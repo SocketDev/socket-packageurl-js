@@ -11,7 +11,7 @@
 **/plugin-patches/**/*.patch -diff
 
 # <fleet>
-# Cascaded from socket-wheelhouse/template/base/. Don't edit locally —
+# Cascaded from socket-wheelhouse/template/base/universal/. Don't edit locally —
 # edit upstream and re-cascade via commit-cascade. Marked
 # linguist-generated so GitHub PR diffs collapse them by default.
 .claude/agents/fleet linguist-generated=true
@@ -99,6 +99,8 @@
 .npmrc linguist-generated=true
 assets/fleet/badge-follow-bluesky.svg linguist-generated=true
 assets/fleet/badge-follow-x.svg linguist-generated=true
+assets/fleet/important.LICENSE linguist-generated=true
+assets/fleet/important.svg linguist-generated=true
 assets/fleet/socket-combomark-dark.svg linguist-generated=true
 assets/fleet/socket-combomark-light.svg linguist-generated=true
 docs/design/fleet/README.md linguist-generated=true

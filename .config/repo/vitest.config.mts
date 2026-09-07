@@ -19,7 +19,7 @@ import { isCI } from '@socketsecurity/lib-stable/env/ci'
 import { defineConfig } from 'vitest/config'
 
 import { GENERATED_GLOBS } from '../../scripts/fleet/constants/generated-globs.mts'
-import { resolveCoverageConfig } from '../fleet/vitest.coverage.fleet.config.mts'
+import { resolveCoverageConfig } from '../../.config/fleet/vitest.coverage.fleet.config.mts'
 import {
   readConformanceExcludeGlobs,
   readNonIsolatedGlobs,

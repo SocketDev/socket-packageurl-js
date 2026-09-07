@@ -35,25 +35,26 @@ if [ -z "$NODE_COMPILE_CACHE" ]; then
   export NODE_COMPILE_CACHE
 fi
 
-# Error-visibility helper. When lint/test fails, harness output often
-# shows only a final "Failed with non-blocking status code" line — the
-# actual error is buried thousands of lines up the log and gets clipped
-# by the agent's stdout limits. Tee each step's output to a tempfile,
-# tail it on failure with a clear marker so the operator (or agent)
-# can see what broke without scrolling.
+CHECK_OUTPUT_HELPER=.git-hooks/_shared/check-output.mts
+
+show_step_output() {
+  if ! node "$CHECK_OUTPUT_HELPER" "$status" "$step_log"; then
+    cat "$step_log" >&2
+  fi
+}
+
 run_step() {
   step_name=$1
   shift
   step_log=$(mktemp -t "pre-commit-${step_name}.XXXXXX") || step_log=/tmp/pre-commit-step.log
-  if "$@" 2>&1 | tee "$step_log"; then
+  if "$@" >"$step_log" 2>&1; then
     status=0
   else
     status=$?
   fi
+  show_step_output
   if [ "$status" -ne 0 ]; then
     printf '\n========== pre-commit: %s FAILED (exit %s) ==========\n' "$step_name" "$status"
-    printf 'Last 60 lines of output:\n\n'
-    tail -60 "$step_log"
     printf '\n========== full log: %s ==========\n' "$step_log"
   else
     rm -f "$step_log"
@@ -175,9 +176,12 @@ run_step_bounded() {
     ticks=$((ticks + 1))
     elapsed=$((ticks / 5))
   done
-  wait "$job"
-  status=$?
-  cat "$step_log" 2>/dev/null
+  if wait "$job"; then
+    status=0
+  else
+    status=$?
+  fi
+  show_step_output
   if [ "$status" -ne 0 ]; then
     printf '\n========== pre-commit: %s FAILED (exit %s) ==========\n' "$step_name" "$status"
     printf '\n========== full log: %s ==========\n' "$step_log"

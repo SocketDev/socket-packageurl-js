@@ -33,42 +33,47 @@
       ],
       "description": "Fast, disk space efficient package manager",
       "repository": "github:pnpm/pnpm",
-      "version": "11.21.0",
+      "version": "12.3.4",
       "platforms": {
         "darwin-arm64": {
           "asset": "pnpm-darwin-arm64.tar.gz",
-          "integrity": "sha512-l2jFPzHUG5Q23s94DgKV76erfg0vVhwG4CdKZCHkRSfct8LTWu1oLtH8WJqb84Eg5ZIy5BTMfyY+APoeLuTm0Q=="
+          "integrity": "sha512-IhEF3UhTH1ZcYujJ1zwRGglkmnZQAJuPHFKzv7qS6YvZ3lj3ZO9SFwfrS+s/gR3Gn+UxrOD0xw4Kjcgpg1eVaw=="
         },
         "darwin-x64": {
-          "asset": "pnpm-11.21.0.tgz",
-          "integrity": "sha512-UhcFvOaJkk6scvWjWHEi82JonvZXHlW6gAdv1jfBETLs/62ib61Op5xIW/3b/T1aKlsFgFp36JPeceyKbMo7sQ=="
+          "asset": "pnpm-12.3.4.tgz",
+          "integrity": "sha512-lhqkH7B32joEpEHZ+OFevAyW2o73ELLrZ7+e58sGEOq9SPH9hfUc/+c4RnhfoPh8VqOocqHYk/hEZ0G1zORUVw=="
         },
         "linux-arm64": {
           "asset": "pnpm-linux-arm64.tar.gz",
-          "integrity": "sha512-thFUlWeQIphtc8AkfTm0FPhMSyMVYOdrA2XqpJit+OEeMStRhqvF6i4yPs5k06UiVLvIFkOQszCVoyjZmezzsg=="
+          "integrity": "sha512-vlQJTIxU5zCNEMzD55FI+zC1Z7NmR64TAhIBOk/Jdh/+FkoxFFjT4WLJW9ZyPZrAf0siinllG5ezb//qim+NVg=="
         },
         "linux-arm64-musl": {
           "asset": "pnpm-linux-arm64-musl.tar.gz",
-          "integrity": "sha512-bbFyhWWvphDpll91+ddNT/fk588DAJwpLqFkUTfZ4FxYFFUkgZ2YCifOFPTEZWIV+Zsa8EPojyA2hQoXnbMxXg=="
+          "integrity": "sha512-//88xzivEW6PEySjBhAM7UG2h2d7jgBR1mSD5mWLriKKofaVay+TvCUGNocEZPy03xunVyVFCUnwAFOg5K5QiA=="
         },
         "linux-x64": {
           "asset": "pnpm-linux-x64.tar.gz",
-          "integrity": "sha512-B8OLLdn1CEgvoo2oH1RYIJ1tiiSsUNQcbeTlGytCbPsrwvLo+lVM7as3/yphexA8D/WSiiWLZXAa89t0G1lNgg=="
+          "integrity": "sha512-rNRTVZ3MCx44u0rHFAf5lTHmUoX9f2xC5Ts9yq+IBmizuJ8Zi9g4vB2LBl0D1E2lHxcBuBnaTCY+Lsce8zsHQA=="
         },
         "linux-x64-musl": {
           "asset": "pnpm-linux-x64-musl.tar.gz",
-          "integrity": "sha512-cBovlI9TaTK2RjCae2HO9u41Z1novo55EPrBJbxKGnL1Gy8nHGdwUI+BlKMSvN6eLDSn55UX7vGJCBXfJHEZLw=="
+          "integrity": "sha512-0JKf24b2k+VZ9/u9CvCtM4IGgALHBGF2BGPOcBwSA+d0v+bmU+rV8MfvRwod6qwgz8L5mYGZKhhEfWRgd0FtaA=="
         },
         "win32-arm64": {
           "asset": "pnpm-win32-arm64.zip",
-          "integrity": "sha512-a7x1RBGuoqNXh3K9iA4HLbuN9QNJRnxazJ5Njf748u26Lm9j6D26Y2esi5ewhAOkkb8GTM8lcVDRwU2Ui/+H8Q=="
+          "integrity": "sha512-9VZap+aegJdnl0HX28ZJYoyczMvPL78vZGdE1pUw3OifBEU7A71UEJPweuc36JYjz5z0Q2O1+/thMMM9lz1SYg=="
         },
         "win32-x64": {
           "asset": "pnpm-win32-x64.zip",
-          "integrity": "sha512-FFyPTtPoRjRCSEpSVhcbe1AW4Bq/e6Sm3TXewVsvr/sNjRBszNooNEwPehQq7rD3ecUb0oqjul0iBtwmb16njw=="
+          "integrity": "sha512-AoRAZaWUM3HjMrhwjwcmQgh4mGDFd9AH1BA7u6T405mbizAFC6JencKyww0dEER4HUIXTIdSq+n6gG20ux1r1A=="
         }
       },
-      "origin": "gh-asset"
+      "origin": "gh-asset",
+      "soakBypass": {
+        "published": "2026-09-04",
+        "removable": "2026-09-11",
+        "version": "12.3.4"
+      }
     }
   }
 }
