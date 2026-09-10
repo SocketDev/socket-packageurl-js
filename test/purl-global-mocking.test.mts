@@ -21,13 +21,13 @@ SOFTWARE.
 */
 
 /**
- * @file Process-isolated global tampering regression. The isolated suite owns
- *   test/isolated; the main suite excludes this directory.
+ * @file Global tampering regression. The main suite isolates each test file;
+ *   this synchronous case restores URL before returning.
  */
 
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../../src/package-url.mjs'
+import { PackageURL } from '../src/package-url.mjs'
 
 describe('Global object mocking tests', () => {
   describe('Primordials protect against global tampering', () => {
