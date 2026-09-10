@@ -2,13 +2,13 @@ import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import { expect, it } from 'vitest'
+import { expect } from 'vitest'
 
-const root = fileURLToPath(new URL('../', import.meta.url))
+const root = fileURLToPath(new URL('../../', import.meta.url))
 
-it.each(['build', 'clean'])('%s help parses flags and prints usage', runner => {
+export function assertCliHelp(runner: 'build' | 'clean'): void {
   const script = fileURLToPath(
-    new URL(`../scripts/repo/${runner}.mts`, import.meta.url),
+    new URL(`../../scripts/repo/${runner}.mts`, import.meta.url),
   )
   const result = spawnSync(process.execPath, [script, '--help'], {
     cwd: root,
@@ -20,4 +20,4 @@ it.each(['build', 'clean'])('%s help parses flags and prints usage', runner => {
   expect(result.stderr).toBe('')
   expect(result.stdout).toContain(`Usage: pnpm ${runner} [options]`)
   expect(result.stdout).toContain('--quiet')
-})
+}
