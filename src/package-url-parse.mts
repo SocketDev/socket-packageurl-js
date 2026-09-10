@@ -54,40 +54,74 @@ const OTHER_SCHEME_PATTERN = /^[a-zA-Z][a-zA-Z0-9+.-]{0,255}:\/\//
 // Limited to 256 chars for type to prevent ReDoS
 const PURL_LIKE_PATTERN = /^[a-zA-Z0-9+.-]{1,256}\//
 
-/**
- * Parse a purl string into its components without constructing a `PackageURL`.
- */
-export function parseString(purlStr: unknown): ParsedPurlComponents {
-  // https://github.com/package-url/purl-spec/blob/main/PURL-SPECIFICATION.rst#how-to-parse-a-purl-string-in-its-components
-  if (typeof purlStr !== 'string') {
-    throw new ErrorCtor('A purl string argument is required.')
+export function findPurlVersionIndex(
+  pathname: string,
+  rawType: string,
+  firstSlashIndex: number,
+): number {
+  // Both branches of this ternary are tested, but V8 reports phantom branch combinations
+  /* v8 ignore start -- npm vs non-npm path logic both tested but V8 sees extra branches. */
+  // Deviate from the specification to handle a special npm purl type case for
+  // pnpm ids such as 'pkg:npm/next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)'
+  let atSignIndex =
+    rawType === 'npm'
+      ? StringPrototypeIndexOf(pathname, '@', firstSlashIndex + 2)
+      : StringPrototypeLastIndexOf(pathname, '@')
+  /* v8 ignore stop */
+  // An '@' before the last '/' is namespace/name content (e.g. a raw
+  // npm-style '@scope' namespace) — only an '@' after the last '/' separates
+  // the version. An '@' DIRECTLY after that last '/' still separates: the
+  // name left of it is empty and required-name validation rejects the purl,
+  // matching the spec rule that a literal '@' in a name must be
+  // percent-encoded (purl-spec fixtures: `pkg:vcpkg/@1.0.8` and
+  // `pkg:julia/@1.9.0` must fail to parse).
+  if (
+    atSignIndex !== -1 &&
+    atSignIndex < StringPrototypeLastIndexOf(pathname, '/')
+  ) {
+    atSignIndex = -1
   }
-  if (isBlank(purlStr)) {
-    return [undefined, undefined, undefined, undefined, undefined, undefined]
-  }
+  return atSignIndex
+}
 
-  // Input length validation to prevent DoS
-  // Reasonable limit for a package URL
-  const MAX_PURL_LENGTH = 4096
-  if (purlStr.length > MAX_PURL_LENGTH) {
-    throw new ErrorCtor(
-      `Package URL exceeds maximum length of ${MAX_PURL_LENGTH} characters.`,
-    )
-  }
-
-  // If the string doesn't start with "pkg:" but looks like a purl format,
-  // prepend "pkg:" and try parsing
-  if (!StringPrototypeStartsWith(purlStr, 'pkg:')) {
-    // Only auto-prepend "pkg:" if the string looks like a purl (contains a
-    // type/name pattern) and doesn't look like a URL with a different scheme
-    const hasOtherScheme = RegExpPrototypeTest(OTHER_SCHEME_PATTERN, purlStr)
-    const looksLikePurl = RegExpPrototypeTest(PURL_LIKE_PATTERN, purlStr)
-
-    if (!hasOtherScheme && looksLikePurl) {
-      return parseString(`pkg:${purlStr}`)
+export function parsePurlQualifiers(url: URL): URLSearchParams | undefined {
+  let rawQualifiers: URLSearchParams | undefined
+  if (url.searchParams.size !== 0) {
+    const search = StringPrototypeSlice(url.search, 1)
+    const searchParams = new URLSearchParamsCtor()
+    const entries = StringPrototypeSplit(search, '&')
+    for (let i = 0, { length } = entries; i < length; i += 1) {
+      const entry = entries[i]!
+      // Slice on the FIRST '=' so values containing '=' (e.g.
+      // download_url=https://example.com/x?a=1, base64 padding `==`)
+      // round-trip intact. Splitting on '=' and indexing [1] silently
+      // truncates everything after the second '='.
+      const eqIndex = StringPrototypeIndexOf(entry, '=')
+      const key =
+        eqIndex === -1 ? entry : StringPrototypeSlice(entry, 0, eqIndex)
+      // Validate qualifier key is not empty (reject malformed PURLs like ?&key=val or ?key=val&)
+      if (key.length === 0) {
+        throw new PurlError('qualifier key must not be empty')
+      }
+      const value = decodePurlComponent(
+        'qualifiers',
+        eqIndex === -1 ? '' : StringPrototypeSlice(entry, eqIndex + 1),
+      )
+      // Use `URLSearchParams#append` to preserve plus signs
+      // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
+      /* v8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */ searchParams.append(
+        key,
+        value,
+      )
     }
+    // Split the remainder once from right on '?'
+    rawQualifiers = searchParams
   }
 
+  return rawQualifiers
+}
+
+export function parsePurlUrl(purlStr: string): URL {
   // Split the remainder once from left on ':'
   const colonIndex = StringPrototypeIndexOf(purlStr, ':')
   // Use WHATWG URL to split up the purl string:
@@ -145,6 +179,45 @@ export function parseString(purlStr: unknown): ParsedPurlComponents {
     throw new PurlError('cannot contain a "user:pass@host:port"')
   }
 
+  return url
+}
+
+/**
+ * Parse a purl string into its components without constructing a `PackageURL`.
+ */
+export function parseString(purlStr: unknown): ParsedPurlComponents {
+  // https://github.com/package-url/purl-spec/blob/main/PURL-SPECIFICATION.rst#how-to-parse-a-purl-string-in-its-components
+  if (typeof purlStr !== 'string') {
+    throw new ErrorCtor('A purl string argument is required.')
+  }
+  if (isBlank(purlStr)) {
+    return [undefined, undefined, undefined, undefined, undefined, undefined]
+  }
+
+  // Input length validation to prevent DoS
+  // Reasonable limit for a package URL
+  const MAX_PURL_LENGTH = 4096
+  if (purlStr.length > MAX_PURL_LENGTH) {
+    throw new ErrorCtor(
+      `Package URL exceeds maximum length of ${MAX_PURL_LENGTH} characters.`,
+    )
+  }
+
+  // If the string doesn't start with "pkg:" but looks like a purl format,
+  // prepend "pkg:" and try parsing
+  if (!StringPrototypeStartsWith(purlStr, 'pkg:')) {
+    // Only auto-prepend "pkg:" if the string looks like a purl (contains a
+    // type/name pattern) and doesn't look like a URL with a different scheme
+    const hasOtherScheme = RegExpPrototypeTest(OTHER_SCHEME_PATTERN, purlStr)
+    const looksLikePurl = RegExpPrototypeTest(PURL_LIKE_PATTERN, purlStr)
+
+    if (!hasOtherScheme && looksLikePurl) {
+      return parseString(`pkg:${purlStr}`)
+    }
+  }
+
+  const url = parsePurlUrl(purlStr)
+
   const { pathname } = url
   const firstSlashIndex = StringPrototypeIndexOf(pathname, '/')
   const rawType = decodePurlComponent(
@@ -158,28 +231,7 @@ export function parseString(purlStr: unknown): ParsedPurlComponents {
   }
 
   let rawVersion: string | undefined
-  // Both branches of this ternary are tested, but V8 reports phantom branch combinations
-  /* v8 ignore start -- npm vs non-npm path logic both tested but V8 sees extra branches. */
-  // Deviate from the specification to handle a special npm purl type case for
-  // pnpm ids such as 'pkg:npm/next@14.2.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)'
-  let atSignIndex =
-    rawType === 'npm'
-      ? StringPrototypeIndexOf(pathname, '@', firstSlashIndex + 2)
-      : StringPrototypeLastIndexOf(pathname, '@')
-  /* v8 ignore stop */
-  // An '@' before the last '/' is namespace/name content (e.g. a raw
-  // npm-style '@scope' namespace) — only an '@' after the last '/' separates
-  // the version. An '@' DIRECTLY after that last '/' still separates: the
-  // name left of it is empty and required-name validation rejects the purl,
-  // matching the spec rule that a literal '@' in a name must be
-  // percent-encoded (purl-spec fixtures: `pkg:vcpkg/@1.0.8` and
-  // `pkg:julia/@1.9.0` must fail to parse).
-  if (
-    atSignIndex !== -1 &&
-    atSignIndex < StringPrototypeLastIndexOf(pathname, '/')
-  ) {
-    atSignIndex = -1
-  }
+  const atSignIndex = findPurlVersionIndex(pathname, rawType, firstSlashIndex)
   const beforeVersion = StringPrototypeSlice(
     pathname,
     rawType.length + 1,
@@ -212,38 +264,7 @@ export function parseString(purlStr: unknown): ParsedPurlComponents {
     )
   }
 
-  let rawQualifiers: URLSearchParams | undefined
-  if (url.searchParams.size !== 0) {
-    const search = StringPrototypeSlice(url.search, 1)
-    const searchParams = new URLSearchParamsCtor()
-    const entries = StringPrototypeSplit(search, '&')
-    for (let i = 0, { length } = entries; i < length; i += 1) {
-      const entry = entries[i]!
-      // Slice on the FIRST '=' so values containing '=' (e.g.
-      // download_url=https://example.com/x?a=1, base64 padding `==`)
-      // round-trip intact. Splitting on '=' and indexing [1] silently
-      // truncates everything after the second '='.
-      const eqIndex = StringPrototypeIndexOf(entry, '=')
-      const key =
-        eqIndex === -1 ? entry : StringPrototypeSlice(entry, 0, eqIndex)
-      // Validate qualifier key is not empty (reject malformed PURLs like ?&key=val or ?key=val&)
-      if (key.length === 0) {
-        throw new PurlError('qualifier key must not be empty')
-      }
-      const value = decodePurlComponent(
-        'qualifiers',
-        eqIndex === -1 ? '' : StringPrototypeSlice(entry, eqIndex + 1),
-      )
-      // Use `URLSearchParams#append` to preserve plus signs
-      // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
-      /* v8 ignore next -- URLSearchParams.append has internal V8 branches we can't control. */ searchParams.append(
-        key,
-        value,
-      )
-    }
-    // Split the remainder once from right on '?'
-    rawQualifiers = searchParams
-  }
+  const rawQualifiers = parsePurlQualifiers(url)
 
   let rawSubpath: string | undefined
   const { hash } = url
