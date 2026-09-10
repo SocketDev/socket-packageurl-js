@@ -326,8 +326,7 @@ describe('UrlConverter.fromUrl', () => {
         'v1.8.0',
       ],
       [
-        // fixture-name: allow — golang.org/x/text is the real module path under test.
-        '/golang.org/x/text/@v/v0.3.7.mod',
+        '/golang.org/x/text/@v/v0.3.7.mod', // fixture-name: allow — golang.org/x/text is the real module path under test.
         'golang',
         'golang.org/x',
         'text',
@@ -1243,10 +1242,8 @@ describe('UrlConverter per-shape static helpers', () => {
     ],
     [
       'fromGolangDownloadUrl',
-      // fixture-name: allow — golang.org/x/text is the real module path under test.
-      '/golang.org/x/text/@v/v0.3.7.mod',
-      // fixture-name: allow — golang.org/x/text is the real module path under test.
-      'pkg:golang/golang.org/x/text@v0.3.7',
+      '/golang.org/x/text/@v/v0.3.7.mod', // fixture-name: allow — golang.org/x/text is the real module path under test.
+      'pkg:golang/golang.org/x/text@v0.3.7', // fixture-name: allow — golang.org/x/text is the real module path under test.
     ],
     // The Go proxy escapes uppercase letters as `!lowercase`; the parser decodes
     // the escape back to the module's real case. golang preserves case (no

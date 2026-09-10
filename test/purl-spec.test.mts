@@ -54,6 +54,43 @@ interface SpecInputObj {
   subpath?: string | undefined
 }
 
+function registerPurlFailureCases({
+  test_type,
+  inputStr,
+  inputObj,
+  expectedObj,
+}: {
+  test_type: string | undefined
+  inputStr: string | undefined
+  inputObj: SpecInputObj | undefined
+  expectedObj: SpecInputObj | undefined
+}): void {
+  if (test_type === 'parse' && inputStr) {
+    // Tests expected parse failures from test suite
+    it(`should not be possible to parse invalid ${expectedObj?.type ?? 'type'} PackageURLs`, () => {
+      expect(() => PackageURL.fromString(inputStr)).toThrow(
+        /missing the required|Invalid purl/,
+      )
+    })
+  }
+  if (test_type === 'build' && inputObj) {
+    // Tests expected constructor failures from test suite
+    it(`should not be possible to create invalid ${inputObj.type ?? 'type'} PackageURLs`, () => {
+      expect(
+        () =>
+          new PackageURL(
+            inputObj.type,
+            inputObj.namespace,
+            inputObj.name,
+            inputObj.version,
+            inputObj.qualifiers,
+            inputObj.subpath,
+          ),
+      ).toThrow(/is a required|Invalid purl/)
+    })
+  }
+}
+
 export function toUrlSearchParams(search: string) {
   const searchParams = new URLSearchParams()
   const entries = search.split('&')
@@ -114,30 +151,7 @@ describe('PackageURL purl-spec test suite', async () => {
 
     describe(obj.description ?? '', () => {
       if (expected_failure) {
-        if (test_type === 'parse' && inputStr) {
-          // Tests expected parse failures from test suite
-          it(`should not be possible to parse invalid ${expectedObj?.type ?? 'type'} PackageURLs`, () => {
-            expect(() => PackageURL.fromString(inputStr)).toThrow(
-              /missing the required|Invalid purl/,
-            )
-          })
-        }
-        if (test_type === 'build' && inputObj) {
-          // Tests expected constructor failures from test suite
-          it(`should not be possible to create invalid ${inputObj.type ?? 'type'} PackageURLs`, () => {
-            expect(
-              () =>
-                new PackageURL(
-                  inputObj.type,
-                  inputObj.namespace,
-                  inputObj.name,
-                  inputObj.version,
-                  inputObj.qualifiers,
-                  inputObj.subpath,
-                ),
-            ).toThrow(/is a required|Invalid purl/)
-          })
-        }
+        registerPurlFailureCases({ test_type, inputStr, inputObj, expectedObj })
       } else if (test_type === 'parse' && inputStr && expectedObj) {
         // Tests successful parsing from test suite
         it(`should be able to parse valid ${expectedObj.type ?? 'type'} PackageURLs`, () => {

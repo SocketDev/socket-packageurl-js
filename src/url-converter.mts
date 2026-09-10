@@ -1246,6 +1246,456 @@ const FROM_DOWNLOAD_URL_PARSERS: ReadonlyArray<
   fromCargoDownloadUrl,
 ])
 
+export interface UrlComponents<Version = string | undefined> {
+  name: string | undefined
+  namespace: string | undefined
+  version: Version
+  purl: PackageURL
+}
+
+export interface UrlFactory<Kind extends string, Version = string | undefined> {
+  type: Kind
+  getUrl(components: UrlComponents<Version>): string | undefined
+}
+
+const DOWNLOAD_URL_FACTORIES: ReadonlyMap<
+  string | undefined,
+  UrlFactory<DownloadUrl['type'], string>
+> = ObjectFreeze(
+  new MapCtor<string | undefined, UrlFactory<DownloadUrl['type'], string>>([
+    [
+      'npm',
+      {
+        type: 'tarball',
+        getUrl({ name, namespace, version }) {
+          const npmName = namespace ? `${namespace}/${name}` : name
+          return `https://registry.npmjs.org/${npmName}/-/${name}-${version}.tgz`
+        },
+      },
+    ],
+    [
+      'pypi',
+      {
+        type: 'wheel',
+        getUrl({ name }) {
+          return `https://pypi.org/simple/${name}/`
+        },
+      },
+    ],
+    [
+      'maven',
+      {
+        type: 'jar',
+        getUrl({ name, namespace, version }) {
+          if (!namespace) {
+            return undefined
+          }
+          const groupPath = StringPrototypeReplace(namespace, /\./g, '/')
+          return `https://repo1.maven.org/maven2/${groupPath}/${name}/${version}/${name}-${version}.jar`
+        },
+      },
+    ],
+    [
+      'gem',
+      {
+        type: 'gem',
+        getUrl({ name, version }) {
+          return `https://rubygems.org/downloads/${name}-${version}.gem`
+        },
+      },
+    ],
+    [
+      'cargo',
+      {
+        type: 'tarball',
+        getUrl({ name, version }) {
+          return `https://crates.io/api/v1/crates/${name}/${version}/download`
+        },
+      },
+    ],
+    [
+      'nuget',
+      {
+        type: 'zip',
+        getUrl({ name, version }) {
+          return `https://nuget.org/packages/${name}/${version}/download`
+        },
+      },
+    ],
+    [
+      'composer',
+      {
+        type: 'other',
+        getUrl({ name, namespace }) {
+          if (!namespace) {
+            return undefined
+          }
+          return `https://repo.packagist.org/p2/${namespace}/${name}.json`
+        },
+      },
+    ],
+    [
+      'hex',
+      {
+        type: 'tarball',
+        getUrl({ name, version }) {
+          return `https://repo.hex.pm/tarballs/${name}-${version}.tar`
+        },
+      },
+    ],
+    [
+      'pub',
+      {
+        type: 'tarball',
+        getUrl({ name, version }) {
+          return `https://pub.dev/packages/${name}/versions/${version}.tar.gz`
+        },
+      },
+    ],
+    [
+      'conda',
+      {
+        type: 'tarball',
+        getUrl({ name, version, purl }) {
+          const channel = purl['qualifiers']?.['channel'] ?? 'conda-forge'
+          return `https://anaconda.org/${channel}/${name}/${version}/download`
+        },
+      },
+    ],
+    [
+      'golang',
+      {
+        type: 'zip',
+        getUrl({ name, namespace, version }) {
+          if (!namespace || !name) {
+            return undefined
+          }
+          // The Go proxy escapes uppercase as `!lowercase` (e.g. `DataDog` ->
+          // `!data!dog`); the PURL carries the real case, so encode each
+          // component before building the proxy URL or it 404s.
+          const escapedNamespace = encodeGolangProxyPath(namespace)
+          const escapedName = encodeGolangProxyPath(name)
+          const escapedVersion = encodeGolangProxyPath(version)
+          return `https://proxy.golang.org/${escapedNamespace}/${escapedName}/@v/${escapedVersion}.zip`
+        },
+      },
+    ],
+  ]),
+)
+
+const REPOSITORY_URL_FACTORIES: ReadonlyMap<
+  string | undefined,
+  UrlFactory<RepositoryUrl['type']>
+> = ObjectFreeze(
+  new MapCtor<string | undefined, UrlFactory<RepositoryUrl['type']>>([
+    [
+      'bioconductor',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://bioconductor.org/packages/${name}`
+        },
+      },
+    ],
+    [
+      'bitbucket',
+      {
+        type: 'git',
+        getUrl({ name, namespace, version }) {
+          if (!namespace) {
+            return undefined
+          }
+          return version
+            ? `https://bitbucket.org/${namespace}/${name}/src/${version}`
+            : `https://bitbucket.org/${namespace}/${name}`
+        },
+      },
+    ],
+    [
+      'cargo',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://crates.io/crates/${name}`
+        },
+      },
+    ],
+    [
+      'chrome',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://chromewebstore.google.com/detail/${name}`
+        },
+      },
+    ],
+    [
+      'clojars',
+      {
+        type: 'web',
+        getUrl({ name, namespace }) {
+          return `https://clojars.org/${namespace ? `${namespace}/` : ''}${name}`
+        },
+      },
+    ],
+    [
+      'cocoapods',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://cocoapods.org/pods/${name}`
+        },
+      },
+    ],
+    [
+      'composer',
+      {
+        type: 'web',
+        getUrl({ name, namespace }) {
+          return `https://packagist.org/packages/${namespace ? `${namespace}/` : ''}${name}`
+        },
+      },
+    ],
+    [
+      'conan',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://conan.io/center/recipes/${name}`
+        },
+      },
+    ],
+    [
+      'conda',
+      {
+        type: 'web',
+        getUrl({ name, purl }) {
+          const channel = purl['qualifiers']?.['channel'] ?? 'conda-forge'
+          return `https://anaconda.org/${channel}/${name}`
+        },
+      },
+    ],
+    [
+      'cpan',
+      {
+        type: 'web',
+        getUrl({ name, namespace, version }) {
+          return namespace && version
+            ? `https://metacpan.org/release/${namespace}/${name}-${version}`
+            : `https://metacpan.org/dist/${name}`
+        },
+      },
+    ],
+    [
+      'deno',
+      {
+        type: 'web',
+        getUrl({ name, version }) {
+          return version
+            ? `https://deno.land/x/${name}@${version}`
+            : `https://deno.land/x/${name}`
+        },
+      },
+    ],
+    [
+      'docker',
+      {
+        type: 'web',
+        getUrl({ name, namespace, version }) {
+          const versionSuffix = version ? `?tab=tags&name=${version}` : ''
+          if (!namespace || namespace === 'library') {
+            return `https://hub.docker.com/_/${name}${versionSuffix}`
+          }
+          return `https://hub.docker.com/r/${namespace}/${name}${versionSuffix}`
+        },
+      },
+    ],
+    [
+      'elm',
+      {
+        type: 'web',
+        getUrl({ name, namespace, version }) {
+          if (!namespace) {
+            return undefined
+          }
+          return version
+            ? `https://package.elm-lang.org/packages/${namespace}/${name}/${version}`
+            : `https://package.elm-lang.org/packages/${namespace}/${name}/latest`
+        },
+      },
+    ],
+    [
+      'gem',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://rubygems.org/gems/${name}`
+        },
+      },
+    ],
+    [
+      'github',
+      {
+        type: 'git',
+        getUrl({ name, namespace, version }) {
+          if (!namespace) {
+            return undefined
+          }
+          return version
+            ? `https://github.com/${namespace}/${name}/tree/${version}`
+            : `https://github.com/${namespace}/${name}`
+        },
+      },
+    ],
+    [
+      'gitlab',
+      {
+        type: 'git',
+        getUrl({ name, namespace }) {
+          if (!namespace) {
+            return undefined
+          }
+          return `https://gitlab.com/${namespace}/${name}`
+        },
+      },
+    ],
+    [
+      'golang',
+      {
+        type: 'web',
+        getUrl({ name, namespace, version }) {
+          if (!namespace) {
+            return undefined
+          }
+          return version
+            ? `https://pkg.go.dev/${namespace}/${name}@${version}`
+            : `https://pkg.go.dev/${namespace}/${name}`
+        },
+      },
+    ],
+    [
+      'hackage',
+      {
+        type: 'web',
+        getUrl({ name, version }) {
+          return version
+            ? `https://hackage.haskell.org/package/${name}-${version}`
+            : `https://hackage.haskell.org/package/${name}`
+        },
+      },
+    ],
+    [
+      'hex',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://hex.pm/packages/${name}`
+        },
+      },
+    ],
+    [
+      'homebrew',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://formulae.brew.sh/formula/${name}`
+        },
+      },
+    ],
+    [
+      'huggingface',
+      {
+        type: 'web',
+        getUrl({ name, namespace }) {
+          return `https://huggingface.co/${namespace ? `${namespace}/` : ''}${name}`
+        },
+      },
+    ],
+    [
+      'luarocks',
+      {
+        type: 'web',
+        getUrl({ name, namespace }) {
+          return `https://luarocks.org/modules/${namespace ? `${namespace}/` : ''}${name}`
+        },
+      },
+    ],
+    [
+      'maven',
+      {
+        type: 'web',
+        getUrl({ name, namespace, version }) {
+          if (!namespace) {
+            return undefined
+          }
+          return version
+            ? `https://search.maven.org/artifact/${namespace}/${name}/${version}/jar`
+            : `https://search.maven.org/artifact/${namespace}/${name}`
+        },
+      },
+    ],
+    [
+      'npm',
+      {
+        type: 'web',
+        getUrl({ name, namespace, version }) {
+          return version
+            ? `https://www.npmjs.com/package/${namespace ? `${namespace}/` : ''}${name}/v/${version}`
+            : `https://www.npmjs.com/package/${namespace ? `${namespace}/` : ''}${name}`
+        },
+      },
+    ],
+    [
+      'nuget',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://nuget.org/packages/${name}/`
+        },
+      },
+    ],
+    [
+      'pub',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://pub.dev/packages/${name}`
+        },
+      },
+    ],
+    [
+      'pypi',
+      {
+        type: 'web',
+        getUrl({ name }) {
+          return `https://pypi.org/project/${name}/`
+        },
+      },
+    ],
+    [
+      'swift',
+      {
+        type: 'git',
+        getUrl({ name, namespace }) {
+          if (!namespace) {
+            return undefined
+          }
+          return `https://github.com/${namespace}/${name}`
+        },
+      },
+    ],
+    [
+      'vscode',
+      {
+        type: 'web',
+        getUrl({ name, namespace }) {
+          return `https://marketplace.visualstudio.com/items?itemName=${namespace ? `${namespace}.` : ''}${name}`
+        },
+      },
+    ],
+  ]),
+)
+
 /**
  * Parse a package distribution URL or path into a `PackageURL`, trying each
  * ecosystem's distribution parser in turn. Such a path is a registry artifact
@@ -1620,98 +2070,12 @@ export class UrlConverter {
       return undefined
     }
 
-    switch (type) {
-      case 'npm': {
-        const npmName = namespace ? `${namespace}/${name}` : name
-        return {
-          type: 'tarball',
-          url: `https://registry.npmjs.org/${npmName}/-/${name}-${version}.tgz`,
-        }
-      }
-
-      case 'pypi':
-        return {
-          type: 'wheel',
-          url: `https://pypi.org/simple/${name}/`,
-        }
-
-      case 'maven': {
-        if (!namespace) {
-          return undefined
-        }
-        const groupPath = StringPrototypeReplace(namespace, /\./g, '/')
-        return {
-          type: 'jar',
-          url: `https://repo1.maven.org/maven2/${groupPath}/${name}/${version}/${name}-${version}.jar`,
-        }
-      }
-
-      case 'gem':
-        return {
-          type: 'gem',
-          url: `https://rubygems.org/downloads/${name}-${version}.gem`,
-        }
-
-      case 'cargo':
-        return {
-          type: 'tarball',
-          url: `https://crates.io/api/v1/crates/${name}/${version}/download`,
-        }
-
-      case 'nuget':
-        return {
-          type: 'zip',
-          url: `https://nuget.org/packages/${name}/${version}/download`,
-        }
-
-      case 'composer':
-        if (!namespace) {
-          return undefined
-        }
-        return {
-          type: 'other',
-          url: `https://repo.packagist.org/p2/${namespace}/${name}.json`,
-        }
-
-      case 'hex':
-        return {
-          type: 'tarball',
-          url: `https://repo.hex.pm/tarballs/${name}-${version}.tar`,
-        }
-
-      case 'pub':
-        return {
-          type: 'tarball',
-          url: `https://pub.dev/packages/${name}/versions/${version}.tar.gz`,
-        }
-
-      case 'conda': {
-        const channel = purl['qualifiers']?.['channel'] ?? 'conda-forge'
-        return {
-          type: 'tarball',
-          url: `https://anaconda.org/${channel}/${name}/${version}/download`,
-        }
-      }
-
-      case 'golang': {
-        if (!namespace || !name) {
-          return undefined
-        }
-        // The Go proxy escapes uppercase as `!lowercase` (e.g. `DataDog` ->
-        // `!data!dog`); the PURL carries the real case, so encode each
-        // component before building the proxy URL or it 404s.
-        const escapedNamespace = encodeGolangProxyPath(namespace)
-        const escapedName = encodeGolangProxyPath(name)
-        const escapedVersion = encodeGolangProxyPath(version)
-        return {
-          type: 'zip',
-          url: `https://proxy.golang.org/${escapedNamespace}/${escapedName}/@v/${escapedVersion}.zip`,
-        }
-      }
-
-      default:
-        return undefined
+    const factory = DOWNLOAD_URL_FACTORIES.get(type)
+    const url = factory?.getUrl({ name, namespace, version, purl })
+    if (url === undefined) {
+      return undefined
     }
+    return { type: factory!.type, url }
   }
 
   /**
@@ -1726,234 +2090,11 @@ export class UrlConverter {
 
     const { version } = purl
 
-    switch (type) {
-      case 'bioconductor':
-        return {
-          type: 'web',
-          url: `https://bioconductor.org/packages/${name}`,
-        }
-
-      case 'bitbucket':
-        if (!namespace) {
-          return undefined
-        }
-        return {
-          type: 'git',
-          url: version
-            ? `https://bitbucket.org/${namespace}/${name}/src/${version}`
-            : `https://bitbucket.org/${namespace}/${name}`,
-        }
-
-      case 'cargo':
-        return {
-          type: 'web',
-          url: `https://crates.io/crates/${name}`,
-        }
-
-      case 'chrome':
-        return {
-          type: 'web',
-          url: `https://chromewebstore.google.com/detail/${name}`,
-        }
-
-      case 'clojars':
-        return {
-          type: 'web',
-          url: `https://clojars.org/${namespace ? `${namespace}/` : ''}${name}`,
-        }
-
-      case 'cocoapods':
-        return {
-          type: 'web',
-          url: `https://cocoapods.org/pods/${name}`,
-        }
-
-      case 'composer':
-        return {
-          type: 'web',
-          url: `https://packagist.org/packages/${namespace ? `${namespace}/` : ''}${name}`,
-        }
-
-      case 'conan':
-        return {
-          type: 'web',
-          url: `https://conan.io/center/recipes/${name}`,
-        }
-
-      case 'conda': {
-        const channel = purl['qualifiers']?.['channel'] ?? 'conda-forge'
-        return {
-          type: 'web',
-          url: `https://anaconda.org/${channel}/${name}`,
-        }
-      }
-
-      case 'cpan':
-        return {
-          type: 'web',
-          url:
-            namespace && version
-              ? `https://metacpan.org/release/${namespace}/${name}-${version}`
-              : `https://metacpan.org/dist/${name}`,
-        }
-
-      case 'deno':
-        return {
-          type: 'web',
-          url: version
-            ? `https://deno.land/x/${name}@${version}`
-            : `https://deno.land/x/${name}`,
-        }
-
-      case 'docker': {
-        const versionSuffix = version ? `?tab=tags&name=${version}` : ''
-        if (!namespace || namespace === 'library') {
-          return {
-            type: 'web',
-            url: `https://hub.docker.com/_/${name}${versionSuffix}`,
-          }
-        }
-        return {
-          type: 'web',
-          url: `https://hub.docker.com/r/${namespace}/${name}${versionSuffix}`,
-        }
-      }
-
-      case 'elm':
-        if (!namespace) {
-          return undefined
-        }
-        return {
-          type: 'web',
-          url: version
-            ? `https://package.elm-lang.org/packages/${namespace}/${name}/${version}`
-            : `https://package.elm-lang.org/packages/${namespace}/${name}/latest`,
-        }
-
-      case 'gem':
-        return {
-          type: 'web',
-          url: `https://rubygems.org/gems/${name}`,
-        }
-
-      case 'github':
-        if (!namespace) {
-          return undefined
-        }
-        return {
-          type: 'git',
-          url: version
-            ? `https://github.com/${namespace}/${name}/tree/${version}`
-            : `https://github.com/${namespace}/${name}`,
-        }
-
-      case 'gitlab':
-        if (!namespace) {
-          return undefined
-        }
-        return {
-          type: 'git',
-          url: `https://gitlab.com/${namespace}/${name}`,
-        }
-
-      case 'golang':
-        if (!namespace) {
-          return undefined
-        }
-        return {
-          type: 'web',
-          url: version
-            ? `https://pkg.go.dev/${namespace}/${name}@${version}`
-            : `https://pkg.go.dev/${namespace}/${name}`,
-        }
-
-      case 'hackage':
-        return {
-          type: 'web',
-          url: version
-            ? `https://hackage.haskell.org/package/${name}-${version}`
-            : `https://hackage.haskell.org/package/${name}`,
-        }
-
-      case 'hex':
-        return {
-          type: 'web',
-          url: `https://hex.pm/packages/${name}`,
-        }
-
-      case 'homebrew':
-        return {
-          type: 'web',
-          url: `https://formulae.brew.sh/formula/${name}`,
-        }
-
-      case 'huggingface':
-        return {
-          type: 'web',
-          url: `https://huggingface.co/${namespace ? `${namespace}/` : ''}${name}`,
-        }
-
-      case 'luarocks':
-        return {
-          type: 'web',
-          url: `https://luarocks.org/modules/${namespace ? `${namespace}/` : ''}${name}`,
-        }
-
-      case 'maven': {
-        if (!namespace) {
-          return undefined
-        }
-        return {
-          type: 'web',
-          url: version
-            ? `https://search.maven.org/artifact/${namespace}/${name}/${version}/jar`
-            : `https://search.maven.org/artifact/${namespace}/${name}`,
-        }
-      }
-
-      case 'npm':
-        return {
-          type: 'web',
-          url: version
-            ? `https://www.npmjs.com/package/${namespace ? `${namespace}/` : ''}${name}/v/${version}`
-            : `https://www.npmjs.com/package/${namespace ? `${namespace}/` : ''}${name}`,
-        }
-
-      case 'nuget':
-        return {
-          type: 'web',
-          url: `https://nuget.org/packages/${name}/`,
-        }
-
-      case 'pub':
-        return {
-          type: 'web',
-          url: `https://pub.dev/packages/${name}`,
-        }
-
-      case 'pypi':
-        return {
-          type: 'web',
-          url: `https://pypi.org/project/${name}/`,
-        }
-
-      case 'swift':
-        if (!namespace) {
-          return undefined
-        }
-        return {
-          type: 'git',
-          url: `https://github.com/${namespace}/${name}`,
-        }
-
-      case 'vscode':
-        return {
-          type: 'web',
-          url: `https://marketplace.visualstudio.com/items?itemName=${namespace ? `${namespace}.` : ''}${name}`,
-        }
-
-      default:
-        return undefined
+    const factory = REPOSITORY_URL_FACTORIES.get(type)
+    const url = factory?.getUrl({ name, namespace, version, purl })
+    if (url === undefined) {
+      return undefined
     }
+    return { type: factory!.type, url }
   }
 }
