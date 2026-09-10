@@ -3,8 +3,6 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import allThePackageNamesData from 'all-the-package-names/names.json' with { type: 'json' }
-import allThePackageNamesV1Data from 'all-the-package-names-v1.3905.0/names.json' with { type: 'json' }
 import validateNpmPackageName from 'validate-npm-package-name'
 
 import { arrayUnique } from '@socketsecurity/lib-stable/arrays/unique'
@@ -32,7 +30,7 @@ const npmDataPath = path.join(dataPath, 'npm')
 const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')
 const npmLegacyNamesJsonPath = path.join(npmDataPath, 'legacy-names.json')
 
-async function main(): Promise<void> {
+export async function updateNpmData(): Promise<void> {
   const { default: pacote } = await import('pacote')
   const spinner = getDefaultSpinner()
   spinner.start()
@@ -70,6 +68,15 @@ async function main(): Promise<void> {
     spinner.stop()
     return
   }
+  const {
+    0: { default: allThePackageNamesData },
+    1: { default: allThePackageNamesV1Data },
+  } = await Promise.all([
+    import('all-the-package-names/names.json', { with: { type: 'json' } }),
+    import('all-the-package-names-v1.3905.0/names.json', {
+      with: { type: 'json' },
+    }),
+  ])
   const allThePackageNames: string[] = arrayUnique([
     // Load the 43.1MB names.json file of 'all-the-package-names@2.0.0'
     // which keeps the json file smaller while still covering the changes from:
@@ -119,7 +126,7 @@ async function main(): Promise<void> {
 }
 
 if (isMainModule(import.meta.url)) {
-  runMain(main, {
+  runMain(updateNpmData, {
     describe: 'updates npm package name data',
     help: 'Usage: pnpm update-data-npm [options]\n--help  Show command usage',
   })

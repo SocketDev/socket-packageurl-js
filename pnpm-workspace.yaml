@@ -272,6 +272,8 @@ overrides:
   'which': '7.0.0'
   'wrap-ansi@>=8': '9.0.2'
   'yaml@2': '2.9.0'
+  'minipass-flush>minipass': '3.3.6'
+  'minipass-pipeline>minipass': '3.3.6'
 
   # Repo-specific overrides below.
   # Dedup: @grpc/proto-loader 0.7 (dockerode direct) vs 0.8 (via @grpc/grpc-js,
