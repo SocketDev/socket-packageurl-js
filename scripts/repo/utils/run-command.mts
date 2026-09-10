@@ -1,31 +1,8 @@
-/**
- * @file Utility for running shell commands with proper error handling.
- */
-
 import { isWin32 } from '@socketsecurity/lib-stable/constants/platform'
-import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
-import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
-import type {
-  SpawnErrorWithOutputString,
-  SpawnOptions,
-  SpawnSyncOptions,
-  SpawnSyncReturns,
-} from '@socketsecurity/lib-stable/process/spawn/types'
-import {
-  spawn,
-  spawnSync,
-} from '@socketsecurity/lib-stable/process/spawn/child'
-
-const logger: Logger = getDefaultLogger()
+import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
+import type { SpawnOptions } from '@socketsecurity/lib-stable/process/spawn/types'
 
 export type CommandOptions = SpawnOptions
-
-export type CommandResult = {
-  exitCode: number
-  stderr: string
-  stdout: string
-}
-
 export type SequenceEntry = {
   args?: string[] | undefined
   command: string
@@ -33,28 +10,10 @@ export type SequenceEntry = {
 }
 
 /**
- * Log and run a command.
- */
-export async function logAndRun(
-  description: string,
-  command: string,
-  // REQUIRED, and deliberately positional: this mirrors node's
-  // `spawn(command, args, options)`, so folding args into the bag would fight
-  // the shape every reader already knows. Required is what keeps it from
-  // being an optional param before the bag. Pass `[]` for a bare command.
-  args: string[],
-  options: CommandOptions = {},
-): Promise<number> {
-  logger.log(description)
-  return runCommand(command, args, options)
-}
-
-/**
  * Run a command and return a promise that resolves with the exit code.
  */
 export async function runCommand(
   command: string,
-  // REQUIRED — see logAndRun's comment above.
   args: string[],
   options: CommandOptions = {},
 ): Promise<number> {
@@ -73,93 +32,6 @@ export async function runCommand(
     }
     throw e
   }
-}
-
-/**
- * Run a command and suppress output.
- */
-export async function runCommandQuiet(
-  command: string,
-  // REQUIRED — see logAndRun's comment above.
-  args: string[],
-  options: CommandOptions = {},
-): Promise<CommandResult> {
-  try {
-    const result = await spawn(command, args, {
-      ...options,
-      shell: isWin32(),
-      stdio: 'pipe',
-      stdioString: true,
-    })
-
-    return {
-      exitCode: result.code,
-      stderr: result.stderr,
-      stdout: result.stdout,
-    }
-  } catch (e) {
-    // spawn() from @socketsecurity/lib-stable throws on non-zero exit
-    // Return the exit code and output from the error
-    if (
-      typeof e === 'object' &&
-      e !== null &&
-      'code' in e &&
-      'stdout' in e &&
-      'stderr' in e
-    ) {
-      const spawnError = e as SpawnErrorWithOutputString
-      return {
-        exitCode: spawnError.code,
-        stderr: spawnError.stderr,
-        stdout: spawnError.stdout,
-      }
-    }
-    throw e
-  }
-}
-
-/**
- * Run a command synchronously.
- */
-export function runCommandSync(
-  command: string,
-  options: SpawnSyncOptions & { args?: string[] | undefined } = {},
-): number {
-  const { args = [], ...spawnOptions } = { __proto__: null, ...options }
-  const result: SpawnSyncReturns<string | Buffer> = spawnSync(command, args, {
-    stdio: 'inherit',
-    shell: isWin32(),
-    ...spawnOptions,
-  })
-
-  return result.status || 0
-}
-
-/**
- * Run multiple commands in parallel.
- */
-export async function runParallel(
-  commands: SequenceEntry[],
-): Promise<number[]> {
-  const promises: Array<Promise<number>> = commands.map(
-    ({ args = [], command, options = {} }) =>
-      runCommand(command, args, options),
-  )
-  const results: Array<PromiseSettledResult<number>> =
-    await Promise.allSettled(promises)
-  return results.map(r => (r.status === 'fulfilled' ? r.value : 1))
-}
-
-/**
- * Run a pnpm script.
- */
-export async function runPnpmScript(
-  scriptName: string,
-  // REQUIRED — see logAndRun's comment above.
-  extraArgs: string[],
-  options: CommandOptions = {},
-): Promise<number> {
-  return runCommand('pnpm', ['run', scriptName, ...extraArgs], options)
 }
 
 /**
