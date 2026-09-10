@@ -639,6 +639,7 @@ export function fromNugetSiteUrl(url: URL): PackageURL | undefined {
  * Parse GitHub URLs (`github.com`).
  *
  * Handles: - `/owner/repo` - `/owner/repo/tree/ref` - `/owner/repo/commit/sha`
+ *
  * - `/owner/repo/releases/tag/tagname`
  */
 export function fromGitHubUrl(url: URL): PackageURL | undefined {
