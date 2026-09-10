@@ -15,6 +15,31 @@ import {
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'
 
+export async function getMavenVersionFailure(
+  g: string,
+  a: string,
+  version: string,
+  latestVersion: string | undefined,
+): Promise<ExistsResult | undefined> {
+  const versionUrl = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}+AND+v:${GlobalEncodeUriComponent(version)}&rows=1&wt=json`
+  const versionData = await httpJson<{
+    response?: { numFound?: number | undefined } | undefined
+  }>(versionUrl)
+
+  const versionFound = versionData.response?.['numFound'] || 0
+  if (versionFound === 0) {
+    const result: ExistsResult = {
+      exists: false,
+      error: `Version ${version} not found`,
+    }
+    if (latestVersion !== undefined) {
+      result.latestVersion = latestVersion
+    }
+    return result
+  }
+  return undefined
+}
+
 export interface PurlObject {
   name: string
   namespace?: string | undefined
@@ -125,21 +150,14 @@ export async function mavenExists(
       const latestVersion = doc?.['latestVersion'] || doc?.['v']
 
       if (version) {
-        const versionUrl = `https://search.maven.org/solrsearch/select?q=g:${g}+AND+a:${a}+AND+v:${GlobalEncodeUriComponent(version)}&rows=1&wt=json`
-        const versionData = await httpJson<{
-          response?: { numFound?: number | undefined } | undefined
-        }>(versionUrl)
-
-        const versionFound = versionData.response?.['numFound'] || 0
-        if (versionFound === 0) {
-          const result: ExistsResult = {
-            exists: false,
-            error: `Version ${version} not found`,
-          }
-          if (latestVersion !== undefined) {
-            result.latestVersion = latestVersion
-          }
-          return result
+        const missingVersion = await getMavenVersionFailure(
+          g,
+          a,
+          version,
+          latestVersion,
+        )
+        if (missingVersion) {
+          return missingVersion
         }
       }
 
