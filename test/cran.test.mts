@@ -4,7 +4,7 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { createMockCache } from './utils/fixtures.mjs'
+import { createMockCache } from './utils/cache.mjs'
 import { cranExists } from '../src/purl-types/cran.mjs'
 
 describe('cranExists', () => {
