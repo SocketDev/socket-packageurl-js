@@ -14,27 +14,58 @@ import {
 
 describe('hosted remotes map to their own purl type', () => {
   test.each([
-    ['git+https://github.com/o/r.git', 'pkg:github/o/r@abc123'],
-    ['git+ssh://git@github.com/o/r.git', 'pkg:github/o/r@abc123'],
-    ['git://github.com/o/r.git', 'pkg:github/o/r@abc123'],
-    ['https://github.com/o/r.git', 'pkg:github/o/r@abc123'],
-    ['git@github.com:o/r.git', 'pkg:github/o/r@abc123'],
-    ['github:o/r', 'pkg:github/o/r@abc123'],
-    ['https://gitlab.com/o/r.git', 'pkg:gitlab/o/r@abc123'],
-    ['gitlab:o/r', 'pkg:gitlab/o/r@abc123'],
-    ['https://bitbucket.org/o/r.git', 'pkg:bitbucket/o/r@abc123'],
+    [
+      'git+https://github.com/example-owner/example-repo.git',
+      'pkg:github/example-owner/example-repo@abc123',
+    ],
+    [
+      'git+ssh://git@github.com/example-owner/example-repo.git',
+      'pkg:github/example-owner/example-repo@abc123',
+    ],
+    [
+      'git://github.com/example-owner/example-repo.git',
+      'pkg:github/example-owner/example-repo@abc123',
+    ],
+    [
+      'https://github.com/example-owner/example-repo.git',
+      'pkg:github/example-owner/example-repo@abc123',
+    ],
+    [
+      'git@github.com:example-owner/example-repo.git',
+      'pkg:github/example-owner/example-repo@abc123',
+    ],
+    [
+      'github:example-owner/example-repo',
+      'pkg:github/example-owner/example-repo@abc123',
+    ],
+    [
+      'https://gitlab.com/example-owner/example-repo.git',
+      'pkg:gitlab/example-owner/example-repo@abc123',
+    ],
+    [
+      'gitlab:example-owner/example-repo',
+      'pkg:gitlab/example-owner/example-repo@abc123',
+    ],
+    [
+      'https://bitbucket.org/example-owner/example-repo.git',
+      'pkg:bitbucket/example-owner/example-repo@abc123',
+    ],
   ])('%s', (url, expected) => {
     expect(gitDepToPurl({ url, commit: 'abc123' })!.toString()).toBe(expected)
   })
 
   test('no commit yields a versionless purl', () => {
-    expect(gitDepToPurl({ url: 'github:o/r' })!.toString()).toBe(
-      'pkg:github/o/r',
-    )
+    expect(
+      gitDepToPurl({ url: 'github:example-owner/example-repo' })!.toString(),
+    ).toBe('pkg:github/example-owner/example-repo')
   })
 
   test('the .git suffix is stripped from the name', () => {
-    expect(gitDepToPurl({ url: 'https://github.com/o/r.git' })!.name).toBe('r')
+    expect(
+      gitDepToPurl({
+        url: 'https://github.com/example-owner/example-repo.git',
+      })!.name,
+    ).toBe('example-repo')
   })
 })
 
@@ -55,10 +86,26 @@ describe('self-hosted remotes fall back to generic + vcs_url', () => {
 
 describe('ownerRepoFromGitUrl', () => {
   test.each([
-    ['https://github.com/o/r.git', 'o', 'r'],
-    ['https://github.com/o/r', 'o', 'r'],
-    ['git@github.com:o/r.git', 'o', 'r'],
-    ['ssh://git@github.com/o/r.git', 'o', 'r'],
+    [
+      'https://github.com/example-owner/example-repo.git',
+      'example-owner',
+      'example-repo',
+    ],
+    [
+      'https://github.com/example-owner/example-repo',
+      'example-owner',
+      'example-repo',
+    ],
+    [
+      'git@github.com:example-owner/example-repo.git',
+      'example-owner',
+      'example-repo',
+    ],
+    [
+      'ssh://git@github.com/example-owner/example-repo.git',
+      'example-owner',
+      'example-repo',
+    ],
   ])('%s', (url, owner, repo) => {
     expect(ownerRepoFromGitUrl(url)).toEqual({ owner, repo })
   })

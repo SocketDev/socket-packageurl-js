@@ -35,7 +35,7 @@ import {
   testValidParam,
   testValidStringParam,
 } from './utils/param-validation.mjs'
-import { createTestPurl } from './utils/test-helpers.mjs'
+import { createTestPurl } from './utils/fixtures.mjs'
 
 describe('PackageURL', () => {
   describe('KnownQualifierNames', () => {

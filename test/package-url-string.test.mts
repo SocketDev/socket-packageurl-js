@@ -28,7 +28,7 @@ SOFTWARE.
 import { describe, expect, it } from 'vitest'
 
 import { PackageURL } from '../src/package-url.mjs'
-import { createTestPurl } from './utils/test-helpers.mjs'
+import { createTestPurl } from './utils/fixtures.mjs'
 
 describe('PackageURL', () => {
   describe('toString()', () => {
@@ -219,14 +219,11 @@ describe('PackageURL', () => {
 
 describe('package-url-parse - "@" before the last "/" is not a version separator', () => {
   it('collapses an npm-type atSignIndex back to -1 when it precedes the pathname last slash', () => {
-    // pathname "npm/a@b/c": the npm-only lookup finds '@' at index 5, but the
-    // last '/' is at index 7 — the '@' is namespace content ("a@b"), not a
-    // version separator, so the whole segment before the final '/' becomes
-    // the namespace and no version is extracted.
-    const parsed = PackageURL.parseString('pkg:npm/a@b/c')
+    // The at sign before the final slash belongs to the namespace.
+    const parsed = PackageURL.parseString('pkg:npm/example@version/subpath')
     expect(parsed[0]).toBe('npm')
-    expect(parsed[1]).toBe('a@b')
-    expect(parsed[2]).toBe('c')
+    expect(parsed[1]).toBe('example@version')
+    expect(parsed[2]).toBe('subpath')
     expect(parsed[3]).toBeUndefined()
   })
 })

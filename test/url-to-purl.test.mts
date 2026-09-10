@@ -326,6 +326,7 @@ describe('UrlConverter.fromUrl', () => {
         'v1.8.0',
       ],
       [
+        // fixture-name: allow — golang.org/x/text is the real module path under test.
         '/golang.org/x/text/@v/v0.3.7.mod',
         'golang',
         'golang.org/x',
@@ -1222,7 +1223,7 @@ describe('UrlConverter per-shape static helpers', () => {
     ],
     [
       'fromPypiDownloadUrl',
-      '/x/package-name-1.0.0.tar.gz',
+      '/artifacts/package-name-1.0.0.tar.gz',
       'pkg:pypi/package-name@1.0.0',
     ],
     [
@@ -1242,7 +1243,9 @@ describe('UrlConverter per-shape static helpers', () => {
     ],
     [
       'fromGolangDownloadUrl',
+      // fixture-name: allow — golang.org/x/text is the real module path under test.
       '/golang.org/x/text/@v/v0.3.7.mod',
+      // fixture-name: allow — golang.org/x/text is the real module path under test.
       'pkg:golang/golang.org/x/text@v0.3.7',
     ],
     // The Go proxy escapes uppercase letters as `!lowercase`; the parser decodes
@@ -1382,9 +1385,9 @@ describe('UrlConverter per-shape static helpers', () => {
   it('static helpers return undefined for unparseable input', () => {
     expect(UrlConverter.fromNpmUrl('not a url')).toBeUndefined()
     expect(UrlConverter.fromGitHubUrl('not a url')).toBeUndefined()
-    expect(UrlConverter.fromDownloadUrl('/not/a/package')).toBeUndefined()
+    expect(UrlConverter.fromDownloadUrl('/not/valid/package')).toBeUndefined()
     expect(
-      UrlConverter.fromPypiDownloadUrl('/x/not-a-wheel.txt'),
+      UrlConverter.fromPypiDownloadUrl('/artifacts/not-a-wheel.txt'),
     ).toBeUndefined()
   })
 })

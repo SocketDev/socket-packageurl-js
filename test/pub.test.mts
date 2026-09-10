@@ -4,7 +4,7 @@
 import nock from 'nock'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { createMockCache } from './utils/test-helpers.mjs'
+import { createMockCache } from './utils/fixtures.mjs'
 import { pubExists } from '../src/purl-types/pub.mjs'
 
 describe('pubExists', () => {

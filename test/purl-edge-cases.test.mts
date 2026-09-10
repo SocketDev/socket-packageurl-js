@@ -83,7 +83,7 @@ import {
   validateType,
   validateVersion,
 } from '../src/validate.mjs'
-import { createTestFunction, createTestPurl } from './utils/test-helpers.mjs'
+import { createTestFunction, createTestPurl } from './utils/fixtures.mjs'
 
 // PurlType's runtime shape is `Record<string, Record<string, unknown>>` —
 // the source's helpers namespace builder doesn't propagate the per-type
