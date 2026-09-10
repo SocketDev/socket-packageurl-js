@@ -52,8 +52,8 @@ export async function hackageExists(
   name: string,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
-  const opts = { __proto__: null, ...options } as typeof options
-  const { version } = opts ?? { __proto__: null }
+  const opts = { __proto__: null, ...options }
+  const { version } = opts
   const cacheKey = version ? `hackage:${name}@${version}` : `hackage:${name}`
 
   // Try cache first if provided

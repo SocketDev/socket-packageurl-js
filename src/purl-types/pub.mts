@@ -65,8 +65,8 @@ export async function pubExists(
   name: string,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
-  const opts = { __proto__: null, ...options } as typeof options
-  const { version } = opts ?? { __proto__: null }
+  const opts = { __proto__: null, ...options }
+  const { version } = opts
   const cacheKey = version ? `pub:${name}@${version}` : `pub:${name}`
 
   if (opts?.cache) {

@@ -90,8 +90,8 @@ export async function cocoapodsExists(
   name: string,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
-  const opts = { __proto__: null, ...options } as typeof options
-  const { version } = opts ?? { __proto__: null }
+  const opts = { __proto__: null, ...options }
+  const { version } = opts
   const cacheKey = version
     ? `cocoapods:${name}@${version}`
     : `cocoapods:${name}`

@@ -5,7 +5,12 @@
 
 import { describe, expect, test } from 'vitest'
 
-import { gitDepToPurl, ownerRepoFromGitUrl } from '../src/git-dep-to-purl.mts'
+import {
+  gitDepToPurl,
+  hostOf,
+  ownerRepoFromGitUrl,
+  trimRepo,
+} from '../src/git-dep-to-purl.mts'
 
 describe('hosted remotes map to their own purl type', () => {
   test.each([
@@ -60,7 +65,24 @@ describe('ownerRepoFromGitUrl', () => {
 })
 
 describe('malformed input yields nothing rather than a wrong purl', () => {
-  test.each(['', '   ', 'github:', 'github:o', 'github:o/'])('%j', url => {
-    expect(gitDepToPurl({ url })).toBeUndefined()
-  })
+  test.each(['', '   ', 'github:', 'github:o', 'github:o/', 'not-a-remote'])(
+    '%j',
+    url => {
+      expect(gitDepToPurl({ url })).toBeUndefined()
+    },
+  )
+})
+
+test('malformed remotes have no owner or hostname', () => {
+  expect(ownerRepoFromGitUrl('not-a-remote')).toBeUndefined()
+  expect(hostOf('not-a-remote')).toBe('')
+})
+
+test.each([
+  ['example-repo.git/', 'example-repo'],
+  ['example-repo/', 'example-repo'],
+  ['example-repo.git', 'example-repo'],
+  ['example-repo', 'example-repo'],
+])('normalizes repository suffixes in %s', (repo, expected) => {
+  expect(trimRepo(repo)).toBe(expected)
 })

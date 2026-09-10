@@ -56,8 +56,8 @@ export async function cranExists(
   name: string,
   options?: ExistsOptions | undefined,
 ): Promise<ExistsResult> {
-  const opts = { __proto__: null, ...options } as typeof options
-  const { version } = opts ?? { __proto__: null }
+  const opts = { __proto__: null, ...options }
+  const { version } = opts
   const cacheKey = version ? `cran:${name}@${version}` : `cran:${name}`
 
   // Try cache first if provided
