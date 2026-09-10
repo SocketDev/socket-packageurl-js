@@ -168,9 +168,10 @@ export class PurlBuilder {
    * Set the package namespace for the `PackageURL`.
    *
    * The namespace represents different concepts depending on the package type:
+   *
    * - `npm`: organization or scope (e.g., `'@angular'` for `'@angular/core'`) -
-   * `maven`: `groupId` (e.g., `'org.apache.commons'`) - `pypi`: typically
-   * unused.
+   *   `maven`: `groupId` (e.g., `'org.apache.commons'`) - `pypi`: typically
+   *   unused.
    */
   namespace(namespace: string): this {
     this._namespace = namespace
