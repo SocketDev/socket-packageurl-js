@@ -1932,7 +1932,8 @@ describe('Edge cases and additional coverage', () => {
       })
 
       it('returns "Unknown error" for null', () => {
-        expect(errorMessage(undefined)).toBe('Unknown error')
+        const input: null = null
+        expect(errorMessage(input)).toBe('Unknown error')
       })
 
       it('returns "Unknown error" for undefined', () => {

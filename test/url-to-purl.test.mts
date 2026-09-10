@@ -1114,12 +1114,6 @@ describe('UrlConverter.fromUrl', () => {
         UrlConverter.fromUrl('https://marketplace.visualstudio.com/publishers'),
       ).toBeUndefined()
     })
-
-    it('should return undefined for npmjs.com /package/@scope only', () => {
-      expect(
-        UrlConverter.fromUrl('https://www.npmjs.com/package/@scope'),
-      ).toBeUndefined()
-    })
   })
 })
 

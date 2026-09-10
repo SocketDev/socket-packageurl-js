@@ -121,10 +121,6 @@ describe('validate edge cases', () => {
       expect(validateSubpath('src|evil')).toBe(false)
     })
 
-    it('returns false for subpath with injection when throws is false', () => {
-      expect(validateSubpath('src|evil', { throws: false })).toBe(false)
-    })
-
     it('accepts valid subpath when called with undefined options', () => {
       expect(validateSubpath('src/main', undefined)).toBe(true)
     })

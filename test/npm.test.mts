@@ -396,7 +396,8 @@ describe('parseNpmSpecifier', () => {
 
   describe('error handling', () => {
     it('should throw on null input', () => {
-      expect(() => parseNpmSpecifier(undefined as unknown as string)).toThrow(
+      const input: null = null
+      expect(() => parseNpmSpecifier(input)).toThrow(
         'npm package specifier string is required.',
       )
     })

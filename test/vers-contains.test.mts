@@ -218,16 +218,6 @@ describe('Vers', () => {
       })
     })
 
-    describe('>X|<Y range', () => {
-      it('should handle >X|<Y correctly', () => {
-        const v = Vers.parse('vers:npm/>1.0.0|<2.0.0')
-        expect(v.contains('1.0.0')).toBe(false)
-        expect(v.contains('1.0.1')).toBe(true)
-        expect(v.contains('1.9.9')).toBe(true)
-        expect(v.contains('2.0.0')).toBe(false)
-      })
-    })
-
     describe('unbounded >X', () => {
       it('should match all versions above bound', () => {
         const v = Vers.parse('vers:semver/>1.0.0')

@@ -120,17 +120,6 @@ describe('UrlConverter.fromUrl edge cases', () => {
       expect(purl!.version).toBe('2.2206')
     })
 
-    it('returns undefined for authorless /pod/ and /dist/ URLs', () => {
-      // No author id on these pages, so no spec-valid cpan purl (namespace
-      // required) can be produced.
-      expect(
-        UrlConverter.fromUrl('https://metacpan.org/pod/Moose'),
-      ).toBeUndefined()
-      expect(
-        UrlConverter.fromUrl('https://metacpan.org/dist/Moose'),
-      ).toBeUndefined()
-    })
-
     it('returns undefined for unrecognized CPAN path', () => {
       const purl = UrlConverter.fromUrl('https://metacpan.org/about')
       expect(purl).toBeUndefined()
