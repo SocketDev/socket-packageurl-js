@@ -87,6 +87,134 @@ const VERS_QUOTE_MAP: ReadonlyMap<string, string> = ObjectFreeze(
   ]),
 )
 
+export function containsVersRange(
+  constraints: readonly VersConstraint[],
+  version: string,
+): boolean {
+  const ranges = getVersRangeConstraints(constraints)
+
+  if (ranges.length === 0) {
+    return false
+  }
+
+  // Evaluate range constraints
+  // Per the VERS spec, constraints are sorted and form alternating intervals.
+  // Multiple disjoint ranges are possible (e.g., `>=1.0.0|<2.0.0|>=3.0.0|<4.0.0`),
+  // so we must check ALL range pairs — not return on the first mismatch.
+  for (let i = 0, { length } = ranges; i < length; i += 1) {
+    const c = ranges[i]!
+    const cmp = compareSemver(version, c.version)
+
+    if (c.comparator === '>' || c.comparator === '>=') {
+      if (c.comparator === '>=' ? cmp < 0 : cmp <= 0) {
+        // Below this lower bound — skip to next range pair
+        const next = ranges[i + 1]
+        if (next && (next.comparator === '<' || next.comparator === '<=')) {
+          i += 1
+        }
+        continue
+      }
+      // Version >= lower bound — check upper bound
+      const next = ranges[i + 1]
+      if (matchesVersUpperBound(next, version)) {
+        return true
+      }
+      // Outside this range's upper bound — advance past it and try next range
+      i += 1
+    } else {
+      // Leading less-than without a preceding lower bound. `ranges` is
+      // filtered to the four bound comparators; the branch above consumes
+      // '>' and '>=', so only '<' / '<=' reach here.
+      const cmpVal = compareSemver(version, c.version)
+      if (c.comparator === '<' && cmpVal < 0) {
+        return true
+      }
+      if (c.comparator === '<=' && cmpVal <= 0) {
+        return true
+      }
+      // Not in this range — continue to next
+    }
+  }
+  return false
+}
+
+export function getVersRangeConstraints(
+  constraints: readonly VersConstraint[],
+): VersConstraint[] {
+  // Filter to range constraints (not `=` or `!=`)
+  const ranges: VersConstraint[] = []
+  for (let i = 0, { length } = constraints; i < length; i += 1) {
+    const c = constraints[i]!
+    if (c.comparator !== '!=' && c.comparator !== '=') {
+      ArrayPrototypePush(ranges, c)
+    }
+  }
+
+  return ranges
+}
+
+export function matchesVersUpperBound(
+  next: VersConstraint | undefined,
+  version: string,
+): boolean {
+  if (!next) {
+    return true
+  }
+  const cmpNext = compareSemver(version, next.version)
+  if (next.comparator === '<' && cmpNext < 0) {
+    return true
+  }
+  if (next.comparator === '<=' && cmpNext <= 0) {
+    return true
+  }
+  return false
+}
+
+export function matchVersEquality(
+  constraints: readonly VersConstraint[],
+  version: string,
+): boolean | undefined {
+  // Check not-equals first — a `!=` exclusion takes priority over `=` inclusion
+  // to prevent short-circuiting on `=` before a conflicting `!=` is evaluated.
+  for (let i = 0, { length } = constraints; i < length; i += 1) {
+    const c = constraints[i]!
+    if (c.comparator === '!=' && compareSemver(version, c.version) === 0) {
+      return false
+    }
+  }
+  // Then check equals
+  for (let i = 0, { length } = constraints; i < length; i += 1) {
+    const c = constraints[i]!
+    if (c.comparator === '=' && compareSemver(version, c.version) === 0) {
+      return true
+    }
+  }
+
+  return undefined
+}
+
+export function parseVersConstraints(
+  rawConstraints: string[],
+  constraints: VersConstraint[],
+): void {
+  for (let i = 0, { length } = rawConstraints; i < length; i += 1) {
+    const constraint = parseConstraint(rawConstraints[i]!)
+    // A version carrying separator/comparator characters arrives
+    // URL-quoted per spec; unquote it after the comparator split.
+    if (
+      constraint.comparator !== '*' &&
+      StringPrototypeIncludes(constraint.version, '%')
+    ) {
+      ArrayPrototypePush(constraints, {
+        ...constraint,
+        version: GlobalDecodeUriComponent(constraint.version),
+      })
+      continue
+    }
+    ArrayPrototypePush(constraints, constraint)
+  }
+}
+
 /**
  * URL-quote the separator/comparator characters of a version for canonical
  * VERS serialization.
@@ -143,6 +271,12 @@ export function validateCanonicalConstraints(
       }
     }
   }
+  validateVersComparatorOrder(constraints)
+}
+
+export function validateVersComparatorOrder(
+  constraints: readonly VersConstraint[],
+): void {
   let prevComparator: string | undefined
   for (let i = 0, { length } = constraints; i < length; i += 1) {
     const { comparator } = constraints[i]!
@@ -177,6 +311,23 @@ export function validateCanonicalConstraints(
       }
     }
     prevRange = comparator
+  }
+}
+
+export function validateVersSemverConstraints(
+  scheme: string,
+  constraints: readonly VersConstraint[],
+): void {
+  // Validate versions for semver schemes
+  if (SEMVER_SCHEMES.has(scheme)) {
+    for (let i = 0, { length } = constraints; i < length; i += 1) {
+      const c = constraints[i]!
+      if (c.comparator !== '*' && !isSemverString(c.version)) {
+        throw new PurlError(
+          `invalid semver version "${c.version}" in VERS constraint`,
+        )
+      }
+    }
   }
 }
 
@@ -275,22 +426,7 @@ export class Vers {
 
     const constraints: VersConstraint[] = []
 
-    for (let i = 0, { length } = rawConstraints; i < length; i += 1) {
-      const constraint = parseConstraint(rawConstraints[i]!)
-      // A version carrying separator/comparator characters arrives
-      // URL-quoted per spec; unquote it after the comparator split.
-      if (
-        constraint.comparator !== '*' &&
-        StringPrototypeIncludes(constraint.version, '%')
-      ) {
-        ArrayPrototypePush(constraints, {
-          ...constraint,
-          version: GlobalDecodeUriComponent(constraint.version),
-        })
-        continue
-      }
-      ArrayPrototypePush(constraints, constraint)
-    }
+    parseVersConstraints(rawConstraints, constraints)
 
     // Validate: wildcard must be alone
     if (constraints.length > 1) {
@@ -301,17 +437,7 @@ export class Vers {
       }
     }
 
-    // Validate versions for semver schemes
-    if (SEMVER_SCHEMES.has(scheme)) {
-      for (let i = 0, { length } = constraints; i < length; i += 1) {
-        const c = constraints[i]!
-        if (c.comparator !== '*' && !isSemverString(c.version)) {
-          throw new PurlError(
-            `invalid semver version "${c.version}" in VERS constraint`,
-          )
-        }
-      }
-    }
+    validateVersSemverConstraints(scheme, constraints)
 
     validateCanonicalConstraints(scheme, constraints)
 
@@ -343,104 +469,11 @@ export class Vers {
       return true
     }
 
-    // Check not-equals first — a `!=` exclusion takes priority over `=` inclusion
-    // to prevent short-circuiting on `=` before a conflicting `!=` is evaluated.
-    for (let i = 0, { length } = constraints; i < length; i += 1) {
-      const c = constraints[i]!
-      if (c.comparator === '!=' && compareSemver(version, c.version) === 0) {
-        return false
-      }
+    const equalityMatch = matchVersEquality(constraints, version)
+    if (equalityMatch !== undefined) {
+      return equalityMatch
     }
-    // Then check equals
-    for (let i = 0, { length } = constraints; i < length; i += 1) {
-      const c = constraints[i]!
-      if (c.comparator === '=' && compareSemver(version, c.version) === 0) {
-        return true
-      }
-    }
-
-    // Filter to range constraints (not `=` or `!=`)
-    const ranges: VersConstraint[] = []
-    for (let i = 0, { length } = constraints; i < length; i += 1) {
-      const c = constraints[i]!
-      if (c.comparator !== '!=' && c.comparator !== '=') {
-        ArrayPrototypePush(ranges, c)
-      }
-    }
-
-    if (ranges.length === 0) {
-      return false
-    }
-
-    // Evaluate range constraints
-    // Per the VERS spec, constraints are sorted and form alternating intervals.
-    // Multiple disjoint ranges are possible (e.g., `>=1.0.0|<2.0.0|>=3.0.0|<4.0.0`),
-    // so we must check ALL range pairs — not return on the first mismatch.
-    for (let i = 0, { length } = ranges; i < length; i += 1) {
-      const c = ranges[i]!
-      const cmp = compareSemver(version, c.version)
-
-      if (c.comparator === '>=') {
-        if (cmp < 0) {
-          // Below this lower bound — skip to next range pair
-          const next = ranges[i + 1]
-          if (next && (next.comparator === '<' || next.comparator === '<=')) {
-            i += 1
-          }
-          continue
-        }
-        // Version >= lower bound — check upper bound
-        const next = ranges[i + 1]
-        if (!next) {
-          return true
-        }
-        const cmpNext = compareSemver(version, next.version)
-        if (next.comparator === '<' && cmpNext < 0) {
-          return true
-        }
-        if (next.comparator === '<=' && cmpNext <= 0) {
-          return true
-        }
-        // Outside this range's upper bound — advance past it and try next range
-        i += 1
-      } else if (c.comparator === '>') {
-        if (cmp <= 0) {
-          // At or below this lower bound — skip to next range pair
-          const next = ranges[i + 1]
-          if (next && (next.comparator === '<' || next.comparator === '<=')) {
-            i += 1
-          }
-          continue
-        }
-        // Version > lower bound — check upper bound
-        const next = ranges[i + 1]
-        if (!next) {
-          return true
-        }
-        const cmpNext = compareSemver(version, next.version)
-        if (next.comparator === '<' && cmpNext < 0) {
-          return true
-        }
-        if (next.comparator === '<=' && cmpNext <= 0) {
-          return true
-        }
-        // Outside this range's upper bound — advance past it and try next range
-        i += 1
-      } else {
-        // Leading less-than without a preceding lower bound. `ranges` is
-        // filtered to exactly the four bound comparators, and the two arms
-        // above consumed '>' and '>=', so only '<' / '<=' reach here.
-        const cmpVal = compareSemver(version, c.version)
-        if (c.comparator === '<' && cmpVal < 0) {
-          return true
-        }
-        if (c.comparator === '<=' && cmpVal <= 0) {
-          return true
-        }
-        // Not in this range — continue to next
-      }
-    }
-    return false
+    return containsVersRange(constraints, version)
   }
 
   /**
