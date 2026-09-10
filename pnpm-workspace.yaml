@@ -526,7 +526,6 @@ minimumReleaseAgeExclude:
   # `@rolldown/pluginutils` versions independently of vite's bundled native
   # rolldown release; the per-platform bindings share its pin.
   # Listed explicitly per the fleet "no scope globs in soak excludes" rule.
-  - '@rolldown/pluginutils'
   - 'sockeye'
   # published: 2026-09-01 | removable: 2026-09-08
   - 'oxfmt@0.66.0'
