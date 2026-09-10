@@ -17,6 +17,8 @@ trustPolicyExclude:
 # entry — the .claude/hooks/check-new-deps hook references it via
 # "catalog:" so its manifest stays in lockstep with the root.
 catalog:
+  '@bcoe/v8-coverage': 1.0.2
+  ast-v8-to-istanbul: 1.0.5
   '@mdn/browser-compat-data': 8.1.0
   # run-local-ci (bin: local-ci, formerly published as @redwoodjs/agent-ci)
   # runs a repo's GitHub Actions workflows locally in Docker so a change can
