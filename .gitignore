@@ -3990,4 +3990,5 @@ Thumbs.db
 # vitiate coverage-guided fuzz lane caches (regenerable; never commit)
 /.swc/
 /.vitiate/
+/patches/vitest@5.0.0.patch
 # </repo>
