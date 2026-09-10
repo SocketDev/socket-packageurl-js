@@ -58,72 +58,11 @@ export function npmValidate(
   const id = getNpmId(purl)
   const code0 = StringPrototypeCharCodeAt(id, 0)
   const compName = hasNs ? 'namespace' : 'name'
-  if (code0 === 46 /*'.'*/) {
-    if (throws) {
-      throw new PurlError(
-        `npm "${compName}" component cannot start with a period`,
-      )
-    }
+  if (!validateNpmName(name, code0, compName, { throws })) {
     return false
   }
-  if (code0 === 95 /*'_'*/) {
-    if (throws) {
-      throw new PurlError(
-        `npm "${compName}" component cannot start with an underscore`,
-      )
-    }
+  if (hasNs && !validateNpmNamespace(namespace, code0, { throws })) {
     return false
-  }
-  /* v8 ignore start -- Unreachable: space chars are caught by injection validator above. */
-  if (StringPrototypeTrim(name) !== name) {
-    if (throws) {
-      throw new PurlError(
-        'npm "name" component cannot contain leading or trailing spaces',
-      )
-    }
-    return false
-  }
-  /* v8 ignore stop */
-  if (encodeComponent(name) !== name) {
-    if (throws) {
-      throw new PurlError(
-        `npm "name" component can only contain URL-friendly characters`,
-      )
-    }
-    return false
-  }
-  if (hasNs) {
-    /* v8 ignore start -- Unreachable: space chars are caught by injection validator above. */
-    if (
-      (namespace !== undefined ? StringPrototypeTrim(namespace) : namespace) !==
-      namespace
-    ) {
-      if (throws) {
-        throw new PurlError(
-          'npm "namespace" component cannot contain leading or trailing spaces',
-        )
-      }
-      return false
-    }
-    /* v8 ignore stop */
-    if (code0 !== 64 /*'@'*/) {
-      if (throws) {
-        throw new PurlError(
-          `npm "namespace" component must start with an "@" character`,
-        )
-      }
-      return false
-    }
-    // `hasNs` proved `namespace` is a non-empty string on this path.
-    const namespaceWithoutAtSign = StringPrototypeSlice(namespace, 1)
-    if (encodeComponent(namespaceWithoutAtSign) !== namespaceWithoutAtSign) {
-      if (throws) {
-        throw new PurlError(
-          `npm "namespace" component can only contain URL-friendly characters`,
-        )
-      }
-      return false
-    }
   }
   const loweredId = StringPrototypeToLowerCase(id)
   if (loweredId === 'favicon.ico' || loweredId === 'node_modules') {
@@ -134,6 +73,15 @@ export function npmValidate(
     }
     return false
   }
+  return validateModernNpmName(id, loweredId, name, { throws })
+}
+
+export function validateModernNpmName(
+  id: string,
+  loweredId: string,
+  name: string,
+  { throws }: { throws: boolean },
+): boolean {
   // The remaining checks are only for modern names
   // https://github.com/npm/validate-npm-package-name/tree/v6.0.0?tab=readme-ov-file#naming-rules
   if (!isNpmLegacyName(id)) {
@@ -179,6 +127,87 @@ export function npmValidate(
       }
       return false
     }
+  }
+  return true
+}
+
+export function validateNpmName(
+  name: string,
+  code0: number,
+  compName: string,
+  { throws }: { throws: boolean },
+): boolean {
+  if (code0 === 46 /*'.'*/) {
+    if (throws) {
+      throw new PurlError(
+        `npm "${compName}" component cannot start with a period`,
+      )
+    }
+    return false
+  }
+  if (code0 === 95 /*'_'*/) {
+    if (throws) {
+      throw new PurlError(
+        `npm "${compName}" component cannot start with an underscore`,
+      )
+    }
+    return false
+  }
+  /* v8 ignore start -- Unreachable: space chars are caught by injection validator above. */
+  if (StringPrototypeTrim(name) !== name) {
+    if (throws) {
+      throw new PurlError(
+        'npm "name" component cannot contain leading or trailing spaces',
+      )
+    }
+    return false
+  }
+  /* v8 ignore stop */
+  if (encodeComponent(name) !== name) {
+    if (throws) {
+      throw new PurlError(
+        `npm "name" component can only contain URL-friendly characters`,
+      )
+    }
+    return false
+  }
+  return true
+}
+
+export function validateNpmNamespace(
+  namespace: string,
+  code0: number,
+  { throws }: { throws: boolean },
+): boolean {
+  /* v8 ignore start -- Unreachable: space chars are caught by injection validator above. */
+  if (
+    (namespace !== undefined ? StringPrototypeTrim(namespace) : namespace) !==
+    namespace
+  ) {
+    if (throws) {
+      throw new PurlError(
+        'npm "namespace" component cannot contain leading or trailing spaces',
+      )
+    }
+    return false
+  }
+  /* v8 ignore stop */
+  if (code0 !== 64 /*'@'*/) {
+    if (throws) {
+      throw new PurlError(
+        `npm "namespace" component must start with an "@" character`,
+      )
+    }
+    return false
+  }
+  const namespaceWithoutAtSign = StringPrototypeSlice(namespace, 1)
+  if (encodeComponent(namespaceWithoutAtSign) !== namespaceWithoutAtSign) {
+    if (throws) {
+      throw new PurlError(
+        `npm "namespace" component can only contain URL-friendly characters`,
+      )
+    }
+    return false
   }
   return true
 }
