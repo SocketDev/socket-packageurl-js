@@ -22,69 +22,7 @@ import {
  * Check if string contains only whitespace characters.
  */
 export function isBlank(str: string): boolean {
-  for (let i = 0, { length } = str; i < length; i += 1) {
-    const code = StringPrototypeCharCodeAt(str, i)
-    // biome-ignore format: newlines
-    if (
-      !(
-        // Whitespace characters according to ECMAScript spec:
-        // https://tc39.es/ecma262/#sec-white-space
-        // Space
-        code === 0x00_20 ||
-        // Tab
-        code === 0x00_09 ||
-        // Line Feed
-        code === 0x00_0a ||
-        // Vertical Tab
-        code === 0x00_0b ||
-        // Form Feed
-        code === 0x00_0c ||
-        // Carriage Return
-        code === 0x00_0d ||
-        // No-Break Space
-        code === 0x00_a0 ||
-        // Ogham Space Mark
-        code === 0x16_80 ||
-        // En Quad
-        code === 0x20_00 ||
-        // Em Quad
-        code === 0x20_01 ||
-        // En Space
-        code === 0x20_02 ||
-        // Em Space
-        code === 0x20_03 ||
-        // Three-Per-Em Space
-        code === 0x20_04 ||
-        // Four-Per-Em Space
-        code === 0x20_05 ||
-        // Six-Per-Em Space
-        code === 0x20_06 ||
-        // Figure Space
-        code === 0x20_07 ||
-        // Punctuation Space
-        code === 0x20_08 ||
-        // Thin Space
-        code === 0x20_09 ||
-        // Hair Space
-        code === 0x20_0a ||
-        // Line Separator
-        code === 0x20_28 ||
-        // Paragraph Separator
-        code === 0x20_29 ||
-        // Narrow No-Break Space
-        code === 0x20_2f ||
-        // Medium Mathematical Space
-        code === 0x20_5f ||
-        // Ideographic Space
-        code === 0x30_00 ||
-        code === 0xfe_ff
-        // Byte Order Mark
-      )
-    ) {
-      return false
-    }
-  }
-  return true
+  return RegExpPrototypeTest(/^\s*$/, str)
 }
 
 /**
@@ -186,27 +124,26 @@ export function replaceUnderscoresWithDashes(str: string): string {
   return fromIndex ? result + StringPrototypeSlice(str, fromIndex) : str
 }
 
-/**
- * Test whether a character code is an injection-dangerous character.
- *
- * Detects four classes of dangerous characters:
- *
- * 1. **Shell metacharacters** — command execution, piping, redirection, expansion:
- *    `|`, `&`, `;`, `` ` ``, `$`, `<`, `>`, `(`, `)`, `{`, `}`, `\`
- * 2. **Quote characters** — break out of quoted contexts in shell, SQL, URLs: `'`,
- *    `"`
- * 3. **URL/path delimiters** — fragment injection, comment injection: `#`
- * 4. **Whitespace & control characters** — argument splitting, log injection,
- *    terminal escape sequences, null-byte truncation: `0x00`-`0x1f` (all C0
- *    controls including NUL, tab, newline, CR, ESC, etc.) space (`0x20`), DEL
- *    (`0x7f`)
- */
-export function isInjectionCharCode(code: number): boolean {
-  // C0 control characters (0x00-0x1f)
-  if (code <= 0x1f) {
-    return true
-  }
-  // biome-ignore format: newlines
+export function isUnicodeInjectionCharCode(code: number): boolean {
+  return (
+    code === 0x20_0b ||
+    code === 0x20_0c ||
+    code === 0x20_0d ||
+    code === 0x20_0e ||
+    code === 0x20_0f ||
+    code === 0x20_2a ||
+    code === 0x20_2b ||
+    code === 0x20_2c ||
+    code === 0x20_2d ||
+    code === 0x20_2e ||
+    code === 0x20_60 ||
+    code === 0xfe_ff ||
+    code === 0xff_fc ||
+    code === 0xff_fd
+  )
+}
+
+export function isAsciiInjectionPrefix(code: number): boolean {
   if (
     // space
     code === 0x20 ||
@@ -231,7 +168,15 @@ export function isInjectionCharCode(code: number): boolean {
     // *
     code === 0x2a ||
     // ;
-    code === 0x3b ||
+    code === 0x3b
+  ) {
+    return true
+  }
+  return false
+}
+
+export function isAsciiInjectionSuffix(code: number): boolean {
+  return (
     // <
     code === 0x3c ||
     // =
@@ -258,48 +203,32 @@ export function isInjectionCharCode(code: number): boolean {
     code === 0x7e ||
     // DEL
     code === 0x7f
-  ) {
-    return true
-  }
-  // C1 control characters (0x80-0x9f)
-  if (code >= 0x80 && code <= 0x9f) {
-    return true
-  }
-  // Unicode dangerous characters
-  // biome-ignore format: newlines
-  if (
-    // Zero-width space
-    code === 0x20_0b ||
-    // Zero-width non-joiner
-    code === 0x20_0c ||
-    // Zero-width joiner
-    code === 0x20_0d ||
-    // Left-to-right mark
-    code === 0x20_0e ||
-    // Right-to-left mark
-    code === 0x20_0f ||
-    // Left-to-right embedding
-    code === 0x20_2a ||
-    // Right-to-left embedding
-    code === 0x20_2b ||
-    // Pop directional formatting
-    code === 0x20_2c ||
-    // Left-to-right override
-    code === 0x20_2d ||
-    // Right-to-left override
-    code === 0x20_2e ||
-    // Word joiner
-    code === 0x20_60 ||
-    // BOM / zero-width no-break space
-    code === 0xfe_ff ||
-    // Object replacement character
-    code === 0xff_fc ||
-    // Replacement character
-    code === 0xff_fd
-  ) {
-    return true
-  }
-  return false
+  )
+}
+
+/**
+ * Test whether a character code is an injection-dangerous character.
+ *
+ * Detects four classes of dangerous characters:
+ *
+ * 1. **Shell metacharacters** — command execution, piping, redirection, expansion:
+ *    `|`, `&`, `;`, `` ` ``, `$`, `<`, `>`, `(`, `)`, `{`, `}`, `\`
+ * 2. **Quote characters** — break out of quoted contexts in shell, SQL, URLs: `'`,
+ *    `"`
+ * 3. **URL/path delimiters** — fragment injection, comment injection: `#`
+ * 4. **Whitespace & control characters** — argument splitting, log injection,
+ *    terminal escape sequences, null-byte truncation: `0x00`-`0x1f` (all C0
+ *    controls including NUL, tab, newline, CR, ESC, etc.) space (`0x20`), DEL
+ *    (`0x7f`)
+ */
+export function isInjectionCharCode(code: number): boolean {
+  return (
+    code <= 0x1f ||
+    isAsciiInjectionPrefix(code) ||
+    isAsciiInjectionSuffix(code) ||
+    (code >= 0x80 && code <= 0x9f) ||
+    isUnicodeInjectionCharCode(code)
+  )
 }
 
 /**
@@ -345,27 +274,7 @@ export function isCommandInjectionCharCode(code: number): boolean {
   if (code >= 0x80 && code <= 0x9f) {
     return true
   }
-  // Unicode dangerous characters (same set as `isInjectionCharCode`)
-  // biome-ignore format: newlines
-  if (
-    code === 0x20_0b ||
-    code === 0x20_0c ||
-    code === 0x20_0d ||
-    code === 0x20_0e ||
-    code === 0x20_0f ||
-    code === 0x20_2a ||
-    code === 0x20_2b ||
-    code === 0x20_2c ||
-    code === 0x20_2d ||
-    code === 0x20_2e ||
-    code === 0x20_60 ||
-    code === 0xfe_ff ||
-    code === 0xff_fc ||
-    code === 0xff_fd
-  ) {
-    return true
-  }
-  return false
+  return isUnicodeInjectionCharCode(code)
 }
 
 /**

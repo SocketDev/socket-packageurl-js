@@ -372,6 +372,16 @@ export function matchesPurl(pattern: string, purl: PackageURL): boolean {
   )
 }
 
+export function createWildcardMatcher(
+  pattern: string | undefined,
+): ((value: string) => boolean) | undefined {
+  return pattern &&
+    (StringPrototypeIncludes(pattern, '*') ||
+      StringPrototypeIncludes(pattern, '?'))
+    ? (value: string) => matchWildcard(pattern, value)
+    : undefined
+}
+
 /**
  * Create a reusable matcher function from a pattern. More efficient for testing
  * multiple `purl`s against the same pattern.
@@ -396,40 +406,10 @@ export function createMatcher(pattern: string): (_purl: PackageURL) => boolean {
   }
   const { typePattern, namespacePattern, namePattern, versionPattern } = parsed
 
-  // Pre-compile wildcard matchers for components with wildcards
-  const typeHasWildcard =
-    typePattern &&
-    (StringPrototypeIncludes(typePattern, '*') ||
-      StringPrototypeIncludes(typePattern, '?'))
-  const typeMatcher = typeHasWildcard
-    ? (value: string) => matchWildcard(typePattern, value)
-    : undefined
-
-  const namespaceHasWildcard =
-    namespacePattern &&
-    (StringPrototypeIncludes(namespacePattern, '*') ||
-      StringPrototypeIncludes(namespacePattern, '?'))
-  const namespaceMatcher =
-    namespaceHasWildcard && namespacePattern
-      ? (value: string) => matchWildcard(namespacePattern, value)
-      : undefined
-
-  const nameHasWildcard =
-    namePattern &&
-    (StringPrototypeIncludes(namePattern, '*') ||
-      StringPrototypeIncludes(namePattern, '?'))
-  const nameMatcher = nameHasWildcard
-    ? (value: string) => matchWildcard(namePattern, value)
-    : undefined
-
-  const versionHasWildcard =
-    versionPattern &&
-    (StringPrototypeIncludes(versionPattern, '*') ||
-      StringPrototypeIncludes(versionPattern, '?'))
-  const versionMatcher =
-    versionHasWildcard && versionPattern
-      ? (value: string) => matchWildcard(versionPattern, value)
-      : undefined
+  const typeMatcher = createWildcardMatcher(typePattern)
+  const namespaceMatcher = createWildcardMatcher(namespacePattern)
+  const nameMatcher = createWildcardMatcher(namePattern)
+  const versionMatcher = createWildcardMatcher(versionPattern)
 
   // Return optimized matcher function with pre-compiled matchers
   return (_purl: PackageURL): boolean => {

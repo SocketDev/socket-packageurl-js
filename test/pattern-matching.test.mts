@@ -1,15 +1,14 @@
+import { getDefaultLogger } from '@socketsecurity/lib/logger/default'
+import { describe, expect, it } from 'vitest'
+import { createMatcher, matchesPurl } from '../src/index.mjs'
+import { createTestPurl } from './utils/fixtures.mjs'
+
 /**
  * @file Tests for PURL pattern matching functionality. Tests wildcard matching
  *   for type, namespace, name, and version components.
  */
 
-import { getDefaultLogger } from '@socketsecurity/lib/logger/default'
-import { describe, expect, it } from 'vitest'
-
 const logger = getDefaultLogger()
-
-import { createMatcher, matchesPurl } from '../src/index.mjs'
-import { createTestPurl } from './utils/test-helpers.mjs'
 
 describe('matches', () => {
   describe('exact matching', () => {

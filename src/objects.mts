@@ -24,6 +24,14 @@ export function isObject(
   return value !== null && typeof value === 'object'
 }
 
+export function isUnfrozenObject(value: unknown): value is object {
+  return (
+    value !== null &&
+    (typeof value === 'object' || typeof value === 'function') &&
+    !ObjectIsFrozen(value)
+  )
+}
+
 /**
  * Recursively freeze an object and all nested objects. Uses breadth-first
  * traversal with a queue for memory efficiency.
@@ -31,11 +39,7 @@ export function isObject(
  * @throws {Error} When object graph too large or circular reference detected.
  */
 export function recursiveFreeze<T>(value_: T): T {
-  if (
-    value_ === null ||
-    !(typeof value_ === 'object' || typeof value_ === 'function') ||
-    ObjectIsFrozen(value_)
-  ) {
+  if (!isUnfrozenObject(value_)) {
     return value_
   }
   // Use breadth-first traversal to avoid stack overflow on deep objects
@@ -55,12 +59,7 @@ export function recursiveFreeze<T>(value_: T): T {
       // Queue unfrozen array items for processing
       for (let i = 0, { length } = obj; i < length; i += 1) {
         const item: unknown = obj[i]
-        if (
-          item !== null &&
-          (typeof item === 'object' || typeof item === 'function') &&
-          !ObjectIsFrozen(item) &&
-          !visited.has(item)
-        ) {
+        if (isUnfrozenObject(item) && !visited.has(item)) {
           visited.add(item)
           queue[queueLength++] = item as T & object
         }
@@ -72,12 +71,7 @@ export function recursiveFreeze<T>(value_: T): T {
         const propValue: unknown = (obj as Record<PropertyKey, unknown>)[
           keys[i]!
         ]
-        if (
-          propValue !== null &&
-          (typeof propValue === 'object' || typeof propValue === 'function') &&
-          !ObjectIsFrozen(propValue) &&
-          !visited.has(propValue)
-        ) {
+        if (isUnfrozenObject(propValue) && !visited.has(propValue)) {
           visited.add(propValue)
           queue[queueLength++] = propValue as T & object
         }

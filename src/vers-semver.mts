@@ -66,6 +66,31 @@ const DIGITS_ONLY = /^\d+$/
 const regexSemverNumberedGroups =
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
+export function comparePrereleaseIdentifiers(ai: string, bi: string): number {
+  const aNum = RegExpPrototypeTest(DIGITS_ONLY, ai)
+  const bNum = RegExpPrototypeTest(DIGITS_ONLY, bi)
+  // Numeric identifiers always have lower precedence than alphanumeric
+  if (aNum && bNum) {
+    const diff = Number(ai) - Number(bi)
+    if (diff !== 0) {
+      return diff < 0 ? -1 : 1
+    }
+  } else if (aNum) {
+    return -1
+  } else if (bNum) {
+    return 1
+  } else {
+    // Alphanumeric: lexicographic comparison
+    if (ai < bi) {
+      return -1
+    }
+    if (ai > bi) {
+      return 1
+    }
+  }
+  return 0
+}
+
 /**
  * Compare two prerelease identifier arrays per semver spec. Returns `-1`, `0`,
  * or `1`.
@@ -89,26 +114,9 @@ export function comparePrereleases(a: string[], b: string[]): number {
     if (ai === bi) {
       continue
     }
-    const aNum = RegExpPrototypeTest(DIGITS_ONLY, ai)
-    const bNum = RegExpPrototypeTest(DIGITS_ONLY, bi)
-    // Numeric identifiers always have lower precedence than alphanumeric
-    if (aNum && bNum) {
-      const diff = Number(ai) - Number(bi)
-      if (diff !== 0) {
-        return diff < 0 ? -1 : 1
-      }
-    } else if (aNum) {
-      return -1
-    } else if (bNum) {
-      return 1
-    } else {
-      // Alphanumeric: lexicographic comparison
-      if (ai < bi) {
-        return -1
-      }
-      if (ai > bi) {
-        return 1
-      }
+    const comparison = comparePrereleaseIdentifiers(ai, bi)
+    if (comparison !== 0) {
+      return comparison
     }
   }
   // Larger set of pre-release fields has higher precedence

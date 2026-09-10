@@ -29,6 +29,25 @@ import {
   validateStrings,
 } from './validate-primitives.mjs'
 
+export function getQualifierKeys(
+  qualifiersObj: QualifiersObject | URLSearchParams,
+): Iterable<string> {
+  const keysProperty = (qualifiersObj as QualifiersObject)['keys']
+  return typeof keysProperty === 'function'
+    ? ReflectApply(keysProperty, qualifiersObj, [])
+    : ObjectKeys(qualifiersObj)
+}
+
+export function isPurlTypeCharacter(code: number): boolean {
+  return (
+    (code >= 48 && code <= 57) ||
+    (code >= 65 && code <= 90) ||
+    (code >= 97 && code <= 122) ||
+    code === 46 ||
+    code === 45
+  )
+}
+
 /**
  * Validate package name component.
  *
@@ -68,6 +87,7 @@ export function validateName(
  *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
+
 export function validateNamespace(
   namespace: unknown,
   options?: { throws?: boolean | undefined } | undefined,
@@ -132,23 +152,7 @@ export function validateQualifierKey(
   // `'.'`, `'-'` and `'_'` (period, dash and underscore)
   for (let i = 0, { length } = key; i < length; i += 1) {
     const code = StringPrototypeCharCodeAt(key, i)
-    // biome-ignore format: newlines
-    if (
-      !(
-        // 0-9
-        (code >= 48 && code <= 57) ||
-        // A-Z
-        (code >= 65 && code <= 90) ||
-        // a-z
-        (code >= 97 && code <= 122) ||
-        // .
-        code === 46 ||
-        // -
-        code === 45 ||
-        code === 95
-        // _
-      )
-    ) {
+    if (!(isPurlTypeCharacter(code) || code === 95)) {
       if (throws) {
         throw new PurlError(`qualifier key "${key}" must match [a-z0-9.\\-_]`)
       }
@@ -163,6 +167,7 @@ export function validateQualifierKey(
  *
  * @throws {PurlError} When validation fails and options.throws is true.
  */
+
 export function validateQualifiers(
   qualifiers: unknown,
   options?: { throws?: boolean | undefined } | undefined,
@@ -179,13 +184,7 @@ export function validateQualifiers(
     return false
   }
   const qualifiersObj = qualifiers as QualifiersObject | URLSearchParams
-  const keysProperty = (qualifiersObj as QualifiersObject)['keys']
-  // type-coverage:ignore-next-line -- TypeScript correctly infers this type through the ternary and cast
-  const keysIterable: Iterable<string> =
-    // `URLSearchParams` instances have a `"keys"` method that returns an iterator
-    typeof keysProperty === 'function'
-      ? ReflectApply(keysProperty, qualifiersObj, [])
-      : ObjectKeys(qualifiers)
+  const keysIterable = getQualifierKeys(qualifiersObj)
   // Use `for-of` to work with `URLSearchParams#keys` iterators —
   // `keysIterable` is a generic `Iterable<string>` (URLSearchParams keys
   // iterator), not an indexable array. TypeScript correctly infers the
@@ -209,30 +208,40 @@ export function validateQualifiers(
       typeof (qualifiersObj as QualifiersObject)[key] === 'string'
         ? ((qualifiersObj as QualifiersObject)[key] as string)
         : undefined
-    if (value !== undefined) {
-      // Qualifier values must not exceed reasonable length
-      const MAX_QUALIFIER_VALUE_LENGTH = 65_536
-      if (value.length > MAX_QUALIFIER_VALUE_LENGTH) {
-        if (throws) {
-          throw new PurlError(
-            `qualifier "${key}" value exceeds maximum length of ${MAX_QUALIFIER_VALUE_LENGTH} characters`,
-          )
-        }
-        return false
-      }
-      const code = findCommandInjectionCharCode(value)
-      if (code !== -1) {
-        if (throws) {
-          throw new PurlInjectionError(
-            'purl',
-            `qualifier "${key}"`,
-            code,
-            formatInjectionChar(code),
-          )
-        }
-        return false
-      }
+    if (value !== undefined && !validateQualifierValue(key, value, opts)) {
+      return false
     }
+  }
+  return true
+}
+
+export function validateQualifierValue(
+  key: string,
+  value: string,
+  options?: { throws?: boolean | undefined } | undefined,
+): boolean {
+  const { throws = false } = options ?? {}
+  // Qualifier values must not exceed reasonable length
+  const MAX_QUALIFIER_VALUE_LENGTH = 65_536
+  if (value.length > MAX_QUALIFIER_VALUE_LENGTH) {
+    if (throws) {
+      throw new PurlError(
+        `qualifier "${key}" value exceeds maximum length of ${MAX_QUALIFIER_VALUE_LENGTH} characters`,
+      )
+    }
+    return false
+  }
+  const code = findCommandInjectionCharCode(value)
+  if (code !== -1) {
+    if (throws) {
+      throw new PurlInjectionError(
+        'purl',
+        `qualifier "${key}"`,
+        code,
+        formatInjectionChar(code),
+      )
+    }
+    return false
   }
   return true
 }
@@ -296,21 +305,7 @@ export function validateType(
   // `'.'` (period), and `'-'` (dash)
   for (let i = 0, { length } = type as string; i < length; i += 1) {
     const code = StringPrototypeCharCodeAt(type as string, i)
-    // biome-ignore format: newlines
-    if (
-      !(
-        // 0-9
-        (code >= 48 && code <= 57) ||
-        // A-Z
-        (code >= 65 && code <= 90) ||
-        // a-z
-        (code >= 97 && code <= 122) ||
-        // .
-        code === 46 ||
-        code === 45
-        // -
-      )
-    ) {
+    if (!isPurlTypeCharacter(code)) {
       if (throws) {
         throw new PurlError(`type "${type}" must match [A-Za-z0-9.\\-]`)
         /* v8 ignore next -- Unreachable code after throw. */

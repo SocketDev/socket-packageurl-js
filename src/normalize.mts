@@ -1,7 +1,3 @@
-/**
- * @file Normalization functions for PURL components. Handles path
- *   normalization, qualifier processing, and canonical form conversion.
- */
 import { isObject } from './objects.mjs'
 import {
   ObjectCreate,
@@ -18,11 +14,15 @@ import {
 } from '@socketsecurity/lib/primordials/string'
 import { URLSearchParamsCtor } from '@socketsecurity/lib/primordials/url'
 import { isBlank } from './strings.mjs'
+import type { QualifiersObject } from './purl-component.mjs'
+
+/**
+ * @file Normalization functions for PURL components. Handles path
+ *   normalization, qualifier processing, and canonical form conversion.
+ */
 
 const EMPTY_ENTRIES: Iterable<[string, string], undefined, undefined> =
   ObjectFreeze([] as Array<[string, string]>)
-
-import type { QualifiersObject } from './purl-component.mjs'
 
 /**
  * Normalize package name by trimming whitespace.
