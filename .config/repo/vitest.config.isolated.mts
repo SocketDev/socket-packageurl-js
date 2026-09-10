@@ -1,20 +1,6 @@
 /**
- * @file Vitest configuration for tests requiring full process isolation. USE
- *   THIS CONFIG FOR:
- *
- *   - Tests that modify global objects (global.URL, global.process, etc.)
- *   - Tests using vi.doMock() for dynamic module mocking
- *   - Tests that would cause race conditions in concurrent execution
- *   - Tests requiring complete process-level isolation NAMING CONVENTION: Files
- *     using this config MUST use: *.isolated.test.mts suffix PERFORMANCE
- *     TRADEOFF:
- *   - pool: 'forks' - Full process isolation (slower than threads)
- *   - Each test file runs in its own forked process
- *   - No shared state between test files
- *   - Automatically detected and run by scripts/test.mjs EXAMPLES:
- *   - test/purl-global-mocking.isolated.test.mts - Mocks global.URL constructor
- *     See main config (.config/vitest.config.mts) for standard concurrent
- *     tests.
+ * @file Process-isolated tests under test/isolated. The main suite excludes
+ *   this directory; this suite preserves its fork boundary and coverage.
  */
 import process from 'node:process'
 
@@ -35,7 +21,7 @@ export default defineConfig({
     },
     globals: false,
     environment: 'node',
-    include: ['test/**/*.test.{js,ts,mjs,mts,cjs}'],
+    include: ['test/isolated/**/*.test.{js,ts,mjs,mts,cjs}'],
     reporters: ['default'],
     setupFiles: ['./test/utils/setup.mts'],
     // Use forks for full isolation

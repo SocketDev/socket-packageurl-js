@@ -21,18 +21,13 @@ SOFTWARE.
 */
 
 /**
- * @file Tests requiring process isolation due to global mocking. REQUIRES
- *   ISOLATION: This file must run with pool: 'forks' or singleThread: true
- *   because it mutates global objects (URL, etc.) which would interfere with
- *   concurrent tests. Run with: vitest --config
- *   .config/vitest.config.isolated.mts [test-file-path] Convention: Tests that
- *   modify global state must use the .isolated.test.mts suffix and will
- *   automatically be run separately with full isolation.
+ * @file Process-isolated global tampering regression. The isolated suite owns
+ *   test/isolated; the main suite excludes this directory.
  */
 
 import { describe, expect, it } from 'vitest'
 
-import { PackageURL } from '../src/package-url.mjs'
+import { PackageURL } from '../../src/package-url.mjs'
 
 describe('Global object mocking tests', () => {
   describe('Primordials protect against global tampering', () => {
