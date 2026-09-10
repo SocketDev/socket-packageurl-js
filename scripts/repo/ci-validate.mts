@@ -15,6 +15,7 @@ import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'
 
 import { isMainModule } from '../fleet/process/is-main-module.mts'
+import { runMain } from '../fleet/process/run-main.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -23,7 +24,7 @@ const rootPath: string = path.resolve(__dirname, '../..')
 
 export async function runCommand(
   command: string,
-  args: string[] = [],
+  args: string[],
 ): Promise<number> {
   return new Promise<number>((resolve, reject) => {
     const spawnPromise: SpawnResult = spawn(command, args, {
@@ -86,9 +87,8 @@ async function main(): Promise<void> {
 }
 
 if (isMainModule(import.meta.url)) {
-  main().catch((e: unknown) => {
-    const message = errorMessage(e)
-    logger.error(`CI validation crashed: ${message}`)
-    process.exitCode = 1
+  runMain(main, {
+    describe: 'builds and validates the project',
+    help: 'Usage: pnpm ci-validate [options]\n--help  Show command usage',
   })
 }

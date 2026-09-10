@@ -17,6 +17,7 @@ import { createSectionHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'
 
 import { isMainModule } from '../fleet/process/is-main-module.mts'
+import { runMain } from '../fleet/process/run-main.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -186,35 +187,6 @@ async function main(): Promise<void> {
       silent: Boolean(parsed.silent),
     }
 
-    // Show help if requested
-    if (values.help) {
-      logger.log('Clean Runner')
-      logger.log('')
-      logger.log('Usage: pnpm clean [options]')
-      logger.log('')
-      logger.log('Options:')
-      logger.log('  --help              Show this help message')
-      logger.log('  --all               Clean everything (default if no flags)')
-      logger.log('  --cache             Clean cache directories')
-      logger.log('  --coverage          Clean coverage reports')
-      logger.log('  --dist              Clean build output')
-      logger.log('  --types             Clean TypeScript declarations only')
-      logger.log('  --modules           Clean node_modules')
-      logger.log('  --quiet, --silent   Suppress progress messages')
-      logger.log('')
-      logger.log('Examples:')
-      logger.log(
-        '  pnpm clean                  # Clean everything except node_modules',
-      )
-      logger.log('  pnpm clean --dist           # Clean build output only')
-      logger.log('  pnpm clean --cache --coverage  # Clean cache and coverage')
-      logger.log(
-        '  pnpm clean --all --modules  # Clean everything including node_modules',
-      )
-      process.exitCode = 0
-      return
-    }
-
     const quiet: boolean = values.quiet || values.silent
 
     const tasks = cleanTasks(values)
@@ -256,8 +228,8 @@ async function main(): Promise<void> {
 }
 
 if (isMainModule(import.meta.url)) {
-  main().catch((e: unknown) => {
-    logger.error(e)
-    process.exitCode = 1
+  runMain(main, {
+    describe: 'removes selected generated outputs',
+    help: 'Clean Runner\n\nUsage: pnpm clean [options]\n\nOptions:\n  --help              Show this help message\n  --all               Clean everything (default if no flags)\n  --cache             Clean cache directories\n  --coverage          Clean coverage reports\n  --dist              Clean build output\n  --types             Clean TypeScript declarations only\n  --modules           Clean node_modules\n  --quiet, --silent   Suppress progress messages\n\nExamples:\n  pnpm clean                  # Clean everything except node_modules\n  pnpm clean --dist           # Clean build output only\n  pnpm clean --cache --coverage  # Clean cache and coverage\n  pnpm clean --all --modules  # Clean everything including node_modules',
   })
 }

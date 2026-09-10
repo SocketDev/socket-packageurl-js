@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url'
 
 import allThePackageNamesData from 'all-the-package-names/names.json' with { type: 'json' }
 import allThePackageNamesV1Data from 'all-the-package-names-v1.3905.0/names.json' with { type: 'json' }
-import pacote from 'pacote'
 import validateNpmPackageName from 'validate-npm-package-name'
 
 import { arrayUnique } from '@socketsecurity/lib-stable/arrays/unique'
@@ -20,6 +19,7 @@ import { confirm } from '@socketsecurity/lib-stable/stdio/prompts'
 import { gte } from '@socketsecurity/lib-stable/versions/compare'
 
 import { isMainModule } from '../fleet/process/is-main-module.mts'
+import { runMain } from '../fleet/process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -33,6 +33,7 @@ const npmBuiltinNamesJsonPath = path.join(npmDataPath, 'builtin-names.json')
 const npmLegacyNamesJsonPath = path.join(npmDataPath, 'legacy-names.json')
 
 async function main(): Promise<void> {
+  const { default: pacote } = await import('pacote')
   const spinner = getDefaultSpinner()
   spinner.start()
 
@@ -118,8 +119,8 @@ async function main(): Promise<void> {
 }
 
 if (isMainModule(import.meta.url)) {
-  main().catch((e: unknown) => {
-    logger.error(e)
-    process.exitCode = 1
+  runMain(main, {
+    describe: 'updates npm package name data',
+    help: 'Usage: pnpm update-data-npm [options]\n--help  Show command usage',
   })
 }

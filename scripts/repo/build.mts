@@ -26,6 +26,7 @@ import { getBuildAnalysis } from './build-analysis.mts'
 import { runSequence } from './utils/run-command.mts'
 
 import { isMainModule } from '../fleet/process/is-main-module.mts'
+import { runMain } from '../fleet/process/run-main.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -364,32 +365,6 @@ async function main(): Promise<void> {
   try {
     const values = parseBuildFlags()
 
-    // Show help if requested
-    if (values.help) {
-      logger.log('Build Runner')
-      logger.log('')
-      logger.log('Usage: pnpm build [options]')
-      logger.log('')
-      logger.log('Options:')
-      logger.log('  --help       Show this help message')
-      logger.log('  --src        Build source code only')
-      logger.log('  --types      Build TypeScript declarations only')
-      logger.log('  --watch      Watch mode with incremental rebuilds')
-      logger.log('  --needed     Only build if dist files are missing')
-      logger.log('  --analyze    Show bundle size analysis')
-      logger.log('  --quiet, --silent  Suppress progress messages')
-      logger.log('  --verbose    Show detailed build output')
-      logger.log('')
-      logger.log('Examples:')
-      logger.log('  pnpm build              # Full build (source + types)')
-      logger.log('  pnpm build --src        # Build source only')
-      logger.log('  pnpm build --types      # Build types only')
-      logger.log('  pnpm build --watch      # Watch mode')
-      logger.log('  pnpm build --analyze    # Build with size analysis')
-      process.exitCode = 0
-      return
-    }
-
     const quiet = [values.quiet, values.silent].includes(true)
     const verbose = values.verbose
 
@@ -449,8 +424,8 @@ async function main(): Promise<void> {
 }
 
 if (isMainModule(import.meta.url)) {
-  main().catch((error: unknown) => {
-    logger.error(error)
-    process.exitCode = 1
+  runMain(main, {
+    describe: 'builds source and type declarations',
+    help: 'Build Runner\n\nUsage: pnpm build [options]\n\nOptions:\n  --help       Show this help message\n  --src        Build source code only\n  --types      Build TypeScript declarations only\n  --watch      Watch mode with incremental rebuilds\n  --needed     Only build if dist files are missing\n  --analyze    Show bundle size analysis\n  --quiet, --silent  Suppress progress messages\n  --verbose    Show detailed build output\n\nExamples:\n  pnpm build              # Full build (source + types)\n  pnpm build --src        # Build source only\n  pnpm build --types      # Build types only\n  pnpm build --watch      # Watch mode\n  pnpm build --analyze    # Build with size analysis',
   })
 }
