@@ -196,22 +196,7 @@ export class PackageURL {
       this.subpath = subpath as string
     }
 
-    // Registered types carry their own normalize/validate helpers; any
-    // unregistered type falls back to the default pair so injection
-    // protection (PurlTypeValidator) runs for EVERY type, not just the
-    // enumerated ones. Without this fallback, `pkg:<unknown>/na$(x)me`
-    // would skip validation entirely and smuggle shell metacharacters
-    // through name/namespace — security must be opt-out, not opt-in.
-    const typeHelpers = PurlType[type as string]
-    const normalize = (typeHelpers?.['normalize'] ?? PurlTypNormalizer) as (
-      _purl: PackageURL,
-    ) => void
-    const validate = (typeHelpers?.['validate'] ?? PurlTypeValidator) as (
-      _purl: PackageURL,
-      _options?: { throws?: boolean | undefined } | undefined,
-    ) => boolean
-    normalize(this)
-    validate(this, THROWS_OPTIONS)
+    normalizePurlByType(this, type as string)
   }
 
   /**
@@ -487,3 +472,22 @@ export {
   ok,
 }
 export type { DownloadUrl, RepositoryUrl, PurlResult }
+
+export function normalizePurlByType(purl: PackageURL, type: string): void {
+  // Registered types carry their own normalize/validate helpers; any
+  // unregistered type falls back to the default pair so injection
+  // protection (PurlTypeValidator) runs for EVERY type, not just the
+  // enumerated ones. Without this fallback, `pkg:<unknown>/na$(x)me`
+  // would skip validation entirely and smuggle shell metacharacters
+  // through name/namespace — security must be opt-out, not opt-in.
+  const typeHelpers = PurlType[type]
+  const normalize = (typeHelpers?.['normalize'] ?? PurlTypNormalizer) as (
+    _purl: PackageURL,
+  ) => void
+  const validate = (typeHelpers?.['validate'] ?? PurlTypeValidator) as (
+    _purl: PackageURL,
+    _options?: { throws?: boolean | undefined } | undefined,
+  ) => boolean
+  normalize(purl)
+  validate(purl, THROWS_OPTIONS)
+}

@@ -23,6 +23,33 @@ import { pypiExists } from './purl-types/pypi.mjs'
 import type { PackageURL } from './package-url.mjs'
 import type { ExistsOptions, ExistsResult } from './purl-types/npm.mjs'
 
+export function getVersionedRegistryCheck(type: string) {
+  switch (type) {
+    case 'cargo':
+      return cargoExists
+    case 'cocoapods':
+      return cocoapodsExists
+    case 'cpan':
+      return cpanExists
+    case 'cran':
+      return cranExists
+    case 'gem':
+      return gemExists
+    case 'hackage':
+      return hackageExists
+    case 'hex':
+      return hexExists
+    case 'nuget':
+      return nugetExists
+    case 'pub':
+      return pubExists
+    case 'pypi':
+      return pypiExists
+    default:
+      return undefined
+  }
+}
+
 /**
  * Check if a package exists in its registry.
  *
@@ -109,39 +136,24 @@ export async function purlExists(
     }
   }
 
+  const versionedRegistry = getVersionedRegistryCheck(type)
+  if (versionedRegistry) {
+    return versionedRegistry(name, { version, ...options })
+  }
+
   switch (type) {
     case 'npm':
       return npmExists(name, { namespace, version, ...options })
-    case 'pypi':
-      return pypiExists(name, { version, ...options })
-    case 'cargo':
-      return cargoExists(name, { version, ...options })
-    case 'gem':
-      return gemExists(name, { version, ...options })
     case 'maven':
       return mavenExists(name, { namespace, version, ...options })
-    case 'nuget':
-      return nugetExists(name, { version, ...options })
     case 'golang':
       return golangExists(name, { namespace, version, ...options })
     case 'composer':
       return packagistExists(name, { namespace, version, ...options })
-    case 'cocoapods':
-      return cocoapodsExists(name, { version, ...options })
     case 'conda':
       return condaExists(name, { version, channel: namespace, ...options })
     case 'docker':
       return dockerExists(name, { namespace, version, ...options })
-    case 'pub':
-      return pubExists(name, { version, ...options })
-    case 'hex':
-      return hexExists(name, { version, ...options })
-    case 'cpan':
-      return cpanExists(name, { version, ...options })
-    case 'cran':
-      return cranExists(name, { version, ...options })
-    case 'hackage':
-      return hackageExists(name, { version, ...options })
     default:
       return {
         exists: false,
