@@ -5,14 +5,12 @@
 
 import path from 'node:path'
 import process from 'node:process'
+import { parseArgs } from 'node:util'
 import { fileURLToPath } from 'node:url'
 
 import { deleteAsync } from 'del'
 import fastGlob from 'fast-glob'
 
-import { isQuiet } from '@socketsecurity/lib-stable/exe/argv/flag-predicates'
-import type { FlagValues } from '@socketsecurity/lib-stable/exe/argv/flag-types'
-import { parseArgs } from '@socketsecurity/lib-stable/exe/argv/parse'
 import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { createSectionHeader } from '@socketsecurity/lib-stable/stdio/header'
@@ -30,18 +28,6 @@ type CleanTask = {
 
 type CleanOptions = {
   quiet?: boolean | undefined
-}
-
-type CleanScriptValues = FlagValues & {
-  all: boolean
-  cache: boolean
-  coverage: boolean
-  dist: boolean
-  help: boolean
-  modules: boolean
-  quiet: boolean
-  silent: boolean
-  types: boolean
 }
 
 const rootPath = path.resolve(
@@ -100,10 +86,53 @@ export async function cleanDirectories(
   return 0
 }
 
+function cleanTasks(
+  values: Record<
+    'all' | 'cache' | 'coverage' | 'dist' | 'types' | 'modules',
+    boolean
+  >,
+): CleanTask[] {
+  // Determine what to clean
+  const cleanAll: boolean =
+    values.all ||
+    (!values.cache &&
+      !values.coverage &&
+      !values.dist &&
+      !values.types &&
+      !values.modules)
+
+  const tasks: CleanTask[] = []
+
+  // Build task list
+  if (cleanAll || values.cache) {
+    // oxlint-disable-next-line socket/prefer-repo-root-dot-cache -- this is a deletion target glob, not a new cache path; matches stale .cache dirs anywhere in the tree.
+    tasks.push({ name: 'cache', pattern: '**/.cache' })
+  }
+
+  if (cleanAll || values.coverage) {
+    tasks.push({ name: 'coverage', pattern: 'coverage' })
+  }
+
+  if (cleanAll || values.dist) {
+    tasks.push({
+      name: 'dist',
+      patterns: ['dist', '*.tsbuildinfo', '.tsbuildinfo'],
+    })
+  } else if (values.types) {
+    tasks.push({ name: 'dist/types', patterns: ['dist/types'] })
+  }
+
+  if (values.modules) {
+    tasks.push({ name: 'node_modules', pattern: '**/node_modules' })
+  }
+
+  return tasks
+}
+
 async function main(): Promise<void> {
   try {
     // Parse arguments
-    const { values } = parseArgs<CleanScriptValues>({
+    const { values: parsed } = parseArgs({
       options: {
         help: {
           type: 'boolean',
@@ -145,6 +174,17 @@ async function main(): Promise<void> {
       allowPositionals: false,
       strict: false,
     })
+    const values = {
+      help: Boolean(parsed.help),
+      all: Boolean(parsed.all),
+      cache: Boolean(parsed.cache),
+      coverage: Boolean(parsed.coverage),
+      dist: Boolean(parsed.dist),
+      types: Boolean(parsed.types),
+      modules: Boolean(parsed.modules),
+      quiet: Boolean(parsed.quiet),
+      silent: Boolean(parsed.silent),
+    }
 
     // Show help if requested
     if (values.help) {
@@ -175,41 +215,9 @@ async function main(): Promise<void> {
       return
     }
 
-    const quiet: boolean = isQuiet(values)
+    const quiet: boolean = values.quiet || values.silent
 
-    // Determine what to clean
-    const cleanAll: boolean =
-      values.all ||
-      (!values.cache &&
-        !values.coverage &&
-        !values.dist &&
-        !values.types &&
-        !values.modules)
-
-    const tasks: CleanTask[] = []
-
-    // Build task list
-    if (cleanAll || values.cache) {
-      // oxlint-disable-next-line socket/prefer-repo-root-dot-cache -- this is a deletion target glob, not a new cache path; matches stale .cache dirs anywhere in the tree.
-      tasks.push({ name: 'cache', pattern: '**/.cache' })
-    }
-
-    if (cleanAll || values.coverage) {
-      tasks.push({ name: 'coverage', pattern: 'coverage' })
-    }
-
-    if (cleanAll || values.dist) {
-      tasks.push({
-        name: 'dist',
-        patterns: ['dist', '*.tsbuildinfo', '.tsbuildinfo'],
-      })
-    } else if (values.types) {
-      tasks.push({ name: 'dist/types', patterns: ['dist/types'] })
-    }
-
-    if (values.modules) {
-      tasks.push({ name: 'node_modules', pattern: '**/node_modules' })
-    }
+    const tasks = cleanTasks(values)
 
     // Check if there's anything to clean
     if (tasks.length === 0) {

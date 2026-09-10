@@ -13,9 +13,6 @@ import { rolldown, watch as rolldownWatch } from 'rolldown'
 import type { RolldownOutput } from 'rolldown'
 import colors from 'yoctocolors-cjs'
 
-import { isQuiet } from '@socketsecurity/lib-stable/exe/argv/flag-predicates'
-import type { FlagValues } from '@socketsecurity/lib-stable/exe/argv/flag-types'
-import { parseArgs } from '@socketsecurity/lib-stable/exe/argv/parse'
 import { isWin32 } from '@socketsecurity/lib-stable/constants/platform'
 import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
@@ -23,22 +20,14 @@ import { printFooter } from '@socketsecurity/lib-stable/stdio/footer'
 import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'
 
-const logger: Logger = getDefaultLogger()
-
 import { configs as rolldownConfigs } from '../../.config/repo/rolldown.config.mts'
+import { parseBuildFlags } from './build-args.mts'
 import { getBuildAnalysis } from './build-analysis.mts'
 import { runSequence } from './utils/run-command.mts'
 
 import { isMainModule } from '../fleet/process/is-main-module.mts'
 
-type BuildScriptValues = FlagValues & {
-  analyze: boolean
-  help: boolean
-  needed: boolean
-  src: boolean
-  types: boolean
-  verbose: boolean
-}
+const logger: Logger = getDefaultLogger()
 
 type BuildSourceOptions = {
   analyze?: boolean | undefined
@@ -263,51 +252,117 @@ export async function watchBuild(
   }
 }
 
+async function buildAll(config: BuildSourceOptions): Promise<number> {
+  const { quiet, verbose, analyze } = {
+    __proto__: null,
+    ...config,
+  } as typeof config
+  if (!quiet) {
+    logger.step('Building package (source + types)')
+  }
+
+  // Clean all directories first (once)
+  if (!quiet) {
+    logger.substep('Cleaning build directories')
+  }
+  let exitCode = await runSequence([
+    {
+      args: ['scripts/repo/clean.mts', '--dist', '--types', '--quiet'],
+      command: 'node',
+    },
+  ])
+  if (exitCode !== 0) {
+    if (!quiet) {
+      logger.error('Clean failed')
+    }
+    return exitCode
+  }
+
+  // Run source and types builds in parallel
+  const results = await Promise.allSettled([
+    buildSource({
+      quiet,
+      verbose,
+      skipClean: true,
+      analyze: analyze,
+    }),
+    buildTypes({ quiet, verbose, skipClean: true }),
+  ])
+
+  const srcResult: BuildSourceResult =
+    results[0].status === 'fulfilled'
+      ? results[0].value
+      : { buildTime: 0, exitCode: 1, outputs: [] }
+  const typesExitCode = results[1].status === 'fulfilled' ? results[1].value : 1
+
+  // Log completion messages in order
+  if (!quiet) {
+    if (srcResult.exitCode === 0) {
+      logger.substep(`Source build complete in ${srcResult.buildTime}ms`)
+
+      if (analyze) {
+        const analysis = getBuildAnalysis()
+        logger.info('Build output:')
+        for (const file of analysis.files) {
+          logger.substep(`${file.name}: ${file.size}`)
+        }
+        logger.step(`Total bundle size: ${analysis.totalSize}`)
+      }
+    }
+
+    if (typesExitCode === 0) {
+      logger.substep('Type declarations built')
+    }
+  }
+
+  exitCode = srcResult.exitCode !== 0 ? srcResult.exitCode : typesExitCode
+  return exitCode
+}
+
+async function buildSourceOnly(config: BuildSourceOptions): Promise<number> {
+  const { quiet, verbose, analyze } = {
+    __proto__: null,
+    ...config,
+  } as typeof config
+  if (!quiet) {
+    logger.step('Building source only')
+  }
+  const { buildTime, exitCode: srcExitCode } = await buildSource({
+    quiet,
+    verbose,
+    analyze: analyze,
+  })
+  const exitCode = srcExitCode
+  if (exitCode === 0 && !quiet) {
+    logger.substep(`Source build complete in ${buildTime}ms`)
+
+    if (analyze) {
+      const analysis = getBuildAnalysis()
+      logger.info('Build output:')
+      for (const file of analysis.files) {
+        logger.substep(`${file.name}: ${file.size}`)
+      }
+      logger.step(`Total bundle size: ${analysis.totalSize}`)
+    }
+  }
+  return exitCode
+}
+
+async function buildTypesOnly(config: BuildTypesOptions): Promise<number> {
+  const { quiet, verbose } = config
+  if (!quiet) {
+    logger.step('Building TypeScript declarations only')
+  }
+  const exitCode = await buildTypes({ quiet, verbose })
+  if (exitCode === 0 && !quiet) {
+    logger.substep('Type declarations built')
+  }
+  return exitCode
+}
+
 async function main(): Promise<void> {
   try {
-    // Parse arguments
-    const { values } = parseArgs<BuildScriptValues>({
-      options: {
-        help: {
-          type: 'boolean',
-          default: false,
-        },
-        src: {
-          type: 'boolean',
-          default: false,
-        },
-        types: {
-          type: 'boolean',
-          default: false,
-        },
-        watch: {
-          type: 'boolean',
-          default: false,
-        },
-        needed: {
-          type: 'boolean',
-          default: false,
-        },
-        analyze: {
-          type: 'boolean',
-          default: false,
-        },
-        silent: {
-          type: 'boolean',
-          default: false,
-        },
-        quiet: {
-          type: 'boolean',
-          default: false,
-        },
-        verbose: {
-          type: 'boolean',
-          default: false,
-        },
-      },
-      allowPositionals: false,
-      strict: false,
-    })
+    const values = parseBuildFlags()
 
     // Show help if requested
     if (values.help) {
@@ -335,7 +390,7 @@ async function main(): Promise<void> {
       return
     }
 
-    const quiet = isQuiet(values)
+    const quiet = [values.quiet, values.silent].includes(true)
     const verbose = values.verbose
 
     // Check if build is needed
@@ -359,101 +414,19 @@ async function main(): Promise<void> {
     }
     // Build types only
     else if (values.types && !values.src) {
-      if (!quiet) {
-        logger.step('Building TypeScript declarations only')
-      }
-      exitCode = await buildTypes({ quiet, verbose })
-      if (exitCode === 0 && !quiet) {
-        logger.substep('Type declarations built')
-      }
+      exitCode = await buildTypesOnly({ quiet, verbose })
     }
     // Build source only
     else if (values.src && !values.types) {
-      if (!quiet) {
-        logger.step('Building source only')
-      }
-      const { buildTime, exitCode: srcExitCode } = await buildSource({
+      exitCode = await buildSourceOnly({
         quiet,
         verbose,
         analyze: values.analyze,
       })
-      exitCode = srcExitCode
-      if (exitCode === 0 && !quiet) {
-        logger.substep(`Source build complete in ${buildTime}ms`)
-
-        if (values.analyze) {
-          const analysis = getBuildAnalysis()
-          logger.info('Build output:')
-          for (const file of analysis.files) {
-            logger.substep(`${file.name}: ${file.size}`)
-          }
-          logger.step(`Total bundle size: ${analysis.totalSize}`)
-        }
-      }
     }
     // Build everything (default)
     else {
-      if (!quiet) {
-        logger.step('Building package (source + types)')
-      }
-
-      // Clean all directories first (once)
-      if (!quiet) {
-        logger.substep('Cleaning build directories')
-      }
-      exitCode = await runSequence([
-        {
-          args: ['scripts/repo/clean.mts', '--dist', '--types', '--quiet'],
-          command: 'node',
-        },
-      ])
-      if (exitCode !== 0) {
-        if (!quiet) {
-          logger.error('Clean failed')
-        }
-        process.exitCode = exitCode
-        return
-      }
-
-      // Run source and types builds in parallel
-      const results = await Promise.allSettled([
-        buildSource({
-          quiet,
-          verbose,
-          skipClean: true,
-          analyze: values.analyze,
-        }),
-        buildTypes({ quiet, verbose, skipClean: true }),
-      ])
-
-      const srcResult: BuildSourceResult =
-        results[0].status === 'fulfilled'
-          ? results[0].value
-          : { buildTime: 0, exitCode: 1, outputs: [] }
-      const typesExitCode =
-        results[1].status === 'fulfilled' ? results[1].value : 1
-
-      // Log completion messages in order
-      if (!quiet) {
-        if (srcResult.exitCode === 0) {
-          logger.substep(`Source build complete in ${srcResult.buildTime}ms`)
-
-          if (values.analyze) {
-            const analysis = getBuildAnalysis()
-            logger.info('Build output:')
-            for (const file of analysis.files) {
-              logger.substep(`${file.name}: ${file.size}`)
-            }
-            logger.step(`Total bundle size: ${analysis.totalSize}`)
-          }
-        }
-
-        if (typesExitCode === 0) {
-          logger.substep('Type declarations built')
-        }
-      }
-
-      exitCode = srcResult.exitCode !== 0 ? srcResult.exitCode : typesExitCode
+      exitCode = await buildAll({ quiet, verbose, analyze: values.analyze })
     }
 
     // Print final status and footer
