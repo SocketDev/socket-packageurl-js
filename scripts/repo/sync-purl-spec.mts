@@ -1,10 +1,9 @@
 /**
  * @file Repo-owned sync: vendors the package-url/purl-spec conformance suite
- *   (tests/spec/_.json + tests/types/_.json) into test/fixtures/purl-spec/
+ *   (tests/spec/_.json + tests/types/_.json) into upstream/purl-spec/
  *   {spec,types} from the ref pinned in .config/repo/purl-spec-pin.json. The
- *   vendored JSON is script-owned and byte-identical to upstream (test/
- *   fixtures/ sits in the fleet oxfmt ignore list for exactly this reason) —
- *   hand-edits are drift this sync detects and overwrites.
+ *   vendored JSON is script-owned and byte-identical to upstream. The fleet
+ *   formatter ignores `upstream/`, so local formatting cannot create drift.
  *   test/data/contrib-tests.json is Socket-authored and never touched. The
  *   pinned checkout is cached OUT OF TREE at node_modules/.cache/purl-spec/
  *   (documented invisible store; a cached pin re-syncs offline). The corpus is
@@ -44,7 +43,7 @@ const PIN_JSON_PATH = path.join(
   'purl-spec-pin.json',
 )
 const SPEC_CACHE_DIR = path.join(NODE_MODULES_DIR, '.cache', 'purl-spec')
-const VENDORED_SUITE_DIR = path.join(REPO_ROOT, 'test', 'fixtures', 'purl-spec')
+const VENDORED_SUITE_DIR = path.join(REPO_ROOT, 'upstream', 'purl-spec')
 
 // Upstream suite directory → vendored directory, relative pairs.
 const SUITE_DIRS: ReadonlyArray<{ from: string; to: string }> = [
@@ -257,7 +256,7 @@ async function main(): Promise<void> {
   if (check) {
     logger.error(
       `vendored purl-spec suite drifts from the pin in ${PIN_JSON_PATH} ` +
-        `(purl-spec@${pin.ref.slice(0, 12)}) at ${drift.length} path(s) under test/fixtures/purl-spec/:`,
+        `(purl-spec@${pin.ref.slice(0, 12)}) at ${drift.length} path(s) under upstream/purl-spec/:`,
     )
     for (const entry of drift) {
       logger.error(`  ${entry.kind}: ${entry.relPath}`)

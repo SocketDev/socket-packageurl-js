@@ -23,7 +23,7 @@ SOFTWARE.
 /**
  * @file Official Package URL specification compliance tests. Tests PackageURL
  *   implementation against the official purl-spec test suite (vendored at
- *   test/fixtures/purl-spec/ by scripts/repo/sync-purl-spec.mts) plus the
+ *   upstream/purl-spec/ by scripts/repo/sync-purl-spec.mts) plus the
  *   Socket-authored contrib cases (test/data/contrib-tests.json). Validates
  *   parsing, building, and roundtrip behavior for all package types defined in
  *   the spec, ensuring strict compliance with expected successes and failures.
@@ -106,7 +106,7 @@ describe('PackageURL purl-spec test suite', async () => {
   // Tests from the vendored purl-spec suite + the Socket contrib cases.
   const settled = await Promise.allSettled(
     (
-      await fastGlob.glob(['data/*.json', 'fixtures/purl-spec/**/*.json'], {
+      await fastGlob.glob(['data/*.json', '../upstream/purl-spec/**/*.json'], {
         absolute: true,
         cwd: __dirname,
       })

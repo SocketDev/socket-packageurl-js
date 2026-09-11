@@ -1,7 +1,7 @@
 import { getDefaultLogger } from '@socketsecurity/lib/logger/default'
 import { describe, expect, it } from 'vitest'
 import { createMatcher, matchesPurl } from '../src/index.mjs'
-import { createTestPurl } from './utils/fixtures.mjs'
+import { createTestPurl } from './fixture/purl.mjs'
 
 /**
  * @file Tests for PURL pattern matching functionality. Tests wildcard matching
