@@ -1,9 +1,9 @@
 /**
  * @file Repo-owned sync: vendors the package-url/purl-spec conformance suite
- *   (tests/spec/_.json + tests/types/_.json) into upstream/purl-spec/
- *   {spec,types} from the ref pinned in .config/repo/purl-spec-pin.json. The
- *   vendored JSON is script-owned and byte-identical to upstream. The fleet
- *   formatter ignores `upstream/`, so local formatting cannot create drift.
+ *   (tests/spec/_.json + tests/types/_.json) into the shared test fixture tree
+ *   from the ref pinned in .config/repo/purl-spec-pin.json. The vendored JSON
+ *   is script-owned and byte-identical to upstream. The repo formatter ignore
+ *   keeps local formatting from creating drift.
  *   test/data/contrib-tests.json is Socket-authored and never touched. The
  *   pinned checkout is cached OUT OF TREE at node_modules/.cache/purl-spec/
  *   (documented invisible store; a cached pin re-syncs offline). The corpus is
@@ -32,7 +32,7 @@ import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { NODE_MODULES_DIR, REPO_ROOT } from '../fleet/paths.mts'
+import { NODE_MODULES_DIR, PURL_SPEC_FIXTURE_DIR, REPO_ROOT } from './paths.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -43,7 +43,6 @@ const PIN_JSON_PATH = path.join(
   'purl-spec-pin.json',
 )
 const SPEC_CACHE_DIR = path.join(NODE_MODULES_DIR, '.cache', 'purl-spec')
-const VENDORED_SUITE_DIR = path.join(REPO_ROOT, 'upstream', 'purl-spec')
 
 // Upstream suite directory → vendored directory, relative pairs.
 const SUITE_DIRS: ReadonlyArray<{ from: string; to: string }> = [
@@ -150,7 +149,7 @@ export function diffSuite(checkoutDir: string): SuiteDrift[] {
   const drift: SuiteDrift[] = []
   for (const { from, to } of SUITE_DIRS) {
     const upstreamDir = path.join(checkoutDir, from)
-    const vendoredDir = path.join(VENDORED_SUITE_DIR, to)
+    const vendoredDir = path.join(PURL_SPEC_FIXTURE_DIR, to)
     const upstreamFiles = listSuiteJson(upstreamDir)
     const vendoredFiles = listSuiteJson(vendoredDir)
     const upstreamSet = new Set(upstreamFiles)
@@ -182,7 +181,7 @@ export async function applySuite(
 ): Promise<void> {
   for (let i = 0, { length } = drift; i < length; i += 1) {
     const entry = drift[i]!
-    const vendoredPath = path.join(VENDORED_SUITE_DIR, entry.relPath)
+    const vendoredPath = path.join(PURL_SPEC_FIXTURE_DIR, entry.relPath)
     if (entry.kind === 'stale') {
       await safeDelete(vendoredPath)
       continue
@@ -256,7 +255,7 @@ async function main(): Promise<void> {
   if (check) {
     logger.error(
       `vendored purl-spec suite drifts from the pin in ${PIN_JSON_PATH} ` +
-        `(purl-spec@${pin.ref.slice(0, 12)}) at ${drift.length} path(s) under upstream/purl-spec/:`,
+        `(purl-spec@${pin.ref.slice(0, 12)}) at ${drift.length} path(s) under test/repo/common/fixture/purl-spec/:`,
     )
     for (const entry of drift) {
       logger.error(`  ${entry.kind}: ${entry.relPath}`)

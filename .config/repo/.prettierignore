@@ -1,0 +1,2 @@
+# Keep the pinned purl-spec corpus byte-identical to its upstream source.
+**/test/repo/common/fixture/purl-spec/**
