@@ -279,10 +279,12 @@ async function main(): Promise<void> {
 }
 
 // Entry-point guard so test files can import the exports without running main.
+const SCRIPT_META = {
+  describe: 'synchronizes the pinned purl-spec fixtures',
+  help: 'Usage: pnpm sync-purl-spec [--check | --bump] [--quiet]\n--help, -h  Show command usage\n--describe  Show command purpose',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(main, {
-    describe: 'synchronizes the pinned purl-spec fixtures',
-    help: 'Usage: pnpm sync-purl-spec [--check | --bump] [--quiet]\n--help, -h  Show command usage\n--describe  Show command purpose',
-    json: 'result',
-  })
+  runMain(main, SCRIPT_META)
 }

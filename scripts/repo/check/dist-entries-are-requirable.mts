@@ -204,10 +204,12 @@ function main(): void {
   process.exitCode = runCheck(REPO_ROOT, { quiet })
 }
 
+const SCRIPT_META = {
+  describe: 'checks that published runtime entries load',
+  help: 'Usage: pnpm run check:dist-entries-are-requirable [--quiet]\n--help, -h  Show command usage\n--describe  Show command purpose',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(main, {
-    describe: 'checks that published runtime entries load',
-    help: 'Usage: pnpm run check:dist-entries-are-requirable [--quiet]\n--help, -h  Show command usage\n--describe  Show command purpose',
-    json: 'result',
-  })
+  runMain(main, SCRIPT_META)
 }

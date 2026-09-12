@@ -423,10 +423,12 @@ async function main(): Promise<void> {
   }
 }
 
+const SCRIPT_META = {
+  describe: 'builds source and type declarations',
+  help: 'Build Runner\n\nUsage: pnpm build [options]\n\nOptions:\n  --help       Show this help message\n  --src        Build source code only\n  --types      Build TypeScript declarations only\n  --watch      Watch mode with incremental rebuilds\n  --needed     Only build if dist files are missing\n  --analyze    Show bundle size analysis\n  --quiet, --silent  Suppress progress messages\n  --verbose    Show detailed build output\n\nExamples:\n  pnpm build              # Full build (source + types)\n  pnpm build --src        # Build source only\n  pnpm build --types      # Build types only\n  pnpm build --watch      # Watch mode\n  pnpm build --analyze    # Build with size analysis',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(main, {
-    describe: 'builds source and type declarations',
-    help: 'Build Runner\n\nUsage: pnpm build [options]\n\nOptions:\n  --help       Show this help message\n  --src        Build source code only\n  --types      Build TypeScript declarations only\n  --watch      Watch mode with incremental rebuilds\n  --needed     Only build if dist files are missing\n  --analyze    Show bundle size analysis\n  --quiet, --silent  Suppress progress messages\n  --verbose    Show detailed build output\n\nExamples:\n  pnpm build              # Full build (source + types)\n  pnpm build --src        # Build source only\n  pnpm build --types      # Build types only\n  pnpm build --watch      # Watch mode\n  pnpm build --analyze    # Build with size analysis',
-    json: 'result',
-  })
+  runMain(main, SCRIPT_META)
 }

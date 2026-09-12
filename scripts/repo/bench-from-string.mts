@@ -250,10 +250,12 @@ export async function runFromStringBenchmark(): Promise<void> {
   logger.log(formatBenchResult(hits))
 }
 
+const SCRIPT_META = {
+  describe: 'benchmarks package URL parsing throughput',
+  help: 'Usage: pnpm bench [--corpus N] [--runs N] [--reps N] [--entry PATH]\n--help, -h  Show command usage\n--describe  Show command purpose',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(runFromStringBenchmark, {
-    describe: 'benchmarks package URL parsing throughput',
-    help: 'Usage: pnpm bench [--corpus N] [--runs N] [--reps N] [--entry PATH]\n--help, -h  Show command usage\n--describe  Show command purpose',
-    json: 'result',
-  })
+  runMain(runFromStringBenchmark, SCRIPT_META)
 }

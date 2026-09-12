@@ -86,10 +86,12 @@ async function main(): Promise<void> {
   }
 }
 
+const SCRIPT_META = {
+  describe: 'builds and validates the project',
+  help: 'Usage: pnpm ci-validate [options]\n--help  Show command usage',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(main, {
-    describe: 'builds and validates the project',
-    help: 'Usage: pnpm ci-validate [options]\n--help  Show command usage',
-    json: 'result',
-  })
+  runMain(main, SCRIPT_META)
 }

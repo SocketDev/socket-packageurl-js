@@ -125,10 +125,12 @@ export async function updateNpmData(): Promise<void> {
   }
 }
 
+const SCRIPT_META = {
+  describe: 'updates npm package name data',
+  help: 'Usage: pnpm update-data-npm [options]\n--help  Show command usage',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(updateNpmData, {
-    describe: 'updates npm package name data',
-    help: 'Usage: pnpm update-data-npm [options]\n--help  Show command usage',
-    json: 'result',
-  })
+  runMain(updateNpmData, SCRIPT_META)
 }

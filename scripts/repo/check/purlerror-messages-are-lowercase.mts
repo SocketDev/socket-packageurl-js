@@ -233,10 +233,12 @@ function main(): void {
   }
 }
 
+const SCRIPT_META = {
+  describe: 'checks PurlError message capitalization',
+  help: 'Usage: pnpm run check:purlerror-messages-are-lowercase [--quiet]\n--help, -h  Show command usage\n--describe  Show command purpose',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(main, {
-    describe: 'checks PurlError message capitalization',
-    help: 'Usage: pnpm run check:purlerror-messages-are-lowercase [--quiet]\n--help, -h  Show command usage\n--describe  Show command purpose',
-    json: 'result',
-  })
+  runMain(main, SCRIPT_META)
 }

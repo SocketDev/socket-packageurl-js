@@ -153,10 +153,12 @@ function main(): number {
   return result.status ?? 1
 }
 
+const SCRIPT_META = {
+  describe: 'runs the coverage-guided fuzz targets',
+  help: 'Usage: pnpm test:fuzz [test-path]\n--help  Show command usage',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(main, {
-    describe: 'runs the coverage-guided fuzz targets',
-    help: 'Usage: pnpm test:fuzz [test-path]\n--help  Show command usage',
-    json: 'result',
-  })
+  runMain(main, SCRIPT_META)
 }
