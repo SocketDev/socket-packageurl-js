@@ -120,7 +120,7 @@ export function checkMessageShape(msg: string): string | undefined {
   if (first >= 'A' && first <= 'Z') {
     return `starts with uppercase '${first}' — PurlError literals must begin with a lowercase character`
   }
-  if (msg[msg.length - 1] === '.') {
+  if (msg.charCodeAt(msg.length - 1) === 46 /* '.' */) {
     return `ends with '.' — PurlError literals must not have a trailing period`
   }
   return undefined
