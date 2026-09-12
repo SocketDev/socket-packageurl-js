@@ -17,13 +17,15 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
 
 import type { Dirent } from 'node:fs'
 
+import { isAgent } from '@socketsecurity/lib-stable/env/agents'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { REPO_ROOT } from '../../fleet/paths.mts'
+import { isMainModule } from '../../fleet/process/is-main-module.mts'
+import { runMain } from '../../fleet/process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -224,13 +226,17 @@ function main(): void {
     process.exitCode = 1
     return
   }
-  if (!quiet) {
+  if (!quiet && !isAgent()) {
     logger.success(
       '[purlerror-messages-are-lowercase] all PurlError literals are lowercase with no trailing period.',
     )
   }
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
+if (isMainModule(import.meta.url)) {
+  runMain(main, {
+    describe: 'checks PurlError message capitalization',
+    help: 'Usage: pnpm run check:purlerror-messages-are-lowercase [--quiet]\n--help, -h  Show command usage\n--describe  Show command purpose',
+    json: 'result',
+  })
 }

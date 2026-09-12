@@ -21,11 +21,13 @@ import { spawnSync } from '@socketsecurity/lib-stable/process/spawn/child'
 import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
 
+import { isAgent } from '@socketsecurity/lib-stable/env/agents'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
 import { REPO_ROOT } from '../../fleet/paths.mts'
+import { isMainModule } from '../../fleet/process/is-main-module.mts'
+import { runMain } from '../../fleet/process/run-main.mts'
 
 const logger = getDefaultLogger()
 
@@ -139,7 +141,7 @@ export function runCheck(
   ) as PackageJsonEntries
   const targets = collectRuntimeTargets(pkg)
   if (targets.length === 0) {
-    if (!quiet) {
+    if (!quiet && !isAgent()) {
       logger.success(
         '[dist-entries-are-requirable] no runtime entry targets declared.',
       )
@@ -148,7 +150,7 @@ export function runCheck(
   }
 
   if (!existsSync(path.join(repoRoot, 'dist'))) {
-    if (!quiet) {
+    if (!quiet && !isAgent()) {
       logger.log(
         '[dist-entries-are-requirable] dist/ not built — skipping (build lanes enforce this gate).',
       )
@@ -189,7 +191,7 @@ export function runCheck(
     return 1
   }
 
-  if (!quiet) {
+  if (!quiet && !isAgent()) {
     logger.success(
       `[dist-entries-are-requirable] all ${targets.length} published entry targets load cleanly.`,
     )
@@ -202,6 +204,10 @@ function main(): void {
   process.exitCode = runCheck(REPO_ROOT, { quiet })
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  main()
+if (isMainModule(import.meta.url)) {
+  runMain(main, {
+    describe: 'checks that published runtime entries load',
+    help: 'Usage: pnpm run check:dist-entries-are-requirable [--quiet]\n--help, -h  Show command usage\n--describe  Show command purpose',
+    json: 'result',
+  })
 }

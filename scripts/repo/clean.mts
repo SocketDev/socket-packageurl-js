@@ -231,5 +231,6 @@ if (isMainModule(import.meta.url)) {
   runMain(main, {
     describe: 'removes selected generated outputs',
     help: 'Clean Runner\n\nUsage: pnpm clean [options]\n\nOptions:\n  --help              Show this help message\n  --all               Clean everything (default if no flags)\n  --cache             Clean cache directories\n  --coverage          Clean coverage reports\n  --dist              Clean build output\n  --types             Clean TypeScript declarations only\n  --modules           Clean node_modules\n  --quiet, --silent   Suppress progress messages\n\nExamples:\n  pnpm clean                  # Clean everything except node_modules\n  pnpm clean --dist           # Clean build output only\n  pnpm clean --cache --coverage  # Clean cache and coverage\n  pnpm clean --all --modules  # Clean everything including node_modules',
+    json: 'result',
   })
 }

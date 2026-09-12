@@ -131,7 +131,7 @@ export function sweepOrphanedShmSegments(): void {
   }
 }
 
-function main(): void {
+function main(): number {
   sweepOrphanedShmSegments()
 
   // Sync-required: top-level CLI runner, exits with the child's code.
@@ -141,7 +141,7 @@ function main(): void {
     // No `--config`: vitest auto-discovers the repo-root vitest.config.mts, which
     // is the only config both this parent run and vitiate's re-spawned child agree
     // on (the child never receives --config). See vitest.config.mts header.
-    ['run', ...process.argv.slice(2)],
+    ['run', ...process.argv.slice(2).filter(arg => arg !== '--json')],
     {
       __proto__: null,
       cwd: repoRoot,
@@ -150,12 +150,13 @@ function main(): void {
     } as unknown as SpawnSyncOptions,
   ) as { status?: number | null | undefined }
 
-  process.exit(result.status ?? 1)
+  return result.status ?? 1
 }
 
 if (isMainModule(import.meta.url)) {
   runMain(main, {
     describe: 'runs the coverage-guided fuzz targets',
     help: 'Usage: pnpm test:fuzz [test-path]\n--help  Show command usage',
+    json: 'result',
   })
 }

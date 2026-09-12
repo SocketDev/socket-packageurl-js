@@ -22,7 +22,6 @@ import {
 } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
-import { fileURLToPath } from 'node:url'
 
 import { isQuiet } from '@socketsecurity/lib-stable/exe/argv/flag-predicates'
 import { readJson } from '@socketsecurity/lib-stable/fs/read-json'
@@ -33,6 +32,8 @@ import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
 import { NODE_MODULES_DIR, PURL_SPEC_FIXTURE_DIR, REPO_ROOT } from './paths.mts'
+import { isMainModule } from '../fleet/process/is-main-module.mts'
+import { runMain } from '../fleet/process/run-main.mts'
 
 const logger: Logger = getDefaultLogger()
 
@@ -278,13 +279,10 @@ async function main(): Promise<void> {
 }
 
 // Entry-point guard so test files can import the exports without running main.
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  void (async () => {
-    try {
-      await main()
-    } catch (e) {
-      logger.error(e)
-      process.exitCode = 1
-    }
-  })()
+if (isMainModule(import.meta.url)) {
+  runMain(main, {
+    describe: 'synchronizes the pinned purl-spec fixtures',
+    help: 'Usage: pnpm sync-purl-spec [--check | --bump] [--quiet]\n--help, -h  Show command usage\n--describe  Show command purpose',
+    json: 'result',
+  })
 }

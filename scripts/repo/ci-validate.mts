@@ -90,5 +90,6 @@ if (isMainModule(import.meta.url)) {
   runMain(main, {
     describe: 'builds and validates the project',
     help: 'Usage: pnpm ci-validate [options]\n--help  Show command usage',
+    json: 'result',
   })
 }

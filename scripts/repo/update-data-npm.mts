@@ -129,5 +129,6 @@ if (isMainModule(import.meta.url)) {
   runMain(updateNpmData, {
     describe: 'updates npm package name data',
     help: 'Usage: pnpm update-data-npm [options]\n--help  Show command usage',
+    json: 'result',
   })
 }

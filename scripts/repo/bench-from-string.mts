@@ -21,6 +21,9 @@ import { parseArgs } from 'node:util'
 
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 
+import { isMainModule } from '../fleet/process/is-main-module.mts'
+import { runMain } from '../fleet/process/run-main.mts'
+
 const logger = getDefaultLogger()
 
 const rootPath = path.resolve(
@@ -247,7 +250,10 @@ export async function runFromStringBenchmark(): Promise<void> {
   logger.log(formatBenchResult(hits))
 }
 
-runFromStringBenchmark().catch((e: unknown) => {
-  logger.error(e)
-  process.exitCode = 1
-})
+if (isMainModule(import.meta.url)) {
+  runMain(runFromStringBenchmark, {
+    describe: 'benchmarks package URL parsing throughput',
+    help: 'Usage: pnpm bench [--corpus N] [--runs N] [--reps N] [--entry PATH]\n--help, -h  Show command usage\n--describe  Show command purpose',
+    json: 'result',
+  })
+}
