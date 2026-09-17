@@ -2,8 +2,8 @@
 # edit it here. Fleet CI runs check + test through the LOCAL composite
 # actions under .github/actions/, inlined, so there is no cross-repo
 # reusable workflow and no first-party `uses:@sha`.
-name: 🧪 CI
-run-name: CI
+name: 'ci: gates'
+run-name: 'ci: gates'
 
 # PUSH, never pull_request. The fleet takes no outside contributions and
 # lands on main directly, so a pull_request trigger adds no coverage a push
@@ -67,8 +67,8 @@ jobs:
           # empty on a non-thin member (var/secret unset) - the mint is skipped
           # and the fetch no-ops. A thin member sets a dedicated read-only App's
           # client-id var + private-key secret.
-          payload-token-client-id: ${{ secrets.SOCKET_PR_CLIENT_ID }}
-          payload-token-private-key: ${{ secrets.SOCKET_PR_APP_PRIVATE_KEY }}
+          payload-token-client-id: ${{ secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID }}
+          payload-token-private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
       - name: Run script
         uses: ./.github/actions/fleet/run-script
         with:
@@ -120,8 +120,8 @@ jobs:
           # empty on a non-thin member (var/secret unset) - the mint is skipped
           # and the fetch no-ops. A thin member sets a dedicated read-only App's
           # client-id var + private-key secret.
-          payload-token-client-id: ${{ secrets.SOCKET_PR_CLIENT_ID }}
-          payload-token-private-key: ${{ secrets.SOCKET_PR_APP_PRIVATE_KEY }}
+          payload-token-client-id: ${{ secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID }}
+          payload-token-private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
       - name: Run script
         uses: ./.github/actions/fleet/run-script
         env:
