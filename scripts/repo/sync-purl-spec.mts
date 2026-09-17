@@ -5,7 +5,8 @@
  *   is script-owned and byte-identical to upstream. The repo formatter ignore
  *   keeps local formatting from creating drift.
  *   test/data/contrib-tests.json is Socket-authored and never touched. The
- *   pinned checkout is cached OUT OF TREE at node_modules/.cache/purl-spec/
+ *   pinned checkout is cached under the repo-owned cache segment at
+ *   .cache/repo/purl-spec/
  *   (documented invisible store; a cached pin re-syncs offline). The corpus is
  *   ~40 small JSON files exercised in-process by test/purl-spec.test.mts, so
  *   the fleet 4-tier conformance-runner layout (sparse submodule + runner CLI)
@@ -31,7 +32,7 @@ import type { Logger } from '@socketsecurity/lib-stable/logger/logger'
 import { getDefaultLogger } from '@socketsecurity/lib-stable/logger/default'
 import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
-import { NODE_MODULES_DIR, PURL_SPEC_FIXTURE_DIR, REPO_ROOT } from './paths.mts'
+import { PURL_SPEC_FIXTURE_DIR, REPO_CACHE_DIR, REPO_ROOT } from './paths.mts'
 import { isMainModule } from '../fleet/process/is-main-module.mts'
 import { runMain } from '../fleet/process/run-main.mts'
 
@@ -43,7 +44,7 @@ const PIN_JSON_PATH = path.join(
   'repo',
   'purl-spec-pin.json',
 )
-const SPEC_CACHE_DIR = path.join(NODE_MODULES_DIR, '.cache', 'purl-spec')
+const SPEC_CACHE_DIR = path.join(REPO_CACHE_DIR, 'purl-spec')
 
 // Upstream suite directory → vendored directory, relative pairs.
 const SUITE_DIRS: ReadonlyArray<{ from: string; to: string }> = [
