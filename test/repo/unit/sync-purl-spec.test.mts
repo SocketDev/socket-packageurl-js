@@ -48,7 +48,7 @@ describe('diffSuite', () => {
     writeFileSync(originalPath, `${content}\n`)
     writeFileSync(path.join(checkout, 'tests', 'spec', 'new.json'), content)
     writeFileSync(path.join(vendored, 'spec', 'stale.json'), content)
-    const drift = diffSuite(checkout, vendored)
+    const drift = diffSuite(checkout, { fixtureDir: vendored })
     expect(drift).toEqual(
       expect.arrayContaining([
         { kind: 'changed', relPath: path.join('spec', name) },
@@ -57,7 +57,7 @@ describe('diffSuite', () => {
       ]),
     )
     await applySuite(checkout, drift, { fixtureDir: vendored })
-    expect(diffSuite(checkout, vendored)).toEqual([])
+    expect(diffSuite(checkout, { fixtureDir: vendored })).toEqual([])
   })
 
   it('restores all fixtures when finalizing the pin fails', async () => {
@@ -71,7 +71,7 @@ describe('diffSuite', () => {
       'specification-test.json',
     )
     writeFileSync(fixture, `${readFileSync(fixture, 'utf8')}\n`)
-    const drift = diffSuite(checkout, vendored)
+    const drift = diffSuite(checkout, { fixtureDir: vendored })
     await expect(
       applySuite(checkout, drift, {
         fixtureDir: vendored,
@@ -80,7 +80,7 @@ describe('diffSuite', () => {
         },
       }),
     ).rejects.toThrow()
-    expect(diffSuite(checkout, vendored)).toEqual(drift)
+    expect(diffSuite(checkout, { fixtureDir: vendored })).toEqual(drift)
   })
 
   it('rejects absent and empty upstream directories', async () => {
@@ -134,7 +134,7 @@ describe('selectSoakedRelease', () => {
 
   it('selects the highest published version at the soak boundary', () => {
     expect(
-      selectSoakedRelease([stable, { ...stable, tag_name: 'v1.0.0' }], now),
+      selectSoakedRelease([stable, { ...stable, tag_name: 'v1.0.0' }], { now }),
     ).toBe('v1.0.1')
   })
 
@@ -148,7 +148,7 @@ describe('selectSoakedRelease', () => {
           { ...stable, tag_name: 'invalid' },
           null,
         ],
-        now,
+        { now },
       ),
     ).toBeUndefined()
     expect(() => selectSoakedRelease({})).toThrow()

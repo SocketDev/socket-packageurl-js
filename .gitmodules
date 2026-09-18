@@ -6,6 +6,7 @@
 	branch = v1.0.1
 	shallow = true
 	sparse-checkout = docs schemas tests types
+	verify = pnpm run sync-purl-spec --check --quiet
 	ignore = dirty
 
 # no-release-tag: this reviewed second-edition draft is an audit input, not the published conformance gate
@@ -17,6 +18,7 @@
 	branch = main
 	shallow = true
 	sparse-checkout = docs schemas tests types
+	verify = pnpm run audit:purl-spec --verify-sources
 	ignore = dirty
 
 # vers-spec-v1.2.0 (2026-09-09) sha256:a71881836364e1664b8354ca2f9b3f86c3880d4c8609022c38fa60ab340c6a96
@@ -27,4 +29,5 @@
 	branch = v1.2.0
 	shallow = true
 	sparse-checkout = docs schemas tests types
+	verify = none
 	ignore = dirty

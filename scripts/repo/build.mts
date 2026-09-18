@@ -23,6 +23,7 @@ import { errorMessage } from './utils/error-message.mts'
 import { configs as rolldownConfigs } from '../../.config/repo/rolldown.config.mts'
 import { parseBuildFlags } from './build-args.mts'
 import { getBuildAnalysis } from './build-analysis.mts'
+import { PURL_DIST_ENTRY } from './paths.mts'
 import { runSequence } from './utils/run-command.mts'
 
 import { isMainModule } from '../fleet/process/is-main-module.mts'
@@ -197,10 +198,9 @@ export function getErrorMessage(error: unknown): string {
  * Check if build is needed.
  */
 export function isBuildNeeded(): boolean {
-  const distIndexPath = path.join(rootPath, 'dist', 'index.js')
   const distTypesPath = path.join(rootPath, 'dist', 'types', 'index.d.ts')
 
-  return !existsSync(distIndexPath) || !existsSync(distTypesPath)
+  return !existsSync(PURL_DIST_ENTRY) || !existsSync(distTypesPath)
 }
 
 /**

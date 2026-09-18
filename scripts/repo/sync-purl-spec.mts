@@ -174,8 +174,9 @@ function listSuiteJson(dir: string, required = false): string[] {
  */
 export function diffSuite(
   checkoutDir: string,
-  fixtureDir = PURL_SPEC_FIXTURE_DIR,
+  options: { fixtureDir?: string | undefined } = {},
 ): SuiteDrift[] {
+  const { fixtureDir = PURL_SPEC_FIXTURE_DIR } = options
   const drift: SuiteDrift[] = []
   for (const { from, to } of SUITE_DIRS) {
     const upstreamDir = path.join(checkoutDir, from)
@@ -264,8 +265,9 @@ export async function applySuite(
 
 export function selectSoakedRelease(
   value: unknown,
-  now = Date.now(),
+  options: { now?: number | undefined } = {},
 ): string | undefined {
+  const { now = Date.now() } = options
   if (!Array.isArray(value)) {
     throw new Error('GitHub release metadata must be an array.')
   }

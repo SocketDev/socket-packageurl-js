@@ -7,11 +7,14 @@ import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 import { parseGitmodules } from '../../fleet/git/modules.mts'
 import { isMainModule } from '../../fleet/process/is-main-module.mts'
 import { runMain } from '../../fleet/process/run-main.mts'
+import { getScriptArgs } from '../../fleet/process/script-output.mts'
 import type { ScriptResult } from '../../fleet/process/script-result.mts'
 import {
   GITMODULES_PATH,
   PURL_DIST_ENTRY,
+  PURL_SPEC_DRAFT_DIR,
   PURL_SPEC_DRAFT_RELATIVE_PATH,
+  PURL_SPEC_UPSTREAM_DIR,
   PURL_SPEC_UPSTREAM_RELATIVE_PATH,
   REPO_ROOT,
 } from '../paths.mts'
@@ -45,20 +48,19 @@ export function auditPurlCases(
   }
 }
 
-export async function main(): Promise<ScriptResult> {
+export async function loadPurlAuditSources() {
   const entries = parseGitmodules(await fs.readFile(GITMODULES_PATH, 'utf8'))
   const sources = []
-  for (const relativePath of [
-    PURL_SPEC_UPSTREAM_RELATIVE_PATH,
-    PURL_SPEC_DRAFT_RELATIVE_PATH,
-  ]) {
+  for (const [relativePath, directory] of [
+    [PURL_SPEC_UPSTREAM_RELATIVE_PATH, PURL_SPEC_UPSTREAM_DIR],
+    [PURL_SPEC_DRAFT_RELATIVE_PATH, PURL_SPEC_DRAFT_DIR],
+  ] as const) {
     const entry = entries.find(item => item.path === relativePath)
     if (!entry?.ref) {
       throw new Error(
         `Missing PURL audit pin at ${relativePath}; restore .gitmodules.`,
       )
     }
-    const directory = path.join(REPO_ROOT, relativePath)
     const head = await spawn('git', ['rev-parse', 'HEAD'], {
       cwd: directory,
       stdioString: true,
@@ -82,6 +84,30 @@ export async function main(): Promise<ScriptResult> {
       ref: entry.ref,
       cases: await loadPurlSpecCases(path.join(directory, 'tests')),
     })
+  }
+  return sources
+}
+
+export async function main(
+  options: { argv?: readonly string[] | undefined } = {},
+): Promise<ScriptResult> {
+  const args = getScriptArgs(options)
+  if (args.some(arg => arg !== '--verify-sources')) {
+    throw new Error(
+      'Invalid PURL audit option. Where: audit:purl-spec. Saw: unsupported arguments; wanted: --verify-sources or --json. Fix: run audit:purl-spec --help.',
+    )
+  }
+  const sources = await loadPurlAuditSources()
+  if (args.includes('--verify-sources')) {
+    return {
+      exitCode: 0,
+      data: sources.map(source => ({
+        __proto__: null,
+        source: source.source,
+        ref: source.ref,
+        total: source.cases.length,
+      })),
+    }
   }
   const build = await spawn('pnpm', ['run', 'build'], {
     cwd: REPO_ROOT,
@@ -116,12 +142,14 @@ export async function main(): Promise<ScriptResult> {
   }
 }
 
+const SCRIPT_META = {
+  describe:
+    'audits original published and draft PURL fixtures against the current local build',
+  heavyJob: getScriptArgs().includes('--verify-sources') ? undefined : 'test',
+  help: 'Usage: pnpm run audit:purl-spec [--verify-sources] [--json]\nAudits every fixture without applying rule corrections. Requires the pinned upstream sources to be materialized. --verify-sources checks pinned revisions and fixture structure without building or comparing implementation results.',
+  json: 'result',
+} as const
+
 if (isMainModule(import.meta.url)) {
-  runMain(main, {
-    describe:
-      'audits original published and draft PURL fixtures against the current local build',
-    help: 'Usage: pnpm run audit:purl-spec [--json]\nAudits every fixture without applying rule corrections. Requires the pinned upstream sources to be materialized.',
-    json: 'result',
-    heavyJob: 'test',
-  })
+  runMain(main, SCRIPT_META)
 }

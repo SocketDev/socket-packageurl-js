@@ -92,6 +92,9 @@ Run `pnpm run sync-purl-spec --check` to compare copied fixture bytes.
 Run the conformance gate and affected ecosystem tests before accepting a release.
 Run `pnpm run audit:purl-spec` to inspect original released expectations and draft behavior.
 Review each difference against its source rules.
+Run `pnpm run audit:purl-spec --verify-sources` to verify clean pinned checkouts and parse both corpora without building.
+Sparse-checkout verification uses this source check for the draft and the fixture byte comparison for the published source.
+VERS remains a reference-only checkout because its local regression tests do not read upstream files.
 
 For VERS updates, review grammar changes and run `test/vers.test.mts` and `test/vers-semver.test.mts`.
 Update this index when accepting new behavior.

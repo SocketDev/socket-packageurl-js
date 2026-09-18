@@ -13,7 +13,6 @@ export const PURL_SPEC_FIXTURE_DIR = path.join(
   'fixture',
   'purl-spec',
 )
-export const PURL_SPEC_FIXTURE_GLOB = `${normalizePath(PURL_SPEC_FIXTURE_DIR)}/**/*.json`
 export const PURL_TEST_DATA_GLOB = `${normalizePath(path.join(REPO_ROOT, 'test', 'data'))}/*.json`
 
 export const GITMODULES_PATH = path.join(REPO_ROOT, '.gitmodules')
