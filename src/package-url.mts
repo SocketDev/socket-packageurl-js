@@ -49,6 +49,7 @@ import {
   ReflectGetOwnPropertyDescriptor,
   ReflectSetPrototypeOf,
 } from '@socketsecurity/lib/primordials/reflect'
+import { StringPrototypeTrim } from '@socketsecurity/lib/primordials/string'
 import { PurlComponent } from './purl-component.mjs'
 import { PurlQualifierNames } from './purl-qualifier-names.mjs'
 import { PurlType, PurlTypeValidator, PurlTypNormalizer } from './purl-type.mjs'
@@ -156,8 +157,10 @@ export class PackageURL {
     rawQualifiers: unknown,
     rawSubpath: unknown,
   ) {
-    const type = isNonEmptyString(rawType) ? normalizeType(rawType) : rawType
-    validateType(type, THROWS_OPTIONS)
+    const trimmedType =
+      typeof rawType === 'string' ? StringPrototypeTrim(rawType) : rawType
+    validateType(trimmedType, THROWS_OPTIONS)
+    const type = normalizeType(trimmedType)
 
     const namespace = isNonEmptyString(rawNamespace)
       ? normalizeNamespace(rawNamespace)

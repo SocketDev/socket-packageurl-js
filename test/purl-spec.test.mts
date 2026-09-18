@@ -20,235 +20,58 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/**
- * @file Official Package URL specification compliance tests. Tests PackageURL
- *   implementation against the official purl-spec test suite (vendored at
- *   test/repo/common/fixture/purl-spec/ by scripts/repo/sync-purl-spec.mts)
- *   plus the
- *   Socket-authored contrib cases (test/data/contrib-tests.json). Validates
- *   parsing, building, and roundtrip behavior for all package types defined in
- *   the spec, ensuring strict compliance with expected successes and failures.
- */
+import fs from 'node:fs/promises'
+
 import fastGlob from 'fast-glob'
 import { describe, expect, it } from 'vitest'
 
-import { readJson } from '@socketsecurity/lib/fs/read-json'
-import { isObject } from '@socketsecurity/lib/objects/predicates'
-import { toSortedObjectFromEntries } from '@socketsecurity/lib/objects/sort'
-
 import { PackageURL } from '../src/package-url.mjs'
 import {
-  PURL_SPEC_FIXTURE_GLOB,
+  PURL_SPEC_FIXTURE_DIR,
+  PURL_SPEC_RULES_PATH,
   PURL_TEST_DATA_GLOB,
 } from '../scripts/repo/paths.mts'
+import { evaluatePurlCase } from '../scripts/repo/purl-spec/evaluate.mts'
+import { loadPurlSpecCases } from '../scripts/repo/purl-spec/load.mts'
+import { readPurlSpecSuite } from '../scripts/repo/purl-spec/read.mts'
+import {
+  applyPurlRuleCorrections,
+  readPurlRuleCorrections,
+} from '../scripts/repo/purl-spec/rules.mts'
 
-interface SpecTest {
-  description?: string | undefined
-  expected_failure?: boolean | undefined
-  expected_output?: unknown | undefined
-  input?: unknown | undefined
-  test_type?: string | undefined
-}
-
-interface SpecInputObj {
-  type: string
-  namespace?: string | undefined
-  name: string
-  version?: string | undefined
-  qualifiers?: Record<string, string> | undefined
-  subpath?: string | undefined
-}
-
-function registerPurlFailureCases({
-  test_type,
-  inputStr,
-  inputObj,
-  expectedObj,
-}: {
-  test_type: string | undefined
-  inputStr: string | undefined
-  inputObj: SpecInputObj | undefined
-  expectedObj: SpecInputObj | undefined
-}): void {
-  if (test_type === 'parse' && inputStr) {
-    // Tests expected parse failures from test suite
-    it(`should not be possible to parse invalid ${expectedObj?.type ?? 'type'} PackageURLs`, () => {
-      expect(() => PackageURL.fromString(inputStr)).toThrow(
-        /missing the required|Invalid purl/,
-      )
-    })
-  }
-  if (test_type === 'build' && inputObj) {
-    // Tests expected constructor failures from test suite
-    it(`should not be possible to create invalid ${inputObj.type ?? 'type'} PackageURLs`, () => {
-      expect(
-        () =>
-          new PackageURL(
-            inputObj.type,
-            inputObj.namespace,
-            inputObj.name,
-            inputObj.version,
-            inputObj.qualifiers,
-            inputObj.subpath,
-          ),
-      ).toThrow(/is a required|Invalid purl/)
-    })
-  }
-}
-
-export function toUrlSearchParams(search: string) {
-  const searchParams = new URLSearchParams()
-  const entries = search.split('&')
-  for (let i = 0, { length } = entries; i < length; i += 1) {
-    const pairs = entries[i]!.split('=')
-    const value = decodeURIComponent(pairs.at(1) ?? '')
-    searchParams.append(pairs[0]!, value)
-  }
-  return searchParams
-}
-
-describe('PackageURL purl-spec test suite', async () => {
-  // Tests from the vendored purl-spec suite + the Socket contrib cases.
-  const settled = await Promise.allSettled(
-    (
-      await fastGlob.glob([PURL_TEST_DATA_GLOB, PURL_SPEC_FIXTURE_GLOB], {
-        absolute: true,
-      })
-    ).map(p => readJson(p)),
+describe('PackageURL published purl-spec rules', async () => {
+  const cases = await loadPurlSpecCases(PURL_SPEC_FIXTURE_DIR)
+  const corrections = readPurlRuleCorrections(
+    JSON.parse(await fs.readFile(PURL_SPEC_RULES_PATH, 'utf8')),
   )
-
-  const TEST_FILES = settled
-    .filter(r => r.status === 'fulfilled')
-    .map(r => r.value)
-    .filter(Boolean)
-    .flatMap(
-      (o: unknown) => (o as { tests?: SpecTest[] | undefined }).tests ?? [],
-    )
-
-  for (let i = 0, { length } = TEST_FILES; i < length; i += 1) {
-    const obj = TEST_FILES[i]!
-    const { expected_failure, expected_output, test_type } = obj
-
-    const inputObj = isObject(obj.input)
-      ? (obj.input as unknown as SpecInputObj)
-      : undefined
-
-    const inputStr = typeof obj.input === 'string' ? obj.input : undefined
-
-    if (!inputObj && !inputStr) {
-      continue
-    }
-
-    const expectedObj = isObject(expected_output)
-      ? (expected_output as unknown as SpecInputObj)
-      : undefined
-
-    const expectedStr =
-      typeof expected_output === 'string' ? expected_output : undefined
-
-    // expected_failure fixtures set `expected_output: null` by spec
-    // convention — they must reach the failure branch below, not be
-    // filtered for lacking an expected value.
-    if (!expected_failure && !expectedObj && !expectedStr) {
-      continue
-    }
-
-    describe(obj.description ?? '', () => {
-      if (expected_failure) {
-        registerPurlFailureCases({ test_type, inputStr, inputObj, expectedObj })
-      } else if (test_type === 'parse' && inputStr && expectedObj) {
-        // Tests successful parsing from test suite
-        it(`should be able to parse valid ${expectedObj.type ?? 'type'} PackageURLs`, () => {
-          const purl = PackageURL.fromString(inputStr)
-          expect(purl.type).toBe(expectedObj.type)
-          expect(purl.name).toBe(expectedObj.name)
-          expect(purl.namespace).toBe(expectedObj.namespace ?? undefined)
-          expect(purl.version).toBe(expectedObj.version ?? undefined)
-          expect(purl.qualifiers).toStrictEqual(
-            expectedObj.qualifiers
-              ? { __proto__: null, ...expectedObj.qualifiers }
-              : undefined,
-          )
-          expect(purl.subpath).toBe(expectedObj.subpath ?? undefined)
-        })
-      } else if (test_type === 'build' && inputObj && expectedStr) {
-        // Tests toString() output from test suite
-        it(`should be able to convert valid ${inputObj.type ?? 'type'} PackageURLs to a string`, () => {
-          const purl = new PackageURL(
-            inputObj.type,
-            inputObj.namespace,
-            inputObj.name,
-            inputObj.version,
-            inputObj.qualifiers,
-            inputObj.subpath,
-          )
-          const purlToStr = purl.toString()
-          if (purl.qualifiers) {
-            const markIndex = expectedStr.indexOf('?')
-            const beforeMarkToStr = purlToStr.slice(0, markIndex)
-            const beforeExpectedStr = expectedStr.slice(0, markIndex)
-            expect(beforeMarkToStr).toBe(beforeExpectedStr)
-
-            const afterMarkToStr = purlToStr.slice(markIndex + 1)
-            const afterExpectedStr = expectedStr.slice(markIndex + 1)
-            const actualParams = toSortedObjectFromEntries(
-              toUrlSearchParams(afterMarkToStr).entries(),
-            )
-            const expectedParams = toSortedObjectFromEntries(
-              toUrlSearchParams(afterExpectedStr).entries(),
-            )
-            expect(actualParams).toStrictEqual(expectedParams)
-          } else {
-            expect(purlToStr).toBe(expectedStr)
-          }
-        })
-      } else if (test_type === 'roundtrip' && inputStr && expectedStr) {
-        it(`should roundtrip ${expectedStr.split('/')[1]?.split('@')[0] ?? 'purl'}`, () => {
-          const purl = PackageURL.fromString(inputStr)
-          const purlToStr = purl.toString()
-
-          // Special case: The test suite has a known issue where it expects
-          // unencoded + in subpaths for roundtrip, but that's not correct.
-          // We normalize to the canonical form with %2B per URL encoding rules.
-          let normalizedExpected = expectedStr
-          if (
-            expectedStr.includes('#') &&
-            expectedStr.includes('+') &&
-            inputStr === 'pkg:cocoapods/GoogleUtilities@7.5.2#NSData+zlib'
-          ) {
-            normalizedExpected = expectedStr.replace(
-              '#NSData+zlib',
-              '#NSData%2Bzlib',
-            )
-          }
-
-          if (purl.qualifiers) {
-            const markIndex = normalizedExpected.indexOf('?')
-            const beforeMarkToStr = purlToStr.slice(0, markIndex)
-            const beforeExpectedStr = normalizedExpected.slice(0, markIndex)
-            expect(beforeMarkToStr).toBe(beforeExpectedStr)
-
-            const afterMarkToStr = purlToStr.slice(markIndex + 1)
-            const afterExpectedStr = normalizedExpected.slice(markIndex + 1)
-            const actualParams = toSortedObjectFromEntries(
-              toUrlSearchParams(afterMarkToStr).entries(),
-            )
-            const expectedParams = toSortedObjectFromEntries(
-              toUrlSearchParams(afterExpectedStr).entries(),
-            )
-            expect(actualParams).toStrictEqual(expectedParams)
-          } else {
-            expect(purlToStr).toBe(normalizedExpected)
-          }
-        })
-      } else {
-        // oxlint-disable-next-line socket/no-vitest-empty-test -- catch-all guard: an unhandled test_type fails the test by throwing.
-        it(`should handle test case: ${test_type}`, () => {
-          throw new Error(
-            `Unhandled test case: test_type=${test_type}, has inputStr=${!!inputStr}, has inputObj=${!!inputObj}, has expectedStr=${!!expectedStr}, has expectedObj=${!!expectedObj}, expected_failure=${expected_failure}`,
-          )
-        })
-      }
+  const corrected = applyPurlRuleCorrections(cases, corrections)
+  for (let index = 0, { length } = corrected; index < length; index += 1) {
+    const entry = corrected[index]!
+    it(`${entry.source} ${entry.index}: ${entry.test.test_group} ${entry.test.test_type}: ${entry.test.description}`, () => {
+      expect(evaluatePurlCase(entry.test, PackageURL)).toMatchObject({
+        passed: true,
+      })
     })
+  }
+})
+
+describe('PackageURL repo cases', async () => {
+  const files = await fastGlob.glob(PURL_TEST_DATA_GLOB, { absolute: true })
+  if (!files.length) {
+    throw new Error('Missing repo-owned PURL fixtures.')
+  }
+  for (let index = 0, { length } = files; index < length; index += 1) {
+    const filename = files[index]!
+    const tests = readPurlSpecSuite(
+      JSON.parse(await fs.readFile(filename, 'utf8')),
+      filename,
+    )
+    for (const test of tests) {
+      it(test.description, () => {
+        expect(evaluatePurlCase(test, PackageURL)).toMatchObject({
+          passed: true,
+        })
+      })
+    }
   }
 })

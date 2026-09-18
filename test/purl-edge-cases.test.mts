@@ -1072,7 +1072,7 @@ describe('Edge cases and additional coverage', () => {
           validateType(value, opts),
         'type',
         'type$illegal',
-        /type "type\$illegal" must match \[A-Za-z0-9\.\\-\]/,
+        PurlError,
         'validtype',
       ],
       [
@@ -1099,7 +1099,7 @@ describe('Edge cases and additional coverage', () => {
           (field: string, value: unknown, opts: ValidateOpts) => boolean,
           string,
           unknown,
-          string | RegExp,
+          string | RegExp | typeof PurlError,
           unknown,
         ]
         // Test new API with { throws: true }
@@ -1995,14 +1995,10 @@ describe('Edge cases and additional coverage', () => {
       expect(purl2.name).toBe('project')
     })
 
-    // Test for line 169 - decodePurlComponent
-    it('should handle purl with encoded type component (edge case)', () => {
-      // Test a type that contains URL-encoded characters
-      const purlWithEncodedType = 'pkg:type%2Dwith%2Ddashes/namespace/name'
-
-      // This should decode the type properly (line 169)
-      const purl = PackageURL.fromString(purlWithEncodedType)
-      expect(purl.type).toBe('type-with-dashes')
+    it('rejects percent encoding in the type component', () => {
+      expect(() =>
+        PackageURL.fromString('pkg:type%2Dwith%2Ddashes/namespace/name'),
+      ).toThrow(PurlError)
     })
 
     // Additional coverage tests for edge cases
@@ -2036,9 +2032,7 @@ describe('Edge cases and additional coverage', () => {
       )
 
       // Test URL parsing failure (line 145 branch) - malformed URL
-      expect(() => PackageURL.fromString('pkg::')).toThrow(
-        'type ":" must match [A-Za-z0-9.\\-]',
-      )
+      expect(() => PackageURL.fromString('pkg::')).toThrow(PurlError)
 
       // Test the maybeUrlWithAuth branch where afterColon.length !== trimmedAfterColon.length
       // This happens when there are leading slashes after the colon
@@ -2299,18 +2293,16 @@ describe('Edge cases and additional coverage', () => {
       )
       expect(validPurl.toString()).toBe('pkg:cpan/AUTHOR/Module-Name@1.0.0')
 
-      // A cpan purl without the author namespace is invalid per spec
       expect(
-        () =>
-          new PackageURL(
-            'cpan',
-            undefined,
-            'DateTime',
-            '1.55',
-            undefined,
-            undefined,
-          ),
-      ).toThrow('cpan requires a "namespace" component')
+        new PackageURL(
+          'cpan',
+          undefined,
+          'DateTime',
+          '1.55',
+          undefined,
+          undefined,
+        ).toString(),
+      ).toBe('pkg:cpan/DateTime@1.55')
 
       // A cpan name is a distribution name — module-style '::' is invalid
       expect(

@@ -123,9 +123,6 @@ describe('per-type validate with an omitted options bag', () => {
       PurlTypeT['julia']!.validate!({ name: 'Dates', type: 'julia' }),
     ).toBe(false)
     expect(
-      PurlTypeT['cpan']!.validate!({ name: 'DateTime', type: 'cpan' }),
-    ).toBe(false)
-    expect(
       PurlTypeT['cpan']!.validate!({
         name: 'URI::PackageURL',
         namespace: 'GDT',
@@ -145,5 +142,11 @@ describe('per-type validate with an omitted options bag', () => {
         version: '1.2.3-beta',
       }),
     ).toBe(false)
+  })
+
+  it('accepts a CPAN distribution without an author namespace', () => {
+    expect(
+      PurlTypeT['cpan']!.validate!({ name: 'DateTime', type: 'cpan' }),
+    ).toBe(true)
   })
 })

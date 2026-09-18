@@ -291,7 +291,7 @@ describe('UrlConverter', () => {
         'web',
       ],
       [
-        'homebrew',
+        'brew',
         undefined,
         'wget',
         '1.21.4',

@@ -69,6 +69,15 @@ describe('Vers', () => {
       expect(v.scheme).toBe('npm')
     })
 
+    it.each(['example', 'example-2', 'example.v2', 'x'])(
+      'accepts an unregistered type with valid syntax: %s',
+      type => {
+        const range = Vers.parse(`vers:${type}/1`)
+        expect(range.scheme).toBe(type)
+        expect(range.toString()).toBe(`vers:${type}/1`)
+      },
+    )
+
     it('should parse prerelease versions', () => {
       const v = Vers.parse('vers:semver/>=1.0.0-alpha|<2.0.0')
       expect(v.constraints[0]!.version).toBe('1.0.0-alpha')
@@ -76,6 +85,20 @@ describe('Vers', () => {
   })
 
   describe('parse errors', () => {
+    it.each(['=1.0.0', '==1.0.0', '>=1.0.0|=2.0.0'])(
+      'rejects an explicit equality comparator: %s',
+      constraints => {
+        expect(() => Vers.parse(`vers:npm/${constraints}`)).toThrow(PurlError)
+      },
+    )
+
+    it.each(['1npm', '.npm', '-npm', 'npm_type', 'npm%2Dtype', 'nøpm', 'K'])(
+      'rejects an invalid type: %s',
+      type => {
+        expect(() => Vers.parse(`vers:${type}/1`)).toThrow(PurlError)
+      },
+    )
+
     it('should reject empty string', () => {
       expect(() => Vers.parse('')).toThrow(PurlError)
     })
@@ -159,6 +182,11 @@ describe('Vers', () => {
       expect(Object.isFrozen(v)).toBe(true)
       expect(Object.isFrozen(v.constraints)).toBe(true)
     })
+
+    it('freezes decoded version constraints', () => {
+      const range = Vers.parse('vers:lexicographic/release%20candidate')
+      expect(Object.isFrozen(range.constraints[0])).toBe(true)
+    })
   })
 
   describe('canonical-form validation', () => {
@@ -215,6 +243,46 @@ describe('Vers', () => {
   })
 
   describe('percent-quoted versions', () => {
+    it.each([
+      ['release%20candidate', 'release candidate'],
+      ['release%25candidate', 'release%candidate'],
+      ['release%2520candidate', 'release%20candidate'],
+      ['release%2525candidate', 'release%25candidate'],
+      ['%21%2A%3C%3D%3E%7C', '!*<=>|'],
+      ['1%202', '1 2'],
+    ])('round-trips encoded version data once: %s', (encoded, decoded) => {
+      const input = `vers:lexicographic/${encoded}`
+      const range = Vers.parse(input)
+      expect(range.constraints).toEqual([{ comparator: '=', version: decoded }])
+      expect(range.toString()).toBe(input)
+      expect(Vers.parse(range.toString()).constraints).toEqual(
+        range.constraints,
+      )
+    })
+
+    it.each([
+      'release%00candidate',
+      'release%09candidate',
+      'release%0Acandidate',
+      'release%0Dcandidate',
+      'release%7Fcandidate',
+      'release%C3%A9candidate',
+      'release\u0000candidate',
+      'releaseécandidate',
+      'release!candidate',
+      'release*candidate',
+      'release<candidate',
+      'release=candidate',
+      'release>candidate',
+      'release%candidate',
+      'release%2Gcandidate',
+      'release%C3candidate',
+    ])('rejects invalid version data: %s', version => {
+      expect(() => Vers.parse(`vers:lexicographic/${version}`)).toThrow(
+        PurlError,
+      )
+    })
+
     it('should unquote a quoted version on parse and requote on toString', () => {
       // A generic (non-semver) scheme can carry quoted separator chars.
       const v = Vers.parse('vers:generic/%3E%3D1.0')

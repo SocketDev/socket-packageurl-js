@@ -62,9 +62,11 @@ const SEMVER_SCHEMES: ReadonlySet<string> = ObjectFreeze(
   ]),
 )
 
-// ASCII whitespace anywhere in a VERS string is invalid per spec — tools
-// shall error, not trim.
 const WHITESPACE_PATTERN = /\s/
+const VERS_TYPE_PATTERN = /^[A-Za-z][A-Za-z0-9.-]*$/
+const VERS_RAW_VERSION_PATTERN = /^[\x21-\x7e]+$/
+const VERS_DECODED_VERSION_PATTERN = /^[\x20-\x7e]+$/
+const VERS_RESERVED_VERSION_PATTERN = /[!*<=>]/
 
 // Version content containing separator/comparator characters must arrive
 // URL-quoted; after splitting, `%` marks a quoted version to decode.
@@ -72,13 +74,12 @@ const RANGE_COMPARATORS: ReadonlySet<string> = ObjectFreeze(
   new SetCtor(['<', '<=', '>', '>=']),
 )
 
-// Separator/comparator characters a serialized version must URL-quote.
-// `encodeURIComponent` leaves `!` and `*` unencoded, so the exact spec set
-// is quoted by hand.
-const VERS_QUOTE_PATTERN = /[!*<=>|]/g
+const VERS_QUOTE_PATTERN = /[ !%*<=>|]/g
 const VERS_QUOTE_MAP: ReadonlyMap<string, string> = ObjectFreeze(
   new MapCtor([
+    [' ', '%20'],
     ['!', '%21'],
+    ['%', '%25'],
     ['*', '%2A'],
     ['<', '%3C'],
     ['=', '%3D'],
@@ -136,6 +137,31 @@ export function containsVersRange(
     }
   }
   return false
+}
+
+export function decodeVersVersion(version: string): string {
+  if (
+    !RegExpPrototypeTest(VERS_RAW_VERSION_PATTERN, version) ||
+    RegExpPrototypeTest(VERS_RESERVED_VERSION_PATTERN, version)
+  ) {
+    throw new PurlError(
+      'vers version must use printable ascii and percent-encode reserved characters',
+    )
+  }
+  let decoded = version
+  if (StringPrototypeIncludes(version, '%')) {
+    try {
+      decoded = GlobalDecodeUriComponent(version)
+    } catch {
+      throw new PurlError('vers version has invalid percent-encoding')
+    }
+  }
+  if (!RegExpPrototypeTest(VERS_DECODED_VERSION_PATTERN, decoded)) {
+    throw new PurlError(
+      'vers version must contain printable ascii; only encoded space is permitted whitespace',
+    )
+  }
+  return decoded
 }
 
 export function getVersRangeConstraints(
@@ -198,20 +224,24 @@ export function parseVersConstraints(
   constraints: VersConstraint[],
 ): void {
   for (let i = 0, { length } = rawConstraints; i < length; i += 1) {
-    const constraint = parseConstraint(rawConstraints[i]!)
-    // A version carrying separator/comparator characters arrives
-    // URL-quoted per spec; unquote it after the comparator split.
-    if (
-      constraint.comparator !== '*' &&
-      StringPrototypeIncludes(constraint.version, '%')
-    ) {
-      ArrayPrototypePush(constraints, {
-        ...constraint,
-        version: GlobalDecodeUriComponent(constraint.version),
-      })
+    const raw = rawConstraints[i]!
+    if (StringPrototypeStartsWith(raw, '=')) {
+      throw new PurlError(
+        'vers equality must use a bare version without an explicit comparator',
+      )
+    }
+    const constraint = parseConstraint(raw)
+    if (constraint.comparator === '*') {
+      ArrayPrototypePush(constraints, constraint)
       continue
     }
-    ArrayPrototypePush(constraints, constraint)
+    ArrayPrototypePush(
+      constraints,
+      ObjectFreeze({
+        ...constraint,
+        version: decodeVersVersion(constraint.version),
+      }),
+    )
   }
 }
 
@@ -225,20 +255,6 @@ export function quoteVersVersion(version: string): string {
   )
 }
 
-/**
- * Enforce the VERS canonical-form rules (spec: "Normalized, canonical
- * representation and validation") — a VERS string must arrive already
- * canonical; tools error instead of normalizing:
- *
- * 1. Versions are unique across all constraints, regardless of comparator.
- * 2. Constraints are sorted by version (verifiable only for schemes with a
- *    comparator — the semver schemes here).
- * 3. Ignoring `!=` constraints, an `=` constraint may be followed only by `=`,
- *    `>`, or `>=`.
- * 4. Ignoring `=` and `!=` constraints, the remaining comparators alternate: a
- *    lower bound (`>`/`>=`) is followed by an upper bound (`<`/`<=`) and vice
- *    versa.
- */
 export function validateCanonicalConstraints(
   scheme: string,
   constraints: readonly VersConstraint[],
@@ -359,39 +375,19 @@ export class Vers {
     ObjectFreeze(this)
   }
 
-  /**
-   * Parse a VERS string.
-   *
-   * @param versStr - VERS string (e.g., `'vers:npm/>=1.0.0|<2.0.0'`)
-   *
-   * @returns `Vers` instance
-   *
-   * @throws {PurlError} If the string is not a valid VERS
-   */
   static parse(versStr: string): Vers {
     return Vers.fromString(versStr)
   }
 
-  /**
-   * Parse a VERS string.
-   *
-   * @param versStr - VERS string (e.g., `'vers:npm/>=1.0.0|<2.0.0'`)
-   *
-   * @returns `Vers` instance
-   *
-   * @throws {PurlError} If the string is not a valid VERS
-   */
   static fromString(versStr: string): Vers {
     if (typeof versStr !== 'string' || versStr.length === 0) {
       throw new PurlError('vers string is required')
     }
 
-    // Must start with `'vers:'`
     if (!StringPrototypeStartsWith(versStr, 'vers:')) {
       throw new PurlError('vers string must start with "vers:" scheme')
     }
 
-    // ASCII whitespace anywhere is invalid per spec — error, never trim.
     if (RegExpPrototypeTest(WHITESPACE_PATTERN, versStr)) {
       throw new PurlError('vers string must not contain whitespace')
     }
@@ -404,16 +400,19 @@ export class Vers {
       )
     }
 
-    const scheme = StringPrototypeToLowerCase(
-      StringPrototypeSlice(remainder, 0, slashIndex),
-    )
+    const rawScheme = StringPrototypeSlice(remainder, 0, slashIndex)
+    if (!RegExpPrototypeTest(VERS_TYPE_PATTERN, rawScheme)) {
+      throw new PurlError(
+        'vers type must start with an ascii letter and contain only letters, numbers, dots, or dashes',
+      )
+    }
+    const scheme = StringPrototypeToLowerCase(rawScheme)
     const constraintsStr = StringPrototypeSlice(remainder, slashIndex + 1)
 
     if (constraintsStr.length === 0) {
       throw new PurlError('vers string must contain at least one constraint')
     }
 
-    // Parse constraints
     const rawConstraints = StringPrototypeSplit(constraintsStr, '|')
 
     // Limit constraint count to prevent resource exhaustion

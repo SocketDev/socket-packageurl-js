@@ -17,6 +17,7 @@ import {
   normalize as bitbucketNormalize,
 } from './purl-types/bitbucket.mjs'
 import { normalize as bitnamiNormalize } from './purl-types/bitnami.mjs'
+import { brewNormalize } from './purl-types/brew.mjs'
 import { cargoValidate } from './purl-types/cargo.mjs'
 import {
   chromeExtensionValidate,
@@ -38,6 +39,7 @@ import {
 } from './purl-types/docker.mjs'
 import { gemValidate } from './purl-types/gem.mjs'
 import { normalize as genericNormalize } from './purl-types/generic.mjs'
+import { gitValidate } from './purl-types/git.mjs'
 import {
   githubValidate,
   normalize as githubNormalize,
@@ -49,7 +51,10 @@ import {
 import { golangValidate } from './purl-types/golang.mjs'
 import { hackageValidate } from './purl-types/hackage.mjs'
 import { hexValidate, normalize as hexNormalize } from './purl-types/hex.mjs'
-import { normalize as huggingfaceNormalize } from './purl-types/huggingface.mjs'
+import {
+  huggingfaceValidate,
+  normalize as huggingfaceNormalize,
+} from './purl-types/huggingface.mjs'
 import {
   juliaValidate,
   normalize as juliaNormalize,
@@ -149,6 +154,7 @@ const PurlType = createHelpersNamespaceObject(
       apk: apkNormalize,
       bitbucket: bitbucketNormalize,
       bitnami: bitnamiNormalize,
+      brew: brewNormalize,
       'chrome-extension': chromeExtensionNormalize,
       composer: composerNormalize,
       conda: condaNormalize,
@@ -186,11 +192,13 @@ const PurlType = createHelpersNamespaceObject(
       cran: cranValidate,
       docker: dockerValidate,
       gem: gemValidate,
+      git: gitValidate,
       github: githubValidate,
       gitlab: gitlabValidate,
       golang: golangValidate,
       hackage: hackageValidate,
       hex: hexValidate,
+      huggingface: huggingfaceValidate,
       julia: juliaValidate,
       maven: mavenValidate,
       mlflow: mlflowValidate,

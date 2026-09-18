@@ -1,0 +1,104 @@
+[
+  {
+    "source": "types/git-test.json",
+    "fingerprint": "f9de26b728b512cb10e4b6e1045b0b042f3ad46ea12c5143de0e709376aea419",
+    "expected_output": "pkg:git/github/Package-url/purl-Spec@244fd47e07d1004f0aed9c",
+    "provenance": {
+      "urls": [
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/types/git-definition.json",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/conformance.md"
+      ],
+      "reviewed": "2026-09-18",
+      "rule": "Git namespace and name are case-sensitive."
+    }
+  },
+  {
+    "source": "types/git-test.json",
+    "fingerprint": "48eac43c27081356ad3fcaee9f50ef184f6664f2151312e4c430d3c57d71d912",
+    "expected_output": {
+      "type": "git",
+      "namespace": "codeberg.org/forgejo",
+      "name": "forgejo",
+      "version": "a72d2c07cfca03b55371089de6aa230d8c951fa0",
+      "qualifiers": null,
+      "subpath": null
+    },
+    "provenance": {
+      "urls": [
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/specification.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/conformance.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/how-to-parse.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/how-to-build.md"
+      ],
+      "reviewed": "2026-09-18",
+      "rule": "The name is one encoded path segment. Parsing separates at the final slash. Building encodes a slash inside the decoded name; roundtrip preserves distinct namespace segments."
+    }
+  },
+  {
+    "source": "types/git-test.json",
+    "fingerprint": "2e85bad3aac0facc270573f9990e6b097336a804049864336ff74108fb98b143",
+    "expected_output": "pkg:git/codeberg.org/forgejo%2Fforgejo@a72d2c07cfca03b55371089de6aa230d8c951fa0",
+    "provenance": {
+      "urls": [
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/specification.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/conformance.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/how-to-parse.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/how-to-build.md"
+      ],
+      "reviewed": "2026-09-18",
+      "rule": "The name is one encoded path segment. Parsing separates at the final slash. Building encodes a slash inside the decoded name; roundtrip preserves distinct namespace segments."
+    }
+  },
+  {
+    "source": "types/git-test.json",
+    "fingerprint": "b25e29eec0393247274c4e953adc653583fddf3567f8c2df66cf605e15beb4f2",
+    "expected_output": {
+      "type": "git",
+      "namespace": "codeberg.org/forgejo",
+      "name": "forgejo",
+      "version": "a72d2c07cfca03b55371089de6aa230d8c951fa0",
+      "qualifiers": null,
+      "subpath": "options/locale_readme.md"
+    },
+    "provenance": {
+      "urls": [
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/specification.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/conformance.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/how-to-parse.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/how-to-build.md"
+      ],
+      "reviewed": "2026-09-18",
+      "rule": "The name is one encoded path segment. Parsing separates at the final slash. Building encodes a slash inside the decoded name; roundtrip preserves distinct namespace segments."
+    }
+  },
+  {
+    "source": "types/git-test.json",
+    "fingerprint": "70bcd39271c50b1f1758dbe8ecfee399db8216f569c1d2c1fbe8703d36aab92a",
+    "expected_output": "pkg:git/codeberg.org/forgejo/forgejo@a72d2c07cfca03b55371089de6aa230d8c951fa0#options/locale_readme.md",
+    "provenance": {
+      "urls": [
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/specification.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/conformance.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/how-to-parse.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/how-to-build.md"
+      ],
+      "reviewed": "2026-09-18",
+      "rule": "The name is one encoded path segment. Parsing separates at the final slash. Building encodes a slash inside the decoded name; roundtrip preserves distinct namespace segments."
+    }
+  },
+  {
+    "source": "types/git-test.json",
+    "fingerprint": "b2e02404b9eb529037bdd553d452e2193931ab696a2102de70ee5d132a14f5a6",
+    "expected_output": "pkg:git/codeberg.org/forgejo%2Fforgejo@a72d2c07cfca03b55371089de6aa230d8c951fa0#options/locale_readme.md",
+    "provenance": {
+      "urls": [
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/specification.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/standard/conformance.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/how-to-parse.md",
+        "https://github.com/package-url/purl-spec/blob/b5454e75c29b48e483290689fe635f2517925925/docs/specification/how-to-build.md"
+      ],
+      "reviewed": "2026-09-18",
+      "rule": "The name is one encoded path segment. Parsing separates at the final slash. Building encodes a slash inside the decoded name; roundtrip preserves distinct namespace segments."
+    }
+  }
+]

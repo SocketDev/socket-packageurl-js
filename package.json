@@ -44,6 +44,8 @@
     "provenance": true
   },
   "scripts": {
+    "audit:purl-spec": "node scripts/repo/purl-spec/audit.mts",
+    "gitmodules:hash": "node scripts/fleet/gitmodules/hash.mts",
     "bench": "node scripts/repo/bench-from-string.mts",
     "build": "node scripts/repo/build.mts",
     "check": "node scripts/fleet/check.mts",

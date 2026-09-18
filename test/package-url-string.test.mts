@@ -28,6 +28,7 @@ SOFTWARE.
 import { describe, expect, it } from 'vitest'
 
 import { PackageURL } from '../src/package-url.mjs'
+import { PurlError } from '../src/error.mjs'
 import { createTestPurl } from './fixture/purl.mjs'
 
 describe('PackageURL', () => {
@@ -46,7 +47,7 @@ describe('PackageURL', () => {
               undefined,
               undefined,
             ),
-        ).toThrow(/must match \[A-Za-z0-9\.\\-\]|cannot start with a number/)
+        ).toThrow(PurlError)
       },
     )
 

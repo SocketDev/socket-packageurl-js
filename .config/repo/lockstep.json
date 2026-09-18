@@ -1,6 +1,119 @@
 {
   "$schema": "../fleet/lockstep.schema.json",
   "area": "socket-packageurl-js",
-  "description": "Lock-step manifest. socket-packageurl-js is a single npm package with no submodule upstreams or sibling language ports \u2014 empty rows is the expected state.",
-  "rows": []
+  "description": "Published PURL conformance, documented rule corrections, separate draft audits, VERS validation, and update drift. Reference decisions are recorded in docs/repo/purl-references.md.",
+  "upstreams": {
+    "purl-spec": {
+      "submodule": "upstream/purl-spec",
+      "repo": "https://github.com/package-url/purl-spec.git"
+    },
+    "purl-spec-draft": {
+      "submodule": "upstream/purl-spec-draft",
+      "repo": "https://github.com/package-url/purl-spec.git"
+    },
+    "vers-spec": {
+      "submodule": "upstream/vers-spec",
+      "repo": "https://github.com/package-url/vers-spec.git"
+    }
+  },
+  "rows": [
+    {
+      "kind": "version-pin",
+      "id": "purl-spec-pin",
+      "upstream": "purl-spec",
+      "pinned_tag": "v1.0.1",
+      "upgrade_policy": "locked",
+      "criticality": 8,
+      "materialization": "sparse",
+      "sparse_cone": ["docs", "schemas", "tests", "types"],
+      "conformance_test": "test/purl-spec.test.mts",
+      "notes": "Reviewed 2026-09-17. The published release supplies the conformance gate. Immutable ref and archive hash live in .gitmodules. Release updates require fixture and behavior verification. See docs/repo/purl-references.md."
+    },
+    {
+      "kind": "spec-conformance",
+      "id": "purl-components",
+      "upstream": "purl-spec",
+      "local_impl": "src/package-url.mts",
+      "spec_version": "Published ECMA-427 corpus",
+      "spec_path": "docs/specification",
+      "criticality": 8,
+      "conformance_test": "test/purl-spec.test.mts",
+      "notes": "Reviewed 2026-09-17. Every published fixture executes. Exact Git expectation corrections follow the core grammar and case-sensitive type definition. The audit reports original fixture differences separately from the corrected gate."
+    },
+    {
+      "kind": "spec-conformance",
+      "id": "purl-test-schema",
+      "upstream": "purl-spec",
+      "local_impl": "scripts/repo/purl-spec/read.mts",
+      "spec_version": "purl-test.schema-0.1",
+      "spec_path": "schemas",
+      "criticality": 8,
+      "conformance_test": "test/purl-spec.test.mts",
+      "notes": "Reviewed 2026-09-17. The adapter validates corpus structure and test operations. The published schema separates base conformance from advanced flexible parsing. Both groups execute in the local gate."
+    },
+    {
+      "kind": "spec-conformance",
+      "id": "purl-type-definitions",
+      "upstream": "purl-spec",
+      "local_impl": "src/purl-types",
+      "spec_version": "purl-type-definition.schema-1.0",
+      "spec_path": "types",
+      "criticality": 8,
+      "conformance_test": "test/purl-spec.test.mts",
+      "notes": "Reviewed 2026-09-17. Type definitions control ecosystem requirements. Pending Go and Hugging Face proposals are distinguished in docs/repo/purl-references.md."
+    },
+    {
+      "kind": "version-pin",
+      "id": "purl-spec-draft-pin",
+      "upstream": "purl-spec-draft",
+      "upgrade_policy": "locked",
+      "criticality": 5,
+      "materialization": "sparse",
+      "sparse_cone": ["docs", "schemas", "tests", "types"],
+      "notes": "Reviewed 2026-09-17. This draft supplies audit inputs only. It cannot replace the published conformance gate. The immutable ref and archive hash live in .gitmodules."
+    },
+    {
+      "kind": "spec-conformance",
+      "id": "purl-draft-schema",
+      "upstream": "purl-spec-draft",
+      "local_impl": "scripts/repo/purl-spec/read.mts",
+      "spec_version": "purl-test.schema-0.2",
+      "spec_path": "schemas",
+      "criticality": 5,
+      "notes": "Reviewed 2026-09-17. The draft schema declares required and recommended groups with parse, build, and validate operations. Draft results remain outside the published conformance gate."
+    },
+    {
+      "kind": "spec-conformance",
+      "id": "purl-draft-audit",
+      "upstream": "purl-spec-draft",
+      "local_impl": "scripts/repo/purl-spec/audit.mts",
+      "spec_version": "Reviewed PURL draft corpus",
+      "spec_path": "tests",
+      "criticality": 5,
+      "notes": "Reviewed 2026-09-17. The audit reports original fixture differences without applying published conformance corrections. A failing draft audit does not redefine published requirements."
+    },
+    {
+      "kind": "version-pin",
+      "id": "vers-spec-pin",
+      "upstream": "vers-spec",
+      "pinned_tag": "v1.2.0",
+      "upgrade_policy": "locked",
+      "criticality": 8,
+      "materialization": "sparse",
+      "sparse_cone": ["docs", "schemas", "tests", "types"],
+      "conformance_test": "test/vers.test.mts",
+      "notes": "Reviewed 2026-09-17. The immutable ref and archive hash live in .gitmodules. Grammar changes require review and offline regression tests before acceptance. See docs/repo/purl-references.md."
+    },
+    {
+      "kind": "spec-conformance",
+      "id": "vers-grammar",
+      "upstream": "vers-spec",
+      "local_impl": "src/vers.mts",
+      "spec_version": "VERS first-edition draft",
+      "spec_path": "docs",
+      "criticality": 8,
+      "conformance_test": "test/vers.test.mts",
+      "notes": "Reviewed 2026-09-17. Type grammar, implicit equality, percent encoding, reserved characters, and decoding rules come from the reviewed draft."
+    }
+  ]
 }

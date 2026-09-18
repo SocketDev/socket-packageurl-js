@@ -1,6 +1,6 @@
 /**
  * @file CPAN (Perl) PURL validation.
- *   https://github.com/package-url/purl-spec/blob/main/types-doc/cpan-definition.md.
+ *   See docs/repo/purl-references.md for the reviewed type definition.
  */
 
 import { httpJson } from '@socketsecurity/lib/http-request'
@@ -11,10 +11,7 @@ import {
   StringPrototypeIncludes,
   StringPrototypeToUpperCase,
 } from '@socketsecurity/lib/primordials/string'
-import {
-  validateNoInjectionByType,
-  validateRequiredByType,
-} from '../validate.mjs'
+import { validateNoInjectionByType } from '../validate.mjs'
 
 import type { ExistsOptions, ExistsResult } from './npm.mjs'
 
@@ -126,9 +123,9 @@ export async function cpanExists(
 }
 
 /**
- * Validate CPAN package URL. CPAN `namespace` (author/publisher ID) is
- * required and must be uppercase; `name` is a distribution name and must not
- * contain the module-style `::` separator.
+ * Validate CPAN package URL. CPAN `namespace` (author/publisher ID) is optional
+ * and must be uppercase when present; `name` is a distribution name and must
+ * not contain the module-style `::` separator.
  */
 export function cpanValidate(
   purl: PurlObject,
@@ -136,13 +133,6 @@ export function cpanValidate(
 ): boolean {
   const { throws = false } = options ?? {}
   const { namespace } = purl
-  if (
-    !validateRequiredByType('cpan', 'namespace', namespace, {
-      throws,
-    })
-  ) {
-    return false
-  }
   if (namespace && namespace !== StringPrototypeToUpperCase(namespace)) {
     if (throws) {
       throw new PurlError('cpan "namespace" component must be UPPERCASE')

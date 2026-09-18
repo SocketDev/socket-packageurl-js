@@ -38,6 +38,30 @@ import {
 import { createTestPurl } from './fixture/purl.mjs'
 
 describe('PackageURL', () => {
+  describe('type grammar', () => {
+    it.each(['.npm', '-npm', 'K', 'npmK', 'İ', 'ı', 'ſ', 'ＮＰＭ'])(
+      'rejects invalid type before case normalization: %s',
+      type => {
+        expect(() => createTestPurl(type, 'example')).toThrow()
+        expect(PackageURL.isValid(`pkg:${type}/example`)).toBe(false)
+      },
+    )
+
+    it('normalizes valid ASCII type casing', () => {
+      expect(createTestPurl(' Custom-Type.1 ', 'example').type).toBe(
+        'custom-type.1',
+      )
+      expect(createTestPurl('I', 'example').type).toBe('i')
+    })
+
+    it.each(['%6Epm', 'np%6D', '%4B'])(
+      'rejects percent-encoded type: %s',
+      type => {
+        expect(PackageURL.isValid(`pkg:${type}/example`)).toBe(false)
+      },
+    )
+  })
+
   describe('KnownQualifierNames', () => {
     it.each([
       ['Checksum', 'checksum'],

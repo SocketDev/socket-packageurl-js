@@ -31,7 +31,7 @@ const REUSED_SEARCH_PARAMS_OFFSET = 2
  */
 export function encodeName(name: unknown): string {
   return isNonEmptyString(name)
-    ? StringPrototypeReplaceAll(encodeComponent(name), '%3A', ':')
+    ? StringPrototypeReplaceAll(encodePurlComponent(name), '%3A', ':')
     : ''
 }
 
@@ -41,11 +41,32 @@ export function encodeName(name: unknown): string {
 export function encodeNamespace(namespace: unknown): string {
   return isNonEmptyString(namespace)
     ? StringPrototypeReplaceAll(
-        StringPrototypeReplaceAll(encodeComponent(namespace), '%3A', ':'),
+        StringPrototypeReplaceAll(encodePurlComponent(namespace), '%3A', ':'),
         '%2F',
         '/',
       )
     : ''
+}
+
+export function encodePurlComponent(value: string): string {
+  return StringPrototypeReplaceAll(
+    encodeComponent(value),
+    /[!'()*]/g,
+    character => {
+      switch (character) {
+        case '!':
+          return '%21'
+        case "'":
+          return '%27'
+        case '(':
+          return '%28'
+        case ')':
+          return '%29'
+        default:
+          return '%2A'
+      }
+    },
+  )
 }
 
 /**
@@ -53,7 +74,7 @@ export function encodeNamespace(namespace: unknown): string {
  */
 export function encodeQualifierParam(param: unknown): string {
   if (isNonEmptyString(param)) {
-    const value = prepareValueForSearchParams(param)
+    const value = param
     // Use `URLSearchParams#set` to preserve plus signs
     // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
     // Reuse shared instance — JS is single-threaded so no concurrent mutation issues
@@ -81,9 +102,7 @@ export function encodeQualifiers(qualifiers: unknown): string {
     const searchParams = new URLSearchParamsCtor()
     for (let i = 0, { length } = qualifiersKeys; i < length; i += 1) {
       const key = qualifiersKeys[i]!
-      const value = prepareValueForSearchParams(
-        (qualifiers as Record<string, unknown>)[key],
-      )
+      const value = String((qualifiers as Record<string, unknown>)[key])
       // Use `URLSearchParams#set` to preserve plus signs
       // https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams#preserving_plus_signs
       searchParams.set(key, value)
@@ -103,7 +122,7 @@ export function encodeSubpath(subpath: unknown): string {
   // literal slash in a subpath.
   return isNonEmptyString(subpath)
     ? StringPrototypeReplaceAll(
-        StringPrototypeReplaceAll(encodeComponent(subpath), '%2F', '/'),
+        StringPrototypeReplaceAll(encodePurlComponent(subpath), '%2F', '/'),
         '%3A',
         ':',
       )
@@ -115,7 +134,7 @@ export function encodeSubpath(subpath: unknown): string {
  */
 export function encodeVersion(version: unknown): string {
   return isNonEmptyString(version)
-    ? StringPrototypeReplaceAll(encodeComponent(version), '%3A', ':')
+    ? StringPrototypeReplaceAll(encodePurlComponent(version), '%3A', ':')
     : ''
 }
 
@@ -131,6 +150,7 @@ export function encodeVersion(version: unknown): string {
  * inside a value — they are not in the spec's no-encode set there.
  */
 export function normalizeSearchParamsEncoding(encoded: string): string {
+  encoded = StringPrototypeReplaceAll(encoded, '*', '%2A')
   // Every pattern below is either a percent-escape or a literal '+', so a
   // string holding neither character is already normalized. Most qualifier
   // values are plain, and the guard turns four full scans into two.
@@ -142,25 +162,13 @@ export function normalizeSearchParamsEncoding(encoded: string): string {
   }
   return StringPrototypeReplaceAll(
     StringPrototypeReplaceAll(
-      StringPrototypeReplaceAll(
-        StringPrototypeReplaceAll(encoded, '%2520', '%20'),
-        '+',
-        '%2B',
-      ),
+      StringPrototypeReplaceAll(encoded, '+', '%20'),
       '%3A',
       ':',
     ),
     '%7E',
     '~',
   )
-}
-
-/**
- * Prepare string value for `URLSearchParams` encoding.
- */
-export function prepareValueForSearchParams(value: unknown): string {
-  // Replace spaces with `%20`'s so they don't get converted to plus signs
-  return StringPrototypeReplaceAll(String(value), ' ', '%20')
 }
 
 export { encodeComponent }

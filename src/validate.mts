@@ -305,9 +305,14 @@ export function validateType(
   // `'.'` (period), and `'-'` (dash)
   for (let i = 0, { length } = type as string; i < length; i += 1) {
     const code = StringPrototypeCharCodeAt(type as string, i)
-    if (!isPurlTypeCharacter(code)) {
+    if (
+      !isPurlTypeCharacter(code) ||
+      (i === 0 && (code === 46 /* '.' */ || code === 45)) /* '-' */
+    ) {
       if (throws) {
-        throw new PurlError(`type "${type}" must match [A-Za-z0-9.\\-]`)
+        throw new PurlError(
+          `type "${type}" must match [A-Za-z][A-Za-z0-9.\\-]*`,
+        )
         /* v8 ignore next -- Unreachable code after throw. */
       }
       return false

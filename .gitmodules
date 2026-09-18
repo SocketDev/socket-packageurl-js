@@ -1,0 +1,30 @@
+# purl-spec-v1.0.1 (2026-07-29) sha256:e0ba2bff52c6235043d7a248509db07ef51e97feff7cd03c5845e8b1c2a122a5
+[submodule "upstream/purl-spec"]
+	ref = b5454e75c29b48e483290689fe635f2517925925
+	path = upstream/purl-spec
+	url = https://github.com/package-url/purl-spec.git
+	branch = v1.0.1
+	shallow = true
+	sparse-checkout = docs schemas tests types
+	ignore = dirty
+
+# no-release-tag: this reviewed second-edition draft is an audit input, not the published conformance gate
+# purl-spec-draft-2026.09.09 (2026-09-09) sha256:65e16813f9d32174b3d10c5a4c0e996865b88bed117af30a196c7ea0e47b05cc
+[submodule "upstream/purl-spec-draft"]
+	ref = 830da6b7fdd06fe10889c8ebe86bc59a6b854e4b
+	path = upstream/purl-spec-draft
+	url = https://github.com/package-url/purl-spec.git
+	branch = main
+	shallow = true
+	sparse-checkout = docs schemas tests types
+	ignore = dirty
+
+# vers-spec-v1.2.0 (2026-09-09) sha256:a71881836364e1664b8354ca2f9b3f86c3880d4c8609022c38fa60ab340c6a96
+[submodule "upstream/vers-spec"]
+	ref = ec1a0c8143b105a054b0f7cb1feb368b85c9c781
+	path = upstream/vers-spec
+	url = https://github.com/package-url/vers-spec.git
+	branch = v1.2.0
+	shallow = true
+	sparse-checkout = docs schemas tests types
+	ignore = dirty

@@ -8,11 +8,7 @@
  *   - INVARIANT: a blank/empty component always encodes to the empty string.
  *   - INVARIANT: `encodeQualifiers` emits keys in sorted order and returns '' for
  *     non-object input.
- *   - DERIVED: `prepareValueForSearchParams` percent-escapes every space and is
- *     the identity on space-free input. Arbitraries are built from graphemes
- *     (fc.string({ unit: 'grapheme' })) so no lone surrogate reaches
- *     encodeURIComponent — that would throw a platform "URI malformed", a JS
- *     behavior unrelated to the SUT contract.
+ *   - Qualifier encoding preserves spaces, plus signs, and percent escapes.
  */
 
 import fc from 'fast-check'
@@ -24,14 +20,7 @@ import {
   encodeQualifiers,
   encodeSubpath,
   encodeVersion,
-  prepareValueForSearchParams,
 } from '../src/encode.mjs'
-
-// A run of whitespace-only characters that `isNonEmptyString` still treats as
-// non-empty (length > 0) but that carry no encodable payload beyond spaces.
-const spaces = fc
-  .array(fc.constantFrom(' ', '\t'), { minLength: 1, maxLength: 8 })
-  .map(chars => chars.join(''))
 
 describe('encode — fuzz', () => {
   // INVARIANT (classical #1): a whitespace/empty component is treated as
@@ -102,24 +91,11 @@ describe('encode — fuzz', () => {
     )
   })
 
-  // DERIVED (classical #2): prepareValueForSearchParams replaces every space
-  // with '%20' and leaves space-free input untouched.
-  test('prepareValueForSearchParams strips spaces and is identity otherwise', () => {
-    const noSpaces = fc
-      .string({ unit: 'grapheme' })
-      .map(s => s.replaceAll(' ', 'x'))
+  test('qualifier values survive percent encoding without collisions', () => {
     fc.assert(
-      fc.property(noSpaces, s => {
-        const prepared = prepareValueForSearchParams(s)
-        expect(prepared).toBe(s)
-        expect(prepared.includes(' ')).toBe(false)
-      }),
-    )
-    // A string built from spaces becomes all '%20'.
-    fc.assert(
-      fc.property(spaces, s => {
-        const prepared = prepareValueForSearchParams(s)
-        expect(prepared.includes(' ')).toBe(false)
+      fc.property(fc.string({ unit: 'grapheme' }), value => {
+        const encoded = encodeQualifiers({ value })
+        expect(new URLSearchParams(encoded).get('value')).toBe(value)
       }),
     )
   })

@@ -127,6 +127,14 @@ describe('validate edge cases', () => {
   })
 
   describe('validateType with invalid start', () => {
+    it.each(['.npm', '-npm', 'K', 'npmK'])(
+      'rejects a non-ASCII or non-letter type prefix: %s',
+      type => {
+        expect(validateType(type)).toBe(false)
+        expect(() => validateType(type, { throws: true })).toThrow(PurlError)
+      },
+    )
+
     it('returns false when type starts with a number', () => {
       expect(validateType('1npm', { throws: false })).toBe(false)
     })

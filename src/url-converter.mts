@@ -36,6 +36,10 @@ import {
   ArrayPrototypeSlice,
 } from '@socketsecurity/lib/primordials/array'
 import { MapCtor, SetCtor } from '@socketsecurity/lib/primordials/map-set'
+import {
+  decodeURIComponent as GlobalDecodeUriComponent,
+  encodeURIComponent as GlobalEncodeUriComponent,
+} from '@socketsecurity/lib/primordials/globals'
 import { ObjectFreeze } from '@socketsecurity/lib/primordials/object'
 import { RegExpPrototypeExec } from '@socketsecurity/lib/primordials/regexp'
 import {
@@ -91,6 +95,7 @@ export function tryCreatePurl(
   namespace: string | undefined,
   name: string,
   version: string | undefined,
+  qualifiers?: Record<string, string> | undefined,
 ): PackageURL | undefined {
   /* v8 ignore start -- PackageURL is always registered at module load time. */
   if (!cachedPackageURL) {
@@ -103,7 +108,7 @@ export function tryCreatePurl(
       namespace,
       name,
       version,
-      undefined,
+      qualifiers,
       undefined,
     )
   } catch {
@@ -995,8 +1000,6 @@ export function fromCpanUrl(url: URL): PackageURL | undefined {
 const HUGGINGFACE_RESERVED = ObjectFreeze(
   new SetCtor([
     'docs',
-    'spaces',
-    'datasets',
     'tasks',
     'blog',
     'pricing',
@@ -1009,22 +1012,43 @@ const HUGGINGFACE_RESERVED = ObjectFreeze(
 
 export function fromHuggingfaceUrl(url: URL): PackageURL | undefined {
   const segments = filterSegments(url.pathname)
-  if (segments.length < 2) {
+  const repositoryType =
+    segments[0] === 'datasets'
+      ? 'dataset'
+      : segments[0] === 'spaces'
+        ? 'space'
+        : undefined
+  const offset = repositoryType ? 1 : 0
+  if (segments.length < offset + 2) {
     return undefined
   }
   // Skip non-model paths (`docs`, `spaces` UI, etc.)
   if (HUGGINGFACE_RESERVED.has(segments[0]!)) {
     return undefined
   }
-  const namespace = segments[0]!
-  const name = segments[1]!
-  let version: string | undefined
-  if (segments[2] === 'tree' && segments[3]) {
-    version = segments[3]
-  } else if (segments[2] === 'commit' && segments[3]) {
-    version = segments[3]
+  try {
+    const namespace = GlobalDecodeUriComponent(segments[offset]!)
+    const name = GlobalDecodeUriComponent(segments[offset + 1]!)
+    const action = segments[offset + 2]
+    const revision = segments[offset + 3]
+    const version =
+      revision &&
+      (action === 'blob' ||
+        action === 'commit' ||
+        action === 'resolve' ||
+        action === 'tree')
+        ? GlobalDecodeUriComponent(revision)
+        : undefined
+    return tryCreatePurl(
+      'huggingface',
+      namespace,
+      name,
+      version,
+      repositoryType ? { type: repositoryType } : undefined,
+    )
+  } catch {
+    return undefined
   }
-  return tryCreatePurl('huggingface', namespace, name, version)
 }
 
 /**
@@ -1202,6 +1226,7 @@ const REPOSITORY_URL_TYPES: ReadonlySet<string> = ObjectFreeze(
   new SetCtor([
     'bioconductor',
     'bitbucket',
+    'brew',
     'cargo',
     'chrome',
     'clojars',
@@ -1219,7 +1244,6 @@ const REPOSITORY_URL_TYPES: ReadonlySet<string> = ObjectFreeze(
     'golang',
     'hackage',
     'hex',
-    'homebrew',
     'huggingface',
     'luarocks',
     'maven',
@@ -1594,7 +1618,7 @@ const REPOSITORY_URL_FACTORIES: ReadonlyMap<
       },
     ],
     [
-      'homebrew',
+      'brew',
       {
         type: 'web',
         getUrl({ name }) {
@@ -1606,8 +1630,15 @@ const REPOSITORY_URL_FACTORIES: ReadonlyMap<
       'huggingface',
       {
         type: 'web',
-        getUrl({ name, namespace }) {
-          return `https://huggingface.co/${namespace ? `${namespace}/` : ''}${name}`
+        getUrl({ name, namespace, purl }) {
+          const repositoryType = purl.qualifiers?.['type']
+          const prefix =
+            repositoryType === 'dataset'
+              ? 'datasets/'
+              : repositoryType === 'space'
+                ? 'spaces/'
+                : ''
+          return `https://huggingface.co/${prefix}${namespace ? `${GlobalEncodeUriComponent(namespace)}/` : ''}${GlobalEncodeUriComponent(name!)}`
         },
       },
     ],

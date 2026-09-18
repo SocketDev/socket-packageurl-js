@@ -220,12 +220,10 @@ export function parseString(purlStr: unknown): ParsedPurlComponents {
 
   const { pathname } = url
   const firstSlashIndex = StringPrototypeIndexOf(pathname, '/')
-  const rawType = decodePurlComponent(
-    'type',
+  const rawType =
     firstSlashIndex === -1
       ? pathname
-      : StringPrototypeSlice(pathname, 0, firstSlashIndex),
-  )
+      : StringPrototypeSlice(pathname, 0, firstSlashIndex)
   if (firstSlashIndex < 1) {
     return [rawType, undefined, undefined, undefined, undefined, undefined]
   }
