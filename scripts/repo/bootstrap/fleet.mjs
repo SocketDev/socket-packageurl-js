@@ -18115,11 +18115,17 @@ function replaceWorkflowJob(content, rule) {
       .join('\n'),
   )
   const job = entries.find(block => block.key === rule.id)
-  if (
-    !job ||
-    computeSha256(Buffer.from([...job.head, ...job.lines].join('\n'))) !==
-      rule.sha256
-  ) {
+  const digest = job
+    ? computeSha256(Buffer.from([...job.head, ...job.lines].join('\n')))
+    : void 0
+  const historicalRepairJob =
+    rule.id === 'get-green' &&
+    rule.replacementId === 'repair' &&
+    rule.sha256 ===
+      '6fb0cfaabcf917d4a9153b44c77a39792e5b77cf39919b8d9510bd2d0b9099d1' &&
+    digest ===
+      '87d453bba4002dc849e930b6ee629cb12f4eeeed5dc63431863a9aab1a88b057'
+  if (!job || (digest !== rule.sha256 && !historicalRepairJob)) {
     if (
       /scripts\/fleet\/get-green\.mts|pnpm\s+(?:run\s+)?get-green\b/u.test(
         content,

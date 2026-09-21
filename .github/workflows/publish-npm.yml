@@ -1,5 +1,5 @@
 name: 'publish: npm'
-run-name: 'publish: npm'
+run-name: 'publish: npm (${{ inputs.task-name }})'
 
 # Cascade-owned — every npm-publishing repo carries the byte-identical copy
 # (adopt by copying the template once; the sync then keeps it in lock-step;
@@ -47,6 +47,10 @@ on:
         description: 'npm dist-tag to publish under.'
         type: string
         default: 'latest'
+      release-as:
+        description: 'Release target: patch, minor, or an exact non-major X.Y.Z version.'
+        type: string
+        default: ''
       backfill-version:
         description: >-
           Backfill a never-published GAP version below registry latest with
@@ -67,6 +71,10 @@ on:
           Requires checkout-ref to name that exact tag.
         type: boolean
         default: false
+      coverage-tooling-ref:
+        description: 'Immutable fleet-pack SHA reference for reserved release coverage tooling.'
+        type: string
+        default: ''
       scan-package:
         description: 'Package name for a CI-only staged-byte Socket scan.'
         type: string
@@ -161,11 +169,51 @@ jobs:
       - name: 'Set up and install'
         uses: ./.github/actions/fleet/setup-and-install
         with:
+          socket-api-token: ${{ inputs.checkout-ref == '' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW || '' }}
           payload-token-client-id: ${{ secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID }}
           payload-token-private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
           checkout-ref: ${{ inputs.checkout-ref || github.sha }}
       - name: Build
         run: pnpm run build
+      - name: Restore reserved coverage tooling
+        if: ${{ inputs.resume-reserved == true }}
+        shell: bash
+        env:
+          WORKFLOW_SHA: ${{ github.sha }}
+          COVERAGE_PACK_REF: ${{ inputs.coverage-tooling-ref }}
+        run: &restore-reserved-coverage-tooling |
+          set -euo pipefail
+          TOOLING_DIR="$(mktemp -d)"
+          trap 'rm -rf "$TOOLING_DIR"' EXIT
+          git show "$WORKFLOW_SHA:scripts/repo/bootstrap/fleet.mjs" > "$TOOLING_DIR/fleet.mjs"
+          node --input-type=module - "$TOOLING_DIR" "$COVERAGE_PACK_REF" <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { copyFileSync, lstatSync, mkdirSync, realpathSync } from 'node:fs';
+          import path from 'node:path';
+          import { pathToFileURL } from 'node:url';
+          const [temporary, ref] = process.argv.slice(2);
+          if (!/^fleet-pack-[a-f\d]{40}$/.test(ref)) throw new Error('Invalid immutable coverage tooling reference.');
+          const root = process.cwd();
+          const files = ['scripts/fleet/cover/shard-run.mts', 'scripts/fleet/cover/shard-revision.mts'];
+          const tracked = execFileSync('git', ['ls-files', '--', ...files], { encoding: 'utf8' });
+          if (tracked.trim()) throw new Error('Coverage tooling must be an untracked fleet payload.');
+          const targets = files.map((relative, index) => {
+            const target = path.join(root, relative);
+            const entry = lstatSync(target, { throwIfNoEntry: false });
+            if ((entry ? !entry.isFile() : index === 0) || realpathSync(path.dirname(target)) !== path.dirname(target)) throw new Error('Coverage tooling must be a regular local file.');
+            return target;
+          });
+          const { installFleet } = await import(pathToFileURL(path.join(temporary, 'fleet.mjs')).href);
+          const extracted = path.join(realpathSync(temporary), 'verified');
+          mkdirSync(extracted);
+          execFileSync('git', ['init', '-q', extracted]);
+          if (await installFleet({ ref, dest: extracted, preserveTracked: true }) !== 0) throw new Error('Coverage tooling pack verification failed.');
+          const sources = files.map(relative => path.join(extracted, relative));
+          for (const source of sources) {
+            if (!lstatSync(source).isFile() || realpathSync(source) !== source) throw new Error('Verified coverage tooling is incomplete.');
+          }
+          for (let index = 0; index < sources.length; index++) copyFileSync(sources[index], targets[index]);
+          NODE
       - name: 'Run coverage'
         id: coverage_collection
         uses: ./.github/actions/fleet/run-script
@@ -255,6 +303,7 @@ jobs:
       - name: 'Set up and install'
         uses: ./.github/actions/fleet/setup-and-install
         with:
+          socket-api-token: ${{ inputs.checkout-ref == '' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW || '' }}
           payload-token-client-id: ${{ secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID }}
           payload-token-private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
           checkout-ref: ${{ inputs.checkout-ref || github.sha }}
@@ -280,6 +329,13 @@ jobs:
             mkdir -p "$target"
             cp -R "$source/." "$target/"
           done
+      - name: Restore reserved coverage tooling
+        if: ${{ inputs.resume-reserved == true }}
+        shell: bash
+        env:
+          WORKFLOW_SHA: ${{ github.sha }}
+          COVERAGE_PACK_REF: ${{ inputs.coverage-tooling-ref }}
+        run: *restore-reserved-coverage-tooling
       - name: Install cargo-llvm-cov
         if: ${{ hashFiles('**/Cargo.toml') != '' }}
         run: pnpm run setup:rust-coverage
@@ -456,6 +512,10 @@ jobs:
           # key, hydration still pulls public GHCR anonymously.
           payload-token-client-id: ${{ steps.content-trust.outputs.trusted == 'true' && (secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID) || '' }}
           payload-token-private-key: ${{ steps.content-trust.outputs.trusted == 'true' && secrets.SOCKET_RELEASE_APP_PRIVATE_KEY || '' }}
+      - name: Validate publish task name
+        env:
+          PUBLISH_TASK_NAME: ${{ inputs.task-name }}
+        run: node scripts/fleet/registry-infra/npm/publish-dispatch-context.mts --name "$PUBLISH_TASK_NAME"
       - name: Validate reserved release resume
         if: ${{ inputs.resume-reserved == true }}
         env:
@@ -510,12 +570,22 @@ jobs:
           BACKFILL_VERSION: ${{ inputs.backfill-version }}
           CHECKOUT_REF: ${{ inputs.resume-reserved != true && inputs.checkout-ref || '' }}
           DIST_TAG: ${{ inputs.dist-tag }}
+          PUBLISH: ${{ inputs.publish }}
+          RELEASE_AS: ${{ inputs.release-as }}
+          RESUME_RESERVED: ${{ inputs.resume-reserved }}
           RELEASE_APP_TOKEN: ${{ steps.release-app.outputs.token }}
           GH_TOKEN: ${{ steps.release-app.outputs.token }}
         # CHECKOUT_REF forwards on its own so a checkout-ref dispatch WITHOUT
         # backfill-version is refused by the script instead of silently
         # bump-publishing historical content.
-        run: node scripts/fleet/npm-publish.mts --tag "$DIST_TAG" ${BACKFILL_VERSION:+--backfill "$BACKFILL_VERSION"} ${CHECKOUT_REF:+--checkout-ref "$CHECKOUT_REF"} ${{ inputs.resume-reserved == true && '--resume-reserved' || '' }} ${{ inputs.publish != true && '--dry-run' || '' }}
+        run: |
+          args=(--tag "$DIST_TAG")
+          if [ -n "$BACKFILL_VERSION" ]; then args+=(--backfill "$BACKFILL_VERSION"); fi
+          if [ -n "$CHECKOUT_REF" ]; then args+=(--checkout-ref "$CHECKOUT_REF"); fi
+          if [ -n "$RELEASE_AS" ]; then args+=(--release-as "$RELEASE_AS"); fi
+          if [ "$RESUME_RESERVED" = true ]; then args+=(--resume-reserved); fi
+          if [ "$PUBLISH" != true ]; then args+=(--dry-run); fi
+          node scripts/fleet/npm-publish.mts "${args[@]}"
 
   scan-staged-package:
     if: ${{ inputs.scan-stage-id != '' }}
@@ -610,6 +680,11 @@ jobs:
           install -m 0600 "$RUNNER_TEMP/npm-scan-receipt.mts" scripts/fleet/npm/scan-receipt.mts
           install -m 0600 "$RUNNER_TEMP/npm-registry-scan-ndjson.mts" scripts/fleet/registry-infra/npm/scan-ndjson.mts
           install -m 0600 "$RUNNER_TEMP/npm-registry-scan.mts" scripts/fleet/registry-infra/npm/scan.mts
+      - name: Validate publish task name
+        env:
+          PUBLISH_TASK_NAME: ${{ inputs.task-name }}
+          SCAN_PACKAGE: ${{ inputs.scan-package }}
+        run: node scripts/fleet/registry-infra/npm/publish-dispatch-context.mts --name "$PUBLISH_TASK_NAME" --package "$SCAN_PACKAGE"
       - name: Build exact release source
         run: pnpm run build
       - name: Restore exact native artifacts
