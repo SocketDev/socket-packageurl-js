@@ -188,7 +188,7 @@ jobs:
           git show "$WORKFLOW_SHA:scripts/repo/bootstrap/fleet.mjs" > "$TOOLING_DIR/fleet.mjs"
           node --input-type=module - "$TOOLING_DIR" "$COVERAGE_PACK_REF" <<'NODE'
           import { execFileSync } from 'node:child_process';
-          import { copyFileSync, lstatSync, mkdirSync, realpathSync } from 'node:fs';
+          import { lstatSync, mkdirSync, realpathSync, renameSync } from 'node:fs';
           import path from 'node:path';
           import { pathToFileURL } from 'node:url';
           const [temporary, ref] = process.argv.slice(2);
@@ -212,7 +212,7 @@ jobs:
           for (const source of sources) {
             if (!lstatSync(source).isFile() || realpathSync(source) !== source) throw new Error('Verified coverage tooling is incomplete.');
           }
-          for (let index = 0; index < sources.length; index++) copyFileSync(sources[index], targets[index]);
+          for (let index = 0; index < sources.length; index++) renameSync(sources[index], targets[index]);
           NODE
       - name: 'Run coverage'
         id: coverage_collection
