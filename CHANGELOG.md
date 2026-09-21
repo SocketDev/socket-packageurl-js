@@ -4,6 +4,41 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.3](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.5.3) - 2026-09-21
+
+### Added
+
+- **`purl`** — align ecosystem rules and published conformance
+- convert a git dependency to a purl
+
+### Fixed
+
+- **`purl`** — satisfy conformance script checks
+- **`cache`** — use repo cache for purl spec
+- **`tooling`** — expose script metadata
+- **`tooling`** — make repository scripts self-describing
+- **`test`** — keep purl fixtures tracked
+- **`maintenance`** — retain compatible minipass consumers
+- align ci setup with released fleet tooling
+- describe maintenance commands before execution
+- **`coverage`** — write isolated reports to the run scratch directory
+- remove unreachable option fallbacks and cover git boundaries
+- **`build`** — use native argument parsing for build preparation
+- match Socket coverage badge styling
+- **`scripts`** — migrate repo scripts to the current lib-stable and fleet layout
+- **`workspace`** — drop catalogShadowIgnore, which current pnpm rejects
+- **`fuzz`** — match .mts targets and stay quiet on an empty run
+- **`pnpm`** — drop the v11-only workspace settings
+- **`purl`** — move version out of positional exists() params into options
+- **`types`** — repair the fleet strict tsconfig gate and remove dead scripts
+- **`scripts`** — restore two broken REPO\_ROOT imports
+
+### Internal
+
+- **`ci`** — align workflow contracts
+- **`lint`** — clear the pre-existing findings the push gate's escalated scope surfaced
+- **`deps`** — drop the repo-local pacquet opt-in that breaks ci prepare
+
 ## [1.5.2](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.5.2) - 2026-08-05
 
 ### Added
