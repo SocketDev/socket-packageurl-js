@@ -178,6 +178,7 @@ const externals = [...builtinModules, ...builtinModules.map(m => `node:${m}`)]
  * to know about a shared chunk in `dist/chunks/`.
  */
 const baseConfig = {
+  experimental: { attachDebugInfo: 'none' },
   external: externals,
   platform: 'node' as const,
   plugins: [
