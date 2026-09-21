@@ -254,6 +254,7 @@ jobs:
     # OIDC token exchange 404s if the job runs outside it.
     environment: publish-npm
     permissions:
+      actions: read
       contents: read
       # npm provenance / trusted publishing mints its OIDC token here.
       id-token: write
@@ -377,6 +378,7 @@ jobs:
         env:
           SOCKET_API_KEY: ${{ steps.content-trust.outputs.trusted == 'true' && secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW || '' }}
         with:
+          cache: 'false'
           socket-api-token: ${{ steps.content-trust.outputs.trusted == 'true' && secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW || '' }}
           # Forward the backfill content ref — setup-and-install re-checks-out
           # internally (fleet checkout falls back to the TRIGGERING ref when
@@ -408,8 +410,21 @@ jobs:
             echo "::error::Reserved release resume checked out $HEAD_SHA, but $CHECKOUT_REF resolves to $TAG_SHA." >&2
             exit 1
           fi
+          echo "[reserved-source] $HEAD_SHA"
       - name: Build
         run: pnpm run build
+      - name: Stage verified native artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/fleet/npm/native-artifacts.mts
+      - name: Retain native artifact receipt
+        uses: ./.github/actions/fleet/upload-artifact
+        with:
+          name: npm-native-artifacts
+          path: .cache/fleet/native-addons/receipt.json
+          if-no-files-found: ignore
+      - name: Validate repository publish contract
+        run: pnpm run --if-present prepublish:check
       - name: Set up odai
         if: ${{ inputs.backfill-version == '' && inputs.resume-reserved != true }}
         uses: ./.github/actions/fleet/setup-odai
@@ -498,16 +513,16 @@ jobs:
           COMMIT_JSON="$(gh api "repos/$REPOSITORY/commits/$SOURCE_SHA")"
           test "$(jq -r '.sha' <<<"$COMMIT_JSON")" = "$SOURCE_SHA"
           test "$(jq -r '.commit.verification.verified' <<<"$COMMIT_JSON")" = "true"
-          test "$(jq -r '.parents | length' <<<"$COMMIT_JSON")" = "1"
-          test "$(jq -r '.parents[0].sha' <<<"$COMMIT_JSON")" = "$RUN_HEAD"
           gh api "repos/$REPOSITORY/actions/runs/$PUBLISH_RUN_ID/logs" > "$RUNNER_TEMP/publish-logs.zip"
           unzip -p "$RUNNER_TEMP/publish-logs.zip" > "$RUNNER_TEMP/publish-logs.txt"
           perl -pe 's/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z +//; s/\e\[[0-?]*[ -\/]*[@-~]//g' "$RUNNER_TEMP/publish-logs.txt" > "$RUNNER_TEMP/publish-logs.normalized.txt"
-          BUMP_PREFIX="$(sed -nE 's/^(✔ )?\[bump\].* committed ([0-9a-f]{7,40}) .*via the release App\.$/\2/p' "$RUNNER_TEMP/publish-logs.normalized.txt" | sort -u)"
-          test -n "$BUMP_PREFIX"
-          test "$(printf '%s\n' "$BUMP_PREFIX" | wc -l | tr -d ' ')" = "1"
-          case "$SOURCE_SHA" in "$BUMP_PREFIX"*) ;; *) exit 1 ;; esac
-          grep -Eq "^[[:space:]]*\\* branch[[:space:]]+$SOURCE_SHA[[:space:]]+->[[:space:]]+FETCH_HEAD[[:space:]]*$" "$RUNNER_TEMP/publish-logs.normalized.txt"
+          export RUN_HEAD COMMIT_JSON
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            import { pathToFileURL } from "node:url";
+            const { verifyNpmScanSourceBinding } = await import(pathToFileURL(`${process.env.RUNNER_TEMP}/npm-scan-receipt.mts`).href);
+            verifyNpmScanSourceBinding({ sourceSha: process.env.SOURCE_SHA, runHead: process.env.RUN_HEAD, parents: JSON.parse(process.env.COMMIT_JSON).parents.map(parent => parent.sha), logs: readFileSync(`${process.env.RUNNER_TEMP}/publish-logs.normalized.txt`, "utf8") });
+          '
           rm -f "$RUNNER_TEMP/publish-logs.zip" "$RUNNER_TEMP/publish-logs.txt" "$RUNNER_TEMP/publish-logs.normalized.txt"
       - name: Require enterprise scan credential
         shell: bash
@@ -533,9 +548,13 @@ jobs:
           install -m 0600 "$RUNNER_TEMP/npm-registry-scan.mts" scripts/fleet/registry-infra/npm/scan.mts
       - name: Build exact release source
         run: pnpm run build
+      - name: Restore exact native artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NATIVE_PUBLISH_RUN_ID: ${{ inputs.scan-publish-run-id }}
+        run: node scripts/fleet/npm/native-artifacts.mts
       - name: Scan exact staged bytes
         id: scan
-        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SCAN_PACKAGE: ${{ inputs.scan-package }}
