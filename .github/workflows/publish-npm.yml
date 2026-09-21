@@ -112,6 +112,9 @@ jobs:
         shell: bash
         env:
           CHECKOUT_REF: ${{ inputs.checkout-ref || github.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RESUME_RESERVED: ${{ inputs.resume-reserved }}
+          WORKFLOW_SHA: ${{ github.sha }}
           GITHUB_TOKEN: ${{ github.token }}
           SERVER_URL: ${{ github.server_url }}
           REPOSITORY: ${{ github.repository }}
@@ -134,6 +137,23 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
+          if [ "$RESUME_RESERVED" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
+            if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+              git fetch --no-tags --depth=32 origin "$FETCH_REF"
+            fi
+            git fetch --no-tags origin "$WORKFLOW_SHA"
+            BOOTSTRAP_DIR="$(mktemp -d "$GITHUB_WORKSPACE/.release-bootstrap.XXXXXX")"
+            trap 'rm -rf "$BOOTSTRAP_DIR"' EXIT
+            BOOTSTRAP="$BOOTSTRAP_DIR/fleet.mjs"
+            git show "$WORKFLOW_SHA:scripts/repo/bootstrap/fleet.mjs" > "$BOOTSTRAP"
+            node --input-type=module -e '
+              const { pathToFileURL } = await import("node:url");
+              const { migrateRuleFile } = await import(pathToFileURL(process.argv[2]).href);
+              migrateRuleFile(process.argv[3]);
+            ' release-rule-recovery "$BOOTSTRAP" "$GITHUB_WORKSPACE"
+            rm -rf "$BOOTSTRAP_DIR"
+            trap - EXIT
+          fi
       - name: 'Set up and install'
         uses: ./.github/actions/fleet/setup-and-install
         with:
@@ -186,6 +206,9 @@ jobs:
         shell: bash
         env:
           CHECKOUT_REF: ${{ inputs.checkout-ref || github.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RESUME_RESERVED: ${{ inputs.resume-reserved }}
+          WORKFLOW_SHA: ${{ github.sha }}
           GITHUB_TOKEN: ${{ github.token }}
           SERVER_URL: ${{ github.server_url }}
           REPOSITORY: ${{ github.repository }}
@@ -208,6 +231,23 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
+          if [ "$RESUME_RESERVED" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
+            if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+              git fetch --no-tags --depth=32 origin "$FETCH_REF"
+            fi
+            git fetch --no-tags origin "$WORKFLOW_SHA"
+            BOOTSTRAP_DIR="$(mktemp -d "$GITHUB_WORKSPACE/.release-bootstrap.XXXXXX")"
+            trap 'rm -rf "$BOOTSTRAP_DIR"' EXIT
+            BOOTSTRAP="$BOOTSTRAP_DIR/fleet.mjs"
+            git show "$WORKFLOW_SHA:scripts/repo/bootstrap/fleet.mjs" > "$BOOTSTRAP"
+            node --input-type=module -e '
+              const { pathToFileURL } = await import("node:url");
+              const { migrateRuleFile } = await import(pathToFileURL(process.argv[2]).href);
+              migrateRuleFile(process.argv[3]);
+            ' release-rule-recovery "$BOOTSTRAP" "$GITHUB_WORKSPACE"
+            rm -rf "$BOOTSTRAP_DIR"
+            trap - EXIT
+          fi
       - name: 'Set up and install'
         uses: ./.github/actions/fleet/setup-and-install
         with:
@@ -276,6 +316,9 @@ jobs:
           # zizmor expression-injection). Token authorizes the fetch inline and
           # is never persisted to .git/config.
           CHECKOUT_REF: ${{ inputs.checkout-ref || github.sha }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RESUME_RESERVED: ${{ inputs.resume-reserved }}
+          WORKFLOW_SHA: ${{ github.sha }}
           GITHUB_TOKEN: ${{ github.token }}
           SERVER_URL: ${{ github.server_url }}
           REPOSITORY: ${{ github.repository }}
@@ -301,6 +344,23 @@ jobs:
             git fetch --tags "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
+          if [ "$RESUME_RESERVED" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
+            if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+              git fetch --no-tags --depth=32 origin "$FETCH_REF"
+            fi
+            git fetch --no-tags origin "$WORKFLOW_SHA"
+            BOOTSTRAP_DIR="$(mktemp -d "$GITHUB_WORKSPACE/.release-bootstrap.XXXXXX")"
+            trap 'rm -rf "$BOOTSTRAP_DIR"' EXIT
+            BOOTSTRAP="$BOOTSTRAP_DIR/fleet.mjs"
+            git show "$WORKFLOW_SHA:scripts/repo/bootstrap/fleet.mjs" > "$BOOTSTRAP"
+            node --input-type=module -e '
+              const { pathToFileURL } = await import("node:url");
+              const { migrateRuleFile } = await import(pathToFileURL(process.argv[2]).href);
+              migrateRuleFile(process.argv[3]);
+            ' release-rule-recovery "$BOOTSTRAP" "$GITHUB_WORKSPACE"
+            rm -rf "$BOOTSTRAP_DIR"
+            trap - EXIT
+          fi
 
       - name: Establish trusted release content
         id: content-trust
