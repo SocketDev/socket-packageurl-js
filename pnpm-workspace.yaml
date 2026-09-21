@@ -179,7 +179,6 @@ catalog:
   #    `"@socketsecurity/lib": "workspace:*"`, pnpm rewrites it to the
   #    pinned npm version instead of a sibling working tree.
   '@typescript/native-preview': 7.0.0-dev.20260510.1
-  'npm-run-all2': 9.0.3
 packages:
   - .config/fleet/oxlint-plugin
   - .config/fleet/oxlint-plugin/fleet/*
