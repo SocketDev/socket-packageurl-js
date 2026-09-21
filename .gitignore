@@ -152,6 +152,11 @@ pnpm-debug.log
 **/*.generated.mts
 **/*.generated.ts
 **/template/generated/**
+# <fleet-allowlist>
+!/.gitattributes
+!/.gitignore
+!/AGENTS.md
+# </fleet-allowlist>
 # <fleet-pack>
 # Fleet-pack untrack set — managed by scripts/repo/bootstrap/fleet.mjs.
 # REGENERATED from the release-bundle manifest on every hydrate; stale
@@ -2585,7 +2590,6 @@ opencode.json
 .github/local-ci.Dockerfile
 .github/zizmor.yml
 .mcp.json
-AGENTS.md
 docs/design/fleet/README.md
 docs/design/fleet/components.css
 docs/design/fleet/tokens.css
