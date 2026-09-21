@@ -15301,29 +15301,45 @@ function isRulePointer(body) {
     pointer => body === pointer || body === pointer + '\n@AGENTS.md\n',
   )
 }
-function recoverRuleAuthority(dest) {
+function committedRuleBody(dest, revision) {
   const entry = execFileSync(
     'git',
-    ['ls-tree', 'HEAD', '--', LEGACY_RULE_FILE],
+    ['ls-tree', revision, '--', LEGACY_RULE_FILE],
     {
       cwd: dest,
       encoding: 'utf8',
     },
   )
   const match = /^(100644|100755) blob ([a-f0-9]+)\tCLAUDE\.md\n$/.exec(entry)
-  if (!match)
-    throw new Error(
-      `Cannot recover engineering rules in ${dest}: HEAD:CLAUDE.md is not a regular tracked file. Restore authored AGENTS.md before continuing.`,
-    )
-  const body = execFileSync('git', ['cat-file', 'blob', match[2]], {
+  if (!match) return
+  return execFileSync('git', ['cat-file', 'blob', match[2]], {
     cwd: dest,
     encoding: 'utf8',
   })
-  if (!body.trim() || isRulePointer(body))
+}
+function recoverRuleAuthority(dest) {
+  if (committedRuleBody(dest, 'HEAD') === void 0)
     throw new Error(
-      `Cannot recover engineering rules in ${dest}: HEAD:CLAUDE.md has no authored rules. Restore authored AGENTS.md before continuing.`,
+      `Cannot recover engineering rules in ${dest}: HEAD:CLAUDE.md is not a regular tracked file. Restore authored AGENTS.md before continuing.`,
     )
-  return body
+  const revisions = execFileSync(
+    'git',
+    ['rev-list', '--first-parent', '--max-count=32', 'HEAD'],
+    {
+      cwd: dest,
+      encoding: 'utf8',
+    },
+  )
+    .trim()
+    .split(/\r?\n/)
+  for (let i = 0, { length } = revisions; i < length; i += 1) {
+    const revision = revisions[i]
+    const body = committedRuleBody(dest, revision)
+    if (body?.trim() && !isRulePointer(body)) return body
+  }
+  throw new Error(
+    `Cannot recover engineering rules in ${dest}: the latest 32 first-parent commits contain no authored CLAUDE.md. Restore authored AGENTS.md before continuing.`,
+  )
 }
 function migrateRuleFile(dest) {
   const legacy = path.join(dest, LEGACY_RULE_FILE)
