@@ -231,7 +231,9 @@
     "credentials:migrate": "node scripts/fleet/credentials/migrate.mts",
     "credentials:run": "node scripts/fleet/credentials/run.mts",
     "crates:auth": "node scripts/fleet/registry-infra/crates-io-browser-auth.mts",
-    "doctor:credentials": "node scripts/fleet/credentials/doctor.mts"
+    "doctor:credentials": "node scripts/fleet/credentials/doctor.mts",
+    "check:deadcode": "node scripts/fleet/analysis/fallow.mts deadcode",
+    "check:duplication": "node scripts/fleet/analysis/fallow.mts duplication"
   },
   "devDependencies": {
     "@bcoe/v8-coverage": "catalog:",
