@@ -183,7 +183,7 @@ jobs:
           COVERAGE_PACK_REF: ${{ inputs.coverage-tooling-ref }}
         run: &restore-reserved-coverage-tooling |
           set -euo pipefail
-          TOOLING_DIR="$(mktemp -d)"
+          TOOLING_DIR="$(mktemp -d "$GITHUB_WORKSPACE/.release-bootstrap.XXXXXX")"
           trap 'rm -rf "$TOOLING_DIR"' EXIT
           git show "$WORKFLOW_SHA:scripts/repo/bootstrap/fleet.mjs" > "$TOOLING_DIR/fleet.mjs"
           node --input-type=module - "$TOOLING_DIR" "$COVERAGE_PACK_REF" <<'NODE'
