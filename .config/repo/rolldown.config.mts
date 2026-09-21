@@ -177,7 +177,7 @@ const externals = [...builtinModules, ...builtinModules.map(m => `node:${m}`)]
  * `dist/exists.js` as separate require()-able files; consumers shouldn't have
  * to know about a shared chunk in `dist/chunks/`.
  */
-const baseConfig = {
+const baseConfig: RolldownOptions = {
   experimental: { attachDebugInfo: 'none' },
   external: externals,
   platform: 'node' as const,
