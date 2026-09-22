@@ -233,7 +233,8 @@
     "crates:auth": "node scripts/fleet/registry-infra/crates-io-browser-auth.mts",
     "doctor:credentials": "node scripts/fleet/credentials/doctor.mts",
     "check:deadcode": "node scripts/fleet/analysis/fallow.mts deadcode",
-    "check:duplication": "node scripts/fleet/analysis/fallow.mts duplication"
+    "check:duplication": "node scripts/fleet/analysis/fallow.mts duplication",
+    "sweep": "node scripts/fleet/sweep.mts"
   },
   "devDependencies": {
     "@bcoe/v8-coverage": "catalog:",

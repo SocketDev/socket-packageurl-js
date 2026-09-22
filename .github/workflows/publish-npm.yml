@@ -113,7 +113,7 @@ jobs:
     outputs:
       runner: ${{ steps.coverage_plan.outputs.runner }}
     name: Coverage plan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     steps:
       - name: Bootstrap checkout
@@ -164,7 +164,7 @@ jobs:
           fi
       - name: 'Set up and install'
         uses: ./.github/actions/fleet/setup-and-install
-        with: &coverage-setup-inputs
+        with:
           socket-api-token: ${{ inputs.checkout-ref == '' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW || '' }}
           payload-token-client-id: ${{ secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID }}
           payload-token-private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
@@ -188,8 +188,8 @@ jobs:
     outputs:
       shard-count: ${{ strategy.job-total }}
     name: Coverage collection
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -235,9 +235,11 @@ jobs:
           fi
       - name: 'Set up and install'
         uses: ./.github/actions/fleet/setup-and-install
-        with: *coverage-setup-inputs
-      - name: Build
-        run: pnpm run build
+        with:
+          socket-api-token: ${{ inputs.checkout-ref == '' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW || '' }}
+          payload-token-client-id: ${{ secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID }}
+          payload-token-private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
+          checkout-ref: ${{ inputs.checkout-ref || github.sha }}
       - name: Restore reserved coverage tooling
         if: ${{ inputs.resume-reserved == true }}
         shell: bash
@@ -305,8 +307,8 @@ jobs:
     needs: [coverage-plan, coverage-shards]
     if: ${{ !cancelled() && inputs.scan-stage-id == '' && inputs.backfill-version == '' }}
     name: Coverage gate
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
     steps:
       - name: Require successful coverage prerequisites
         shell: bash
@@ -379,8 +381,20 @@ jobs:
           payload-token-client-id: ${{ secrets.SOCKET_RELEASE_CLIENT_ID || vars.SOCKET_RELEASE_CLIENT_ID }}
           payload-token-private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
           checkout-ref: ${{ inputs.checkout-ref || github.sha }}
-      - name: Build
-        run: pnpm run build
+      - name: Setup Bun coverage runtime
+        if: ${{ needs.coverage-plan.outputs.runner == 'bun' }}
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs'
+          import path from 'node:path'
+          import { ensureTool } from './scripts/fleet/external-tools/manager.mts'
+          const result = await ensureTool('bun')
+          if (!result.available || !result.binPath) {
+            throw new Error(`Bun coverage runtime installation failed. Where: npm coverage setup. Saw: ${result.error ?? 'no executable returned'}. Wanted: the configured Bun executable. Fix: check the member tool configuration and retry.`)
+          }
+          fs.appendFileSync(process.env.GITHUB_PATH, `${path.dirname(result.binPath)}\n`)
+          NODE
       - name: 'Download coverage artifacts'
         if: ${{ needs.coverage-plan.outputs.runner == 'vitest' }}
         uses: ./.github/actions/fleet/download-artifact
@@ -427,7 +441,7 @@ jobs:
     if: ${{ always() && inputs.scan-stage-id == '' && (inputs.backfill-version != '' || needs.coverage.result == 'success') }}
     cache-mode: read
     name: Publish npm
-    runs-on: ${{ vars.NPM_PUBLISH_RUNNER || vars.ODAI_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ vars.NPM_PUBLISH_RUNNER || vars.ODAI_RUNNER || 'ubuntu-26.04' }}
     # npm's trusted-publisher config pins this GitHub environment name; the
     # OIDC token exchange 404s if the job runs outside it.
     environment: publish-npm
@@ -577,6 +591,7 @@ jobs:
           SOCKET_API_KEY: ${{ steps.content-trust.outputs.trusted == 'true' && secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW || '' }}
         with:
           cache: 'false'
+          checkout-fetch-depth: '0'
           socket-api-token: ${{ steps.content-trust.outputs.trusted == 'true' && secrets.SOCKET_API_TOKEN_FOR_CLI_AND_SFW || '' }}
           # Forward the backfill content ref — setup-and-install re-checks-out
           # internally (fleet checkout falls back to the TRIGGERING ref when
@@ -668,8 +683,8 @@ jobs:
   scan-staged-package:
     if: ${{ inputs.scan-stage-id != '' }}
     name: Scan staged npm package
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
     permissions:
       actions: read
       contents: read
