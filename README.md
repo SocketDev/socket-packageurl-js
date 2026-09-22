@@ -1,19 +1,19 @@
 # @socketregistry/packageurl-js
 
-<a href="https://socket.dev/npm/package/@socketregistry/packageurl-js"><img src="https://socket.dev/api/badge/npm/package/@socketregistry/packageurl-js" alt="Socket Badge" height="20"></a>
+<a href="https://socket.dev/npm/package/@socketregistry/packageurl-js"><img src="https://badge.socket.dev/npm/package/@socketregistry/packageurl-js" alt="Socket Badge" height="20"></a>
 <picture><img src="https://raw.githubusercontent.com/SocketDev/socket-packageurl-js/HEAD/assets/repo/coverage.svg?v=4b7ce6d0e5bf" height="20" alt="Coverage" /></picture>
 
 [![Follow @SocketSecurity](https://raw.githubusercontent.com/SocketDev/socket-packageurl-js/HEAD/assets/fleet/badge-follow-x.svg)](https://twitter.com/SocketSecurity)
 [![Follow @socket.dev on Bluesky](https://raw.githubusercontent.com/SocketDev/socket-packageurl-js/HEAD/assets/fleet/badge-follow-bluesky.svg)](https://bsky.app/profile/socket.dev)
 
-TypeScript Package URL (purl) parser and builder.
+TypeScript Package URL (PURL) parser and builder.
 Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/packageurl-js) with full type safety, zero dependencies, and spec compliance with the [Package URL specification](https://github.com/package-url/purl-spec).
 
 `@socketregistry/packageurl-js` is the Socket-maintained drop-in replacement for `packageurl-js` - same API, but ships with built-in TypeScript types, zero runtime dependencies, full [purl-spec](https://github.com/package-url/purl-spec) coverage, and first-class [VERS](https://github.com/package-url/vers-spec) support. It exists because the upstream package lacked types and a maintained tree-shakeable surface; this fork closes both gaps without breaking compatibility.
 
 ## What is a PURL?
 
-A Package URL (purl) standardizes how to identify software packages:
+A Package URL (PURL) standardizes how to identify software packages:
 
 ```text
 pkg:npm/lodash@4.17.21
@@ -307,12 +307,10 @@ PURL_Type.PYPI // 'pypi'
 
 </details>
 
-See [docs/types.md](docs/types.md) for the complete type reference.
-
 ## API Reference
 
-- **[docs/api.md](docs/api.md)** - Complete API documentation
-- **[docs/types.md](docs/types.md)** - TypeScript type reference
+- [API documentation](docs/api.md)
+- [TypeScript type reference](docs/types.md)
 
 ## Development
 
