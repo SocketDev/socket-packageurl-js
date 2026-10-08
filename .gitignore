@@ -4680,6 +4680,7 @@ scripts/fleet/weekly-update/superseded.mts
 scripts/fleet/whose-work.mts
 scripts/fleet/workflow/runs/prune.mts
 scripts/fleet/worktree-sweep.mts
+scripts/fleet/worktree/agent-scope.mts
 scripts/fleet/worktree/command.mts
 scripts/fleet/worktree/commit-equivalence.mts
 scripts/fleet/worktree/create/run.mts
