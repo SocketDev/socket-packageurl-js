@@ -10,7 +10,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import { rolldown, watch as rolldownWatch } from 'rolldown'
-import type { RolldownOutput } from 'rolldown'
+import type { InputOptions, RolldownOutput } from 'rolldown'
 import colors from 'yoctocolors-cjs'
 
 import { isWin32 } from '@socketsecurity/lib-stable/constants/platform'
@@ -103,11 +103,9 @@ export async function buildSource(
 
     for (let i = 0, { length } = rolldownConfigs; i < length; i += 1) {
       const config = rolldownConfigs[i]!
-      const buildConfig = {
-        __proto__: null,
+      const buildConfig: InputOptions = {
         ...config,
         experimental: {
-          __proto__: null,
           ...config.experimental,
           attachDebugInfo: 'none',
         },
