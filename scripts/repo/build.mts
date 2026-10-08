@@ -103,7 +103,16 @@ export async function buildSource(
 
     for (let i = 0, { length } = rolldownConfigs; i < length; i += 1) {
       const config = rolldownConfigs[i]!
-      const bundle = await rolldown(config)
+      const buildConfig = {
+        __proto__: null,
+        ...config,
+        experimental: {
+          __proto__: null,
+          ...config.experimental,
+          attachDebugInfo: 'none' as const,
+        },
+      }
+      const bundle = await rolldown(buildConfig)
       const output = config.output
       if (!output || Array.isArray(output)) {
         throw new Error('Expected single output config per entry')
