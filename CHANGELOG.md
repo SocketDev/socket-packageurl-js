@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.6.0](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.6.0) - 2026-10-08
+
+### Fixed
+
+- **`build`** — type rolldown options explicitly
+- **`build`** — preserve rolldown debug option type
+- **`purl-spec`** — correct fleet sparse helper import
+- **`packageurl`** — lock hydrated fleet hooks
+- **`packageurl`** — update socket lib pin
+- **`build`** — align packageurl bundle debug settings
+- **`packageurl`** — align config and fleet imports
+- **`build`** — type shared rolldown options
+- **`release`** — verify reserved coverage source and tooling
+- **`release`** — verify reserved coverage source and tooling
+- **`build`** — preserve rolldown debug option type
+- **`release`** — accept generated publish task names
+
 ## [1.5.3](https://github.com/SocketDev/socket-packageurl-js/releases/tag/v1.5.3) - 2026-09-21
 
 ### Added
