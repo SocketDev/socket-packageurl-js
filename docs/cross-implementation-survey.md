@@ -87,7 +87,7 @@ suite. All pass in this repo unless noted:
   both are defensible - the spec does not mandate one).
 - Invalid golang versions starting with `v` are rejected with a clean
   `PurlError` (upstream packageurl-js#87 was a `ReferenceError: throws is not
-defined` crash in the same code path - we do not share that bug).
+  defined` crash in the same code path - we do not share that bug).
 
 ## Worth adding upstream coverage for
 
