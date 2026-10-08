@@ -109,7 +109,7 @@ export async function buildSource(
         experimental: {
           __proto__: null,
           ...config.experimental,
-          attachDebugInfo: 'none' as const,
+          attachDebugInfo: 'none',
         },
       }
       const bundle = await rolldown(buildConfig)
