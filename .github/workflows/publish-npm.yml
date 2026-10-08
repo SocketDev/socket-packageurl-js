@@ -1,7 +1,7 @@
 name: 'publish: npm'
 run-name: 'publish: npm (${{ inputs.coordinator-id || inputs.task-name }})'
 
-# Seeded once for each npm-publishing repo. The repo owns this workflow.
+# Fleet-canonical publish workflow with one repo-owned step cutout.
 # The shared publish script owns the packaging and upload checks. The shell:
 # checkout → setup-and-install → build → scripts/fleet/npm/publish/run-cli.mts, which
 # owns what + how the repo publishes.
@@ -72,12 +72,10 @@ on:
           content is published while the workflow definition stays on main.
         type: string
         default: ''
-      resume-reserved:
+      resume-publish:
         description: >-
-          Resume an unpublished signed bump on the default branch. Leave
-          checkout-ref empty when the signed bump is the dispatched HEAD, or
-          supply its exact commit SHA after a workflow repair. An existing
-          vVERSION tag may also be selected.
+          Resume publishing after squash-merging the release PR. Keep its title
+          unchanged and dispatch from the default branch with checkout-ref empty.
         type: boolean
         default: false
       coverage-tooling-ref:
@@ -131,7 +129,7 @@ jobs:
         env: &coverage-bootstrap-env
           CHECKOUT_REF: ${{ inputs.checkout-ref || github.sha }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          RESUME_RESERVED: ${{ inputs.resume-reserved }}
+          RESUME_PUBLISH: ${{ inputs.resume-publish }}
           WORKFLOW_SHA: ${{ github.sha }}
           GITHUB_TOKEN: ${{ github.token }}
           SERVER_URL: ${{ github.server_url }}
@@ -155,7 +153,7 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
-          if [ "$RESUME_RESERVED" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
+          if [ "$RESUME_PUBLISH" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
             if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
               git fetch --no-tags --depth=32 origin "$FETCH_REF"
             fi
@@ -270,7 +268,7 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
-          if [ "$RESUME_RESERVED" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
+          if [ "$RESUME_PUBLISH" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
             if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
               git fetch --no-tags --depth=32 origin "$FETCH_REF"
             fi
@@ -301,7 +299,7 @@ jobs:
           payload-token-private-key: ${{ secrets.SOCKET_RELEASE_APP_PRIVATE_KEY }}
           checkout-ref: ${{ inputs.checkout-ref || github.sha }}
       - name: Restore reserved coverage tooling
-        if: ${{ inputs.resume-reserved == true }}
+        if: ${{ inputs.resume-publish == true }}
         shell: bash
         env:
           WORKFLOW_SHA: ${{ github.sha }}
@@ -342,6 +340,9 @@ jobs:
       - name: Build
         if: ${{ needs.coverage-plan.outputs.shared-build != 'true' }}
         run: pnpm run build
+      # repo-cutout: coverage-shards-build
+      # <repo>
+      # </repo>
       - name: 'Run coverage'
         id: coverage_collection
         uses: ./.github/actions/fleet/run-script
@@ -397,7 +398,7 @@ jobs:
         env:
           CHECKOUT_REF: ${{ inputs.checkout-ref || github.sha }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          RESUME_RESERVED: ${{ inputs.resume-reserved }}
+          RESUME_PUBLISH: ${{ inputs.resume-publish }}
           WORKFLOW_SHA: ${{ github.sha }}
           GITHUB_TOKEN: ${{ github.token }}
           SERVER_URL: ${{ github.server_url }}
@@ -421,7 +422,7 @@ jobs:
             git fetch "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
-          if [ "$RESUME_RESERVED" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
+          if [ "$RESUME_PUBLISH" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
             if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
               git fetch --no-tags --depth=32 origin "$FETCH_REF"
             fi
@@ -488,7 +489,7 @@ jobs:
             cp -R "$source/." "$target/"
           done
       - name: Restore reserved coverage tooling
-        if: ${{ inputs.resume-reserved == true }}
+        if: ${{ inputs.resume-publish == true }}
         shell: bash
         env:
           WORKFLOW_SHA: ${{ github.sha }}
@@ -500,6 +501,9 @@ jobs:
       - name: Build
         if: ${{ needs.coverage-plan.outputs.shared-build != 'true' }}
         run: pnpm run build
+      # repo-cutout: coverage-final-build
+      # <repo>
+      # </repo>
       - name: Aggregate coverage
         if: ${{ needs.coverage-plan.outputs.runner == 'vitest' }}
         env:
@@ -543,7 +547,7 @@ jobs:
           # is never persisted to .git/config.
           CHECKOUT_REF: ${{ inputs.checkout-ref || github.sha }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-          RESUME_RESERVED: ${{ inputs.resume-reserved }}
+          RESUME_PUBLISH: ${{ inputs.resume-publish }}
           WORKFLOW_SHA: ${{ github.sha }}
           GITHUB_TOKEN: ${{ github.token }}
           SERVER_URL: ${{ github.server_url }}
@@ -570,7 +574,7 @@ jobs:
             git fetch --tags "${FETCH_ARGS[@]}"
           fi
           git checkout -q --detach FETCH_HEAD
-          if [ "$RESUME_RESERVED" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
+          if [ "$RESUME_PUBLISH" = "true" ] && [ "$TRIGGER_REF" = "refs/heads/$DEFAULT_BRANCH" ]; then
             if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
               git fetch --no-tags --depth=32 origin "$FETCH_REF"
             fi
@@ -596,7 +600,7 @@ jobs:
           CHECKOUT_REF: ${{ inputs.checkout-ref }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           DISPATCH_REF: ${{ github.ref }}
-          RESUME_RESERVED: ${{ inputs.resume-reserved }}
+          RESUME_PUBLISH: ${{ inputs.resume-publish }}
           GITHUB_TOKEN: ${{ github.token }}
           SERVER_URL: ${{ github.server_url }}
         run: |
@@ -609,7 +613,7 @@ jobs:
             echo "trusted=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if [ "$RESUME_RESERVED" != "true" ] || [ -n "$BACKFILL_VERSION" ] || [[ ! "$CHECKOUT_REF" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?|[a-f0-9]{40})$ ]]; then
+          if [ "$RESUME_PUBLISH" != "true" ] || [ -n "$BACKFILL_VERSION" ] || [[ ! "$CHECKOUT_REF" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?|[a-f0-9]{40})$ ]]; then
             echo "trusted=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -692,10 +696,11 @@ jobs:
           PUBLISH_TASK_NAME: ${{ inputs.task-name }}
         run: node scripts/fleet/registry/npm/publish-dispatch-context.mts --name "$PUBLISH_TASK_NAME"
       - name: Validate reserved release resume
-        if: ${{ inputs.resume-reserved == true }}
+        if: ${{ inputs.resume-publish == true }}
         env:
           BACKFILL_VERSION: ${{ inputs.backfill-version }}
           CHECKOUT_REF: ${{ inputs.checkout-ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           DISPATCH_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
@@ -704,29 +709,36 @@ jobs:
             echo "::error::Reserved release resume cannot use backfill-version." >&2
             exit 1
           fi
-          HEAD_SHA="$(git rev-parse HEAD)"
-          if [ -z "$CHECKOUT_REF" ]; then
-            if [ "$HEAD_SHA" != "$DISPATCH_SHA" ] || [ "$(git log -1 --format=%s)" != "chore: bump version to $VERSION" ]; then
-              echo "::error::Reserved release resume requires the exact signed bump commit dispatched from the default branch." >&2
-              exit 1
-            fi
-          else
-            if [[ "$CHECKOUT_REF" =~ ^[a-f0-9]{40}$ ]]; then
-              SOURCE_SHA="$CHECKOUT_REF"
-            elif [ "$CHECKOUT_REF" = "v$VERSION" ]; then
-              SOURCE_SHA="$(git rev-parse "$CHECKOUT_REF^{commit}")"
-            else
-              echo "::error::Reserved release resume requires checkout-ref v$VERSION, a full commit SHA, or an empty checkout-ref." >&2
-              exit 1
-            fi
-            if [ "$HEAD_SHA" != "$SOURCE_SHA" ] || [ "$(git log -1 --format=%s)" != "chore: bump version to $VERSION" ]; then
-              echo "::error::Reserved release resume checked out $HEAD_SHA, but $CHECKOUT_REF is not its signed bump source." >&2
-              exit 1
-            fi
+          if [ -n "$CHECKOUT_REF" ]; then
+            echo "::error::Reserved release resume must use the merged default-branch source; checkout-ref must be empty." >&2
+            exit 1
           fi
+          if [ "$GITHUB_REF" != "refs/heads/$DEFAULT_BRANCH" ]; then
+            echo "::error::Reserved release resume must run from the default branch." >&2
+            exit 1
+          fi
+          HEAD_SHA="$(git rev-parse HEAD)"
+          if [ "$HEAD_SHA" != "$DISPATCH_SHA" ]; then
+            echo "::error::Reserved release resume did not check out the dispatched default-branch source." >&2
+            exit 1
+          fi
+          BUMP_SUBJECT="$(git log -1 --format=%s --fixed-strings --grep="chore: bump version to $VERSION" HEAD)"
+          if [ "$BUMP_SUBJECT" != "chore: bump version to $VERSION" ]; then
+            echo "::error::Default-branch history does not contain the signed bump commit for $VERSION. Merge its release PR first." >&2
+            exit 1
+          fi
+          BUMP_SHA="$(git log -1 --format=%H --fixed-strings --grep="chore: bump version to $VERSION" HEAD)"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Reserved release resume requires a clean checkout." >&2
+            exit 1
+          fi
+          echo "[reserved-bump] $BUMP_SHA"
           echo "[reserved-source] $HEAD_SHA"
       - name: Build
         run: node scripts/fleet/build/production.mts
+      # repo-cutout: publish-build
+      # <repo>
+      # </repo>
       - name: Stage verified native artifacts
         env:
           GH_TOKEN: ${{ github.token }}
@@ -740,7 +752,7 @@ jobs:
       - name: Validate repository publish contract
         run: pnpm run --if-present prepublish:check
       - name: Set up odai
-        if: ${{ inputs.backfill-version == '' && inputs.resume-reserved != true }}
+        if: ${{ inputs.backfill-version == '' && inputs.resume-publish != true }}
         uses: ./.github/actions/fleet/setup-odai
         with:
           allow-fill: 'true'
@@ -766,12 +778,12 @@ jobs:
       - name: Publish
         env:
           BACKFILL_VERSION: ${{ inputs.backfill-version }}
-          CHECKOUT_REF: ${{ inputs.resume-reserved != true && inputs.checkout-ref || '' }}
+          CHECKOUT_REF: ${{ inputs.resume-publish != true && inputs.checkout-ref || '' }}
           DIST_TAG: ${{ inputs.dist-tag }}
           NIGHTLY_VERSION: ${{ inputs.nightly-version }}
           PR_APP_TOKEN: ${{ steps.pr-branch-app.outputs.token }}
           RELEASE_AS: ${{ inputs.release-as }}
-          RESUME_RESERVED: ${{ inputs.resume-reserved }}
+          RESUME_PUBLISH: ${{ inputs.resume-publish }}
           RELEASE_APP_TOKEN: ${{ steps.release-app.outputs.token }}
           GH_TOKEN: ${{ steps.release-app.outputs.token }}
         # CHECKOUT_REF forwards on its own so a checkout-ref dispatch WITHOUT
@@ -783,7 +795,7 @@ jobs:
           if [ -n "$CHECKOUT_REF" ]; then args+=(--checkout-ref "$CHECKOUT_REF"); fi
           if [ -n "$RELEASE_AS" ]; then args+=(--release-as "$RELEASE_AS"); fi
           if [ -n "$NIGHTLY_VERSION" ]; then args+=(--nightly-version "$NIGHTLY_VERSION"); fi
-          if [ "$RESUME_RESERVED" = true ]; then args+=(--resume-reserved); fi
+          if [ "$RESUME_PUBLISH" = true ]; then args+=(--resume-publish); fi
           node scripts/fleet/npm/publish/run-cli.mts "${args[@]}"
 
   scan-staged-package:
@@ -920,6 +932,9 @@ jobs:
           PUBLISH_TASK_NAME: ${{ inputs.task-name }}
           SCAN_PACKAGE: ${{ inputs.scan-package }}
         run: node scripts/fleet/registry/npm/publish-dispatch-context.mts --name "$PUBLISH_TASK_NAME" --package "$SCAN_PACKAGE"
+      # repo-cutout: scan-build
+      # <repo>
+      # </repo>
       - name: Scan exact staged bytes
         id: scan
         env:

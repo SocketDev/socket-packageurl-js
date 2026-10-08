@@ -1,16 +1,3 @@
-* text=auto eol=lf
-
-# Plugin-patch artifacts under scripts/plugin-patches/ — the `*.files/`
-# trees are vendored copies of a plugin's source with our patch applied,
-# and `*.patch` files are the generated diffs. Neither is hand-authored
-# first-party code; mark generated + non-diffable so GitHub PR views
-# collapse them and diffs don't drown in vendored churn.
-**/plugin-patches/**/*.files/** linguist-generated=true
-**/plugin-patches/**/*.files/** -diff
-**/plugin-patches/**/*.patch linguist-generated=true
-**/plugin-patches/**/*.patch -diff
-
-# <fleet>
 # Cascaded from socket-wheelhouse/template/base/universal/. Don't edit locally —
 # edit upstream and re-cascade via commit-cascade. Marked
 # linguist-generated so GitHub PR diffs collapse them by default.
@@ -158,6 +145,16 @@ test/fleet/unit/registry/cargo/placeholder.test.mts linguist-generated=true
 test/fleet/unit/registry/npm/placeholder.test.mts linguist-generated=true
 test/fleet/unit/setup/lib/pnpm-path.test.mts linguist-generated=true
 *.patch whitespace=-blank-at-eol,-space-before-tab
-# </fleet>
 # <repo>
+* text=auto eol=lf
+
+# Plugin-patch artifacts under scripts/plugin-patches/ — the `*.files/`
+# trees are vendored copies of a plugin's source with our patch applied,
+# and `*.patch` files are the generated diffs. Neither is hand-authored
+# first-party code; mark generated + non-diffable so GitHub PR views
+# collapse them and diffs don't drown in vendored churn.
+**/plugin-patches/**/*.files/** linguist-generated=true
+**/plugin-patches/**/*.files/** -diff
+**/plugin-patches/**/*.patch linguist-generated=true
+**/plugin-patches/**/*.patch -diff
 # </repo>
