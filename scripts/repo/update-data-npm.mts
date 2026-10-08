@@ -17,7 +17,7 @@ import { confirm } from '@socketsecurity/lib-stable/stdio/prompts'
 import { gte } from '@socketsecurity/lib-stable/versions/compare'
 
 import { isMainModule } from '../fleet/process/is-main-module.mts'
-import { runMain } from '../fleet/process/run-main.mts'
+import { runMain } from '../fleet/process/main/run.mts'
 
 const logger = getDefaultLogger()
 

@@ -27,7 +27,7 @@ import { PURL_DIST_ENTRY } from './paths.mts'
 import { runSequence } from './utils/run-command.mts'
 
 import { isMainModule } from '../fleet/process/is-main-module.mts'
-import { runMain } from '../fleet/process/run-main.mts'
+import { runMain } from '../fleet/process/main/run.mts'
 
 const logger: Logger = getDefaultLogger()
 

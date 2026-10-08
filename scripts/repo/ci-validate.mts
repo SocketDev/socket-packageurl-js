@@ -15,7 +15,7 @@ import { printHeader } from '@socketsecurity/lib-stable/stdio/header'
 import { errorMessage } from './utils/error-message.mts'
 
 import { isMainModule } from '../fleet/process/is-main-module.mts'
-import { runMain } from '../fleet/process/run-main.mts'
+import { runMain } from '../fleet/process/main/run.mts'
 
 const logger: Logger = getDefaultLogger()
 

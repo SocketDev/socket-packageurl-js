@@ -39,7 +39,7 @@ import { parseGitmodules } from '../fleet/git/modules.mts'
 import { applySparsePatterns } from '../fleet/git-partial-submodule/internal.mts'
 import { SOAK_DAYS } from '../fleet/constants/soak.mts'
 import { isMainModule } from '../fleet/process/is-main-module.mts'
-import { runMain } from '../fleet/process/run-main.mts'
+import { runMain } from '../fleet/process/main/run.mts'
 
 const logger: Logger = getDefaultLogger()
 

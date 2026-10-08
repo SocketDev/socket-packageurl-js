@@ -6,7 +6,7 @@ import { spawn } from '@socketsecurity/lib-stable/process/spawn/child'
 
 import { parseGitmodules } from '../../fleet/git/modules.mts'
 import { isMainModule } from '../../fleet/process/is-main-module.mts'
-import { runMain } from '../../fleet/process/run-main.mts'
+import { runMain } from '../../fleet/process/main/run.mts'
 import { getScriptArgs } from '../../fleet/process/script-output.mts'
 import type { ScriptResult } from '../../fleet/process/script-result.mts'
 import {
