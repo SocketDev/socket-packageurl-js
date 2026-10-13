@@ -73,6 +73,10 @@ pnpm install @socketregistry/packageurl-js
 
 ## Usage
 
+### Documentation
+
+See the [API reference](./docs/api.md) for parser, builder, converter, VERS, and registry-check functions. The [type reference](./docs/types.md) describes PURL objects, parsed components, and result shapes.
+
 ### Modular Functions (Tree-shakeable)
 
 **Parse npm specifiers:**
@@ -306,11 +310,6 @@ PURL_Type.PYPI // 'pypi'
 ```
 
 </details>
-
-## API Reference
-
-- [API documentation](docs/api.md)
-- [TypeScript type reference](docs/types.md)
 
 ## Development
 
