@@ -11,7 +11,29 @@ Drop-in replacement for [`packageurl-js`](https://socket.dev/npm/package/package
 
 `@socketregistry/packageurl-js` is the Socket-maintained drop-in replacement for `packageurl-js` - same API, but ships with built-in TypeScript types, zero runtime dependencies, full [purl-spec](https://github.com/package-url/purl-spec) coverage, and first-class [VERS](https://github.com/package-url/vers-spec) support. It exists because the upstream package lacked types and a maintained tree-shakeable surface; this fork closes both gaps without breaking compatibility.
 
-## What is a PURL?
+## Install
+
+```sh
+pnpm install @socketregistry/packageurl-js
+```
+
+**Drop-in replacement** via package override:
+
+```json
+{
+  "pnpm": {
+    "overrides": {
+      "packageurl-js": "npm:@socketregistry/packageurl-js@^1"
+    }
+  }
+}
+```
+
+**Requirements**: Node >= 18.20.8
+
+## Usage
+
+### What is a PURL?
 
 A Package URL (PURL) standardizes how to identify software packages:
 
@@ -37,7 +59,7 @@ pkg:maven/org.springframework/spring-core@5.3.21
 
 **Supports 40+ ecosystems**: npm, pypi, maven, gem, cargo, nuget, composer, golang, docker, and more.
 
-## Features
+### Features
 
 - ✅ **Modular & tree-shakeable** - Import only what you need
 - ✅ **Full TypeScript support** - Comprehensive type exports
@@ -51,27 +73,9 @@ pkg:maven/org.springframework/spring-core@5.3.21
 - ✅ **Immutable updates** - `withVersion`, `withNamespace`, `withQualifier`, `withQualifiers`, `withSubpath`
 - ✅ **Result-based parsing** - `tryFromString`, `tryFromJSON`, `tryFromObject`, `isValid`, `fromUrl`
 
-## Install
+### Documentation
 
-```sh
-pnpm install @socketregistry/packageurl-js
-```
-
-**Drop-in replacement** via package override:
-
-```json
-{
-  "pnpm": {
-    "overrides": {
-      "packageurl-js": "npm:@socketregistry/packageurl-js@^1"
-    }
-  }
-}
-```
-
-**Requirements**: Node >= 18.20.8
-
-## Usage
+See the [API reference](./docs/api.md) for parser, builder, converter, VERS, and registry-check functions. The [type reference](./docs/types.md) describes PURL objects, parsed components, and result shapes.
 
 ### Documentation
 
