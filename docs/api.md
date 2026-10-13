@@ -2,6 +2,11 @@
 
 Complete API documentation for `@socketregistry/packageurl-js`.
 
+The root package exports PURL parsing, construction, comparison, normalization,
+VERS matching, and ecosystem helpers. Registry existence checks use the
+separate `@socketregistry/packageurl-js/exists` entrypoint so consumers of the
+core parser do not include the HTTP dependencies used for registry requests.
+
 ## Table of Contents
 
 - [Modular Functions](#modular-functions)
@@ -10,6 +15,7 @@ Complete API documentation for `@socketregistry/packageurl-js`.
 - [UrlConverter Class](#urlconverter-class)
 - [Registry Existence Checks](#registry-existence-checks)
 - [Type Constants](#type-constants)
+- [Entry Points and Integration](#entry-points-and-integration)
 
 ---
 
@@ -1142,3 +1148,19 @@ failure.unwrap() // throws Error
 ```
 
 See [types.md](types.md) for complete type definitions.
+
+## Entry Points and Integration
+
+| Import path                            | Contents                                                                                                           | Runtime boundary                                              |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| `@socketregistry/packageurl-js`        | `PackageURL`, `PurlBuilder`, `UrlConverter`, PURL helpers, `Vers`, and core types.                                 | Core parser and builder entrypoint.                           |
+| `@socketregistry/packageurl-js/exists` | `purlExists` and type-specific registry functions such as `npmExists`, `mavenExists`, and `vscodeExtensionExists`. | Separate entrypoint that includes registry HTTP dependencies. |
+
+The default export map is defined in [`package.json`](../package.json). See
+[`types.md`](./types.md) for the `PackageURLObject`, parsed tuple,
+`NpmPackageComponents`, and result contracts. See [`vers.md`](./vers.md) for
+supported VERS schemes, matching examples, and pre-standard limitations.
+
+The core `PurlType` registry defines normalization and validation hooks for
+ecosystem-specific PURLs. Existing examples cover npm, PyPI, Maven, and Cargo.
+The implementation for each registered type is under [`src/purl-types`](../src/purl-types/).
