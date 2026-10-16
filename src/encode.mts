@@ -3,7 +3,7 @@
  *   for names, namespaces, versions, qualifiers, and subpaths.
  */
 import { isObject } from './objects.mjs'
-import { ArrayPrototypeToSorted } from '@socketsecurity/lib/primordials/array'
+import { arrayToSorted } from '@socketsecurity/lib/polyfills/array'
 import { encodeURIComponent as GlobalEncodeUriComponent } from '@socketsecurity/lib/primordials/globals'
 import { ObjectKeys } from '@socketsecurity/lib/primordials/object'
 import {
@@ -96,9 +96,7 @@ export function encodeQualifierParam(param: unknown): string {
 export function encodeQualifiers(qualifiers: unknown): string {
   if (isObject(qualifiers)) {
     // Sort this list of qualifier strings lexicographically
-    const qualifiersKeys: string[] = ArrayPrototypeToSorted(
-      ObjectKeys(qualifiers),
-    )
+    const qualifiersKeys: string[] = arrayToSorted(ObjectKeys(qualifiers))
     const searchParams = new URLSearchParamsCtor()
     for (let i = 0, { length } = qualifiersKeys; i < length; i += 1) {
       const key = qualifiersKeys[i]!

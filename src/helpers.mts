@@ -2,10 +2,8 @@
  * @file Helper function for creating namespace objects. Organizes helper
  *   functions by property names with configurable defaults and sorting.
  */
-import {
-  ArrayPrototypeFlatMap,
-  ArrayPrototypeToSorted,
-} from '@socketsecurity/lib/primordials/array'
+import { arrayToSorted } from '@socketsecurity/lib/polyfills/array'
+import { ArrayPrototypeFlatMap } from '@socketsecurity/lib/primordials/array'
 import { SetCtor } from '@socketsecurity/lib/primordials/map-set'
 import {
   ObjectCreate,
@@ -30,9 +28,9 @@ export function createHelpersNamespaceObject(
   } as Record<string, unknown> & {
     comparator?: ((_a: string, _b: string) => number) | undefined
   }
-  const helperNames: string[] = ArrayPrototypeToSorted(ObjectKeys(helpers))
+  const helperNames: string[] = arrayToSorted(ObjectKeys(helpers))
   // Collect all unique property names from all helper objects
-  const propNames: string[] = ArrayPrototypeToSorted(
+  const propNames: string[] = arrayToSorted(
     [
       ...new SetCtor(
         ArrayPrototypeFlatMap(

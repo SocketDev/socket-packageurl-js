@@ -77,10 +77,6 @@ pkg:maven/org.springframework/spring-core@5.3.21
 
 See the [API reference](./docs/api.md) for parser, builder, converter, VERS, and registry-check functions. The [type reference](./docs/types.md) describes PURL objects, parsed components, and result shapes.
 
-### Documentation
-
-See the [API reference](./docs/api.md) for parser, builder, converter, VERS, and registry-check functions. The [type reference](./docs/types.md) describes PURL objects, parsed components, and result shapes.
-
 ### Modular Functions (Tree-shakeable)
 
 **Parse npm specifiers:**

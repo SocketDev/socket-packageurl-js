@@ -132,3 +132,12 @@ jobs:
         with:
           setup-script: pnpm run build
           main-script: pnpm run test --ci
+      - name: Set up Node.js 18.20.8
+        uses: ./.github/actions/fleet/setup
+        with:
+          node-version: '18.20.8'
+      - name: Verify the built package on Node.js 18.20.8
+        run: >-
+          node -e "const { PackageURL } = require('./dist/index.js'); new
+          PackageURL('npm', undefined, 'lodash', '1.0.0', { key: 'value' },
+          undefined).toString()"
